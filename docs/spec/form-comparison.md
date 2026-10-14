@@ -237,7 +237,7 @@ The combinations run against a local stack built from the checkout
 of `src/record-contract.mjs` against all five servers started from the checkout, each case with
 its own timeout. Both local checks first build the server programs, each as a step without a time
 limit that prints its progress: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
-Rust manifests name), both PHP extensions, the PHP validator copy, the Go binary and the Rust
+Rust manifests name), both PHP extensions, the Go binary and the Rust
 debug binary. The local stack then starts its five processes at the same time and its browser.
 A process start and the browser start are long operations without a limit: each ends at its
 readiness event or its launch and prints a line with its elapsed time every 15 seconds while it
@@ -328,19 +328,18 @@ canonical page uses the record resource above. PHP, the PHP extension, Go and Ru
 implement the same compile, render, validation, persistence and SSR request contract. Each server uses its own
 generator and validator. The PHP extension process loads `crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension.
-The PHP process reads the validator installation directory from
-`vendor/composer/installed.php` in the checkout.
-This file is the authoritative installed-package record for the selected
-generator autoloader. Records registered by other Composer installations do not
-affect package selection. The record file, installation directory and validator
-class must use regular paths without symbolic links. The validator class must
-match the corresponding source file in the checkout. The process
-rejects a missing or malformed selected package record, an external installation
-directory or a different installed file.
+Both PHP processes load the Composer autoloader of the checkout, whose root `composer.json` requires
+the validator and the generator through path repositories, so each package is its own source
+directory and its own `composer.json` declares its classes. In the PHP extension process every
+declared class under `Polyspec\Crudui\`, other than the classes of the form comparison under
+`Polyspec\Crudui\FormComparison\`, must be internal to the extension (`ReflectionClass::isInternal()`):
+the process checks it when it starts its generation and again before each response, and a class
+that PHP loaded from a source file instead fails the request with HTTP 500 and the name of that
+class. The PHP extension therefore never falls back to the PHP library.
 Every PHP provenance response from health, generation and SSR reports `Generator`
-and `Form` from the generator source directory and `Validator` from the selected
-Composer installation directory. Result verification uses one class location contract and
-accepts only these reported locations.
+and `Form` from the generator source directory and `Validator` from the validator source directory
+in the PHP process, and the extension in the PHP extension process. Result verification uses one
+class location contract and accepts only these reported locations.
 
 The public API accepts only
 `/api/{server}/{action}/{renderingPath}/{framework}`. A stack runs
