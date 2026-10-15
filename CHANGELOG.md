@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The form template decoder (C14.37)
+
+- `@polyspec/crudui-generator-core` exports `decodeFormTemplate(value)`, which checks the parsed JSON of a compiled form template against `contracts/schema/form-template.schema.json` with ajv and returns it as a `FormTemplate`, and `FormTemplateError`, the `FormInputError` that it throws with the JSON Pointer of the first invalid member in `pointer`. The package depends on ajv (C14.37).
+
 ### 2026-10-15 — kit 0.0.48 (C14.36)
 
 - crudui pins `@polyspec/kit` 0.0.48. Each checkout runs the Node.js 26.12.0 of `mise.toml`, which `make install-tools TOOLS=npm` installs into `var/tools` with mise; `.node-version` is gone, and `engines.node` of every `package.json` is `>=26.12.0`. Each recipe of the Makefile starts node, go and Composer by their absolute paths (`$(NODE)`, `$(GO)`, `$(COMPOSER)`), and the workflows pin actions/checkout v7.0.1, actions/setup-node v7.1.0 and shivammathur/setup-php 2.40.0 by full SHA (kit K169, K171) (C14.36).

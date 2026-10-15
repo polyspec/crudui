@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9fa189039db33767b20abdbb8fe11c1be298e1b00d6373b88848ec8465931136 -->
+<!-- source-sha256: c1510482811376563c6a2d2d6b9addae7d12206c0d93b5dc3504430ff92778a8 -->
 
 ## Unreleased
+
+### 2026-10-15 — 폼 템플릿 decoder (C14.37)
+
+- `@polyspec/crudui-generator-core`는 `decodeFormTemplate(value)`와 `FormTemplateError`를 export한다. `decodeFormTemplate`은 컴파일된 폼 템플릿의 파싱한 JSON을 `contracts/schema/form-template.schema.json`에 대해 ajv로 검사하고 `FormTemplate`으로 돌려주며, `FormTemplateError`는 그것이 첫 번째로 잘못된 멤버의 JSON Pointer를 `pointer`에 담아 던지는 `FormInputError`다. 패키지는 ajv에 의존한다(C14.37).
 
 ### 2026-10-15 — kit 0.0.48 (C14.36)
 

@@ -227,6 +227,9 @@ export type CreateFormOptions = Pick<BindFormOptions, 'language' | 'keyPrefix' |
 export function createRowKey(): string;
 
 // @public
+export function decodeFormTemplate(value: unknown): FormTemplate;
+
+// @public
 export interface DetailFieldVM extends CellVM {
     key: string;
     label: string;
@@ -368,6 +371,12 @@ export interface FormTemplate {
     readonly fields: readonly FormFieldTemplate[];
     readonly keyPrefix?: string;
     readonly kind: 'crudui/form-template';
+}
+
+// @public
+export class FormTemplateError extends FormInputError {
+    constructor(pointer: string, rule: string);
+    readonly pointer: string;
 }
 
 // @public

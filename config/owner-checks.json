@@ -149,7 +149,8 @@
     },
     {
       "paths": [
-        "packages/generator/ts/**"
+        "packages/generator/ts/**",
+        "contracts/schema/form-template.schema.json"
       ],
       "scripts": [
         "test:forms"
