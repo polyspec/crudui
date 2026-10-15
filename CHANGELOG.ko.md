@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fa5a8900664e2ed1201230ad98862be766ec6c35ad9482a74c91d1e108b233d6 -->
+<!-- source-sha256: abc23b8008d0e1a30ebabe7d650a03a1eae02d330ae6f9575ffbd6d366e0c5b4 -->
 
 ## Unreleased
+
+### 2026-10-15 — 0.0.x의 local link (C14.51)
+
+- `AGENTS.md`와 `AGENTS.ko.md`는 polyspec version이 0.0.x인 동안 개발 checkout이 kit의 `docs/plans/local-links.md`가 설명하는 대로 설치된 polyspec package를 그 source에 link하며 link는 commit하지 않는다고 적는다(C14.51).
 
 ### 2026-10-15 — 파일을 감시하지 않는 browser test (C14.47)
 
