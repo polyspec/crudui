@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 2c240bcdf3d8012e28b8de5d75a19a5e8a983957f6772b1eb3cbdf5d92bd7939 -->
+<!-- source-sha256: 456183e1f85ef3bb25b113840d0d6fb268183ba54f12f0a36b9853fd4c10e71c -->
 
 [English](testing.md).
 
@@ -151,8 +151,8 @@ make docs-check
 [사례 계약](../spec/test-fixtures.ko.md)의 공통 사례를 실행합니다. 구현 간 일치뿐
 아니라 기대 검증 결과 또는 전체 실패 기록을 비교합니다. 패키지 검사는 export 파일,
 선언·설치 컴파일·프로덕션 렌더링을 확인합니다. PHP 검사는 개발 root의 `composer install`이 설치하는 root `vendor/`의 PHPUnit을
-실행합니다. Composer script와 make 대상이 `COMPOSER_VENDOR_DIR=../../../vendor`를 설정하고, `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit`은 `--cwd`를
-기준으로 그 값에서 vendor directory를 읽습니다.
+실행합니다. `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit`은 `--cwd`이거나 그 위에 있고 PHPUnit을 가진 가장 가까운 Composer project의
+PHPUnit을 실행하며, `packages/`의 모든 package에서는 root입니다(kit K186).
 
 ## 린트
 

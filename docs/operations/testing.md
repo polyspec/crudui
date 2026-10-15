@@ -179,8 +179,8 @@ make docs-check
 
 Validator package suites run the shared fixtures described in the
 [fixture contract](../spec/test-fixtures.md). The PHP suites run the PHPUnit of the root `vendor/`, which
-`composer install` of the development root installs: the Composer scripts and the make targets set
-`COMPOSER_VENDOR_DIR=../../../vendor`, and `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit` reads the vendor directory from it relative to `--cwd`.
+`composer install` of the development root installs: `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit` runs the PHPUnit of
+the nearest Composer project at or above `--cwd` that has one, the root for every package of `packages/` (kit K186).
 Compare the expected validation result or complete failure record, not only
 agreement between implementations. Package checks verify exported files, declarations,
 install compilation and production rendering.

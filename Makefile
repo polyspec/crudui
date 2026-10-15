@@ -159,10 +159,10 @@ install-go-modules: ## Download the modules that the Go workspace requires; ONLI
 
 # The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
 # the Cargo lock of the Rust record server reads it.
-# make install-packages runs it before the package of kit, and so the $(NODE) of kit.mk, is installed: it starts the
-# node that make install-tools TOOLS=npm installed by that absolute path.
+# make install-packages runs it before the package of kit is installed; kit-bootstrap.mk defines $(NODE) then too (kit
+# K185).
 install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
-	$(ONLINE) $(CURDIR)/var/tools/bin/node examples/form-comparison/install-ordered-json.mjs
+	$(ONLINE) $(NODE) examples/form-comparison/install-ordered-json.mjs
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 test-runtimes: ## Exact runtime versions and test standards
@@ -384,8 +384,8 @@ test-native-generators: cargo-downloads-check
 test-php-api: build-php-extension
 	@status=0; \
 	$(NODE) tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts || status=1; \
-	PHP_EXTENSION="$(PHP_EXTENSION)" COMPOSER_VENDOR_DIR=../../vendor $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
-	COMPOSER_VENDOR_DIR=../../../vendor $(NODE) $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
+	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -399,7 +399,7 @@ test-native:
 test-validators: cargo-downloads-check
 	@status=0; \
 	$(NODE) tests/conformance/run-suite.mts vitest --cwd packages/validator/ts || status=1; \
-	COMPOSER_VENDOR_DIR=../../../vendor $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/validator/php || status=1; \
+	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/validator/php || status=1; \
 	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./... || status=1; \
 	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
 	exit $$status
