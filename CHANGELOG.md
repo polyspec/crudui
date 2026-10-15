@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The browser tests without file watching (C14.47)
+
+- The Vite dev servers of the browser tests `form-styles`, `widget-scripts` and `widget-script-runs` watch no file (`server.watch: null`), so a change of a tsconfig file under the checkout, such as those that mise writes under `var/tools`, no longer reloads a page in the middle of a check (C14.47).
+
 ### 2026-10-15 — The cross-check console engine without a browser dependency scan (C14.46)
 
 - The Vite server of the SSR engine of the cross-check console discovers no browser dependency (`optimizeDeps.noDiscovery`), so its cold start no longer crawls every HTML file of the checkout for over a minute and its first render no longer times out (C14.46).

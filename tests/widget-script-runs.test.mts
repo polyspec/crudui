@@ -196,7 +196,7 @@ setup('server start and browser launch', async () => {
       noDiscovery: true,
       include: ['react', 'react-dom', 'react-dom/client', 'vue', '@polyspec/crudui-generator-core', '@polyspec/crudui-generator-html', '@polyspec/crudui-generator-react', '@polyspec/crudui-generator-vue'],
     },
-    server: { host: '127.0.0.1', port: 0 },
+    server: { host: '127.0.0.1', port: 0, watch: null },
     plugins: [svelte({ configFile: false }), {
       name: 'script-runs-test',
       resolveId(id) {
@@ -241,6 +241,14 @@ setup('server start and browser launch', async () => {
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 teardown('server stop', () => server?.close());
 teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));
+
+// The dev server watches no file (C14.47): with a watcher on the repository root, Vite answered every change of a
+// tsconfig file under it, such as those that mise writes under var/tools/mise/state for other checkouts, with a cleared
+// cache and a full reload of the page, which destroyed the context of a running check.
+test('the dev server watches no file, so no change of the checkout reloads the page', () => {
+  assert.ok(server, 'the server is started');
+  assert.equal(server.config.server.watch, null);
+});
 
 const sorted = (values: string[]) => [...values].sort();
 
