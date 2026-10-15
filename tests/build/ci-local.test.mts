@@ -148,9 +148,9 @@ test('the native suites run in three jobs, the PHP API once for each PHP release
   assert.equal(run.status, 0, run.stderr);
   const commands = run.stdout.split('\n');
   for (const command of [
-    /^node tests\/conformance\/run-suite\.mts node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
-    /^node tests\/native-generators\/run\.mts --target javascript,html,go,rust,python --report "[^"]+report\.json" \|\| status=1; \\$/,
-    /^node tests\/native-generators\/run\.mts --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
+    /^\/\S+\/var\/tools\/bin\/node tests\/conformance\/run-suite\.mts node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
+    /^\/\S+\/var\/tools\/bin\/node tests\/native-generators\/run\.mts --target javascript,html,go,rust,python --report "[^"]+report\.json" \|\| status=1; \\$/,
+    /^\/\S+\/var\/tools\/bin\/node tests\/native-generators\/run\.mts --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
   ]) assert.equal(commands.filter((line) => command.test(line.trim())).length, 1, `${command}\n${run.stdout}`);
 });
 
@@ -245,7 +245,7 @@ test('a CI job runs every lint target of CHECK_TARGETS', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const targets = checkLintTargets(makefile);
   assert.deepEqual(targets, ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts']);
-  assert.match(makefile, /^lint:.*\n(?:\t.*\n)*?\tnode \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
+  assert.match(makefile, /^lint:.*\n(?:\t.*\n)*?\t\$\(NODE\) \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
   const run = (target: string): boolean => workflow.includes(`make ${target}`) || (target === 'lint-ts' && workflow.includes('make lint'));
   assert.deepEqual(targets.filter((target) => !run(target)), []);
 });

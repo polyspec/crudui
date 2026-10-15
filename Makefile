@@ -53,6 +53,10 @@ CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-e
 # program and the cross-check console import the installed packages and change no sys.path.
 PYTHON_VENV := $(CURDIR)/var/python
 UV := $(CURDIR)/var/tools/mise/shims/uv
+# The go and Composer of mise.toml, by the absolute paths of their shims: make 3.81 runs a recipe line without shell syntax
+# from the PATH that make started with (kit K171).
+GO := $(CURDIR)/var/tools/mise/shims/go
+COMPOSER := $(CURDIR)/var/tools/mise/shims/composer
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -103,8 +107,8 @@ help: ## 타겟 설명
 # The npm, Go and cargo-audit releases that the checkout declares into var/tools and the Rust toolchain of rust-toolchain.toml
 # (install-tools of the kit.mk of @polyspec/kit), the dependencies of the lock files, the crates of every Cargo.lock, the OrderedJSON
 # checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256.
-# Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
-# machine's package manager; `make toolchain-check` names every tool at another version.
+# PHP is installed at the minor of config/toolchain.json by the machine's package manager; Node.js, Python, Go and
+# Composer are the tools of mise.toml in var/tools. `make toolchain-check` names every tool at another version.
 install: install-packages install-tools install-composer install-python install-crates install-go-modules install-phpdocumentor ## Install the declared tools with the Rust toolchain, the npm, Composer, Python and Cargo dependencies and phpDocumentor
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
@@ -126,22 +130,22 @@ install-svelte-tools: ## Install the tools project of packages/svelte from its p
 # config/release-assets.json pins, which make release-assets-fetch of kit downloads first.
 install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
 	$(MAKE) --no-print-directory release-assets-fetch
-	$(ONLINE) composer install --no-interaction --prefer-dist
+	$(ONLINE) $(COMPOSER) install --no-interaction --prefer-dist
 
 install-python: ## Make the venv var/python and install the Python packages of the uv workspace into it in editable mode
 	$(MAKE) --no-print-directory python-venv DIR=$(PYTHON_VENV)
 	UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV) $(ONLINE) $(UV) sync --quiet --locked --all-packages
 
 install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256
-	$(ONLINE) node scripts/install-phpdocumentor.mts
+	$(ONLINE) $(NODE) scripts/install-phpdocumentor.mts
 
 # The browsers that puppeteer and playwright pin (scripts/install-browsers.mts); BROWSERS names the browsers and options.
 BROWSERS ?= chrome firefox webkit
 install-browsers: ## Install the pinned browsers of BROWSERS (chrome firefox webkit) into the checkout
-	$(ONLINE) node scripts/install-browsers.mts $(BROWSERS)
+	$(ONLINE) $(NODE) scripts/install-browsers.mts $(BROWSERS)
 
 check-ci-browser: ## Check that the pinned Chrome runs sandboxed
-	node scripts/check-ci-browser.mts
+	$(NODE) scripts/check-ci-browser.mts
 
 # The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
 # that runs a target with cargo-downloads-check runs it.
@@ -151,12 +155,12 @@ install-crates: install-ordered-json cargo-downloads-fetch ## Download the crate
 # root: the Go checks run with GOPROXY=off and read only that cache (C14.18). A CI job that runs Go runs it after make
 # install-tools.
 install-go-modules: ## Download the modules that the Go workspace requires; ONLINE
-	$(ONLINE) go mod download
+	$(ONLINE) $(GO) mod download
 
 # The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
 # the Cargo lock of the Rust record server reads it.
 install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
-	$(ONLINE) node examples/form-comparison/install-ordered-json.mjs
+	$(ONLINE) $(NODE) examples/form-comparison/install-ordered-json.mjs
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 test-runtimes: ## Exact runtime versions and test standards
@@ -173,7 +177,7 @@ build: ## Build the JavaScript packages
 # rules, so the components of packages/svelte are linted by the ESLint of that workspace. Both run after a failure.
 lint: ## Lint the repository: make lint-ts of kit and the Svelte components
 	@status=0; \
-	node $(KIT)/lint-ts.mjs || status=1; \
+	$(NODE) $(KIT)/lint-ts.mjs || status=1; \
 	$(NPM) run lint -w @polyspec/crudui-generator-svelte || status=1; \
 	exit $$status
 # The root tsconfig.json checks the TypeScript of scripts/ and tests/ (S9 of kit) strictly. It sets skipLibCheck: the
@@ -186,24 +190,24 @@ typecheck: ## Type-check every TypeScript package, the TypeScript of scripts/ an
 test-validator-js: ## The TypeScript validator suite
 	$(NPM) test -w @polyspec/crudui-validator
 test-validator-php: ## The PHP validator suite
-	composer --working-dir=packages/validator/php test
+	$(COMPOSER) --working-dir=packages/validator/php test
 test-validator-go: ## The Go validator suite
-	node tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./...
+	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./...
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
-	node tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
+	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 test-validator-python: ## The Python validator suite
-	node tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/validator/python -- discover -s tests -t .
+	$(NODE) tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/validator/python -- discover -s tests -t .
 test-generator-python: ## The Python generator suite
-	node tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/generator/python -- discover -s tests -t .
+	$(NODE) tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/generator/python -- discover -s tests -t .
 test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
 	$(NPM) test --prefix examples/cross-check-console/server
 manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
 	$(NPM) run manifest:test
 require-build: ## Build the packages when their sources or output changed
-	node scripts/require-current-build.mts
+	$(NODE) scripts/require-current-build.mts
 test-cli: ## The command-line interface suite
-	node scripts/require-current-build.mts
-	node $(KIT)/run-tests.mjs vitest --cwd packages/cli
+	$(NODE) scripts/require-current-build.mts
+	$(NODE) $(KIT)/run-tests.mjs vitest --cwd packages/cli
 manifest-check: ## The feature contract manifest
 	$(NPM) run manifest:check
 manifest-docs-check: ## The generated feature contract documents
@@ -237,7 +241,7 @@ test-inspector: ## The browser inspector
 test-bench: cargo-downloads-check ## The benchmark drivers
 	$(NPM) run test:bench
 check-conformance: ## The conformance evidence against contracts/features.json
-	node scripts/check-conformance.mts
+	$(NODE) scripts/check-conformance.mts
 
 # The owner checks run the checks of the changed paths (config/owner-checks.json), some of which run cargo; make -k skips
 # them while a crate is missing.
@@ -277,7 +281,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
 	$(MAKE) --no-print-directory records-check || status=1; \
-	node $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status
@@ -321,30 +325,30 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 # ----------------------------------------------------------------------------
 
 bench-fixtures: ## 벤치 fixture JSON 재생성 (스펙 → spec/input JSON)
-	node benchmarks/validators/gen-fixtures.js
+	$(NODE) benchmarks/validators/gen-fixtures.js
 
 bench: cargo-downloads-check bench-fixtures ## 4언어 검증기 처리량 비교
-	node benchmarks/validators/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	$(NODE) benchmarks/validators/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-js: cargo-downloads-check bench-fixtures ## JS 검증기만 측정
-	node benchmarks/validators/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	$(NODE) benchmarks/validators/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-php: cargo-downloads-check bench-fixtures ## PHP 검증기만 측정
-	node benchmarks/validators/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	$(NODE) benchmarks/validators/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-go: cargo-downloads-check bench-fixtures ## Go 검증기만 측정
-	node benchmarks/validators/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	$(NODE) benchmarks/validators/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
-	node benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	$(NODE) benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 # The JavaScript packages are built only when their sources or output changed; the
 # extension build and the native suite both read the built packages. Every test runs through
 # the run-tests tool of @polyspec/kit, which prints each test with its elapsed time and gives it its own
 # timeout.
 build-php-extension:
-	node scripts/require-current-build.mts
-	node scripts/build-crudui-php-extension.mts
+	$(NODE) scripts/require-current-build.mts
+	$(NODE) scripts/build-crudui-php-extension.mts
 
 # The native suites in three parts, which CI runs in three jobs (.github/workflows/ci.yml) and test-native runs in one
 # command. test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers and needs
@@ -354,25 +358,25 @@ build-php-extension:
 # PHP release of the CI matrix. Within a part every suite runs even when an earlier one fails, so one run reports every
 # failure; any failure fails the target.
 test-php-engine:
-	node scripts/require-current-build.mts
-	node tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine.test.mjs
+	$(NODE) scripts/require-current-build.mts
+	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine.test.mjs
 
 test-native-generators: cargo-downloads-check
-	node scripts/require-current-build.mts
+	$(NODE) scripts/require-current-build.mts
 	@status=0; \
-	node $(KIT)/run-tests.mjs go --cwd packages/generator/go -- -race ./... || status=1; \
-	node $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
-	node $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mts || status=1; \
-	node $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
-	node tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs go --cwd packages/generator/go -- -race ./... || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
+	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-php-api: build-php-extension
 	@status=0; \
-	node tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts || status=1; \
-	PHP_EXTENSION="$(PHP_EXTENSION)" COMPOSER_VENDOR_DIR=../../vendor node tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
-	COMPOSER_VENDOR_DIR=../../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
-	node tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
+	$(NODE) tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts || status=1; \
+	PHP_EXTENSION="$(PHP_EXTENSION)" COMPOSER_VENDOR_DIR=../../vendor $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
+	COMPOSER_VENDOR_DIR=../../../vendor $(NODE) $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
+	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-native:
@@ -384,18 +388,18 @@ test-native:
 
 test-validators: cargo-downloads-check
 	@status=0; \
-	node tests/conformance/run-suite.mts vitest --cwd packages/validator/ts || status=1; \
-	COMPOSER_VENDOR_DIR=../../../vendor node tests/conformance/run-suite.mts phpunit --cwd packages/validator/php || status=1; \
-	node tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./... || status=1; \
-	node tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
+	$(NODE) tests/conformance/run-suite.mts vitest --cwd packages/validator/ts || status=1; \
+	COMPOSER_VENDOR_DIR=../../../vendor $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/validator/php || status=1; \
+	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./... || status=1; \
+	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
 	exit $$status
 
 # The browser validation binding (docs/spec/form-runtime.md, "Browser validation"): data
 # collection, timing, error markup parity with renderForm and the check in Chromium, Firefox and
 # WebKit. It reads the built validator and renderers.
 test-form-binding:
-	node scripts/require-current-build.mts
-	node $(KIT)/run-tests.mjs vitest --cwd packages/form-binding
+	$(NODE) scripts/require-current-build.mts
+	$(NODE) $(KIT)/run-tests.mjs vitest --cwd packages/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one
@@ -408,7 +412,7 @@ conformance: cargo-downloads-check
 	$(MAKE) --no-print-directory test-native || status=1; \
 	$(NPM) run test:forms || status=1; \
 	$(NPM) test --prefix examples/cross-check-console/server || status=1; \
-	node scripts/check-conformance.mts || status=1; \
+	$(NODE) scripts/check-conformance.mts || status=1; \
 	exit $$status
 
 # Every Rust crate and Go file in the working tree (tracked, or new and not ignored) must match
@@ -418,7 +422,7 @@ WORKTREE_FILES = git ls-files --cached --others --exclude-standard $(1) | while 
 format-check:
 	@status=0; \
 	for manifest in $$($(call WORKTREE_FILES,'*Cargo.toml')); do \
-		node scripts/run-rust-command.mts fmt --check --manifest-path "$$manifest" || status=1; \
+		$(NODE) scripts/run-rust-command.mts fmt --check --manifest-path "$$manifest" || status=1; \
 	done; \
 	unformatted="$$(gofmt -l $$($(call WORKTREE_FILES,'*.go')))"; \
 	if [ -n "$$unformatted" ]; then echo "gofmt differences:"; echo "$$unformatted"; status=1; fi; \
@@ -430,7 +434,7 @@ format-check:
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
 	$(MAKE) --no-print-directory documents-check || status=1; \
-	node $(KIT)/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mts tests/docs/changelog.test.mts tests/docs/repository-writing.test.mts tests/docs/example-readmes.test.mts tests/docs/fixture-readmes.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mts tests/docs/changelog.test.mts tests/docs/repository-writing.test.mts tests/docs/example-readmes.test.mts tests/docs/fixture-readmes.test.mts || status=1; \
 	exit $$status
 
 # The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
@@ -486,7 +490,7 @@ CI_TARGETS = \
 # runs each target as make -k to its end and records its result; `make rerun-failed` (the kit.mk of @polyspec/kit) reruns the
 # targets of the current tree that did not pass and keeps the evidence of those that passed.
 ci: ## Run every target of the CI workflow in order through the guard: once per tree, when no checklist task is [~]
-	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node $(KIT)/full-run.mjs run conformance-reset $(CI_TARGETS)
+	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" $(NODE) $(KIT)/full-run.mjs run conformance-reset $(CI_TARGETS)
 
 # The checks of kit over the checkout, which make check runs through the guard full-run of @polyspec/kit: once per committed
 # tree, while no checklist task is [~], and with its result recorded in var/full-run.json.
@@ -509,7 +513,7 @@ CHECK_TARGETS = \
 	records-check
 
 check: ## Run the checks of kit (CHECK_TARGETS) through the guard: once per tree, when no checklist task is [~]
-	node $(KIT)/full-run.mjs run $(CHECK_TARGETS)
+	$(NODE) $(KIT)/full-run.mjs run $(CHECK_TARGETS)
 
 # The conformance evidence of earlier runs; the first target of a full run, which a rerun repeats only when it failed.
 conformance-reset: ## Remove the conformance evidence of earlier runs
@@ -521,6 +525,6 @@ rerun-failed: export CRUDUI_CONFORMANCE_EVIDENCE := $(CONFORMANCE_EVIDENCE)
 # version, and release-versions runs it first (scripts/release-pins.mts).
 release-pins: ## Require every git pin of this repository in a pyproject.toml to name the version of TAG; offline
 	@test -n "$$TAG" || { echo "release-pins: TAG is required, for example make release-pins TAG=v0.0.1"; exit 1; }
-	node scripts/release-pins.mts "$$TAG"
+	$(NODE) scripts/release-pins.mts "$$TAG"
 
 release-versions: release-pins

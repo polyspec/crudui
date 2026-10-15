@@ -179,8 +179,8 @@ the rules of crudui.
 
 The same tree gives the same result on every date and machine, and a failed run shows what failed and why.
 
-- Tools and dependencies: every tool runs at the exact release that the checkout records (`.node-version`,
-  `rust-toolchain.toml`, `mise.toml` with `mise.lock`, `config/toolchain.json`, `packageManager` of `package.json`), and
+- Tools and dependencies: every tool runs at the exact release that the checkout records (`mise.toml` with
+  `mise.lock`, `rust-toolchain.toml`, `config/toolchain.json`, `packageManager` of `package.json`), and
   `make toolchain-check` fails for another; an image is named by its digest and its Debian packages by a
   snapshot date, an action by its commit SHA, a browser by the build that the locked package pins. No run queries a
   registry for a latest release or a channel, and no tool installs another release on its own

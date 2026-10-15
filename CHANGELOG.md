@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — kit 0.0.48 (C14.36)
+
+- crudui pins `@polyspec/kit` 0.0.48. Each checkout runs the Node.js 26.12.0 of `mise.toml`, which `make install-tools TOOLS=npm` installs into `var/tools` with mise; `.node-version` is gone, and `engines.node` of every `package.json` is `>=26.12.0`. Each recipe of the Makefile starts node, go and Composer by their absolute paths (`$(NODE)`, `$(GO)`, `$(COMPOSER)`), and the workflows pin actions/checkout v7.0.1, actions/setup-node v7.1.0 and shivammathur/setup-php 2.40.0 by full SHA (kit K169, K171) (C14.36).
+
 ### 2026-10-15 — The TypeScript without casts (C14.12)
 
 - The TypeScript passes the lint of kit 0.0.47 without type assertions, `any` or non-null assertions (kit K155, K156, K157). `@polyspec/crudui-generator-core`: `Translate` takes its text as `unknown`, as it already returned the fallback for any value that is no localized text, and a declared attribute whose value is no string fails with a `FormInputError` that names its path. `@polyspec/crudui-validator`: the `accept` rule reads only the string members of a file object, where a file whose `type` or `name` is no string crashed `validate`. `@polyspec/crudui-form-binding`: `bindForm` throws a `TypeError` for a form of a document without a window before it changes the form (C14.12).

@@ -134,7 +134,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
 
 test('every target that runs cargo depends on cargo-downloads-check', () => {
   const targets: Record<string, MakeRule> = makeTargets(makefiles);
-  assert.deepEqual(targets[CHECK]?.commands, ['node $(KIT)/check-cargo-downloads.$(KIT_EXT)']);
+  assert.deepEqual(targets[CHECK]?.commands, ['$(NODE) $(KIT)/check-cargo-downloads.$(KIT_EXT)']);
   assert.ok(CARGO_FILES.has('scripts/gen-api-docs.mts') && CARGO_FILES.has('benchmarks/validators/run.js'), 'the cargo files must include the API documentation and the benchmark');
   assert.equal(runsCargo('node tests/native-generators/run.mts --report r.json'), true);
   assert.equal(runsCargo('node tests/native-generators/run.mts --target javascript,rust --report r.json'), true);

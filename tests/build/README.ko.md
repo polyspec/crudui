@@ -1,6 +1,6 @@
 # 패키지 빌드 검사
 <!-- doc-id: tests-build-readme -->
-<!-- source-sha256: 144dac29d4ce2972012ce5000684aa77a97cb5adf49b6fcfbab2bac7330dfec3 -->
+<!-- source-sha256: 9c25b2d7030dcf1ecca69c36256b2b8e57578314067bc59e5232f6ae316b4f8d -->
 
 [English](README.md).
 
@@ -16,8 +16,8 @@ npm run test:build:repeat
 npm run test:packages
 ```
 
-`test:runtimes`는 모든 도구의 정확한 릴리스 하나를 요구합니다. Node.js는 `.node-version`에, Rust는
-`rust-toolchain.toml`에, PHP minor는 `config/toolchain.json`에, Go, Python, Composer는 `mise.toml`에 기록합니다.
+`test:runtimes`는 모든 도구의 정확한 릴리스 하나를 요구합니다. Rust는
+`rust-toolchain.toml`에, PHP minor는 `config/toolchain.json`에, Node.js, Go, Python, Composer는 `mise.toml`에 기록합니다.
 `make toolchain-check`는 실행 중인 도구가 그 릴리스이고 선언과 manifest 하한이 kit의 pin이기를 요구합니다. 모든 CI job은 `ubuntu-24.04`에서 실행되고, action을 commit SHA로 지정하며,
 기록한 릴리스를 설치하고 자신이 설치한 도구를 검사합니다. checkout은 컨테이너 정의를
 두지 않습니다. 릴리스 채널이나 machine의 브라우저는 쓰지 않습니다.

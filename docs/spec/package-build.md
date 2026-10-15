@@ -170,7 +170,8 @@ latest stable release supported by the project. Pre-release versions are exclude
 unless a specification explicitly requires one. No run queries a registry for the
 latest release of a channel, and no tool installs another version on its own.
 
-- `.node-version` records the exact Node.js release, which CI reads.
+- `node` of `mise.toml` records the exact Node.js release, which `make install-tools TOOLS=npm` installs into
+  `var/tools` with mise and `var/tools/bin/node` runs; CI's setup-node reads it only to start that bootstrap (kit K171).
 - `packageManager` of the root `package.json` records the exact npm release,
   because the npm that installs, packs and runs the scripts changes their results,
   as the `pack --json` report changed from an array in npm 11 to an object in
@@ -178,9 +179,9 @@ latest release of a channel, and no tool installs another version on its own.
   that release into the ignored directory `var/tools/npm` of the checkout and never
   into the machine, whose npm every other checkout uses. The Makefile puts
   `var/tools/bin` first on `PATH`, and every CI job starts npm through a make target.
-- The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.11.1, Python 3.14, PHP 8.5,
+- The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.12.0, Python 3.14, PHP 8.5,
   Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2), and `make toolchain-check` fails on each declaration and manifest floor
-  that is not the pin: `.node-version`, `engines.node` of every `package.json` (`>=26.11.1`), `require.php` of every
+  that is not the pin: `node` of `mise.toml`, `engines.node` of every `package.json` (`>=26.12.0`), `require.php` of every
   `composer.json` (`>=8.5`), `requires-python` of every `pyproject.toml` (`>=3.14`), the `go` line of every `go.mod`
   (`1.27.2`, with no `toolchain` line), `rust-version` of every Cargo package and `typescript` of every manifest and
   lock. A deviation is an entry of `exceptions` in `config/toolchain.json` with its scope, reason and retry condition:
@@ -201,8 +202,7 @@ latest release of a channel, and no tool installs another version on its own.
   (`make install-python`), in `python`, compared like PHP, the exact Composer release in `composer`
   (an object with `version` and the SHA-256 of its phar), the `go.mod` whose `go` line is the Go release in `go`, the
   exact releases and digests of uv and the Python build, alint, ruff, vulture, golangci-lint and deadcode, the exact
-  cargo-audit release in `cargoAudit`, and the SHA-256 of the Linux x64 archive
-  of the Node.js release in `node`. The file follows the schema
+  cargo-audit release in `cargoAudit`. The file follows the schema
   `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json`, which `make kit-check` applies. PHP is pinned by its minor release, because
   setup-php and Homebrew cannot install the same patch: the checks compare the
   major and minor of the running PHP, and the patch that a run ran on is its

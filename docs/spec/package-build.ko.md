@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: 9d440bae6043d95956676a31f14d4ef23a6207e9d144bc0ff2c17def7733adcf -->
+<!-- source-sha256: 5a5324a57d8b3bb51bb7a70b40f45296ebfd256681ebe27e8a576a4869ae9aea -->
 
 [English](package-build.md).
 
@@ -157,16 +157,17 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 사용하지 않습니다. 어떤 실행도 채널의 최신 릴리스를 registry에 묻지 않고, 어떤 도구도 스스로
 다른 버전을 설치하지 않습니다.
 
-- `.node-version`은 정확한 Node.js 릴리스를 기록하고 CI가 그것을 읽습니다.
+- `mise.toml`의 `node`는 정확한 Node.js 릴리스를 기록합니다. `make install-tools TOOLS=npm`이 그것을 mise로
+  `var/tools`에 설치하고 `var/tools/bin/node`가 실행하며, CI의 setup-node는 그 bootstrap을 시작하려고만 그것을 읽습니다(kit K171).
 - 루트 `package.json`의 `packageManager`는 정확한 npm 릴리스를 기록합니다. 설치하고 패키징하고
   스크립트를 실행하는 npm이 그 결과를 바꾸기 때문이며, `pack --json` report가 npm 11의 배열에서
   npm 12의 object로 바뀐 것이 그 예입니다. `make install-tools`(`node_modules/@polyspec/kit/dist/install-tools.mjs`)는 정확히 그 릴리스를
   checkout의 무시되는 directory `var/tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
   machine의 npm에는 설치하지 않습니다. Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 두고,
   모든 CI job은 npm을 make 대상으로 시작합니다.
-- checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.11.1, Python 3.14, PHP 8.5, Go 1.27.2, Rust 1.99.0,
+- checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.12.0, Python 3.14, PHP 8.5, Go 1.27.2, Rust 1.99.0,
   TypeScript 7.0.2)를 고정하고, `make toolchain-check`는 그 pin이 아닌 선언과 manifest 하한마다 실패합니다. 대상은
-  `.node-version`, 모든 `package.json`의 `engines.node`(`>=26.11.1`), 모든 `composer.json`의 `require.php`(`>=8.5`), 모든
+  `mise.toml`의 `node`, 모든 `package.json`의 `engines.node`(`>=26.12.0`), 모든 `composer.json`의 `require.php`(`>=8.5`), 모든
   `pyproject.toml`의 `requires-python`(`>=3.14`), 모든 `go.mod`의 `go` 줄(`1.27.2`, `toolchain` 줄 없음), 모든 Cargo package의
   `rust-version`, 모든 manifest와 lock의 `typescript`입니다. 벗어나는 값은 `config/toolchain.json`의 `exceptions` 항목으로 scope,
   이유, 재시도 조건과 함께 선언합니다. `packages/svelte`는 svelte-check와 `@sveltejs/package`가 TypeScript 6 API를
@@ -182,8 +183,8 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 - `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `var/python`에서 Python package와
   그 suite를 실행하는(`make install-python`) Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`과 phar의
   SHA-256을 가진 object)를, `go`에 `go` 줄이 Go 릴리스인 `go.mod`를, uv와 Python build, alint, ruff, vulture, golangci-lint,
-  deadcode의 정확한 릴리스와 digest를, `cargoAudit`에 정확한 cargo-audit 릴리스를,
-  `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. 이 file은
+  deadcode의 정확한 릴리스와 digest를, `cargoAudit`에 정확한 cargo-audit 릴리스를
+  기록합니다. 이 file은
   `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php와 Homebrew는 같은 patch를 설치할
   수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
   그 실행의 evidence이며 `node_modules/@polyspec/kit/dist/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
