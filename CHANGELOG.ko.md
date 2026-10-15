@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a7ff8cd4b671d3e44748abe8f5ed281bf508e32eab3e07f3fd9fc370d44c125a -->
+<!-- source-sha256: 5b5517930dfcb8ec72ede1821d7d33fc3e38e740046929ce9e6ba82d02922e97 -->
 
 ## Unreleased
+
+## 0.0.7
 
 ### 2026-10-15 — kit 0.0.53 (C14.48)
 

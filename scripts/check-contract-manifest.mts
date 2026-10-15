@@ -144,7 +144,7 @@ export function checkContractManifest(root: string): ManifestCheck {
     return { errors, counts: { features: 0, packages: 0, entries: 0, fixtures: 0 } };
   }
   check(manifest.format === 'crudui/features-manifest', 'format must identify the CRUDUI feature manifest');
-  check(manifest.version === '0.0.6', 'manifest version must match the package version');
+  check(manifest.version === '0.0.7', 'manifest version must match the package version');
   const supportValues = new Set(manifest.supportValues);
 
   // Entries: package.json code entries and manifest entries match one to one.
