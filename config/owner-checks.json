@@ -706,7 +706,8 @@
         "kit-check"
       ],
       "tests": [
-        "tests/build/ci-local.test.mts"
+        "tests/build/ci-local.test.mts",
+        "tests/build/release-fixtures.test.mts"
       ]
     },
     {
