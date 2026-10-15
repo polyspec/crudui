@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: c7d7f5748a8bdc0485dd6802ed566644d2165f582be192e404da20b75877f2fc -->
+<!-- source-sha256: 3f9f0f9cf6ba0c8f252362148e02c9ba3ec39c296f8fcaaf0d1b1d396fafcf84 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -329,6 +329,8 @@
 | C14.43 | 릴리스 0.0.6: `config/release.json`이 적은 모든 manifest와 그 lock(`package-lock.json`, `composer.lock` 파일들, `Cargo.lock` 6개)의 version, `packages/generator/python`의 git pin, `contracts/features.json`의 version, `packages/php-ext`의 module version, 이를 읽는 검사와 문서를 0.0.6으로 정한다. `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## 0.0.6`으로 바꾸고 그 위에 빈 `## Unreleased`를 새로 쓴다. dependency review를 기록하고, `make release-assets`와 `make release-consumer-lock`으로 `tests/release-install`의 사용자 project를 0.0.6 archive에 맞게 쓴다. 릴리스 commit에 로컬 tag `v0.0.6`, `packages/validator/go/v0.0.6`, `packages/generator/go/v0.0.6`을 만들고 maintainer가 그것을 push한다. Go workspace module은 이 릴리스에서 pseudo-version 요구를 유지한다 | `make release-versions TAG=v0.0.6`, `make release-consumer TAG=v0.0.6`, `make release-go-tags TAG=v0.0.6`, `make dependency-policy-check` |[ ] |
 | C14.44 | 두 Python package를 wheel로 릴리스한다(kit K29). K29는 `config/release.json`이 아직 적은 `proof.gitTag`의 Python git-tag kind를 없앴으므로 `make release-versions`가 실패했다. `polyspec-crudui-validator`와 `polyspec-crudui-generator`는 `pyproject.toml`이 `archive` manifest인 `wheel` package이고, `consumers.wheel`이 각각을 import하며, `config/toolchain.json`의 `pythonBackend`가 `setuptools==84.0.0`을 그 wheel의 sha256으로 pin한다(K166). generator는 `polyspec-crudui-validator==<version>`을 요구하고 `[tool.uv.sources]`가 그것을 workspace의 validator로 풀며, `scripts/release-pins.mts`, `make release-pins`, `tests/build/python-git-pins.test.mts`는 지운다. | `make release-coverage`, `make kit-check`, 설정을 읽는 `make release-versions TAG=v0.0.5`, `make dependency-policy-check` |[ ] |
 | C14.45 | 모든 workflow의 PHP는 `.php-version`의 minor다. 새 파일은 crudui의 PHP minor(8.5, workflow가 inline으로 pin하던 `config/toolchain.json`의 minor)를 담고, workflow의 모든 setup-php step은 `php-version-file: .php-version`을 읽으므로 PHP API와 PHP validator job에는 PHP matrix가 없다. kit의 `release.yml`은 runner의 PHP 8.3을 유지하는 대신 release proof에 그 PHP를 설치한다(template v0.0.7). | `tests/build/runtime-version-policy.test.mts`, `tests/build/ci-local.test.mts`, `make toolchain-check` |[o] |
+| C14.46 | cross-check console suite가 Vite SSR boot에서 멈추지 않는다. 로컬에서 `npm test --prefix examples/cross-check-console/server`의 3번 중 2번 실행에서 각 test 파일의 첫 4-renderer SSR case가 120초에서 timeout이었고, `getEngine`만의 boot는 rolldown의 dependency scan에서 실패했다. 원인을 찾아 이전에 실패하는 test와 함께 고친다. timeout을 늘리거나 재시도하지 않는다. | `npm test --prefix examples/cross-check-console/server` |[ ] |
+| C14.47 | `tests/widget-script-runs.test.mts`에 navigation race가 없다. 한 실행이 "Execution context was destroyed, most likely because of a navigation"(chromium vue client)와 "window.scriptRunsTest is undefined"(firefox html client)로 실패했고 다시 실행하면 통과했다. 원인을 찾아 이전에 실패하는 test와 함께 고친다. timeout을 늘리거나 재시도하지 않는다. | `tests/widget-script-runs.test.mts` |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
