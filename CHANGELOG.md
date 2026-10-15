@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+### 2026-10-15 — The command line and the generator tests type-checked (C14.39, C14.40)
+
+- `packages/cli` has a strict tsconfig, which its `typecheck` script and `make typecheck` run (C14.39).
+- The tests of `packages/generator/ts` import the shared form session scenario with its types, without `@ts-expect-error` (C14.40).
+
 ### 2026-10-15 — The form template validator without ajv at run time (C14.38)
 
 - `@polyspec/crudui-generator-core` validates in `decodeFormTemplate` with ajv's standalone validation code of `contracts/schema/form-template.schema.json`, which `make form-template-validator` generates and `make build` checks; the package no longer depends on ajv and compiles no code at run time, so a Content-Security-Policy without `unsafe-eval` allows it (C14.38).
