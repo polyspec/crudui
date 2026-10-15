@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 55f08176043137adfc1110ca032885bd5e59d8f24a8da5dcb065e320a1bdd947 -->
+<!-- source-sha256: 2d773b40e69a6943608e11e105b77652a4a95ab336f48d8479215cfae5830a93 -->
 
 ## Unreleased
+
+### 2026-10-15 — browser dependency scan 없는 cross-check console engine (C14.46)
+
+- cross-check console의 SSR engine의 Vite server는 browser dependency를 찾지 않으므로(`optimizeDeps.noDiscovery`), cold start가 더 이상 1분 넘게 checkout의 모든 HTML 파일을 훑지 않고 첫 render가 timeout되지 않는다(C14.46).
 
 ### 2026-10-15 — render option decoder (C14.50)
 

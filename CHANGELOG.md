@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The cross-check console engine without a browser dependency scan (C14.46)
+
+- The Vite server of the SSR engine of the cross-check console discovers no browser dependency (`optimizeDeps.noDiscovery`), so its cold start no longer crawls every HTML file of the checkout for over a minute and its first render no longer times out (C14.46).
+
 ### 2026-10-15 — The render options decoder (C14.50)
 
 - `@polyspec/crudui-generator-core` exports `decodeFormRenderOptions(value)`, which checks parsed render options with the check that every renderer runs and returns them as `FormRenderOptions`, and `FormRenderOptionsError`, the `FormInputError` that it and the renderers throw with the JSON Pointer of the invalid member in `pointer`; the messages are unchanged (C14.50).
