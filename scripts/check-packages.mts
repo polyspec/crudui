@@ -83,7 +83,7 @@ try {
     const source = join(root, 'packages', folder);
     const manifest = readJson(join(source, 'package.json'));
     assert.ok(isPackedManifest(manifest), `${folder}/package.json has a name, a version and dependency fields of strings`);
-    assert.equal(manifest.version, '0.0.5', manifest.name);
+    assert.equal(manifest.version, '0.0.6', manifest.name);
     const tarball = await packPackage(source, directory, manifest.name, run);
     dependencies[manifest.name] = `file:${tarball}`;
     packed[manifest.name] = { directory: `packages/${folder}`, tarball, manifest };

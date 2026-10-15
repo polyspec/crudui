@@ -50,7 +50,7 @@ function repository(): Repository {
   return {
     manifest: {
       format: 'crudui/features-manifest',
-      version: '0.0.5',
+      version: '0.0.6',
       supportValues: ['pass', 'partial', 'unsupported'],
       packages: [
         {
