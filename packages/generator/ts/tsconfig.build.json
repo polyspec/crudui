@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": [],
     "rootDir": "./src",
+    "outDir": "./dist",
     "noEmit": false,
     "emitDeclarationOnly": true,
     "noEmitOnError": true

@@ -59,6 +59,13 @@
       "ignoreDependencies": {
         "tsup": "the build script runs `tsup src/index.ts --format esm` through scripts/package-dist.mts"
       }
+    },
+    "packages/generator/ts": {
+      "reason": "an npm workspace whose tsconfig.json checks the sources and the tests and emits nothing: it has no rootDir or outDir, as its tests import the shared scenario of tests/fixtures/form-session from outside the package (C14.40), so knip cannot map the dist files of package.json exports to src; tsconfig.build.json emits the declarations from src. Its entries replace the default entries of knip",
+      "entries": {
+        "src/index.ts": "the package entry: package.json exports \".\" is dist/index.mjs and dist/index.js, which tsup builds from src/index.ts",
+        "src/internal.ts": "the internal entry: package.json exports \"./internal\" is dist/internal.mjs and dist/internal.js, which tsup builds from src/internal.ts"
+      }
     }
   }
 }
