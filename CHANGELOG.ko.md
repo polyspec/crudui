@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b67aa50799e1831019e29874daeb84cfc9d8a59e8df5b0038d0700b88d478f3b -->
+<!-- source-sha256: 819159b2fbb7858c48841bee4b8393e5e64084c629df0541bb878bdd1ac38ebe -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.51 (C14.41)
+
+- crudui는 `@polyspec/kit` 0.0.51을 pin하고 `es-module-lexer` 3.0.4를 받는다. `config/knip-entries.json`은 script와 테스트가 실행하는 binary go, php, make를 선언하고, 생성된 폼 템플릿 validator를 disable 주석 대신 `ignore` 항목으로 knip과 oxlint에서 뺀다(kit K172, K176). `install-ordered-json`은 `kit-bootstrap.mk`가 이제 패키지 설치 전에 정의하는 `$(NODE)`로 node를 시작한다(K185)(C14.41).
 
 ### 2026-10-15 — 타입 검사를 받는 명령줄과 생성기 테스트 (C14.39, C14.40)
 

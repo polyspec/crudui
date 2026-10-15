@@ -160,8 +160,8 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
 // make install-packages installs package-lock.json after install-ordered-json, since the root package.json links the js
 // package of the OrderedJSON checkout. The installer therefore runs before any package exists: it imports only Node.js
 // built-ins and the files of examples/form-comparison.
-// make install-packages runs before the package of kit is installed, when kit-bootstrap.mk defines NPM and not the NODE of
-// kit.mk; its prerequisites start node by the absolute path of the node that make install-tools TOOLS=npm installed.
+// make install-packages runs before the package of kit is installed, when kit-bootstrap.mk defines NODE and NPM (kit K185);
+// its prerequisites start node by the absolute path of the node that make install-tools TOOLS=npm installed.
 test('make install-packages starts the node of the checkout before kit is installed', () => {
   const run = makeDryRun(ROOT, 'install-packages', { variables: ['KIT=var/no-kit'] });
   assert.equal(run.status, 0, run.stderr);

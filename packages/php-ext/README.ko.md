@@ -1,6 +1,6 @@
 # PHP 네이티브 생성과 검증
 <!-- doc-id: packages-php-ext-readme -->
-<!-- source-sha256: 23798d1022b8828c8f9e6105eb819a332ee1bc87b8844ccb136c9a9e20a6e961 -->
+<!-- source-sha256: 1178b451c46c29637b06dbf858b8a84eeedd140a80ecf2f4582c7325751d66e3 -->
 
 [English](README.md).
 
@@ -32,7 +32,7 @@ PCRE2 파일이나 `pkg-config`가 필요하지 않습니다.
 ```sh
 node scripts/build-crudui-php-extension.mts
 composer install
-COMPOSER_VENDOR_DIR=../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
+node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
   --extension "$(pwd)/packages/php-ext/modules/crudui.so" \

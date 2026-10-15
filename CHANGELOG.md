@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — kit 0.0.51 (C14.41)
+
+- crudui pins `@polyspec/kit` 0.0.51 and takes `es-module-lexer` 3.0.4. `config/knip-entries.json` declares the binaries go, php and make that the scripts and tests run, and keeps the generated form template validator out of knip and oxlint with an `ignore` entry instead of a disable comment (kit K172, K176); `install-ordered-json` starts node by the `$(NODE)` that `kit-bootstrap.mk` now defines before the package is installed (K185) (C14.41).
+
 ### 2026-10-15 — The command line and the generator tests type-checked (C14.39, C14.40)
 
 - `packages/cli` has a strict tsconfig, which its `typecheck` script and `make typecheck` run (C14.39).
