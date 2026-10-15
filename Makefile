@@ -159,8 +159,10 @@ install-go-modules: ## Download the modules that the Go workspace requires; ONLI
 
 # The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
 # the Cargo lock of the Rust record server reads it.
+# make install-packages runs it before the package of kit, and so the $(NODE) of kit.mk, is installed: it starts the
+# node that make install-tools TOOLS=npm installed by that absolute path.
 install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
-	$(ONLINE) $(NODE) examples/form-comparison/install-ordered-json.mjs
+	$(ONLINE) $(CURDIR)/var/tools/bin/node examples/form-comparison/install-ordered-json.mjs
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 test-runtimes: ## Exact runtime versions and test standards
