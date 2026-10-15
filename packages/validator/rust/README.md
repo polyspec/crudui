@@ -3,7 +3,7 @@
 
 [한국어](README.ko.md).
 
-The `polyspec-crudui-validator` package is version `0.0.6`. It is a library; it installs
+The `polyspec-crudui-validator` package is version `0.0.7`. It is a library; it installs
 no command.
 
 ## API

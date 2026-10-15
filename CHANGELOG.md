@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.7
+
 ### 2026-10-15 — kit 0.0.53 (C14.48)
 
 - crudui pins `@polyspec/kit` 0.0.53, whose release workflow runs `make kit-check` before any release step, whose kit-check requires the `.php-version` that crudui declares, and whose release proof checks that a release lists each sibling wheel instead of comparing its draft URL (kit K191, K193, K195) (C14.48).
