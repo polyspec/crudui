@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The PHP of .php-version (C14.45)
+
+- `.php-version` holds the PHP minor of crudui, 8.5, and every setup-php step of the workflows reads it, so the release workflow of kit sets up that PHP for the release proof instead of keeping the PHP of the runner. The PHP API and PHP validator jobs have no PHP matrix any more (C14.45).
+
 ### 2026-10-15 — kit 0.0.51 (C14.41)
 
 - crudui pins `@polyspec/kit` 0.0.51 and takes `es-module-lexer` 3.0.4. `config/knip-entries.json` declares the binaries go, php and make that the scripts and tests run, and keeps the generated form template validator out of knip and oxlint with an `ignore` entry instead of a disable comment (kit K172, K176); `install-ordered-json` starts node by the `$(NODE)` that `kit-bootstrap.mk` now defines before the package is installed (K185) (C14.41).

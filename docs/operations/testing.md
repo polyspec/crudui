@@ -105,7 +105,7 @@ runs there when no task is `[~]` and the tree is clean.
 The native suites run in three CI jobs, so no job waits for a suite that another runtime needs:
 `php-engine` runs `make test-php-engine` once with Node.js and the C compiler, `native-generators`
 runs `make test-native-generators` and `make test-bench` once, and `php-api` runs `make test-php-api`
-for each PHP release of its matrix. `make test-native` runs the three targets in one command
+once on the PHP minor of `.php-version`, which every setup-php step of the workflows reads. `make test-native` runs the three targets in one command
 (`docs/operations/native-generators.md`).
 
 Every job that installs the npm packages restores and saves `~/.npm` with `actions/cache` under the
@@ -355,7 +355,7 @@ target failed, prints its output and writes it to `var/report/ci-targets/targets
 failure lines and its log (`node_modules/@polyspec/kit/dist/target-report.mjs`), and the same text goes to the job summary of
 GitHub Actions. The run holds the lock `var/report/ci-targets.lock`, so two runs never write one
 report, and ends with status 1 when a target failed. Each job uploads `var/report/ci-targets` as the
-artifact `report-<job>` (with the PHP minor of a matrix job) under `if: ${{ !cancelled() }}` with
+artifact `report-<job>` under `if: ${{ !cancelled() }}` with
 `if-no-files-found: error`. `tests/build/ci-local.test.mts` fails for a job that runs a check outside
 `make ci-targets` or uploads no report, and `tests/kit/ci.test.mts` of polyspec/kit runs a failing and a
 passing probe target and finds both logs, the failure line in the summary and the job summary.

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 819159b2fbb7858c48841bee4b8393e5e64084c629df0541bb878bdd1ac38ebe -->
+<!-- source-sha256: e37e3a2367c782187a7600a7dfffde87c28e999bbbe8ab34700445a0b8feb76d -->
 
 ## Unreleased
+
+### 2026-10-15 — .php-version의 PHP (C14.45)
+
+- `.php-version`은 crudui의 PHP minor 8.5를 담고 workflow의 모든 setup-php step이 그것을 읽으므로, kit의 release workflow는 runner의 PHP를 유지하는 대신 release proof에 그 PHP를 설치한다. PHP API와 PHP validator job에는 더 이상 PHP matrix가 없다(C14.45).
 
 ### 2026-10-15 — kit 0.0.51 (C14.41)
 

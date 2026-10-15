@@ -48,7 +48,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -116,12 +116,8 @@ jobs:
           if-no-files-found: error
 
   validator-php:
-    name: validator · PHP (${{ matrix.php }})
+    name: validator · PHP
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        php: ['8.5']
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
@@ -142,7 +138,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: ${{ matrix.php }}
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -157,14 +153,14 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: report-validator-php-${{ matrix.php }}
+          name: report-validator-php
           path: var/report/ci-targets
           if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: conformance-evidence-validator-php-${{ matrix.php }}
+          name: conformance-evidence-validator-php
           path: conformance-evidence/
           if-no-files-found: error
 
@@ -329,7 +325,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -382,7 +378,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -525,7 +521,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -573,7 +569,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -642,7 +638,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -715,7 +711,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -869,7 +865,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       # The Go modules and builds of the generator and its programs, keyed on their go.mod files; make install-tools installs
       # the Go of mise.toml.
@@ -931,15 +927,11 @@ jobs:
           if-no-files-found: error
 
   php-api:
-    name: Native generation and PHP API (${{ matrix.php }})
+    name: Native generation and PHP API
     runs-on: ubuntu-24.04
     env:
-      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
+      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
-    strategy:
-      fail-fast: false
-      matrix:
-        php: ['8.5']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup the Node.js of mise.toml, which starts the bootstrap
@@ -958,7 +950,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: ${{ matrix.php }}
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
@@ -973,14 +965,14 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: report-php-api-${{ matrix.php }}
+          name: report-php-api
           path: var/report/ci-targets
           if-no-files-found: error
       - name: Preserve comparison report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: native-generators-php-${{ matrix.php }}
+          name: native-generators-php
           path: .git/native-generators/report-php.json
           include-hidden-files: true
           if-no-files-found: error
@@ -988,7 +980,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: conformance-evidence-php-api-${{ matrix.php }}
+          name: conformance-evidence-php-api
           path: conformance-evidence/
           if-no-files-found: error
 

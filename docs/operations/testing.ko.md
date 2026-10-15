@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 456183e1f85ef3bb25b113840d0d6fb268183ba54f12f0a36b9853fd4c10e71c -->
+<!-- source-sha256: 7816ad54d751e1ad5f095f84eda1b43041480b6c4eccd7306934dcc1009792d0 -->
 
 [English](testing.md).
 
@@ -87,8 +87,8 @@ CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[
 
 native suite는 세 CI job에서 실행되므로 어떤 job도 다른 runtime이 필요한 suite를 기다리지 않습니다.
 `php-engine`은 Node.js와 C compiler로 `make test-php-engine`을 한 번, `native-generators`는
-`make test-native-generators`와 `make test-bench`를 한 번 실행하고, `php-api`는 matrix의 PHP release마다
-`make test-php-api`를 실행합니다. `make test-native`는 세 대상을 한 명령으로 실행합니다
+`make test-native-generators`와 `make test-bench`를 한 번 실행하고, `php-api`는 workflow의 모든 setup-php step이 읽는
+`.php-version`의 PHP minor에서 `make test-php-api`를 한 번 실행합니다. `make test-native`는 세 대상을 한 명령으로 실행합니다
 (`docs/operations/native-generators.ko.md`).
 
 npm package를 설치하는 모든 job은 npm을 설치하기 전에 `actions/cache`로 `~/.npm`을 key
@@ -311,7 +311,7 @@ Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit
 `var/report/ci-targets/targets/<target>.log`에 씁니다. `summary.md`는 각 대상을 결과와 시간과 함께, 실패한 대상마다 그
 첫 실패 줄과 log를 밝히며(`node_modules/@polyspec/kit/dist/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
 `var/report/ci-targets.lock`을 잡으므로 두 실행이 한 보고서를 쓰지 않고, 대상이 실패하면 status 1로 끝납니다. 각 job은
-`var/report/ci-targets`를 artifact `report-<job>`(matrix job은 PHP minor를 붙임)으로 `if: ${{ !cancelled() }}`와
+`var/report/ci-targets`를 artifact `report-<job>`으로 `if: ${{ !cancelled() }}`와
 `if-no-files-found: error`로 올립니다. `tests/build/ci-local.test.mts`는 `make ci-targets` 밖에서 검사를 실행하거나
 보고서를 올리지 않는 job에서 실패하고, polyspec/kit의 `tests/kit/ci.test.mts`는 실패하는 probe 대상과 통과하는 probe
 대상을 실행해 두 log, summary의 실패 줄, job summary를 확인합니다.

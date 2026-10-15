@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -227,13 +228,6 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
   assert.deepEqual(violations, []);
 });
 
-/** The PHP minors of the matrix of a job whose setup-php step reads `${{ matrix.php }}`. */
-function phpMatrix(job: WorkflowJob): string[] {
-  const php = job.strategy?.matrix?.php;
-  assert.ok(Array.isArray(php), 'a job whose setup-php reads ${{ matrix.php }} declares strategy.matrix.php');
-  return php.map(String);
-}
-
 // The tools of mise.toml that the jobs check; make install-tools installs every tool of mise.lock.
 const MISE_TOOLS = ['go', 'python', 'composer'] as const;
 // make install-tools of kit installs the tools of mise.toml and the Rust toolchain of rust-toolchain.toml (kit K151).
@@ -242,7 +236,6 @@ const INSTALL_TOOLS: readonly string[] = [...MISE_TOOLS, 'rust'];
 test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
   const recorded = await recordedToolchain(repository);
   for (const tool of MISE_TOOLS) assert.ok(recorded[tool], `mise.toml declares ${tool}`);
-  const minors = recorded.php;
   const violations: string[] = [];
   for (const { file, workflow } of await workflows()) {
     for (const [id, job] of Object.entries(workflow.jobs)) {
@@ -258,8 +251,6 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         if (uses.startsWith('actions/setup-python@')) violations.push(`${file} ${id}: setup-python installs a Python; make install-tools installs the Python of mise.toml`);
         if (uses.startsWith('shivammathur/setup-php@')) {
           tools.push('php');
-          const versions = step.with?.['php-version'] === '${{ matrix.php }}' ? phpMatrix(job) : [String(step.with?.['php-version'])];
-          for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} is not a minor of config/toolchain.json`);
           if (step.with?.tools !== 'none') violations.push(`${file} ${id}: setup-php installs ${String(step.with?.tools)}; it installs PHP alone, and make install-tools installs the Composer of mise.toml`);
         }
         if (/^make install-tools$/m.test(run)) tools.push(...INSTALL_TOOLS);
@@ -301,13 +292,25 @@ test('the declared contract commands run in a shell without login files', async 
   assert.doesNotMatch(runner, /'-lc'|'-l'/);
 });
 
-// make toolchain-check requires require.php of every composer.json to be >= the PHP pin of kit, and config/toolchain.json php
-// to be that pin; every job that runs the test suite of a PHP package runs it on each of those minors.
-test('every job that tests a PHP package runs on each PHP minor of config/toolchain.json', async () => {
-  const workflow = workflowOf(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8'), 'ci.yml');
+// .php-version holds the PHP minor of the checkout, one of config/toolchain.json php, and every setup-php step of every
+// workflow reads it, as the release.yml of kit does: a workflow that names no PHP, such as the release proof without
+// .php-version, keeps the PHP of the runner (template v0.0.7, C14.45).
+test('every setup-php step reads the PHP minor of .php-version', async () => {
   const minors = (await recordedToolchain(repository)).php;
-  const jobs = Object.entries(workflow.jobs).filter(([, job]) => /composer --working-dir=packages\/[^ ]+ test\b|make (?:ci-targets TARGETS="[^"]*\b)?test-(?:native|php-api|validator-php)(?=[\s"])/
-    .test((job.steps ?? []).map(step => stepText(step, 'run')).join('\n')));
-  assert.ok(jobs.length > 0, 'no CI job tests a PHP package');
-  for (const [name, job] of jobs) assert.deepEqual(phpMatrix(job), minors, `${name} tests a PHP package`);
+  const file = path.join(repository, '.php-version');
+  assert.ok(existsSync(file), '.php-version is missing; it holds the PHP minor of the checkout');
+  const minor = (await read('.php-version')).trim();
+  assert.ok(minors.includes(minor), `.php-version holds ${minor}, which is no minor of config/toolchain.json php (${minors.join(', ')})`);
+  const violations: string[] = [];
+  for (const { file: name, workflow } of await workflows()) {
+    for (const [id, job] of Object.entries(workflow.jobs)) {
+      for (const step of job.steps ?? []) {
+        if (!stepText(step, 'uses').startsWith('shivammathur/setup-php@')) continue;
+        if (step.with?.['php-version-file'] !== '.php-version' || step.with['php-version'] !== undefined) {
+          violations.push(`${name} ${id}: setup-php reads php-version ${String(step.with?.['php-version'])} and php-version-file ${String(step.with?.['php-version-file'])}, not php-version-file .php-version alone`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(violations, []);
 });
