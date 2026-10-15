@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: c20dd6e7cc3ec5597848556b11c547052ee67155286a9cdf3f798904b535b02a -->
+<!-- source-sha256: 24c134cccb611dc2980a40f54347512f54d093b0240df1f4d9cb41f1f8ad538c -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -328,6 +328,7 @@
 | C14.41 | kit 0.0.51로 옮긴다(kit K172–K192, 0.0.49와 0.0.50 포함). 게시된 파일의 integrity로 pin한다. `make kit-sync`는 패키지 설치 전에 `$(NODE)`를 정의하는 `kit-bootstrap.mk`를 복사하므로(K185) `install-ordered-json`은 다시 `$(NODE)`로 node를 시작하고, `ignoreBinaries` 없는 `knip.json`을 복사하므로 `config/knip-entries.json`이 script와 테스트가 실행하는 binary go, php, make를 선언한다(K176). 생성된 폼 템플릿 validator는 `oxlint-disable` 머리말 대신 `config/knip-entries.json`의 `ignore` 항목으로 knip과 oxlint에서 빠진다(K172). `make dependency-review UPDATE=1`이 `es-module-lexer` 3.0.4를 받고 `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make toolchain-check`, `make layout-check`, `make lint-ts`, `make dependency-policy-check`, main의 ci-passed |[ ] |
 | C14.43 | 릴리스 0.0.6: `config/release.json`이 적은 모든 manifest와 그 lock(`package-lock.json`, `composer.lock` 파일들, `Cargo.lock` 6개)의 version, `packages/generator/python`의 git pin, `contracts/features.json`의 version, `packages/php-ext`의 module version, 이를 읽는 검사와 문서를 0.0.6으로 정한다. `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## 0.0.6`으로 바꾸고 그 위에 빈 `## Unreleased`를 새로 쓴다. dependency review를 기록하고, `make release-assets`와 `make release-consumer-lock`으로 `tests/release-install`의 사용자 project를 0.0.6 archive에 맞게 쓴다. 릴리스 commit에 로컬 tag `v0.0.6`, `packages/validator/go/v0.0.6`, `packages/generator/go/v0.0.6`을 만들고 maintainer가 그것을 push한다. Go workspace module은 이 릴리스에서 pseudo-version 요구를 유지한다 | `make release-versions TAG=v0.0.6`, `make release-consumer TAG=v0.0.6`, `make release-go-tags TAG=v0.0.6`, `make dependency-policy-check` |[ ] |
 | C14.44 | 두 Python package를 wheel로 릴리스한다(kit K29). K29는 `config/release.json`이 아직 적은 `proof.gitTag`의 Python git-tag kind를 없앴으므로 `make release-versions`가 실패했다. `polyspec-crudui-validator`와 `polyspec-crudui-generator`는 `pyproject.toml`이 `archive` manifest인 `wheel` package이고, `consumers.wheel`이 각각을 import하며, `config/toolchain.json`의 `pythonBackend`가 `setuptools==84.0.0`을 그 wheel의 sha256으로 pin한다(K166). generator는 `polyspec-crudui-validator==<version>`을 요구하고 `[tool.uv.sources]`가 그것을 workspace의 validator로 풀며, `scripts/release-pins.mts`, `make release-pins`, `tests/build/python-git-pins.test.mts`는 지운다. | `make release-coverage`, `make kit-check`, 설정을 읽는 `make release-versions TAG=v0.0.5`, `make dependency-policy-check` |[ ] |
+| C14.45 | 모든 workflow의 PHP는 `.php-version`의 minor다. 새 파일은 crudui의 PHP minor(8.5, workflow가 inline으로 pin하던 `config/toolchain.json`의 minor)를 담고, workflow의 모든 setup-php step은 `php-version-file: .php-version`을 읽으므로 PHP API와 PHP validator job에는 PHP matrix가 없다. kit의 `release.yml`은 runner의 PHP 8.3을 유지하는 대신 release proof에 그 PHP를 설치한다(template v0.0.7). | `tests/build/runtime-version-policy.test.mts`, `tests/build/ci-local.test.mts`, `make toolchain-check` |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
