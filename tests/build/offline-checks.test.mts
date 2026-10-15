@@ -7,12 +7,12 @@
 // fmt, or starts a file, an npm script or a package test that does, directly or through the files that it imports or
 // names.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 import { makeTargets } from '../../scripts/test-commands.mts';
+import { makeDryRun } from './make-dry-run.mts';
 import { parseJson, manifestSchema } from '../json.mts';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 
@@ -163,7 +163,7 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
 // make install-packages runs before the package of kit is installed, when kit-bootstrap.mk defines NPM and not the NODE of
 // kit.mk; its prerequisites start node by the absolute path of the node that make install-tools TOOLS=npm installed.
 test('make install-packages starts the node of the checkout before kit is installed', () => {
-  const run = spawnSync('make', ['--no-print-directory', '-n', 'install-packages', 'KIT=var/no-kit'], { cwd: ROOT, encoding: 'utf8' });
+  const run = makeDryRun(ROOT, 'install-packages', { variables: ['KIT=var/no-kit'] });
   assert.equal(run.status, 0, run.stderr);
   assert.match(run.stdout, /\/var\/tools\/bin\/node examples\/form-comparison\/install-ordered-json\.mjs$/m);
 });

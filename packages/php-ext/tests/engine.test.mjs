@@ -2289,7 +2289,7 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
   const orderedJson = 'scripts/build-ordered-json-php-extension.mts';
   for (const filename of [common, crudui, orderedJson]) await access(new URL(filename, root));
 
-  assert.match(files.Makefile, /node scripts\/build-crudui-php-extension\.mts/);
+  assert.match(files.Makefile, /\$\(NODE\) scripts\/build-crudui-php-extension\.mts/);
   for (const removed of [
     'packages/php-ext/config.m4',
     'scripts/build-php-extension.sh',
