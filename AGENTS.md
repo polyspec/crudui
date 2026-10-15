@@ -182,7 +182,9 @@ The same tree gives the same result on every date and machine, and a failed run 
   snapshot date, an action by its commit SHA, a browser by the build that the locked package pins. No run queries a
   registry for a latest release or a channel, and no tool installs another release on its own
   (`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). A tool of the repository is installed into the checkout
-  (`var/tools` by `make install-tools`), never into the machine, which other checkouts share.
+  (`var/tools` by `make install-tools`), never into the machine, which other checkouts share. While polyspec
+  versions are 0.0.x, development checkouts link installed polyspec packages to their source as kit
+  `docs/plans/local-links.md` describes; links are never committed.
 - Inputs: a check reads only outputs that it or its declared preparation creates in the same run (a build through
   `require-current-build`, a reinstalled copy, its own records), never the leftover of another command or run.
 - Publication: a shared output that another run may read is written to a path of its run and renamed into place.

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The local links of 0.0.x (C14.51)
+
+- `AGENTS.md` and `AGENTS.ko.md` state that while polyspec versions are 0.0.x, development checkouts link installed polyspec packages to their source as `docs/plans/local-links.md` of kit describes, and that links are never committed (C14.51).
+
 ### 2026-10-15 — The browser tests without file watching (C14.47)
 
 - The Vite dev servers of the browser tests `form-styles`, `widget-scripts` and `widget-script-runs` watch no file (`server.watch: null`), so a change of a tsconfig file under the checkout, such as those that mise writes under `var/tools`, no longer reloads a page in the middle of a check (C14.47).

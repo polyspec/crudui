@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 0d9d0c964d67e04163a725d28b39c7d16a45c4be3453ebc90d539491f7ea6f1a -->
+<!-- source-sha256: 3cbe9631d91f8b4f6f057dfea13c35afad140cfc14604c96cb376c9c81501521 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙을 적습니다.
 
@@ -158,7 +158,8 @@
   대해 실패한다. image는 digest로, 그 Debian package는 snapshot 날짜로, action은 commit SHA로, browser는 잠긴 package가
   고정한 build로 지정한다. 어떤 실행도 registry에 최신 release나 channel을 묻지 않고, 어떤 도구도 스스로 다른 release를
   설치하지 않는다(`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). repository의 도구는 checkout(`make install-tools`가 쓰는 `var/tools`)에 설치하며, 다른
-  checkout이 함께 쓰는 machine에는 설치하지 않는다.
+  checkout이 함께 쓰는 machine에는 설치하지 않는다. polyspec version이 0.0.x인 동안 개발 checkout은 kit의
+  `docs/plans/local-links.md`가 설명하는 대로 설치된 polyspec package를 그 source에 link하며, link는 commit하지 않는다.
 - 입력: 검사는 자신이나 선언된 준비가 같은 실행에서 만든 출력(`require-current-build`를 거친 build, 다시 설치한 복사본,
   자기 기록)만 읽고, 다른 명령이나 실행이 남긴 것은 읽지 않는다.
 - 게시: 다른 실행이 읽을 수 있는 공유 출력은 그 실행의 경로에 쓴 뒤 제자리로 rename한다.
