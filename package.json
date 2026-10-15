@@ -44,7 +44,7 @@
     "test:form-comparison:browser": "node scripts/require-current-build.mts && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs",
     "test:form-comparison:pipeline": "node scripts/require-current-build.mts || exit 1; status=0; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd examples/form-comparison/servers/go -- ./... || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path examples/form-comparison/servers/rust/Cargo.toml || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/pipeline.browser.mjs || status=1; exit $status",
     "test:form-comparison:checks": "node scripts/require-current-build.mts && node examples/form-comparison/local-verification.mjs",
-    "test:form-comparison:library": "node scripts/require-current-build.mts && FORM_PHP_SERVER=php COMPOSER_VENDOR_DIR=../../../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd examples/form-comparison/servers/php -- --exclude-group modules",
+    "test:form-comparison:library": "node scripts/require-current-build.mts && FORM_PHP_SERVER=php node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd examples/form-comparison/servers/php -- --exclude-group modules",
     "docs:check:documents": "node node_modules/@polyspec/kit/dist/check-documents.mjs",
     "test:packages": "node scripts/require-current-build.mts && node scripts/check-packages.mts",
     "test:dependencies": "node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 60 -- tests/build/dependency-health.test.mts",
