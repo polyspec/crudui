@@ -309,33 +309,40 @@ function collectRules(): RuleEntry[] {
 function sliceSection(md: string, fromHeader: RegExp, toHeader = /^## /m): string {
   const lines = md.split('\n');
   const header = lines.findIndex((line) => fromHeader.test(line));
-  if (header < 0) return '';
+  if (header < 0) throw new Error(`docs/spec: no section header matches ${String(fromHeader)}`);
   const section = lines.slice(header + 1);
   const end = section.findIndex((line) => toHeader.test(line));
   return (end < 0 ? section : section.slice(0, end)).join('\n');
 }
 
+// A row of the token table: three cells, each of characters other than | and of escapes such as \|.
+const TOKEN_ROW = /^\|\s*`(?<token>[^`]+)`\s*\|(?<pattern>(?:[^|\\]|\\.)*)\|(?:[^|\\]|\\.)*\|\s*$/;
+const LIST_ITEM = /^\s*\d+\.\s+/;
+
 function collectGrammar(): DescribeResult['grammar'] {
   const md = readFileSync(GRAMMAR_PATH, 'utf-8');
 
-  // §1 token table rows: | `TOK` | pattern | example |
+  // §1 token table: | `TOK` | pattern | example |, with a | of a cell escaped as \| (GFM). Every row after the header
+  // and the separator is a token; a row of another shape fails instead of being dropped or cut at an unescaped |.
   const tokenSection = sliceSection(md, /^## 1\. /m);
   const tokens: Array<{ token: string; pattern: string }> = [];
-  for (const line of tokenSection.split('\n')) {
-    // a table data row: | `TOK` | pattern | example |  (skip header/separator).
-    const [, token, cell] = /^\|\s*`([^`]+)`\s*\|(.*)\|[^|]*\|\s*$/.exec(line) ?? [];
-    if (token === undefined || cell === undefined) continue;
-    const pattern = cell.replace(/\\\|/g, '|').replace(/`/g, '').trim();
-    tokens.push({ token, pattern });
+  for (const row of tokenSection.split('\n').filter((line) => line.startsWith('|')).slice(2)) {
+    const match = TOKEN_ROW.exec(row);
+    const token = match?.groups?.['token'];
+    const cell = match?.groups?.['pattern'];
+    if (token === undefined || cell === undefined) {
+      throw new Error(`docs/spec/expressions.md §1: the row ${row} is not | \`TOKEN\` | pattern | example | with each | of a cell escaped as \\|`);
+    }
+    tokens.push({ token, pattern: cell.replace(/\\\|/g, '|').replace(/`/g, '').trim() });
   }
 
-  // §3 precedence: numbered list (1.~7.)
+  // §3 precedence: the items of the numbered list; the prose around it ("From lowest to highest:", the example after
+  // it) is no level.
   const precSection = sliceSection(md, /^## 3\. /m);
-  const precedence: string[] = [];
-  for (const line of precSection.split('\n')) {
-    const [, item] = /^\s*\d+\.\s+(.*)$/.exec(line) ?? [];
-    if (item !== undefined) precedence.push(item.replace(/`/g, '').trim());
-  }
+  const precedence = precSection
+    .split('\n')
+    .filter((line) => LIST_ITEM.test(line))
+    .map((line) => line.replace(LIST_ITEM, '').replace(/`/g, '').trim());
 
   // §6 truthy: the falsy enumeration line (strip markdown emphasis/backticks).
   const truthySection = sliceSection(md, /^## 6\. /m);

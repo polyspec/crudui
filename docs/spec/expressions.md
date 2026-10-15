@@ -31,7 +31,7 @@ Rust provide these stages as well as TypeScript. Evaluation does not use `eval`.
 | `AND OR NOT` | `&&` `\|\|` `!` | `!.enabled` |
 | `IN NOT_IN` | `in` `not in` | `.country in [US, CA]` |
 | `QUESTION COLON` | `?` `:` | `.enabled ? 'yes' : 'no'` |
-| `LPAREN RPAREN` | `(` `)` | `(.a || .b)` |
+| `LPAREN RPAREN` | `(` `)` | `(.a \|\| .b)` |
 | `LBRACKET RBRACKET COMMA` | `[` `]` `,` | `[US, CA]` |
 | `WHITESPACE` | whitespace, omitted from output | space |
 | `EOF` | end of input | end of input |

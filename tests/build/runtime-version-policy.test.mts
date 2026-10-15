@@ -169,7 +169,8 @@ async function workflows(): Promise<{ file: string; text: string; workflow: Work
 
 test('the checkout records one exact version of every tool', async () => {
   const recorded = await recordedToolchain(repository);
-  const node = recorded.node ?? '';
+  const { node } = recorded;
+  assert.ok(node !== undefined, 'mise.toml declares no node');
   assert.match(node, /^\d+\.\d+\.\d+$/, 'mise.toml must record node as one exact release');
   assert.equal(Number(node.split('.')[0]) % 2, 0, 'the Node.js release must be of an even, LTS-designated major');
   const toolchain = await read('rust-toolchain.toml');
@@ -179,7 +180,11 @@ test('the checkout records one exact version of every tool', async () => {
   // setup-php and Homebrew cannot install the same patch, so PHP is pinned by its minor release; the patch is evidence.
   assert.ok(config.php.length > 0 && config.php.every(release => /^\d+\.\d+$/.test(release)), `config/toolchain.json must record php as minor releases; it records ${JSON.stringify(config.php)}`);
   // Python, which runs the Python packages and their suites, and Go and Composer are exact releases of mise.toml, locked by mise.lock.
-  for (const tool of ['go', 'python', 'composer'] as const) assert.match(recorded[tool] ?? '', /^\d+\.\d+\.\d+$/, `mise.toml must record ${tool} as one exact release`);
+  for (const tool of ['go', 'python', 'composer'] as const) {
+    const version = recorded[tool];
+    assert.ok(version !== undefined, `mise.toml declares no ${tool}`);
+    assert.match(version, /^\d+\.\d+\.\d+$/, `mise.toml must record ${tool} as one exact release`);
+  }
 });
 
 // The type definitions of Node.js describe the runtime that runs the code, so every manifest requires the major of
