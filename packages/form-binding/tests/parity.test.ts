@@ -24,15 +24,19 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
- * The cases of the shared validation fixture whose specification and data are objects, each checked to hold a name. A case
- * whose specification or data is no object expects an input failure, which no rendered form holds.
+ * The cases of the shared validation fixture, each checked to hold a name, an object specification and object data. A case
+ * that declares an input failure (expectFailure) with a specification or data that is no object is left out, as no
+ * rendered form holds it; any other case without them is malformed and fails.
  */
 function readCases(text: string): Case[] {
   const value: unknown = JSON.parse(text);
   if (!Array.isArray(value)) throw new TypeError('The validation fixture holds no list of cases');
   return value.flatMap((item: unknown, index): Case[] => {
     if (!isRecord(item) || typeof item.name !== 'string') throw new TypeError(`Case ${index} of the validation fixture has no name`);
-    if (!isRecord(item.spec) || !isRecord(item.data)) return [];
+    if (!isRecord(item.spec) || !isRecord(item.data)) {
+      if (isRecord(item.expectFailure)) return [];
+      throw new TypeError(`Case ${index} of the validation fixture has no object spec and data and expects no input failure`);
+    }
     return [{ name: item.name, spec: item.spec, data: item.data, ...('expected' in item ? { expected: item.expected } : {}) }];
   });
 }
@@ -59,6 +63,17 @@ function withoutInvalidMarks(form: HTMLFormElement): { html: string; invalid: st
   });
   return { html: form.innerHTML, invalid };
 }
+
+describe('the cases of the validation fixture', () => {
+  it('leave out a case whose specification or data is no object only when it expects an input failure', () => {
+    const failure = { code: 'INVALID_FORM_INPUT', message: 'Form data must be an object', at: '' };
+    expect(readCases(JSON.stringify([{ name: 'declared', spec: {}, data: ['a'], expectFailure: failure }]))).toStrictEqual([]);
+    expect(() => readCases(JSON.stringify([{ name: 'malformed', spec: {}, data: ['a'] }])))
+      .toThrow('Case 0 of the validation fixture has no object spec and data and expects no input failure');
+    expect(() => readCases(JSON.stringify([{ name: 'malformed', spec: [], data: {}, expected: { valid: false } }])))
+      .toThrow('Case 0 of the validation fixture has no object spec and data and expects no input failure');
+  });
+});
 
 describe('error markup parity with renderForm', () => {
   it('selects the invalid fixture cases whose data a rendered form holds', () => {
