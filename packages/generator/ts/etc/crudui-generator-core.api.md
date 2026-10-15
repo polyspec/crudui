@@ -227,6 +227,9 @@ export type CreateFormOptions = Pick<BindFormOptions, 'language' | 'keyPrefix' |
 export function createRowKey(): string;
 
 // @public
+export function decodeFormRenderOptions(value: unknown): FormRenderOptions;
+
+// @public
 export function decodeFormTemplate(value: unknown): FormTemplate;
 
 // @public
@@ -352,6 +355,12 @@ export interface FormRenderOptions {
     errors?: FormRenderError[];
     formErrors?: string[];
     hidden?: Record<string, string>;
+}
+
+// @public
+export class FormRenderOptionsError extends FormInputError {
+    constructor(pointer: string, message: string);
+    readonly pointer: string;
 }
 
 // @public

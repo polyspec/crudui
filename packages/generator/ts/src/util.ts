@@ -212,3 +212,6 @@ export function joinClass(...parts: Array<string | undefined | false>): string {
 export function controlId(prefix: string, path: string): string {
   return `${encodeURIComponent(prefix)}:${encodeURIComponent(path)}`;
 }
+
+/** `name` as a reference token of a JSON Pointer (RFC 6901, section 3). */
+export const pointerToken = (name: string): string => name.replace(/~/g, '~0').replace(/\//g, '~1');

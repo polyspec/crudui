@@ -293,6 +293,15 @@ this order:
 PHP reads an options array as an object, an empty array as an empty object or an empty list, and
 a list array as a list. Go and Rust take the options as an ordered JSON object.
 
+Options that cross a JSON boundary, such as the `render` member of a page state that a client reads back with
+`JSON.parse`, are decoded with `decodeFormRenderOptions(value)` of `@polyspec/crudui-generator-core`. It runs the checks of
+the table above up to `errors`, the same check that every renderer runs before it places the errors on the nodes, and
+returns the options; the path of an error is checked only when a form renders them. A value outside the contract fails
+with a `FormRenderOptionsError`, a `FormInputError` with the code `INVALID_FORM_INPUT` and the message of the table,
+whose `pointer` is the JSON Pointer (RFC 6901) of the invalid member: the unknown member itself, the member `action`,
+`hidden`, `formErrors` or `errors`, or the first invalid item of a list, such as `/errors/1`; the empty string is the
+value itself. The renderers throw the same error.
+
 ## Browser validation
 
 `@polyspec/crudui-form-binding` (`packages/form-binding`) validates a server-rendered form in the browser

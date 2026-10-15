@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 7db10f13878ae2da010e30b8cae5cab2197c9872f794a219a53081c3c061377d -->
+<!-- source-sha256: 2c1f6553e1180738c6da4b09603649d5c7258ee9d8d584b10f03be2a28cc116a -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -269,6 +269,14 @@ WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 
 PHP는 옵션 배열을 객체로, 빈 배열을 빈 객체나 빈 목록으로, list 배열을 목록으로 읽습니다. Go와
 Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
+
+client가 `JSON.parse`로 다시 읽는 페이지 state의 `render` 멤버처럼 JSON 경계를 넘는 옵션은
+`@polyspec/crudui-generator-core`의 `decodeFormRenderOptions(value)`로 디코딩합니다. 이 함수는 위 표의 검사를 `errors`까지
+실행하며, 이는 모든 renderer가 오류를 노드에 두기 전에 실행하는 같은 검사입니다. 그리고 옵션을 돌려줍니다. 오류의 경로는
+폼이 그것을 렌더링할 때만 검사합니다. 계약 밖의 값은 `FormRenderOptionsError`로 실패합니다. 이 오류는 코드가
+`INVALID_FORM_INPUT`이고 메시지가 표의 메시지인 `FormInputError`이며, `pointer`는 잘못된 멤버의 JSON Pointer(RFC 6901)입니다.
+알 수 없는 멤버 자신, 멤버 `action`, `hidden`, `formErrors`, `errors`, 또는 `/errors/1`처럼 목록의 첫 번째 잘못된 항목을 가리키며,
+빈 문자열은 값 자체입니다. renderer는 같은 오류를 던집니다.
 
 ## 브라우저 검증
 
