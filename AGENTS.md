@@ -120,21 +120,18 @@ the rules of crudui.
   `<directory>/vX.Y.Z` for the Go module of that directory. Only the maintainer creates, moves or pushes a tag.
 - After the CI check `ci-passed` succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)`
   comes first: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
-  `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency and git pin on a package of the
-  repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new
-  empty `## Unreleased`. The git pins of `packages/generator/python` name the tag `vX.Y.Z` of this repository, so that tag
-  is created only after this commit is on `main`; `make release-pins` (run by `make release-versions`) requires every such
-  pin to name the tag and its `subdirectory` to name a package folder of this checkout (`packages/validator/python` since
-  C14.7).
+  `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency on a package of the repository, such as
+  the `polyspec-crudui-validator==X.Y.Z` of `packages/generator/python`, to X.Y.Z, and renames `## Unreleased` of
+  `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new empty `## Unreleased`.
 - The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml`, the copy of kit, runs
   `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
   `make release-proof` and `make release-undraft` (the release tool of `@polyspec/kit`): it requires the commit on `main`
   with the checks `push-gate` and `ci-passed` concluded success, the version of the tag in every manifest and the section
   `## X.Y.Z`, creates the GitHub Release as a draft with that section as its notes and the archives of `packages/`, proves
   the draft from outside the checkout and then makes it public. The archives are named
-  `<package>-<language>-<version>.<extension>`, `npm` or `php` being the language. A section over 125000 characters,
-  the limit of a release body, is replaced by one line that links the section of `CHANGELOG.md` at the tag. A crate and a
-  Python package are not released as an archive; they are consumed by git tag. A Go module tag builds and attaches
+  `<package>-<language>-<version>.<extension>`, `npm` or `php` being the language, and the Python packages are wheels
+  (kit K29, C14.44). A section over 125000 characters, the limit of a release body, is replaced by one line that links
+  the section of `CHANGELOG.md` at the tag. A crate is not released as an archive; it is consumed by git tag. A Go module tag builds and attaches
   nothing (`docs/operations/repository.md`).
 
 # Checklist

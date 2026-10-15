@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 33257ddf842db59b04d619ff92749a9a3540eb1754d5a4f42c81e12a037b1149 -->
+<!-- source-sha256: 0d9d0c964d67e04163a725d28b39c7d16a45c4be3453ebc90d539491f7ea6f1a -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙을 적습니다.
 
@@ -107,17 +107,15 @@
   `<디렉터리>/vX.Y.Z`입니다. tag는 maintainer만 만들고 옮기고 push합니다.
 - push된 `main`에서 CI check `ci-passed`가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`가 먼저 옵니다. 이 commit은
   `config/release.json`이 적은 모든 manifest(`package.json`, `Cargo.toml`, `pyproject.toml`, `packages/`의 `composer.json`)의 version과
-  저장소 package에 대한 모든 dependency와 git pin의 version을 X.Y.Z로 정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의
-  `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다. `packages/generator/python`의 git pin은 이 저장소의
-  tag `vX.Y.Z`를 적으므로, 그 tag는 이 commit이 `main`에 있은 뒤에만 만듭니다. `make release-pins`(`make release-versions`가 실행)가 모든
-  pin이 tag를 적고 그 `subdirectory`가 이 checkout의 package 폴더(C14.7부터 `packages/validator/python`)를 적을 것을 요구합니다.
+  `packages/generator/python`의 `polyspec-crudui-validator==X.Y.Z` 같은 저장소 package에 대한 모든 dependency의 version을 X.Y.Z로
+  정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다.
 - 그다음 maintainer가 그 commit에 tag를 달아 push합니다. kit의 copy인 `.github/workflows/release.yml`은
   `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
   `make release-proof`, `make release-undraft`(`@polyspec/kit`의 release 도구)를 실행해, commit이 `main`에 있고 check `push-gate`와
   `ci-passed`가 success로 끝났는지, 모든 manifest의 version이 tag와 같은지, section `## X.Y.Z`가 있는지 확인하고, 그 section을 notes로,
   `packages/`의 archive(이름은 `<package>-<language>-<version>.<extension>`이며 language는 `npm` 또는 `php`)를 첨부해 GitHub Release를 만듭니다.
-  release 본문 한도인 125000자를 넘는 section은 tag의 `CHANGELOG.md` section을 link하는 한 줄로 대신합니다. crate와 Python package는
-  archive로 release하지 않고 git tag로 사용합니다. GitHub Release는 draft로 만들어 checkout 밖에서 증명한 뒤에 공개합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다
+  Python package는 wheel입니다(kit K29, C14.44). release 본문 한도인 125000자를 넘는 section은 tag의 `CHANGELOG.md` section을
+  link하는 한 줄로 대신합니다. crate는 archive로 release하지 않고 git tag로 사용합니다. GitHub Release는 draft로 만들어 checkout 밖에서 증명한 뒤에 공개합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다
   (`docs/operations/repository.md`).
 
 # Checklist
