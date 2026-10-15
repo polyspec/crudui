@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The grammar rows of crudui describe (C14.42)
+
+- `crudui describe` reads every row of the token table of `docs/spec/expressions.md` and fails on a malformed row or a missing section instead of skipping it; the `LPAREN RPAREN` row, whose example held an unescaped `||`, now gives the pattern `( )` (C14.42).
+
 ## 0.0.7
 
 ### 2026-10-15 — kit 0.0.53 (C14.48)

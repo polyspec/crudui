@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5b5517930dfcb8ec72ede1821d7d33fc3e38e740046929ce9e6ba82d02922e97 -->
+<!-- source-sha256: ba68657f8577194bd1423ae70bd8ddc75093e997cddd50557f6c563553dcf9b0 -->
 
 ## Unreleased
+
+### 2026-10-15 — crudui describe의 문법 행 (C14.42)
+
+- `crudui describe`는 `docs/spec/expressions.md`의 token 표의 모든 행을 읽고, 잘못된 행이나 없는 section을 건너뛰지 않고 실패한다. 예시에 escape되지 않은 `||`가 있던 `LPAREN RPAREN` 행은 이제 pattern `( )`를 준다(C14.42).
 
 ## 0.0.7
 
