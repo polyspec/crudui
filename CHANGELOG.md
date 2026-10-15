@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The Python packages as wheels (C14.44)
+
+- The Python packages `polyspec-crudui-validator` and `polyspec-crudui-generator` are released as wheels, built by the `pythonBackend` setuptools 84.0.0 of `config/toolchain.json` (kit K29, K166), and no longer installed by git subdirectory pin. The generator requires the validator wheel of the same release by its release URL, which the uv workspace resolves to the validator of the checkout and `make python-lock` leaves out of the lock (K190). `make release-pins` and `scripts/release-pins.mts` are removed (C14.44).
+
 ### 2026-10-15 — The PHP of .php-version (C14.45)
 
 - `.php-version` holds the PHP minor of crudui, 8.5, and every setup-php step of the workflows reads it, so the release workflow of kit sets up that PHP for the release proof instead of keeping the PHP of the runner. The PHP API and PHP validator jobs have no PHP matrix any more (C14.45).

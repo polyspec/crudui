@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e37e3a2367c782187a7600a7dfffde87c28e999bbbe8ab34700445a0b8feb76d -->
+<!-- source-sha256: 28dff6135106af46ef910d5322a887db0d149d82e594c4f30e469b4e01fde86b -->
 
 ## Unreleased
+
+### 2026-10-15 — wheel인 Python package (C14.44)
+
+- Python package `polyspec-crudui-validator`와 `polyspec-crudui-generator`는 `config/toolchain.json`의 `pythonBackend` setuptools 84.0.0으로 build한 wheel로 릴리스하며(kit K29, K166), 더 이상 git subdirectory pin으로 설치하지 않는다. generator는 같은 릴리스의 validator wheel을 그 릴리스 URL로 요구하며, uv workspace는 그것을 checkout의 validator로 풀고 `make python-lock`은 lock에서 뺀다(K190). `make release-pins`와 `scripts/release-pins.mts`는 지운다(C14.44).
 
 ### 2026-10-15 — .php-version의 PHP (C14.45)
 

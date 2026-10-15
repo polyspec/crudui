@@ -48,7 +48,7 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
 
 1. After CI succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)` sets the version of
    every manifest that `config/release.json` lists (`package.json`, the `composer.json` of `packages/`, `Cargo.toml`,
-   `pyproject.toml`), and of every dependency and git pin on a package of the repository, to X.Y.Z, regenerates the locks,
+   `pyproject.toml`), and of every dependency on a package of the repository, to X.Y.Z, regenerates the locks,
    and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new empty `## Unreleased`.
 2. On that commit, `git tag vX.Y.Z` (a local tag), `make release-assets TAG=vX.Y.Z` and
    `make release-consumer-lock TAG=vX.Y.Z` (online) write the manifests and locks of the consumer projects
@@ -76,8 +76,7 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
      `<directory>/vX.Y.Z` of every Go module at the same commit, and the check runs `push-gate` and `ci-passed` of the
      commit completed with conclusion `success` (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`); it fails with
      each missing or failed check;
-   - `make release-versions` first runs `make release-pins`, which requires every git pin of this repository in a `pyproject.toml`
-     to name the version of the tag; it requires the version of the tag in every manifest that `config/release.json` lists, the
+   - `make release-versions` requires the version of the tag in every manifest that `config/release.json` lists, the
      module path of every Go module, and the section `## X.Y.Z` of `CHANGELOG.md` and `CHANGELOG.ko.md`; it fails with the
      file and both versions;
    - `make release-assets` runs `make build` and writes the archives of the packages of `config/release.json` to
@@ -88,9 +87,10 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
      An archive installs beside the other archives without the repository tree. The published manifests are the package
      manifests of `packages/`, packed unchanged (see "Package manifests and development resolution"). The step fails
      with each packed manifest that differs from its package manifest or that names a dependency of the scope
-     `@polyspec` or the vendor `polyspec` by anything but an exact version. The release assets are npm tarballs and
-     Composer zips only: a crate and a Python package are not released as an archive; they are consumed by git tag. A Go
-     module tag builds and attaches nothing;
+     `@polyspec` or the vendor `polyspec` by anything but an exact version. Each Python package of `config/release.json`
+     is a wheel, built by the `pythonBackend` of `config/toolchain.json` (kit K29, K166, C14.44); the generator requires
+     the validator of the same release, `polyspec-crudui-validator==X.Y.Z`, whose wheel is an asset beside it. A crate is
+     not released as an archive; it is consumed by git tag. A Go module tag builds and attaches nothing;
    - `make release-publish` creates the release of the tag as a draft with the archives and the section `## X.Y.Z` as
      its notes; a draft of an earlier run is replaced. GitHub accepts a release body of at most 125000 characters; a
      longer section is replaced by one line that links the section of `CHANGELOG.md` at the tag;
@@ -99,9 +99,8 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
    - `make release-undraft TAG=<tag>` makes the draft public, only after the proof passed. A failed step leaves the
      release a draft and fails the run.
 
-The tests of polyspec/kit (`tests/kit/release.test.mts` and `tests/kit/release-go-tags.test.mts`) check the tool with command fakes, and
-`tests/build/python-git-pins.test.mts` requires every git pin on this repository in a `pyproject.toml` to name the
-version of `package.json`. `make release-coverage`
+The tests of polyspec/kit (`tests/kit/release.test.mts` and `tests/kit/release-go-tags.test.mts`) check the tool with command fakes.
+`make release-coverage`
 requires every `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml` and `go.mod` of the repository to be
 classified in `config/release.json`.
 

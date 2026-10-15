@@ -733,19 +733,7 @@
         "tests/build/package-names.test.mts",
         "tests/build/runtime-version-policy.test.mts",
         "tests/build/make-dry-run.test.mts",
-        "tests/docs/repository-writing.test.mts",
-        "tests/build/python-git-pins.test.mts"
-      ]
-    },
-    {
-      "paths": [
-        "scripts/release-pins.mts"
-      ],
-      "targets": [
-        "release-pins"
-      ],
-      "tests": [
-        "tests/build/python-git-pins.test.mts"
+        "tests/docs/repository-writing.test.mts"
       ]
     },
     {

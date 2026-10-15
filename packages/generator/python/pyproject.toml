@@ -9,7 +9,7 @@ description = "Form, list and detail rendering for CRUDUI specifications"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "polyspec-crudui-validator @ git+https://github.com/polyspec/crudui@v0.0.5#subdirectory=packages/validator-python",
+    "polyspec-crudui-validator @ https://github.com/polyspec/crudui/releases/download/v0.0.5/polyspec_crudui_validator-0.0.5-py3-none-any.whl",
 ]
 
 [tool.setuptools]

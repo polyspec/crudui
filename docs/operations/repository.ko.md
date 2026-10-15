@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 0b24660d1af05172a95f6667b62435f8f11a812cb2d319f675b0693406c0d4e6 -->
+<!-- source-sha256: 917f2d5c5647b41ef4e2ad0fe21e26a4352bcac9f200fa3b7bdb3bf17e7b729c -->
 
 [English](repository.md).
 
@@ -45,7 +45,7 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
 
 1. push된 `main`의 CI가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`는 `config/release.json`이 적은 모든
    manifest(`package.json`, `packages/`의 `composer.json`, `Cargo.toml`, `pyproject.toml`)의 version과 저장소 package에 대한 모든
-   dependency와 git pin의 version을 X.Y.Z로 정하고, lock을 다시 만들며, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를
+   dependency의 version을 X.Y.Z로 정하고, lock을 다시 만들며, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를
    `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다.
 2. 그 commit에서 `git tag vX.Y.Z`(로컬 tag), `make release-assets TAG=vX.Y.Z`, `make release-consumer-lock TAG=vX.Y.Z`(online)가
    그 version의 archive에 대한 사용자 project `tests/release-install/npm`과 `tests/release-install/composer`의 manifest와 lock을
@@ -70,8 +70,7 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
    - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), 모든 Go module의 tag
      `<directory>/vX.Y.Z`가 같은 commit에 있는지, commit의 check run `push-gate`와 `ci-passed`가 conclusion `success`로
      끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`) 확인하고, 빠졌거나 실패한 check마다 적어 실패합니다.
-   - `make release-versions`는 먼저 `make release-pins`를 실행하며, 이것은 `pyproject.toml`의 이 저장소를 가리키는 모든 git pin이 tag의
-     version을 적을 것을 요구합니다. 그다음 `config/release.json`이 적은 모든 manifest의 version이 tag와 같은지, 모든 Go module의 module
+   - `make release-versions`는 `config/release.json`이 적은 모든 manifest의 version이 tag와 같은지, 모든 Go module의 module
      path, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 section `## X.Y.Z`가 있는지 확인하고, 파일과 두 version을 적어 실패합니다.
    - `make release-assets`는 `make build`를 실행하고 `config/release.json`의 package archive를 `var/release/assets`에 씁니다.
      release하는 npm package마다 `npm pack`, Composer package 디렉터리마다 zip `git archive`를 실행하고, 이름은
@@ -80,8 +79,9 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
      `polyspec-crudui-validator-php-X.Y.Z.zip`). archive는 저장소 tree 없이 다른 archive 옆에 설치됩니다. 게시되는 manifest는
      `packages/`의 package manifest이며 바꾸지 않고 pack합니다("Package manifest와 개발 해석" 참고). 이 step은 package
      manifest와 다른 pack된 manifest, scope `@polyspec`나 vendor `polyspec`의 의존성을 정확한 version이 아닌 것으로 적은 pack된
-     manifest를 하나씩 적어 실패합니다. release asset은 npm tarball과 Composer zip뿐입니다. crate와 Python package는 archive로
-     release하지 않고 git tag로 사용합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다.
+     manifest를 하나씩 적어 실패합니다. `config/release.json`의 각 Python package는 `config/toolchain.json`의 `pythonBackend`로
+     build하는 wheel입니다(kit K29, K166, C14.44). generator는 같은 release의 validator인 `polyspec-crudui-validator==X.Y.Z`를
+     요구하며, 그 wheel은 옆의 asset입니다. crate는 archive로 release하지 않고 git tag로 사용합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다.
    - `make release-publish`는 archive와 section `## X.Y.Z`를 notes로 하여 tag의 release를 draft로 만들며, 앞선 실행의 draft는
      대체합니다. GitHub는 125000자까지의 release 본문을 받으므로, 더 긴 section은 tag 시점의 `CHANGELOG.md` section을 link하는 한
      줄로 대신합니다.
@@ -90,9 +90,8 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
    - `make release-undraft TAG=<tag>`는 증명이 통과한 뒤에만 draft를 공개합니다. 실패한 step은 release를 draft로 남기고 실행을
      실패시킵니다.
 
-polyspec/kit의 test(`tests/kit/release.test.mts`와 `tests/kit/release-go-tags.test.mts`)는 명령 fake로 도구를 검사하고,
-`tests/build/python-git-pins.test.mts`는 `pyproject.toml`에서 이 저장소를 가리키는 모든 git pin이 `package.json`의 version을 적을 것을
-요구합니다. `make release-coverage`는 저장소의 모든 `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`가
+polyspec/kit의 test(`tests/kit/release.test.mts`와 `tests/kit/release-go-tags.test.mts`)는 명령 fake로 도구를 검사합니다.
+`make release-coverage`는 저장소의 모든 `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`가
 `config/release.json`에 분류되어 있을 것을 요구합니다.
 
 개발자가 `make release-assets` 뒤에 실행하고 release 증명이 draft에서 실행하는 `make release-consumer TAG=vX.Y.Z`

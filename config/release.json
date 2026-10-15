@@ -54,6 +54,16 @@
       "kind": "composer",
       "directory": "packages/validator/php",
       "name": "polyspec/crudui-validator"
+    },
+    {
+      "kind": "wheel",
+      "directory": "packages/validator/python",
+      "name": "polyspec-crudui-validator"
+    },
+    {
+      "kind": "wheel",
+      "directory": "packages/generator/python",
+      "name": "polyspec-crudui-generator"
     }
   ],
   "manifests": {
@@ -71,12 +81,13 @@
     "packages/validator/php/composer.json": "archive",
     "packages/generator/rust/Cargo.toml": "git-tag",
     "packages/validator/rust/Cargo.toml": "git-tag",
-    "packages/generator/python/pyproject.toml": "git-tag",
-    "packages/validator/python/pyproject.toml": "git-tag",
+    "packages/generator/python/pyproject.toml": "archive",
+    "packages/validator/python/pyproject.toml": "archive",
     "examples/cross-check-console/validators/rust/Cargo.toml": "version",
     "examples/form-comparison/servers/rust/Cargo.toml": "version",
     "tests/native-generators/programs/rust/Cargo.toml": "version",
-    "benchmarks/validators/rust/Cargo.toml": "version"
+    "benchmarks/validators/rust/Cargo.toml": "version",
+    "tests/conformance/python/pyproject.toml": "version"
   },
   "notReleased": {
     "composer.json": "the development root of the Composer packages of packages/, never published; it declares no version",
@@ -86,7 +97,8 @@
     "examples/form-comparison/servers/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
     "tests/native-generators/programs/go/go.mod": "a test program module of this repository, resolved through replace and never tagged",
     "benchmarks/validators/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged",
-    "packages/svelte/tools/package.json": "the tools of packages/svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces"
+    "packages/svelte/tools/package.json": "the tools of packages/svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces",
+    "pyproject.toml": "the uv workspace of the Python packages (C14.29), never published; it declares no version"
   },
   "goModules": {
     "packages/generator/go": "github.com/polyspec/crudui/packages/generator/go",
@@ -127,28 +139,29 @@
           "require 'vendor/autoload.php'; if (!class_exists('Polyspec\\\\Crudui\\\\Validator')) { exit(1); }"
         ]
       }
-    }
-  },
-  "proof": {
-    "gitTag": {
-      "packages/validator/python/pyproject.toml": {
-        "kind": "python",
-        "name": "polyspec-crudui-validator",
-        "smoke": [
+    },
+    "wheel": {
+      "smoke": {
+        "polyspec-crudui-validator": [
           "python",
           "-c",
           "import polyspec.crudui.validator"
-        ]
-      },
-      "packages/generator/python/pyproject.toml": {
-        "kind": "python",
-        "name": "polyspec-crudui-generator",
-        "smoke": [
+        ],
+        "polyspec-crudui-generator": [
           "python",
           "-c",
           "import polyspec.crudui.generator"
         ]
       },
+      "lock": {
+        "polyspec-crudui-validator": "packages/validator/python/pylock.toml",
+        "polyspec-crudui-generator": "packages/generator/python/pylock.toml"
+      },
+      "polyspec": {}
+    }
+  },
+  "proof": {
+    "gitTag": {
       "packages/validator/rust/Cargo.toml": {
         "kind": "rust",
         "name": "polyspec-crudui-validator",
