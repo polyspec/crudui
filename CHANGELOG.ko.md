@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 28dff6135106af46ef910d5322a887db0d149d82e594c4f30e469b4e01fde86b -->
+<!-- source-sha256: 864f5b321d1230b8dffe292c9313f92fbf47be41729fac95389ff0fb506971a7 -->
 
 ## Unreleased
+
+## 0.0.6
 
 ### 2026-10-15 — wheel인 Python package (C14.44)
 
