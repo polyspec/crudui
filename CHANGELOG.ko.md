@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ba68657f8577194bd1423ae70bd8ddc75093e997cddd50557f6c563553dcf9b0 -->
+<!-- source-sha256: 55f08176043137adfc1110ca032885bd5e59d8f24a8da5dcb065e320a1bdd947 -->
 
 ## Unreleased
+
+### 2026-10-15 — render option decoder (C14.50)
+
+- `@polyspec/crudui-generator-core`는 `decodeFormRenderOptions(value)`와 `FormRenderOptionsError`를 export한다. `decodeFormRenderOptions`는 파싱한 render option을 모든 renderer가 실행하는 검사로 검사하고 `FormRenderOptions`로 돌려주며, `FormRenderOptionsError`는 그것과 renderer가 잘못된 멤버의 JSON Pointer를 `pointer`에 담아 던지는 `FormInputError`다. 메시지는 바뀌지 않는다(C14.50).
 
 ### 2026-10-15 — crudui describe의 문법 행 (C14.42)
 

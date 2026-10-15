@@ -1,6 +1,6 @@
 # 기능 계약
 <!-- doc-id: docs-spec-feature-contracts -->
-<!-- source-sha256: 738eda62302d7673bad06df6711345511c5c085464c695960f84c6449cafaa86 -->
+<!-- source-sha256: b6c18632d7d91aadcde03ad0a00f6ae42426863d5fde61a8a017578140dfb404 -->
 
 [English](feature-contracts.md).
 
@@ -36,7 +36,7 @@
 
 | 패키지 | 진입점 | 공개 범위 | 값 export |
 | --- | --- | --- | --- |
-| `@polyspec/crudui-generator-core` | `.` | public | `ComposeLoadError`, `FormInputError`, `FormInstance`, `FormTemplateError`, `UnsupportedFieldTypeError`, `bindButtons`, `bindForm`, `buildDetail`, `buildList`, `buildOutline`, `canRedo`, `canUndo`, `collapsibleRows`, `compileForm`, `connectForm`, `connectOutline`, `connectStickyHeaders`, `createForm`, `createRowKey`, `decodeFormTemplate`, `emptyHistory`, `formButtonsHtml`, `formDescription`, `formMessages`, `initialView`, `patchContent`, `recordChange`, `redoChange`, `rekeyRowView`, `removeRowView`, `resolveAction`, `runAction`, `sequenceRowKey`, `setAllExpandedView`, `toggleRowView`, `undoChange` |
+| `@polyspec/crudui-generator-core` | `.` | public | `ComposeLoadError`, `FormInputError`, `FormInstance`, `FormRenderOptionsError`, `FormTemplateError`, `UnsupportedFieldTypeError`, `bindButtons`, `bindForm`, `buildDetail`, `buildList`, `buildOutline`, `canRedo`, `canUndo`, `collapsibleRows`, `compileForm`, `connectForm`, `connectOutline`, `connectStickyHeaders`, `createForm`, `createRowKey`, `decodeFormRenderOptions`, `decodeFormTemplate`, `emptyHistory`, `formButtonsHtml`, `formDescription`, `formMessages`, `initialView`, `patchContent`, `recordChange`, `redoChange`, `rekeyRowView`, `removeRowView`, `resolveAction`, `runAction`, `sequenceRowKey`, `setAllExpandedView`, `toggleRowView`, `undoChange` |
 | `@polyspec/crudui-generator-core` | `./internal` | internal | `CELL_FORMATS`, `CELL_FORMAT_DEFAULT`, `CELL_RENDERERS`, `WIDGET_CANONICAL`, `WIDGET_COUNT`, `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `buildListLayout`, `formRenderModel`, `optionSections`, `paginationPages`, `parseStyle` |
 | `@polyspec/crudui-generator-html` | `.` | public | `renderData`, `renderDataPanel`, `renderDetail`, `renderForm`, `renderFormView`, `renderList`, `renderOutline`, `renderOutlineView` |
 | `@polyspec/crudui-generator-react` | `.` | public | `Cell`, `Controls`, `DataPanel`, `DataView`, `Detail`, `Form`, `List`, `Node`, `Outline`, `OutlineView`, `Widget` |

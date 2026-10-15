@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The render options decoder (C14.50)
+
+- `@polyspec/crudui-generator-core` exports `decodeFormRenderOptions(value)`, which checks parsed render options with the check that every renderer runs and returns them as `FormRenderOptions`, and `FormRenderOptionsError`, the `FormInputError` that it and the renderers throw with the JSON Pointer of the invalid member in `pointer`; the messages are unchanged (C14.50).
+
 ### 2026-10-15 — The grammar rows of crudui describe (C14.42)
 
 - `crudui describe` reads every row of the token table of `docs/spec/expressions.md` and fails on a malformed row or a missing section instead of skipping it; the `LPAREN RPAREN` row, whose example held an unescaped `||`, now gives the pattern `( )` (C14.42).

@@ -6,7 +6,7 @@
 
 import { FormInputError } from '@polyspec/crudui-validator';
 import type { NodeVM } from './viewmodel';
-import { isRecord } from './util';
+import { isRecord, pointerToken } from './util';
 
 /** The submission target of the form element; each member overrides the template's `action`. */
 export interface FormRenderAction {
@@ -93,33 +93,81 @@ function nodesByPath(nodes: readonly NodeVM[], parent: string | undefined, out: 
 }
 
 /**
+ * The error of {@link decodeFormRenderOptions} and of the renderers for render options outside the contract of
+ * form-runtime.md: a `FormInputError` with the code `INVALID_FORM_INPUT` and the message of that contract.
+ */
+export class FormRenderOptionsError extends FormInputError {
+  /** The JSON Pointer (RFC 6901) of the invalid member of the options; the empty string is the options themselves. */
+  readonly pointer: string;
+
+  constructor(pointer: string, message: string) {
+    super(message);
+    this.name = 'FormRenderOptionsError';
+    this.pointer = pointer;
+    Object.setPrototypeOf(this, FormRenderOptionsError.prototype);
+  }
+}
+
+/** Whether a value is a list of strings. */
+const isStringList = (value: unknown): value is string[] => Array.isArray(value) && value.every((text) => typeof text === 'string');
+
+/** Whether a value is a list of node errors. */
+const isErrorList = (value: unknown): value is FormRenderError[] => Array.isArray(value) && value.every(isRenderError);
+
+/** The JSON Pointer of the list `name` of options, or of its first item that `valid` refuses. */
+function listPointer(name: string, value: unknown, valid: (item: unknown) => boolean): string {
+  const at = Array.isArray(value) ? value.findIndex((item) => !valid(item)) : -1;
+  return at < 0 ? `/${name}` : `/${name}/${at}`;
+}
+
+/**
+ * Decode render options, such as the options that a server wrote into a page with `JSON.stringify` and a client read
+ * back with `JSON.parse`, into the {@link FormRenderOptions} of `renderForm` and the framework `Form` components. It is
+ * the check that every renderer runs on its options before it places the errors on the nodes of the form.
+ *
+ * @param value - The parsed options.
+ * @returns The members of the value as render options; a node error keeps its other members, such as those of a
+ *   validation result error.
+ * @throws {@link FormRenderOptionsError} for the first option outside the contract, in the documented order, with the
+ *   JSON Pointer of that member.
+ */
+export function decodeFormRenderOptions(value: unknown): FormRenderOptions {
+  if (!isRecord(value)) throw new FormRenderOptionsError('', 'Render options must be an object');
+  for (const name of Object.keys(value)) {
+    if (!MEMBERS.has(name)) throw new FormRenderOptionsError(`/${pointerToken(name)}`, `Unknown render option: ${name}`);
+  }
+  const { action, hidden, formErrors, errors } = value;
+  if (action !== undefined && !isRenderAction(action)) {
+    throw new FormRenderOptionsError('/action', 'action must be an object with string method, url and enctype');
+  }
+  if (hidden !== undefined && !isStringRecord(hidden)) throw new FormRenderOptionsError('/hidden', 'hidden must be an object of strings');
+  if (hidden !== undefined && action === undefined) throw new FormRenderOptionsError('/hidden', 'hidden requires action');
+  if (formErrors !== undefined && !isStringList(formErrors)) {
+    throw new FormRenderOptionsError(listPointer('formErrors', formErrors, (text) => typeof text === 'string'), 'formErrors must be a list of strings');
+  }
+  if (errors !== undefined && !isErrorList(errors)) {
+    throw new FormRenderOptionsError(listPointer('errors', errors, isRenderError), 'errors must be a list of objects with string path and message');
+  }
+  return {
+    ...(action !== undefined ? { action } : {}),
+    ...(hidden !== undefined ? { hidden } : {}),
+    ...(isStringList(formErrors) ? { formErrors } : {}),
+    ...(isErrorList(errors) ? { errors } : {}),
+  };
+}
+
+/**
  * Check render options and build the model the renderers write.
  *
- * @throws {FormInputError} for the first option outside the contract, in the documented order.
+ * @throws {@link FormRenderOptionsError} for the first option outside the contract, in the documented order
+ *   ({@link decodeFormRenderOptions}), and a `FormInputError` for an error whose path names no node.
  */
 export function formRenderModel(
   fields: readonly NodeVM[],
   templateAction: Readonly<Record<string, unknown>> | undefined,
   options: unknown = {},
 ): FormRenderModel {
-  if (!isRecord(options)) throw new FormInputError('Render options must be an object');
-  for (const name of Object.keys(options)) {
-    if (!MEMBERS.has(name)) throw new FormInputError(`Unknown render option: ${name}`);
-  }
-  const { action, hidden, formErrors, errors } = options;
-  if (action !== undefined && !isRenderAction(action)) {
-    throw new FormInputError('action must be an object with string method, url and enctype');
-  }
-  if (hidden !== undefined && !isStringRecord(hidden)) {
-    throw new FormInputError('hidden must be an object of strings');
-  }
-  if (hidden !== undefined && action === undefined) throw new FormInputError('hidden requires action');
-  if (formErrors !== undefined && !(Array.isArray(formErrors) && formErrors.every((text): text is string => typeof text === 'string'))) {
-    throw new FormInputError('formErrors must be a list of strings');
-  }
-  if (errors !== undefined && !(Array.isArray(errors) && errors.every(isRenderError))) {
-    throw new FormInputError('errors must be a list of objects with string path and message');
-  }
+  const { action, hidden, formErrors, errors } = decodeFormRenderOptions(options);
   const nodeErrors = new Map<NodeVM, string[]>();
   if (errors !== undefined && errors.length) {
     const byPath = nodesByPath(fields, undefined, new Map());

@@ -7,6 +7,7 @@ import type { ErrorObject } from 'ajv';
 import { FormInputError } from '@polyspec/crudui-validator';
 
 import type { FormTemplate } from './form';
+import { pointerToken } from './util';
 import { validateFormTemplate } from './form-template-validator.mjs';
 
 /**
@@ -25,15 +26,12 @@ export class FormTemplateError extends FormInputError {
   }
 }
 
-/** `name` as a reference token of a JSON Pointer (RFC 6901, section 3). */
-const token = (name: string): string => name.replace(/~/g, '~0').replace(/\//g, '~1');
-
 /** The JSON Pointer of the member that `error` finds invalid: a missing or extra member is named by its own pointer. */
 function pointerOf(error: ErrorObject): string {
   const { params } = error;
-  if (error.keyword === 'required' && typeof params.missingProperty === 'string') return `${error.instancePath}/${token(params.missingProperty)}`;
+  if (error.keyword === 'required' && typeof params.missingProperty === 'string') return `${error.instancePath}/${pointerToken(params.missingProperty)}`;
   if (error.keyword === 'additionalProperties' && typeof params.additionalProperty === 'string') {
-    return `${error.instancePath}/${token(params.additionalProperty)}`;
+    return `${error.instancePath}/${pointerToken(params.additionalProperty)}`;
   }
   return error.instancePath;
 }
