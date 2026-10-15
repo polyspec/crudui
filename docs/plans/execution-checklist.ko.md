@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 52a04103c7d900e633eea10c2af5f6e132838a9239136f5ce2bc9a7bb3975dfd -->
+<!-- source-sha256: 57fbfdd48721eaada20aaecbcc4694df6b3485d5537d14c7532bc8a9ceeb7f2b -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -336,6 +336,7 @@
 | C14.48 | kit 0.0.53으로 옮긴다(kit K191, K193, K195, 0.0.52 포함). 게시된 파일의 integrity로 pin한다. `make kit-sync`는 어떤 release step보다 먼저 `make kit-check`를 실행하는 release workflow를 복사하며, kit-check는 crudui가 C14.45부터 선언하는 `.php-version`을 요구한다. release proof는 release가 각 sibling wheel을 나열하는지 확인한다(K195). `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make toolchain-check`, `make layout-check`, `make lint-ts`, `make dependency-policy-check`, main의 ci-passed |[ ] |
 | C14.49 | 게시되지 않은 v0.0.6(C14.43-1)을 대신하는 릴리스 0.0.7: `config/release.json`이 적은 모든 manifest와 그 lock(`package-lock.json`, `composer.lock`, `Cargo.lock` 6개, `uv.lock`)의 version, Python generator가 요구하는 validator wheel의 sibling URL, `contracts/features.json`의 version, `packages/php-ext`의 module version, 이를 읽는 검사와 문서, npm 사용자 project의 version을 0.0.7로 정한다. `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## 0.0.7`로 바꾸고 그 위에 빈 `## Unreleased`를 새로 쓴다. dependency review를 기록하고, `make release-assets`와 `make release-consumer-lock`으로 `tests/release-install`의 사용자 project를 0.0.7 archive에 맞게 쓴다. CI가 ci-passed success로 끝난 head commit에 로컬 annotated tag `v0.0.7`, `packages/validator/go/v0.0.7`, `packages/generator/go/v0.0.7`을 만들고 maintainer가 그것을 push한다. | `make release-versions TAG=v0.0.7`, `make release-consumer TAG=v0.0.7`, `make release-go-tags TAG=v0.0.7`, `make release-verify TAG=v0.0.7`, `make dependency-policy-check` |[o] |
 | C14.50 | `@polyspec/crudui-generator-core`에서 render option의 decoder를 공개해, fsm의 GUI 같은 client가 페이지 state의 `render` 멤버를 cast 없이 읽게 한다. `decodeFormRenderOptions(value)`는 `formRenderModel`이 node에 묶기 전에 option에 실행하는 같은 검사를 두 번째 복사본 없이 실행하고, 그 값을 `FormRenderOptions`로 돌려주며, `pointer`가 잘못된 멤버의 JSON Pointer인 `FormRenderOptionsError`(`INVALID_FORM_INPUT`, form-runtime.md의 메시지)를 던진다. TSDoc, API report, contract manifest, docs/spec/form-runtime.md가 그것을 밝힌다. | `packages/generator/ts/src/form-render.test.ts`, 패키지의 API Extractor, `npm run manifest:check` |[o] |
+| C14.51 | 0.0.x의 local link를 가리킨다(kit K198, kit의 `docs/plans/local-links.md`). `AGENTS.md`와 `AGENTS.ko.md`는 polyspec version이 0.0.x인 동안 개발 checkout이 그 문서대로 설치된 polyspec package를 source에 link하며 link는 commit하지 않는다고 한 문장으로 적는다 | `make documents-check` | [ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
