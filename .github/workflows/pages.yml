@@ -46,7 +46,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.5'
+          php-version-file: .php-version
           tools: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools

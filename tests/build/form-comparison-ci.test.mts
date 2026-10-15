@@ -60,7 +60,7 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /uses: actions\/setup-node@/);
   assert.match(job, /node-version-file:\s*['"]?mise\.toml['"]?/);
   assert.match(job, /uses: shivammathur\/setup-php@/);
-  assert.match(job, /php-version:\s*['"]?8\.5['"]?/);
+  assert.match(job, /php-version-file:\s*\.php-version\n/);
   assert.match(job, /run: make install-tools TOOLS="npm"\n/);
   assert.match(job, /run: make install-packages\n/);
   assert.match(job, /run: make install-composer\n/);
@@ -137,15 +137,13 @@ test('CI runs the browser checks of each form server in a job of its own and eve
   for (const run of [browserRun, summaryRun]) assert.doesNotMatch(run.stdout, /--address|FORM_ADDRESS/);
 });
 
-test('native PHP matrix passes the selected regular php-config path', async () => {
+test('the native PHP job passes the regular php-config of the PHP of .php-version', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'php-api');
+  const minor = (await readFile(path.join(repository, '.php-version'), 'utf8')).trim();
 
-  assert.match(job, /php:\s*\['8\.5'\]/);
-  assert.match(
-    job,
-    /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config\$\{\{ matrix\.php \}\}/,
-  );
+  assert.match(job, /php-version-file:\s*\.php-version\n/);
+  assert.ok(job.includes(`PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${minor}\n`), job);
 });
 
 test('native job caches the generator packages and the programs that run them', async () => {

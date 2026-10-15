@@ -126,14 +126,14 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
 });
 
 // The native suites run in three jobs: the C engine of the PHP extension and the generators of the JavaScript, HTML, Go
-// and Rust targets once, and the PHP API for each PHP release of the matrix; make test-native runs the three parts.
+// and Rust targets, and the PHP API on the PHP of .php-version, each once; make test-native runs the three parts.
 const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: string[] }> = {
   'php-engine': { targets: 'test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
   'native-generators': { targets: 'test-native-generators test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
-  'php-api': { targets: 'test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'], php: ['8.5'] },
+  'php-api': { targets: 'test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
 };
 
-test('the native suites run in three jobs, the PHP API once for each PHP release, and make test-native runs all three', async () => {
+test('the native suites run in three jobs, each once, and make test-native runs all three', async () => {
   const workflow = await workflowFile('ci.yml');
   for (const [id, expected] of Object.entries(NATIVE_JOBS)) {
     const job = jobOf(workflow, id);
