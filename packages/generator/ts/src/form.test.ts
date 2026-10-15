@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryLoader, Validator } from '@polyspec/crudui-validator/internal';
 import { compileForm, bindForm, createForm, sequenceRowKey, createRowKey } from './index';
-// @ts-expect-error Shared cross-framework scenario.
 import { spec, data, companyKey, storeKey, otherStoreKey, storesPath } from '../../../../tests/fixtures/form-session/scenario.mts';
 import { checkFormTemplate } from './template-shape';
 import { childrenOf, keysOf, present } from './test-support';
