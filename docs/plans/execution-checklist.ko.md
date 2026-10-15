@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 84a6b4cfb4ba10d65a10332438c8172ccb0366b2f293202c6a6f3366feaa8b7c -->
+<!-- source-sha256: b0a4bde24d3886b04644b7df9a6517d7e84332cd3396f27032cff6c693dd3599 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -326,6 +326,7 @@
 | C14.39 | `packages/cli`는 소스와 테스트를 덮는 엄격한 tsconfig(루트 tsconfig.json의 옵션에 `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`를 더한 것)를 가지며, 그 `typecheck` script와 그래서 `make typecheck`가 그것을 실행한다. 코드는 cast 없이 그것을 통과한다. | `make typecheck`, `packages/cli`의 vitest |[o] |
 | C14.40 | `packages/generator/ts/src/form.test.ts`의 테스트는 공유 시나리오 `tests/fixtures/form-session/scenario.mts`를 `@ts-expect-error` 없이 import한다. 소스와 테스트를 검사하는 패키지의 tsconfig는 `packages/react`의 tsconfig처럼 저장소 루트까지 닿고 `.mts` 확장자를 허용하며, `tsconfig.build.json`은 `src`를 선언의 루트로 유지한다. | `make typecheck`, `packages/generator/ts`의 vitest와 build |[o] |
 | C14.43 | 릴리스 0.0.6: `config/release.json`이 적은 모든 manifest와 그 lock(`package-lock.json`, `composer.lock` 파일들, `Cargo.lock` 6개)의 version, `packages/generator/python`의 git pin, `contracts/features.json`의 version, `packages/php-ext`의 module version, 이를 읽는 검사와 문서를 0.0.6으로 정한다. `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## 0.0.6`으로 바꾸고 그 위에 빈 `## Unreleased`를 새로 쓴다. dependency review를 기록하고, `make release-assets`와 `make release-consumer-lock`으로 `tests/release-install`의 사용자 project를 0.0.6 archive에 맞게 쓴다. 릴리스 commit에 로컬 tag `v0.0.6`, `packages/validator/go/v0.0.6`, `packages/generator/go/v0.0.6`을 만들고 maintainer가 그것을 push한다. Go workspace module은 이 릴리스에서 pseudo-version 요구를 유지한다 | `make release-versions TAG=v0.0.6`, `make release-consumer TAG=v0.0.6`, `make release-go-tags TAG=v0.0.6`, `make dependency-policy-check` |[ ] |
+| C14.44 | 두 Python package를 wheel로 릴리스한다(kit K29). K29는 `config/release.json`이 아직 적은 `proof.gitTag`의 Python git-tag kind를 없앴으므로 `make release-versions`가 실패했다. `polyspec-crudui-validator`와 `polyspec-crudui-generator`는 `pyproject.toml`이 `archive` manifest인 `wheel` package이고, `consumers.wheel`이 각각을 import하며, `config/toolchain.json`의 `pythonBackend`가 `setuptools==84.0.0`을 그 wheel의 sha256으로 pin한다(K166). generator는 `polyspec-crudui-validator==<version>`을 요구하고 `[tool.uv.sources]`가 그것을 workspace의 validator로 풀며, `scripts/release-pins.mts`, `make release-pins`, `tests/build/python-git-pins.test.mts`는 지운다. | `make release-coverage`, `make kit-check`, 설정을 읽는 `make release-versions TAG=v0.0.5`, `make dependency-policy-check` |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
