@@ -41,6 +41,27 @@ export function getEngine() {
   return enginePromise;
 }
 
+/**
+ * The options of the Vite server of the engine. It only loads modules for server rendering (ssrLoadModule), so it has
+ * no browser entry and discovers no browser dependency (C14.46): with discovery on, the cold start crawled every HTML
+ * file under the repository root, the generated API pages of docs/public included, for over a minute, failed on them,
+ * and did so once for each test file that booted an engine.
+ *
+ * @returns {Promise<import('vite').InlineConfig>}
+ */
+export async function engineServerOptions() {
+  const { svelte } = await import('@sveltejs/vite-plugin-svelte');
+  return {
+    root: ROOT,
+    configFile: false,
+    appType: 'custom',
+    logLevel: 'error',
+    server: { middlewareMode: true, hmr: false },
+    optimizeDeps: { noDiscovery: true },
+    plugins: [svelte()],
+  };
+}
+
 async function bootEngine() {
   // React's SSR dev build prints `Invalid DOM property \`class\`...` warnings to
   // stderr (the CRUDUI React adapter emits raw HTML attribute names by design — its
@@ -54,16 +75,7 @@ async function bootEngine() {
   };
 
   const { createServer } = await import('vite');
-  const { svelte } = await import('@sveltejs/vite-plugin-svelte');
-
-  const vite = await createServer({
-    root: ROOT,
-    configFile: false,
-    appType: 'custom',
-    logLevel: 'error',
-    server: { middlewareMode: true, hmr: false },
-    plugins: [svelte()],
-  });
+  const vite = await createServer(await engineServerOptions());
 
   // The renderers import generator-core from its installed entry; loading that entry through the
   // same server gives the public API and the error classes the renderers throw.
