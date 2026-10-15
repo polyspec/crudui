@@ -73,17 +73,16 @@ const manifestSchema: JTDSchemaType<Manifest> = {
 
 /** The parts of config/toolchain.json that the tests read. */
 interface ToolchainConfig {
-  node: Record<string, string>;
   php: string[];
 }
 const toolchainSchema: JTDSchemaType<ToolchainConfig> = {
-  properties: { node: { values: { type: 'string' } }, php: { elements: { type: 'string' } } },
+  properties: { php: { elements: { type: 'string' } } },
   additionalProperties: true,
 };
 
 /** The releases that recordedToolchain reads. */
 interface RecordedToolchain {
-  node: string;
+  node: string | undefined;
   npm: string | undefined;
   go: string | undefined;
   rust: string | undefined;
@@ -93,9 +92,9 @@ interface RecordedToolchain {
 }
 
 /**
- * The releases that the checkout declares, by the names of this test: Node.js of .node-version, npm of packageManager,
- * Rust of rust-toolchain.toml, the minors of PHP of config/toolchain.json, and Go, Python and Composer of mise.toml, which
- * make install-tools installs with mise (kit K127). make toolchain-check compares them with the running tools and with the
+ * The releases that the checkout declares, by the names of this test: npm of packageManager, Rust of rust-toolchain.toml,
+ * the minors of PHP of config/toolchain.json, and Node.js, Go, Python and Composer of mise.toml, which make install-tools
+ * installs with mise (kit K127, K171). make toolchain-check compares them with the running tools and with the
  * pins of kit.
  */
 async function recordedToolchain(root: string): Promise<RecordedToolchain> {
@@ -104,7 +103,7 @@ async function recordedToolchain(root: string): Promise<RecordedToolchain> {
   const manifest = parseJson(await text('package.json'), manifestSchema, 'package.json');
   const mise = await text('mise.toml');
   return {
-    node: (await text('.node-version')).trim(),
+    node: /^node = "([^"]+)"$/m.exec(mise)?.[1],
     npm: /^npm@(\d+\.\d+\.\d+)/.exec(manifest.packageManager ?? '')?.[1],
     go: /^go = "([^"]+)"$/m.exec(mise)?.[1],
     rust: /^channel = "([^"]+)"$/m.exec(await text('rust-toolchain.toml'))?.[1],
@@ -169,13 +168,13 @@ async function workflows(): Promise<{ file: string; text: string; workflow: Work
 
 test('the checkout records one exact version of every tool', async () => {
   const recorded = await recordedToolchain(repository);
-  assert.match(recorded.node, /^\d+\.\d+\.\d+$/);
-  assert.equal(Number(recorded.node.split('.')[0]) % 2, 0, 'the Node.js release must be of an even, LTS-designated major');
+  const node = recorded.node ?? '';
+  assert.match(node, /^\d+\.\d+\.\d+$/, 'mise.toml must record node as one exact release');
+  assert.equal(Number(node.split('.')[0]) % 2, 0, 'the Node.js release must be of an even, LTS-designated major');
   const toolchain = await read('rust-toolchain.toml');
   assert.match(toolchain, /^profile = "minimal"$/m);
   assert.match(toolchain, /^components = \["rustfmt", "clippy"\]$/m);
   const config = parseJson(await read('config/toolchain.json'), toolchainSchema, 'config/toolchain.json');
-  assert.match(config.node['linux-x64.tar.gz'] ?? '', /^[0-9a-f]{64}$/, 'config/toolchain.json records the SHA-256 of the Linux x64 archive of the Node.js release');
   // setup-php and Homebrew cannot install the same patch, so PHP is pinned by its minor release; the patch is evidence.
   assert.ok(config.php.length > 0 && config.php.every(release => /^\d+\.\d+$/.test(release)), `config/toolchain.json must record php as minor releases; it records ${JSON.stringify(config.php)}`);
   // Python, which runs the Python packages and their suites, and Go and Composer are exact releases of mise.toml, locked by mise.lock.
@@ -184,8 +183,9 @@ test('the checkout records one exact version of every tool', async () => {
 
 // The type definitions of Node.js describe the runtime that runs the code, so every manifest requires the major of
 // the recorded Node.js release.
-test('every @types/node range requires the major of .node-version', async () => {
-  const major = (await recordedToolchain(repository)).node.split('.')[0];
+test('every @types/node range requires the major of the Node.js of mise.toml', async () => {
+  const major = (await recordedToolchain(repository)).node?.split('.')[0];
+  assert.ok(major, 'mise.toml declares node');
   const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*package.json'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
   const violations: string[] = [];
   for (const file of files) {
@@ -196,7 +196,7 @@ test('every @types/node range requires the major of .node-version', async () => 
     manifest = checked(parsed, manifestSchema, file);
     for (const field of ['dependencies', 'devDependencies'] as const) {
       const range = manifest[field]?.['@types/node'];
-      if (range !== undefined && !new RegExp(`^[\\^~]?${major}\\.`).test(range)) violations.push(`${file} ${field}: @types/node ${range}, .node-version records Node.js ${major}`);
+      if (range !== undefined && !new RegExp(`^[\\^~]?${major}\\.`).test(range)) violations.push(`${file} ${field}: @types/node ${range}, mise.toml records Node.js ${major}`);
     }
   }
   assert.deepEqual(violations, []);
@@ -210,7 +210,7 @@ test('make installs nothing on its own and make install installs the Rust toolch
   assert.doesNotMatch(makefile, /^install-rust:/m);
   const install = makeDryRun(repository, 'install');
   assert.equal(install.status, 0, install.stderr);
-  assert.ok(install.stdout.split('\n').some(line => / node node_modules\/@polyspec\/kit\/dist\/install-tools\.mjs\s*$/.test(line)), install.stdout);
+  assert.ok(install.stdout.split('\n').some(line => /\/var\/tools\/bin\/node node_modules\/@polyspec\/kit\/dist\/install-tools\.mjs\s*$/.test(line)), install.stdout);
 });
 
 test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and no auto-install', async () => {
@@ -253,7 +253,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
       for (const [index, step] of steps.entries()) {
         const uses = stepText(step, 'uses');
         const run = stepText(step, 'run');
-        if (uses.startsWith('actions/setup-node@') && step.with?.['node-version-file'] !== '.node-version') violations.push(`${file} ${id}: setup-node must read .node-version`);
+        if (uses.startsWith('actions/setup-node@') && step.with?.['node-version-file'] !== 'mise.toml') violations.push(`${file} ${id}: setup-node must read mise.toml`);
         if (uses.startsWith('actions/setup-go@')) violations.push(`${file} ${id}: setup-go installs a Go; make install-tools installs the Go of mise.toml`);
         if (uses.startsWith('actions/setup-python@')) violations.push(`${file} ${id}: setup-python installs a Python; make install-tools installs the Python of mise.toml`);
         if (uses.startsWith('shivammathur/setup-php@')) {

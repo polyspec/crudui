@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b1500dba64a9b241a3d3ce14efb7ccedbfd7c03a4d1cf91995a5982f3fa1244c -->
+<!-- source-sha256: 9fa189039db33767b20abdbb8fe11c1be298e1b00d6373b88848ec8465931136 -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.48 (C14.36)
+
+- crudui는 `@polyspec/kit` 0.0.48을 pin한다. 각 checkout은 `mise.toml`의 Node.js 26.12.0을 실행하며, `make install-tools TOOLS=npm`이 그것을 mise로 `var/tools`에 설치한다. `.node-version`은 없어졌고, 모든 `package.json`의 `engines.node`는 `>=26.12.0`이다. Makefile의 각 recipe는 node, go, Composer를 절대 경로(`$(NODE)`, `$(GO)`, `$(COMPOSER)`)로 시작하고, workflow는 actions/checkout v7.0.1, actions/setup-node v7.1.0, shivammathur/setup-php 2.40.0을 전체 SHA로 pin한다(kit K169, K171)(C14.36).
 
 ### 2026-10-15 — cast 없는 TypeScript (C14.12)
 

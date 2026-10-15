@@ -1,12 +1,9 @@
 {
   "schema": 1,
-  "comment": "The toolchains of crudui that no other file declares. mise is the release that make install-tools TOOLS=npm installs with the sha256 of each platform; mise.toml declares the tools it installs (the Go of the kit pin, uv and the Python of the kit pin, alint for make layout-check, ruff and vulture for make lint-python, golangci-lint and deadcode for make lint-go, cargo-audit for make dependency-review, and Composer, which installs PHPCS and PHPStan of config/php-lint for make lint-php) and mise.lock locks them. PHP is verified at the declared release, and node pins the Node.js archive of linux-x64. The exception keeps packages/svelte on TypeScript 6.",
+  "comment": "The toolchains of crudui that no other file declares. mise is the release that make install-tools TOOLS=npm installs with the sha256 of each platform; mise.toml declares the tools it installs (the Go of the kit pin, uv and the Python of the kit pin, alint for make layout-check, ruff and vulture for make lint-python, golangci-lint and deadcode for make lint-go, cargo-audit for make dependency-review, and Composer, which installs PHPCS and PHPStan of config/php-lint for make lint-php) and mise.lock locks them. PHP is verified at the declared release. The exception keeps packages/svelte on TypeScript 6.",
   "php": [
     "8.5"
   ],
-  "node": {
-    "linux-x64.tar.gz": "b2b76660fa4ded4e0b2a41ee3c0c651cd52ea8170ead91ebac1e147ac3d55643"
-  },
   "exceptions": [
     {
       "tool": "typescript",

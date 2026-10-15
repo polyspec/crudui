@@ -453,7 +453,6 @@
     {
       "paths": [
         "config/toolchain.json",
-        ".node-version",
         "rust-toolchain.toml",
         "mise.toml",
         "mise.lock",

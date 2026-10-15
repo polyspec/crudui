@@ -20,6 +20,16 @@ async function writeExecutable(filename: string): Promise<void> {
   await chmod(filename, 0o755);
 }
 
+/**
+ * The make variables that name the fake commands of `directory`: the recipes start node, npm, go and Composer by the
+ * absolute paths of kit.mk and the Makefile (kit K171), so the test sets those paths instead of PATH alone; make passes
+ * them on to the sub-makes.
+ */
+function toolVariables(directory: string): string[] {
+  const tools = [['NODE', 'node'], ['NPM', 'npm'], ['GO', 'go'], ['COMPOSER', 'composer']] as const;
+  return tools.map(([name, command]) => `${name}=${path.join(directory, command)}`);
+}
+
 test('test-native runs the Rust tests through the test runner', {
   skip: process.platform === 'win32',
 }, async t => {
@@ -36,7 +46,7 @@ test('test-native runs the Rust tests through the test runner', {
     writeExecutable(path.join(commandDirectory, command))
   )));
 
-  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native'], {
+  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native', ...toolVariables(commandDirectory)], {
     cwd: repository,
     encoding: 'utf8',
     env: {
@@ -78,7 +88,7 @@ test('test-native runs the generator and PHP API parts after the PHP engine test
   ].join('\n'));
   await chmod(path.join(commandDirectory, 'node'), 0o755);
 
-  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native'], {
+  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native', ...toolVariables(commandDirectory)], {
     cwd: repository,
     encoding: 'utf8',
     env: {

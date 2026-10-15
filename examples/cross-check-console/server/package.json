@@ -15,6 +15,6 @@
     "test": "node ../../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd examples/cross-check-console/server --root . --dir ."
   },
   "engines": {
-    "node": ">=26.11.1"
+    "node": ">=26.12.0"
   }
 }
