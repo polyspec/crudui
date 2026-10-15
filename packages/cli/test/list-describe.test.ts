@@ -229,6 +229,10 @@ descTest('list capability is additive — form describe surfaces are unchanged',
 
   it('describes the maintained expression contract', () => {
     expect(r.grammar.source).toBe('docs/spec/expressions.md');
+    // Every row of the token table, with a | of a cell escaped as \| (C14.41).
+    expect(r.grammar.tokens).toHaveLength(17);
+    expect(r.grammar.tokens.find((item) => item.token === 'LPAREN RPAREN')?.pattern).toBe('( )');
+    expect(r.grammar.tokens.find((item) => item.token === 'AND OR NOT')?.pattern).toBe('&& || !');
     expect(r.grammar.precedence).toHaveLength(6);
     expect(r.grammar.truthyFalsy.join(' ')).toContain('including empty arrays and empty objects, are true');
     expect(r.grammar.unsupported).toContain('function calls');

@@ -1,6 +1,6 @@
 # 표현식 문법
 <!-- doc-id: docs-spec-expressions -->
-<!-- source-sha256: 1359eb60faae7080a4b2c5090c477aa00891dd8e38785e7b1ba4f74fa2d4cb0a -->
+<!-- source-sha256: a613e6c8ec03b5c2933e14b9f6c09a53d45ec181d3a24f235b4d0f519d8016d5 -->
 
 [English](expressions.md).
 
@@ -31,7 +31,7 @@ PHP·Go·Rust도 이 단계를 구현합니다. 평가는 `eval`을 사용하지
 | `AND OR NOT` | `&&` `\|\|` `!` | `!.enabled` |
 | `IN NOT_IN` | `in` `not in` | `.country in [US, CA]` |
 | `QUESTION COLON` | `?` `:` | `.enabled ? 'yes' : 'no'` |
-| `LPAREN RPAREN` | `(` `)` | `(.a || .b)` |
+| `LPAREN RPAREN` | `(` `)` | `(.a \|\| .b)` |
 | `LBRACKET RBRACKET COMMA` | `[` `]` `,` | `[US, CA]` |
 | `WHITESPACE` | 출력에서 제외하는 공백 | 공백 |
 | `EOF` | 입력 종료 | 입력 종료 |
