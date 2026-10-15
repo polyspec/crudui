@@ -128,7 +128,6 @@ test('verifies the local stack in stages, against the origin of its public serve
   assert.deepEqual(byId['php-modes'].args.slice(1), ['phpunit', '--cwd', 'examples/form-comparison/servers/php']);
   assert.deepEqual(byId['php-modes'].environment, {
     FORM_PHP_SERVER: 'php', FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule, FORM_CRUDUI_MODULE: prepared.cruduiModule,
-    COMPOSER_VENDOR_DIR: '../../../../vendor',
   });
   // The php-ext leg loads the ordered_json and crudui modules into the PHP of PHPUnit and leaves out the php-only group.
   assert.deepEqual(byId['php-ext-mode'].args.slice(1), ['phpunit',
@@ -136,7 +135,6 @@ test('verifies the local stack in stages, against the origin of its public serve
     '--cwd', 'examples/form-comparison/servers/php', '--', '--exclude-group', 'php']);
   assert.deepEqual(byId['php-ext-mode'].environment, {
     FORM_PHP_SERVER: 'php-ext', FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule, FORM_CRUDUI_MODULE: prepared.cruduiModule,
-    COMPOSER_VENDOR_DIR: '../../../../vendor',
   });
   assert.deepEqual(byId.generation.args, ['check-generation.mjs', '--url', stackOrigin,
     '--library', '/checkout', '--report', '/run/results/generation.json']);

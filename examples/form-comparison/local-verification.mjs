@@ -58,7 +58,6 @@ export function verificationStages({ origin, results, data, prepared, library = 
       FORM_PHP_SERVER: 'php',
       FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule,
       FORM_CRUDUI_MODULE: prepared.cruduiModule,
-      COMPOSER_VENDOR_DIR: '../../../../vendor',
     })],
     // The same suite in the php-ext mode: the run-tests of kit loads the ordered_json and crudui modules into
     // the PHP of PHPUnit (K165), and the group php, which constructs the PHP library, stays out. It shares the cache
@@ -69,7 +68,6 @@ export function verificationStages({ origin, results, data, prepared, library = 
       FORM_PHP_SERVER: 'php-ext',
       FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule,
       FORM_CRUDUI_MODULE: prepared.cruduiModule,
-      COMPOSER_VENDOR_DIR: '../../../../vendor',
     })],
     [check('generation', ['check-generation.mjs', '--url', origin,
       '--library', library, '--report', path.join(results, 'generation.json')])],
