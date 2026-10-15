@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 58dab5714b257793bfda3a7f1ea05f91bf00e23a1f2a5c345b38d6deb1f48268 -->
+<!-- source-sha256: b67aa50799e1831019e29874daeb84cfc9d8a59e8df5b0038d0700b88d478f3b -->
 
 ## Unreleased
+
+### 2026-10-15 — 타입 검사를 받는 명령줄과 생성기 테스트 (C14.39, C14.40)
+
+- `packages/cli`는 엄격한 tsconfig를 가지며, 그 `typecheck` script와 `make typecheck`가 그것을 실행한다(C14.39).
+- `packages/generator/ts`의 테스트는 공유 폼 세션 시나리오를 `@ts-expect-error` 없이 그 타입과 함께 import한다(C14.40).
 
 ### 2026-10-15 — 실행 중 ajv 없는 폼 템플릿 validator (C14.38)
 
