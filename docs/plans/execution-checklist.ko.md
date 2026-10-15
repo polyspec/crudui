@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 97c567eb3ca420a45350281a3ea3b6d72a95dfc4247824719a1913f07f93073b -->
+<!-- source-sha256: 7a39bc2e553ac5a9507d4057220c421b9a05c8cfa6e2a17c484391087c580844 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -324,6 +324,7 @@
 | C14.37 | `@polyspec/crudui-generator-core`에서 컴파일된 폼 템플릿 JSON의 decoder를 공개해, fsm의 GUI 같은 client가 페이지의 템플릿을 cast 없이 읽게 한다. `decodeFormTemplate(value)`는 파싱한 값을 새 `contracts/schema/form-template.schema.json`에 대해 ajv의 `compile<FormTemplate>`로 검사하고, 첫 번째로 잘못된 멤버의 JSON Pointer와 함께 `FormTemplateError`(`INVALID_FORM_INPUT`)를 던진다. TSDoc, API report, contract manifest, docs/spec/form-runtime.md가 그것을 밝힌다. | `packages/generator/ts/src/decode-template.test.ts`, 패키지의 API Extractor, `npm run manifest:check` |[o] |
 | C14.38 | `decodeFormTemplate`은 `contracts/schema/form-template.schema.json`의 ajv standalone 검증 코드로 검사한다. `scripts/generate-form-template-validator.mts`가 그것을 `packages/generator/ts/src/form-template-validator.mjs`에 쓰고(`make form-template-validator`) `make build`가 검사한다(`make form-template-validator-check`). template T25.6-2와 같다. `@polyspec/crudui-generator-core`는 실행 중에 ajv를 import하지 않고 코드를 컴파일하지 않으므로 `unsafe-eval` 없는 Content-Security-Policy가 그것을 허용하며, ajv는 패키지의 개발 의존성이다. pointer와 오류는 C14.37과 같다. | `packages/generator/ts/src/decode-template.test.ts`, `make form-template-validator-check` |[ ] |
 | C14.39 | `packages/cli`는 소스와 테스트를 덮는 엄격한 tsconfig(루트 tsconfig.json의 옵션에 `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`를 더한 것)를 가지며, 그 `typecheck` script와 그래서 `make typecheck`가 그것을 실행한다. 코드는 cast 없이 그것을 통과한다. | `make typecheck`, `packages/cli`의 vitest |[ ] |
+| C14.40 | `packages/generator/ts/src/form.test.ts`의 테스트는 공유 시나리오 `tests/fixtures/form-session/scenario.mts`를 `@ts-expect-error` 없이 import한다. 소스와 테스트를 검사하는 패키지의 tsconfig는 `packages/react`의 tsconfig처럼 저장소 루트까지 닿고 `.mts` 확장자를 허용하며, `tsconfig.build.json`은 `src`를 선언의 루트로 유지한다. | `make typecheck`, `packages/generator/ts`의 vitest와 build |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
