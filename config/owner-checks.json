@@ -150,7 +150,11 @@
     {
       "paths": [
         "packages/generator/ts/**",
-        "contracts/schema/form-template.schema.json"
+        "contracts/schema/form-template.schema.json",
+        "scripts/generate-form-template-validator.mts"
+      ],
+      "targets": [
+        "form-template-validator-check"
       ],
       "scripts": [
         "test:forms"

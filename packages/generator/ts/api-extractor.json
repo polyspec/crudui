@@ -5,5 +5,8 @@
   "docModel": {
     "enabled": true,
     "apiJsonFilePath": "<projectFolder>/../../../var/api-model/<unscopedPackageName>/<unscopedPackageName>.api.json"
+  },
+  "compiler": {
+    "tsconfigFilePath": "<projectFolder>/tsconfig.build.json"
   }
 }

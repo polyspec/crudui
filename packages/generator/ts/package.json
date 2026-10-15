@@ -41,11 +41,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@polyspec/crudui-validator": "0.0.5",
-    "ajv": "^8.20.0"
+    "@polyspec/crudui-validator": "0.0.5"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "ajv": "^8.20.0",
     "tsup": "^9.0.0",
     "typescript": "7.0.2",
     "vitest": "^5.0.4"

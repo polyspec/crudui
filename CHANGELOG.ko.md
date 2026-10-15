@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c1510482811376563c6a2d2d6b9addae7d12206c0d93b5dc3504430ff92778a8 -->
+<!-- source-sha256: 58dab5714b257793bfda3a7f1ea05f91bf00e23a1f2a5c345b38d6deb1f48268 -->
 
 ## Unreleased
+
+### 2026-10-15 — 실행 중 ajv 없는 폼 템플릿 validator (C14.38)
+
+- `@polyspec/crudui-generator-core`의 `decodeFormTemplate`은 `contracts/schema/form-template.schema.json`의 ajv standalone 검증 코드로 검사한다. `make form-template-validator`가 그것을 생성하고 `make build`가 검사한다. 패키지는 더 이상 ajv에 의존하지 않고 실행 중에 코드를 컴파일하지 않으므로, `unsafe-eval` 없는 Content-Security-Policy가 그것을 허용한다(C14.38).
 
 ### 2026-10-15 — 폼 템플릿 decoder (C14.37)
 

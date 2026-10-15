@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FormInputError } from '@polyspec/crudui-validator';
 import { compileForm, createForm, decodeFormTemplate, FormTemplateError, type FormFieldTemplate } from './index';
@@ -44,6 +45,14 @@ describe('decodeFormTemplate', () => {
     expect(pointerOf({ ...template, fields: fieldsWith(items, field => ({ ...field, children: [{ name: 2, spec: {}, children: [] }] })) }))
       .toBe(`/fields/${items}/children/0/name`);
     expect(pointerOf({ ...template, 'a/b~c': 1 })).toBe('/a~1b~0c');
+  });
+
+  it('loads no ajv and compiles no code at run time, so a Content-Security-Policy without unsafe-eval allows it', () => {
+    for (const file of ['./decode-template.ts', './form-template-validator.mjs']) {
+      const source = readFileSync(new URL(file, import.meta.url), 'utf8');
+      expect(source, file).not.toMatch(/^import (?!type )[^;]*from 'ajv/m);
+      expect(source, file).not.toMatch(/\bnew Function\b|\beval\(/);
+    }
   });
 
   it('throws a FormInputError whose message names the pointer and the rule', () => {

@@ -88,7 +88,9 @@ A template that crosses a JSON boundary, such as a template that a server writes
 a client reads back with `JSON.parse`, is decoded with `decodeFormTemplate(value)` of
 `@polyspec/crudui-generator-core` before it is used. The decoder checks the parsed value against
 [`contracts/schema/form-template.schema.json`](../../contracts/schema/form-template.schema.json), the JSON Schema of the
-shape above, with ajv, and returns it as a `FormTemplate` unchanged. A value of another shape fails with a
+shape above, with ajv's standalone validation code of that schema, which
+`scripts/generate-form-template-validator.mts` generates and `make build` checks, so the package loads no ajv and
+compiles no code at run time; it returns the value as a `FormTemplate` unchanged. A value of another shape fails with a
 `FormTemplateError`, a `FormInputError` with the code `INVALID_FORM_INPUT`, whose `pointer` is the JSON Pointer
 (RFC 6901) of the first invalid member: the missing or extra member itself for a missing or unknown member, and the
 empty string for the value itself. Its message is `Invalid form template at <pointer>: <rule>`, with `the root` in place
