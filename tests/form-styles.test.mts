@@ -114,7 +114,7 @@ setup('server start and browser launch', async () => {
   server = await createServer({
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
     optimizeDeps: { noDiscovery: true, include: ['@polyspec/crudui-generator-core', '@polyspec/crudui-generator-html'] },
-    server: { host: '127.0.0.1', port: 0 },
+    server: { host: '127.0.0.1', port: 0, watch: null },
     plugins: [{
       name: 'form-styles-test',
       resolveId(id) { if (id === entry) return moduleId; },
@@ -145,6 +145,14 @@ setup('server start and browser launch', async () => {
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 teardown('server stop', () => server?.close());
 teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));
+
+// The dev server watches no file (C14.47): with a watcher on the repository root, Vite answered every change of a
+// tsconfig file under it, such as those that mise writes under var/tools/mise/state for other checkouts, with a cleared
+// cache and a full reload of the page, which destroyed the context of a running check.
+test('the dev server watches no file, so no change of the checkout reloads the page', () => {
+  assert.ok(server, 'the server is started');
+  assert.equal(server.config.server.watch, null);
+});
 
 /**
  * Open the form document in a host: the page itself, a 420 px scrolling box in the page,

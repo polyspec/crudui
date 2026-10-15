@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2d773b40e69a6943608e11e105b77652a4a95ab336f48d8479215cfae5830a93 -->
+<!-- source-sha256: fa5a8900664e2ed1201230ad98862be766ec6c35ad9482a74c91d1e108b233d6 -->
 
 ## Unreleased
+
+### 2026-10-15 — 파일을 감시하지 않는 browser test (C14.47)
+
+- browser test `form-styles`, `widget-scripts`, `widget-script-runs`의 Vite dev server는 어떤 파일도 감시하지 않으므로(`server.watch: null`), mise가 `var/tools` 아래에 쓰는 것 같은 checkout 아래의 tsconfig 파일 변경이 더 이상 검사 도중에 페이지를 다시 읽지 않는다(C14.47).
 
 ### 2026-10-15 — browser dependency scan 없는 cross-check console engine (C14.46)
 

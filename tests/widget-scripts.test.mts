@@ -125,7 +125,7 @@ setup('server start and browser launch', async () => {
       noDiscovery: true,
       include: ['react', 'react-dom', 'react-dom/client', '@polyspec/crudui-generator-core', '@polyspec/crudui-generator-react'],
     },
-    server: { host: '127.0.0.1', port: 0 },
+    server: { host: '127.0.0.1', port: 0, watch: null },
     plugins: [{
       name: 'widget-script-test',
       resolveId(id) { if (id === entry) return moduleId; },
@@ -150,6 +150,14 @@ setup('server start and browser launch', async () => {
 teardown('browser close', () => browser?.close());
 teardown('server stop', () => server?.close());
 teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));
+
+// The dev server watches no file (C14.47): with a watcher on the repository root, Vite answered every change of a
+// tsconfig file under it, such as those that mise writes under var/tools/mise/state for other checkouts, with a cleared
+// cache and a full reload of the page, which destroyed the context of a running check.
+test('the dev server watches no file, so no change of the checkout reloads the page', () => {
+  assert.ok(server, 'the server is started');
+  assert.equal(server.config.server.watch, null);
+});
 
 test('limits Vite dependency optimization to the declared widget packages', () => {
   assert.ok(server, 'the server is started');
