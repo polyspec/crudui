@@ -24,8 +24,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, extname } from 'node:path';
 
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
+import { Ajv } from 'ajv';
+import ajvFormats from 'ajv-formats';
 import { load as loadYaml } from 'js-yaml';
 
 import { ComposeLoadError } from '@polyspec/crudui-validator';
@@ -125,7 +125,8 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
   const schema = parseJsonDocument(readFileSync(SCHEMA_PATH, 'utf-8'));
   if (!isFieldNode(schema)) throw new Error(`${SCHEMA_PATH} holds no JSON object`);
   const ajv = new Ajv({ strict: false, allErrors: true });
-  addFormats(ajv);
+  // ajv-formats is a CommonJS module: its plugin is the `default` of module.exports, as scripts/check-schema.mts reads it.
+  ajvFormats.default(ajv);
   const validate = ajv.compile(schema);
   const valid = validate(spec);
 

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { loadSpec } from '../src/check';
+import { loadSpec } from '../src/check.ts';
 
 let directory: string | undefined;
 afterEach(() => { if (directory) rmSync(directory, { recursive: true, force: true }); });
