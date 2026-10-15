@@ -50,11 +50,12 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      # make lint-php runs PHPStan with the autoloader of the Composer packages.
-      - name: Install PHP dependencies
-        run: make install-composer
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
+      # make lint-php runs PHPStan with the autoloader of the Composer packages; make install-composer runs the Composer of
+      # mise.toml, which make install-tools installs.
+      - name: Install PHP dependencies
+        run: make install-composer
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -330,10 +331,10 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install PHP dependencies
-        run: make install-composer
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
+      - name: Install PHP dependencies
+        run: make install-composer
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -383,10 +384,10 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install PHP dependencies
-        run: make install-composer
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
+      - name: Install PHP dependencies
+        run: make install-composer
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
