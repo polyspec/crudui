@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: e99917201c52755561e309165eaa15b384e35377789110adb5c9c542c4c52228 -->
+<!-- source-sha256: f672855b8fd137fe54af8ae78df530cab2ff60d71a1f7ff8afe3927c3a18b9c0 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -332,6 +332,7 @@
 | C14.45 | 모든 workflow의 PHP는 `.php-version`의 minor다. 새 파일은 crudui의 PHP minor(8.5, workflow가 inline으로 pin하던 `config/toolchain.json`의 minor)를 담고, workflow의 모든 setup-php step은 `php-version-file: .php-version`을 읽으므로 PHP API와 PHP validator job에는 PHP matrix가 없다. kit의 `release.yml`은 runner의 PHP 8.3을 유지하는 대신 release proof에 그 PHP를 설치한다(template v0.0.7). | `tests/build/runtime-version-policy.test.mts`, `tests/build/ci-local.test.mts`, `make toolchain-check` |[o] |
 | C14.46 | cross-check console suite가 Vite SSR boot에서 멈추지 않는다. 로컬에서 `npm test --prefix examples/cross-check-console/server`의 3번 중 2번 실행에서 각 test 파일의 첫 4-renderer SSR case가 120초에서 timeout이었고, `getEngine`만의 boot는 rolldown의 dependency scan에서 실패했다. 원인을 찾아 이전에 실패하는 test와 함께 고친다. timeout을 늘리거나 재시도하지 않는다. | `npm test --prefix examples/cross-check-console/server` |[ ] |
 | C14.47 | `tests/widget-script-runs.test.mts`에 navigation race가 없다. 한 실행이 "Execution context was destroyed, most likely because of a navigation"(chromium vue client)와 "window.scriptRunsTest is undefined"(firefox html client)로 실패했고 다시 실행하면 통과했다. 원인을 찾아 이전에 실패하는 test와 함께 고친다. timeout을 늘리거나 재시도하지 않는다. | `tests/widget-script-runs.test.mts` |[ ] |
+| C14.48 | kit 0.0.53으로 옮긴다(kit K191, K193, K195, 0.0.52 포함). 게시된 파일의 integrity로 pin한다. `make kit-sync`는 어떤 release step보다 먼저 `make kit-check`를 실행하는 release workflow를 복사하며, kit-check는 crudui가 C14.45부터 선언하는 `.php-version`을 요구한다. release proof는 release가 각 sibling wheel을 나열하는지 확인한다(K195). `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make toolchain-check`, `make layout-check`, `make lint-ts`, `make dependency-policy-check`, main의 ci-passed |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
