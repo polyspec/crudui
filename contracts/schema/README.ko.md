@@ -1,12 +1,17 @@
 # CRUDUI JSON Schema
 <!-- doc-id: schema-readme -->
-<!-- source-sha256: ec545f055446d2e0ce18350b06c2b2688ce393cbffad86ade2f16ac1d18d035a -->
+<!-- source-sha256: 0005688d7e597e3c4cc73513b0b7940374c893d9e4f089e788e0036d7d0833d0 -->
 
 [English](README.md).
 
 [`crudui.schema.json`](crudui.schema.json)은 JSON Schema draft-07로 폼과 목록
 선언 형태를 정의합니다. 루트는 `Field`를 참조하며 `List`는 `#/definitions/List`에
 있습니다. 스키마는 소스로 관리합니다.
+
+[`form-template.schema.json`](form-template.schema.json)은 `compileForm`이 쓰는 컴파일된
+폼 템플릿의 JSON을 정의합니다. `@polyspec/crudui-generator-core`의 `decodeFormTemplate`이
+파싱한 템플릿을 이 스키마로 검사합니다. [폼 런타임](../../docs/spec/form-runtime.ko.md)을
+참고합니다.
 
 ```bash
 make docs-schema

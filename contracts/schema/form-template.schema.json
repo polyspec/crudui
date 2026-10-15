@@ -1,0 +1,30 @@
+{
+  "$id": "https://github.com/polyspec/crudui/contracts/schema/form-template.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CRUDUI compiled form template",
+  "description": "The JSON of a compiled form template, which compileForm writes and createForm and bindForm read (docs/spec/form-runtime.md): the template kind, the field tree, the buttons, and an optional input prefix, action and description.",
+  "type": "object",
+  "required": ["kind", "fields", "buttons"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "crudui/form-template" },
+    "keyPrefix": { "type": "string" },
+    "fields": { "type": "array", "items": { "$ref": "#/definitions/field" } },
+    "buttons": { "type": "array", "items": { "type": "object" } },
+    "action": { "type": "object" },
+    "description": {}
+  },
+  "definitions": {
+    "field": {
+      "description": "A field blueprint: its property name, its composed settings without nested properties, and its children, stored once for a repeated group.",
+      "type": "object",
+      "required": ["name", "spec", "children"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "spec": { "type": "object" },
+        "children": { "type": "array", "items": { "$ref": "#/definitions/field" } }
+      }
+    }
+  }
+}

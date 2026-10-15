@@ -6,6 +6,7 @@
 
 export { compileForm, bindForm, formDescription } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
+export { decodeFormTemplate, FormTemplateError } from './decode-template';
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
 export { bindButtons, formButtonsHtml } from './buttons';
 export type { ButtonVM, FormButtonType, BindButtonsOptions } from './buttons';

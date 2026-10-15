@@ -82,6 +82,18 @@ options, description)` renders the same content from `bindForm`, `bindButtons` a
 returns the declared table or card layout. The package performs no DOM binding,
 validation, data loading or widget execution.
 
+### Decoding a template
+
+A template that crosses a JSON boundary, such as a template that a server writes into a page with `JSON.stringify` and
+a client reads back with `JSON.parse`, is decoded with `decodeFormTemplate(value)` of
+`@polyspec/crudui-generator-core` before it is used. The decoder checks the parsed value against
+[`contracts/schema/form-template.schema.json`](../../contracts/schema/form-template.schema.json), the JSON Schema of the
+shape above, with ajv, and returns it as a `FormTemplate` unchanged. A value of another shape fails with a
+`FormTemplateError`, a `FormInputError` with the code `INVALID_FORM_INPUT`, whose `pointer` is the JSON Pointer
+(RFC 6901) of the first invalid member: the missing or extra member itself for a missing or unknown member, and the
+empty string for the value itself. Its message is `Invalid form template at <pointer>: <rule>`, with `the root` in place
+of the empty pointer.
+
 ## Row identity
 
 Repeated data uses objects keyed by row identity. A key identifies a row only

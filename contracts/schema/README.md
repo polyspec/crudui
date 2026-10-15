@@ -7,6 +7,11 @@
 shapes using JSON Schema draft-07. The root references `Field`; `List` is available
 at `#/definitions/List`. The schema is maintained as source.
 
+[`form-template.schema.json`](form-template.schema.json) defines the JSON of a compiled
+form template, which `compileForm` writes; `decodeFormTemplate` of
+`@polyspec/crudui-generator-core` checks a parsed template against it. See the
+[form runtime](../../docs/spec/form-runtime.md).
+
 ```bash
 make docs-schema
 ```

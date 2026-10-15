@@ -41,7 +41,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@polyspec/crudui-validator": "0.0.5"
+    "@polyspec/crudui-validator": "0.0.5",
+    "ajv": "^8.20.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

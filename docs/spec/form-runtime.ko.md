@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: a03bbdc6834e2458286b13a2253507dbb50ab225eef4ebc15b81765867d39e63 -->
+<!-- source-sha256: 2a3c6c9a2201894c2c2d630f9c821ecdcf549acc0b92671f47973aed24cd33d6 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -75,6 +75,16 @@ description)`는 React, Vue, Svelte의 `FormFields`처럼, 직접 관리하는 �
 `formDescription(template, options)`로 같은 내용을 렌더링합니다. `renderList(spec, rows, options)`는 선언된
 table 또는 card layout을 반환합니다. 이 패키지는 DOM 연결, 검증, 데이터 로드,
 위젯 실행을 수행하지 않습니다.
+
+### 템플릿 디코딩
+
+JSON 경계를 넘는 템플릿, 예를 들어 서버가 `JSON.stringify`로 페이지에 쓰고 클라이언트가 `JSON.parse`로 다시 읽는
+템플릿은 사용하기 전에 `@polyspec/crudui-generator-core`의 `decodeFormTemplate(value)`로 디코딩합니다. 디코더는 파싱한
+값을 위 형태의 JSON Schema인 [`contracts/schema/form-template.schema.json`](../../contracts/schema/form-template.schema.json)에
+대해 ajv로 검사하고, 그 값을 바꾸지 않고 `FormTemplate`으로 돌려줍니다. 다른 형태의 값은 `FormTemplateError`로
+실패합니다. 이 오류는 코드가 `INVALID_FORM_INPUT`인 `FormInputError`이며, `pointer`는 첫 번째로 잘못된 멤버의 JSON
+Pointer(RFC 6901)입니다. 없거나 알 수 없는 멤버는 그 멤버 자신을, 값 자체는 빈 문자열을 가리킵니다. 메시지는
+`Invalid form template at <pointer>: <rule>`이며, 빈 pointer 자리에는 `the root`를 씁니다.
 
 ## 행 식별자
 
