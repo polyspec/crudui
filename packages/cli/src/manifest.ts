@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import Ajv from 'ajv';
+import { Ajv } from 'ajv';
 
 const contracts = resolve(dirname(fileURLToPath(import.meta.url)), '../../../contracts');
 const path = resolve(contracts, 'features.json');

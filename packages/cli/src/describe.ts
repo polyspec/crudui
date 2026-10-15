@@ -254,7 +254,8 @@ function collectWidgets(): { widgets: WidgetEntry[]; layouts: string[] } {
   // `kind`): keys sharing a canonical kind are aliases of it. No private
   // REGISTRY read; a projection of the registry, so new aliases auto-appear.
   const layouts = new Set<string>();
-  const byCanonical = new Map<string, string[]>();
+  // The registry keys of each canonical kind; a kind has at least the key that added it.
+  const byCanonical = new Map<string, [string, ...string[]]>();
   for (const key of WIDGET_KINDS) {
     const canonical = WIDGET_CANONICAL[key] ?? key;
     const keys = byCanonical.get(canonical);
@@ -307,22 +308,11 @@ function collectRules(): RuleEntry[] {
 
 function sliceSection(md: string, fromHeader: RegExp, toHeader = /^## /m): string {
   const lines = md.split('\n');
-  let start = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (fromHeader.test(lines[i])) {
-      start = i + 1;
-      break;
-    }
-  }
-  if (start < 0) return '';
-  let end = lines.length;
-  for (let i = start; i < lines.length; i++) {
-    if (toHeader.test(lines[i])) {
-      end = i;
-      break;
-    }
-  }
-  return lines.slice(start, end).join('\n');
+  const header = lines.findIndex((line) => fromHeader.test(line));
+  if (header < 0) return '';
+  const section = lines.slice(header + 1);
+  const end = section.findIndex((line) => toHeader.test(line));
+  return (end < 0 ? section : section.slice(0, end)).join('\n');
 }
 
 function collectGrammar(): DescribeResult['grammar'] {
@@ -333,18 +323,18 @@ function collectGrammar(): DescribeResult['grammar'] {
   const tokens: Array<{ token: string; pattern: string }> = [];
   for (const line of tokenSection.split('\n')) {
     // a table data row: | `TOK` | pattern | example |  (skip header/separator).
-    const m = /^\|\s*`([^`]+)`\s*\|(.*)\|[^|]*\|\s*$/.exec(line);
-    if (!m) continue;
-    const pattern = m[2].replace(/\\\|/g, '|').replace(/`/g, '').trim();
-    tokens.push({ token: m[1], pattern });
+    const [, token, cell] = /^\|\s*`([^`]+)`\s*\|(.*)\|[^|]*\|\s*$/.exec(line) ?? [];
+    if (token === undefined || cell === undefined) continue;
+    const pattern = cell.replace(/\\\|/g, '|').replace(/`/g, '').trim();
+    tokens.push({ token, pattern });
   }
 
   // §3 precedence: numbered list (1.~7.)
   const precSection = sliceSection(md, /^## 3\. /m);
   const precedence: string[] = [];
   for (const line of precSection.split('\n')) {
-    const m = /^\s*\d+\.\s+(.*)$/.exec(line);
-    if (m) precedence.push(m[1].replace(/`/g, '').trim());
+    const [, item] = /^\s*\d+\.\s+(.*)$/.exec(line) ?? [];
+    if (item !== undefined) precedence.push(item.replace(/`/g, '').trim());
   }
 
   // §6 truthy: the falsy enumeration line (strip markdown emphasis/backticks).

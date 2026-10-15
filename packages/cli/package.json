@@ -12,7 +12,8 @@
     "src"
   ],
   "scripts": {
-    "describe": "node --import tsx bin/crudui.mjs describe"
+    "describe": "node --import tsx bin/crudui.mjs describe",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@polyspec/crudui-generator-core": "0.0.5",
