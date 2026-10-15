@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The form template validator without ajv at run time (C14.38)
+
+- `@polyspec/crudui-generator-core` validates in `decodeFormTemplate` with ajv's standalone validation code of `contracts/schema/form-template.schema.json`, which `make form-template-validator` generates and `make build` checks; the package no longer depends on ajv and compiles no code at run time, so a Content-Security-Policy without `unsafe-eval` allows it (C14.38).
+
 ### 2026-10-15 — The form template decoder (C14.37)
 
 - `@polyspec/crudui-generator-core` exports `decodeFormTemplate(value)`, which checks the parsed JSON of a compiled form template against `contracts/schema/form-template.schema.json` with ajv and returns it as a `FormTemplate`, and `FormTemplateError`, the `FormInputError` that it throws with the JSON Pointer of the first invalid member in `pointer`. The package depends on ajv (C14.37).

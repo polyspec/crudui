@@ -1,10 +1,13 @@
 /** The decoder of the JSON of a compiled form template (docs/spec/form-runtime.md, "Decoding a template"). */
 
-import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
+// The validator is ajv's standalone validation code of contracts/schema/form-template.schema.json, which
+// scripts/generate-form-template-validator.mts generates (make form-template-validator), so the package imports no ajv and
+// compiles no code at run time (C14.38).
+import type { ErrorObject } from 'ajv';
 import { FormInputError } from '@polyspec/crudui-validator';
 
-import schema from '../../../../contracts/schema/form-template.schema.json' with { type: 'json' };
 import type { FormTemplate } from './form';
+import { validateFormTemplate } from './form-template-validator.mjs';
 
 /**
  * The error of {@link decodeFormTemplate} for a value that is no compiled form template. Its `code` is the
@@ -20,14 +23,6 @@ export class FormTemplateError extends FormInputError {
     this.pointer = pointer;
     Object.setPrototypeOf(this, FormTemplateError.prototype);
   }
-}
-
-let validate: ValidateFunction<FormTemplate> | undefined;
-
-/** The validator of contracts/schema/form-template.schema.json, compiled on the first decode. */
-function templateValidator(): ValidateFunction<FormTemplate> {
-  validate ??= new Ajv().compile<FormTemplate>(schema);
-  return validate;
 }
 
 /** `name` as a reference token of a JSON Pointer (RFC 6901, section 3). */
@@ -53,9 +48,8 @@ function pointerOf(error: ErrorObject): string {
  *   form template.
  */
 export function decodeFormTemplate(value: unknown): FormTemplate {
-  const check = templateValidator();
-  if (check(value)) return value;
-  const error = check.errors?.[0];
+  if (validateFormTemplate(value)) return value;
+  const error = validateFormTemplate.errors?.[0];
   if (error === undefined) throw new FormTemplateError('', 'is no form template');
   throw new FormTemplateError(pointerOf(error), error.message ?? error.keyword);
 }

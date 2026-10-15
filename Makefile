@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-go-modules install-composer install-python install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
+.PHONY: help release-assets form-template-validator form-template-validator-check install install-go-modules install-composer install-python install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -173,8 +173,16 @@ test-dependencies: ## The dependency graph, the dependency policy and its record
 	$(MAKE) --no-print-directory dependency-policy-mutation-check || status=1; \
 	$(NPM) run test:dependencies || status=1; \
 	exit $$status
-build: ## Build the JavaScript packages
+# The validator of the compiled form template of packages/generator/ts is ajv's standalone validation code of
+# contracts/schema/form-template.schema.json (C14.38): make form-template-validator generates
+# packages/generator/ts/src/form-template-validator.mjs, and the build checks that it is current, so the package has no
+# runtime dependency on ajv and compiles no schema at run time.
+build: form-template-validator-check ## Build the JavaScript packages
 	$(NPM) run build
+form-template-validator: ## Generate the form template validator of packages/generator/ts from its JSON Schema
+	$(NODE) scripts/generate-form-template-validator.mts
+form-template-validator-check: ## Check that the form template validator of packages/generator/ts is current
+	$(NODE) scripts/generate-form-template-validator.mts --check
 # make lint-ts of kit lints every TypeScript and JavaScript source with oxlint, knip and API Extractor; oxlint has no Svelte
 # rules, so the components of packages/svelte are linted by the ESLint of that workspace. Both run after a failure.
 lint: ## Lint the repository: make lint-ts of kit and the Svelte components
