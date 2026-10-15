@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 864f5b321d1230b8dffe292c9313f92fbf47be41729fac95389ff0fb506971a7 -->
+<!-- source-sha256: a7ff8cd4b671d3e44748abe8f5ed281bf508e32eab3e07f3fd9fc370d44c125a -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.53 (C14.48)
+
+- crudui는 `@polyspec/kit` 0.0.53을 pin한다. 그 release workflow는 어떤 release step보다 먼저 `make kit-check`를 실행하고, 그 kit-check는 crudui가 선언하는 `.php-version`을 요구하며, 그 release proof는 draft URL을 비교하는 대신 release가 각 sibling wheel을 나열하는지 확인한다(kit K191, K193, K195)(C14.48).
 
 ## 0.0.6
 
