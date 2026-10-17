@@ -70,3 +70,16 @@ docs/public/api/
 
 # Clang static analyzer reports (macOS)
 /*.plist
+
+# Generated files of the install, build, cache and test runs (AGENTS.md, Generated files)
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+.phpunit.cache/
+.phpunit.result.cache
+test-results/
+playwright-report/
+coverage/

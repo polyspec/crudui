@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 3cbe9631d91f8b4f6f057dfea13c35afad140cfc14604c96cb376c9c81501521 -->
+<!-- source-sha256: 4b81b5a1a248274bc440fda192043847d0e56a11963e4a43f3a135a88d04ca0c -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙을 적습니다.
 
@@ -117,6 +117,10 @@
   Python package는 wheel입니다(kit K29, C14.44). release 본문 한도인 125000자를 넘는 section은 tag의 `CHANGELOG.md` section을
   link하는 한 줄로 대신합니다. crate는 archive로 release하지 않고 git tag로 사용합니다. GitHub Release는 draft로 만들어 checkout 밖에서 증명한 뒤에 공개합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다
   (`docs/operations/repository.md`).
+
+# 생성 파일
+
+생성 파일은 Git에 추적하지 않습니다. 여기에는 의존성 설치(`node_modules/`, `vendor/`, 가상 환경), 빌드 산출물(`dist/`, `target/`, `*.tsbuildinfo`), 캐시(`.cache/`, `__pycache__/`, `.pytest_cache/`), 테스트 실행 산출물(`test-results/`, `playwright-report/`, PHPUnit 캐시), 도구 다운로드(`var/`)가 포함됩니다. 예외는 저장소가 의도적으로 필요로 하는 파일뿐이며 이것만 추적합니다: lock 파일(`package-lock.json`, `composer.lock`, `Cargo.lock`, uv lock, `mise.lock`), 이 문서가 밝히는 커밋된 생성 문서, 테스트 fixture. 각 `.gitignore`가 이 경로를 덮으며, 새 생성기는 같은 commit에서 ignore 항목을 추가합니다.
 
 # Checklist
 
