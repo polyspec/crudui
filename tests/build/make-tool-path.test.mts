@@ -30,9 +30,7 @@ function toolVariables(directory: string): string[] {
   return tools.map(([name, command]) => `${name}=${path.join(directory, command)}`);
 }
 
-test('crudui-test-native runs the Rust tests through the test runner', {
-  skip: process.platform === 'win32',
-}, async t => {
+test('crudui-test-native runs the Rust tests through the test runner', async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-path-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
 
@@ -65,9 +63,7 @@ test('crudui-test-native runs the Rust tests through the test runner', {
     /^node\tnode_modules\/@polyspec\/kit\/dist\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator\/rust\/Cargo\.toml$/m);
 });
 
-test('crudui-test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', {
-  skip: process.platform === 'win32',
-}, async t => {
+test('crudui-test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-status-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
 
@@ -109,9 +105,7 @@ test('crudui-test-native runs the generator and PHP API parts after the PHP engi
     `the PHP API part did not run:\n${commands}`);
 });
 
-test('the Rust command entry point executes regular toolchain files', {
-  skip: process.platform === 'win32',
-}, async t => {
+test('the Rust command entry point executes regular toolchain files', async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-rust-command-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
 
@@ -218,9 +212,7 @@ test('Rust toolchain resolution uses the Cargo working directory', async t => {
   assert.equal(calls.at(-1)?.cwd, workingDirectory);
 });
 
-test('Rust commands reject a symbolic working directory', {
-  skip: process.platform === 'win32',
-}, async t => {
+test('Rust commands reject a symbolic working directory', async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-rust-link-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const target = path.join(directory, 'crate');

@@ -1,11 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ff6cc6220c546eee70c86a03e29d1a0885c354b7ad6bf47ab6e89c3ab140cff0 -->
+<!-- source-sha256: 964f1409c5da4e409789392121d006f1e2d5926db4ea1e1f098a8bcf96f6f031 -->
 
 ## Unreleased
 
 ### 2026-10-19 — kit 표준 0.0.54 (C16.1)
 
+- CI는 존재하는 target만 PHP 8.4 도구로 호출하고, platform test는 skip하지 않고 모든 platform에서 실행한다 (C16.2).
 - 저장소는 `@polyspec/kit` 0.0.54의 working principle과 표준 S1부터 S10까지를 따릅니다. 각 plan은 `docs/plans/<plan>/` 폴더이며 `plan.md`와 `checklist.md`를 둡니다. execution checklist와 wave 기록은 `docs/plans/execution-checklist/`로 옮겼습니다. `AGENTS.md`와 `AGENTS.ko.md`는 이 저장소의 규칙만 두며, 각 규칙에 `Enforced by:` 줄을 둡니다.
 - PHP는 8.4로 고정합니다. package의 요구 조건은 `>=8.4`이며, `config/php-lint`의 Composer platform은 root `composer.json`과 같은 `8.4.1`입니다.
 - `make records-check`는 더 이상 `crudui-docs-check`를 실행하지 않아, `records-check`, `crudui-docs-check`, `docs-check-documents` 중 어떤 target도 자기 자신에 닿지 않습니다.

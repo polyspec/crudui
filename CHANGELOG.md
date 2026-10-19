@@ -5,6 +5,7 @@
 
 ### 2026-10-19 — The kit standard 0.0.54 (C16.1)
 
+- CI calls only targets that exist, with the PHP 8.4 tools, and the platform tests run on every platform instead of being skipped (C16.2).
 - The repository follows the working principles and the standards S1 to S10 of `@polyspec/kit` 0.0.54: each plan is a folder `docs/plans/<plan>/` with `plan.md` and `checklist.md`; the execution checklist and its wave notes moved to `docs/plans/execution-checklist/`; `AGENTS.md` and `AGENTS.ko.md` keep only the rules of this repository, each with its `Enforced by:` line.
 - PHP is pinned to 8.4: the requirements of the packages are `>=8.4`, and the Composer platform of `config/php-lint` is `8.4.1`, as the root `composer.json` is.
 - `make records-check` no longer runs `crudui-docs-check`, so no target of `records-check`, `crudui-docs-check` and `docs-check-documents` reaches itself.

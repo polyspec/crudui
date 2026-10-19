@@ -779,7 +779,6 @@ test('PHP extension engine validation has no undefined behavior findings', { tim
 });
 
 test('PHP extension engine validation has no address sanitizer findings', {
-  skip: process.platform !== 'linux',
   timeout: ENGINE_SANITIZER_BUDGET,
 }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-address-'));
