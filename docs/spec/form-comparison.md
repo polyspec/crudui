@@ -631,7 +631,7 @@ verification below blocks integration.
 
 ## Local verification
 
-`examples/form-comparison/local-verification.mjs` (`make test-form-comparison-checks`) builds one
+`examples/form-comparison/local-verification.mjs` (`make crudui-test-form-comparison-checks`) builds one
 local stack from the checkout, as the canonical flow check
 does: the record server programs, the public directory, the four native record servers and the
 public server, each a local process on a port of 127.0.0.1 that the system assigns. It records the
@@ -669,10 +669,10 @@ results directory and prints its path.
 
 CI runs the same checks in two parts, each once. The CI job `form-comparison-browser` has one job
 per native server (`php`, `php-ext`, `go`, `rust`), so each browser check has its runner to itself:
-`make test-form-comparison-browser` with `FORM_SERVERS` naming that server runs the runner with
+`make crudui-test-form-comparison-browser` with `FORM_SERVERS` naming that server runs the runner with
 `--servers`, which starts a local stack and runs only the browser check of that server (stage 5),
 and the job uploads that server's report. The CI job `form-comparison-checks` runs after the four
-jobs, downloads their reports and runs `make test-form-comparison-summary`, which runs the runner
+jobs, downloads their reports and runs `make crudui-test-form-comparison-summary`, which runs the runner
 with `--browser-reports`: it starts a local stack of its own and runs every other stage (1 to 4, 6
 and 7) and the evidence check, the browser aggregate reading the four downloaded reports. Every
 server of these runs takes a port of the system, so runs at the same time do not collide. The

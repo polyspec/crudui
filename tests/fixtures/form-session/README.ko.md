@@ -1,6 +1,6 @@
 # 폼 세션 시나리오
 <!-- doc-id: tests-fixtures-form-session-readme -->
-<!-- source-sha256: db39069d091db5de8e3ad0e4de14f9a13b1d7e1c1e0659a2c8ef23b3f6621dcd -->
+<!-- source-sha256: 4a0f51199955970b6ce547674a7dc0c35e4441728225ee1f41cc7e7bf9f8c679 -->
 
 [English](README.md).
 
@@ -43,9 +43,9 @@
 `getData()`의 JSON, 변하지 않은 `template`입니다. 이어서 두 폼에서 값을 바꿨다가 되돌리고, 상태가 같으며
 체크박스 요소가 그대로이기를 요구합니다.
 
-[React](../../../packages/react/src/__tests__/Form.test.tsx),
-[Vue](../../../packages/vue/test/form-session.test.mjs),
-[Svelte](../../../packages/svelte/test/form-session.client.mjs) 폼 검사와
+[React](../../../packages/react/src/tests/Form.test.tsx),
+[Vue](../../../packages/vue/tests/form-session.test.mjs),
+[Svelte](../../../packages/svelte/tests/form-session.client.mjs) 폼 검사와
 [HTML 렌더러 세션 검사](../../../packages/html/src/form-session.test.ts)가 네 모듈을 모두
 사용합니다. [코어 폼 검사](../../../packages/generator/ts/src/form.test.ts)는 시나리오의 `spec`,
 `data`, 행 키, `storesPath`를 사용합니다.

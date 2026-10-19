@@ -34,7 +34,7 @@ from .compose_errors import ComposeLoadError
 from .errors import FormInputError
 from .forbidden import scan_forbidden_keys
 from .jsvalue import JsonValue, ordered_value
-from .parser import Node, is_condition_expression, parse_condition
+from .parser import Node, ParseError, is_condition_expression, parse_condition
 from .resolver import evaluate_condition as _eval_condition
 from .resolver import evaluate_expression_value as _eval_value
 from .resolver import Value, get_field_name, path_to_string
@@ -121,7 +121,7 @@ def _is_ternary(expression: str) -> bool:
     """Whether a string parses as a complete ternary expression."""
     try:
         return bool(parse_condition(expression)["type"] == "Ternary")
-    except Exception:
+    except ParseError:
         return False
 
 
@@ -130,7 +130,7 @@ def _is_valid_expression(expression: str) -> bool:
     try:
         parse_condition(expression)
         return True
-    except Exception:
+    except ParseError:
         return False
 
 
@@ -704,13 +704,13 @@ class Validator:
         """
         try:
             return _eval_value(parse_condition(expression), context, "CURRENT")
-        except Exception:
+        except ValueError, TypeError:
             return expression
 
     def _evaluate_condition(self, expression: str, context: dict[str, Any]) -> bool:
         try:
             return _eval_condition(parse_condition(expression), context, "CURRENT")
-        except Exception:
+        except ValueError, TypeError:
             return False
 
     def _evaluate_expression_value(
@@ -718,7 +718,7 @@ class Validator:
     ) -> Value:
         try:
             return _eval_value(parse_condition(expression), context, "CURRENT")
-        except Exception:
+        except ValueError, TypeError:
             return False
 
 

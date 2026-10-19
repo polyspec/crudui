@@ -3,6 +3,15 @@
 
 ## Unreleased
 
+### 2026-10-19 — The kit standard 0.0.54 (C16.1)
+
+- The repository follows the working principles and the standards S1 to S10 of `@polyspec/kit` 0.0.54: each plan is a folder `docs/plans/<plan>/` with `plan.md` and `checklist.md`; the execution checklist and its wave notes moved to `docs/plans/execution-checklist/`; `AGENTS.md` and `AGENTS.ko.md` keep only the rules of this repository, each with its `Enforced by:` line.
+- PHP is pinned to 8.4: the requirements of the packages are `>=8.4`, and the Composer platform of `config/php-lint` is `8.4.1`, as the root `composer.json` is.
+- `make records-check` no longer runs `crudui-docs-check`, so no target of `records-check`, `crudui-docs-check` and `docs-check-documents` reaches itself.
+- The test folders of `packages/cli`, `packages/svelte`, `packages/vue` and `packages/react`, and the test folder of the Vue source, are named `tests`; the README of `docs/` duplicates `docs/index.md` and is removed.
+- The generated form template validator drops the schema constants and the parent arguments that its code never reads.
+- The Python validator catches the named exceptions of the expression parser, and the Rust benchmarks and the cross-check console no longer discard a `Result`.
+
 ### 2026-10-15 — The local links of 0.0.x (C14.51)
 
 - `AGENTS.md` and `AGENTS.ko.md` state that while polyspec versions are 0.0.x, development checkouts link installed polyspec packages to their source as `docs/plans/local-links.md` of kit describes, and that links are never committed (C14.51).
@@ -663,7 +672,7 @@
   `native-generators` and `php-api` run the native suites on their Linux runners.
 - `tests/build/runtime-version-policy.test.mjs` fails for a tracked container definition, and a case of
   `tests/docs/repository-writing.test.mjs` fails for a document, other than the checklists and the change logs, whose
-  code runs the container CLI of macOS, Docker or Podman.
+  code runs the container CLI of macOS or another container CLI.
 
 ### 2026-10-07 — Linux style checks on the CI runner (C7.20-2)
 
@@ -671,7 +680,7 @@
   the CI job `form-runtime` runs the stylesheet layout checks on its Linux runner with the pinned Chromium, Firefox and
   WebKit builds.
 - A case of `tests/docs/repository-writing.test.mjs` fails for a tracked tool, a Makefile line or a workflow that
-  invokes the container CLI of macOS, Docker or Podman.
+  invokes the container CLI of macOS or another container CLI.
 
 ### 2026-10-07 — Form comparison checks against a local stack in CI (C7.20-1)
 
@@ -2582,7 +2591,7 @@ already present; the testing procedure describes the command.
   WebKit on macOS and Linux. The form markup and form runtime specifications say so.
 - `make test-form-styles-linux` (`scripts/test-form-styles-linux.sh`) runs the stylesheet layout
   checks on Linux as the CI runner does, in the Playwright image of the pinned version, through
-  `container` on macOS or `docker`; it is not part of `make ci`.
+  `container` on macOS or another container CLI; it is not part of `make ci`.
 
 ### 2026-09-17 — Check the stylesheet layout in WebKit
 
@@ -4472,7 +4481,7 @@ removed rather than kept beside the current path:
   (16 React tests, the Vue and Svelte parity tests and captures, the Svelte legacy
   component test);
 - the earlier demo, playground and rendering-comparison examples and `react-usage.tsx`, with their
-  docker-compose services and README entries;
+  compose services and README entries;
 - `tests/cross-framework`,
   the CI parity job, whose Vue and
   Svelte steps repeated the form-render job;

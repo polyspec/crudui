@@ -3,7 +3,7 @@
   "composerPlatforms": [
     {
       "manifest": "composer.json",
-      "php": "8.5.0"
+      "php": "8.4.1"
     }
   ],
   "pythonManifests": [
@@ -36,7 +36,7 @@
       "repository": "https://github.com/polyspec/ordered-json",
       "tag": "v0.0.9",
       "version": "0.0.9",
-      "fix": "make install-ordered-json"
+      "fix": "make crudui-install-ordered-json"
     }
   ],
   "exceptions": [

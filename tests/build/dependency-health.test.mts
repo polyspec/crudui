@@ -172,9 +172,9 @@ export function makeNodeEntrypoints(targets: Record<string, MakeRule>, target: s
 function nativeTestNodeEntrypoints(): string[] {
   // The tools of @polyspec/kit, $(KIT)/<tool>.mjs, import the dependencies of the kit package, not those of the root.
   const entrypoints = makeNodeEntrypoints(
-    makeTargets(['Makefile', 'node_modules/@polyspec/kit/dist/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'test-native',
+    makeTargets(['Makefile', 'node_modules/@polyspec/kit/dist/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'crudui-test-native',
   ).filter((file) => !file.startsWith('$(KIT)/'));
-  assert.notDeepEqual(entrypoints, [], 'make test-native runs no Node.js program');
+  assert.notDeepEqual(entrypoints, [], 'make crudui-test-native runs no Node.js program');
   return entrypoints;
 }
 
@@ -411,7 +411,7 @@ test('a published Composer package declares its version, and the development roo
 test('config/dependency-policy.json records the OrderedJSON tag that the comparison installs', () => {
   const policy = readJson<Record<string, unknown>>(path.join(root, 'config/dependency-policy.json'), { values: {} });
   assert.deepEqual(policy['taggedNpmPackages'], [{
-    directory: `${orderedJsonCheckout}/packages/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make install-ordered-json',
+    directory: `${orderedJsonCheckout}/packages/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make crudui-install-ordered-json',
   }]);
 });
 

@@ -1,8 +1,17 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: abc23b8008d0e1a30ebabe7d650a03a1eae02d330ae6f9575ffbd6d366e0c5b4 -->
+<!-- source-sha256: ff6cc6220c546eee70c86a03e29d1a0885c354b7ad6bf47ab6e89c3ab140cff0 -->
 
 ## Unreleased
+
+### 2026-10-19 — kit 표준 0.0.54 (C16.1)
+
+- 저장소는 `@polyspec/kit` 0.0.54의 working principle과 표준 S1부터 S10까지를 따릅니다. 각 plan은 `docs/plans/<plan>/` 폴더이며 `plan.md`와 `checklist.md`를 둡니다. execution checklist와 wave 기록은 `docs/plans/execution-checklist/`로 옮겼습니다. `AGENTS.md`와 `AGENTS.ko.md`는 이 저장소의 규칙만 두며, 각 규칙에 `Enforced by:` 줄을 둡니다.
+- PHP는 8.4로 고정합니다. package의 요구 조건은 `>=8.4`이며, `config/php-lint`의 Composer platform은 root `composer.json`과 같은 `8.4.1`입니다.
+- `make records-check`는 더 이상 `crudui-docs-check`를 실행하지 않아, `records-check`, `crudui-docs-check`, `docs-check-documents` 중 어떤 target도 자기 자신에 닿지 않습니다.
+- `packages/cli`, `packages/svelte`, `packages/vue`, `packages/react`의 test 폴더와 Vue source의 test 폴더는 `tests`라는 이름을 씁니다. `docs/`의 README는 `docs/index.md`와 중복되어 제거했습니다.
+- 생성되는 form template 검증기는 코드가 읽지 않는 schema 상수와 부모 인수를 제거합니다.
+- Python 검증기는 expression parser가 내는 이름 있는 예외만 잡고, Rust benchmark와 cross-check console은 `Result`를 버리지 않습니다.
 
 ### 2026-10-15 — 0.0.x의 local link (C14.51)
 
@@ -649,7 +658,7 @@
   Linux runner에서 실행합니다.
 - `tests/build/runtime-version-policy.test.mjs`는 tracked 컨테이너 정의가 있으면 실패하고,
   `tests/docs/repository-writing.test.mjs`의 case는 checklist와 change log가 아닌 문서의 code가 macOS의 container
-  CLI, Docker, Podman을 실행하면 실패합니다.
+  container CLI를 실행하면 실패합니다.
 
 ### 2026-10-07 — CI runner의 Linux 스타일 검사 (C7.20-2)
 
@@ -657,7 +666,7 @@
   CI job `form-runtime`이 스타일시트 배치 검사를 Linux runner에서 고정한 Chromium, Firefox, WebKit build로
   실행합니다.
 - `tests/docs/repository-writing.test.mjs`의 case는 tracked tool, Makefile 줄, workflow가 macOS의 container CLI,
-  Docker, Podman을 호출하면 실패합니다.
+  다른 container CLI를 호출하면 실패합니다.
 
 ### 2026-10-07 — CI에서 로컬 구성에 대해 실행하는 폼 비교 검사 (C7.20-1)
 
@@ -2375,7 +2384,7 @@
   스타일시트의 스크롤 여백이 컨트롤을 고정 헤더와 푸터에 가리지 않게 합니다. 폼 마크업과 폼
   런타임 명세가 이를 설명합니다.
 - `make test-form-styles-linux`(`scripts/test-form-styles-linux.sh`)는 고정된 버전의 Playwright
-  이미지에서 macOS의 `container` 또는 `docker`로 스타일시트 레이아웃 검사를 CI 러너처럼 Linux에서
+  이미지에서 macOS의 `container` 또는 다른 container CLI로 스타일시트 레이아웃 검사를 CI 러너처럼 Linux에서
   실행합니다. `make ci`에는 포함되지 않습니다.
 
 ### 2026-09-17 — WebKit에서 스타일시트 레이아웃 검사
@@ -4010,7 +4019,7 @@ HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input�
   `@crudui/generator-svelte/legacy`와 그 소스, React `@crudui/generator-react/styles.css`
   스타일시트, 이를 검사하던 테스트(React 테스트 16개, Vue·Svelte 패리티 테스트와 캡처, Svelte
   레거시 컴포넌트 테스트)
-- 이전 데모·플레이그라운드·렌더링 비교 예제, `react-usage.tsx`와 해당 docker-compose 서비스,
+- 이전 데모·플레이그라운드·렌더링 비교 예제, `react-usage.tsx`와 해당 compose 서비스,
   README 항목
 - `tests/cross-framework`,
   Vue·Svelte 단계가 form-render 작업을 반복하던 CI parity 작업

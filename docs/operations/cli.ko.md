@@ -1,6 +1,6 @@
 # 스펙 CLI
 <!-- doc-id: docs-operations-cli -->
-<!-- source-sha256: d55c1110178cce17f785b3185fc60533dfaaf897e4146b774b2e9adb8c2e0413 -->
+<!-- source-sha256: d44d94c71b2bc8d27390cf2cc9939be88d2a7cb684487e09b5d35408e01f8a8f -->
 
 [English](cli.md).
 
@@ -28,8 +28,8 @@ CLI는 `tsx`로 실행하며 패키지 엔트리만 import합니다. `@polyspec/
 ```sh
 node --import tsx packages/cli/bin/crudui.mjs describe --json
 node --import tsx packages/cli/bin/crudui.mjs list-widgets --json
-node --import tsx packages/cli/bin/crudui.mjs check packages/cli/test/fixtures/valid-leaf-type.yml
-node --import tsx packages/cli/bin/crudui.mjs explain packages/cli/test/fixtures/valid-leaf-type.yml --lang en
+node --import tsx packages/cli/bin/crudui.mjs check packages/cli/tests/fixtures/valid-leaf-type.yml
+node --import tsx packages/cli/bin/crudui.mjs explain packages/cli/tests/fixtures/valid-leaf-type.yml --lang en
 npm run manifest:check
 ```
 

@@ -1,6 +1,6 @@
 # 목록 렌더링 고정 데이터
 <!-- doc-id: tests-fixtures-list-render-readme -->
-<!-- source-sha256: 438ad63db54d3ce4dd9715fb42e93aa3dcc2a07d2dbe69bdd2f9cee6254dbb96 -->
+<!-- source-sha256: 0a0d633a28170f4c3d7ccb481b9fc2d35facefced7d49bedb2608c91052e8089 -->
 
 [English](README.md).
 
@@ -24,9 +24,9 @@
 렌더러의 이미지 preload 링크를 포함한 전체 원본 HTML을 React와 비교합니다. 리소스 힌트를
 제거하거나 속성과 CSS를 정규화하지 않습니다.
 
-[React](../../../packages/react/src/__tests__/list-render.conformance.test.ts),
-[Vue](../../../packages/vue/test/list-render.conformance.test.mjs),
-[Svelte](../../../packages/svelte/test/list-render.conformance.test.mjs),
+[React](../../../packages/react/src/tests/list-render.conformance.test.ts),
+[Vue](../../../packages/vue/tests/list-render.conformance.test.mjs),
+[Svelte](../../../packages/svelte/tests/list-render.conformance.test.mjs),
 [HTML 렌더러](../../../packages/html/src/list-conformance.test.ts)의
 목록 적합성 검사가 사용합니다. 합성 오류 사례는 기록된 오류 코드를 확인합니다.
 

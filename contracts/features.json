@@ -417,7 +417,7 @@
       "state": "none",
       "tests": [
         "packages/generator/ts/src/form.test.ts",
-        "packages/react/src/__tests__/form-render.conformance.test.ts",
+        "packages/react/src/tests/form-render.conformance.test.ts",
         "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
@@ -432,7 +432,7 @@
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/form-render.conformance.test.ts"
         },
         {
           "id": "test-3",
@@ -466,7 +466,7 @@
       "state": "none",
       "tests": [
         "packages/generator/ts/src/form.test.ts",
-        "packages/react/src/__tests__/form-render.conformance.test.ts",
+        "packages/react/src/tests/form-render.conformance.test.ts",
         "packages/generator/ts/src/node.test.ts",
         "packages/generator/ts/src/input-text.test.ts"
       ],
@@ -483,7 +483,7 @@
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/form-render.conformance.test.ts"
         },
         {
           "id": "test-3",
@@ -643,12 +643,12 @@
       "state": "none",
       "tests": [
         "packages/html/src/conformance.test.ts",
-        "packages/react/src/__tests__/form-render.conformance.test.ts",
+        "packages/react/src/tests/form-render.conformance.test.ts",
         "tests/form-inspector/form-snapshot.test.mts",
         "packages/html/src/form-complete.conformance.test.ts",
-        "packages/react/src/__tests__/form-complete.conformance.test.ts",
-        "packages/vue/test/form-complete.conformance.test.mjs",
-        "packages/svelte/test/form-complete.conformance.test.mjs"
+        "packages/react/src/tests/form-complete.conformance.test.ts",
+        "packages/vue/tests/form-complete.conformance.test.mjs",
+        "packages/svelte/tests/form-complete.conformance.test.mjs"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -663,7 +663,7 @@
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/form-render.conformance.test.ts"
         },
         {
           "id": "test-3",
@@ -671,7 +671,7 @@
         },
         {
           "id": "test-4",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-complete.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/form-complete.conformance.test.ts"
         }
       ]
     },
@@ -702,7 +702,7 @@
       "state": "none",
       "tests": [
         "packages/html/src/list-conformance.test.ts",
-        "packages/react/src/__tests__/list-render.conformance.test.ts"
+        "packages/react/src/tests/list-render.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
@@ -716,7 +716,7 @@
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/list-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/list-render.conformance.test.ts"
         }
       ]
     },
@@ -843,9 +843,9 @@
         "packages/php-ext/tests/engine.test.mjs",
         "packages/php-ext/tests/ApiReport.php",
         "packages/html/src/detail-conformance.test.ts",
-        "packages/react/src/__tests__/detail-render.conformance.test.ts",
-        "packages/vue/src/__tests__/detail-render.conformance.test.ts",
-        "packages/svelte/test/detail-render.conformance.test.mjs",
+        "packages/react/src/tests/detail-render.conformance.test.ts",
+        "packages/vue/src/tests/detail-render.conformance.test.ts",
+        "packages/svelte/tests/detail-render.conformance.test.mjs",
         "packages/generator/php/tests/DetailTest.php",
         "packages/generator/go/detail_test.go",
         "packages/generator/rust/src/detail.rs",
@@ -863,7 +863,7 @@
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/detail-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/detail-render.conformance.test.ts"
         }
       ]
     },
@@ -1028,9 +1028,9 @@
       "state": "the mounted DOM",
       "tests": [
         "packages/html/src/view-session.test.ts",
-        "packages/react/src/__tests__/View.test.tsx",
-        "packages/vue/test/view-session.test.mjs",
-        "packages/svelte/test/view-session.client.mjs"
+        "packages/react/src/tests/View.test.tsx",
+        "packages/vue/tests/view-session.test.mjs",
+        "packages/svelte/tests/view-session.client.mjs"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -1043,7 +1043,7 @@
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/View.test.tsx"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/tests/View.test.tsx"
         }
       ]
     },

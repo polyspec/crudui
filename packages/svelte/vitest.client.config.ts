@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [svelte()],
   resolve: { conditions: ['browser'] },
   test: {
-    include: ['test/*.client.mjs'],
+    include: ['tests/*.client.mjs'],
     environment: 'jsdom',
     server: { deps: { inline: [/svelte/] } },
   },

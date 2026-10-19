@@ -14,7 +14,7 @@ rules:
     vars: { repo: crudui }
 
   # S5: the root files of crudui beyond the list of kit (K145): .npmrc sets strict-allow-scripts for the npm of the root
-  # (C14.3), and pyproject.toml with uv.lock is the uv workspace of the Python packages, which make install-python syncs
+  # (C14.3), and pyproject.toml with uv.lock is the uv workspace of the Python packages, which make crudui-install-python syncs
   # into var/python (C14.29). kit allows the development composer.json and composer.lock of the root (K167).
   - id: layout-root-files
     vars: { root_files: "{.npmrc,pyproject.toml,uv.lock}" }
@@ -98,3 +98,14 @@ rules:
       - "tests/**"
       - "!tests/kit/fixture/**"
       - "!tests/native-generators/python.py"
+
+  # K244: the evidence writer of the conformance suites is an internal package of the Go validator, which its tests import
+  # by the path internal/conformance; a Go internal package is importable only from the tree of its parent, so it stays
+  # beside the validator until the evidence writer is exported by a package of its own.
+  - id: suites-at-root
+    paths: ["packages/**/integration", "packages/**/conformance", "!packages/validator/go/validator/internal/conformance"]
+
+  # S10: the stub of the PHP extension is crudui.stub.php, and its functions and classes keep the names of CRUDUI. The move
+  # to src/polyspec_crudui.stub.php renames the extension, a change that the rollout of the kit standard does not make yet.
+  - id: php-ext-stub-place
+    paths: ["**/*.stub.php", "!packages/php-ext/src/*.stub.php", "!packages/php-ext/crudui.stub.php"]

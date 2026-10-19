@@ -56,12 +56,12 @@ fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
 
     // Warmup.
     for _ in 0..warmup {
-        let _ = v.validate(&validator_input);
+        std::hint::black_box(v.validate(&validator_input).is_ok());
     }
 
     let start = Instant::now();
     for _ in 0..iters {
-        let _ = v.validate(&validator_input);
+        std::hint::black_box(v.validate(&validator_input).is_ok());
     }
     let elapsed = start.elapsed();
 

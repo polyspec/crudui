@@ -265,13 +265,13 @@ Shared fixtures define the expected results in every runtime:
 
 ```sh
 npm run test:forms
-make test-native
+make crudui-test-native
 (cd examples/cross-check-console/server && npm test)
 make docs-check
 ```
 
 `test:forms` runs the list and detail conformance tests of React, Vue, Svelte and the HTML
-renderer, which compare normalized bodies with the render fixtures. `make test-native` runs the
+renderer, which compare normalized bodies with the render fixtures. `make crudui-test-native` runs the
 PHP, Go and Rust package tests and the
 [native generator suite](../../tests/native-generators/README.md), which compares complete
 original list and detail HTML and detail models from JavaScript, the HTML renderer, PHP, the PHP

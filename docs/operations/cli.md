@@ -27,8 +27,8 @@ Run commands from the repository root:
 ```sh
 node --import tsx packages/cli/bin/crudui.mjs describe --json
 node --import tsx packages/cli/bin/crudui.mjs list-widgets --json
-node --import tsx packages/cli/bin/crudui.mjs check packages/cli/test/fixtures/valid-leaf-type.yml
-node --import tsx packages/cli/bin/crudui.mjs explain packages/cli/test/fixtures/valid-leaf-type.yml --lang en
+node --import tsx packages/cli/bin/crudui.mjs check packages/cli/tests/fixtures/valid-leaf-type.yml
+node --import tsx packages/cli/bin/crudui.mjs explain packages/cli/tests/fixtures/valid-leaf-type.yml --lang en
 npm run manifest:check
 ```
 

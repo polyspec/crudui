@@ -1,4 +1,4 @@
-# The uv workspace of the Python packages of crudui (S3): make install-python syncs it into the virtual environment
+# The uv workspace of the Python packages of crudui (S3): make crudui-install-python syncs it into the virtual environment
 # var/python, where the suites, the native generator program and the cross-check console import the installed packages.
 # The generator requires the validator of its own release (polyspec-crudui-validator==<version>), whose wheel the release
 # publishes beside it (C14.44); in the workspace the validator of the checkout replaces it.

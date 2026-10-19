@@ -1,6 +1,6 @@
 # 적합성 증거
 <!-- doc-id: docs-spec-conformance -->
-<!-- source-sha256: 5dc3e8391a33b541ad645d48b0a2992ef93c246fecd540fd3db7e28ce14e0ff7 -->
+<!-- source-sha256: 8fbb1df71ee59b95a250b0cf3708a7cc2f02b95684467628e67eac8c22f7ac94 -->
 
 [English](conformance.md).
 
@@ -55,7 +55,7 @@ suite의 실행은 증거 디렉터리의 `runs/`에 실행 기록도 남깁니�
 [`tests/conformance/runs.mts`](../../tests/conformance/runs.mts)로 씁니다. 기록
 `{"program", "tool", "cwd", "args", "started", "status"}`는 실행이 시작할 때 `status`를 `null`로 써지고,
 process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `null`을 유지합니다. Python suite도
-`make install-python`이 만드는 환경 `var/python`의 Python으로 `run-suite.mts`를 거쳐 실행되고,
+`make crudui-install-python`이 만드는 환경 `var/python`의 Python으로 `run-suite.mts`를 거쳐 실행되고,
 [`tests/conformance/python`](../../tests/conformance/python/pyproject.toml)의 package `polyspec.crudui.conformance`로
 증거를 기록합니다.
 

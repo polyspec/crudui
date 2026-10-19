@@ -63,8 +63,8 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /php-version-file:\s*\.php-version\n/);
   assert.match(job, /run: make install-tools TOOLS="npm"\n/);
   assert.match(job, /run: make install-packages\n/);
-  assert.match(job, /run: make install-composer\n/);
-  assert.match(job, /run: make ci-targets TARGETS="test-form-comparison"\n/);
+  assert.match(job, /run: make crudui-install-composer\n/);
+  assert.match(job, /run: make ci-targets TARGETS="crudui-test-form-comparison"\n/);
 });
 
 test('CI builds and runs the five record stores and the canonical flow', async () => {
@@ -79,12 +79,12 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   // make install-tools installs the Rust toolchain of rust-toolchain.toml too (kit K151).
   assert.match(job, /run: make install-tools\n/);
   assert.doesNotMatch(job, /install-rust/);
-  // The Rust record server builds from the OrderedJSON checkout, which make install-crates installs before the crates.
-  assert.match(job, /run: make install-crates\n/);
+  // The Rust record server builds from the OrderedJSON checkout, which make crudui-install-crates installs before the crates.
+  assert.match(job, /run: make crudui-install-crates\n/);
   assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);
   assert.match(job, /run: make install-packages\n/);
-  assert.match(job, /run: make install-composer\n/);
-  assert.match(job, /run: make ci-targets TARGETS="test-form-comparison-pipeline"\n/);
+  assert.match(job, /run: make crudui-install-composer\n/);
+  assert.match(job, /run: make ci-targets TARGETS="crudui-test-form-comparison-pipeline"\n/);
   const pipeline = script(readManifest(path.join(repository, 'package.json')), 'test:form-comparison:pipeline');
   assert.match(pipeline, /examples\/form-comparison\/record-stores\.test\.mjs/);
   assert.match(pipeline, /examples\/form-comparison\/pipeline\.browser\.mjs/);
@@ -108,7 +108,7 @@ test('CI runs the browser checks of each form server in a job of its own and eve
   assert.deepEqual(browser.strategy?.matrix.server, [...matrix.servers]);
   assert.equal(browser.strategy?.['fail-fast'], false);
   assert.equal(browser.env.FORM_SERVERS, '${{ matrix.server }}');
-  assert.deepEqual(run(browser), ['make ci-targets TARGETS="test-form-comparison-browser"']);
+  assert.deepEqual(run(browser), ['make ci-targets TARGETS="crudui-test-form-comparison-browser"']);
   const upload = browser.steps.find(step => step.with?.path === 'var/form-comparison/browser');
   assert.ok(upload, 'the browser job uploads var/form-comparison/browser');
   assert.deepEqual({ if: upload.if, name: upload.with?.name, missing: upload.with?.['if-no-files-found'] },
@@ -120,15 +120,15 @@ test('CI runs the browser checks of each form server in a job of its own and eve
   assert.ok(download, 'the summary job downloads the browser reports');
   assert.deepEqual(download.with, { pattern: 'form-comparison-browser-*', path: 'var/form-comparison/browser', 'merge-multiple': true });
   assert.ok(summary.steps.indexOf(download) < summary.steps.findIndex(step => step.run === run(summary)[0]));
-  assert.deepEqual(run(summary), ['make ci-targets TARGETS="test-form-comparison-summary"']);
+  assert.deepEqual(run(summary), ['make ci-targets TARGETS="crudui-test-form-comparison-summary"']);
   for (const job of [browser, summary]) {
     assert.equal(job.env.PHP_EXTENSION_PHP_CONFIG, '/usr/bin/php-config8.5');
-    assert.ok(job.steps.some(step => step.run === 'make install-crates'));
+    assert.ok(job.steps.some(step => step.run === 'make crudui-install-crates'));
   }
   // Both parts share one report directory, and each run takes ports of the system, so runs at the same time do not collide.
   const dryRun = (target: string) => makeDryRun(repository, target);
-  const browserRun = dryRun('test-form-comparison-browser');
-  const summaryRun = dryRun('test-form-comparison-summary');
+  const browserRun = dryRun('crudui-test-form-comparison-browser');
+  const summaryRun = dryRun('crudui-test-form-comparison-summary');
   assert.equal(browserRun.status, 0, browserRun.stderr);
   assert.equal(summaryRun.status, 0, summaryRun.stderr);
   const reports = path.join(repository, 'var/form-comparison/browser');
@@ -178,7 +178,7 @@ test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () =>
     if (!/PUPPETEER_CACHE_DIR:\s*\$\{\{ github\.workspace \}\}\/\.tools\/puppeteer\n/.test(job)) failures.push(`${name}: the cache of Puppeteer is not .tools/puppeteer of the checkout`);
     if (!/CHROME_DEVEL_SANDBOX:\s*\/usr\/local\/sbin\/chrome-devel-sandbox\n/.test(job)) failures.push(`${name}: CHROME_DEVEL_SANDBOX does not name the installed helper`);
     if (/PUPPETEER_EXECUTABLE_PATH|PUPPETEER_SKIP_DOWNLOAD/.test(job)) failures.push(`${name}: selects a browser outside the pinned build`);
-    const install = job.search(/run:\s*make install-browsers BROWSERS="chrome\b[^\n]*--chrome-sandbox"/);
+    const install = job.search(/run:\s*make crudui-install-browsers BROWSERS="chrome\b[^\n]*--chrome-sandbox"/);
     const preflight = job.search(/run:\s*make check-ci-browser(?:\s|$)/);
     if (install === -1) failures.push(`${name}: missing installation of the pinned Chrome with its sandbox helper`);
     if (preflight === -1 || preflight < install) failures.push(`${name}: missing sandboxed Chrome preflight after the installation`);

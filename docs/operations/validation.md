@@ -143,7 +143,7 @@ Run the binding checks, including the check in Chromium, Firefox and WebKit, fro
 root:
 
 ```sh
-make test-form-binding
+make crudui-test-form-binding
 ```
 
 ## Results and failures

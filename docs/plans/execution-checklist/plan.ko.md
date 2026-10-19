@@ -1,10 +1,10 @@
 # Wave 배경
 <!-- doc-id: docs-plans-waves -->
-<!-- source-sha256: e60fdb1abbc637e0fe26004fc4abc5bf8781b1a72680a74e23771ab974bea005 -->
+<!-- source-sha256: 3d03cc93ce0ffdea0abb503af1787542534f60b5bf8010bb4e657427a13a8265 -->
 
-[English](waves.md).
+[English](plan.md).
 
-각 section은 [execution checklist](execution-checklist.ko.md)의 wave 하나의 의존과 배경을 적으며, checklist의 wave 제목이 이 section을 link한다.
+각 section은 [execution checklist](checklist.ko.md)의 wave 하나의 의존과 배경을 적으며, checklist의 wave 제목이 이 section을 link한다.
 
 ## Wave 1
 
@@ -24,7 +24,7 @@
 
 ## Wave 5
 
-의존: 없음. CI는 2026-09-25부터 모든 push에서 실패했고, 같은 tree에서 local `make ci`는 통과했다. local full run은 이전 실행의 build 결과물이 있는 working tree에서 시작하고 macOS의 Apple clang으로 C를 compile한다. CI는 각 job을 새 checkout에서 시작하고 Linux의 GCC로 compile한다. 실패한 step은 그 job의 이후 검사를 건너뛰게 했고, `make test-native`의 실패한 prerequisite는 native suite를 건너뛰게 했으므로, CI 실행 한 번이 모든 실패를 보여 주지 않았고 conformance 검사는 그것을 써야 했던 suite 없이 빠진 evidence를 보고했다.
+의존: 없음. CI는 2026-09-25부터 모든 push에서 실패했고, 같은 tree에서 local `make ci`는 통과했다. local full run은 이전 실행의 build 결과물이 있는 working tree에서 시작하고 macOS의 Apple clang으로 C를 compile한다. CI는 각 job을 새 checkout에서 시작하고 Linux의 GCC로 compile한다. 실패한 step은 그 job의 이후 검사를 건너뛰게 했고, `make crudui-test-native`의 실패한 prerequisite는 native suite를 건너뛰게 했으므로, CI 실행 한 번이 모든 실패를 보여 주지 않았고 conformance 검사는 그것을 써야 했던 suite 없이 빠진 evidence를 보고했다.
 
 ## Wave 6
 

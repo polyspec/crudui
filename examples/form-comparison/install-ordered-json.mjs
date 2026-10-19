@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Installs the OrderedJSON checkout of the tag `orderedJsonTag` (src/ordered-json-source.mjs) that the record servers
-// of the comparison build from (.form-comparison/sources/ordered-json), the download of `make install-ordered-json`, which `make install` runs. A
+// of the comparison build from (.form-comparison/sources/ordered-json), the download of `make crudui-install-ordered-json`, which `make install` runs. A
 // checkout at the commit of the tag without tracked changes stays; any other one is replaced by a checkout of the tag.
 // The pipeline reads the checkout and fails when it is missing, has tracked changes or is at another commit than the
 // tag, naming that command; it downloads nothing itself (docs/spec/package-build.md, "Offline checks"). It runs before

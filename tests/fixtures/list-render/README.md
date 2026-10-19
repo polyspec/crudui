@@ -26,9 +26,9 @@ inputs and compares complete original HTML of every string renderer with React, 
 image preload links. It does not remove resource hints or normalize attributes and CSS.
 
 The cases are read by the list conformance tests in
-[React](../../../packages/react/src/__tests__/list-render.conformance.test.ts),
-[Vue](../../../packages/vue/test/list-render.conformance.test.mjs),
-[Svelte](../../../packages/svelte/test/list-render.conformance.test.mjs) and the
+[React](../../../packages/react/src/tests/list-render.conformance.test.ts),
+[Vue](../../../packages/vue/tests/list-render.conformance.test.mjs),
+[Svelte](../../../packages/svelte/tests/list-render.conformance.test.mjs) and the
 [HTML renderer](../../../packages/html/src/list-conformance.test.ts).
 Composition error cases require the recorded error code.
 

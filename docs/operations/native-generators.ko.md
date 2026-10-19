@@ -1,6 +1,6 @@
 # 네이티브 생성기 검사
 <!-- doc-id: docs-operations-native-generators -->
-<!-- source-sha256: b05e5bdafc4fb8f8a1110ad053fd9a6d9588bb58b5a20d0fba7eca0b338e6550 -->
+<!-- source-sha256: 109438ff213b1368632aacbf94588fe8d4507ef8029ab471cbf0a6c0c3bd4187 -->
 
 [English](native-generators.md).
 
@@ -12,7 +12,7 @@
 ## 로컬 빌드와 검사
 
 동일한 설치의 `php-config`와 개발 헤더를 갖춘 64비트 PHP를 사용합니다. 순수 PHP와
-확장 모두 PHP 8.4 이상이 필요하며 CI가 8.4부터 8.5까지 모든 버전을 검사합니다. Composer, Node, Go, Cargo, C
+확장 모두 PHP 8.4 이상이 필요하며 CI는 PHP 8.4를 검사합니다. Composer, Node, Go, Cargo, C
 컴파일러를 설치합니다. 아래 컨테이너는 필요한 Linux 빌드 도구를 제공합니다.
 
 ```sh
@@ -22,16 +22,16 @@ make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts
 composer install --no-interaction --prefer-dist
-make test-native
+make crudui-test-native
 make docs-check
 ```
 
-`make test-native`는 JavaScript 패키지를 빌드한 다음 확장을 빌드하고 로드하며,
+`make crudui-test-native`는 JavaScript 패키지를 빌드한 다음 확장을 빌드하고 로드하며,
 생성기 패키지 검사 및 JavaScript 기준 구현(React 서버 렌더링), JavaScript HTML 렌더러, PHP,
 Go, Rust, 네이티브 PHP 비교를 실행합니다. CI가 세 job으로 실행하는 세 부분으로 이루어집니다.
-`make test-php-engine`은 확장의 C 엔진을 C 컴파일러와 그 sanitizer로 컴파일해 검사하며 PHP가 필요 없습니다.
-`make test-native-generators`는 Go·Rust 생성기 검사, 프로토콜·위젯 검사, JavaScript·HTML·Go·Rust 대상의
-공용 검사를 실행하며 PHP가 필요 없습니다. `make test-php-api`는 확장을 빌드하고 로드한 뒤 빌더·API 검사,
+`make crudui-test-php-engine`은 확장의 C 엔진을 C 컴파일러와 그 sanitizer로 컴파일해 검사하며 PHP가 필요 없습니다.
+`make crudui-test-native-generators`는 Go·Rust 생성기 검사, 프로토콜·위젯 검사, JavaScript·HTML·Go·Rust 대상의
+공용 검사를 실행하며 PHP가 필요 없습니다. `make crudui-test-php-api`는 확장을 빌드하고 로드한 뒤 빌더·API 검사,
 PHP 생성기 검사, PHP·네이티브 PHP 대상의 공용 검사를 실행하며, CI에서는 PHP 릴리스마다 한 번 실행합니다.
 각 런타임은 패키지의 공개 API를 호출하는
 [`tests/native-generators/programs`](../../tests/native-generators/README.ko.md#프로그램)의
@@ -53,7 +53,7 @@ HTML과 각 거부의 코드·메시지·위치 전체를 비교합니다. 실�
 기본 보고서는 Git 디렉터리의 `native-generators/report.json`(JavaScript, HTML, Go, Rust 대상)과
 `native-generators/report-php.json`(PHP, 네이티브 PHP 대상)이며 `git rev-parse --git-path`로
 결정하므로 worktree에서도 동작합니다. `NATIVE_REPORT`와 `PHP_NATIVE_REPORT`로 다른 보고서 경로를 지정합니다.
-`make test-php-api`는 어떤 PHP 검사보다 먼저 `packages/generator/php`의 검증기 복사본을 다시 설치하므로
+`make crudui-test-php-api`는 어떤 PHP 검사보다 먼저 `packages/generator/php`의 검증기 복사본을 다시 설치하므로
 PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한 실행은 임시 빌드 디렉터리를 삭제합니다. 실패한
 실행은 디렉터리를 남기고 경로를 출력하며 보고서의 `buildDirectory`에 기록합니다. [검사 절차](../../tests/native-generators/README.ko.md)는
 명시적인 확장 경로를 사용하는 직접 실행과 비교 프로토콜을 설명합니다. 실행 파일이나

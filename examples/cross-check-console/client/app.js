@@ -275,7 +275,7 @@ function computeIdempotent(results) {
  * NOT get silently dropped from the verdict. parity holds iff every framework
  * that produced any result shares one signature.
  *
- * "렌더 성공 < 2" (render_contract): when fewer than two renderers actually
+ * "render success < 2" (render_contract): when fewer than two renderers actually
  * rendered (ok), parity is undetermined → null, not false.
  */
 function computeParity(results) {

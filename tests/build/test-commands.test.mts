@@ -98,7 +98,7 @@ test('a script a test command starts prints through the shared progress lines', 
   assert.equal(isTestCommand('package.json', 'test:forms'), true);
   assert.equal(isTestCommand('package.json', 'pretest'), true);
   assert.equal(isTestCommand('package.json', 'build'), false);
-  assert.equal(isTestCommand('Makefile', 'test-native'), true);
+  assert.equal(isTestCommand('Makefile', 'crudui-test-native'), true);
   assert.equal(isTestCommand('Makefile', 'docs-check'), false);
   const violations: string[] = [];
   for (const file of tracked) {
@@ -158,12 +158,12 @@ function declaredCommands(): Project {
 test('a CI step runs tests when its command reaches the test runner', () => {
   const project = declaredCommands();
   for (const command of [
-    'make test-runtimes', 'make test-validator-js', 'make test-validator-php', 'make test-validator-go', 'make docs-check', 'make test-native',
-    'make test-cross-check', 'make manifest-test', 'make test-build', 'make test-build-repeat',
+    'make crudui-test-runtimes', 'make crudui-test-validator-js', 'make crudui-test-validator-php', 'make crudui-test-validator-go', 'make docs-check', 'make crudui-test-native',
+    'make crudui-test-cross-check', 'make manifest-test', 'make crudui-test-build', 'make crudui-test-build-repeat',
   ]) assert.equal(runsTests(command, project), true, command);
   for (const command of [
-    'make install-packages', 'make install-composer', 'make build', 'make lint', 'make typecheck',
-    'make build-php-extension', 'make check-ci-browser', 'make check-conformance',
+    'make install-packages', 'make crudui-install-composer', 'make build', 'make lint', 'make typecheck',
+    'make crudui-build-php-extension', 'make check-ci-browser', 'make check-conformance',
   ]) assert.equal(runsTests(command, project), false, command);
 });
 

@@ -48,8 +48,8 @@
         "contracts/interface-messages.json"
       ],
       "targets": [
-        "test-validators",
-        "test-native"
+        "crudui-test-validators",
+        "crudui-test-native"
       ],
       "scripts": [
         "test:forms"
@@ -62,7 +62,7 @@
         "scripts/generate-unicode-properties.mts"
       ],
       "targets": [
-        "test-validators"
+        "crudui-test-validators"
       ],
       "tests": [
         "tests/build/unicode-properties.test.mts"
@@ -76,7 +76,7 @@
       ],
       "targets": [
         "docs-schema",
-        "test-validators"
+        "crudui-test-validators"
       ]
     },
     {
@@ -98,8 +98,8 @@
         "packages/validator/php/**"
       ],
       "targets": [
-        "test-validators",
-        "test-native"
+        "crudui-test-validators",
+        "crudui-test-native"
       ],
       "prefixes": [
         "examples/cross-check-console/server"
@@ -118,8 +118,8 @@
         "go.work"
       ],
       "targets": [
-        "test-validators",
-        "test-native"
+        "crudui-test-validators",
+        "crudui-test-native"
       ],
       "prefixes": [
         "examples/cross-check-console/server"
@@ -130,7 +130,7 @@
         "packages/validator/{go,rust}/**"
       ],
       "targets": [
-        "test-validators"
+        "crudui-test-validators"
       ],
       "prefixes": [
         "examples/cross-check-console/server"
@@ -141,7 +141,7 @@
         "packages/validator/python/**"
       ],
       "targets": [
-        "test-validator-python"
+        "crudui-test-validator-python"
       ],
       "prefixes": [
         "examples/cross-check-console/server"
@@ -209,7 +209,7 @@
         "packages/form-binding/**"
       ],
       "targets": [
-        "test-form-binding"
+        "crudui-test-form-binding"
       ],
       "scripts": [
         "test:forms"
@@ -220,7 +220,7 @@
         "packages/cli/**"
       ],
       "targets": [
-        "test-cli"
+        "crudui-test-cli"
       ]
     },
     {
@@ -230,7 +230,7 @@
         "tests/native-generators/**"
       ],
       "targets": [
-        "test-native"
+        "crudui-test-native"
       ]
     },
     {
@@ -238,7 +238,7 @@
         "packages/generator/python/**"
       ],
       "targets": [
-        "test-generator-python"
+        "crudui-test-generator-python"
       ]
     },
     {
@@ -248,8 +248,8 @@
         "tests/conformance/python/**"
       ],
       "targets": [
-        "test-validator-python",
-        "test-generator-python"
+        "crudui-test-validator-python",
+        "crudui-test-generator-python"
       ]
     },
     {
@@ -266,7 +266,7 @@
         "packages/php-ext/phpunit.xml"
       ],
       "targets": [
-        "test-php-api"
+        "crudui-test-php-api"
       ]
     },
     {
@@ -341,8 +341,8 @@
         "test:forms"
       ],
       "targets": [
-        "test-validators",
-        "test-native"
+        "crudui-test-validators",
+        "crudui-test-native"
       ]
     },
     {
@@ -489,8 +489,8 @@
         "scripts/build-ordered-json-php-extension.mts"
       ],
       "targets": [
-        "test-php-engine",
-        "test-php-api"
+        "crudui-test-php-engine",
+        "crudui-test-php-api"
       ],
       "tests": [
         "tests/build/atomic-publish.test.mts",
@@ -510,8 +510,8 @@
         "tests/docs/php/**"
       ],
       "targets": [
-        "test-validators",
-        "test-native",
+        "crudui-test-validators",
+        "crudui-test-native",
         "docs-check"
       ]
     },
@@ -563,8 +563,8 @@
         "test:dependencies"
       ],
       "targets": [
-        "test-validators",
-        "test-native"
+        "crudui-test-validators",
+        "crudui-test-native"
       ]
     },
     {
@@ -619,7 +619,7 @@
         ".gitignore"
       ],
       "targets": [
-        "test-php-engine"
+        "crudui-test-php-engine"
       ],
       "tests": [
         "tests/build/lint-coverage.test.mts",
@@ -652,6 +652,14 @@
     },
     {
       "paths": [
+        ".claude/settings.json"
+      ],
+      "targets": [
+        "kit-check"
+      ]
+    },
+    {
+      "paths": [
         "config/knip-entries.json"
       ],
       "targets": [
@@ -674,16 +682,7 @@
         "config/documents.json"
       ],
       "targets": [
-        "documents-check",
-        "kit-check"
-      ]
-    },
-    {
-      "paths": [
-        "config/commits.json"
-      ],
-      "targets": [
-        "commits-check",
+        "docs-check",
         "kit-check"
       ]
     },
@@ -748,7 +747,7 @@
   ],
   "inputs": [
     {
-      "check": "make test-validators",
+      "check": "make crudui-test-validators",
       "paths": [
         "packages/validator/{php,go,rust}/**",
         "tests/fixtures/**",
@@ -757,7 +756,7 @@
       ]
     },
     {
-      "check": "make test-native",
+      "check": "make crudui-test-native",
       "paths": [
         "packages/generator/{php,go,rust}/**",
         "packages/php-ext/**",

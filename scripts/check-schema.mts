@@ -573,7 +573,7 @@ const toolConfigurations = new Set(['.golangci.yml', 'config/layout.kit.yml', 'c
 const trackedYaml = execFileSync('git', ['ls-files', '*.yml', '*.yaml'], { cwd: repository, encoding: 'utf8' })
   .split('\n').filter((file) => file && !file.startsWith('.github/') && existsSync(at(file)));
 const unchecked = trackedYaml.filter((file) =>
-  !checkedYaml.has(file) && !toolConfigurations.has(file) && !file.startsWith('packages/cli/test/fixtures/'));
+  !checkedYaml.has(file) && !toolConfigurations.has(file) && !file.startsWith('packages/cli/tests/fixtures/'));
 assert.deepEqual(unchecked, [], `YAML specifications that no check reads: ${unchecked.join(', ')}`);
 for (const file of trackedYaml) YAML.parse(readText(file)); // Throws on a duplicate key.
 

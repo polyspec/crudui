@@ -5,7 +5,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": ">=8.5",
+        "php": ">=8.4",
         "php-64bit": "^8.2",
         "ext-mbstring": "*",
         "polyspec/crudui-validator": "0.0.7"

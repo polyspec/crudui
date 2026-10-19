@@ -12,7 +12,7 @@ const rows = manifest.features.map((feature) => {
 }).join('\n');
 const entries = manifest.packages.flatMap((pkg) => Object.entries(pkg.entries).map(([entry, { visibility, exports }]) =>
   `| \`${pkg.name}\` | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`)).join('\n');
-// The markers of `make documents-check`: both pages hold the same doc-id, and the Korean page holds the sha256 of the English page.
+// The markers of `make docs-check`: both pages hold the same doc-id, and the Korean page holds the sha256 of the English page.
 const DOC_ID = '<!-- doc-id: docs-spec-feature-contracts -->';
 const english = `# Feature contracts
 ${DOC_ID}

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "comment": "The release zip of the PHP package of OrderedJSON, which publishes to no registry: make install-composer runs make release-assets-fetch, which downloads it into var/composer-artifacts, the Composer artifact repository of the root composer.json, whose form comparison server reads JSON with it.",
+  "comment": "The release zip of the PHP package of OrderedJSON, which publishes to no registry: make crudui-install-composer runs make release-assets-fetch, which downloads it into var/composer-artifacts, the Composer artifact repository of the root composer.json, whose form comparison server reads JSON with it.",
   "assets": [
     {
       "name": "ordered-json",

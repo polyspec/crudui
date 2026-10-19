@@ -619,7 +619,7 @@ def _item_passes(
             {"currentPath": item_field_path, "rowKeys": row_keys, "formData": all_data},
             "CURRENT",
         )
-    except Exception:
+    except ValueError, TypeError:
         return False
 
 

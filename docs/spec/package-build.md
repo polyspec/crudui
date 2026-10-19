@@ -179,10 +179,10 @@ latest release of a channel, and no tool installs another version on its own.
   that release into the ignored directory `var/tools/npm` of the checkout and never
   into the machine, whose npm every other checkout uses. The Makefile puts
   `var/tools/bin` first on `PATH`, and every CI job starts npm through a make target.
-- The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.12.0, Python 3.14, PHP 8.5,
+- The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.12.0, Python 3.14, PHP 8.4,
   Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2), and `make toolchain-check` fails on each declaration and manifest floor
   that is not the pin: `node` of `mise.toml`, `engines.node` of every `package.json` (`>=26.12.0`), `require.php` of every
-  `composer.json` (`>=8.5`), `requires-python` of every `pyproject.toml` (`>=3.14`), the `go` line of every `go.mod`
+  `composer.json` (`>=8.4`), `requires-python` of every `pyproject.toml` (`>=3.14`), the `go` line of every `go.mod`
   (`1.27.2`, with no `toolchain` line), `rust-version` of every Cargo package and `typescript` of every manifest and
   lock. A deviation is an entry of `exceptions` in `config/toolchain.json` with its scope, reason and retry condition:
   `packages/svelte` keeps TypeScript 6.0.3, because svelte-check and `@sveltejs/package` require the
@@ -199,12 +199,12 @@ latest release of a channel, and no tool installs another version on its own.
   with `rustup toolchain install --no-self-update`.
 - `config/toolchain.json` records the tested PHP minor releases in `php`, the
   minor release of Python, which runs the Python packages and their suites in `var/python`
-  (`make install-python`), in `python`, compared like PHP, the exact Composer release in `composer`
+  (`make crudui-install-python`), in `python`, compared like PHP, the exact Composer release in `composer`
   (an object with `version` and the SHA-256 of its phar), the `go.mod` whose `go` line is the Go release in `go`, the
   exact releases and digests of uv and the Python build, alint, ruff, vulture, golangci-lint and deadcode, the exact
   cargo-audit release in `cargoAudit`. The file follows the schema
   `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json`, which `make kit-check` applies. PHP is pinned by its minor release, because
-  setup-php and Homebrew cannot install the same patch: the checks compare the
+  setup-php cannot install the same patch as every other tool of the checkout: the checks compare the
   major and minor of the running PHP, and the patch that a run ran on is its
   evidence, which `node_modules/@polyspec/kit/dist/check-toolchain.mjs` prints and
   `var/full-run.json` records with the other running releases.
@@ -289,7 +289,7 @@ no gating CI job runs it.
 
 `make dependency-policy-check` (`node_modules/@polyspec/kit/dist/check-dependency-policy.mjs`) reads only the files of the checkout
 and reports each finding with its rule and fix; `make dependency-policy-mutation-check` requires
-the check to reject each known mutation of a copy of the dependency files; `make test-dependencies` runs both and
+the check to reject each known mutation of a copy of the dependency files; `make crudui-test-dependencies` runs both and
 `npm run test:dependencies`.
 It fails when a lock changed after its review, a registry dependency has no review
 entry or is locked at another version than its review recorded, a registry
@@ -312,10 +312,10 @@ commands.
 A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
 `GOPROXY=off`, `npm_config_offline=true` and `COMPOSER_DISABLE_NETWORK=1` for every
 recipe and the commands that it starts; only the download targets `install`, `install-tools`,
-`install-crates`, `install-ordered-json` and
+`crudui-install-crates`, `crudui-install-ordered-json` and
 `dependency-review`, and the lock of the consumer projects of the release archives
 `release-consumer-lock`, which downloads the
-third-party packages that their locks pin, lift them with `$(ONLINE)`; `release-consumer` lifts the settings itself. `make install-crates` downloads the
+third-party packages that their locks pin, lift them with `$(ONLINE)`; `release-consumer` lifts the settings itself. `make crudui-install-crates` downloads the
 crates of every Cargo.lock after the OrderedJSON checkout
 (`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
 reads, and `make install` runs it. Every target that runs cargo depends on
@@ -325,7 +325,7 @@ error line of cargo and `run make install, which downloads them`, instead of car
 advice to retry without `--offline`. The comparison pipeline reads the OrderedJSON
 checkout and fails when it is missing, has tracked changes or is at another commit than the tag
 `v0.0.9`, naming
-`make install-ordered-json`; it downloads nothing. The Go modules of the checkout
+`make crudui-install-ordered-json`; it downloads nothing. The Go modules of the checkout
 require only modules of the checkout through `replace`, so Go reads no module
 proxy.
 

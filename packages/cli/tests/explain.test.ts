@@ -2,10 +2,10 @@
  * `crudui explain` — spec → natural-language back-check (SKILL §1g loop exit).
  *
  * explain reverses a composed spec into prose so the author can diff it against
- * the source 기획서. It invents no interpretation rules: every sentence is built
- * from the describe catalog (type→widget meaning, validate rule→"필수"/"이메일
- * 형식", expression `required`→"~일 때 필수", lang→"다국어(ko/en)", multiple→
- * "반복", items→"동적/정적 선택지"). These tests pin that EVERY first-class field,
+ * the source planning document. It invents no interpretation rules: every sentence is built
+ * from the describe catalog (type→widget meaning, validate rule→the required or
+ * email-format phrase, expression `required`→the conditional phrase, lang→the multilingual
+ * phrase, multiple→the repeat phrase, items→the dynamic or static choice phrase). These tests pin that EVERY first-class field,
  * condition, and multilingual dimension of the input surfaces in the prose —
  * otherwise the back-check can miss a planning-doc gap (the whole point of §1g).
  *
@@ -57,7 +57,7 @@ const SPEC = {
   },
 };
 
-descTest('explain — spec → natural-language back-check (역검증)', () => {
+descTest('explain — spec → natural-language back-check (reverse verification)', () => {
   const out = explainSpec(SPEC, { lang: 'ko' });
 
   it('every first-class field name surfaces (no field dropped)', () => {
@@ -78,29 +78,29 @@ descTest('explain — spec → natural-language back-check (역검증)', () => {
     expect(out).toMatch(/그룹|반복|구성/); // group meaning
   });
 
-  it('unconditional required → "필수"', () => {
+  it('unconditional required shows the required phrase', () => {
     // title and name are unconditionally required.
     expect(out).toContain('필수');
   });
 
-  it('email rule → "이메일 형식"', () => {
+  it('email rule shows the email-format phrase', () => {
     expect(out).toContain('이메일 형식');
   });
 
-  it('expression required → "~일 때 필수" with the condition surfaced verbatim', () => {
+  it('expression required shows the conditional phrase with the condition surfaced verbatim', () => {
     // The explanation displays the condition and retains the raw expression so
-    // the author can confirm the trigger against the 기획서.
+    // the author can confirm the trigger against the planning document.
     expect(out).toContain("일 때 필수");
     expect(out).toContain(".subscribe == '1'");
   });
 
-  it('lang → "다국어" with the allowed languages (ko/en)', () => {
+  it('lang shows the multilingual phrase with the allowed languages (ko/en)', () => {
     expect(out).toContain('다국어');
     expect(out).toContain('ko');
     expect(out).toContain('en');
   });
 
-  it('multiple → "반복" with min, max and sortable surfaced', () => {
+  it('multiple shows the repeat phrase with min, max and sortable surfaced', () => {
     expect(out).toContain('반복');
     expect(out).toContain('최소 1행'); // multiple.min
     expect(out).toContain('최대 5행'); // multiple.max

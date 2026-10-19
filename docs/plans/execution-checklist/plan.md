@@ -1,9 +1,9 @@
 # Wave background
 <!-- doc-id: docs-plans-waves -->
 
-[한국어](waves.ko.md).
+[한국어](plan.ko.md).
 
-Each section holds the dependencies and the background of one wave of [the execution checklist](execution-checklist.md), whose wave heading links it.
+Each section holds the dependencies and the background of one wave of [the execution checklist](checklist.md), whose wave heading links it.
 
 ## Wave 1
 
@@ -23,7 +23,7 @@ Depends on: none. The checklist wrote task state markers in its How to use legen
 
 ## Wave 5
 
-Depends on: none. CI has failed on every push since 2026-09-25 while `make ci` passed locally on the same trees. The local full run starts in a working tree with the build output of earlier runs and compiles C with Apple clang on macOS; CI starts each job from a fresh checkout and compiles with GCC on Linux. A failed step skipped the later checks of its job, and a failed prerequisite of `make test-native` skipped the native suites, so one CI run did not show every failure, and the conformance check reported missing evidence without the suite that should have written it.
+Depends on: none. CI has failed on every push since 2026-09-25 while `make ci` passed locally on the same trees. The local full run starts in a working tree with the build output of earlier runs and compiles C with Apple clang on macOS; CI starts each job from a fresh checkout and compiles with GCC on Linux. A failed step skipped the later checks of its job, and a failed prerequisite of `make crudui-test-native` skipped the native suites, so one CI run did not show every failure, and the conformance check reported missing evidence without the suite that should have written it.
 
 ## Wave 6
 

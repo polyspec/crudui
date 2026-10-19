@@ -20,7 +20,7 @@ the packages provide the validator library functions instead.
 program to `rust/target/release/polyspec-crudui-cross-check-validator`. The JavaScript program imports the
 built `@polyspec/crudui-validator` package. The PHP program loads the Composer autoloader of
 `packages/validator/php`. The Python program imports `polyspec.crudui.validator` installed in
-the environment `var/python` that `make install-python` makes, whose Python the gateway runs. A deployment can name
+the environment `var/python` that `make crudui-install-python` makes, whose Python the gateway runs. A deployment can name
 other Go, Rust and Python executables with `CRUDUI_CROSS_CHECK_GO_VALIDATOR`, `CRUDUI_CROSS_CHECK_RUST_VALIDATOR` and
 `CRUDUI_PYTHON`.
 

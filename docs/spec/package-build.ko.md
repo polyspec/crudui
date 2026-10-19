@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: 5a5324a57d8b3bb51bb7a70b40f45296ebfd256681ebe27e8a576a4869ae9aea -->
+<!-- source-sha256: d05a77701bc90b780635fffc1f1ed239dbea45ff27790e8f218d329b4f9fed09 -->
 
 [English](package-build.md).
 
@@ -165,9 +165,9 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   checkout의 무시되는 directory `var/tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
   machine의 npm에는 설치하지 않습니다. Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 두고,
   모든 CI job은 npm을 make 대상으로 시작합니다.
-- checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.12.0, Python 3.14, PHP 8.5, Go 1.27.2, Rust 1.99.0,
+- checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.12.0, Python 3.14, PHP 8.4, Go 1.27.2, Rust 1.99.0,
   TypeScript 7.0.2)를 고정하고, `make toolchain-check`는 그 pin이 아닌 선언과 manifest 하한마다 실패합니다. 대상은
-  `mise.toml`의 `node`, 모든 `package.json`의 `engines.node`(`>=26.12.0`), 모든 `composer.json`의 `require.php`(`>=8.5`), 모든
+  `mise.toml`의 `node`, 모든 `package.json`의 `engines.node`(`>=26.12.0`), 모든 `composer.json`의 `require.php`(`>=8.4`), 모든
   `pyproject.toml`의 `requires-python`(`>=3.14`), 모든 `go.mod`의 `go` 줄(`1.27.2`, `toolchain` 줄 없음), 모든 Cargo package의
   `rust-version`, 모든 manifest와 lock의 `typescript`입니다. 벗어나는 값은 `config/toolchain.json`의 `exceptions` 항목으로 scope,
   이유, 재시도 조건과 함께 선언합니다. `packages/svelte`는 svelte-check와 `@sveltejs/package`가 TypeScript 6 API를
@@ -181,12 +181,11 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
 - `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `var/python`에서 Python package와
-  그 suite를 실행하는(`make install-python`) Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`과 phar의
+  그 suite를 실행하는(`make crudui-install-python`) Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`과 phar의
   SHA-256을 가진 object)를, `go`에 `go` 줄이 Go 릴리스인 `go.mod`를, uv와 Python build, alint, ruff, vulture, golangci-lint,
   deadcode의 정확한 릴리스와 digest를, `cargoAudit`에 정확한 cargo-audit 릴리스를
   기록합니다. 이 file은
-  `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php와 Homebrew는 같은 patch를 설치할
-  수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
+  `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php는 다른 도구와 같은 patch를 설치할 수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
   그 실행의 evidence이며 `node_modules/@polyspec/kit/dist/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
   함께 기록합니다.
 - `make toolchain-check TOOLS="<tool>..."`(`node_modules/@polyspec/kit/dist/check-toolchain.mjs`)은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
@@ -255,7 +254,7 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 
 `make dependency-policy-check`(`node_modules/@polyspec/kit/dist/check-dependency-policy.mjs`)는 checkout의 file만 읽고 각
 발견을 규칙과 고치는 방법과 함께 보고합니다. `make dependency-policy-mutation-check`는 의존성 file 사본의 알려진 mutation을 검사가
-각각 거부할 것을 요구하고, `make test-dependencies`는 둘과 `npm run test:dependencies`를 실행합니다. 잠금 파일이 review 뒤에 바뀌었거나, registry
+각각 거부할 것을 요구하고, `make crudui-test-dependencies`는 둘과 `npm run test:dependencies`를 실행합니다. 잠금 파일이 review 뒤에 바뀌었거나, registry
 의존성에 review 항목이 없거나 review가 기록한 것과 다른 version으로 잠겼거나, registry
 의존성이 예외 없이 review의 최신 안정 release보다 오래되었거나, 예외가 최신 release인 의존성을
 지정하거나, 잠금 파일에 review 때 보안 권고가 있었거나, `package-lock.json`이 manifest를
@@ -271,17 +270,17 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 
 검사는 network를 읽지 않습니다. Makefile은 모든 recipe와 그것이 시작하는 명령에
 `CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
-`COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `install-crates`,
-`install-ordered-json`, `install-tools`, `dependency-review`와, lock이 고정한 제3자
+`COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `crudui-install-crates`,
+`crudui-install-ordered-json`, `install-tools`, `dependency-review`와, lock이 고정한 제3자
 package를 내려받는 release archive의 사용자 project lock `release-consumer-lock`만 `$(ONLINE)`으로 이를 풉니다.
-`release-consumer`는 script가 스스로 풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
+`release-consumer`는 script가 스스로 풉니다. `make crudui-install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
 checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
 `make cargo-downloads-check`(`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
 lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
 안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
 실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 tracked change가 있거나 tag `v0.0.9`와 다른 commit이면
-`make install-ordered-json`을 밝히며 실패하고, 아무것도 download하지 않습니다. checkout의 Go
+`make crudui-install-ordered-json`을 밝히며 실패하고, 아무것도 download하지 않습니다. checkout의 Go
 module은 `replace`로 checkout의 module만 요구하므로 Go는 module proxy를 읽지 않습니다.
 
 ## 문서 웹

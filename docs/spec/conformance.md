@@ -60,7 +60,7 @@ starts through `node_modules/@polyspec/kit/dist/run-tests.mjs` and
 `{"program", "tool", "cwd", "args", "started", "status"}` is written with `status` `null` when the run
 starts and again with the exit status when its process exits, so a stopped run keeps `null`. The
 Python suites run through `run-suite.mts` too, with the Python of the environment `var/python` that
-`make install-python` makes, and record their evidence with the package `polyspec.crudui.conformance` of
+`make crudui-install-python` makes, and record their evidence with the package `polyspec.crudui.conformance` of
 [`tests/conformance/python`](../../tests/conformance/python/pyproject.toml).
 
 `evidenceSuites` of the check declares each suite with the command that runs it and the runtimes it

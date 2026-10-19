@@ -28,7 +28,7 @@ target/
 # Python bytecode of the test runs
 __pycache__/
 
-# The metadata that setuptools writes next to the sources of a package that make install-python installs in editable
+# The metadata that setuptools writes next to the sources of a package that make crudui-install-python installs in editable
 # mode
 *.egg-info/
 

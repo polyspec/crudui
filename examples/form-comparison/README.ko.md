@@ -1,6 +1,6 @@
 # CRUDUI 정본 예제와 폼 검증
 <!-- doc-id: examples-form-comparison-readme -->
-<!-- source-sha256: d3db80768c02540c37d7cda4b9add11fcc934ac01ea6cf3ad2c66c2d090cb1b4 -->
+<!-- source-sha256: 06183df5e70dc34d79c9ef9b351059f296e029e232de4ef1d9fd35114f30ada0 -->
 
 [English](README.md).
 
@@ -29,8 +29,8 @@ JSON 요청·응답·저장 파일을 처리합니다.
 저장소 루트에서 검사를 실행합니다.
 
 ```sh
-make test-form-comparison
-make test-form-comparison-pipeline
+make crudui-test-form-comparison
+make crudui-test-form-comparison-pipeline
 ```
 
 파이프라인 검사는 이 트리에서 다섯 레코드 서버를 빌드하고, 각 서버를 127.0.0.1의 빈 포트에서 로컬

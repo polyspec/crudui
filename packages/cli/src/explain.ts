@@ -2,9 +2,9 @@
  * `crudui explain` — spec → natural-language back-check (SKILL §1g loop exit).
  *
  * The reverse leg of the nl→CRUDUI loop: it turns a (composed) spec back into prose
- * so the author can diff the prose against the source 기획서 and catch a dropped
+ * so the author can diff the prose against the source planning document and catch a dropped
  * field, a misread condition, or a missing multilingual dimension. §1g makes
- * "explain ↔ 기획서 일치" the loop's TERMINATION condition; §5 lists explain as a
+ * "explain matches the planning document" the loop's TERMINATION condition; §5 lists explain as a
  * tool — so this must surface every first-class field, every condition (verbatim
  * expression), and every lang/multiple/items dimension, leaving nothing for the
  * back-check to miss.
@@ -13,7 +13,7 @@
  * `describe()`:
  *   - type → widget meaning  (describe.widgets: kind/layout/aliases)
  *   - validate rule → phrasing (describe.rules: name + paramClass)
- *   - expression `required`/rule → "~일 때 필수" with the raw expression kept
+ *   - expression `required`/rule → "required when ~" with the raw expression kept
  *   - lang / multiple / items → describe.buckets keys
  *   - design.show / behavior → describe.slots role distribution
  * A type absent from describe.widgets is reported as unknown — explain never

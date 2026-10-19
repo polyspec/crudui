@@ -41,7 +41,7 @@ async function orderedJsonCheckout(write) {
   // The checkout is a download of make install; a check reads it and downloads nothing.
   if (!await orderedJsonPresent(localOrderedJsonDirectory)) {
     throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing, has tracked changes or is not at the tag ${orderedJsonTag}; `
-      + 'run make install-ordered-json (make install runs it), which downloads it');
+      + 'run make crudui-install-ordered-json (make install runs it), which downloads it');
   }
   progress(write, 'ordered-json checkout: present');
 }

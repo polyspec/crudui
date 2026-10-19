@@ -8,7 +8,7 @@ Run from the repository root. A checkout first runs `make install-tools TOOLS=np
 `package-lock.json` with that npm, the package `@polyspec/kit` included; until then no other target runs. Every tool runs at
 the release that the checkout records (`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
 recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml`, the
-crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make install-crates`) and
+crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make crudui-install-crates`) and
 the phpDocumentor release that `scripts/install-phpdocumentor.mts` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
 Install the tools that the checkout declares (npm, Go, uv and Python, alint, ruff, vulture, golangci-lint, deadcode,
@@ -18,7 +18,7 @@ machine; make puts their commands in `var/tools/bin` first on `PATH`, and a shel
 itself puts them there with `export PATH="$PWD/var/tools/bin:$PATH"`. `.npmrc` sets `strict-allow-scripts`, so
 `make install-packages` fails on an install script that `allowScripts` of `package.json` does not approve. Install the PHP package's Composer dependencies,
 and make PHP, Go and Cargo available on `PATH`, with `php-fpm` and `nginx` for the PHP record
-servers of the comparison example (Homebrew: `brew install php nginx`; Debian and Ubuntu:
+servers of the comparison example (Debian and Ubuntu:
 `php8.x-fpm` and `nginx`, with `php-fpm` linked to the versioned binary). Build JavaScript packages before
 checking their compiled exports.
 
@@ -35,9 +35,9 @@ requires a local check before a push or a commit; the pre-push hook only refuses
 checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
 
 Every step of the workflows runs a make target: the installs (`make install-tools`, which installs
-the Rust toolchain of `rust-toolchain.toml` too, `make install-packages`, `make install-composer`,
-`make install-crates`, `make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
-check (`make test-runtimes`, `make lint`, `make test-forms` and the others of `CI_COMMANDS`), so the
+the Rust toolchain of `rust-toolchain.toml` too, `make install-packages`, `make crudui-install-composer`,
+`make crudui-install-crates`, `make crudui-install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
+check (`make crudui-test-runtimes`, `make lint`, `make crudui-test-forms` and the others of `CI_COMMANDS`), so the
 recipes start every tool with the offline settings, `$(NPM)` and the toolchains of the checkout.
 `tests/build/ci-local.test.mts` fails for a step that starts node, npm, npx, cargo, go, php,
 composer, rustup, python3 or sh without make.
@@ -51,7 +51,7 @@ checks in one step, `make ci-targets TARGETS="..."`, which runs every target to 
 step has `if: ${{ !cancelled() }}`, so a failed preparation does not skip the checks of its job;
 `tests/build/ci-local.test.mts` fails with the job and the step of each checking step without it. A Makefile target never takes a target that runs tests as a prerequisite, because
 make stops at the first prerequisite that fails; a target that runs several test targets, such as
-`make test-native` and `make docs-check`, runs each with `$(MAKE) <target> || status=1` and exits
+`make crudui-test-native` and `make docs-check`, runs each with `$(MAKE) <target> || status=1` and exits
 with the collected status. Make also stops at the first recipe line that fails, so the recipe line
 that runs the first check of a target is its last line and runs each check with `|| status=1`,
 ending with `exit $$status`, as `make docs-check-documents` and `make format-check` do. Preparation
@@ -64,11 +64,11 @@ and an `&&` chain puts no step after a check.
 `scripts/run-contract-tests.mts` runs every declared command, also after an earlier one failed, and
 fails after the last one.
 
-`make check` runs the checks of kit, `CHECK_TARGETS` of the Makefile (`kit-check`, `toolchain-check`, `layout-check`,
-`documents-check`, `owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, the
+`make crudui-check` runs the checks of kit, `CHECK_TARGETS` of the Makefile (`kit-check`, `toolchain-check`, `layout-check`,
+`docs-check`, `owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, the
 `lint-*` targets and `records-check`), through the same guard as `make ci`.
 
-`make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
+`make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist/checklist.md` is
 `[~]`. Before any target it starts `node_modules/@polyspec/kit/dist/full-run.mjs`, which prints its decision with the
 reason and refuses with status 1 while a task row of the checklist is `[~]`, listing each active ID
 with its task; while the checklist cannot be read; while the pre-push hook is not installed
@@ -103,9 +103,9 @@ The CI workflow runs the same targets in its jobs on each push to `main` and eac
 runs there when no task is `[~]` and the tree is clean.
 
 The native suites run in three CI jobs, so no job waits for a suite that another runtime needs:
-`php-engine` runs `make test-php-engine` once with Node.js and the C compiler, `native-generators`
-runs `make test-native-generators` and `make test-bench` once, and `php-api` runs `make test-php-api`
-once on the PHP minor of `.php-version`, which every setup-php step of the workflows reads. `make test-native` runs the three targets in one command
+`php-engine` runs `make crudui-test-php-engine` once with Node.js and the C compiler, `native-generators`
+runs `make crudui-test-native-generators` and `make crudui-test-bench` once, and `php-api` runs `make crudui-test-php-api`
+once on the PHP minor of `.php-version`, which every setup-php step of the workflows reads. `make crudui-test-native` runs the three targets in one command
 (`docs/operations/native-generators.md`).
 
 Every job that installs the npm packages restores and saves `~/.npm` with `actions/cache` under the
@@ -134,7 +134,7 @@ run of make outside it.
 
 A push happens only when no task of the checklist is `[~]`. The tracked pre-push hook
 `.githooks/pre-push` runs `make push-gate-hook` (`node node_modules/@polyspec/kit/dist/push-gate.mjs hook`) with the refs that Git pushes. The check
-reads the checklist of every pushed commit (`git show <sha>:docs/plans/execution-checklist.md`) and
+reads the checklist of every pushed commit (`git show <sha>:docs/plans/execution-checklist/checklist.md`) and
 of the working tree, and refuses the push with status 1 while one of them has a task in progress.
 It prints the file, the ID and the title of each such task with the pushed ref and commit or
 `working tree`, and states which states block a push (`[~]`) and which do not (`[ ]`, `[o]`, `[!]`);
@@ -156,7 +156,7 @@ A clone without the hook, or a push that skips it, still reaches GitHub. The job
 (`node node_modules/@polyspec/kit/dist/push-gate.mjs commit HEAD`) fails while the checklist of that commit has a task in
 progress, when the commit has no checklist and when it does not track `.githooks/pre-push` as an
 executable file (mode `100755`); it prints the refusal through the progress lines, each line as an
-error annotation, and in the job summary. `make records-check` runs `make documents-check`
+error annotation, and in the job summary. `make records-check` runs `make docs-check`
 (`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`) and the link, changelog, writing, example and fixture README
 tests, which need Node.js alone and read neither the network nor the history, so a commit that breaks the document or
 checklist rules fails the check that a release requires ([Repository](repository.md#publishing-main)).
@@ -188,7 +188,7 @@ install compilation and production rendering.
 ## Lint
 
 `make lint` runs `make lint-ts` of kit and the Svelte lint of `packages/svelte`; CI's build, lint and types
-job and `make ci` call it, and `make check` runs `lint-ts`. `make lint-ts` runs oxlint with the copied `.oxlintrc.json`
+job and `make ci` call it, and `make crudui-check` runs `lint-ts`. `make lint-ts` runs oxlint with the copied `.oxlintrc.json`
 (type-aware through oxlint-tsgolint, warnings denied) over every file that Git does not ignore, knip from the root with the
 copied `knip.json`, and API Extractor in each package with an `api-extractor.json`. oxlint has no Svelte rules, so
 `npm run lint -w @polyspec/crudui-generator-svelte` runs ESLint with eslint-plugin-svelte on the components of that
@@ -325,13 +325,13 @@ and the Rust binary), starts each one as a local process on a free port of 127.0
 record-store HTTP contract against all five, runs the Go and Rust server tests and runs the
 canonical List → Detail → Form → Save → List refresh check for all 40 server, client and
 initialization combinations against that local stack; it needs PHP with `php-config`, Composer, Go,
-Rust and Chrome. `npm run test:form-comparison:checks` (`make test-form-comparison-checks`) starts
+Rust and Chrome. `npm run test:form-comparison:checks` (`make crudui-test-form-comparison-checks`) starts
 the same local stack and runs the PHP processor modes, the generation, persistence and canonical
 flow checks, the browser checks of the four native servers with their interaction checks, the
 browser aggregate and the typing check against it, checks the evidence and stops the servers
-([local verification](../spec/form-comparison.md#local-verification)). `make test-form-comparison-browser`
+([local verification](../spec/form-comparison.md#local-verification)). `make crudui-test-form-comparison-browser`
 (the browser checks of the servers of `FORM_SERVERS`, reports in `FORM_BROWSER_REPORTS`) and
-`make test-form-comparison-summary` (every other check, with those reports) run the same checks in
+`make crudui-test-form-comparison-summary` (every other check, with those reports) run the same checks in
 the two parts that CI runs, the first in one CI job per server. The
 [form comparison](../spec/form-comparison.md) defines the record resource, the page and those
 checks. JSON order and HTTP save/load checks are separate from validator package tests.
@@ -340,7 +340,7 @@ checks. JSON order and HTTP save/load checks are separate from validator package
 the custom properties of the stylesheet (`tests/style-properties.test.mts`).
 The CI job `form-runtime` runs the same checks on its Linux runner, `ubuntu-24.04`, with the
 Chromium and Firefox builds that Puppeteer pins and the WebKit build that Playwright pins, installed
-by `make install-browsers`; an engine difference on Linux shows in that job.
+by `make crudui-install-browsers`; an engine difference on Linux shows in that job.
 
 Record the revision, commands, results and deployment status in
 [feature status](../features.md). A test result applies to the code and inputs

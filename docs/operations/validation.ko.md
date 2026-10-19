@@ -1,6 +1,6 @@
 # 데이터 검증
 <!-- doc-id: docs-operations-validation -->
-<!-- source-sha256: 3c1422b7003aeb96bca89f11e7cd1c63dde4d44997f3316995936a7a9aaf8a37 -->
+<!-- source-sha256: 1f60e4e9ce199e51756e65994bc558458e88850c1c78314818d1e09902df424c -->
 
 [English](validation.md).
 
@@ -140,7 +140,7 @@ const binding = bindForm(document.querySelector('#member-form'), spec, {
 Chromium, Firefox, WebKit 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.
 
 ```sh
-make test-form-binding
+make crudui-test-form-binding
 ```
 
 ## 결과와 실패

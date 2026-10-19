@@ -42,7 +42,7 @@ const makefile = read('Makefile');
 // The install targets of the Makefile itself that run a recipe: by the rule of docs/spec/package-build.md only they
 // download, so they are the targets of this repository that lift the offline settings.
 const INSTALLS = Object.entries(makeTargets(makefile) as Record<string, MakeRule>)
-  .filter(([name, rule]) => name.startsWith('install-') && rule.commands.length > 0)
+  .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.length > 0)
   .map(([name]) => name);
 const DOWNLOADS = [...KIT_DOWNLOADS, ...INSTALLS];
 // The targets of the Makefile and of the files that it includes: scripts/kit/kit-bootstrap.mk and the kit.mk of @polyspec/kit.
@@ -126,7 +126,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|install-ordered-json\.mjs|dependency-review\.\$\(KIT_EXT\)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
+  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|crudui-install-ordered-json\.mjs|dependency-review\.\$\(KIT_EXT\)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
   const offline = Object.entries(targets).flatMap(([name, rule]) => rule.commands
     .filter(command => downloading.test(command) && !command.includes('$(ONLINE)'))
     .map(command => `${name}: ${command}`));
@@ -146,7 +146,7 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
     seen.add(name);
     return rule.prerequisites.some(prerequisite => prerequisite === CHECK || depends(prerequisite, seen));
   };
-  // make ci, make check and make rerun-failed start the guard full-run of @polyspec/kit before any step;
+  // make ci, make crudui-check and make rerun-failed start the guard full-run of @polyspec/kit before any step;
   // the targets of make that their commands run depend on the check.
   const missing = Object.entries(targets)
     .filter(([name]) => ![...DOWNLOADS, 'install', CHECK, 'ci', 'check', 'rerun-failed'].includes(name))
@@ -157,7 +157,7 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
   assert.deepEqual(missing, [], `targets that run cargo without ${CHECK}; a missing crate fails them with "retry without --offline"`);
 });
 
-// make install-packages installs package-lock.json after install-ordered-json, since the root package.json links the js
+// make install-packages installs package-lock.json after crudui-install-ordered-json, since the root package.json links the js
 // package of the OrderedJSON checkout. The installer therefore runs before any package exists: it imports only Node.js
 // built-ins and the files of examples/form-comparison.
 // make install-packages runs before the package of kit is installed, when kit-bootstrap.mk defines NODE and NPM (kit K185);

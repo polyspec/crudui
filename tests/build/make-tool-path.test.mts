@@ -30,7 +30,7 @@ function toolVariables(directory: string): string[] {
   return tools.map(([name, command]) => `${name}=${path.join(directory, command)}`);
 }
 
-test('test-native runs the Rust tests through the test runner', {
+test('crudui-test-native runs the Rust tests through the test runner', {
   skip: process.platform === 'win32',
 }, async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-path-'));
@@ -46,7 +46,7 @@ test('test-native runs the Rust tests through the test runner', {
     writeExecutable(path.join(commandDirectory, command))
   )));
 
-  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native', ...toolVariables(commandDirectory)], {
+  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'crudui-test-native', ...toolVariables(commandDirectory)], {
     cwd: repository,
     encoding: 'utf8',
     env: {
@@ -65,7 +65,7 @@ test('test-native runs the Rust tests through the test runner', {
     /^node\tnode_modules\/@polyspec\/kit\/dist\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator\/rust\/Cargo\.toml$/m);
 });
 
-test('test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', {
+test('crudui-test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', {
   skip: process.platform === 'win32',
 }, async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-status-'));
@@ -88,7 +88,7 @@ test('test-native runs the generator and PHP API parts after the PHP engine test
   ].join('\n'));
   await chmod(path.join(commandDirectory, 'node'), 0o755);
 
-  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native', ...toolVariables(commandDirectory)], {
+  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'crudui-test-native', ...toolVariables(commandDirectory)], {
     cwd: repository,
     encoding: 'utf8',
     env: {

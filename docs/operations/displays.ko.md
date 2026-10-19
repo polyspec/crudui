@@ -1,6 +1,6 @@
 # 목록과 상세 개발과 검증
 <!-- doc-id: docs-operations-displays -->
-<!-- source-sha256: 91d78bb8d956e18b4596f04c74dde9ba114ac9a0208a6c6c04d7d2ad6b70ab37 -->
+<!-- source-sha256: 5396b056a8f3566bbb4cfc368bd8e4477884c614d444546189b73af299d3e0ed -->
 
 [English](displays.md). [표시 형식](../spec/display-formats.ko.md)은 각 형식, 허용 입력과
 마크업을 정의합니다. [명세 구조](../spec/schema.ko.md)는 목록과 상세 필드와
@@ -262,13 +262,13 @@ Go 서버는 `127.0.0.1:8087`에서 수신합니다. Go와 PHP 예제는 레코�
 
 ```sh
 npm run test:forms
-make test-native
+make crudui-test-native
 (cd examples/cross-check-console/server && npm test)
 make docs-check
 ```
 
 `test:forms`는 React, Vue, Svelte, HTML 렌더러의 목록과 상세 적합성 테스트를 실행하며, 이 테스트는
-정규화한 본문을 렌더 fixture와 비교합니다. `make test-native`는 PHP, Go, Rust 패키지 테스트와
+정규화한 본문을 렌더 fixture와 비교합니다. `make crudui-test-native`는 PHP, Go, Rust 패키지 테스트와
 [네이티브 생성기 테스트 모음](../../tests/native-generators/README.ko.md)을 실행하며, 이 모음은
 JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 원본 목록과 상세 HTML 전체와 상세 모델을
 비교합니다. 콘솔 테스트 모음은 Go와 Rust 검증기 프로그램을 빌드하고 목록과 상세 엔드포인트를

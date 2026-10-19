@@ -75,7 +75,7 @@ export type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
 
 /**
  * Multilingual content map (G3 content translation): a value translated per
- * language by the spec author, e.g. `{ ko: '이메일', en: 'Email' }`. Distinct
+ * language by the spec author, e.g. `{ ko: 'Email label', en: 'Email' }`. Distinct
  * from `lang` (G3 input multilingualism, a structural dimension). An empty
  * language slot may be `null` (no value — identical to absent; no render/validate
  * effect, SPEC §2 G3).
@@ -544,7 +544,7 @@ export interface ItemsSource {
   /**
    * Placeholder static `items` that coexists with the dynamic source: the
    * pre-fetch choices the UI shows before `api_server`/`model` resolve (often the
-   * empty `[]` or a single `{ "": "선택하세요" }` prompt). A static array or a
+   * empty `[]` or a single `{ "": "Select" }` prompt). A static array or a
    * value→label map; the runtime replaces it with the fetched rows.
    */
   items?: StaticItem[] | ChoiceList | ItemLabelMap;
@@ -616,7 +616,7 @@ export type ItemLabel = LocalizedText;
 /**
  * Static value→label map (SPEC §2 G3): the key is the option value (the
  * membership target), the entry is its display label — a string or a LangMap,
- * e.g. `{ "0": { ko: '미사용', en: 'Off' }, "1": { ko: '사용', en: 'On' } }`.
+ * e.g. `{ "0": { ko: 'Off label', en: 'Off' }, "1": { ko: 'On label', en: 'On' } }`.
  * The label is display-only; a LangMap label is NOT a membership value.
  */
 export type ItemLabelMap = Record<string, ItemLabel>;

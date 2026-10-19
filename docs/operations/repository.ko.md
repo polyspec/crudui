@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 917f2d5c5647b41ef4e2ad0fe21e26a4352bcac9f200fa3b7bdb3bf17e7b729c -->
+<!-- source-sha256: 3160f9df79c25ee8919615dd451a38164455dd485bdebed51a6b6b79343816bc -->
 
 [English](repository.md).
 
@@ -9,7 +9,7 @@ GitHub ruleset은 없습니다. 작업은 checklist row마다 commit하며 로�
 
 ## main 게시
 
-`docs/plans/execution-checklist.md`의 각 작업은 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다.
+`docs/plans/execution-checklist/checklist.md`의 각 작업은 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다.
 `main`은 모든 row가 `[o]`일 때 한 번 push합니다.
 
 ```sh
@@ -122,11 +122,11 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
   `packages/validator/php`와 `packages/generator/php`의 `path` repository를 두고 `polyspec/crudui-validator`와
   `polyspec/crudui-generator`를 정확한 version으로 요구합니다. 따라서 `vendor/`는 각 package를 source 디렉터리에
   link하고 그 package 자신의 `composer.json`의 `autoload`로 load합니다. `autoload-dev`는 두 PHP package의 test와
-  `tests/`의 test class를 읽습니다. 옆의 `composer.lock`이 해석을 기록하고, `make install-composer`가 root에
+  `tests/`의 test class를 읽습니다. 옆의 `composer.lock`이 해석을 기록하고, `make crudui-install-composer`가 root에
   `vendor/`를 설치하며, PHPUnit(각 package의 bootstrap은 `vendor/autoload.php`), PHP check, PHP server가 그것을
   load합니다.
 
-`make test-dependencies`는 root `composer.json`과 lock을 `composer validate --strict`로, 게시되는 `composer.json`은 lock이
+`make crudui-test-dependencies`는 root `composer.json`과 lock을 `composer validate --strict`로, 게시되는 `composer.json`은 lock이
 없으므로 `composer validate --no-check-lock`으로 검사합니다.
 
 ### release archive 설치

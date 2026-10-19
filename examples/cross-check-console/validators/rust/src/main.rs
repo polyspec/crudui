@@ -210,5 +210,5 @@ fn write_line(obj: &Value) {
     let s = serde_json::to_string(obj).unwrap_or_else(|_| "{}".to_string());
     let stdout = io::stdout();
     let mut handle = stdout.lock();
-    let _ = writeln!(handle, "{}", s);
+    writeln!(handle, "{}", s).expect("write the JSON line to stdout");
 }

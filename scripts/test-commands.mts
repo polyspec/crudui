@@ -141,7 +141,7 @@ export function directTestTools(command: string): string[] {
 export function isTestCommand(file: string, name: string): boolean {
   const base = file.split('/').pop();
   if (file === 'contracts/features.json' || file.startsWith('.github/workflows/')) return true;
-  if (base === 'Makefile') return /^(?:test|conformance)/.test(name);
+  if (base === 'Makefile') return /^(?:crudui-)?(?:test|conformance)/.test(name);
   return /(?:^|:)(?:pre)?test(?::|$)/.test(name);
 }
 

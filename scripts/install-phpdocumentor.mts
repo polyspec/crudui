@@ -1,5 +1,5 @@
 // Installs the phpDocumentor release that the PHP API documentation runs (scripts/gen-api-docs.mts) into
-// var/tools/phpdocumentor/phpDocumentor.phar, the download of `make install-phpdocumentor`. The phar is checked by its
+// var/tools/phpdocumentor/phpDocumentor.phar, the download of `make crudui-install-phpdocumentor`. The phar is checked by its
 // SHA-256 before it replaces an installed one, and a release already installed with that digest stays.
 //
 //   node scripts/install-phpdocumentor.mts

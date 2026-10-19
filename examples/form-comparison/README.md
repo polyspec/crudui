@@ -30,8 +30,8 @@ submitted fields, data, focus and save responses.
 Run the checks from the repository root:
 
 ```sh
-make test-form-comparison
-make test-form-comparison-pipeline
+make crudui-test-form-comparison
+make crudui-test-form-comparison-pipeline
 ```
 
 The pipeline check builds the five record servers from this tree, starts each one as a local

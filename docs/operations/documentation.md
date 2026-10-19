@@ -51,11 +51,11 @@ Extractor checks the public API against the committed report `etc/<package>.api.
 missing output fails generation; the generator does not replace failed output
 with a success page. PHP documentation uses `var/tools/phpdocumentor/phpDocumentor.phar`.
 
-`make install-phpdocumentor` installs phpDocumentor 3.10.0 and checks it by its SHA-256. Go, Cargo and PHP must be
+`make crudui-install-phpdocumentor` installs phpDocumentor 3.10.0 and checks it by its SHA-256. Go, Cargo and PHP must be
 available on `PATH`; PHP requires the mbstring extension.
 
 ```sh
-make install-phpdocumentor
+make crudui-install-phpdocumentor
 make docs
 make docs-verify-idempotent
 ```
@@ -70,7 +70,7 @@ Use repository-relative paths in scripts and documents. External source tools
 must require an explicit input path. They must not depend on another project's
 checkout or a developer's home directory.
 
-`make documents-check` (`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`) checks every
+`make docs-check` (`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`) checks every
 Markdown document of the repository except
 `examples/cross-check-console/client/README.md` and `benchmarks/validators/README.md`. Each English document
 has a Korean twin `.ko.md`, and both files hold the same marker `<!-- doc-id: <id> -->`, where the

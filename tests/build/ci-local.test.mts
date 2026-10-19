@@ -126,14 +126,14 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
 });
 
 // The native suites run in three jobs: the C engine of the PHP extension and the generators of the JavaScript, HTML, Go
-// and Rust targets, and the PHP API on the PHP of .php-version, each once; make test-native runs the three parts.
+// and Rust targets, and the PHP API on the PHP of .php-version, each once; make crudui-test-native runs the three parts.
 const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: string[] }> = {
-  'php-engine': { targets: 'test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
-  'native-generators': { targets: 'test-native-generators test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
-  'php-api': { targets: 'test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
+  'php-engine': { targets: 'crudui-test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
+  'native-generators': { targets: 'crudui-test-native-generators crudui-test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
+  'php-api': { targets: 'crudui-test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
 };
 
-test('the native suites run in three jobs, each once, and make test-native runs all three', async () => {
+test('the native suites run in three jobs, each once, and make crudui-test-native runs all three', async () => {
   const workflow = await workflowFile('ci.yml');
   for (const [id, expected] of Object.entries(NATIVE_JOBS)) {
     const job = jobOf(workflow, id);
@@ -144,7 +144,7 @@ test('the native suites run in three jobs, each once, and make test-native runs 
     assert.deepEqual(tools, expected.tools, id);
     assert.deepEqual(job.strategy?.matrix?.php, expected.php, id);
   }
-  const run = makeDryRun(ROOT, 'test-native');
+  const run = makeDryRun(ROOT, 'crudui-test-native');
   assert.equal(run.status, 0, run.stderr);
   const commands = run.stdout.split('\n');
   for (const command of [
@@ -204,9 +204,9 @@ test('a job that installs the npm packages caches ~/.npm by package-lock.json, a
   const cache = { uses: 'actions/cache@x', with: NPM_CACHE };
   assert.deepEqual(npmCacheViolations({ jobs: {
     a: { steps: [{ uses: 'actions/setup-node@x', with: { cache: 'npm' } }, { run: 'make install-tools' }] },
-    b: { steps: [{ run: 'make install-tools' }, { run: 'make install-packages install-composer' }] },
+    b: { steps: [{ run: 'make install-tools' }, { run: 'make install-packages crudui-install-composer' }] },
     c: { steps: [{ run: 'make install-tools' }, cache, { run: 'make install-packages' }] },
-    d: { steps: [cache, { run: 'make install-composer' }] },
+    d: { steps: [cache, { run: 'make crudui-install-composer' }] },
     e: { steps: [{ uses: 'actions/cache@x', with: { ...NPM_CACHE, key: 'npm' } }, { run: 'make install-packages' }] },
     f: { steps: [cache, { run: 'make install-tools' }, { run: 'make install-packages' }] },
   } }), [
@@ -231,14 +231,14 @@ test('make ci runs every checking command of the CI workflow, in the same order'
   assert.deepEqual(local, workflow);
 });
 
-/** The lint targets of CHECK_TARGETS, the checks of kit that make check runs. */
+/** The lint targets of CHECK_TARGETS, the checks of kit that make crudui-check runs. */
 export function checkLintTargets(makefile: string): string[] {
   const block = makefile.match(/^CHECK_TARGETS = \\\n((?:\t[\w-]+(?: \\)?\n)+)/m);
   assert.ok(block?.[1] !== undefined, 'the Makefile declares CHECK_TARGETS');
   return block[1].trim().split('\n').map((line) => line.trim().replace(/ \\$/, '')).filter((target) => target.startsWith('lint-'));
 }
 
-// make check runs every lint target of kit; CI runs each of them too, so a finding fails CI and not only a local run.
+// make crudui-check runs every lint target of kit; CI runs each of them too, so a finding fails CI and not only a local run.
 // make lint runs lint-ts, the lint-ts.mjs of kit, with the ESLint of the Svelte components.
 test('a CI job runs every lint target of CHECK_TARGETS', async () => {
   const makefile = await read('Makefile');
@@ -441,7 +441,7 @@ test('a checking step that a failure skips is reported by job and step', () => {
 test('a workflow command missing from make ci is reported', () => {
   const workflow = workflowCommands({
     jobs: {
-      a: { steps: [{ run: 'make install-packages install-composer' }, { run: 'make lint' }] },
+      a: { steps: [{ run: 'make install-packages crudui-install-composer' }, { run: 'make lint' }] },
       b: { steps: [{ run: 'make test-x && make test-y' }] },
     },
   });

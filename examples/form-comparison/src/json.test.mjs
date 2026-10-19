@@ -6,7 +6,7 @@ const bytes = source => new TextEncoder().encode(source);
 
 test('ordered JSON retains nested identity order, empty types and scalar values', () => {
   // OrderedJSON writes a constructed string with every code unit outside printable ASCII as a \u escape, so the
-  // encoded text spells 서울 as \uc11c\uc6b8 whether the decoded source spelled it in UTF-8 or with escapes.
+  // encoded text spells Seoul as \uc11c\uc6b8 whether the decoded source spelled it in UTF-8 or with escapes.
   const source = '{"form":{"companies":{"__0000000000005__":{"stores":{}},"__abcde01234567__":{"stores":{"__0000000000007__":{"departments":{}}}},"__0000000000001__":{"stores":{}}}},"items":[{},[],false,null,1.25,"\\uc11c\\uc6b8"]}';
   const data = decodeJson(bytes(source));
   assert.deepEqual(Object.keys(data.form.companies), ['__0000000000005__', '__abcde01234567__', '__0000000000001__']);

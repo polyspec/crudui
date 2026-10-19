@@ -1,6 +1,6 @@
 # 구조 지도와 데이터 보기 고정 데이터
 <!-- doc-id: tests-fixtures-form-outline-readme -->
-<!-- source-sha256: 7856a66c05d27066628675a12e9c7812352ef937d4d6b35535d5f98d20480a21 -->
+<!-- source-sha256: 968f4f4a9ba1eed0976c568312fd1c6d8f609c84a114bf17093a05a5eb3140f2 -->
 
 [English](README.md).
 
@@ -22,9 +22,9 @@
 `OutlineView`와 `DataPanel`, HTML 렌더러는 `renderOutlineView`와 `renderDataPanel`, Vue는 서버 렌더러로
 `outlineVNode`와 `dataVNode`, Svelte는 `svelte/server`로 `OutlineView`와 `DataPanel`을 렌더링합니다.
 
-[React](../../../packages/react/src/__tests__/outline.conformance.test.tsx),
-[Vue](../../../packages/vue/test/outline.conformance.test.mjs),
-[Svelte](../../../packages/svelte/test/outline.conformance.test.mjs),
+[React](../../../packages/react/src/tests/outline.conformance.test.tsx),
+[Vue](../../../packages/vue/tests/outline.conformance.test.mjs),
+[Svelte](../../../packages/svelte/tests/outline.conformance.test.mjs),
 [HTML 렌더러](../../../packages/html/src/outline.conformance.test.ts)의 구조 지도 적합성 검사가
 사용합니다. [폼 마크업 이름 검사](../../form-markup/naming.test.mts)는 두 기대 HTML의 클래스 이름을
 확인합니다.

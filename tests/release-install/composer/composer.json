@@ -2,13 +2,13 @@
     "name": "polyspec/crudui-release-install",
     "type": "project",
     "require": {
-        "php": ">=8.5",
+        "php": ">=8.4",
         "polyspec/crudui-generator": "0.0.7",
         "polyspec/crudui-validator": "0.0.7"
     },
     "config": {
         "platform": {
-            "php": "8.5.0"
+            "php": "8.4.1"
         }
     },
     "repositories": [

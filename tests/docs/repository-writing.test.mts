@@ -106,7 +106,7 @@ test('maintained repository prose describes current operations directly', () => 
 // local processes, and CI runs on its own runners. The checklist and the change log keep their history.
 const developmentContainerTools = [['container', 'ctl'].join('')];
 const historyFiles = new Set([
-  'CHANGELOG.md', 'CHANGELOG.ko.md', 'docs/plans/execution-checklist.md', 'docs/plans/execution-checklist.ko.md',
+  'CHANGELOG.md', 'CHANGELOG.ko.md', 'docs/plans/execution-checklist/checklist.md', 'docs/plans/execution-checklist/checklist.ko.md',
 ]);
 
 test('no tracked tool, Makefile line, workflow or document names a container tool of a development machine', () => {

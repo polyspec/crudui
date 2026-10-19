@@ -1,6 +1,6 @@
 # 상세 렌더링 고정 데이터
 <!-- doc-id: tests-fixtures-detail-render-readme -->
-<!-- source-sha256: 3cca73bdc1876e47d240aa8d9277329dffba8011e0974f8a4db86af47772f0f4 -->
+<!-- source-sha256: bc28ccb57e23146ed813e1d24752cab50582d8b286504035e12d08d3d1cfc07e -->
 
 [English](README.md).
 
@@ -28,9 +28,9 @@ preload 링크를 쓰며, [`preload-links.mjs`](../preload-links.mts)가 이를 
 React와 같은 전체 원본 HTML을 반환해야 합니다. 필드의 `value`는 레코드의 해당 경로에 값이 없으면
 `null`입니다.
 
-[React](../../../packages/react/src/__tests__/detail-render.conformance.test.ts),
-[Vue](../../../packages/vue/src/__tests__/detail-render.conformance.test.ts),
-[Svelte](../../../packages/svelte/test/detail-render.conformance.test.mjs),
+[React](../../../packages/react/src/tests/detail-render.conformance.test.ts),
+[Vue](../../../packages/vue/src/tests/detail-render.conformance.test.ts),
+[Svelte](../../../packages/svelte/tests/detail-render.conformance.test.mjs),
 [HTML 렌더러](../../../packages/html/src/detail-conformance.test.ts)의 상세 적합성 검사가
 사용합니다.
 

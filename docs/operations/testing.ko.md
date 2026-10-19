@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 7816ad54d751e1ad5f095f84eda1b43041480b6c4eccd7306934dcc1009792d0 -->
+<!-- source-sha256: deb29da36a5611b8a7c8935965fb65f77cb5e4f780b47dda6eaee47ec4007901 -->
 
 [English](testing.md).
 
@@ -8,7 +8,7 @@
 `packageManager`의 npm을 설치하게 하고, `make install-packages`로 그 npm이 package `@polyspec/kit`을 포함한 `package-lock.json`을
 설치하게 합니다. 그 전에는 다른 target이 실행되지 않습니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/spec/package-build.ko.md`,
 "런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
-모든 Cargo.lock의 crate(`make install-crates`),
+모든 Cargo.lock의 crate(`make crudui-install-crates`),
 `scripts/install-phpdocumentor.mts`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
 `make install-tools`(`node_modules/@polyspec/kit/dist/install-tools.mjs`. `TOOLS="go cargoAudit"`가 설치할 도구를 지정하며, workflow job은 쓰는 도구만 설치합니다)로 checkout이 선언한 도구(npm, Go, uv와 Python, alint, ruff, vulture, golangci-lint, deadcode, PHPCS와 PHPStan을 포함한 Composer, cargo-audit)를
 checkout에 설치하며, 이 명령은 machine의 도구를 바꾸지 않습니다. make는 `var/tools/bin`의 명령을
@@ -16,7 +16,7 @@ checkout에 설치하며, 이 명령은 machine의 도구를 바꾸지 않습니
 합니다. `.npmrc`가 `strict-allow-scripts`를 설정하므로 `make install-packages`는 `package.json`의 `allowScripts`가 승인하지 않은
 install script에서 실패합니다. PHP 패키지의
 Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다. 비교 예제의 PHP 레코드
-서버에는 `php-fpm`과 `nginx`도 필요합니다(Homebrew: `brew install php nginx`, Debian·Ubuntu:
+서버에는 `php-fpm`과 `nginx`도 필요합니다(Debian·Ubuntu:
 `php8.x-fpm`과 `nginx`, 그리고 버전이 붙은 실행 파일을 가리키는 `php-fpm` 링크).
 컴파일된 export를 검사하기 전에 JavaScript 패키지를 빌드합니다.
 
@@ -32,8 +32,8 @@ CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙
 동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
 
 workflow의 모든 step은 make 대상을 실행합니다. 설치(`rust-toolchain.toml`의 Rust toolchain도 설치하는 `make install-tools`,
-`make install-packages`, `make install-composer`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
-(`make toolchain-check TOOLS="..."`), 각 검사(`make test-runtimes`, `make lint`, `make test-forms`와 `CI_COMMANDS`의 나머지)가
+`make install-packages`, `make crudui-install-composer`, `make crudui-install-crates`, `make crudui-install-browsers BROWSERS="..."`), 도구 검사
+(`make toolchain-check TOOLS="..."`), 각 검사(`make crudui-test-runtimes`, `make lint`, `make crudui-test-forms`와 `CI_COMMANDS`의 나머지)가
 그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
 `tests/build/ci-local.test.mts`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
 실패합니다.
@@ -47,7 +47,7 @@ CI의 마지막 작업처럼 검사합니다. `tests/build/ci-local.test.mts`는
 가지므로 실패한 준비 단계가 그 job의 검사를 건너뛰게 하지 않습니다. `tests/build/ci-local.test.mts`는 그것이 없는
 검사 단계마다 작업과 단계를 적고 실패합니다. make는 처음 실패한
 prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대상을 prerequisite로 두지 않습니다.
-`make test-native`와 `make docs-check`처럼 여러 테스트 대상을 실행하는 대상은 각각을
+`make crudui-test-native`와 `make docs-check`처럼 여러 테스트 대상을 실행하는 대상은 각각을
 `$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다. make는 처음 실패한 recipe 줄에서도 멈추므로,
 대상의 첫 검사를 실행하는 recipe 줄은 그 대상의 마지막 줄이며 `make docs-check-documents`와 `make format-check`처럼
 각 검사를 `|| status=1`로 실행하고 `exit $$status`로 끝납니다. build나 install 같은 그 앞의 준비 줄은 여전히 대상을
@@ -57,11 +57,11 @@ package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검
 뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않습니다.
 `scripts/run-contract-tests.mts`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
-`make check`는 kit의 검사, 곧 Makefile의 `CHECK_TARGETS`(`kit-check`, `toolchain-check`, `layout-check`, `documents-check`,
+`make crudui-check`는 kit의 검사, 곧 Makefile의 `CHECK_TARGETS`(`kit-check`, `toolchain-check`, `layout-check`, `docs-check`,
 `owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, `lint-*` 대상, `records-check`)를 `make ci`와
 같은 guard로 실행합니다.
 
-`make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 대상보다
+`make ci`는 `docs/plans/execution-checklist/checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 대상보다
 먼저 `node_modules/@polyspec/kit/dist/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고 다음의 경우 status 1로 거부합니다. checklist의
 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. checklist를 읽을 수 없으면 거부합니다. pre-push hook이
 설치되지 않았으면(`make hooks-check`, 아래) 거부합니다. 추적 파일에 커밋되지 않은 변경이 있거나 무시되지 않는 새 file이 있으면
@@ -86,9 +86,9 @@ CI workflow는 `main`으로의 push와 수동 실행(`workflow_dispatch`)마다 
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
 
 native suite는 세 CI job에서 실행되므로 어떤 job도 다른 runtime이 필요한 suite를 기다리지 않습니다.
-`php-engine`은 Node.js와 C compiler로 `make test-php-engine`을 한 번, `native-generators`는
-`make test-native-generators`와 `make test-bench`를 한 번 실행하고, `php-api`는 workflow의 모든 setup-php step이 읽는
-`.php-version`의 PHP minor에서 `make test-php-api`를 한 번 실행합니다. `make test-native`는 세 대상을 한 명령으로 실행합니다
+`php-engine`은 Node.js와 C compiler로 `make crudui-test-php-engine`을 한 번, `native-generators`는
+`make crudui-test-native-generators`와 `make crudui-test-bench`를 한 번 실행하고, `php-api`는 workflow의 모든 setup-php step이 읽는
+`.php-version`의 PHP minor에서 `make crudui-test-php-api`를 한 번 실행합니다. `make crudui-test-native`는 세 대상을 한 명령으로 실행합니다
 (`docs/operations/native-generators.ko.md`).
 
 npm package를 설치하는 모든 job은 npm을 설치하기 전에 `actions/cache`로 `~/.npm`을 key
@@ -112,7 +112,7 @@ GNU Make 3.81과 GNU Make 4는 다른 make 안에서도 명령만 출력합니�
 실패합니다.
 
 push는 checklist에 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook `.githooks/pre-push`는 Git이 push하는 ref와 함께
-`make push-gate-hook`(`node node_modules/@polyspec/kit/dist/push-gate.mjs hook`)을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist.md`)와
+`make push-gate-hook`(`node node_modules/@polyspec/kit/dist/push-gate.mjs hook`)을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist/checklist.md`)와
 working tree의 checklist를 읽고, 그중 하나에 진행 중인 작업이 있으면 status 1로 push를 거부합니다. 이 검사는 그런 작업마다 file, ID, 제목을 push되는
 ref와 commit 또는 `working tree`와 함께 출력하고, push를 막는 상태(`[~]`)와 막지 않는 상태(`[ ]`, `[o]`, `[!]`)를 밝힙니다. 작업을 완료하거나, 그 원인과
 재시도 조건과 함께 `[!]`로 표시합니다. checklist가 없는 push commit, 잘못된 hook 입력 줄, 읽을 수 없는 checklist, Git 오류도 그 원인을 적으며 push를
@@ -127,7 +127,7 @@ hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. 
 push된 commit을 checkout하고 `make ci-targets TARGETS="push-gate-commit records-check"`를 실행합니다. `make push-gate-commit`
 (`node node_modules/@polyspec/kit/dist/push-gate.mjs commit HEAD`)은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
 `.githooks/pre-push`를 실행 가능한 file(mode `100755`)로 추적하지 않을 때 실패하며, 거부 내용을 progress line으로, 각 줄을 error
-annotation으로, 그리고 job summary에 출력합니다. `make records-check`는 `make documents-check`
+annotation으로, 그리고 job summary에 출력합니다. `make records-check`는 `make docs-check`
 (`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`)와 link, changelog, 문장, example과 fixture README test를 실행하며, Node.js만 필요하고
 network와 이력을 읽지 않습니다. 그래서 문서나 checklist 규칙을 어긴 commit은 release가 요구하는 check에 실패합니다([저장소](repository.ko.md#main-게시)).
 `make docs-check-documents`는 나머지 문서 검사와 함께 `make records-check`를 실행합니다.
@@ -157,7 +157,7 @@ PHPUnit을 실행하며, `packages/`의 모든 package에서는 root입니다(ki
 ## 린트
 
 `make lint`는 kit의 `make lint-ts`와 `packages/svelte`의 Svelte lint를 실행합니다. CI의 빌드·린트·타입 작업과
-`make ci`가 이를 호출하고, `make check`는 `lint-ts`를 실행합니다. `make lint-ts`는 copy된 `.oxlintrc.json`으로 Git이 무시하지 않는
+`make ci`가 이를 호출하고, `make crudui-check`는 `lint-ts`를 실행합니다. `make lint-ts`는 copy된 `.oxlintrc.json`으로 Git이 무시하지 않는
 모든 file에 oxlint를(oxlint-tsgolint로 type-aware, warning 거부), copy된 `knip.json`으로 root에서 knip을, `api-extractor.json`을
 가진 각 package에서 API Extractor를 실행합니다. oxlint에는 Svelte 규칙이 없으므로 `npm run lint -w @polyspec/crudui-generator-svelte`가
 그 package의 component에 eslint-plugin-svelte를 쓰는 ESLint를 실행하며(`packages/svelte/eslint.config.js`), 그 TypeScript
@@ -285,18 +285,18 @@ OrderedJSON 체크아웃, 두 PHP 확장, Go 바이너리, Rust 바이너리)를
 로컬 프로세스로 시작하고, 다섯 서버 모두에 레코드 저장소 HTTP 계약을 실행하고, Go·Rust 서버 테스트를 실행한
 뒤, 그 로컬 구성에서 서버·클라이언트·초기화 방식 40개 조합의 정본 List → Detail → Form → Save → List
 refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rust, Chrome이 필요합니다.
-`npm run test:form-comparison:checks`(`make test-form-comparison-checks`)는 같은 로컬 구성을 시작하고, 그
+`npm run test:form-comparison:checks`(`make crudui-test-form-comparison-checks`)는 같은 로컬 구성을 시작하고, 그
 구성에 PHP 처리 모드, 생성·저장·정본 흐름 검사, 네이티브 서버 네 개의 브라우저 검사와 상호작용 검사,
 브라우저 집계, 입력 검사를 실행하고, 근거를 확인한 뒤 서버를 멈춥니다
-([로컬 검증](../spec/form-comparison.ko.md#로컬-검증)). `make test-form-comparison-browser`(`FORM_SERVERS`
-서버의 브라우저 검사, 보고서는 `FORM_BROWSER_REPORTS`)와 `make test-form-comparison-summary`(그 보고서를 쓰는
+([로컬 검증](../spec/form-comparison.ko.md#로컬-검증)). `make crudui-test-form-comparison-browser`(`FORM_SERVERS`
+서버의 브라우저 검사, 보고서는 `FORM_BROWSER_REPORTS`)와 `make crudui-test-form-comparison-summary`(그 보고서를 쓰는
 나머지 검사)는 같은 검사를 CI가 실행하는 두 부분으로 실행하며, 앞의 것은 서버마다 CI 작업 하나에서 실행합니다.
 [폼 비교](../spec/form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사들을 정의합니다. JSON 순서와 HTTP
 저장·로드 검사는 검증기 패키지 테스트와 별도입니다.
 
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의
 사용자 정의 속성(`tests/style-properties.test.mts`)을 검사합니다.
-CI job `form-runtime`은 같은 검사를 Linux runner `ubuntu-24.04`에서 `make install-browsers`가 설치한,
+CI job `form-runtime`은 같은 검사를 Linux runner `ubuntu-24.04`에서 `make crudui-install-browsers`가 설치한,
 Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit build로 실행합니다. Linux에서만
 드러나는 엔진 차이는 그 job에서 보입니다.
 

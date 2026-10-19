@@ -9,7 +9,7 @@ pushes `main`.
 
 ## Publishing main
 
-Each task of `docs/plans/execution-checklist.md` is committed with its changelog entry when its unit tests pass, and the
+Each task of `docs/plans/execution-checklist/checklist.md` is committed with its changelog entry when its unit tests pass, and the
 row becomes `[o]`. `main` is pushed once, when every row is `[o]`:
 
 ```sh
@@ -135,10 +135,10 @@ Development resolution is in the two root manifests, which are never published:
   `polyspec/crudui-validator` and `polyspec/crudui-generator` at their exact versions, so `vendor/` links each package
   to its source directory and loads it by the `autoload` of its own `composer.json`; its `autoload-dev` reads the tests
   of both PHP packages and the test classes of `tests/`. `composer.lock` beside it records the resolution, and
-  `make install-composer` installs `vendor/` at the root, which PHPUnit (the bootstrap of each package is
+  `make crudui-install-composer` installs `vendor/` at the root, which PHPUnit (the bootstrap of each package is
   `vendor/autoload.php`), the PHP checks and the PHP servers load.
 
-`make test-dependencies` validates the root `composer.json` and its lock with `composer validate --strict`, and each
+`make crudui-test-dependencies` validates the root `composer.json` and its lock with `composer validate --strict`, and each
 published `composer.json` with `composer validate --no-check-lock`, since a published package has no lock.
 
 ### Installing the release archives

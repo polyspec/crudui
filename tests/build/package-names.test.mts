@@ -114,7 +114,7 @@ const OLD_NAMES: [string, RegExp][] = [
   ['Rust crate crudui-', /(?<![\w/-])crudui-(?:validator|generator)\b/g],
   ['Rust library crudui_', /(?<!\w)crudui_(?:validator|generator)(?!_ce)\b/g],
 ];
-const RECORDS = new Set(['CHANGELOG.md', 'CHANGELOG.ko.md', 'docs/plans/execution-checklist.md', 'docs/plans/execution-checklist.ko.md', 'docs/plans/waves.md', 'docs/plans/waves.ko.md']);
+const RECORDS = new Set(['CHANGELOG.md', 'CHANGELOG.ko.md', 'docs/plans/execution-checklist/checklist.md', 'docs/plans/execution-checklist/checklist.ko.md', 'docs/plans/execution-checklist/plan.md', 'docs/plans/execution-checklist/plan.ko.md']);
 
 test('no maintained file names a package by a form before the convention', () => {
   const failures: string[] = [];

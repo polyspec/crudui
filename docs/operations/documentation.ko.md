@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: 3be2313fe71686123e4eb35cd92f3f0c8d6ab855ede8228e7d5f977de441927d -->
+<!-- source-sha256: 1cfc8968f7c8a3da47c7023bd55157f5c353c0c9f08c69085baccda4ee6a4fa2 -->
 
 [English](documentation.md).
 
@@ -51,11 +51,11 @@ model의 Markdown 페이지를 `docs/api/<package>`에 씁니다. 도구 실행 
 출력 누락은 생성 실패로 처리하며 실패한 출력을 성공 페이지로 대체하지
 않습니다. PHP 문서는 `var/tools/phpdocumentor/phpDocumentor.phar`를 사용합니다.
 
-`make install-phpdocumentor`는 phpDocumentor 3.10.0을 설치하고 SHA-256으로 검사합니다. Go·Cargo·PHP는 `PATH`에
+`make crudui-install-phpdocumentor`는 phpDocumentor 3.10.0을 설치하고 SHA-256으로 검사합니다. Go·Cargo·PHP는 `PATH`에
 있어야 하며 PHP에는 mbstring 확장이 필요합니다.
 
 ```sh
-make install-phpdocumentor
+make crudui-install-phpdocumentor
 make docs
 make docs-verify-idempotent
 ```
@@ -67,7 +67,7 @@ HTML은 `docs/public/api/`에서 웹에 포함합니다. 반복 생성 검사는
 Go 참조는 조합·표현식·검증을 포함해 `validator/`
 아래의 모든 패키지를 설명합니다.
 
-`make documents-check`(`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`)는
+`make docs-check`(`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`)는
 `examples/cross-check-console/client/README.md`, `benchmarks/validators/README.md`를 뺀 저장소의 모든 Markdown 문서를 검사합니다. 각 영어 문서에는
 한국어 twin `.ko.md`가 있고, 두 file은 같은 marker `<!-- doc-id: <id> -->`를 가집니다. id는 `.md`를 뺀 영어 file의 경로를 소문자로 하고
 단어 사이를 `-`로 이은 것입니다. 한국어 file은 영어 file의 sha256인 `<!-- source-sha256: <sha256> -->`도 가지며, 영어 문서를 바꾼 뒤에는 한국어
