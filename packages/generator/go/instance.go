@@ -107,16 +107,16 @@ func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, 
 }
 
 // GetData returns a deep copy of the current ordered record.
-func (f *Form) GetData() *Object { return copyValue(f.data).(*Object) }
+func (f *Form) GetData() *Object { return copyObject(f.data) }
 
 // Template returns a deep copy of the reusable form structure.
-func (f *Form) Template() *FormTemplate { t, _ := cloneTemplate(f.template); return t }
+func (f *Form) Template() (*FormTemplate, error) { return cloneTemplate(f.template) }
 
 // Fields returns deep copies of the current field models.
 func (f *Form) Fields() []*Object {
 	out := make([]*Object, len(f.fields))
 	for i, v := range f.fields {
-		out[i] = copyValue(v).(*Object)
+		out[i] = copyObject(v)
 	}
 	return out
 }
@@ -238,7 +238,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 	}
 	data := NewObject()
 	if !isAbsent(value) {
-		data = copyValue(value).(*Object)
+		data = copyObject(object(value))
 	}
 	for _, field := range fields {
 		raw := read(data, field.Name)
@@ -379,7 +379,10 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 	if options.ValueProvided || options.Value != nil {
 		v = options.Value
 	}
-	segs, _ := checkedSegments(path)
+	segs, e := checkedSegments(path)
+	if e != nil {
+		return "", e
+	}
 	v, e = f.normalizeRow(field, v, strings.Join(append(append([]string{}, segs...), key), "."))
 	if e != nil {
 		return "", e
@@ -430,7 +433,10 @@ func (f *Form) copyRowValue(field FieldTemplate, value any) (any, error) {
 	return f.copyChildren(field.Children, object(value))
 }
 func (f *Form) copyChildren(fields []FieldTemplate, value *Object) (*Object, error) {
-	out := copyValue(value).(*Object)
+	if value == nil {
+		return nil, fmt.Errorf("Group data must be an object")
+	}
+	out := copyObject(value)
 	for _, child := range fields {
 		raw := read(out, child.Name)
 		if repeated(child) && object(raw) != nil {
@@ -477,7 +483,10 @@ func (f *Form) RemoveRow(path, key string) error {
 	}
 	out := rows.Clone()
 	out.Delete(key)
-	segs, _ := checkedSegments(path)
+	segs, e := checkedSegments(path)
+	if e != nil {
+		return e
+	}
 	return f.commitView(putAt(f.data, segs, out), RemoveRowView(f.view, strings.Join(append(append([]string{}, segs...), key), ".")), "")
 }
 
@@ -514,7 +523,10 @@ func (f *Form) MoveRow(path, key string, index int) error {
 	for _, k := range ks {
 		out.Set(k, read(rows, k))
 	}
-	segs, _ := checkedSegments(path)
+	segs, e := checkedSegments(path)
+	if e != nil {
+		return e
+	}
 	return f.commit(putAt(f.data, segs, out))
 }
 
@@ -547,7 +559,10 @@ func (f *Form) RekeyRow(path, oldKey, newKey string) error {
 		}
 		out.Set(k, v)
 	}
-	segs, _ := checkedSegments(path)
+	segs, e := checkedSegments(path)
+	if e != nil {
+		return e
+	}
 	return f.commitView(putAt(f.data, segs, out), RekeyRowView(f.view, strings.Join(append(append([]string{}, segs...), oldKey), "."), strings.Join(append(append([]string{}, segs...), newKey), ".")), "")
 }
 
@@ -563,7 +578,10 @@ func (f *Form) ToggleRow(path, key string) error {
 	if !rows.Has(key) {
 		return fmt.Errorf("Unknown row: %s", key)
 	}
-	segs, _ := checkedSegments(path)
+	segs, e := checkedSegments(path)
+	if e != nil {
+		return e
+	}
 	return f.refreshView(ToggleRowView(f.view, strings.Join(append(append([]string{}, segs...), key), ".")))
 }
 

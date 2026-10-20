@@ -127,7 +127,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		return nil, e
 	}
 	// The specification is read in specification member order; data and rows keep theirs.
-	spec, _ = compose.OrderMembers(spec).(*Object)
+	spec = orderedObject(spec)
 	if e := checkOrderedValue(data); e != nil {
 		return nil, e
 	}
@@ -180,7 +180,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	if data == nil {
 		data = NewObject()
 	}
-	lookup := plainLookup(data).(map[string]any)
+	lookup := plainObject(data)
 	cols := []*Object{}
 	for _, key := range columns.Keys() {
 		raw := object(read(columns, key))
@@ -201,7 +201,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	rowModels := []*Object{}
 	for _, row := range rows {
 		cells := []*Object{}
-		rowLookup := plainLookup(row).(map[string]any)
+		rowLookup := plainObject(row)
 		for _, col := range cols {
 			field := strings.TrimPrefix(stringAt(col, "field"), ".")
 			v := absent
@@ -596,7 +596,11 @@ func listHTML(vm *Object, layout string) string {
 		content := ""
 		for _, btn := range objectList(read(p, "buttons")) {
 			role := stringAt(btn, "role")
-			pageNum, _ := read(btn, "page").(int64)
+			// paginationModel sets every button page as an int64.
+			pageNum, isPage := read(btn, "page").(int64)
+			if !isPage {
+				panic(fmt.Sprintf("pagination button page is %T, not the int64 that paginationModel sets", read(btn, "page")))
+			}
 			label := stringAt(btn, "label")
 			current := truthy(read(btn, "current"))
 			disabled := truthy(read(btn, "disabled"))

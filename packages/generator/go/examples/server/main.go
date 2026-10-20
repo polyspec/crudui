@@ -262,8 +262,9 @@ func (s *server) submit(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		data, _ = value.(*generator.Object)
-		if data == nil {
+		var isObject bool
+		data, isObject = value.(*generator.Object)
+		if !isObject || data == nil {
 			http.Error(w, "Record must be an object", http.StatusBadRequest)
 			return
 		}
@@ -299,7 +300,8 @@ func (s *server) submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	result, e := validate.Validate(s.spec, lookup, validate.Options{})
-	if _, input := e.(*validate.FormInputError); input {
+	var inputErr *validate.FormInputError
+	if errors.As(e, &inputErr) {
 		http.Error(w, e.Error(), http.StatusBadRequest)
 		return
 	}

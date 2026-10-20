@@ -1,8 +1,10 @@
 package generator
 
 import (
-	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
+	"fmt"
 	"regexp"
+
+	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
 )
 
 func evalCondition(s string, data map[string]any, path []string, rowKeys []int) bool {
@@ -19,6 +21,17 @@ func conditionMap(o *Object, data map[string]any, path []string, rowKeys []int) 
 		return read(o, "true")
 	}
 	return nil
+}
+
+// evaluateParsed evaluates an expression that expr.Parse has already accepted. EvaluateValue
+// fails only when Parse fails, and Parse of the same text gives the same result, so an error
+// here is a broken invariant.
+func evaluateParsed(s string, data map[string]any, path []string, rowKeys []int) any {
+	x, e := expr.EvaluateValue(s, data, path, rowKeys)
+	if e != nil {
+		panic(fmt.Sprintf("expr: evaluating %q after a successful parse: %v", s, e))
+	}
+	return x
 }
 
 // evalShow resolves design.show like the validators resolve a conditional
@@ -45,13 +58,11 @@ func resolveParameter(v any, data map[string]any, path []string, rowKeys []int) 
 	}
 	if ast, e := expr.Parse(s); e == nil {
 		if _, ok := ast.(*expr.TernaryNode); ok {
-			x, _ := expr.EvaluateValue(s, data, path, rowKeys)
-			return x
+			return evaluateParsed(s, data, path, rowKeys)
 		}
 	}
 	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
-		x, _ := expr.EvaluateValue(s, data, path, rowKeys)
-		return x
+		return evaluateParsed(s, data, path, rowKeys)
 	}
 	return s
 }
@@ -90,7 +101,7 @@ func evalAppearance(v any, data map[string]any, path []string, rowKeys []int) st
 	}
 	if ast, e := expr.Parse(s); e == nil {
 		if _, ok := ast.(*expr.TernaryNode); ok {
-			x, _ := expr.EvaluateValue(s, data, path, rowKeys)
+			x := evaluateParsed(s, data, path, rowKeys)
 			if x == nil {
 				return ""
 			}
@@ -98,8 +109,8 @@ func evalAppearance(v any, data map[string]any, path []string, rowKeys []int) st
 		}
 	}
 	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
-		x, e := expr.EvaluateValue(s, data, path, rowKeys)
-		if e != nil || x == nil || x == false {
+		x := evaluateParsed(s, data, path, rowKeys)
+		if x == nil || x == false {
 			return ""
 		}
 		return jsString(x)

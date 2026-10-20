@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5faa480aa930a5bf1cb6cc00eca52cf4c5b2a9d30dff363e91abd5e54e618e3c -->
+<!-- source-sha256: 88d2fdc288681084ccf8c7ce72d8cfc43911f6c897a63beee2efaea854431fb8 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator는 숨은 오류를 처리한다 (C16.67-12)
+
+- `packages/generator/go`는 kit lint가 보고한 오류를 모두 검사하거나 반환합니다(C16.67-12). `bind.go`는 `design.layout`, `group_class`, `unsupported` 옵션을 검사된 assertion으로 읽고 문자열이 아닌 값을 오류로 반환하며, `buttons.go`는 button `behavior` script의 오류를 `bindButtons`, `BindButtons`, `RenderForm`으로 반환합니다. `instance.go`는 모든 row 작업의 path를 검사하고 `Form.Template`은 clone 오류와 함께 `(*FormTemplate, error)`를 반환합니다. `design.go`는 이미 파싱한 expression을 `evaluateParsed`로 평가하고, `date.go`와 `number.go`는 digit run을 invariant 메시지와 함께 읽으며, `date.go`는 매칭되지 않은 선택 group을 0으로 읽습니다. `widget.go`의 `json.Marshal`과 `Encode` 호출은 invariant로 명시합니다. `choice_list.go`, `form_render.go`, `list.go`, `template.go`, `value.go`, `examples/server/main.go`는 검사된 assertion, `copyObject`, `orderedObject`, `plainObject`, `errors.As`를 씁니다. Test는 fixture의 오류에서 `t.Fatal`로 실패합니다. Red: `golangci-lint run`이 `74 issues`(errcheck 73, errorlint 1)로 exit 1; green: exit 0이며 `0 issues`, `go test -run Test ./...`는 `160 passed, 0 failed`.
 
 ### 2026-10-20 — Rust native generator program은 i64 row index로 빌드된다 (C16.50-3-1)
 

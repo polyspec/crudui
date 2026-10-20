@@ -449,7 +449,11 @@ func RenderForm(form *Form, options any) (string, error) {
 	if e != nil {
 		return "", e
 	}
-	buttons, e := FormButtonsHTML(bindButtons(form.template.Buttons, form.data, language, m))
+	evaluated, e := bindButtons(form.template.Buttons, form.data, language, m)
+	if e != nil {
+		return "", e
+	}
+	buttons, e := FormButtonsHTML(evaluated)
 	if e != nil {
 		return "", e
 	}

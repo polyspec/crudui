@@ -91,7 +91,12 @@ func formRenderModel(nodes []*Object, templateAction *Object, options any) (*ren
 	if hasAction {
 		member := func(key string) (string, bool) {
 			if v, ok := actionObject.Get(key); ok {
-				return v.(string), true
+				// stringMembers has checked every member of the action object, so v is a string.
+				s, isString := v.(string)
+				if !isString {
+					panic(fmt.Sprintf("action member %s is %T after stringMembers", key, v))
+				}
+				return s, true
 			}
 			s, ok := read(templateAction, key).(string)
 			return s, ok
@@ -110,7 +115,11 @@ func formRenderModel(nodes []*Object, templateAction *Object, options any) (*ren
 	if hiddenObject != nil {
 		for _, name := range hiddenObject.Keys() {
 			v, _ := hiddenObject.Get(name)
-			model.hidden = append(model.hidden, [2]string{name, v.(string)})
+			value, isString := v.(string)
+			if !isString {
+				return nil, fmt.Errorf("hidden must be an object of strings")
+			}
+			model.hidden = append(model.hidden, [2]string{name, value})
 		}
 	}
 	return model, nil

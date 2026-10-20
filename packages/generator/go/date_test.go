@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -58,14 +57,14 @@ func TestDateRenderingRetainsSourceData(t *testing.T) {
 	if err := empty.SetData(data); err != nil {
 		t.Fatal(err)
 	}
-	initialHTML, _ := RenderForm(initial, nil)
-	injectedHTML, _ := RenderForm(empty, nil)
+	initialHTML := renderHTML(t, initial)
+	injectedHTML := renderHTML(t, empty)
 	if initialHTML != injectedHTML {
 		t.Fatal("date injection changed HTML")
 	}
-	got, _ := json.Marshal(empty.GetData())
-	want, _ := json.Marshal(data)
-	if string(got) != string(want) {
+	got := encode(t, empty.GetData())
+	want := encode(t, data)
+	if got != want {
 		t.Fatal("date formatting changed the stored record")
 	}
 }

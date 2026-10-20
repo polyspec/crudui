@@ -38,7 +38,11 @@ func callHistoryFunction(t *testing.T, op string, args []any) *Object {
 	case "emptyHistory":
 		return NewObject("result", historyObject(EmptyHistory[any]()))
 	case "recordChange":
-		path, _ := args[2].(string)
+		// A change that is not a value edit has no path; any other type is a fixture error.
+		path, isString := args[2].(string)
+		if !isString && args[2] != nil {
+			t.Fatalf("recordChange path is %T, want a string or null", args[2])
+		}
 		return NewObject("result", historyObject(RecordChange(historyOf(args[0]), args[1], path)))
 	case "canUndoRedo":
 		history := historyOf(args[0])

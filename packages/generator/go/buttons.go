@@ -33,14 +33,14 @@ func buttonLabel(button *Object, language, fallback string) string {
 	return fallback
 }
 
-// buttonScript returns a non-empty behavior script: a string or the script of a { label, script } action.
-func buttonScript(button *Object, action string) string {
+// buttonScript returns the behavior script of an action: a string or the script of a { label, script }
+// action, "" when the button declares none.
+func buttonScript(button *Object, action string) (string, error) {
 	v := read(read(button, "behavior"), action)
 	if object(v) != nil {
 		v = read(v, "script")
 	}
-	s, _ := v.(string)
-	return s
+	return optionalString(v, "button behavior "+action+" script")
 }
 
 // BindButtons evaluates the template's buttons for a record in declaration order.
@@ -59,7 +59,7 @@ func BindButtons(template *FormTemplate, data *Object, options BindOptions) ([]*
 	if e != nil {
 		return nil, e
 	}
-	return bindButtons(template.Buttons, data, language, m), nil
+	return bindButtons(template.Buttons, data, language, m)
 }
 
 // bindLanguage returns the Language option, defaulting to ko and rejecting a non-string value.
@@ -75,8 +75,8 @@ func bindLanguage(options BindOptions) (string, error) {
 }
 
 // bindButtons evaluates declared buttons for a record; design rules read the record data.
-func bindButtons(buttons []*Object, data *Object, language string, m formMessages) []*Object {
-	lookup, _ := plainLookup(data).(map[string]any)
+func bindButtons(buttons []*Object, data *Object, language string, m formMessages) ([]*Object, error) {
+	lookup := plainObject(data)
 	out := make([]*Object, 0, len(buttons))
 	for _, button := range buttons {
 		kind := stringAt(button, "type")
@@ -100,12 +100,16 @@ func bindButtons(buttons []*Object, data *Object, language string, m formMessage
 				attrs.Set(name, s)
 			}
 		}
-		if script := buttonScript(button, "onclick"); script != "" {
+		script, e := buttonScript(button, "onclick")
+		if e != nil {
+			return nil, e
+		}
+		if script != "" {
 			attrs.Set("onclick", script)
 		}
 		out = append(out, NewObject("type", kind, "tag", tag, "text", buttonLabel(button, language, buttonText(m, kind)), "attrs", attrs))
 	}
-	return out
+	return out, nil
 }
 
 // buttonAttributes lists the attribute names an evaluated button may carry.
@@ -117,10 +121,10 @@ var buttonAttributes = map[string]bool{"type": true, "class": true, "style": tru
 func FormButtonsHTML(buttons []*Object) (string, error) {
 	var out strings.Builder
 	for _, button := range buttons {
-		tag, _ := read(button, "tag").(string)
+		tag, tagOK := read(button, "tag").(string)
 		text, textOK := read(button, "text").(string)
 		attrs := object(read(button, "attrs"))
-		if button == nil || (tag != "a" && tag != "button") || !textOK || attrs == nil {
+		if button == nil || !tagOK || (tag != "a" && tag != "button") || !textOK || attrs == nil {
 			return "", errNotEvaluatedButtons
 		}
 		out.WriteString("<" + tag)

@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -11,7 +12,18 @@ var isoDate = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})
 var rfcDate = regexp.MustCompile(`(?i)^(?:(Mon|Tue|Wed|Thu|Fri|Sat|Sun),[ \t]+)?(\d{1,2})[ \t]+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[ \t]+(\d{4})[ \t]+(\d{2}):(\d{2})(?::(\d{2}))?[ \t]+([+-]\d{4}|UT|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT)$`)
 var dateZones = map[string]int{"UT": 0, "GMT": 0, "EST": -5 * 3600, "EDT": -4 * 3600, "CST": -6 * 3600, "CDT": -5 * 3600, "MST": -7 * 3600, "MDT": -6 * 3600, "PST": -8 * 3600, "PDT": -7 * 3600}
 
-func dateInteger(value string) int { n, _ := strconv.Atoi(value); return n }
+// dateInteger reads a digit run that isoDate or rfcDate matched. An optional group that the pattern
+// did not match is "", which reads as 0 (a date without a time, or a time without seconds).
+func dateInteger(value string) int {
+	if value == "" {
+		return 0
+	}
+	n, err := strconv.Atoi(value)
+	if err != nil {
+		panic(fmt.Sprintf("date: %q is not a digit run matched by a date pattern: %v", value, err))
+	}
+	return n
+}
 func dateOffset(value string) (int, bool) {
 	if value == "" || value == "Z" {
 		return 0, true

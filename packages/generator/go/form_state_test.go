@@ -35,6 +35,22 @@ func fixtureCases(t *testing.T, family string) []*Object {
 	return cases
 }
 
+// fixtureString returns a fixture value that must be a string, and fails the test otherwise.
+func fixtureString(t *testing.T, value any) string {
+	t.Helper()
+	s, ok := value.(string)
+	if !ok {
+		t.Fatalf("fixture value %v is %T, want a string", value, value)
+	}
+	return s
+}
+
+// fixtureText returns the text argument at index i of a fixture call, which must be a string.
+func fixtureText(t *testing.T, args []any, i int) string {
+	t.Helper()
+	return fixtureString(t, args[i])
+}
+
 // marshal is the JSON text of a value.
 func marshal(t *testing.T, value any) string {
 	t.Helper()
@@ -137,7 +153,7 @@ func addRowOptions(options any) AddRowOptions {
 // perform runs one step on the form and returns what the step returned.
 func performStep(t *testing.T, form *Form, op string, args []any) (any, error) {
 	t.Helper()
-	text := func(i int) string { s, _ := args[i].(string); return s }
+	text := func(i int) string { return fixtureText(t, args, i) }
 	switch op {
 	case "resolveAction":
 		target, ok := ResolveAction(ActionInput{Action: stringAt(args[0], "action"), Path: stringAt(args[0], "path"), Key: stringAt(args[0], "key")})
@@ -166,7 +182,10 @@ func performStep(t *testing.T, form *Form, op string, args []any) (any, error) {
 	case "removeRow":
 		return nil, form.RemoveRow(text(0), text(1))
 	case "moveRow":
-		index, _ := strconv.Atoi(marshal(t, args[2]))
+		index, e := strconv.Atoi(marshal(t, args[2]))
+		if e != nil {
+			t.Fatal(e)
+		}
 		return nil, form.MoveRow(text(0), text(1), index)
 	case "rekeyRow":
 		return nil, form.RekeyRow(text(0), text(1), text(2))
@@ -274,10 +293,11 @@ func viewObject(view ViewState) *Object {
 }
 
 // viewOf reads the view of a function case argument.
-func viewOf(value any) ViewState {
+func viewOf(t *testing.T, value any) ViewState {
+	t.Helper()
 	view := InitialView()
 	for _, path := range list(read(value, "collapsed")) {
-		view.Collapsed = append(view.Collapsed, path.(string))
+		view.Collapsed = append(view.Collapsed, fixtureString(t, path))
 	}
 	return view
 }
@@ -299,24 +319,24 @@ func nodesOf(t *testing.T, spec, data any, collapsed []string) []*Object {
 // callViewFunction calls the view function of a case.
 func callViewFunction(t *testing.T, op string, args []any) any {
 	t.Helper()
-	text := func(i int) string { s, _ := args[i].(string); return s }
+	text := func(i int) string { return fixtureText(t, args, i) }
 	switch op {
 	case "initialView":
 		return viewObject(InitialView())
 	case "toggleRowView":
-		return viewObject(ToggleRowView(viewOf(args[0]), text(1)))
+		return viewObject(ToggleRowView(viewOf(t, args[0]), text(1)))
 	case "collapsibleRows":
 		return CollapsibleRows(nodesOf(t, args[0], args[1], nil))
 	case "setAllExpandedView":
 		return viewObject(SetAllExpandedView(nodesOf(t, args[0], args[1], nil), args[2] == true))
 	case "removeRowView":
-		return viewObject(RemoveRowView(viewOf(args[0]), text(1)))
+		return viewObject(RemoveRowView(viewOf(t, args[0]), text(1)))
 	case "rekeyRowView":
-		return viewObject(RekeyRowView(viewOf(args[0]), text(1), text(2)))
+		return viewObject(RekeyRowView(viewOf(t, args[0]), text(1), text(2)))
 	case "bindCollapsed":
 		collapsed := []string{}
 		for _, path := range list(args[2]) {
-			collapsed = append(collapsed, path.(string))
+			collapsed = append(collapsed, fixtureString(t, path))
 		}
 		return collapsedRows(nodesOf(t, args[0], args[1], collapsed))
 	}

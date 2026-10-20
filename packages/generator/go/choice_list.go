@@ -45,7 +45,10 @@ var appearanceMembers = []string{"class", "style", "attributes"}
 // group that is not a label and a non-empty list of choices without appearance members
 // (docs/spec/schema.md, Choice groups).
 func choicePairs(items any, appearance, groups bool) ([]choicePair, bool) {
-	a, _ := items.([]any)
+	a, isArray := items.([]any)
+	if !isArray {
+		return nil, false
+	}
 	pairs := make([]choicePair, 0, len(a))
 	seen := map[string]bool{}
 	add := func(item any, members []string) bool {
@@ -153,12 +156,13 @@ func checkChoiceAppearance(items any, path string) error {
 
 // choiceAppearance adds the appearance a checked choice declares to its option model: the label
 // class (className), the normalized label style (style) and the input attributes (attributes),
-// each only when declared.
+// each only when declared. checkChoiceAppearance has already rejected a class or style that is not
+// a string, so a non-string value is never read here.
 func choiceAppearance(option *Object, choice *Object) {
-	if class, _ := read(choice, "class").(string); class != "" {
+	if class, ok := read(choice, "class").(string); ok && class != "" {
 		option.Set("className", class)
 	}
-	if style, _ := read(choice, "style").(string); styleString(style) != "" {
+	if style, ok := read(choice, "style").(string); ok && styleString(style) != "" {
 		option.Set("style", styleString(style))
 	}
 	if attributes := object(read(choice, "attributes")); attributes != nil && attributes.Len() > 0 {

@@ -28,10 +28,9 @@ type bindState struct {
 	layout string
 }
 
-// declaredLayout returns the design.layout a group declares; compilation has checked the value.
-func declaredLayout(spec *Object) string {
-	layout, _ := read(read(spec, "design"), "layout").(string)
-	return layout
+// declaredLayout returns the design.layout a group declares, "" when it declares none.
+func declaredLayout(spec *Object, path string) (string, error) {
+	return optionalString(read(read(spec, "design"), "layout"), "design.layout at "+path)
 }
 
 // layoutState returns the state of a group's children: a declared layout replaces the inherited
@@ -92,10 +91,11 @@ func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Obj
 		*option.target = s
 	}
 	if options.Unsupported != nil {
-		if options.Unsupported != "throw" && options.Unsupported != "marker" {
+		unsupported, ok := options.Unsupported.(string)
+		if !ok || (unsupported != "throw" && unsupported != "marker") {
 			return nil, fmt.Errorf("unsupported must be throw or marker")
 		}
-		bound.Unsupported = options.Unsupported.(string)
+		bound.Unsupported = unsupported
 	}
 	bound.Collapsed = map[string]bool{}
 	for _, row := range options.Collapsed {
@@ -105,7 +105,7 @@ func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Obj
 	if e != nil {
 		return nil, e
 	}
-	s := bindState{data: data, lookup: plainLookup(data).(map[string]any), options: bound, language: language, messages: messages}
+	s := bindState{data: data, lookup: plainObject(data), options: bound, language: language, messages: messages}
 	return buildChildren(template.Fields, "", s)
 }
 func buildChildren(fields []FieldTemplate, path string, s bindState) ([]*Object, error) {
@@ -174,8 +174,8 @@ func multipleSettings(spec *Object) *multiple {
 	m.min, m.hasMin = asNumber(read(o, "min"))
 	m.max, m.hasMax = asNumber(read(o, "max"))
 	m.title, m.hasTitle = read(o, "title").(string)
-	if c := read(o, "controls"); c == "footer" || c == "outline" {
-		m.controls = c.(string)
+	if c, ok := read(o, "controls").(string); ok && (c == "footer" || c == "outline") {
+		m.controls = c
 	}
 	if read(o, "header") == "sticky" {
 		m.header = "sticky"
@@ -217,7 +217,7 @@ func declaredAttributes(design any, wrapper bool) *Object {
 	if o == nil || len(o.Keys()) == 0 {
 		return nil
 	}
-	return copyValue(o).(*Object)
+	return copyObject(o)
 }
 
 // nodeRoot starts a node with its kind, path, design.wrapper appearance and declared attributes.
@@ -357,7 +357,10 @@ func buildGroup(f FieldTemplate, path string, d *Object, label, description stri
 		return nil, e
 	}
 	vm := nodeRoot("group", path, d, f.Spec)
-	layout := declaredLayout(f.Spec)
+	layout, e := declaredLayout(f.Spec, path)
+	if e != nil {
+		return nil, e
+	}
 	// A line group is one row in an inline layout, and its children take no inline layout.
 	if layout == "line" {
 		inline := ""
@@ -393,7 +396,11 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 	}
 	rowsState := s
 	if item == "group" {
-		rowsState = layoutState(s, declaredLayout(f.Spec))
+		layout, e := declaredLayout(f.Spec, path)
+		if e != nil {
+			return nil, e
+		}
+		rowsState = layoutState(s, layout)
 	}
 	rows := []*Object{}
 	for i, key := range keys {
@@ -506,7 +513,10 @@ func buildLang(spec *Object, path string, d *Object, label, description string, 
 	if read(l, "frame") != false {
 		frame = "crudui-node--framed"
 	}
-	groupClass, _ := read(l, "group_class").(string)
+	groupClass, e := optionalString(read(l, "group_class"), "lang group_class at "+path)
+	if e != nil {
+		return nil, e
+	}
 	title := ""
 	if truthy(read(l, "title")) {
 		title = translate(read(l, "title"), s.language)

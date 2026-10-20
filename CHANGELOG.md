@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go generator handles its hidden errors (C16.67-12)
+
+- `packages/generator/go` checks or returns every error that the kit lint reports (C16.67-12): `bind.go` reads `design.layout`, `group_class` and the `unsupported` option with checked assertions and returns a non-string value as an error; `buttons.go` returns the error of a button `behavior` script from `bindButtons`, `BindButtons` and `RenderForm`; `instance.go` checks the path of every row operation and `Form.Template` now returns `(*FormTemplate, error)` with the clone error; `design.go` evaluates an expression it has parsed through `evaluateParsed`; `date.go` and `number.go` read digit runs with invariant messages, and `date.go` reads an unmatched optional group as 0; `widget.go` states the `json.Marshal` and `Encode` calls as invariants; `choice_list.go`, `form_render.go`, `list.go`, `template.go`, `value.go` and `examples/server/main.go` use checked assertions, `copyObject`, `orderedObject`, `plainObject` and `errors.As`; the tests fail with `t.Fatal` on the error of their fixture. Red: `golangci-lint run` exited 1 with `74 issues` (errcheck 73, errorlint 1); green: exit 0 with `0 issues`, and `go test -run Test ./...` gave `160 passed, 0 failed`.
+
 ### 2026-10-20 — The Rust native generator program builds with the i64 row index (C16.50-3-1)
 
 - The `moveRow` operation of `tests/native-generators/programs/rust/src/main.rs` reads its index as an `i64` and keeps refusing a negative or non-integer index with `Row position must be a nonnegative integer`, since C16.50-3 changed `Form::move_row` to take an `i64` (C16.50-3-1). Red: `cargo build --locked --manifest-path tests/native-generators/programs/rust/Cargo.toml` exited 101 with `error[E0308]: mismatched types` (expected `i64`, found `usize`) at `main.rs:147`; green: exit 0.

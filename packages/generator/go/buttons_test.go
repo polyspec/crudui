@@ -15,7 +15,7 @@ func TestFormButtonsDefaultDeclaredAndRejected(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	html, _ := RenderForm(f, nil)
+	html := renderHTML(t, f)
 	if !strings.HasSuffix(html, `</div><div class="crudui-form__footer"><div class="crudui-controls" role="group" aria-label="Form actions"><button type="submit" class="crudui-action crudui-action--text">Save</button></div></div></div>`) {
 		t.Fatal(html)
 	}
@@ -27,8 +27,11 @@ func TestFormButtonsDefaultDeclaredAndRejected(t *testing.T) {
 	if encode(t, declared.Action) != `{"method":"post","url":"/save"}` {
 		t.Fatal(encode(t, declared.Action))
 	}
-	f, _ = NewForm(declared, parseObject(t, `{}`), BindOptions{Language: "ko"})
-	html, _ = RenderForm(f, nil)
+	f, e = NewForm(declared, parseObject(t, `{}`), BindOptions{Language: "ko"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	html = renderHTML(t, f)
 	want := `<button type="submit" class="crudui-action crudui-action--text primary" name="__submitted__" value="go">저장하기</button><button type="reset" class="crudui-action crudui-action--text">초기화</button><button type="button" class="crudui-action crudui-action--text" onclick="history.back()">Cancel</button><a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a>`
 	if !strings.Contains(html, want) {
 		t.Fatal(html)

@@ -43,8 +43,14 @@ type absentValue struct{}
 
 var absent any = absentValue{}
 
-func isAbsent(v any) bool  { _, ok := v.(absentValue); return ok }
-func object(v any) *Object { o, _ := v.(*Object); return o }
+func isAbsent(v any) bool { _, ok := v.(absentValue); return ok }
+func object(v any) *Object {
+	o, ok := v.(*Object)
+	if !ok {
+		return nil
+	}
+	return o
+}
 func read(v any, key string) any {
 	if o := object(v); o != nil {
 		if x, ok := o.Get(key); ok {
@@ -55,7 +61,59 @@ func read(v any, key string) any {
 }
 func stringAt(v any, key string) string { return scalar(read(v, key)) }
 func has(v any, key string) bool        { o := object(v); return o != nil && o.Has(key) }
-func list(v any) []any                  { a, _ := v.([]any); return a }
+func list(v any) []any {
+	a, ok := v.([]any)
+	if !ok {
+		return nil
+	}
+	return a
+}
+
+// optionalString returns the string v, or "" when v is absent or null. Any other type is an
+// error that names what carries it.
+func optionalString(v any, what string) (string, error) {
+	if v == nil || isAbsent(v) {
+		return "", nil
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "", fmt.Errorf("%s must be a string", what)
+	}
+	return s, nil
+}
+
+// copyObject deep-copies an object. copyValue keeps the dynamic type of a non-nil *Object,
+// so the assertion cannot fail for one; a nil object is a broken invariant of the caller.
+func copyObject(o *Object) *Object {
+	copied := copyValue(o)
+	out, ok := copied.(*Object)
+	if !ok {
+		panic(fmt.Sprintf("copyValue returned %T for an *Object", copied))
+	}
+	return out
+}
+
+// orderedObject returns o in specification member order. OrderMembers keeps the dynamic type of an
+// *Object, so the assertion cannot fail for one.
+func orderedObject(o *Object) *Object {
+	ordered := compose.OrderMembers(o)
+	out, ok := ordered.(*Object)
+	if !ok {
+		panic(fmt.Sprintf("compose.OrderMembers returned %T for an *Object", ordered))
+	}
+	return out
+}
+
+// plainObject returns the lookup map of an object. plainLookup keeps the map type of an
+// object, so the assertion cannot fail for one; a nil object is a broken invariant of the caller.
+func plainObject(o *Object) map[string]any {
+	plain := plainLookup(o)
+	lookup, ok := plain.(map[string]any)
+	if !ok {
+		panic(fmt.Sprintf("plainLookup returned %T for an *Object", plain))
+	}
+	return lookup
+}
 func copyValue(v any) any {
 	switch x := v.(type) {
 	case *Object:
@@ -71,7 +129,7 @@ func copyValue(v any) any {
 	case []*Object:
 		out := make([]*Object, len(x))
 		for i, v := range x {
-			out[i] = copyValue(v).(*Object)
+			out[i] = copyObject(v)
 		}
 		return out
 	case []any:

@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 	"regexp"
@@ -52,7 +53,11 @@ func numberString(n float64) string {
 	if len(parts) != 2 {
 		return s
 	}
-	exponent, _ := strconv.Atoi(parts[1])
+	// FormatFloat writes the exponent as a signed decimal, so Atoi cannot fail for it.
+	exponent, err := strconv.Atoi(parts[1])
+	if err != nil {
+		panic(fmt.Sprintf("numberString: exponent %q of %v: %v", parts[1], n, err))
+	}
 	sign := ""
 	if exponent >= 0 {
 		sign = "+"

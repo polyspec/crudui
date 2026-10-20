@@ -36,6 +36,16 @@ func encode(t *testing.T, v any) string {
 	}
 	return string(b)
 }
+
+// renderHTML renders a form with no render options and fails the test on an error.
+func renderHTML(t *testing.T, f *Form) string {
+	t.Helper()
+	html, e := RenderForm(f, nil)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return html
+}
 func newForm(t *testing.T, template *FormTemplate, data *Object) *Form {
 	t.Helper()
 	f, e := NewForm(template, data, BindOptions{Language: "en"})
@@ -63,8 +73,8 @@ func TestTemplateCacheAndDataReplacement(t *testing.T) {
 	if e := injected.SetData(data); e != nil {
 		t.Fatal(e)
 	}
-	a, _ := RenderForm(initial, nil)
-	b, _ := RenderForm(injected, nil)
+	a := renderHTML(t, initial)
+	b := renderHTML(t, injected)
 	if a != b {
 		t.Fatal("Initial data and later injection must produce identical raw HTML")
 	}
@@ -74,7 +84,7 @@ func TestTemplateCacheAndDataReplacement(t *testing.T) {
 	if e := injected.SetData(data); e != nil {
 		t.Fatal(e)
 	}
-	again, _ := RenderForm(injected, nil)
+	again := renderHTML(t, injected)
 	if a != again {
 		t.Fatal("Repeated injection changed HTML")
 	}
@@ -84,7 +94,7 @@ func TestTemplateCacheAndDataReplacement(t *testing.T) {
 	if e := injected.SetData(data); e != nil {
 		t.Fatal(e)
 	}
-	again, _ = RenderForm(injected, nil)
+	again = renderHTML(t, injected)
 	if a != again {
 		t.Fatal("Restoring record changed HTML")
 	}
@@ -113,7 +123,7 @@ func TestScopedRowsAndDocumentOrder(t *testing.T) {
 	if e = f.RekeyRow(p, k, "__0000000000042__"); e != nil {
 		t.Fatal(e)
 	}
-	html, _ := RenderForm(f, nil)
+	html := renderHTML(t, f)
 	if !strings.Contains(html, `name="form[companies][__0000000000005__][stores][__0000000000042__][name]"`) {
 		t.Fatal("Rekey did not update descendant input names")
 	}
@@ -166,7 +176,7 @@ func TestRejectedOperationsAreAtomic(t *testing.T) {
 func TestEmptyMissingNullAndArrayValues(t *testing.T) {
 	template := compile(t, `{"type":"group","properties":{"tags":{"type":"text","multiple":true,"default":"new"}}}`)
 	empty := newForm(t, template, NewObject("tags", NewObject()))
-	html, _ := RenderForm(empty, nil)
+	html := renderHTML(t, empty)
 	if !strings.Contains(html, `<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="Collection controls"><button type="button" class="crudui-action" data-crudui-action="add-row" aria-label="Add"></button></div></div>`) || strings.Contains(html, `name="form[tags]`) {
 		t.Fatal("Empty collection must retain only its add control")
 	}
@@ -211,7 +221,10 @@ func TestDetachedDataAndFields(t *testing.T) {
 	if strings.Contains(encode(t, f.Fields()), "modified") {
 		t.Fatal("Fields exposes nested model state")
 	}
-	template := f.Template()
+	template, e := f.Template()
+	if e != nil {
+		t.Fatal(e)
+	}
 	template.Fields[0].Spec.Set("type", "text")
 	if stringAt(f.template.Fields[0].Spec, "type") != "group" {
 		t.Fatal("Template exposes instance structure")
@@ -262,7 +275,7 @@ func TestNativeBindingLabelsAndSelections(t *testing.T) {
 	template := compile(t, `{"type":"group","properties":{"active":{"type":"checkbox","label":"Active"},"memo":{"type":"textarea","label":"Memo","design":{"show":".active","wrapper":{"class":".active ? 'enabled' : 'disabled'"}}},"choices":{"type":"multichoice","label":"Choices","items":{"z":"Z","a":"A","q":"Q"}}}}`)
 	data := NewObject("active", true, "memo", "hello <world>", "choices", []any{"q", "z"})
 	f := newForm(t, template, data)
-	html, _ := RenderForm(f, nil)
+	html := renderHTML(t, f)
 	if !strings.Contains(html, `for="crudui:memo"`) || !strings.Contains(html, `name="form[choices][]"`) || strings.Count(html, `checked=""`) != 3 {
 		t.Fatal(html)
 	}
@@ -272,7 +285,7 @@ func TestNativeBindingLabelsAndSelections(t *testing.T) {
 	if e := f.SetValue("active", false); e != nil {
 		t.Fatal(e)
 	}
-	html, _ = RenderForm(f, nil)
+	html = renderHTML(t, f)
 	if !strings.Contains(html, `<div class="crudui-node crudui-node--field disabled" data-field-path="memo" hidden="">`) {
 		t.Fatal("Conditional display was not reevaluated")
 	}
@@ -304,7 +317,7 @@ func TestNodeGrammarRowsAndControls(t *testing.T) {
 	if stringAt(read(nested, "header"), "number") != "1.2" || stringAt(read(nested, "controls"), "placement") != "header" {
 		t.Fatal(encode(t, nested))
 	}
-	html, _ := RenderForm(f, nil)
+	html := renderHTML(t, f)
 	for _, part := range []string{
 		`<div class="crudui-form"><div class="crudui-form__body"><div class="crudui-node crudui-node--collection" data-field-path="items">`,
 		`<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header-container"><div class="crudui-node__header"><button type="button" class="crudui-action" data-crudui-action="toggle-row" aria-expanded="true" aria-controls="crudui:items.first:body" aria-label="Expand or collapse"></button>`,

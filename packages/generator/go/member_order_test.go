@@ -12,7 +12,11 @@ func decodeObject(t *testing.T, input string) *Object {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return v.(*Object)
+	o, ok := v.(*Object)
+	if !ok {
+		t.Fatalf("decoded %T, want *Object", v)
+	}
+	return o
 }
 
 // inOrder reports whether each marker occurs in s after the previous one.
@@ -45,10 +49,18 @@ func TestCompileFormUsesMemberOrder(t *testing.T) {
 	if got := fieldNames(template.Fields); got != "10,b,a" {
 		t.Fatalf("got %s, want 10,b,a", got)
 	}
-	if got, _ := json.Marshal(read(template.Fields[1].Spec, "items")); string(got) != `{"5":"Five","y":"Y"}` {
+	got, err := json.Marshal(read(template.Fields[1].Spec, "items"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != `{"5":"Five","y":"Y"}` {
 		t.Fatalf("items %s", got)
 	}
-	if keys := read(spec, "properties").(*Object).Keys(); strings.Join(keys, ",") != "b,10,a" {
+	properties := object(read(spec, "properties"))
+	if properties == nil {
+		t.Fatal("the specification lost its properties")
+	}
+	if keys := properties.Keys(); strings.Join(keys, ",") != "b,10,a" {
 		t.Fatalf("the specification was modified: %v", keys)
 	}
 }
@@ -98,7 +110,10 @@ func TestFormDataKeepsInsertionOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, _ := json.Marshal(form.GetData())
+	got, err := json.Marshal(form.GetData())
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !inOrder(string(got), `"b":"x"`, `"10":"y"`, `"z":1`, `"3":2`) {
 		t.Fatalf("data reordered: %s", got)
 	}

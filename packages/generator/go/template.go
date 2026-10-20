@@ -72,7 +72,7 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
 	}
-	spec, _ = compose.OrderMembers(spec).(*Object)
+	spec = orderedObject(spec)
 	if spec == nil || stringAt(spec, "type") != "group" || object(read(spec, "properties")) == nil {
 		return nil, fmt.Errorf("A form spec must be a group with properties")
 	}
@@ -94,13 +94,14 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	buttons := []*Object{NewObject("type", "submit")}
 	if declared, ok := read(spec, "buttons").([]any); ok {
 		buttons = []*Object{}
+		// checkFormDeclarations has checked that every button is an object.
 		for _, button := range declared {
-			buttons = append(buttons, copyValue(button).(*Object))
+			buttons = append(buttons, copyObject(object(button)))
 		}
 	}
 	var action *Object
 	if declared := object(read(spec, "action")); declared != nil {
-		action = copyValue(declared).(*Object)
+		action = copyObject(declared)
 	}
 	var description any
 	if spec.Has("description") {
@@ -138,8 +139,8 @@ func checkFormDeclarations(spec *Object) error {
 		if button == nil {
 			return fail(key, "an object")
 		}
-		kind, _ := read(button, "type").(string)
-		if !formButtonTypes[kind] {
+		kind, isString := read(button, "type").(string)
+		if !isString || !formButtonTypes[kind] {
 			return fail(key+".type", "submit, reset, button or link")
 		}
 		for _, name := range []string{"name", "value", "href"} {
@@ -181,7 +182,7 @@ func compileFields(p *Object, parent string) ([]FieldTemplate, error) {
 		if e != nil {
 			return nil, e
 		}
-		s := copyValue(raw).(*Object)
+		s := copyObject(raw)
 		s.Delete("properties")
 		out = append(out, FieldTemplate{Name: name, Spec: s, Children: children})
 	}
@@ -292,10 +293,10 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 					return fail("multiple.title", "the name of a direct child field without multiple, properties or lang")
 				}
 			}
-			if c, _ := read(settings, "controls").(string); settings.Has("controls") && c != "header" && c != "footer" && c != "outline" {
+			if c, isString := read(settings, "controls").(string); settings.Has("controls") && (!isString || (c != "header" && c != "footer" && c != "outline")) {
 				return fail("multiple.controls", "header, footer or outline")
 			}
-			if h, _ := read(settings, "header").(string); settings.Has("header") && h != "static" && h != "sticky" {
+			if h, isString := read(settings, "header").(string); settings.Has("header") && (!isString || (h != "static" && h != "sticky")) {
 				return fail("multiple.header", "static or sticky")
 			}
 		}
@@ -471,7 +472,7 @@ func checkDesignDeclaration(design any, path string, field bool, layouts []strin
 			return e
 		}
 	}
-	if layout, _ := read(d, "layout").(string); layouts != nil && d.Has("layout") && !slices.Contains(layouts, layout) {
+	if layout, isString := read(d, "layout").(string); layouts != nil && d.Has("layout") && (!isString || !slices.Contains(layouts, layout)) {
 		if len(layouts) == 3 {
 			return fail("design.layout", "stacked, inline or line")
 		}

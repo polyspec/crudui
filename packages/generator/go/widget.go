@@ -86,7 +86,12 @@ func sourceAttrs(items any) *Object {
 	if relations == nil || isAbsent(relations) {
 		relations = []any{}
 	}
-	b, _ := json.Marshal(relations)
+	// relations was checked by checkOrderedValue with the whole specification, so it is a supported
+	// value with finite numbers, and Marshal cannot fail for it.
+	b, e := json.Marshal(relations)
+	if e != nil {
+		panic(fmt.Sprintf("sourceAttrs: marshal of checked relations: %v", e))
+	}
 	return NewObject("data-source-model", stringAt(items, "model"), "data-source-method", stringAt(items, "method"), "data-source-table", stringAt(items, "table"), "data-source-relations", string(b))
 }
 func (c widgetContext) options(selected []string, defaults *string) []*Object {
@@ -572,6 +577,9 @@ func scriptString(value string) string {
 	var b bytes.Buffer
 	enc := json.NewEncoder(&b)
 	enc.SetEscapeHTML(false)
-	_ = enc.Encode(value)
+	// Encoding a string into a bytes.Buffer cannot fail.
+	if e := enc.Encode(value); e != nil {
+		panic(fmt.Sprintf("scriptString: encode of a string: %v", e))
+	}
 	return strings.ReplaceAll(strings.TrimSuffix(b.String(), "\n"), "<", `\u003c`)
 }
