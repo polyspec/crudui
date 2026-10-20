@@ -6,18 +6,11 @@ Implementation and verification are recorded in [feature status](../features.md)
 
 ## Required capabilities
 
-JavaScript, PHP, Go and Rust provide specification composition, form structure
-compilation, data binding, HTML rendering and validation. PHP native execution
-provides both form generation and validation. A server language can render forms
-without starting a JavaScript server or invoking another language's executable.
+- **CURP-001** Every implementation (JavaScript/TypeScript, PHP library, PHP native extension, Go, Rust and Python) provides composition and expressions, form compilation and binding, form HTML, list and detail rendering, and validation.
 
-- **CURP-001** JavaScript — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
-- **CURP-002** PHP — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
-- **CURP-003** Go — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
-- **CURP-004** Rust — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
-- **CURP-005** PHP native extension — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
+A server language can render forms without starting a JavaScript server or invoking another language's executable.
 
-These items define requirements, not completed implementation. The PHP extension
+This item defines a requirement, not completed implementation. The PHP extension
 may share compiled libraries, but both operations execute inside the PHP process.
 PHP packages and the extension implement the same public classes. An enabled
 extension registers those classes before any script runs; otherwise,

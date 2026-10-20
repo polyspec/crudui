@@ -1115,7 +1115,7 @@ function written(c: WrittenCase | FailingCase): Record<string, unknown> {
  */
 const REQUIREMENTS: Record<string, string[]> = {
   'enddate-relative-path-2026-01-01': ['CUVR-013'],
-  'property-member-order': ['CUVR-001'],
+  'property-member-order': ['CUVR-001', 'CURP-001'],
   'composed-member-order': ['CUVR-001'],
   'enddate-parent-path': ['CUVR-013'],
   'enddate-field-path-2026-01-01': ['CUVR-013'],

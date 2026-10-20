@@ -967,7 +967,7 @@ function build(): ListFixtureCase[] {
 }
 
 const REQUIREMENTS: Record<string, readonly string[]> = {
-  "basic-columns": ["CUDF-044", "CUDF-047"],
+  "basic-columns": ["CUDF-044", "CUDF-047", "CURP-001"],
   "format-date": ["CUDF-006", "CUDF-008", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-083"],
   "format-number": ["CUDF-003", "CUDF-006", "CUDF-009", "CUDF-016", "CUDF-018", "CUDF-019", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-050", "CUDF-083"],
   "format-number-shortest": ["CUDF-006", "CUDF-009", "CUDF-017", "CUDF-018", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-083"],

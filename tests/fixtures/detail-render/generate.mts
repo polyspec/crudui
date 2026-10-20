@@ -474,7 +474,7 @@ const cases = SCENARIOS.map((scenario) => {
 
 const REQUIREMENTS: Record<string, readonly string[]> = {
   "text-with-nul": ["CUDF-045", "CUDF-047"],
-  "basic-fields": ["CUDF-045", "CUDF-047"],
+  "basic-fields": ["CUDF-045", "CUDF-047", "CURP-001"],
   "basic-fields-korean": ["CUDF-045", "CUDF-047"],
   "format-date": ["CUDF-006", "CUDF-008", "CUDF-045", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-083"],
   "format-number": ["CUDF-006", "CUDF-009", "CUDF-016", "CUDF-018", "CUDF-019", "CUDF-045", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-050", "CUDF-083"],

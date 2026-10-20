@@ -3,7 +3,8 @@
     "name": "pass-paired-surrogates",
     "note": "a surrogate pair is valid text in a specification and in the key prefix.",
     "requirements": [
-      "CUIT-010"
+      "CUIT-010",
+      "CURP-001"
     ],
     "spec": {
       "type": "group",

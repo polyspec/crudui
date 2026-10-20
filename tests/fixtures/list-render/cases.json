@@ -5,6 +5,7 @@
     "requirements": [
       "CUDF-044",
       "CUDF-047",
+      "CURP-001",
       "CURP-015"
     ],
     "spec": {

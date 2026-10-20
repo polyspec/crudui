@@ -603,7 +603,8 @@
       "CUMK-003",
       "CUMK-005",
       "CUMK-013",
-      "CUMK-021"
+      "CUMK-021",
+      "CURP-001"
     ],
     "spec": {
       "type": "group",

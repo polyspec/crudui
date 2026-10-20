@@ -156,6 +156,7 @@
     },
     "requirements": [
       "CUVR-001",
+      "CURP-001",
       "CURP-018",
       "CURP-022"
     ]

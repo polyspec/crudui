@@ -422,7 +422,7 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "multiple-group-rows": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-005", "CUMK-006", "CUMK-007", "CUMK-013", "CUMK-014", "CUMK-016", "CUMK-017", "CUMK-018", "CUMK-022", "CUMK-023", "CUMK-033", "CUMK-058", "CUMK-063"],
   "lang-default-langs": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-005", "CUMK-015", "CUMK-024", "CUMK-025"],
   "lang-settings-only-frame-off": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-005", "CUMK-015", "CUMK-024", "CUMK-025", "CUMK-032"],
-  "group-nested-properties": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-005", "CUMK-013", "CUMK-021"],
+  "group-nested-properties": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-005", "CUMK-013", "CUMK-021", "CURP-001"],
   "nested-empty-collections-keep-sibling-order": ["CUEC-001", "CUMK-001", "CUMK-002", "CUMK-003", "CURP-027"],
   "collection-shown-by-condition": ["CUEC-006", "CUMK-001", "CUMK-002", "CUMK-003"],
   "collection-hidden-by-condition": ["CUEC-006", "CUMK-001", "CUMK-002", "CUMK-003"],

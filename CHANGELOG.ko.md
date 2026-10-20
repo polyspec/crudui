@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e8c74c8672b1876333e55a57f5b7d645ded33a029382f3bdc15bb8572e586774 -->
+<!-- source-sha256: c0cd43117ceb1ce4d51c74529e961acb8346a30aab35f9682096f6e58fe80704 -->
 
 ## Unreleased
 
@@ -33,6 +33,17 @@ Red: `make item-red ID=C16.155 BEFORE=69bd6b3b`가 exit 1로, 위 파일의 `R5 
 ### 2026-10-21 — form-view와 form-history의 cases가 생성기와 같다 (C16.154)
 
 - `tests/fixtures/form-state/generate.mts`가 세 view 세션에 CUMK-057을, 네 history 세션에 CUMK-061을 인용한다 (C16.154). main이 `tests/fixtures/form-view/cases.json`과 `tests/fixtures/form-history/cases.json`에 손으로 써 넣은 인용이다. `session()`은 각 case의 `requirements`를 main과 같이 정렬하여 쓰므로, 재생성이 main의 파일을 그대로 만든다. `set-data-restarts-history-and-view`의 requirements 순서와 `tests/fixtures/form-actions/cases.json`의 case 순서가 바뀌며, 내용은 바뀌지 않는다. Red: `sh -c 'node tests/fixtures/form-state/generate.mts && git diff --exit-code -- tests/fixtures/form-view/cases.json tests/fixtures/form-history/cases.json tests/fixtures/form-actions/cases.json'` exit 1, 재생성이 form-history의 네 case에서 CUMK-061을 빼고 requirements 순서를 바꾼다. Green: 재생성된 파일에서 exit 0이며, `make -s parity-declarations-check`의 출력 줄은 변경 전과 같다.
+
+### 2026-10-21 — 여섯 런타임이 중립 항목 하나(CURP-001)의 런타임 능력을 제공한다 (C16.150)
+
+- `docs/spec/runtime-packages.md`와 한국어 쌍: 구현마다 같은 네 능력을 가진 CURP-001부터 CURP-005까지의 다섯 항목을, 모든 구현(JavaScript/TypeScript, PHP 라이브러리, PHP 네이티브 확장, Go, Rust, Python)이 제공하는 중립 항목 CURP-001 하나로 바꿨다. CURP-002부터 CURP-005까지는 제거했고, 목록 앞 문단에 서버 언어가 다른 런타임 없이 폼을 렌더링한다는 문장을 두었다 (C16.150). 제거된 각 id는 경로 1(native 통합)이다: 각 구현이 같은 네 능력을 자기 형태로 가진다 (Python은 packages/generator/python과 packages/validator/python). CURP-001은 스위트 단위 `text-compile-form`(케이스 `pass-paired-surrogates`), `text-bind-form`(`pass-paired-surrogates`), `form-render`(`group-nested-properties`), `list-render`(`basic-columns`), `detail-render`(`basic-fields`), `validate`(`property-member-order`)가 인용하고, 각 케이스가 `requirements`에 이를 나열한다. 해당 케이스의 id는 `tests/fixtures/list-render/generate.mts`, `tests/fixtures/detail-render/generate.mts`, `packages/react/scripts/generate-form-render-cases.mts`, `tests/fixtures/validate/generate.mts`에 둔다. `tests/fixtures/validate/cases.json`은 그 id 하나만 손으로 고쳤다. 생성기가 그 파일을 재현하지 못하기 때문이다(케이스 `expression-scalar-equals-array-is-false`는 생성되지 않는다).
+- 조합과 표현식은 아직 인용하지 않는다: main에 compose 또는 expression 단위가 없다. 그 단위가 들어올 때 CURP-001을 인용하며, 통합자가 그때 추가한다 (C16.150).
+
+| id | 경로 | 이유 |
+| --- | --- | --- |
+| CURP-001부터 CURP-005까지 | 1 (native 통합) | 모든 구현이 같은 네 능력을 자기 형태로 가지므로, 구현별 다섯 항목을 중립 항목 하나로 대체한다 |
+
+Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, R13 줄 다섯 개(CURP-001부터 CURP-005까지 정의되고 어떤 단위도 인용하지 않음), 61 findings; green: exit 0, CURP-001부터 CURP-005까지의 줄이 남지 않음, 56 findings, `check-documents` 통과 (C16.150).
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 

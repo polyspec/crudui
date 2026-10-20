@@ -29,6 +29,7 @@
     "requirements": [
       "CUDF-045",
       "CUDF-047",
+      "CURP-001",
       "CURP-017"
     ],
     "spec": {
