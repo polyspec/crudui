@@ -44,10 +44,15 @@ final class TextValidityConformanceTest extends TestCase
      */
     private static function decodeFixture(string $raw): mixed
     {
-        self::assertSame(0, \preg_match('/\\\\u[fF][89a-fA-F][0-9a-fA-F]{2}/', $raw), 'the fixture holds no private-use escape');
+        self::assertSame(
+            0,
+            \preg_match('/\\\\u[fF][89a-fA-F][0-9a-fA-F]{2}/', $raw),
+            'the fixture holds no private-use escape'
+        );
         self::assertSame(0, \preg_match('/\\xEF[\\xA0-\\xBF]/', $raw), 'the fixture holds no private-use character');
         $marked = \preg_replace_callback(
-            '/\\\\u[dD][89a-fA-F][0-9a-fA-F]{2}\\\\u[dD][c-fC-F][0-9a-fA-F]{2}|\\\\u([dD][89a-fA-F][0-9a-fA-F]{2})|\\\\./',
+            '/\\\\u[dD][89a-fA-F][0-9a-fA-F]{2}\\\\u[dD][c-fC-F][0-9a-fA-F]{2}|' .
+            '\\\\u([dD][89a-fA-F][0-9a-fA-F]{2})|\\\\./',
             static fn (array $match): string => isset($match[1])
                 ? '\\u' . \dechex(0xF800 + \hexdec($match[1]) - 0xD800)
                 : $match[0],
@@ -62,7 +67,9 @@ final class TextValidityConformanceTest extends TestCase
             return \preg_replace_callback(
                 '/\\xEF[\\xA0-\\xBF][\\x80-\\xBF]/',
                 static function (array $match): string {
-                    $code = ((\ord($match[0][0]) & 0x0F) << 12) | ((\ord($match[0][1]) & 0x3F) << 6) | (\ord($match[0][2]) & 0x3F);
+                    $code = ((\ord($match[0][0]) & 0x0F) << 12)
+                        | ((\ord($match[0][1]) & 0x3F) << 6)
+                        | (\ord($match[0][2]) & 0x3F);
                     $unit = 0xD800 + $code - 0xF800;
                     return \chr(0xE0 | $unit >> 12) . \chr(0x80 | $unit >> 6 & 0x3F) . \chr(0x80 | $unit & 0x3F);
                 },
@@ -205,12 +212,20 @@ final class TextValidityConformanceTest extends TestCase
         ];
         foreach ($sequences as $name => $bytes) {
             self::assertSame(
-                ['code' => 'INVALID_TEXT', 'message' => 'Text must be Unicode scalar values', 'at' => 'properties.name.label'],
+                [
+                    'code' => 'INVALID_TEXT',
+                    'message' => 'Text must be Unicode scalar values',
+                    'at' => 'properties.name.label',
+                ],
                 self::outcome(static fn () => Validator::validate($spec('A' . $bytes), [])),
                 $name
             );
             self::assertSame(
-                ['code' => 'INVALID_FORM_INPUT', 'message' => 'Text must be Unicode scalar values' . ': data.rows.1', 'at' => ''],
+                [
+                    'code' => 'INVALID_FORM_INPUT',
+                    'message' => 'Text must be Unicode scalar values' . ': data.rows.1',
+                    'at' => '',
+                ],
                 self::outcome(static fn () => Validator::validate($spec('A'), ['rows' => ['ok', [$bytes => 1]]])),
                 $name
             );
@@ -223,7 +238,11 @@ final class TextValidityConformanceTest extends TestCase
                 $name
             );
             self::assertSame(
-                ['code' => 'INVALID_FORM_INPUT', 'message' => 'Text must be Unicode scalar values' . ': options.basepath', 'at' => ''],
+                [
+                    'code' => 'INVALID_FORM_INPUT',
+                    'message' => 'Text must be Unicode scalar values' . ': options.basepath',
+                    'at' => '',
+                ],
                 self::outcome(static fn () => Validator::validateDetail(['fields' => []], ['basepath' => $bytes])),
                 $name
             );

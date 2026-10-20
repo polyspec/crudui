@@ -51,7 +51,8 @@ final class DetailTest extends TestCase
             '<dl class="crudui-detail"></dl>',
             Generator::renderDetail(['fields' => new stdClass()], $emptyObject)
         );
-        // An associative decode of {} is the empty array, which is a list and so no object (docs/spec/display-formats.md).
+        // An associative decode of {} is the empty array, which is a list and so no object
+        // (docs/spec/display-formats.md).
         $emptyArray = json_decode('{}', true, 512, JSON_THROW_ON_ERROR);
         $this->expectExceptionMessage('Detail record must be an object');
         Generator::renderDetail(['fields' => new stdClass()], $emptyArray);

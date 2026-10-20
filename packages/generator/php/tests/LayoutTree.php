@@ -9,13 +9,15 @@ use Dom\Node;
 use Dom\Text;
 
 /**
- * The layout comparison of the fixtures, as the Python and JavaScript normalizers make it: both sides are parsed with the HTML5 parser into a tree with sorted attributes,
+ * The layout comparison of the fixtures, as the Python and JavaScript normalizers make it: both sides are parsed with
+ * the HTML5 parser into a tree with sorted attributes,
  * boolean attributes empty, a canonical style attribute and no whitespace-only text outside preformatted elements.
  */
 trait LayoutTree
 {
     /**
-     * The HTML of a string renderer without its image preload links: the list and detail expectations cover the body only,
+     * The HTML of a string renderer without its image preload links: the list and detail expectations cover the body
+     * only,
      * so the links are removed on both sides of their comparison.
      */
     private static function withoutPreloads(string $html): string
@@ -35,8 +37,10 @@ trait LayoutTree
     }
 
     /**
-     * The declarations of a style attribute as `property: value` joined by `; `, the layout the fixtures compare. Only the
-     * public API is used by the tests, so this is the test's own reading of the text: it trims each part and drops empty
+     * The declarations of a style attribute as `property: value` joined by `; `, the layout the fixtures compare. Only
+     * the
+     * public API is used by the tests, so this is the test's own reading of the text: it trims each part and drops
+     * empty
      * declarations, and it does not normalize values.
      */
     private static function canonicalStyle(string $style): string

@@ -148,7 +148,10 @@ final class DisplayRulesTest extends TestCase
         );
     }
 
-    /** A non-finite page or total is no integer: the operation reports the rule of the option, as the extension must too. */
+    /**
+     * A non-finite page or total is no integer: the operation reports the rule of the option, as the extension
+     * must too.
+     */
     public function testNonFiniteCountsFailWithTheirRules(): void
     {
         $spec = ['columns' => ['v' => ['field' => 'v']]];
@@ -250,11 +253,17 @@ final class DisplayRulesTest extends TestCase
         );
         self::assertFailure(
             'Invalid design.wrapper at detail: expected an object',
-            fn () => Generator::renderDetail(['design' => ['wrapper' => 'box'], 'fields' => new stdClass()], new stdClass())
+            fn () => Generator::renderDetail(
+                ['design' => ['wrapper' => 'box'], 'fields' => new stdClass()],
+                new stdClass()
+            )
         );
         self::assertFailure(
             'Invalid design.wrapper at detail: expected an object',
-            fn () => Generator::buildDetail(['design' => ['wrapper' => 'box'], 'fields' => new stdClass()], new stdClass())
+            fn () => Generator::buildDetail(
+                ['design' => ['wrapper' => 'box'], 'fields' => new stdClass()],
+                new stdClass()
+            )
         );
         // Declared designs that follow the rules render.
         self::assertStringContainsString(

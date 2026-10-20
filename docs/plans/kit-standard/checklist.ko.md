@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c259d9c49c1513520c7824adb546af39e39bbc41b889f1630a29e4ce1d31266e -->
+<!-- source-sha256: 490c59176ba18749a29aaf02a2a8517fc6bec1ec572ed3d2aca53cea695ae1c4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -188,3 +188,5 @@
 | C16.97 | PHP extension은 public API만으로 rendering conformance suite를 실행한다 | packages/generator/php/tests/RenderingConformanceTest.php, packages/generator/php/tests/LayoutTree.php, packages/generator/php/tests/ListRenderConformanceTest.php, packages/generator/php/tests/DetailRenderConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php tests/OutlineTest.php tests/FormCompleteConformanceTest.php tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest\|OutlineTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest'` | [o] |
 | C16.98 | 공유 suite를 시험하지 않는 Rust test 파일은 이유와 함께 internal로, 공용 test 도우미는 support 파일로 선언한다 | config/parity.json | `test "$(make parity-declarations-check > var/parity-gate.log 2>&1; grep -c "R5 undeclared-test rust" var/parity-gate.log)" -le 4` | [o] |
 | C16.99 | Rust JsonText 단위 test는 internal이다: 반복 member 규칙은 TypeScript 명세 parser와 Rust JsonText parser에만 묶인다 | config/parity.json | `test "$(make parity-declarations-check > var/parity-gate.log 2>&1; grep -c "R5 undeclared-test rust" var/parity-gate.log)" -eq 3`, `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/text/json.test.ts` | [o] |
+| C16.107 | repository의 PHP file은 phpcs 줄 길이 규칙을 통과한다 | the PHP files that phpcs reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` | [o] |
+| C16.107-1 | repository의 TypeScript file은 oxlint를 통과한다 | the TypeScript files that oxlint reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-ts` | [ ] |

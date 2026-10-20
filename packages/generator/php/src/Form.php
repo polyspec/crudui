@@ -397,7 +397,9 @@ final class Form
                 $rows = new stdClass();
                 $entries = $raw !== Missing::Value
                     ? $raw
-                    : (self::dataOnly($field) ? new stdClass() : (object) [($fresh ? self::freshKey([]) : '__0000000000000__') => Missing::Value]);
+                    : (self::dataOnly($field)
+                        ? new stdClass()
+                        : (object) [($fresh ? self::freshKey([]) : '__0000000000000__') => Missing::Value]);
                 foreach ($entries as $key => $row) {
                     self::checkKey((string) $key);
                     $rows->{$key} = $this->normalizeRow($field, $row, $fieldPath . '.' . $key, $fresh);

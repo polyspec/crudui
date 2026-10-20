@@ -516,11 +516,17 @@ final class ApiReport
                 'Invalid design.label.text at fields.name: unknown key'
             ],
             [
-                fn()=>Generator::buildDetail(['fields' => ['a' => ['design' => false],'b' => ['design' => null]]], new stdClass()),
+                fn()=>Generator::buildDetail(
+                    ['fields' => ['a' => ['design' => false],'b' => ['design' => null]]],
+                    new stdClass()
+                ),
                 'Invalid design at fields.b: expected a boolean or an object'
             ],
             [
-                fn()=>Generator::buildDetail(['design' => ['wrapper' => 'box'],'fields' => new stdClass()], new stdClass()),
+                fn()=>Generator::buildDetail(
+                    ['design' => ['wrapper' => 'box'],'fields' => new stdClass()],
+                    new stdClass()
+                ),
                 'Invalid design.wrapper at detail: expected an object'
             ],
             [

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b1e9bc18c7fc620644b86d25cbcdeb98e44d3d193812388db9ebd5d1aade2946 -->
+<!-- source-sha256: 87fd58c54a46367648c71fff8e32d1f51dc11df1fe3b07e0a9604a29cc7eceb3 -->
 
 ## Unreleased
+
+### 2026-10-21 — PHP file이 phpcs 줄 길이 규칙을 통과한다 (C16.107)
+
+- `make lint-php`가 보고한 PHP file들을 120자로 줄바꿈했습니다(C16.107). `packages/generator/php/src/Form.php`(`normalizeFields`), `src/Internal/Lists.php`, test `DetailRenderConformanceTest.php`, `ListRenderConformanceTest.php`, `FormCompleteConformanceTest.php`, `LayoutTree.php`, `DetailTest.php`, `DisplayRulesTest.php`, `packages/php-ext/tests/ApiReport.php`, `packages/validator/php/tests/Validate/TextValidityConformanceTest.php`, `UniqueValuesTest.php`의 docblock과 comment를 줄바꿈하고, 코드 줄은 값을 바꾸지 않고 나눴습니다(`TextValidityConformanceTest`의 정규식은 `|`에서 이어 붙입니다). 이 규칙은 kit의 PSR-12 `phpcs.xml.dist`(kit K77, 2026-10-13)이며, 줄은 main이 2026-10-20과 2026-10-21에 합친 file(C16.70, C16.87, C16.89 ~ C16.97)에서 왔습니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` exit 2, 17 file의 Generic.Files.LineLength warning 30개. Green: 같은 명령 exit 0; owner test `DisplayRulesTest`, `DetailTest`, `DetailRenderConformanceTest`, `ListRenderConformanceTest`, `FormCompleteConformanceTest`, `FormTest`는 305 test, `TextValidityConformanceTest`와 `UniqueValuesTest`는 48 test가 통과하고, `packages/php-ext/tests/ApiReport.php`는 exit 0입니다.
 
 ### 2026-10-21 — Rust generator와 validator가 embed된 contract를 include_str로 검사한다 (C16.58-13)
 

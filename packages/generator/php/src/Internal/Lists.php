@@ -21,7 +21,8 @@ final class Lists
     }
 
     /**
-     * Check the list input in the order every runtime uses (docs/spec/display-formats.md): the argument shapes in argument
+     * Check the list input in the order every runtime uses (docs/spec/display-formats.md): the argument shapes in
+     * argument
      * order, then the declaration, then the options.
      */
     private static function checkInput(mixed $spec, mixed $rows, array $options): void

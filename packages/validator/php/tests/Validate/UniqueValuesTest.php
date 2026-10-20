@@ -60,6 +60,9 @@ final class UniqueValuesTest extends TestCase
             array_map(static fn (string $code): array => ['code' => $code], $codes),
         )];
         self::assertFalse(Validator::validate($spec, $rows('x', 'x'))->valid);
-        self::assertTrue(Validator::validate($spec, $rows('x', 'y'))->valid, 'a second validation answers from its own rows');
+        self::assertTrue(
+            Validator::validate($spec, $rows('x', 'y'))->valid,
+            'a second validation answers from its own rows'
+        );
     }
 }

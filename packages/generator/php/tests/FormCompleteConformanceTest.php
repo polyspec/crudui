@@ -13,7 +13,8 @@ use stdClass;
 
 /**
  * The complete form fixtures against the PHP generator: each case of tests/fixtures/form-complete is compiled from its
- * specification, bound with its data and options, and rendered with its render options. The output equals `expected_html`
+ * specification, bound with its data and options, and rendered with its render options. The output equals
+ * `expected_html`
  * byte for byte, and a case with `expectError` raises a FormError with the recorded code and message
  * (tests/fixtures/form-complete/README.md). The same file runs against the native PHP extension, so it uses only the
  * public API of the library: Generator and Form.

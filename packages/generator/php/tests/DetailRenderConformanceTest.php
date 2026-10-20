@@ -10,9 +10,12 @@ use Polyspec\Crudui\Generator;
 use stdClass;
 
 /**
- * The detail layout fixtures against the PHP generator: each case of tests/fixtures/detail-render renders its supplied record
- * with its options. The layout of the output equals `expected_html` after the image preload links are removed, as the Python
- * runner compares it (tests/fixtures/detail-render/README.md); a case with `expectError` raises a FormError with the recorded
+ * The detail layout fixtures against the PHP generator: each case of tests/fixtures/detail-render renders its supplied
+ * record
+ * with its options. The layout of the output equals `expected_html` after the image preload links are removed, as the
+ * Python
+ * runner compares it (tests/fixtures/detail-render/README.md); a case with `expectError` raises a FormError with the
+ * recorded
  * code and message. The same file runs against the native PHP extension, so it uses only the public API of the library:
  * Generator.
  */
@@ -50,7 +53,8 @@ final class DetailRenderConformanceTest extends TestCase
             try {
                 Generator::renderDetail($case->spec, $case->record ?? new stdClass(), $options);
             } catch (\Throwable $error) {
-                // A composition error carries its code too, as FormError does (the Python runner reads both the same way).
+                // A composition error carries its code too, as FormError does (the Python runner reads both the same
+                // way).
                 self::assertTrue(method_exists($error, 'getErrorCode'), $error->getMessage());
                 self::assertSame($case->expectError->code, $error->getErrorCode());
                 self::assertStringContainsString($case->expectError->message, $error->getMessage());
@@ -60,7 +64,9 @@ final class DetailRenderConformanceTest extends TestCase
         }
         self::assertSame(
             self::layout(self::withoutPreloads($case->expected_html)),
-            self::layout(self::withoutPreloads(Generator::renderDetail($case->spec, $case->record ?? new stdClass(), $options)))
+            self::layout(self::withoutPreloads(
+                Generator::renderDetail($case->spec, $case->record ?? new stdClass(), $options)
+            ))
         );
     }
 }
