@@ -192,6 +192,27 @@ PHP_METHOD(Polyspec_Crudui_Generator, formButtonsHtml)
     if (input) { crudui_return(ps_form_buttons_html(input), return_value); ps_value_free(input); }
 }
 
+PHP_METHOD(Polyspec_Crudui_Generator, buildOutline)
+{
+    zval *nodes;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY(nodes) ZEND_PARSE_PARAMETERS_END();
+    if (!zend_array_is_list(Z_ARRVAL_P(nodes))) {
+        crudui_invalid_value("Outline nodes must be a list", true);
+        return;
+    }
+    /* PHP arrays convert to objects, so each node must already be a stdClass object. */
+    zval *node;
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(nodes), node) {
+        ZVAL_DEREF(node);
+        if (!standard_object(node)) {
+            crudui_invalid_value("Outline nodes must be evaluated node objects", true);
+            return;
+        }
+    } ZEND_HASH_FOREACH_END();
+    ps_value *input = crudui_from_php(nodes, false, true);
+    if (input) { crudui_return(ps_build_outline(input), return_value); ps_value_free(input); }
+}
+
 PHP_METHOD(Polyspec_Crudui_Generator, renderList)
 {
     zval *spec, *rows, *options = NULL;

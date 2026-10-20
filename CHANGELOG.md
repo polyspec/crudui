@@ -6,6 +6,10 @@
 ### 2026-10-20 — The cross-check console shares its JSON parser, its download, its matrix column and its request reader (C16.58-6)
 
 - `parseJsonText`, `downloadJson`, `matrixColumn` of `client/app.js` and `readBodyAndSpec` of `server/server.mjs` replace the copies of the data and record parsers, of the two fixture downloads, of the validate and render columns, and of the body and specification reading of six endpoints (C16.58-6). Red: `make duplication-check` reported 40 clones before; green: 37 clones after, and the targeted check passes (24 passed).
+### 2026-10-20 — PHP extension buildOutline (C16.49-5)
+
+- The php-native extension has Generator::buildOutline, built by the C engine, answering the form-outline fixture like the other generators. (C16.49-5)
+
 ### 2026-10-20 — The PHP generator has buildOutline (C16.49-4)
 
 - `Generator::buildOutline(array $nodes)` returns the rows of the form for the nodes that `bindForm` returns, as `stdClass` entries in the member order of the shared cases, and the PHP program of the native generator protocol answers the operation (C16.49-4). Red: the PHP program answered `Unknown generator operation` for the 5 cases of the group `outline`; green: 5 of 5 pass, `OutlineTest` passes 5 cases, and the documentation coverage test passes.

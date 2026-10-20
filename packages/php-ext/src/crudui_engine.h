@@ -47,6 +47,8 @@ ps_result ps_build_list(const ps_value *spec, const ps_value *rows, const ps_val
 ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps_value *options);
 /* Detail HTML: image preloads, then the definition list. */
 ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const ps_value *options);
+/* Structure map rows of evaluated nodes: the form rows, each with its nested rows and its controls placed in the map. */
+ps_result ps_build_outline(const ps_value *nodes);
 ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value *options);
 ps_result ps_validate_list(const ps_value *spec, const ps_value *options);
 /* Detail structure: root and fields composition, then the forbidden-key scan. */

@@ -11,6 +11,7 @@ namespace Polyspec\Crudui {
         public static function renderForm(Form $form, mixed $options = []): string {}
         public static function renderList(array|\stdClass $spec, array $rows, array $options = []): string {}
         public static function buildList(array|\stdClass $spec, array $rows = [], array $options = []): \stdClass {}
+        public static function buildOutline(array $nodes): array {}
         public static function renderDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): string {}
         public static function buildDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): \stdClass {}
         public static function sequenceRowKey(int|string $sequence): string {}

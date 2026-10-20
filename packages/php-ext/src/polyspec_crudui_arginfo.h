@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 24938d5e863358f4e0f4045378587a1ff0741c2a */
+ * Stub hash: e87a91f57540dfa1cec6461d1b424402bb0c8123 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -33,6 +33,10 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_b
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, rows, IS_ARRAY, 0, "[]")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_buildOutline, 0, 1, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, nodes, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_renderDetail, 0, 1, IS_STRING, 0)
@@ -169,6 +173,7 @@ ZEND_METHOD(Polyspec_Crudui_Generator, formButtonsHtml);
 ZEND_METHOD(Polyspec_Crudui_Generator, renderForm);
 ZEND_METHOD(Polyspec_Crudui_Generator, renderList);
 ZEND_METHOD(Polyspec_Crudui_Generator, buildList);
+ZEND_METHOD(Polyspec_Crudui_Generator, buildOutline);
 ZEND_METHOD(Polyspec_Crudui_Generator, renderDetail);
 ZEND_METHOD(Polyspec_Crudui_Generator, buildDetail);
 ZEND_METHOD(Polyspec_Crudui_Generator, sequenceRowKey);
@@ -211,6 +216,7 @@ static const zend_function_entry class_Polyspec_Crudui_Generator_methods[] = {
 	ZEND_ME(Polyspec_Crudui_Generator, renderForm, arginfo_class_Polyspec_Crudui_Generator_renderForm, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, renderList, arginfo_class_Polyspec_Crudui_Generator_renderList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, buildList, arginfo_class_Polyspec_Crudui_Generator_buildList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, buildOutline, arginfo_class_Polyspec_Crudui_Generator_buildOutline, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, renderDetail, arginfo_class_Polyspec_Crudui_Generator_renderDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, buildDetail, arginfo_class_Polyspec_Crudui_Generator_buildDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, sequenceRowKey, arginfo_class_Polyspec_Crudui_Generator_sequenceRowKey, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
@@ -312,7 +318,9 @@ static zend_class_entry *register_class_Polyspec_Crudui_FormError(zend_class_ent
 
 	zval property_path_default_value;
 	ZVAL_UNDEF(&property_path_default_value);
-	zend_declare_typed_property(class_entry, ZSTR_KNOWN(ZEND_STR_PATH), &property_path_default_value, ZEND_ACC_PRIVATE|ZEND_ACC_READONLY, NULL, (zend_type) ZEND_TYPE_INIT_MASK(MAY_BE_STRING));
+	zend_string *property_path_name = zend_string_init("path", sizeof("path") - 1, 1);
+	zend_declare_typed_property(class_entry, property_path_name, &property_path_default_value, ZEND_ACC_PRIVATE|ZEND_ACC_READONLY, NULL, (zend_type) ZEND_TYPE_INIT_MASK(MAY_BE_STRING));
+	zend_string_release(property_path_name);
 
 	return class_entry;
 }
