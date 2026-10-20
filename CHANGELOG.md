@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go form instance keeps its undo history (C16.52-7)
+
+- `Form` in `packages/generator/go/instance.go` keeps a `History` of records in the field `history` and has `Undo`, `Redo`, `CanUndo` and `CanRedo`; `commitView` records every data change with the path of a value edit, `SetData` restarts the history, and `TestFormHistory` in `packages/generator/go/form_state_test.go` runs the `form-history` sessions with the history flags (C16.52-7). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory|TestFormView|TestHistoryFunctions' .` exit 1, 18 passed and 6 failed, the history sessions fail with `unknown step undo`; green: exit 0, 24 passed, 0 failed.
+
 ### 2026-10-20 — The Python form instance keeps its undo history (C16.52-8)
 
 - `packages/generator/python/src/polyspec/crudui/generator/form.py` gives `Form` the methods `undo`, `redo`, `canUndo` and `canRedo` over the pure functions of `history.py`; `setValue` records its path, `setData` clears the history, and the undo and redo steps change `revision` without changing the view state (C16.52-8). `packages/generator/python/tests/test_form_state.py` runs the `form-history` sessions with the history flags beside the `form-view` sessions. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state tests.test_form_history` exit 1, 5 of 16 tests failed (`AttributeError: 'Form' object has no attribute 'canUndo'`); green: exit 0, 16 passed, 0 failed.

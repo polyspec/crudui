@@ -74,6 +74,7 @@ type Form struct {
 	options  BindOptions
 	revision uint64
 	view     ViewState
+	history  History[*Object]
 }
 
 // NewForm copies the template and record, applies missing defaults and binds fields.
@@ -88,7 +89,7 @@ func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, 
 	if e != nil {
 		return nil, e
 	}
-	f := &Form{template: t, options: options, view: InitialView()}
+	f := &Form{template: t, options: options, view: InitialView(), history: EmptyHistory[*Object]()}
 	var input any = data
 	if data == nil {
 		input = absent
@@ -153,7 +154,12 @@ func (f *Form) SetData(data *Object) error {
 	if e != nil {
 		return e
 	}
-	return f.commitView(d, InitialView())
+	if e := f.commitView(d, InitialView(), ""); e != nil {
+		return e
+	}
+	// setData restarts the history (CURT-065).
+	f.history = EmptyHistory[*Object]()
+	return nil
 }
 
 // SetValue replaces one path value and rebinds fields atomically.
@@ -172,7 +178,7 @@ func (f *Form) SetValue(path string, value any) error {
 	if e != nil {
 		return e
 	}
-	return f.commit(d)
+	return f.commitView(d, f.view, strings.Join(s, "."))
 }
 
 // bindOptions returns the options of the form with the collapsed rows of the view.
@@ -183,14 +189,16 @@ func (f *Form) bindOptions(view ViewState) BindOptions {
 }
 
 // commit replaces the record and keeps the view; a failure leaves the record and the view unchanged.
-func (f *Form) commit(data *Object) error { return f.commitView(data, f.view) }
+func (f *Form) commit(data *Object) error { return f.commitView(data, f.view, "") }
 
-// commitView replaces the record and the view together.
-func (f *Form) commitView(data *Object, view ViewState) error {
+// commitView replaces the record and the view together and records the change in the undo history; path is the
+// path of a value edit, and empty for every other change.
+func (f *Form) commitView(data *Object, view ViewState, path string) error {
 	fields, e := BindForm(f.template, data, f.bindOptions(view))
 	if e != nil {
 		return e
 	}
+	f.history = RecordChange(f.history, f.data, path)
 	f.data, f.fields, f.view = data, fields, view
 	f.revision++
 	return nil
@@ -470,7 +478,7 @@ func (f *Form) RemoveRow(path, key string) error {
 	out := rows.Clone()
 	out.Delete(key)
 	segs, _ := checkedSegments(path)
-	return f.commitView(putAt(f.data, segs, out), RemoveRowView(f.view, strings.Join(append(append([]string{}, segs...), key), ".")))
+	return f.commitView(putAt(f.data, segs, out), RemoveRowView(f.view, strings.Join(append(append([]string{}, segs...), key), ".")), "")
 }
 
 // MoveRow moves an existing row to a zero-based collection position.
@@ -540,7 +548,7 @@ func (f *Form) RekeyRow(path, oldKey, newKey string) error {
 		out.Set(k, v)
 	}
 	segs, _ := checkedSegments(path)
-	return f.commitView(putAt(f.data, segs, out), RekeyRowView(f.view, strings.Join(append(append([]string{}, segs...), oldKey), "."), strings.Join(append(append([]string{}, segs...), newKey), ".")))
+	return f.commitView(putAt(f.data, segs, out), RekeyRowView(f.view, strings.Join(append(append([]string{}, segs...), oldKey), "."), strings.Join(append(append([]string{}, segs...), newKey), ".")), "")
 }
 
 // ToggleRow expands a collapsed row or collapses an expanded one; the record and the revision do not change.
@@ -562,6 +570,43 @@ func (f *Form) ToggleRow(path, key string) error {
 // SetAllExpanded expands every row, or collapses every collapsible row; the record and the revision do not change.
 func (f *Form) SetAllExpanded(expanded bool) error {
 	return f.refreshView(SetAllExpandedView(f.fields, expanded))
+}
+
+// Undo restores the record before the last data change and makes the reverted record redoable (CURT-011); it fails
+// when nothing can be undone.
+func (f *Form) Undo() error {
+	result, e := UndoChange(f.history, f.data)
+	if e != nil {
+		return e
+	}
+	return f.restore(result.Value, result.History)
+}
+
+// Redo reapplies the most recently undone data change (CURT-012); it fails when nothing can be redone.
+func (f *Form) Redo() error {
+	result, e := RedoChange(f.history, f.data)
+	if e != nil {
+		return e
+	}
+	return f.restore(result.Value, result.History)
+}
+
+// CanUndo reports whether Undo restores an earlier record (CURT-061).
+func (f *Form) CanUndo() bool { return CanUndo(f.history) }
+
+// CanRedo reports whether Redo reapplies an undone record (CURT-061).
+func (f *Form) CanRedo() bool { return CanRedo(f.history) }
+
+// restore replaces the record and its history with the outcome of an undo or a redo and rebinds the fields with the
+// current view; a failure leaves the record, the history and the view unchanged.
+func (f *Form) restore(data *Object, history History[*Object]) error {
+	fields, e := BindForm(f.template, data, f.bindOptions(f.view))
+	if e != nil {
+		return e
+	}
+	f.data, f.fields, f.history = data, fields, history
+	f.revision++
+	return nil
 }
 
 // refreshView rebinds the fields with a new view.

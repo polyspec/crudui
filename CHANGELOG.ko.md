@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0b8e1ba973294c1320e51e43e93fde7426b21d6dee9e5f836dbcd30c546f1455 -->
+<!-- source-sha256: 961cf40d39a502928e6d690a8a5c5526d3215e6334adf31ca432016bafb31200 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go form instance는 undo 이력을 가진다 (C16.52-7)
+
+- `packages/generator/go/instance.go`의 `Form`은 record 이력을 필드 `history`에 가지며 `Undo`, `Redo`, `CanUndo`, `CanRedo`를 가집니다. `commitView`는 모든 data 변경을 이력에 기록하고 value 편집은 path와 함께 기록하며, `SetData`는 이력을 다시 시작하고, `packages/generator/go/form_state_test.go`의 `TestFormHistory`가 `form-history` session을 history 플래그와 함께 실행합니다(C16.52-7). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory|TestFormView|TestHistoryFunctions' .` exit 1, 18 passed and 6 failed, history session은 `unknown step undo`로 실패; green: exit 0, 24 passed, 0 failed.
 
 ### 2026-10-20 — Python form instance는 undo 이력을 유지한다 (C16.52-8)
 

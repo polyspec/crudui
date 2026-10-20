@@ -166,6 +166,10 @@ func performStep(t *testing.T, form *Form, op string, args []any) (any, error) {
 		return nil, form.ToggleRow(text(0), text(1))
 	case "setAllExpanded":
 		return nil, form.SetAllExpanded(args[0] == true)
+	case "undo":
+		return nil, form.Undo()
+	case "redo":
+		return nil, form.Redo()
 	}
 	t.Fatalf("unknown step %s", op)
 	return nil, nil
@@ -198,8 +202,8 @@ func observeSessions(t *testing.T, family string, history bool) {
 				observed.Set("data", name.walk(form.GetData()))
 				observed.Set("revision", form.Revision())
 				if history {
-					observed.Set("canUndo", false)
-					observed.Set("canRedo", false)
+					observed.Set("canUndo", form.CanUndo())
+					observed.Set("canRedo", form.CanRedo())
 				}
 				observed.Set("collapsed", name.walk(collapsedRows(form.Fields())))
 				if got, want := marshal(t, observed), marshal(t, expected[i]); got != want {
@@ -212,6 +216,9 @@ func observeSessions(t *testing.T, family string, history bool) {
 
 // TestFormView runs the view state sessions of the fixtures.
 func TestFormView(t *testing.T) { observeSessions(t, "form-view", false) }
+
+// TestFormHistory runs the undo history sessions of the fixtures.
+func TestFormHistory(t *testing.T) { observeSessions(t, "form-history", true) }
 
 // viewObject is the JSON object of a view.
 func viewObject(view ViewState) *Object {

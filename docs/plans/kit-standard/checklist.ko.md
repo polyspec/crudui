@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ea028982e86c531f4c15a4bc5ec4fcdc71999a5ea8ae857c322fe661c93f5333 -->
+<!-- source-sha256: 41309c366e1341c1da6d16ead53be205972a0af7624021d283bf5c4aeade747b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -92,6 +92,7 @@
 | C16.52-4 | Go generator는 history 함수 EmptyHistory, RecordChange, CanUndo, CanRedo, UndoChange, RedoChange를 가진다 | packages/generator/go/history.go, packages/generator/go/history_test.go, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestHistoryFunctions .` | [o] |
 | C16.52-5 | Rust generator는 history 함수 empty_history, record_change, can_undo, can_redo, undo_change, redo_change를 가진다 | packages/generator/rust/src/history.rs, packages/generator/rust/tests/history_functions.rs, Cargo.toml, Cargo.lock, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test history_functions` | [o] |
 | C16.52-6 | PHP generator는 history 함수 emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange를 가진다 | packages/generator/php/src/Internal/History.php, Generator.php, tests/HistoryFunctionsTest.php, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php` | [o] |
+| C16.52-7 | Go form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/go/instance.go packages/generator/go/form_state_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory\|TestFormView\|TestHistoryFunctions' .` | [o] |
 | C16.52-8 | Python form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/python/src/polyspec/crudui/generator/form.py packages/generator/python/tests/test_form_state.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state tests.test_form_history` | [o] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
