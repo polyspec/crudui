@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b07707270f04b1bd4369a200c53e7908e080064ce5f10347797fa5899397d148 -->
+<!-- source-sha256: 91142bb60e2c336763a4bc3802a670590f655ffaecc61b0a42dc1a72576478bd -->
 
 ## Unreleased
 
@@ -15,6 +15,11 @@
 ### 2026-10-21 — make install-packages는 npm ci 뒤 svelte 도구를 설치하고 link를 실행하지 않는다 (C16.134)
 
 - kit K428(kit 76e340de)은 `install-packages`의 npm ci 뒤에 `INSTALL_PACKAGES_EXTRA`의 target을 실행합니다. `Makefile`은 `INSTALL_PACKAGES_EXTRA := crudui-install-svelte-tools`를 두며, `make install`은 그 뒤에 `install-link`로 link합니다. svelte recipe는 더 이상 `make link`(와 `UV_PROJECT_ENVIRONMENT`)를 실행하지 않고, `crudui-install`은 더 이상 `crudui-install-svelte-tools`를 이름으로 두지 않으며(`install-packages`의 extra로만 남음), C16.117이 추가한 CI step(Python 설치와 svelte step)은 job에서 제거되어 그 job들은 `make install-packages`로 svelte 도구를 받습니다. kit copy는 `make kit-sync`로 kit 0.0.54에서 동기화했습니다(`scripts/kit/kit-bootstrap.mk`의 extra target, `install-npm.mts`의 comment, 그 kit의 PRINCIPLES P10과 P36 ~ P38). `tests/build/ci-local.test.mts`의 `install-packages installs the svelte tools after its npm ci and runs no link` test가 C16.117의 test를 대체합니다(C16.134). Red: 새 test가 03403a2f에서 실패합니다(install-packages dry run에 svelte 도구가 없음). Green: `make link-state-check` exit 0, ci-local test 18 passed, `make kit-check` exit 0, 새 worktree의 fresh `make install-packages`가 exit 0이고 svelte 도구가 설치됩니다.
+
+### 2026-10-21 — form render case가 중첩 행의 명시적 빈 collection을 인용한다 (C16.57-17)
+
+- `tests/fixtures/form-render/cases.json`에 case 두 개가 `packages/react/scripts/scenario-form-render-cases.ts`를 거쳐 React reference로 렌더링되어 추가되었습니다: `nested-empty-collections-keep-sibling-order`(명시적으로 빈 중첩 collection, 형제 행은 키와 데이터 순서를 유지함; CUEC-001, CURP-027)와 `scalar-multiple-empty-object-has-no-rows`(반복되는 scalar의 명시적 빈 객체는 행 0개; CUEC-001, CUEC-004)입니다. Go, Python, Rust runner는 새 결과 case를 셉니다. `config/parity.json`의 form-render unit은 CURP-027을 인용합니다.
+- `packages/generator/ts/src/empty-collections.test.ts`는 아직 undeclared 상태입니다. 객체가 아닌 데이터의 `bindForm` 거부(CUEC-003)와 데이터를 바꾸지 않는 visibility 단언(CUEC-006)에 인용된 case가 없으므로, 파일을 internal로 선언하지 않았습니다.
 
 ### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
 

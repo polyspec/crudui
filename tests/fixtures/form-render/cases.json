@@ -841,6 +841,88 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"name\" id=\"crudui:name\" name=\"form[name]\" type=\"text\" value=\"Ada\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tag</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tag</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__0000000000001__\" name=\"form[tags][__0000000000001__]\" type=\"text\" value=\"x\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
+    "name": "scalar-multiple-empty-object-has-no-rows",
+    "note": "An explicit empty object for a repeated scalar field gives zero rows, and renders the add control (CUEC-001, CUEC-004).",
+    "requirements": [
+      "CUEC-001",
+      "CUEC-004"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "multiple": true,
+          "label": {
+            "en": "Tags"
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": {}
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div><div class=\"crudui-node__footer\"><div aria-label=\"Collection controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "nested-empty-collections-keep-sibling-order",
+    "note": "An explicit empty collection nested in a row has no rows, and sibling rows keep their keys and data order, the nested empty collection of the first and third rows included (CUEC-001, CURP-027).",
+    "requirements": [
+      "CUEC-001",
+      "CURP-027"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "children": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "name": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": {
+        "__0000000000005__": {
+          "name": "Five",
+          "children": {}
+        },
+        "__0000000000007__": {
+          "name": "Seven",
+          "children": {
+            "__0000000000001__": {
+              "name": "Child"
+            }
+          }
+        },
+        "__0000000000001__": {
+          "name": "One",
+          "children": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 3</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000005__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000005__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 0</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000005__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000005__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][name]\" id=\"crudui:items.__0000000000005__.name\" name=\"items[__0000000000005__][name]\" type=\"text\" value=\"Five\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items.__0000000000005__.children\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div><div class=\"crudui-node__footer\"><div aria-label=\"Collection controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000007__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000007__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000007__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000007__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][name]\" id=\"crudui:items.__0000000000007__.name\" name=\"items[__0000000000007__][name]\" type=\"text\" value=\"Seven\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items.__0000000000007__.children\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000007__.children.__0000000000001__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">2.1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000007__.children.__0000000000001__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000007__.children.__0000000000001__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][children][][name]\" id=\"crudui:items.__0000000000007__.children.__0000000000001__.name\" name=\"items[__0000000000007__][children][__0000000000001__][name]\" type=\"text\" value=\"Child\"></div></div></div></div></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000001__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">3</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 0</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000001__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000001__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][name]\" id=\"crudui:items.__0000000000001__.name\" name=\"items[__0000000000001__][name]\" type=\"text\" value=\"One\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items.__0000000000001__.children\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div><div class=\"crudui-node__footer\"><div aria-label=\"Collection controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
     "name": "password-bare",
     "note": "password → BARE input (no input-group), no behavior, value not default-filled.",
     "spec": {

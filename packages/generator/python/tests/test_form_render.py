@@ -31,7 +31,7 @@ class TestFormRenderConformance(unittest.TestCase):
         return template, fields, options, data
 
     def test_result_cases_reproduce_the_normalized_layout(self):
-        self.assertEqual(len(self.results), 140)
+        self.assertEqual(len(self.results), 142)
         from polyspec.crudui.generator import Generator
 
         for case in self.results:
@@ -82,7 +82,7 @@ class TestFormRenderConformance(unittest.TestCase):
         for case in self.cases:
             exclusive = ("expected_html" in case) != ("expectError" in case)
             self.assertTrue(exclusive, f"{case['name']} must declare one expectation")
-        self.assertEqual(len(self.cases), 191)
+        self.assertEqual(len(self.cases), 193)
 
 
 class TestAppearanceErrorsAreNotHidden(unittest.TestCase):

@@ -382,4 +382,36 @@ export const SCENARIOS: ScenarioCase[] = [
     data: { name: 'Ada', tags: { __0000000000001__: 'x' } },
     options: { language: 'en', keyPrefix: 'form' },
   },
+  {
+    name: 'scalar-multiple-empty-object-has-no-rows',
+    note: 'An explicit empty object for a repeated scalar field gives zero rows, and renders the add control (CUEC-001, CUEC-004).',
+    spec: { type: 'group', properties: { tags: { type: 'text', multiple: true, label: { en: 'Tags' } } } },
+    data: { tags: {} },
+    options: { language: 'en' },
+  },
+  {
+    name: 'nested-empty-collections-keep-sibling-order',
+    note: 'An explicit empty collection nested in a row has no rows, and sibling rows keep their keys and data order, the nested empty collection of the first and third rows included (CUEC-001, CURP-027).',
+    spec: {
+      type: 'group',
+      properties: {
+        items: {
+          type: 'group',
+          multiple: true,
+          properties: {
+            name: { type: 'text' },
+            children: { type: 'group', multiple: true, properties: { name: { type: 'text' } } },
+          },
+        },
+      },
+    },
+    data: {
+      items: {
+        __0000000000005__: { name: 'Five', children: {} },
+        __0000000000007__: { name: 'Seven', children: { __0000000000001__: { name: 'Child' } } },
+        __0000000000001__: { name: 'One', children: {} },
+      },
+    },
+    options: { language: 'en' },
+  },
 ];
