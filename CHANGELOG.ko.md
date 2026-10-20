@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 494a4c1c43fcf4bd0e918890019d11e7e2aab603c435ae1dac59eb19534c0c72 -->
+<!-- source-sha256: 6639e4931c22c0ab9021d3a3990d2a9216fee4f2ae60851c30364c123f617e89 -->
 
 ## Unreleased
+
+### 2026-10-21 — CUIT-041은 대체한 항목들의 뜻을 유지한다 (C16.140-1)
+
+- CUIT-041은 오류 타입 표를 내용으로 가집니다. 각 구현은 로드 실패와 입력 실패를 자기 항목이 적은 오류 타입으로 보고합니다. 항목은 옛 CUIT-032부터 CUIT-036까지이며, JavaScript, PHP와 확장, Go(생성은 메시지를 담은 오류), Rust(로드 실패는 `ValidateError::Load` 또는 `FormError` 안의 `ComposeLoadError`, 입력 실패는 `ValidateError::Input` 또는 `FormError` 안의 `FormInputError`)입니다. 옛 항목이 말하지 않은 "두 실패는 서로 다른 타입"이라는 말은 요구사항에서 뺐습니다. Rust generator는 자기 항목이 허용하는 대로 두 실패를 모두 `FormError`로 보고하며, 그 runner는 CUIT-041을 이름으로 적습니다.
 
 ### 2026-10-21 — input text의 오류 타입은 모든 구현이 검사하는 하나의 요구사항 CUIT-041이다 (C16.140)
 

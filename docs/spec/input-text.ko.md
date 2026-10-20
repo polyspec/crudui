@@ -1,6 +1,6 @@
 # 입력 텍스트
 <!-- doc-id: docs-spec-input-text -->
-<!-- source-sha256: 9de6dd4af82a0259fc942fe3277bbb277e885aa061c9a20b5c50bbcbc06fcbd6 -->
+<!-- source-sha256: fb7897a30ef5308594c09b7929c6c1b44c2b2775eec4c6a627e1ab067f41926a -->
 
 [English](input-text.md).
 
@@ -101,8 +101,7 @@ PHP 라이브러리의 값 복사와 확장의 값 변환은 변환하는 모든
   또는 `options.`와 옵션 이름이며 경로는 붙지 않습니다
 - **CUIT-031** 빈 위치
 
-- **CUIT-041** 로드 실패와 입력 실패는 각 구현의 서로 다른 오류 타입이며, 텍스트를 읽는 검사는 그중 하나를 보고합니다.
-  각 구현의 타입은 다음과 같습니다.
+- **CUIT-041** 각 구현은 로드 실패와 입력 실패를 이 목록의 자기 항목이 적은 오류 타입으로 보고합니다:
   - JavaScript: 로드 실패는 `ComposeLoadError`, 입력 실패는 `FormInputError`입니다.
   - PHP와 PHP 확장: 검증에서 로드 실패는 `ComposeLoadError`, 입력 실패는 `FormInputError`입니다. 생성에서 로드 실패는
     `ComposeLoadError`, 입력 실패는 `FormError`입니다.
@@ -110,22 +109,6 @@ PHP 라이브러리의 값 복사와 확장의 값 변환은 변환하는 모든
     메시지를 담은 오류입니다.
   - Rust: 로드 실패는 `ValidateError::Load` 또는 `FormError` 안의 `ComposeLoadError`이고, 입력 실패는
     `ValidateError::Input` 또는 `FormError` 안의 `FormInputError`입니다.
-  - Python: 검증에서 로드 실패는 `ComposeLoadError`, 입력 실패는 `FormInputError`입니다. 생성에서 입력 실패는
-    `FormError`입니다.
-
-## JSON 텍스트
-
-JSON 명세 파일은 모든 깊이에서 디코딩한 객체 멤버 이름이 고유해야 합니다. 다른 이스케이프
-표기로 쓴 이름도 반복되면 검증 전에 파싱 오류입니다. TypeScript 명세 파서와 Rust `JsonText`
-파서는 이를 거부합니다. 이미 객체를 받는 호출자는 일반 객체 디코더가 중복 멤버를 제거하기
-전에 원본 JSON 텍스트를 검사해야 합니다.
-
-JSON 텍스트를 런타임 값으로 변환할 때 모든 깊이에서 객체의 디코딩한 멤버 이름, 해당 값과
-선언 순서를 유지합니다. 검증에는 동일한 이름과 값의 관계를 사용합니다.
-
-쌍이 없는 서로게이트 이스케이프를 바꾸거나 거부하는 JSON 디코더는 그 텍스트를 규칙에 넘길 수
-없습니다. 그래서 각 런타임은 텍스트를 보존하는 디코더로 JSON 텍스트를 읽습니다.
-
 - **CUIT-037** JavaScript: `JSON.parse`는 각 이스케이프를 코드 유닛으로 보존합니다.
 - **CUIT-038** Go: `compose.DecodeOrdered`, `generator.DecodeJSON`과 `ValidateJSON`, `ValidateListJSON`,
   `ValidateDetailJSON` 진입점은 이스케이프된 서로게이트를 3바이트로, UTF-8이 아닌 바이트를 그대로

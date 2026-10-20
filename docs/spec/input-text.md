@@ -106,32 +106,15 @@ A value beyond the value limits is an input failure in every argument and option
   argument name, or `options.` and the option name, with no path;
 - **CUIT-031** an empty location.
 
-- **CUIT-041** A load failure and an input failure are distinct error types of each implementation, and a check that
-  reads the text reports one of them. The types of each implementation are:
-  - JavaScript: a load failure is `ComposeLoadError`, and an input failure is `FormInputError`;
-  - PHP and PHP extension: in validation a load failure is `ComposeLoadError` and an input failure is `FormInputError`;
-    in generation a load failure is `ComposeLoadError` and an input failure is `FormError`;
+- **CUIT-041** Each implementation reports a load failure and an input failure with the error types that its entry of this
+  list names:
+  - JavaScript: a load failure is `ComposeLoadError`, and an input failure is `FormInputError`.
+  - PHP and PHP extension: in validation a load failure is `ComposeLoadError`, and an input failure is `FormInputError`; in
+    generation a load failure is `ComposeLoadError`, and an input failure is `FormError`.
   - Go: a load failure is `*compose.ComposeLoadError`; an input failure is `*validate.FormInputError` in validation and an
-    error with the message in generation;
+    error with the message in generation.
   - Rust: a load failure is `ComposeLoadError` in `ValidateError::Load` or `FormError`, and an input failure is
-    `FormInputError` in `ValidateError::Input` or `FormError`;
-  - Python: in validation a load failure is `ComposeLoadError` and an input failure is `FormInputError`; in generation an
-    input failure is `FormError`.
-
-## JSON text
-
-JSON specification files have unique decoded object member names at every depth. A repeated name,
-including one written with a different escape sequence, is a parse error before validation.
-The TypeScript specification parser and Rust `JsonText` parser reject it. Callers that already
-hold an object must check the original JSON text before an ordinary object decoder can discard
-duplicate members.
-
-Conversion from JSON text to a runtime value preserves every object's decoded member name,
-associated value and declaration order at every depth. Validation uses those same associations.
-
-A JSON decoder that replaces or refuses an unpaired surrogate escape cannot hand the text to the
-rule, so each runtime reads JSON text with a decoder that keeps it:
-
+    `FormInputError` in `ValidateError::Input` or `FormError`.
 - **CUIT-037** JavaScript: `JSON.parse` keeps each escape as a code unit.
 - **CUIT-038** Go: `compose.DecodeOrdered`, `generator.DecodeJSON` and the `ValidateJSON`,
   `ValidateListJSON` and `ValidateDetailJSON` entries keep an escaped surrogate as its three

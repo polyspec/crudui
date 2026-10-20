@@ -2,6 +2,8 @@
 //! generator families runs through the public API, one trial per case. A case's members are read as JSON text with
 //! `JsonText`, which keeps unpaired surrogates. Each operation checks its text first, in the order of
 //! docs/spec/input-text.md, and decodes the members into values only after the checks pass.
+//!
+//! CUIT-041: the generator reports a load failure and an input failure both as FormError, as its entry of the table says.
 
 use libtest_mimic::{Arguments, Failed, Trial};
 use polyspec_crudui_generator::text::{

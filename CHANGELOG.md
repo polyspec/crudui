@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — CUIT-041 keeps the meaning of the items it replaced (C16.140-1)
+
+- CUIT-041 now states the table of the error types as its content: each implementation reports a load failure and an input failure with the error types that its entry names. The entries are the old items CUIT-032 to CUIT-036: JavaScript; PHP and the extension; Go, where generation reports an error with the message; and Rust, where a load failure is `ComposeLoadError` in `ValidateError::Load` or `FormError`, and an input failure is `FormInputError` in `ValidateError::Input` or `FormError`. The rule no longer says that the two failures are distinct types, which the old items did not say. The Rust generator reports `FormError` for both, as its entry allows; its runner names CUIT-041.
+
 ### 2026-10-21 — The error types of the input text are one requirement, CUIT-041, that every implementation asserts (C16.140)
 
 - Path 1 (native integration) for CUIT-032 to CUIT-036: the five items named each language's error types, and they are rewritten once as CUIT-041, a load failure and an input failure are distinct error types of each implementation. The table of each language's types follows as a description; the old ids are gone from `docs/spec/input-text.md` and its Korean twin, and from every case and unit that cited them.
