@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 05870ccd8c80f2e246e547a7d65811a2881f0e3eb7e0accf9a56cea438ad58ed -->
+<!-- source-sha256: 23a77d9d334d68b096b35a8a5c3bcdc27e1140371f5c8570858b0b9b8af91c8b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -165,7 +165,7 @@
 | C16.59 | docs/spec은 여섯 implementation의 규칙만 담는다: tooling 문서는 docs/operations로 옮기고 runtime-packages와 php-extension은 나눈다 | docs/operations, docs/spec, the links to the moved documents | `make docs-check` link check, `make check-documents`, and no document of docs/spec without a requirement id | [o] |
 | C16.60 | record server 준비는 OrderedJSON extension source의 내용을 복사하므로 phpize가 config.m4를 찾는다 | examples/form-comparison/src/local-servers.mjs, examples/form-comparison/src/local-servers.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C16.61 | 중립 규칙은 각 implementation이 폼 값 모델을 네이티브 타입으로 옮기는 방식을 서술한다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md | `make parity-declarations-check` defines CURP-026 and `check-documents` passes | [o] |
-| C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [ ] |
+| C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [o] |
 | C16.63 | make link가 Go module 옆에 쓰는 go.work와 go.work.sum file은 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` writes the Go links without refusing | [o] |
 | C16.63-1 | make link가 Go 모듈 scripts/go 옆에 쓰는 go.work는 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link . ../kit ../ordered-json` writes the Go links without refusing | [o] |
 | C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [o] |

@@ -7,14 +7,17 @@
 // This program binds the address itself, also port 0, and nginx takes over that listening socket
 // (nginx reads inherited sockets from the variable NGINX), so no other process can take the port
 // between its choice and nginx's start.
-import { spawn } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { execFile, spawn } from 'node:child_process';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
+const execFileAsync = promisify(execFile);
 const exampleDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const repositoryRoot = path.resolve(exampleDirectory, '../..');
 const separator = process.argv.indexOf('--');
 const [address, runArgument] = process.argv.slice(2, separator === -1 ? undefined : separator);
 const fpmArguments = separator === -1 ? [] : process.argv.slice(separator + 1);
@@ -91,6 +94,20 @@ http {
 `);
 }
 
+/**
+ * The php-fpm of the PHP that built the modules: the PHP of .php-version, whose php-config of var/tools/bin names its
+ * installation, and the sbin directory of that installation holds its php-fpm. A php-fpm found on PATH may belong to
+ * another PHP, whose modules differ in API, so the path is never looked up on PATH; a missing one fails with its path.
+ */
+async function phpFpmPath() {
+  const phpConfig = path.join(repositoryRoot, 'var/tools/bin/php-config');
+  const { stdout } = await execFileAsync(phpConfig, ['--prefix']);
+  const fpm = path.join(stdout.trim(), 'sbin', 'php-fpm');
+  const found = await stat(fpm).then(entry => entry.isFile(), error => { if (error.code === 'ENOENT') return false; throw error; });
+  if (!found) throw new Error(`php-fpm of ${phpConfig} is missing: ${fpm}`);
+  return fpm;
+}
+
 /** The FastCGI directives that pass one request to api.php. */
 function fastcgi() {
   return [
@@ -159,7 +176,7 @@ try {
     .listen(Number(address.slice(address.lastIndexOf(':') + 1)), address.slice(0, address.lastIndexOf(':')), resolve));
   const bound = listener.address();
   await configure(bound);
-  await run('php-fpm', 'php-fpm', ['-F', '-O', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
+  await run('php-fpm', await phpFpmPath(), ['-F', '-O', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
   const nginxReady = run('nginx', 'nginx', ['-e', 'stderr', '-p', runDirectory, '-c', path.join(runDirectory, 'nginx.conf')],
     { inherited: listener._handle.fd });
   // nginx holds its own copy of the socket; this process closes its copy so only nginx accepts.

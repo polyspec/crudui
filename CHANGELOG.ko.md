@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e1947b706d3c61293155f0aa755cd3a33e28fe93ed0343f27bc539ee95efd324 -->
+<!-- source-sha256: bfc1e8c5635f2a5c0edcda3d4df3f6823ad74d80442b846578580ce7d0ca7d77 -->
 
 ## Unreleased
+
+### 2026-10-21 — php 기록 서버가 자신의 모듈을 빌드한 PHP의 php-fpm을 실행한다 (C16.62)
+
+- `examples/form-comparison/servers/php/main.mjs`가 PATH의 `php-fpm` 대신, 모듈을 빌드한 PHP(`.php-version`의 PHP, `var/tools/bin`의 `php-config`)의 설치 `sbin`에서 php-fpm을 실행한다 (`phpFpmPath()`). 찾는 php-fpm이 없으면 찾은 경로를 적어 실패한다 (C16.62). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` 종료 코드 1, 104 passed, 26 failed; php-ext 저장소가 "ordered_json: Unable to initialize module"로 실패한다. PATH의 php-fpm(`/opt/homebrew/sbin/php-fpm`, PHP 8.5)이 PHP 8.4의 API 20240924로 빌드된 모듈을 불러오기 때문이다; green: 종료 코드 0, 130 passed, 0 failed.
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 

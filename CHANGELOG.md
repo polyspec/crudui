@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The php record server runs the php-fpm of the PHP that built its modules (C16.62)
+
+- `examples/form-comparison/servers/php/main.mjs` starts the php-fpm of the PHP that built the modules (the `php-config` of `var/tools/bin`, the PHP of `.php-version`) from the `sbin` of its installation, in `phpFpmPath()`, instead of `php-fpm` from PATH; a missing php-fpm fails with the path it looked for (C16.62). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` exit 1, 104 passed, 26 failed; the php-ext store fails with "ordered_json: Unable to initialize module" because the php-fpm on PATH (`/opt/homebrew/sbin/php-fpm`, PHP 8.5) loads modules built for API 20240924 of PHP 8.4; green: exit 0, 130 passed, 0 failed.
+
 ### 2026-10-21 — make install of a fresh worktree runs to its end (C16.149)
 
 - `crudui-install` of the Makefile runs `install-link` after `crudui-install-python` and `crudui-install-composer` and before `crudui-install-phpdocumentor` (C16.149). composer install writes `vendor/composer/platform_check.php` from the tracked `composer.lock`, which demands PHP 8.5 for the released polyspec/ordered-json 0.0.9, and the link that writes the check for the PHP 8.4.1 of `.php-version` ran only at the end of `make install`, so `make worktree-setup` stopped at phpDocumentor with "Composer detected issues in your platform". Red: the order check of `make -n crudui-install` exit 1 on 379832f3; green: exit 0, and `make install-link` then `make crudui-install-phpdocumentor` install phpDocumentor 3.10.0 in the worktree.
