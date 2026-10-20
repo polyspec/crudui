@@ -96,32 +96,30 @@ function failureRecord(error: unknown): FailureRecord | undefined {
   return undefined;
 }
 
-describe('validate — result cases reproduce { valid, errors, hidden } bit-for-bit', () => {
-  for (const c of cases.filter((x) => x.expected)) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        const result = run(c);
-        expect(result).toStrictEqual(c.expected);
-      }));
-  }
-});
+// Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name.
+// A result case reproduces { valid, errors, hidden } bit-for-bit; a failure case throws the exact failure record.
+for (const c of cases.filter((x) => x.expected)) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      const result = run(c);
+      expect(result).toStrictEqual(c.expected);
+    }));
+}
 
-describe('validate — load and input failures throw the exact failure record', () => {
-  for (const c of cases.filter((x) => x.expectFailure)) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        let thrown: unknown;
-        try {
-          run(c);
-        } catch (e) {
-          thrown = e;
-        }
-        expect(failureRecord(thrown), `${c.name} must throw a validation failure`).toStrictEqual(
-          c.expectFailure
-        );
-      }));
-  }
-});
+for (const c of cases.filter((x) => x.expectFailure)) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      let thrown: unknown;
+      try {
+        run(c);
+      } catch (e) {
+        thrown = e;
+      }
+      expect(failureRecord(thrown), `${c.name} must throw a validation failure`).toStrictEqual(
+        c.expectFailure
+      );
+    }));
+}
 
 describe('validate — every fixture case is exercised', () => {
   test('each case declares exactly one expectation', () => {

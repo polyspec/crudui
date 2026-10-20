@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import * as core from './index';
 
 /**
@@ -38,18 +38,17 @@ const parsed: unknown = JSON.parse(text);
 if (!Array.isArray(parsed)) throw new Error('tests/fixtures/buttons/cases.json is no list');
 const list: unknown[] = parsed;
 
-describe('form buttons', () => {
-  for (const item of list) {
-    const entry = fields(item);
-    it(String(entry.name), () => {
-      const observed = entry.operation === 'bindButtons'
-        ? observe(() => bindButtons(
-          entry.spec !== undefined ? compileForm(entry.spec) : entry.template,
-          entry.data ?? {},
-          entry.options ?? {},
-        ))
-        : observe(() => formButtonsHtml(entry.buttons));
-      expect(JSON.stringify(observed)).toBe(JSON.stringify(entry.expected));
-    });
-  }
-});
+// Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name.
+for (const item of list) {
+  const entry = fields(item);
+  it(String(entry.name), () => {
+    const observed = entry.operation === 'bindButtons'
+      ? observe(() => bindButtons(
+        entry.spec !== undefined ? compileForm(entry.spec) : entry.template,
+        entry.data ?? {},
+        entry.options ?? {},
+      ))
+      : observe(() => formButtonsHtml(entry.buttons));
+    expect(JSON.stringify(observed)).toBe(JSON.stringify(entry.expected));
+  });
+}

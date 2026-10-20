@@ -11,7 +11,7 @@
  * NOT the JS output and the cross-language contract is broken.
  */
 
-import { describe, test, expect } from 'vitest';
+import { test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -175,35 +175,34 @@ function ctx(c: FixtureCase): PathContext {
 }
 
 // One test per fixture entry: its lexer, parser and every evaluation sub-case must match, and
-// the entry is recorded as validate evidence only when all of them do.
-describe('expr — lexer, parser and evaluation match fixture (JS reference)', () => {
-  for (const spec of specs) {
-    test(spec.name, () =>
-      provesConformance(
-        { features: ['validate'], fixture: 'tests/fixtures/expr/cases.json', runtime: 'javascript', case: spec.name },
-        () => {
-          if ('error' in spec) {
-            expect(parseFailure(spec.expr), `parser of ${spec.name}`).toBe(spec.error);
-            return;
-          }
-          const toks = new Lexer(spec.expr).tokenize().map(tokenToFixture);
-          expect(canon(toks), `lexer of ${spec.name}`).toStrictEqual(canon(spec.tokens));
-
-          const parsed = astToFixture(parseCondition(spec.expr));
-          expect(canon(parsed), `parser of ${spec.name}`).toStrictEqual(canon(spec.ast));
-
-          const ast = parseCondition(spec.expr);
-          spec.cases.forEach((c, i) => {
-            const value = evaluateExpressionValue(ast, ctx(c));
-            // null vs undefined: fixture encodes null; JS path-miss returns
-            // boolean false for conditions, and ternary null branch returns null.
-            expect(value, `value case ${i} of ${spec.name}`).toStrictEqual(c.value);
-            const truthy = evaluateCondition(ast, ctx(c));
-            expect(truthy, `truthy case ${i} of ${spec.name}`).toStrictEqual(
-              c.truthy
-            );
-          });
+// the entry is recorded as validate evidence only when all of them do. Each entry is a top-level test named by the entry,
+// so the parity check reads every case of the unit by its name.
+for (const spec of specs) {
+  test(spec.name, () =>
+    provesConformance(
+      { features: ['validate'], fixture: 'tests/fixtures/expr/cases.json', runtime: 'javascript', case: spec.name },
+      () => {
+        if ('error' in spec) {
+          expect(parseFailure(spec.expr), `parser of ${spec.name}`).toBe(spec.error);
+          return;
         }
-      ));
-  }
-});
+        const toks = new Lexer(spec.expr).tokenize().map(tokenToFixture);
+        expect(canon(toks), `lexer of ${spec.name}`).toStrictEqual(canon(spec.tokens));
+
+        const parsed = astToFixture(parseCondition(spec.expr));
+        expect(canon(parsed), `parser of ${spec.name}`).toStrictEqual(canon(spec.ast));
+
+        const ast = parseCondition(spec.expr);
+        spec.cases.forEach((c, i) => {
+          const value = evaluateExpressionValue(ast, ctx(c));
+          // null vs undefined: fixture encodes null; JS path-miss returns
+          // boolean false for conditions, and ternary null branch returns null.
+          expect(value, `value case ${i} of ${spec.name}`).toStrictEqual(c.value);
+          const truthy = evaluateCondition(ast, ctx(c));
+          expect(truthy, `truthy case ${i} of ${spec.name}`).toStrictEqual(
+            c.truthy
+          );
+        });
+      }
+    ));
+}

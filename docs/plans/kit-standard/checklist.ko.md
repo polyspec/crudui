@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 7f54a44f3e37e44d1e95664acc305d17345237b0b4501ea99f62a1f42968bb5a -->
+<!-- source-sha256: a35224b122d33c54a0128590bc8295aa890c134c61461da47a280dd5d7af1864 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -294,3 +294,4 @@
 | C16.157 | 모든 python 바인딩이 자기 단위의 각 케이스를 make parity-check에 이름으로 보고한다 (R3): 테스트 메서드 하나가 케이스 하나이고, 바인딩은 자기 단위의 테스트 클래스만 venv 인터프리터 var/python/bin/python으로 실행한다 | config/parity.json, packages/generator/python/tests/conformance.py, packages/generator/python/tests/test_buttons.py, packages/generator/python/tests/test_form_render.py, packages/generator/python/tests/test_form_state.py, packages/validator/python/tests/conformance.py, packages/validator/python/tests/test_expr.py, packages/validator/python/tests/test_validate.py, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="buttons validate form-render form-view expr form-history form-actions view-functions" > var/pc-C16.157.log 2>&1; ! grep -E "R3 not-executed [^ ]+ python " var/pc-C16.157.log'` | [o] |
 | C16.163 | config/rebuild.json이 C16.58-27이 추가한 examples/form-comparison/src/adapters/view-entries.ts를 form comparison 예제의 policy 모듈로 분류한다 | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.164 | 사본 PRINCIPLES.md와 PRINCIPLES.ko.md가 K431 뒤 링크된 kit의 것과 같아(make kit-sync) make kit-check가 통과한다 | PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
+| C16.158 | buttons, validate, form-render, form-view, expr 단위의 ts 바인딩이 각 케이스를 이름으로 make parity-check (R3)에 보고한다: 케이스마다 이름이 붙은 최상위 vitest 테스트 하나 | packages/generator/ts/src/buttons.conformance.test.ts, packages/validator/ts/src/validate.conformance.test.ts, packages/html/src/conformance.test.ts, packages/generator/ts/src/form-state.test.ts, packages/validator/ts/src/expr.conformance.test.ts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="buttons validate form-render form-view expr" > var/pc-C16.158.log 2>&1; ! grep -E "R3 not-executed [^ ]+ ts " var/pc-C16.158.log'` | [o] |

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 import {
   bindButtons, bindForm, compileForm, createForm, formDescription, formMessages,
   type CompileFormOptions, type CreateFormOptions,
@@ -44,38 +44,29 @@ function renderFixtureView(item: FixtureCase): string {
     undefined, formDescription(template, options));
 }
 
-describe('stateless HTML form view conformance', () => {
-  // bindForm gives missing repeated data its fixed row key, so every renderable case applies.
-  for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
-    test(item.name, () => proves(item.name, () => {
-      expect(normalizeHtml(renderFixtureView(item))).toBe(item.expected_html);
-    }));
-  }
-});
-
-describe('framework-independent HTML renderer conformance', () => {
-  // A form instance gives missing repeated data a random row key, so the
-  // missing-data case's fixed bindForm key cannot match this public-instance path.
-  const publicCases = fixtures.filter((fixture) =>
-    !fixture.expectError && fixture.name !== 'multiple-leaf-empty-placeholder');
-  for (const item of publicCases) {
-    test(item.name, () => proves(item.name, () => {
+// Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name.
+// A renderable case checks the stateless view, where bindForm gives missing repeated data its fixed row key, so every
+// renderable case applies; then the framework-independent renderer, except multiple-leaf-empty-placeholder: a form instance
+// gives missing repeated data a random row key, so that case's fixed bindForm key cannot match this public-instance path.
+for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
+  test(item.name, () => proves(item.name, () => {
+    expect(normalizeHtml(renderFixtureView(item))).toBe(item.expected_html);
+    if (item.name !== 'multiple-leaf-empty-placeholder') {
       expect(normalizeHtml(renderFixture(item))).toBe(item.expected_html);
-    }));
-  }
-});
+    }
+  }));
+}
 
-describe('HTML form rendering: a load or registry failure is a surfaced error', () => {
-  for (const item of fixtures.filter((fixture) => fixture.expectError)) {
-    test(item.name, () => proves(item.name, () => {
-      let thrown: unknown;
-      try {
-        renderFixture(item);
-      } catch (error) {
-        thrown = error;
-      }
-      expect(thrown, `${item.name} must throw`).toBeInstanceOf(Error);
-      expect(thrown).toHaveProperty('code', item.expectError?.code);
-    }));
-  }
-});
+// A load or registry failure is a surfaced error.
+for (const item of fixtures.filter((fixture) => fixture.expectError)) {
+  test(item.name, () => proves(item.name, () => {
+    let thrown: unknown;
+    try {
+      renderFixture(item);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown, `${item.name} must throw`).toBeInstanceOf(Error);
+    expect(thrown).toHaveProperty('code', item.expectError?.code);
+  }));
+}
