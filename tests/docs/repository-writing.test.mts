@@ -16,10 +16,11 @@ const sourceExtensions = new Set([
   '.c', '.cjs', '.go', '.js', '.mjs', '.mts', '.php', '.rs', '.sh', '.ts', '.tsx', '.vue',
 ]);
 const descriptiveJsonKeys = new Set(['description', 'message', 'note', 'summary', 'title']);
+// The word gate is not discouraged: it is the term of kit for its checks (PRINCIPLES P31, make kit-gates,
+// .github/workflows/gates.yml), which the records of this repository name.
 const discouraged: Array<[label: string, pattern: RegExp]> = [
   ['color-coded test status', /\b(?:RED|GREEN)\b/g],
   ['test-path metaphor', /\blanes?\b/gi],
-  ['acceptance-check metaphor', /\bgates?\b/gi],
   ['implementation-history wording', /\b(?:ported|porting|copied from|adapted from|inspired by)\b/gi],
   ['등급 비유', /1급/g],
   ['상태 비유', /죽은 코드|반쪽 게이트/g],

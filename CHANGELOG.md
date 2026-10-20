@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The repository-writing test accepts gate, the term of kit (C16.65-1)
+
+- `tests/docs/repository-writing.test.mts` no longer discourages the word gate, which is the term of kit for its checks (PRINCIPLES P31, `make kit-gates`, `.github/workflows/gates.yml`), and states that reason beside its list (C16.65-1). Red: the test ended `5 passed, 1 failed` with 34 findings `acceptance-check metaphor: "gate"`, the first `CHANGELOG.ko.md:149`; green: `6 passed, 0 failed`.
+
 ### 2026-10-20 — The PHP generator has the history functions (C16.52-6)
 
 - `Generator::emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` of `packages/generator/php` (rules in `src/Internal/History.php`) follow CURT-062, CURT-063 and CURT-076 to CURT-080 over a history object `{entries, redoEntries, lastPath?}`; an undo or a redo with nothing to restore throws `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. `HistoryFunctionsTest` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as data sets named by the case, and `config/parity.json` binds it to the unit `history-functions`; green: 13 of 13 pass (run with PHP 8.5, because the vendor directory of the main checkout requires it). The row stays `[~]` until the verification command runs in a checkout with a vendor directory.

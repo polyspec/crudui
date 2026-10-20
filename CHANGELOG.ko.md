@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2677150d1af8ccd79cbb8d50660664ee61f0fc903cc35b21f8ad848b361a3029 -->
+<!-- source-sha256: db2ef8fc8f4cb67a6c363214fe2e6d345077bc56860fb2693526b13b0a1af7ff -->
 
 ## Unreleased
+
+### 2026-10-20 — repository-writing test는 kit 용어 gate를 허용한다 (C16.65-1)
+
+- `tests/docs/repository-writing.test.mts`는 kit가 자기 검사를 부르는 용어인 gate(PRINCIPLES P31, `make kit-gates`, `.github/workflows/gates.yml`)를 더 이상 금지하지 않으며, 그 이유를 목록 옆에 적습니다(C16.65-1). Red: test가 `acceptance-check metaphor: "gate"` 34건(첫 번째는 `CHANGELOG.ko.md:149`)으로 `5 passed, 1 failed`로 끝났고, green: `6 passed, 0 failed`입니다.
 
 ### 2026-10-20 — PHP generator에 history 함수가 있다 (C16.52-6)
 
