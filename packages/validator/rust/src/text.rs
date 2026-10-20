@@ -667,30 +667,34 @@ fn structure_text(
     validate(&spec, files, basepath)
 }
 
-/// [`validate_list`](crate::validate_list()) over JSON text, with the checks of
+/// Defines a function that validates a list or a detail specification given as JSON text, with the checks of
 /// [`validate_text`] for the specification, the files and the base path.
-pub fn validate_list_text(
-    spec: &JsonText,
-    files: Option<&JsonText>,
-    basepath: Option<&JsonText>,
-) -> Result<(), ValidateError> {
-    structure_text(spec, files, basepath, |spec, files, basepath| {
-        let options = ValidateListOptions { files, loader: None, basepath };
-        Ok(crate::validate_list(spec, &options)?)
-    })
+macro_rules! structure_text_validator {
+    ($(#[$meta:meta])* $name:ident, $options:ident, $validate:ident) => {
+        $(#[$meta])*
+        pub fn $name(
+            spec: &JsonText,
+            files: Option<&JsonText>,
+            basepath: Option<&JsonText>,
+        ) -> Result<(), ValidateError> {
+            structure_text(spec, files, basepath, |spec, files, basepath| {
+                let options = $options { files, loader: None, basepath };
+                Ok(crate::$validate(spec, &options)?)
+            })
+        }
+    };
 }
 
-/// [`validate_detail`](crate::validate_detail()) over JSON text, with the checks
-/// of [`validate_text`] for the specification, the files and the base path.
-pub fn validate_detail_text(
-    spec: &JsonText,
-    files: Option<&JsonText>,
-    basepath: Option<&JsonText>,
-) -> Result<(), ValidateError> {
-    structure_text(spec, files, basepath, |spec, files, basepath| {
-        let options = ValidateDetailOptions { files, loader: None, basepath };
-        Ok(crate::validate_detail(spec, &options)?)
-    })
+structure_text_validator! {
+    /// [`validate_list`](crate::validate_list()) over JSON text, with the checks of
+    /// [`validate_text`] for the specification, the files and the base path.
+    validate_list_text, ValidateListOptions, validate_list
+}
+
+structure_text_validator! {
+    /// [`validate_detail`](crate::validate_detail()) over JSON text, with the checks
+    /// of [`validate_text`] for the specification, the files and the base path.
+    validate_detail_text, ValidateDetailOptions, validate_detail
 }
 
 #[cfg(test)]

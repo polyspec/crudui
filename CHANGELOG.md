@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust text validators of a list and a detail are defined by one macro (C16.58-2)
+
+- `validate_list_text` and `validate_detail_text` of `packages/validator/rust/src/text.rs` are defined by the macro `structure_text_validator!` (C16.58-2). Red: `make duplication-check` reported 54 clones before; green: 53 clones after, and the targeted check passes (8 passed).
+
 ### 2026-10-20 — The documentation link rewriters share one markdown-it attribute rewriter (C16.58-1)
 
 - `rewriteAttribute` of `scripts/documentation-links.mts` wraps a markdown-it renderer rule for the repository links, the docs links and the image sources; the clone between `scripts/docs-web/build.mts` and `scripts/documentation-links.mts` is gone (C16.58-1). Red: `make duplication-check` reported 55 clones before; green: 54 clones after, and the targeted check passes (18 passed).

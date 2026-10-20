@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b4b6b7af82aba8826aee0a7fe97b420e5376879d70a9216f64e4e3ef473c0339 -->
+<!-- source-sha256: 7674cbc7a7b97b7a9548f4bce292a883c66aaabcfdd14ff2868c2eb50d3df9ac -->
 
 ## Unreleased
+
+### 2026-10-20 — 목록과 상세의 Rust text validator는 macro 하나로 정의한다 (C16.58-2)
+
+- `packages/validator/rust/src/text.rs`의 `validate_list_text`와 `validate_detail_text`는 macro `structure_text_validator!`로 정의합니다 (C16.58-2). Red: `make duplication-check`는 이전에 중복 54건을 보고했고, green: 이후 53건이며 대상 검사가 통과합니다(8 passed).
 
 ### 2026-10-20 — 두 문서 link 재작성기는 markdown-it 속성 재작성기 하나를 공유한다 (C16.58-1)
 
