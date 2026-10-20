@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0e816bde4b96386fbe2d3d9568cadc23874e906fd168bd76a1439e47195737a0 -->
+<!-- source-sha256: 856fa40e6435fc90b6dc6dde24eecec8b8270c2a0c3fa711b45e7d51ba6a3489 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-20 — Rust generator는 공유 form-complete suite를 실행한다 (C16.84)
 
 - `packages/generator/rust/tests/form_complete.rs`는 `tests/fixtures/form-complete/cases.json`의 case 28건을 각각 `compile_form`, `Form::new`, `render_form`으로 case의 options와 render options를 써서 렌더링합니다. `expected_html`을 가진 case는 같은 bytes를 써야 하고, `expectError`를 가진 case는 기록된 code와 message로 실패해야 합니다(C16.84). Red: 이 test는 트리에 없었으므로 red를 기록하지 않았습니다. 변이 검사는 임시 복사본의 fixture 하나의 `expected_html`을 다른 값으로 바꿔 `form_complete`가 실패함(exit 1)을 확인했고, 그 뒤 fixture를 복원했습니다. Green: `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_complete` exit 0, 1 passed이며 case 28건이 모두 비교되었습니다. generator 결함은 없었습니다.
+
+### 2026-10-20 — Go generator는 공유 form-complete, list-render, detail-render suite를 실행한다 (C16.86)
+
+- `packages/generator/go/form_complete_suite_test.go`(신규)는 `tests/fixtures/form-complete/cases.json`의 28개 case를 case의 render 옵션으로 `RenderForm`에 실행하고, `list_render_suite_test.go`는 `list-render`의 157개 case, `detail_render_suite_test.go`는 `detail-render`의 62개 case를 실행합니다. result body는 image preload link를 뺀 뒤 공유 normalizer가 만든 layout으로 비교하고, failure case는 기록된 code와 message로 확인합니다(C16.86). `form_render_suite_test.go`의 `renderFormCase`는 render 옵션을 받습니다. list와 detail의 입력 규칙은 CUDF-025와 CUDF-033을 따릅니다: `RenderList`, `BuildList`는 `rows any`를, `RenderDetail`, `BuildDetail`은 `record any`를 받으며(디코딩된 값; `[]*Object`도 그대로 받음), 배열이 아닌 rows는 `List rows must be an array`로(`list.go` `listRows`), 객체가 아닌 record는 fields 검사보다 먼저 `Detail record must be an object`로 실패하고, nil record는 더 이상 빈 객체가 되지 않습니다(`detail.go` `BuildDetail`). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormCompleteSuite|TestListRenderSuite|TestDetailRenderSuite'` exit 1, 250 subtest 중 7개 실패(`reject-record-before-fields`, `reject-record-before-context`, `reject-non-object-record`, `reject-object-rows`, `reject-rows-before-columns`); green: exit 0이며 250 subtest가 통과하고, 변경된 API를 호출하는 파일의 27개 test(89 subtest)가 통과하며 `go vet` exit 0입니다.
 
 ### 2026-10-20 — Go generator는 공유 form-render suite를 실행한다 (C16.82)
 

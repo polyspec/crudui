@@ -58,29 +58,53 @@ func optionObject(v any) (*Object, bool) {
 	return o, ok
 }
 
-// checkListInput applies the list input rules in the order every runtime uses.
-func checkListInput(spec *Object, rows []*Object, options ListOptions) error {
-	if spec == nil {
-		return fmt.Errorf("List specification must be an object")
-	}
-	for _, row := range rows {
-		if row == nil {
-			return fmt.Errorf("List rows must be objects")
+// listRows returns the rows of a list: a Go []*Object, or a decoded JSON array whose members are objects. Any other
+// value is no array (CUDF-025), and a member that is no object fails with CUDF-026.
+func listRows(rows any) ([]*Object, error) {
+	switch v := rows.(type) {
+	case []*Object:
+		for _, row := range v {
+			if row == nil {
+				return nil, fmt.Errorf("List rows must be objects")
+			}
 		}
+		return v, nil
+	case []any:
+		out := make([]*Object, len(v))
+		for i, item := range v {
+			row, ok := item.(*Object)
+			if !ok || row == nil {
+				return nil, fmt.Errorf("List rows must be objects")
+			}
+			out[i] = row
+		}
+		return out, nil
+	}
+	return nil, fmt.Errorf("List rows must be an array")
+}
+
+// checkListInput applies the list input rules in the order every runtime uses and returns the checked rows.
+func checkListInput(spec *Object, rows any, options ListOptions) ([]*Object, error) {
+	if spec == nil {
+		return nil, fmt.Errorf("List specification must be an object")
+	}
+	records, err := listRows(rows)
+	if err != nil {
+		return nil, err
 	}
 	if !spec.Has("columns") {
-		return fmt.Errorf("List specification must declare columns")
+		return nil, fmt.Errorf("List specification must declare columns")
 	}
 	if _, ok := optionObject(options.Data); !ok {
-		return fmt.Errorf("List context must be an object")
+		return nil, fmt.Errorf("List context must be an object")
 	}
 	if _, _, ok := countOption(options.Page, 1); !ok {
-		return fmt.Errorf("List page must be a positive integer")
+		return nil, fmt.Errorf("List page must be a positive integer")
 	}
 	if _, _, ok := countOption(options.Total, 0); !ok {
-		return fmt.Errorf("List total must be a nonnegative integer")
+		return nil, fmt.Errorf("List total must be a nonnegative integer")
 	}
-	return nil
+	return records, nil
 }
 
 func normalizeFormat(v any) *Object {
@@ -99,16 +123,18 @@ func normalizeFormat(v any) *Object {
 }
 
 // BuildList creates a complete list model from the specification and ordered records.
-func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, error) {
+// rows is a []*Object or a decoded JSON array of objects.
+func BuildList(spec *Object, rows any, options ListOptions) (*Object, error) {
 	// Input text is checked first (docs/spec/input-text.md).
 	options, e := checkDisplayText(spec, text.Input{Name: "rows", Value: rows}, options)
 	if e != nil {
 		return nil, e
 	}
-	if e := checkListInput(spec, rows, options); e != nil {
+	records, e := checkListInput(spec, rows, options)
+	if e != nil {
 		return nil, e
 	}
-	return buildDisplay(spec, rows, options, displayPaths{own: "list", members: "columns"})
+	return buildDisplay(spec, records, options, displayPaths{own: "list", members: "columns"})
 }
 
 // displayPaths names a display specification kind: own is the root path (list or detail) and
@@ -796,12 +822,13 @@ func paginationPages(page, pageCount int64) []int64 {
 }
 
 // RenderList renders a table or card list with image resource hints in first-use order.
-func RenderList(spec *Object, rows []*Object, options ListOptions) (string, error) {
+// rows is a []*Object or a decoded JSON array of objects.
+func RenderList(spec *Object, rows any, options ListOptions) (string, error) {
 	options, e := checkDisplayText(spec, text.Input{Name: "rows", Value: rows}, options)
 	if e != nil {
 		return "", e
 	}
-	if e := checkListInput(spec, rows, options); e != nil {
+	if _, e := checkListInput(spec, rows, options); e != nil {
 		return "", e
 	}
 	layout := "table"

@@ -39,11 +39,11 @@ func TestListAndDetailDesignDeclarations(t *testing.T) {
 		})
 	}
 	// The input rules come first.
-	_, err := BuildList(decodeObject(t, `{"columns":{},"design":{"color":"red"}}`), nil, ListOptions{Page: 0.0})
+	_, err := BuildList(decodeObject(t, `{"columns":{},"design":{"color":"red"}}`), []*Object{}, ListOptions{Page: 0.0})
 	if err == nil || err.Error() != "List page must be a positive integer" {
 		t.Fatalf("input rules must precede declarations: %v", err)
 	}
-	_, err = BuildDetail(decodeObject(t, `{"fields":{},"design":{"color":"red"}}`), nil, DetailOptions{Data: "x"})
+	_, err = BuildDetail(decodeObject(t, `{"fields":{},"design":{"color":"red"}}`), NewObject(), DetailOptions{Data: "x"})
 	if err == nil || err.Error() != "Detail context must be an object" {
 		t.Fatalf("detail input rules must precede declarations: %v", err)
 	}

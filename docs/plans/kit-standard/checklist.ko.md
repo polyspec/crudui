@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 1cac3464978e901c69f18504b197b1ad5d4c4799db137bcd6170f0d1bf74c54f -->
+<!-- source-sha256: 95f770fefd7dcca08e76d8f046115a43ecd0645795de49f5e91b70865305779f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -166,3 +166,4 @@
 | C16.91 | crudui-test-native test는 node_modules를 가리키는 대신 Makefile의 KIT 디렉터리를 도출한다 | tests/build/make-tool-path.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/make-tool-path.test.mts` | [o] |
 | C16.84 | Rust generator는 공유 form-complete suite를 실행한다 | packages/generator/rust/tests/form_complete.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_complete` | [o] |
 | C16.88 | Rust generator는 공유 form-render, list-render, detail-render suite를 실행한다 | packages/generator/rust/tests/form_render.rs packages/generator/rust/tests/list_render.rs packages/generator/rust/tests/detail_render.rs packages/generator/rust/tests/support/mod.rs packages/generator/rust/src/instance.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_render`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml list_render`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml detail_render` | [o] |
+| C16.86 | Go generator는 공유 form-complete, list-render, detail-render suite를 실행한다 | packages/generator/go/form_complete_suite_test.go, packages/generator/go/list_render_suite_test.go, packages/generator/go/detail_render_suite_test.go, packages/generator/go/form_render_suite_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormCompleteSuite\|TestListRenderSuite\|TestDetailRenderSuite'` | [o] |

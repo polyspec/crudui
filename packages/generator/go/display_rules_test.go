@@ -84,7 +84,7 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			vm, err := BuildList(spec, nil, c.options)
+			vm, err := BuildList(spec, []*Object{}, c.options)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -94,7 +94,7 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 			}
 		})
 	}
-	html, err := RenderList(spec, nil, ListOptions{Page: 9007199254740991.0, Total: math.Copysign(0, -1)})
+	html, err := RenderList(spec, []*Object{}, ListOptions{Page: 9007199254740991.0, Total: math.Copysign(0, -1)})
 	if err != nil || !strings.Contains(html, `class="crudui-list__pagination-page" data-page="1" aria-label="1페이지" aria-current="page" disabled=""`) {
 		t.Fatalf("%s %v", html, err)
 	}

@@ -64,7 +64,7 @@ func TestFormRenderSuite(t *testing.T) {
 	actual := make([]string, len(results))
 	renderErrors := make([]error, len(results))
 	for i, c := range results {
-		actual[i], renderErrors[i] = renderFormCase(c)
+		actual[i], renderErrors[i] = renderFormCase(c, nil)
 	}
 	expected := make([]string, len(results))
 	for i, c := range results {
@@ -85,7 +85,7 @@ func TestFormRenderSuite(t *testing.T) {
 	for _, c := range failures {
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
 			want := stringAt(object(read(c, "expectError")), "code")
-			_, err := renderFormCase(c)
+			_, err := renderFormCase(c, nil)
 			if err == nil {
 				t.Fatalf("want the error %s, but the case rendered", want)
 			}
@@ -96,9 +96,9 @@ func TestFormRenderSuite(t *testing.T) {
 	}
 }
 
-// renderFormCase compiles, binds and renders one case with the options of the case; a second instance over the same
-// template and data must render the same form.
-func renderFormCase(c *Object) (string, error) {
+// renderFormCase compiles, binds and renders one case with the options of the case and the render options given
+// (nil for none); a second instance over the same template and data must render the same form.
+func renderFormCase(c *Object, render any) (string, error) {
 	options := object(read(c, "options"))
 	if has(c, "data") && object(read(c, "data")) == nil {
 		return "", fmt.Errorf("case data must be an object")
@@ -126,7 +126,7 @@ func renderFormCase(c *Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	html, err := RenderForm(form, nil)
+	html, err := RenderForm(form, render)
 	if err != nil {
 		return "", err
 	}
@@ -134,7 +134,7 @@ func renderFormCase(c *Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	repeat, err := RenderForm(again, nil)
+	repeat, err := RenderForm(again, render)
 	if err != nil {
 		return "", err
 	}

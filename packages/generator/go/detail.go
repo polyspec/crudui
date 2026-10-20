@@ -11,7 +11,8 @@ type DetailOptions = ListOptions
 
 // BuildDetail creates a read-only detail model from one supplied record.
 // Field composition, design evaluation and cell formatting are shared with BuildList.
-func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, error) {
+// record is an *Object or a decoded JSON value; any other value is no object (CUDF-033).
+func BuildDetail(spec *Object, record any, options DetailOptions) (*Object, error) {
 	// Input text is checked first (docs/spec/input-text.md).
 	options, e := checkDisplayText(spec, text.Input{Name: "record", Value: record}, options)
 	if e != nil {
@@ -20,8 +21,9 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 	if spec == nil {
 		return nil, fmt.Errorf("Detail specification must be an object")
 	}
-	if record == nil {
-		record = NewObject()
+	obj, ok := record.(*Object)
+	if !ok || obj == nil {
+		return nil, fmt.Errorf("Detail record must be an object")
 	}
 	if !has(spec, "fields") {
 		return nil, fmt.Errorf("Detail specification must declare fields")
@@ -31,7 +33,7 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 	}
 	// Page and total are list-only options: a detail neither checks nor uses them.
 	options.Page, options.Total = nil, nil
-	list, err := buildDisplay(spec, []*Object{record}, options, displayPaths{own: "detail", members: "fields"})
+	list, err := buildDisplay(spec, []*Object{obj}, options, displayPaths{own: "detail", members: "fields"})
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +63,7 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 
 // RenderDetail renders one read-only detail: the image preload links, the actions when the
 // detail has any, and the definition list.
-func RenderDetail(spec *Object, record *Object, options DetailOptions) (string, error) {
+func RenderDetail(spec *Object, record any, options DetailOptions) (string, error) {
 	vm, err := BuildDetail(spec, record, options)
 	if err != nil {
 		return "", err

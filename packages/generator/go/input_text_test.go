@@ -78,7 +78,7 @@ func TestInputTextRejectsInvalidUTF8(t *testing.T) {
 	if _, e := RenderList(list, []*Object{NewObject("v", "a"), NewObject("v", bad)}, ListOptions{Page: 0}); message(e) != "Text must be Unicode scalar values: rows.1.v" {
 		t.Errorf("render list rows: %v", e)
 	}
-	if _, e := BuildList(list, nil, ListOptions{Layout: bad, Data: NewObject("a", bad)}); message(e) != "Text must be Unicode scalar values: options.data.a" {
+	if _, e := BuildList(list, []*Object{}, ListOptions{Layout: bad, Data: NewObject("a", bad)}); message(e) != "Text must be Unicode scalar values: options.data.a" {
 		t.Errorf("list options: %v", e)
 	}
 	detail := parseObject(t, `{"fields":{"v":{"field":"v"}}}`)
