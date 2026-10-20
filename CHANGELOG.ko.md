@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7ca75b3f9a21e9373ea2a974006dec1a9266c0e06c6aaa7e46b11de323245aa6 -->
+<!-- source-sha256: 9092169491f0981b6e7d340542fe5b4e28b66109a1b0e645b159eb9e7813cbb1 -->
 
 ## Unreleased
 
@@ -26,6 +26,10 @@
 
 - `tests/fixtures/form-render/cases.json`에 case 두 개가 `packages/react/scripts/scenario-form-render-cases.ts`를 거쳐 React reference로 렌더링되어 추가되었습니다: `nested-empty-collections-keep-sibling-order`(명시적으로 빈 중첩 collection, 형제 행은 키와 데이터 순서를 유지함; CUEC-001, CURP-027)와 `scalar-multiple-empty-object-has-no-rows`(반복되는 scalar의 명시적 빈 객체는 행 0개; CUEC-001, CUEC-004)입니다. Go, Python, Rust runner는 새 결과 case를 셉니다. `config/parity.json`의 form-render unit은 CURP-027을 인용합니다.
 - `packages/generator/ts/src/empty-collections.test.ts`는 아직 undeclared 상태입니다. 객체가 아닌 데이터의 `bindForm` 거부(CUEC-003)와 데이터를 바꾸지 않는 visibility 단언(CUEC-006)에 인용된 case가 없으므로, 파일을 internal로 선언하지 않았습니다.
+
+### 2026-10-21 — Rust generator가 template shape fixture의 모든 case를 실행한다 (C16.130)
+
+- `packages/generator/rust/tests/template_shape.rs`는 case마다 `FormTemplate::from_json`으로 template을 decode하고 `bindForm`, `bindButtons`, `createForm` operation을 실행합니다. `tests/fixtures/template-shape`의 case마다 trial 하나이며, 이 test는 case 42개를 확인합니다. `src/tests.rs`의 inline 형태 위반 표는 없어졌고, 선언된 template과 compile된 template의 round trip test는 남습니다.
 
 ### 2026-10-21 — Go generator가 template shape fixture의 모든 case를 실행한다 (C16.129)
 

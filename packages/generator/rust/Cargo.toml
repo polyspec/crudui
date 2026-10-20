@@ -28,6 +28,10 @@ harness = false
 name = "input_text"
 harness = false
 
+[[test]]
+name = "template_shape"
+harness = false
+
 [lints]
 workspace = true
 

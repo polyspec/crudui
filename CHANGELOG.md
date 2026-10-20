@@ -26,6 +26,10 @@
 - `tests/fixtures/form-render/cases.json` gains two cases through `packages/react/scripts/scenario-form-render-cases.ts`, rendered by the React reference: `nested-empty-collections-keep-sibling-order` (explicit empty nested collections, sibling rows keep their keys and data order; CUEC-001, CURP-027) and `scalar-multiple-empty-object-has-no-rows` (an explicit empty object for a repeated scalar gives zero rows; CUEC-001, CUEC-004). The Go, Python and Rust runners count the new result cases; `config/parity.json` cites CURP-027 in the form-render unit.
 - `packages/generator/ts/src/empty-collections.test.ts` stays undeclared: its non-keyed `bindForm` rejection (CUEC-003) and the visibility assertion that keeps the data unchanged (CUEC-006) have no cited case, so the file is not yet declared internal.
 
+### 2026-10-21 — The Rust generator runs every case of the template shape fixture (C16.130)
+
+- `packages/generator/rust/tests/template_shape.rs` decodes each case's template with `FormTemplate::from_json` and runs its `bindForm`, `bindButtons` or `createForm` operation, one trial per case of `tests/fixtures/template-shape`; the test asserts the 42 cases. The inline table of shape violations in `src/tests.rs` is gone; a round-trip test of the declared and compiled templates remains.
+
 ### 2026-10-21 — The Go generator runs every case of the template shape fixture (C16.129)
 
 - `packages/generator/go/template_shape_test.go` decodes each case's template with the Go decoder and runs its `bindForm`, `bindButtons` or `createForm` operation, one subtest per case of `tests/fixtures/template-shape`; the test asserts the 42 cases. Its inline table is gone; the widget member order test remains.
