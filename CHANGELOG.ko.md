@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f84873983e4e0ad18b76f10d9bfa963d1ea4c9b4fd566dd242ad40afc48299cd -->
+<!-- source-sha256: ee6e39f6e874b1bcb37f2e62175ce6b3e3a0a3a632a701bd8798bdd71cb01192 -->
 
 ## Unreleased
+
+### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.46)
+
+- config/parity.json이 crudui의 구현, 도구 root, 비교기를 `make parity-declarations-check`의 발견 없이 선언한다: 기다리던 unit, 요구사항 id, 테스트 이동이 끝났다 (C16.46).
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.57)
 
