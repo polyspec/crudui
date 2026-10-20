@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 764408012516663d2ecbab3618a6cf409b7d9e2781ab6c018aa522bfcf5037ca -->
+<!-- source-sha256: 1a9833f4ad03de8d00405e6c291cf117a0b072120a6df89de69d66c187159a59 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -35,3 +35,4 @@
 | C16.20 | PHP의 string rule과 field 참조 rule은 두 base class로 guard를 공유한다 | packages/validator/php/src/Rules/StringRule.php, ReferenceRule.php, Email.php, Url.php, DateISO.php, EndDate.php, EqualTo.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |
 | C16.21 | config/duplication.json은 생성된 Go와 TypeScript Unicode table도 제외한다 | config/duplication.json | `make duplication-check` | [o] |
 | C16.22 | Go validator는 path segment의 값을 하나의 함수로 읽는다 | packages/validator/go/validator/expr/evaluator.go, packages/validator/go/validator/validate/helpers.go, rules.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'TestValidateMatchesFixture\|TestValueSemanticsMatchJsReference\|TestUniqueManyValues' ./validator/expr/... ./validator/validate/...`, `make lint-go` | [o] |
+| C16.23 | Go validator model은 순서가 있는 object를 두 generic helper로 읽고 쓴다 | packages/validator/go/validator/ordered.go, types.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestParameterChecks\|TestDecodeOrderedKeepsText' ./...`, `make lint-go` | [o] |

@@ -210,62 +210,20 @@ func (p *PropertyMap) MarshalJSON() ([]byte, error) {
 	if p == nil {
 		return []byte("null"), nil
 	}
-	buf := []byte{'{'}
-	for i, k := range p.Keys {
-		if i > 0 {
-			buf = append(buf, ',')
-		}
-		kb, err := json.Marshal(k)
-		if err != nil {
-			return nil, err
-		}
-		buf = append(buf, kb...)
-		buf = append(buf, ':')
-		vb, err := json.Marshal(p.Values[k])
-		if err != nil {
-			return nil, err
-		}
-		buf = append(buf, vb...)
-	}
-	buf = append(buf, '}')
-	return buf, nil
+	return marshalOrdered(p.Keys, p.Values)
 }
 
 // UnmarshalJSON decodes a property object while preserving declaration order via
 // a token walk. Each child value is decoded into a FieldSpec, so forbidden keys
 // nested in a child are rejected by the child's own UnmarshalJSON.
 func (p *PropertyMap) UnmarshalJSON(data []byte) error {
-	dec := json.NewDecoder(bytes.NewReader(data))
-	tok, err := dec.Token()
+	keys, values, err := decodeOrdered[*FieldSpec](data, "properties must be an object")
 	if err != nil {
 		return err
 	}
-	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return fmt.Errorf("model: properties must be an object")
-	}
-	p.Keys = nil
-	p.Values = map[string]*FieldSpec{}
-	for dec.More() {
-		keyTok, err := dec.Token()
-		if err != nil {
-			return err
-		}
-		key := keyTok.(string)
-		var raw json.RawMessage
-		if err := dec.Decode(&raw); err != nil {
-			return err
-		}
-		var child FieldSpec
-		if err := json.Unmarshal(raw, &child); err != nil {
-			return err
-		}
-		if _, dup := p.Values[key]; !dup {
-			p.Keys = append(p.Keys, key)
-		}
-		p.Values[key] = &child
-	}
-	_, err = dec.Token() // consume '}'
-	return err
+	p.Keys = keys
+	p.Values = values
+	return nil
 }
 
 // Content is a content value that is a plain string, a language map (G3 content
@@ -297,25 +255,7 @@ func (c *Content) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	if c.Lang != nil {
-		buf := []byte{'{'}
-		for i, k := range c.LangKeys {
-			if i > 0 {
-				buf = append(buf, ',')
-			}
-			kb, err := json.Marshal(k)
-			if err != nil {
-				return nil, err
-			}
-			buf = append(buf, kb...)
-			buf = append(buf, ':')
-			vb, err := json.Marshal(c.Lang[k]) // nil *string → null (G3 empty slot)
-			if err != nil {
-				return nil, err
-			}
-			buf = append(buf, vb...)
-		}
-		buf = append(buf, '}')
-		return buf, nil
+		return marshalOrdered(c.LangKeys, c.Lang) // nil *string → null (G3 empty slot)
 	}
 	if c.Text != nil {
 		return json.Marshal(*c.Text)
@@ -343,35 +283,15 @@ func (c *Content) UnmarshalJSON(data []byte) error {
 		c.Null = false
 		return nil
 	}
-	dec := json.NewDecoder(bytes.NewReader(data))
-	tok, err := dec.Token()
+	keys, values, err := decodeOrdered[*string](data, "content must be a string, a language object, or null")
 	if err != nil {
 		return err
 	}
-	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return fmt.Errorf("model: content must be a string, a language object, or null")
-	}
 	c.Text = nil
 	c.Null = false
-	c.LangKeys = nil
-	c.Lang = map[string]*string{}
-	for dec.More() {
-		keyTok, err := dec.Token()
-		if err != nil {
-			return err
-		}
-		key := keyTok.(string)
-		var val *string // nil when the slot value is JSON null (G3 empty slot)
-		if err := dec.Decode(&val); err != nil {
-			return err
-		}
-		if _, dup := c.Lang[key]; !dup {
-			c.LangKeys = append(c.LangKeys, key)
-		}
-		c.Lang[key] = val
-	}
-	_, err = dec.Token() // consume '}'
-	return err
+	c.LangKeys = keys
+	c.Lang = values // a nil entry is a JSON null slot (G3 empty slot)
+	return nil
 }
 
 // ConditionMap is the declaration-ordered condition map (SPEC condition_map).
@@ -401,56 +321,18 @@ func (c *ConditionMap) MarshalJSON() ([]byte, error) {
 	if c == nil {
 		return []byte("null"), nil
 	}
-	buf := []byte{'{'}
-	for i, k := range c.Keys {
-		if i > 0 {
-			buf = append(buf, ',')
-		}
-		kb, err := json.Marshal(k)
-		if err != nil {
-			return nil, err
-		}
-		buf = append(buf, kb...)
-		buf = append(buf, ':')
-		vb, err := json.Marshal(c.Values[k])
-		if err != nil {
-			return nil, err
-		}
-		buf = append(buf, vb...)
-	}
-	buf = append(buf, '}')
-	return buf, nil
+	return marshalOrdered(c.Keys, c.Values)
 }
 
 // UnmarshalJSON decodes a condition map preserving declaration order.
 func (c *ConditionMap) UnmarshalJSON(data []byte) error {
-	dec := json.NewDecoder(bytes.NewReader(data))
-	tok, err := dec.Token()
+	keys, values, err := decodeOrdered[any](data, "condition map must be an object")
 	if err != nil {
 		return err
 	}
-	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return fmt.Errorf("model: condition map must be an object")
-	}
-	c.Keys = nil
-	c.Values = map[string]any{}
-	for dec.More() {
-		keyTok, err := dec.Token()
-		if err != nil {
-			return err
-		}
-		key := keyTok.(string)
-		var v any
-		if err := dec.Decode(&v); err != nil {
-			return err
-		}
-		if _, dup := c.Values[key]; !dup {
-			c.Keys = append(c.Keys, key)
-		}
-		c.Values[key] = v
-	}
-	_, err = dec.Token() // consume '}'
-	return err
+	c.Keys = keys
+	c.Values = values
+	return nil
 }
 
 // ValidateSlot is the validate role slot. Polymorphic: Cancel = the false shape
@@ -498,26 +380,7 @@ type Messages struct {
 
 // MarshalJSON emits Messages as a JSON object in declaration order.
 func (m *Messages) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	buf.WriteByte('{')
-	for i, key := range m.Keys {
-		if i > 0 {
-			buf.WriteByte(',')
-		}
-		name, err := json.Marshal(key)
-		if err != nil {
-			return nil, err
-		}
-		value, err := json.Marshal(m.Values[key])
-		if err != nil {
-			return nil, err
-		}
-		buf.Write(name)
-		buf.WriteByte(':')
-		buf.Write(value)
-	}
-	buf.WriteByte('}')
-	return buf.Bytes(), nil
+	return marshalOrdered(m.Keys, m.Values)
 }
 
 // UnmarshalJSON reads Messages and rejects a key that is not a registered rule
@@ -741,26 +604,7 @@ type DeclaredAttributes struct {
 
 // MarshalJSON emits DeclaredAttributes as a JSON object in declaration order.
 func (a *DeclaredAttributes) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	buf.WriteByte('{')
-	for i, key := range a.Keys {
-		if i > 0 {
-			buf.WriteByte(',')
-		}
-		name, err := json.Marshal(key)
-		if err != nil {
-			return nil, err
-		}
-		value, err := json.Marshal(a.Values[key])
-		if err != nil {
-			return nil, err
-		}
-		buf.Write(name)
-		buf.WriteByte(':')
-		buf.Write(value)
-	}
-	buf.WriteByte('}')
-	return buf.Bytes(), nil
+	return marshalOrdered(a.Keys, a.Values)
 }
 
 // UnmarshalJSON reads DeclaredAttributes and rejects a value that is not an
@@ -1098,21 +942,7 @@ func (i *Items) MarshalJSON() ([]byte, error) {
 		return json.Marshal(i.Static)
 	}
 	if i.StaticMap != nil {
-		buf := []byte{'{'}
-		for n, k := range i.StaticMapKeys {
-			if n > 0 {
-				buf = append(buf, ',')
-			}
-			kb, err := json.Marshal(k)
-			if err != nil {
-				return nil, err
-			}
-			buf = append(buf, kb...)
-			buf = append(buf, ':')
-			buf = append(buf, i.StaticMap[k]...) // raw label (string | LangMap | null)
-		}
-		buf = append(buf, '}')
-		return buf, nil
+		return marshalOrdered(i.StaticMapKeys, i.StaticMap) // raw label (string | LangMap | null)
 	}
 	type alias Items
 	return json.Marshal((*alias)(i))

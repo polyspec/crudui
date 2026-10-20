@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9e0ad6a908b0b2e5866708692b17b1e437c45d4fc8a3fcd3aa14276160cf1a1a -->
+<!-- source-sha256: 63ae55b03a1e749398b4002fa5cae531859c266d2f3ea95c7c3d572abbc29e5a -->
 
 ## Unreleased
+
+### 2026-10-20 — Go validator의 두 helper로 읽고 쓰는 ordered object (C16.23)
+
+- `marshalOrdered`는 map의 member를 key 순서대로 쓰고 `decodeOrdered`는 처음 나온 순서로 다시 읽습니다. `PropertyMap`, `Content`, `ConditionMap`, `Messages`, `DeclaredAttributes`, `Items`의 `MarshalJSON`과 `UnmarshalJSON`에 있던 사본을 대체하며, object가 아닌 값의 오류 문구는 그대로입니다 (C16.23). Red: `make duplication-check`가 `types.go`의 ordered-object 코드 clone 11건을 나열했고, green: 이 file의 다른 clone 4건은 남고 이것들은 없어집니다. Go test 759건과 `make lint-go`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — Go validator의 하나의 path reader (C16.22)
 

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Ordered objects through two helpers in the Go validator (C16.23)
+
+- `marshalOrdered` writes the members of a map in the order of its keys and `decodeOrdered` reads them back with their first-occurrence order, in place of the copies in the `MarshalJSON` and `UnmarshalJSON` of `PropertyMap`, `Content`, `ConditionMap`, `Messages`, `DeclaredAttributes` and `Items`; the error texts for a value that is not an object are unchanged (C16.23). Red: `make duplication-check` listed 11 clones of the ordered-object code in `types.go`; green: 4 other clones of that file remain and these are gone, 759 Go tests and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — One path reader in the Go validator (C16.22)
 
 - `expr.ValueAtSegments` reads the value at concrete path segments; `Evaluator.getValueByPath` and the `validate` package call it instead of each holding a copy (C16.22). Red: `make duplication-check` listed 1 clone of 24 lines between `expr/evaluator.go` and `validate/helpers.go`; green: none, 369 Go tests of `expr` and `validate` and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.
