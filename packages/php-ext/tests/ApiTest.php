@@ -127,7 +127,7 @@ final class ApiTest extends TestCase
     /** The extension module that PHP_EXTENSION names, relative to the checkout or absolute. */
     private static function extension(): string
     {
-        $name = getenv('PHP_EXTENSION') ?: 'packages/php-ext/modules/polyspec_crudui.so';
+        $name = getenv('PHP_EXTENSION') ?: 'var/php-ext/polyspec_crudui.so';
         $module = str_starts_with($name, '/') ? $name : dirname(__DIR__, 3) . '/' . $name;
         if (!is_file($module)) {
             throw new RuntimeException("Build the extension first: $module");

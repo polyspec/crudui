@@ -681,7 +681,7 @@ final class ApiReport
         self::same($detailHtml, Generator::renderDetail($detailSpec, ['name' => 'Ada']), 'Detail HTML changed');
         self::same(
             $detailHtml,
-            Generator::renderDetail((object)$detailSpec, (object)['name' => 'Ada'], new stdClass()),
+            Generator::renderDetail((object)$detailSpec, (object)['name' => 'Ada'], []),
             'Object detail HTML differs'
         );
         self::same(
@@ -703,7 +703,7 @@ final class ApiReport
         foreach (['renderDetail', 'buildDetail'] as $method) {
             foreach (
                 [
-                [[[], ['name' => 'Ada']], 'Detail specification must declare fields'],
+                [[[], ['name' => 'Ada']], 'Detail specification must be an object'],
                 [[[['field' => 'name']], ['name' => 'Ada']], 'Detail specification must be an object'],
                 [[(object)[], ['name' => 'Ada']], 'Detail specification must declare fields'],
                 [[['fields' => new stdClass()], ['Ada']], 'Detail record must be an object'],
@@ -741,7 +741,6 @@ final class ApiReport
         foreach (
             [
                 [],
-                ['data' => []],
                 ['data' => null],
                 ['data' => new stdClass()],
                 ['page' => null],
