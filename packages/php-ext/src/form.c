@@ -12,6 +12,8 @@ struct ps_form {
     ps_value *options;
     /* The row view state: {collapsed: list of row paths}. */
     ps_value *view;
+    /* The undo history: {entries, redoEntries} with an optional lastPath (history.c). */
+    ps_value *history;
     int64_t revision;
 };
 
@@ -340,8 +342,8 @@ static ps_value *bind_options(const ps_value *options, const ps_value *view)
     return bound;
 }
 
-/* The value of a view operation; NULL with *error set on failure. */
-static ps_value *view_value(ps_result result, ps_value **error)
+/* The value of an engine result; NULL with *error set on failure. */
+static ps_value *result_value(ps_result result, ps_value **error)
 {
     if (result.error) {
         *error = result.error;
@@ -352,6 +354,18 @@ static ps_value *view_value(ps_result result, ps_value **error)
         return NULL;
     }
     return result.value;
+}
+
+/* The dotted path of the segments of path, joined with dots; NULL bytes on failure. */
+static ps_chars dotted_path(const form_path *path)
+{
+    ps_chars joined = ps_copy(path->items[0]);
+    for (size_t index = 1; joined.bytes && index < path->length; ++index) {
+        ps_chars next = ps_join_path(ps_view(joined), path->items[index]);
+        free(joined.bytes);
+        joined = next;
+    }
+    return joined;
 }
 
 /* The row path "<collection path>.<key>": the segments of path joined with the key; NULL bytes on failure. */
@@ -372,7 +386,7 @@ static ps_value *view_without_row(const ps_form *form, const form_path *path, ps
     ps_value *row = ps_chars_value(row_path_of(path, key));
     ps_result removed = row ? ps_remove_row_view(form->view, row) : (ps_result){NULL, internal_error()};
     ps_value_free(row);
-    return view_value(removed, error);
+    return result_value(removed, error);
 }
 
 /* The view with the row at old_key moved to new_key in the collection at path; NULL with *error set on failure. */
@@ -385,7 +399,7 @@ static ps_value *view_after_rekey(const ps_form *form, const form_path *path, ps
         ? ps_rekey_row_view(form->view, old_row, new_row) : (ps_result){NULL, internal_error()};
     ps_value_free(old_row);
     ps_value_free(new_row);
-    return view_value(moved, error);
+    return result_value(moved, error);
 }
 
 /* Bind the fields with the view, which the form then keeps; the record and the revision do not change. */
@@ -408,10 +422,10 @@ static ps_result refresh_view(ps_form *form, ps_value *view)
 }
 
 /*
- * Replace the record and the view together: a NULL view keeps the current view. A view and a record are taken;
- * a failure leaves the data, the fields and the view unchanged.
+ * Take a record, its history and a view, and bind the fields of the record: a NULL view keeps the current view. A failure
+ * frees all three and leaves the form unchanged; a success counts one revision.
  */
-static ps_result commit(ps_form *form, ps_value *data, ps_value *view)
+static ps_result install(ps_form *form, ps_value *data, ps_value *history, ps_value *view)
 {
     ps_value *options = bind_options(form->options, view ? view : form->view);
     ps_result binding = options
@@ -420,13 +434,16 @@ static ps_result commit(ps_form *form, ps_value *data, ps_value *view)
     ps_value_free(options);
     if (!binding.value) {
         ps_value_free(data);
+        ps_value_free(history);
         ps_value_free(view);
         return binding.error ? binding : (ps_result){NULL, internal_error()};
     }
     ps_value_free(form->data);
     ps_value_free(form->fields);
+    ps_value_free(form->history);
     form->data = data;
     form->fields = binding.value;
+    form->history = history;
     if (view) {
         ps_value_free(form->view);
         form->view = view;
@@ -435,18 +452,65 @@ static ps_result commit(ps_form *form, ps_value *data, ps_value *view)
     return ps_ok(ps_null_value());
 }
 
+/*
+ * Replace the record and the view together and record the previous record in the history, with the path of a value
+ * edit; a NULL path records a row operation. The record and the view are taken; a failure leaves all unchanged.
+ */
+static ps_result commit(ps_form *form, ps_value *data, ps_value *view, const ps_value *path)
+{
+    ps_value *null_path = path ? NULL : ps_null_value();
+    const ps_value *record_path = path ? path : null_path;
+    ps_result recorded = record_path
+        ? ps_record_change(form->history, form->data, record_path)
+        : (ps_result){NULL, internal_error()};
+    ps_value_free(null_path);
+    if (!recorded.value) {
+        ps_value_free(data);
+        ps_value_free(view);
+        return recorded.error ? recorded : (ps_result){NULL, internal_error()};
+    }
+    return install(form, data, recorded.value, view);
+}
+
 static ps_result replace_data(ps_form *form, const ps_value *value)
 {
     ps_value *error = NULL;
     ps_value *data = normalize_fields(member(form->template, "fields"), value, PS_TEXT(""), &error);
     if (!data) return (ps_result){NULL, error ? error : internal_error()};
-    /* Replacing the record resets the view to the initial view. */
-    ps_value *view = view_value(ps_initial_view(), &error);
+    /* Replacing the record resets the view to the initial view and restarts the history. */
+    ps_value *view = result_value(ps_initial_view(), &error);
     if (!view) {
         ps_value_free(data);
         return (ps_result){NULL, error};
     }
-    return commit(form, data, view);
+    ps_value *history = result_value(ps_empty_history(), &error);
+    if (!history) {
+        ps_value_free(data);
+        ps_value_free(view);
+        return (ps_result){NULL, error};
+    }
+    return install(form, data, history, view);
+}
+
+/*
+ * Restore the record before the last change (undo) or reapply the last undone change (redo): the record replaces the
+ * data, the view is kept and the history moves; the revision counts one change.
+ */
+static ps_result step_form(ps_form *form, bool undo)
+{
+    ps_result step = undo
+        ? ps_undo_change(form->history, form->data)
+        : ps_redo_change(form->history, form->data);
+    if (!step.value) return step.error ? step : (ps_result){NULL, internal_error()};
+    ps_value *history = ps_value_clone(ps_get(step.value, "history"));
+    ps_value *value = ps_value_clone(ps_get(step.value, "value"));
+    ps_value_free(step.value);
+    if (!history || !value) {
+        ps_value_free(history);
+        ps_value_free(value);
+        return (ps_result){NULL, internal_error()};
+    }
+    return install(form, value, history, NULL);
 }
 
 static ps_value *copy_row_value(const ps_value *field, const ps_value *value,
@@ -627,7 +691,7 @@ static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
         ps_value_free(key);
         return (ps_result){NULL, error ? error : internal_error()};
     }
-    ps_result result = commit(form, data, NULL);
+    ps_result result = commit(form, data, NULL, NULL);
     if (result.error) {
         ps_value_free(key);
         return result;
@@ -697,7 +761,7 @@ static ps_result remove_row(ps_form *form, ps_text source, ps_text key)
         ps_value_free(data);
         return (ps_result){NULL, data ? error : internal_error()};
     }
-    return commit(form, data, view);
+    return commit(form, data, view, NULL);
 }
 
 static ps_value *reordered_rows(const ps_value *rows, size_t from, size_t to)
@@ -747,7 +811,7 @@ static ps_result move_row(ps_form *form, ps_text source, ps_text key,
         ? put_at(form->data, path.items, path.length, next_rows) : NULL;
     ps_value_free(next_rows);
     free_path(&path);
-    return data ? commit(form, data, NULL) : (ps_result){NULL, internal_error()};
+    return data ? commit(form, data, NULL, NULL) : (ps_result){NULL, internal_error()};
 }
 
 static ps_result rekey_row(ps_form *form, ps_text source, ps_text old_key,
@@ -795,7 +859,7 @@ static ps_result rekey_row(ps_form *form, ps_text source, ps_text old_key,
         ps_value_free(data);
         return (ps_result){NULL, data ? error : internal_error()};
     }
-    return commit(form, data, view);
+    return commit(form, data, view, NULL);
 }
 
 /* Expand or collapse one row; the view changes and the record and the revision do not. */
@@ -815,7 +879,7 @@ static ps_result toggle_row(ps_form *form, ps_text source, ps_text key)
     ps_result toggled = row
         ? ps_toggle_row_view(form->view, row) : (ps_result){NULL, internal_error()};
     ps_value_free(row);
-    ps_value *view = view_value(toggled, &error);
+    ps_value *view = result_value(toggled, &error);
     return view ? refresh_view(form, view) : (ps_result){NULL, error};
 }
 
@@ -823,7 +887,7 @@ static ps_result toggle_row(ps_form *form, ps_text source, ps_text key)
 static ps_result set_all_expanded(ps_form *form, const ps_value *expanded)
 {
     ps_value *error = NULL;
-    ps_value *view = view_value(ps_set_all_expanded_view(form->fields, expanded), &error);
+    ps_value *view = result_value(ps_set_all_expanded_view(form->fields, expanded), &error);
     return view ? refresh_view(form, view) : (ps_result){NULL, error};
 }
 
@@ -844,7 +908,7 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
         return (ps_form_result){NULL, error ? error : internal_error()};
     }
     /* A new form starts with the initial view: no collapsed row. */
-    ps_value *view = view_value(ps_initial_view(), &error);
+    ps_value *view = result_value(ps_initial_view(), &error);
     if (!view) {
         ps_value_free(ordered);
         ps_value_free(normalized);
@@ -859,12 +923,22 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
         ps_value_free(view);
         return (ps_form_result){NULL, binding.error ? binding.error : internal_error()};
     }
+    /* A new form starts with an empty undo history. */
+    ps_value *history = result_value(ps_empty_history(), &error);
+    if (!history) {
+        ps_value_free(ordered);
+        ps_value_free(normalized);
+        ps_value_free(view);
+        ps_value_free(binding.value);
+        return (ps_form_result){NULL, error};
+    }
     ps_form *form = calloc(1, sizeof(*form));
     if (!form) {
         ps_value_free(ordered);
         ps_value_free(normalized);
         ps_value_free(view);
         ps_value_free(binding.value);
+        ps_value_free(history);
         return (ps_form_result){NULL, internal_error()};
     }
     form->template = ordered;
@@ -872,6 +946,7 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
     form->data = normalized;
     form->fields = binding.value;
     form->view = view;
+    form->history = history;
     if (!form->template || !form->options) {
         ps_form_free(form);
         return (ps_form_result){NULL, internal_error()};
@@ -887,6 +962,7 @@ void ps_form_free(ps_form *form)
     ps_value_free(form->fields);
     ps_value_free(form->options);
     ps_value_free(form->view);
+    ps_value_free(form->history);
     free(form);
 }
 
@@ -900,8 +976,9 @@ ps_form *ps_form_clone(const ps_form *form)
     copy->fields = ps_value_clone(form->fields);
     copy->options = ps_value_clone(form->options);
     copy->view = ps_value_clone(form->view);
+    copy->history = ps_value_clone(form->history);
     copy->revision = form->revision;
-    if (!copy->template || !copy->data || !copy->fields || !copy->options || !copy->view) {
+    if (!copy->template || !copy->data || !copy->fields || !copy->options || !copy->view || !copy->history) {
         ps_form_free(copy);
         return NULL;
     }
@@ -1156,12 +1233,27 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
         form_path path = checked_path(source, &error);
         if (error) return (ps_result){NULL, error};
         ps_value *updated = put_at(form->data, path.items, path.length, value);
+        ps_chars dotted = updated ? dotted_path(&path) : (ps_chars){NULL, 0};
         free_path(&path);
-        if (!updated) return (ps_result){NULL, internal_error()};
+        if (!updated || !dotted.bytes) {
+            ps_value_free(updated);
+            free(dotted.bytes);
+            return (ps_result){NULL, internal_error()};
+        }
         ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, PS_TEXT(""), &error);
         ps_value_free(updated);
-        return normalized ? commit(form, normalized, NULL)
-                          : (ps_result){NULL, error ? error : internal_error()};
+        if (!normalized) {
+            free(dotted.bytes);
+            return (ps_result){NULL, error ? error : internal_error()};
+        }
+        ps_value *edited = ps_chars_value(dotted);
+        if (!edited) {
+            ps_value_free(normalized);
+            return (ps_result){NULL, internal_error()};
+        }
+        ps_result saved = commit(form, normalized, NULL, edited);
+        ps_value_free(edited);
+        return saved;
     }
     if (method == 3) {
         ps_text source = string_argument(args, 0, &error);
@@ -1203,5 +1295,9 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
         const ps_value *expanded = argument(args, 0, &error);
         return expanded ? set_all_expanded(form, expanded) : (ps_result){NULL, error};
     }
+    if (method == 10) return step_form(form, true);
+    if (method == 11) return step_form(form, false);
+    if (method == 12) return ps_can_undo(form->history);
+    if (method == 13) return ps_can_redo(form->history);
     return (ps_result){NULL, input_error("Unknown form operation")};
 }

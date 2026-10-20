@@ -53,6 +53,10 @@ namespace Polyspec\Crudui {
         public function rekeyRow(string $path, string $oldKey, string $newKey): void {}
         public function toggleRow(string $path, string $key): void {}
         public function setAllExpanded(bool $expanded): void {}
+        public function undo(): void {}
+        public function redo(): void {}
+        public function canUndo(): bool {}
+        public function canRedo(): bool {}
     }
     final class FormError extends \RuntimeException {
         private readonly string $errorCode;

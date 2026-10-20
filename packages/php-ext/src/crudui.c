@@ -592,7 +592,7 @@ PHP_METHOD(Polyspec_Crudui_Form, getMessages)
 
 static const char *const form_arguments[][3] = {
     {"path"}, {"data"}, {"path", "value"}, {"path"}, {"path", "key"}, {"path", "key"}, {"path", "key"}, {"path", "oldKey", "newKey"},
-    {"path", "key"}, {"expanded"},
+    {"path", "key"}, {"expanded"}, {NULL}, {NULL}, {NULL}, {NULL},
 };
 
 /* Input text of a form method: its text arguments in order, then the row options. */
@@ -711,6 +711,30 @@ PHP_METHOD(Polyspec_Crudui_Form, setAllExpanded)
     ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_BOOL(expanded) ZEND_PARSE_PARAMETERS_END();
     ZVAL_BOOL(&value, expanded);
     apply_form(Z_OBJ_P(ZEND_THIS), 9, 1, (zval *[]){&value}, (bool[]){false}, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Form, undo)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    apply_form(Z_OBJ_P(ZEND_THIS), 10, 0, NULL, NULL, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Form, redo)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    apply_form(Z_OBJ_P(ZEND_THIS), 11, 0, NULL, NULL, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Form, canUndo)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    apply_form(Z_OBJ_P(ZEND_THIS), 12, 0, NULL, NULL, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Form, canRedo)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    apply_form(Z_OBJ_P(ZEND_THIS), 13, 0, NULL, NULL, return_value);
 }
 
 PHP_MINIT_FUNCTION(polyspec_crudui)

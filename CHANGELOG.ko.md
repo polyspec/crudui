@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b71262b7c44322a3543e760ee98650ebc37aec6fdfd32ec0a4a59114a4ee4e21 -->
+<!-- source-sha256: 39fbed53ea86229fc42789d6eb560619688b81d16af2fc7433a5409a15dffc74 -->
 
 ## Unreleased
 
@@ -13,6 +13,9 @@
 ### 2026-10-20 — make lint-ts가 다시 통과한다 (C16.73)
 
 - `tests/build/offline-checks.test.mts`는 미사용 import `makeDryRun`을, `packages/php-ext/tests/engine/support.mjs`는 미사용 import `test`를 뺍니다(oxlint). `examples/form-comparison/src/local-servers.mjs`는 상수 `orderedJsonExtensionDirectory`를 모듈 안에만 둡니다(knip, C16.69가 남긴 미사용 export). `config/knip-entries.json`은 `packages/react`의 entry `src/index.ts`와 `src/server.ts`를 선언합니다. `./server` export가 knip이 미사용으로 보고한 타입 `RenderListOptions`를 이름으로 가지며, 이 타입은 공개 `renderList`의 option 타입이고 svelte와 vue entry도 같이 re-export합니다(C16.73). Red: `make lint-ts`가 exit 2이며, `oxlint: failed`는 finding 2건(`tests/build/offline-checks.test.mts:15`와 `packages/php-ext/tests/engine/support.mjs:7`의 `no-unused-vars`), `knip: failed`는 finding 2건(`examples/form-comparison/src/local-servers.mjs:23`의 `orderedJsonExtensionDirectory`, `packages/react/src/server.ts:12`의 `RenderListOptions`)을 보고했습니다. Green: `make lint-ts` exit 0, `packages/php-ext/tests/engine/engine.test.mjs` 27 passed, `examples/form-comparison/src/local-servers.test.mjs` 6 passed, `packages/react` vitest의 `entry-boundary`와 `list-render.conformance` 262 passed.
+### 2026-10-20 — PHP extension Form은 undo history를 가진다: undo, redo, canUndo, canRedo (C16.52-11)
+
+- `packages/php-ext/src/form.c`는 form instance마다 undo history를 가진다(`struct ps_form`의 `history`, `history.c`가 만든다). `commit`은 값 편집의 dotted path(`setValue`, `dotted_path`) 또는 행 작업의 null path(`addRow`, `moveRow`, `copyRow`, `removeRow`, `rekeyRow`)와 함께 이전 record를 기록한다. `replace_data`(`setData`)는 history를 다시 시작하고, undo와 redo는 `step_form`과 `install`로 record를 바꾸며 view를 유지한다. `canUndo`와 `canRedo`는 history 질의를 반환한다. `crudui.c`는 method `Form::undo`, `redo`, `canUndo`, `canRedo`를 추가하고, `polyspec_crudui.stub.php`와 `polyspec_crudui_arginfo.h`가 이를 선언한다(C16.52-11). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='FormStateTest|HistoryFunctionsTest'`가 선언 단계에서 exit 2로 실패했고, 누락된 method는 Form undo, redo, canUndo, canRedo 4개다. Green: `make lint-php-ext`가 exit 0이고, 같은 test 명령도 exit 0이며, generator suite가 extension 위에서 32개 test(FormStateTest와 HistoryFunctionsTest, form-history session 5개 포함)를 실행해 통과한다. validator와 php-ext library는 CASES가 test를 고르지 않아 건너뛴다(K390)(C16.52-11).
 
 ### 2026-10-20 — PHP extension이 view state와 history 함수를 등록한다 (C16.51-7)
 
