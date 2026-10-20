@@ -625,15 +625,51 @@ static size_t row_position(const ps_value *rows, ps_text key)
     return SIZE_MAX;
 }
 
+/* Open the collection of a row operation; false with failure set when the collection cannot be opened. */
+static bool open_collection(ps_form *form, ps_text source, form_path *path, const ps_value **field,
+                            const ps_value **rows, ps_result *failure)
+{
+    ps_value *error = NULL;
+    if (editable_collection(form, source, path, field, rows, &error)) return true;
+    *failure = (ps_result){NULL, error};
+    return false;
+}
+
+/* The collection of a row to add or copy: its options must be an object. */
+static bool open_row_collection(ps_form *form, ps_text source, const ps_value *options, form_path *path,
+                                const ps_value **field, const ps_value **rows, ps_result *failure)
+{
+    if (!options || options->kind != PS_OBJECT) {
+        *failure = (ps_result){NULL, input_error("Row options must be an object")};
+        return false;
+    }
+    return open_collection(form, source, path, field, rows, failure);
+}
+
+/* The failure of a key that the collection does not hold; the path is released. */
+static ps_result unknown_row(form_path *path, ps_text key)
+{
+    free_path(path);
+    return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
+}
+
+/* The result of a change: the data and the view must both be built, else the change fails. */
+static ps_result finish_change(ps_form *form, ps_value *data, ps_value *view, ps_value *error)
+{
+    if (!data || !view) {
+        ps_value_free(data);
+        return (ps_result){NULL, data ? error : internal_error()};
+    }
+    return commit(form, data, view, NULL);
+}
+
 static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
 {
-    if (!options || options->kind != PS_OBJECT)
-        return (ps_result){NULL, input_error("Row options must be an object")};
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
+    ps_result failure;
+    if (!open_row_collection(form, source, options, &path, &field, &rows, &failure)) return failure;
     ps_value *error = NULL;
-    if (!editable_collection(form, source, &path, &field, &rows, &error))
-        return (ps_result){NULL, error};
     bool has_max = false;
     double maximum = numeric_setting(field, "max", &has_max);
     if (has_max && (double)ps_size(rows) >= maximum) {
@@ -700,13 +736,11 @@ static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
 static ps_result copy_row(ps_form *form, ps_text source, ps_text key,
                           const ps_value *options)
 {
-    if (!options || options->kind != PS_OBJECT)
-        return (ps_result){NULL, input_error("Row options must be an object")};
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
+    ps_result failure;
+    if (!open_row_collection(form, source, options, &path, &field, &rows, &failure)) return failure;
     ps_value *error = NULL;
-    if (!editable_collection(form, source, &path, &field, &rows, &error))
-        return (ps_result){NULL, error};
     const ps_value *value = ps_get_text(rows, key);
     if (!value) {
         free_path(&path);
@@ -731,13 +765,10 @@ static ps_result remove_row(ps_form *form, ps_text source, ps_text key)
 {
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
+    ps_result failure;
+    if (!open_collection(form, source, &path, &field, &rows, &failure)) return failure;
     ps_value *error = NULL;
-    if (!editable_collection(form, source, &path, &field, &rows, &error))
-        return (ps_result){NULL, error};
-    if (!ps_has_text(rows, key)) {
-        free_path(&path);
-        return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
-    }
+    if (!ps_has_text(rows, key)) return unknown_row(&path, key);
     bool has_min = false;
     double minimum = numeric_setting(field, "min", &has_min);
     if (has_min && (double)ps_size(rows) <= minimum) {
@@ -754,11 +785,7 @@ static ps_result remove_row(ps_form *form, ps_text source, ps_text key)
     ps_value_free(next_rows);
     ps_value *view = data ? view_without_row(form, &path, key, &error) : NULL;
     free_path(&path);
-    if (!data || !view) {
-        ps_value_free(data);
-        return (ps_result){NULL, data ? error : internal_error()};
-    }
-    return commit(form, data, view, NULL);
+    return finish_change(form, data, view, error);
 }
 
 static ps_value *reordered_rows(const ps_value *rows, size_t from, size_t to)
@@ -784,9 +811,9 @@ static ps_result move_row(ps_form *form, ps_text source, ps_text key,
 {
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
+    ps_result failure;
+    if (!open_collection(form, source, &path, &field, &rows, &failure)) return failure;
     ps_value *error = NULL;
-    if (!editable_collection(form, source, &path, &field, &rows, &error))
-        return (ps_result){NULL, error};
     (void)field;
     size_t from = row_position(rows, key);
     if (from == SIZE_MAX) {
@@ -852,11 +879,7 @@ static ps_result rekey_row(ps_form *form, ps_text source, ps_text old_key,
     /* The row keeps its collapsed state under its new key. */
     ps_value *view = data ? view_after_rekey(form, &path, old_key, new_key, &error) : NULL;
     free_path(&path);
-    if (!data || !view) {
-        ps_value_free(data);
-        return (ps_result){NULL, data ? error : internal_error()};
-    }
-    return commit(form, data, view, NULL);
+    return finish_change(form, data, view, error);
 }
 
 /* Expand or collapse one row; the view changes and the record and the revision do not. */
@@ -867,10 +890,7 @@ static ps_result toggle_row(ps_form *form, ps_text source, ps_text key)
     ps_value *error = NULL;
     if (!collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
-    if (!ps_has_text(rows, key)) {
-        free_path(&path);
-        return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
-    }
+    if (!ps_has_text(rows, key)) return unknown_row(&path, key);
     ps_value *row = ps_chars_value(row_path_of(&path, key));
     free_path(&path);
     ps_result toggled = row
