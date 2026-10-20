@@ -123,6 +123,15 @@ static bool fixed_object_options(zval *options, ps_value *converted, const char 
     return true;
 }
 
+/* Run an operation with its options when they are present, then release the three values it read. */
+static void run_operation(ps_value *input, ps_value *data, ps_value *opts,
+                          ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *), zval *return_value)
+{
+    if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
+    ps_value_free(data);
+    ps_value_free(input);
+}
+
 static void call_three(zval *first, zval *second, bool second_is_object, zval *options, bool form_errors, bool fixed_objects, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *), zval *return_value)
 {
     ps_value *input = crudui_from_php(first, true, form_errors);
@@ -131,9 +140,7 @@ static void call_three(zval *first, zval *second, bool second_is_object, zval *o
     if (!data) { ps_value_free(input); return; }
     ps_value *opts = crudui_from_php(options, true, form_errors);
     if (opts && fixed_objects && !fixed_object_options(options, opts, fixed_keys, COUNT(fixed_keys))) { ps_value_free(opts); opts = NULL; }
-    if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
-    ps_value_free(data);
-    ps_value_free(input);
+    run_operation(input, data, opts, operation, return_value);
 }
 
 /*
@@ -173,19 +180,39 @@ static void call_display(zval *spec, zval *value, zval *options, ps_result (*ope
     ps_value *opts = crudui_from_php(converted, true, true);
     if (converted == &copy) zval_ptr_dtor(&copy);
     if (opts && !fixed_object_options(options, opts, display_fixed_keys, COUNT(display_fixed_keys))) { ps_value_free(opts); opts = NULL; }
-    if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
-    ps_value_free(data);
-    ps_value_free(input);
+    run_operation(input, data, opts, operation, return_value);
 }
+
+/*
+ * The argument parsing of methods that share a signature: a template with optional data and options,
+ * a specification with optional options, and a path with a key. The macros declare the parsed variables.
+ */
+#define CRUDUI_PARSE_TEMPLATE_DATA_OPTIONS() \
+    zval *template, *data = NULL, *options = NULL; \
+    ZEND_PARSE_PARAMETERS_START(1, 3) \
+        Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def) \
+        Z_PARAM_OPTIONAL \
+        Z_PARAM_ZVAL(data) \
+        Z_PARAM_ARRAY(options) \
+    ZEND_PARSE_PARAMETERS_END()
+
+#define CRUDUI_PARSE_SPEC_OPTIONS() \
+    zval *spec, *options = NULL; \
+    ZEND_PARSE_PARAMETERS_START(1, 2) \
+        Z_PARAM_ARRAY_OR_OBJECT(spec) \
+        Z_PARAM_OPTIONAL \
+        Z_PARAM_ARRAY(options) \
+    ZEND_PARSE_PARAMETERS_END()
+
+#define CRUDUI_PARSE_PATH_KEY() \
+    zend_string *path, *key; \
+    zval p, k; \
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_STR(path) Z_PARAM_STR(key) ZEND_PARSE_PARAMETERS_END(); \
+    ZVAL_STR(&p, path); ZVAL_STR(&k, key)
 
 PHP_METHOD(Polyspec_Crudui_Generator, compileForm)
 {
-    zval *spec, *options = NULL;
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_ARRAY_OR_OBJECT(spec)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY(options)
-    ZEND_PARSE_PARAMETERS_END();
+    CRUDUI_PARSE_SPEC_OPTIONS();
     static const char *const names[] = {"basepath", "keyPrefix"};
     if (!crudui_check_specification_text(spec, options, true) ||
         !crudui_check_input_text(NULL, 0, options, names, COUNT(names), true)) return;
@@ -194,26 +221,14 @@ PHP_METHOD(Polyspec_Crudui_Generator, compileForm)
 
 PHP_METHOD(Polyspec_Crudui_Generator, bindForm)
 {
-    zval *template, *data = NULL, *options = NULL;
-    ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ZVAL(data)
-        Z_PARAM_ARRAY(options)
-    ZEND_PARSE_PARAMETERS_END();
+    CRUDUI_PARSE_TEMPLATE_DATA_OPTIONS();
     if (!bind_text(template, data, options)) return;
     call_three(template, data, true, options, true, false, ps_bind_form, return_value);
 }
 
 PHP_METHOD(Polyspec_Crudui_Generator, bindButtons)
 {
-    zval *template, *data = NULL, *options = NULL;
-    ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ZVAL(data)
-        Z_PARAM_ARRAY(options)
-    ZEND_PARSE_PARAMETERS_END();
+    CRUDUI_PARSE_TEMPLATE_DATA_OPTIONS();
     if (!bind_text(template, data, options)) return;
     call_three(template, data, true, options, true, false, ps_bind_form_buttons, return_value);
 }
@@ -535,12 +550,7 @@ PHP_METHOD(Polyspec_Crudui_Validator, validate)
 
 PHP_METHOD(Polyspec_Crudui_Validator, validateList)
 {
-    zval *spec, *options = NULL;
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_ARRAY_OR_OBJECT(spec)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY(options)
-    ZEND_PARSE_PARAMETERS_END();
+    CRUDUI_PARSE_SPEC_OPTIONS();
     if (!crudui_check_specification_text(spec, options, false) ||
         !crudui_check_input_text(NULL, 0, options, basepath_option, 1, false)) return;
     call_two(spec, options, false, ps_validate_list, return_value);
@@ -548,12 +558,7 @@ PHP_METHOD(Polyspec_Crudui_Validator, validateList)
 
 PHP_METHOD(Polyspec_Crudui_Validator, validateDetail)
 {
-    zval *spec, *options = NULL;
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_ARRAY_OR_OBJECT(spec)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY(options)
-    ZEND_PARSE_PARAMETERS_END();
+    CRUDUI_PARSE_SPEC_OPTIONS();
     if (!crudui_check_specification_text(spec, options, false) ||
         !crudui_check_input_text(NULL, 0, options, basepath_option, 1, false)) return;
     call_two(spec, options, false, ps_validate_detail, return_value);
@@ -598,13 +603,7 @@ PHP_METHOD(Polyspec_Crudui_Generator, renderForm)
 PHP_METHOD(Polyspec_Crudui_Form, __construct)
 {
     (void)return_value;
-    zval *template, *data = NULL, *options = NULL;
-    ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ZVAL(data)
-        Z_PARAM_ARRAY(options)
-    ZEND_PARSE_PARAMETERS_END();
+    CRUDUI_PARSE_TEMPLATE_DATA_OPTIONS();
     if (!bind_text(template, data, options)) return;
     ps_value *compiled = crudui_from_php(template, true, true);
     if (!compiled) return;
@@ -728,10 +727,7 @@ PHP_METHOD(Polyspec_Crudui_Form, copyRow)
 
 PHP_METHOD(Polyspec_Crudui_Form, removeRow)
 {
-    zend_string *path, *key;
-    zval p, k;
-    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_STR(path) Z_PARAM_STR(key) ZEND_PARSE_PARAMETERS_END();
-    ZVAL_STR(&p, path); ZVAL_STR(&k, key);
+    CRUDUI_PARSE_PATH_KEY();
     apply_form(Z_OBJ_P(ZEND_THIS), 5, 2, (zval *[]){&p, &k}, (bool[]){false, false}, return_value);
 }
 
@@ -756,10 +752,7 @@ PHP_METHOD(Polyspec_Crudui_Form, rekeyRow)
 
 PHP_METHOD(Polyspec_Crudui_Form, toggleRow)
 {
-    zend_string *path, *key;
-    zval p, k;
-    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_STR(path) Z_PARAM_STR(key) ZEND_PARSE_PARAMETERS_END();
-    ZVAL_STR(&p, path); ZVAL_STR(&k, key);
+    CRUDUI_PARSE_PATH_KEY();
     apply_form(Z_OBJ_P(ZEND_THIS), 8, 2, (zval *[]){&p, &k}, (bool[]){false, false}, return_value);
 }
 

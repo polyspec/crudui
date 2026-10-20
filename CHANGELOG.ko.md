@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7159c6a624504091ec80cace9b797294ac8d2af394ffeb48b869da30923b2063 -->
+<!-- source-sha256: 87c76be1895e58bd326754c0b5f06d60e3a3091b48f07097233d537d2d2b90cc -->
 
 ## Unreleased
 
@@ -204,6 +204,10 @@
 ### 2026-10-20 — 시험하지 않던 display, date, session 규칙을 case로 작성한다 (C16.57-12)
 
 - 렌더링 suite가 생성기를 통해 case를 얻습니다(C16.57-12). `tests/fixtures/list-render`는 `field-path-dotted`(CUDF-001), `format-true-and-false-are-text`(CUDF-004), `format-string-type-date`(CUDF-005), `format-link-href-condition`(CUDF-020), `format-link-javascript-url`(CUDF-023), `reject-root-sort-before-pagination`(CUDF-036), `reject-column-unknown-key-before-format`(CUDF-038), `reject-search-before-sort`(CUDF-039)를, `tests/fixtures/detail-render`는 같은 display case와 `reject-field-unknown-key-before-format`(CUDF-038)을 얻습니다. `tests/fixtures/validate`는 `date-rule-rejects-text-that-is-no-date`, `dateiso-rule-accepts-iso-date`, `dateiso-rule-rejects-other-format`(CUVR-012)을, `tests/fixtures/form-actions`는 `explicit-empty-collection-gets-keyed-rows`(CUEC-007, 확장된 `tests/fixtures/form-state/generate.mts`의 session helper로 명시적 빈 객체에 행을 추가하는 session)를 얻습니다. 각 case는 자신의 id를 인용하며, CUDF-037을 시험하는 기존 case(`reject-list-design-before-columns`, `reject-design-before-actions`)와 CUDF-036을 시험하는 `reject-root-key-before-design`도 인용합니다. Runner의 총계를 갱신했습니다: list 165, detail 68, validate 321(Python result case 182). Owner test: list와 detail: ts 233, Go 235, Python 3, Rust 2, PHP 라이브러리 235, PHP extension 235(`make test-php-ext`); validate: ts 322, Go 322, Python 3, PHP 라이브러리 321, PHP extension 355; Rust validate는 case 하나에서 실패합니다(아래); form-actions: ts 29, Go 11, Python 4, Rust 4, PHP 29. Red: main의 `make parity-declarations-check`는 R13 줄 155개를 보고합니다; green: R13 줄 143개이며 새 finding 줄은 없습니다. 결함: Rust validator는 `date-rule-rejects-text-that-is-no-date`를 valid로 보고하지만, reference는 `not a date`에 대해 `date` 규칙 실패를 보고합니다(`packages/validator/rust/src/validate/rules.rs`의 `is_valid_date`가 JavaScript Date parser가 거부하는 문자열을 받아들임); C16.57-12-1로 등록했으며 이 row에서 고치지 않습니다. CUDF-003은 cases의 출력으로 보일 수 없는 "renderer는 display model로만 markup을 씀"이므로 인용하지 않은 채 둡니다.
+
+### 2026-10-21 — C extension이 공유 PHP method의 인수를 파싱하고 operation을 하나의 tail로 실행한다 (C16.58-18)
+
+- `packages/php-ext/src/crudui.c`에 macro 세 개(`CRUDUI_PARSE_TEMPLATE_DATA_OPTIONS`, `CRUDUI_PARSE_SPEC_OPTIONS`, `CRUDUI_PARSE_PATH_KEY`)와 `run_operation`을 더했습니다. macro들은 여러 method가 공유하는 인수(template, data, options; specification과 options; path와 key)를 선언하고 파싱하며, `run_operation`은 options와 함께 operation을 실행하고 그 세 값을 해제하는 tail입니다. `call_three`와 `call_display`는 그 tail을 씁니다(C16.58-18). duplication check는 그 블록들의 clone을 없앴습니다(변경 전 33 clone, 후 29 clone; `php-ext` clone은 앞선 commit들과 합쳐 17에서 12로 줄었습니다). Red: `make duplication-check` exit 2, 33 clone(`crudui.c`의 인수 블록과 operation tail 포함); green: 같은 check가 exit 2, 29 clone이며 `crudui.c`에는 없습니다; `make test-php-ext CASES='RenderingConformanceTest|FormCompleteConformanceTest|ListRenderConformanceTest|DetailRenderConformanceTest|OutlineTest|DisplayRulesTest|FormStateTest|HistoryFunctionsTest'`가 warning 없이 build하고 510 test(1367 assertion)를 모두 통과합니다.
 
 ### 2026-10-21 — C extension이 정확한 decimal 수를 하나의 word helper 집합으로 비교하고 곱한다 (C16.58-17)
 
