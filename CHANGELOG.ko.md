@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 16c2710563dea72f857799e45e11ed0c0908dbeae106ad0ff6e1879fa20d60f8 -->
+<!-- source-sha256: e209fe3ad49d5d8ef11a7d0004579bd614427f1b1a7284d6f85fe07b762bb1a9 -->
 
 ## Unreleased
 
@@ -26,6 +26,11 @@
 
 - `tests/fixtures/form-render/cases.json`에 case 두 개가 `packages/react/scripts/scenario-form-render-cases.ts`를 거쳐 React reference로 렌더링되어 추가되었습니다: `nested-empty-collections-keep-sibling-order`(명시적으로 빈 중첩 collection, 형제 행은 키와 데이터 순서를 유지함; CUEC-001, CURP-027)와 `scalar-multiple-empty-object-has-no-rows`(반복되는 scalar의 명시적 빈 객체는 행 0개; CUEC-001, CUEC-004)입니다. Go, Python, Rust runner는 새 결과 case를 셉니다. `config/parity.json`의 form-render unit은 CURP-027을 인용합니다.
 - `packages/generator/ts/src/empty-collections.test.ts`는 아직 undeclared 상태입니다. 객체가 아닌 데이터의 `bindForm` 거부(CUEC-003)와 데이터를 바꾸지 않는 visibility 단언(CUEC-006)에 인용된 case가 없으므로, 파일을 internal로 선언하지 않았습니다.
+
+### 2026-10-21 — 폼 템플릿 형태는 여섯 generator의 suite unit이다 (C16.133)
+
+- `config/parity.json`은 `tests/fixtures/template-shape`를 읽는 suite unit `template-shape`을 선언합니다. 이 unit은 CURT-092를 인용하며 TypeScript, Go, Rust, PHP, PHP extension, Python generator에 binding됩니다.
+- `packages/generator/ts/src/decode-template.test.ts`는 TypeScript의 internal입니다. `decodeFormTemplate`의 JSON Pointer는 TypeScript API이므로 다른 구현은 검사하지 않습니다. Go의 형태 test는 이제 binding이며 internal이 아닙니다.
 
 ### 2026-10-21 — Python generator가 template shape fixture의 모든 case를 실행한다 (C16.132)
 

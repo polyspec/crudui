@@ -170,6 +170,10 @@
         {
           "glob": "packages/validator/ts/src/hidden-paths.test.ts",
           "reason": "test: the TypeScript unit test of hiddenPaths; the validate suite (CUVR-017, CUSC-055) covers its hidden member in tests/fixtures/validate, and input-root-data-not-object covers its non-object data error"
+        },
+        {
+          "glob": "packages/generator/ts/src/decode-template.test.ts",
+          "reason": "test: the TypeScript decodeFormTemplate of a template across the JSON boundary and its JSON Pointers; the decoder is a TypeScript API (form-runtime.md, Decoding a template), so no other implementation checks the pointers"
         }
       ]
     },
@@ -387,10 +391,6 @@
         {
           "glob": "packages/generator/go/doc_coverage_test.go",
           "reason": "test: unit tests of the Go documentation gate of the generator package; the Go internals of it are not part of any shared contract (Go-only type or tooling gate)"
-        },
-        {
-          "glob": "packages/generator/go/template_shape_test.go",
-          "reason": "test: unit tests of the Go decoding of the compiled template shape; the Go internals of it are not part of any shared contract (Go-only type or tooling gate)"
         },
         {
           "glob": "packages/validator/go/validator/compose/omap_decode_test.go",
@@ -2041,6 +2041,45 @@
       "requirements": [
         "CUIT-013",
         "CURP-016"
+      ]
+    },
+    {
+      "id": "template-shape",
+      "kind": "suite",
+      "file": "tests/fixtures/template-shape/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/template-shape.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/template_shape_test.go",
+          "symbol": "TestTemplateShapeCases"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/template_shape.rs",
+          "symbol": "template_shape"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/TemplateShapeTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\TemplateShapeTest::testTheOperationAcceptsOrRefusesTheTemplate"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/TemplateShapeTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\TemplateShapeTest::testTheOperationAcceptsOrRefusesTheTemplate"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_template_shape.py"
+        }
+      ],
+      "requirements": [
+        "CURT-092"
       ]
     }
   ],
