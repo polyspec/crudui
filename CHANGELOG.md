@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared slot shapes and structure validation in the Go validator (C16.31)
+
+- `shapeLiteral` writes the null, false or true literal of a polymorphic slot for `ValidateSlot`, `DesignSlot`, `BehaviorSlot` and `OptionsSlot` (each reports its shape by a `shape` method), and `validateStructure` composes, expands and forbidden-scans a list or a detail, so `ValidateList` and `ValidateDetail` state only their field map and the members that are specific to a list (C16.31). Red: `make duplication-check` listed 4 clones in `packages/validator/go`; green: none, 748 Go tests and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Base classes for the PHP rules with a parameter (C16.30)
 
 - `ParameterRule` reads and checks the parameter before it looks at the value; `FlagRule` (`Digits`, `Number`), `NumericRule` (`Max`, `Min`, `Range`, `Step`), `LengthRule` (`MaxLength`, `MinLength`, `RangeLength`) and `CountRule` (`MaxCount`, `MinCount`) add what their kind shares through `MeasuredRule`, so each rule states only its parameter and its comparison (C16.30). Red: `make duplication-check` listed 14 clones among these rules; green: none, `ValidateConformanceTest` (318), `RuleParametersTest` (10), `DocCoverageTest`, `make lint-php` and the PHP doc coverage pass. The behaviour is unchanged, so the red is the clone list.

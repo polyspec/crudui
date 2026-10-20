@@ -55,3 +55,25 @@ func decodeOrdered[V any](data []byte, message string) ([]string, map[string]V, 
 	}
 	return keys, values, nil
 }
+
+// shaped is a polymorphic slot, which is the false shape, the true shape or a body.
+type shaped[T any] interface {
+	*T
+	shape() (cancel, bare bool)
+}
+
+// shapeLiteral is the JSON literal of an absent slot (null), of the false shape (false) or
+// of the true shape (true); ok is false for a slot with a body.
+func shapeLiteral[T any, P shaped[T]](slot P) (literal []byte, ok bool) {
+	if slot == nil {
+		return []byte("null"), true
+	}
+	cancel, bare := slot.shape()
+	switch {
+	case cancel:
+		return []byte("false"), true
+	case bare:
+		return []byte("true"), true
+	}
+	return nil, false
+}

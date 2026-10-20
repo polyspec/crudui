@@ -38,46 +38,62 @@ import (
 // *compose.ComposeLoadError (the caller distinguishes a LOAD failure from a
 // validation result), identical to the form path.
 func ValidateList(spec *compose.OMap, opts Options) (ListValidationResult, error) {
+	// Pass 1a/1b (G5): compose the list ROOT (a list may be a $ref overlay, SPEC
+	// §9.1) and the columns map — the read sister of properties — with the SAME
+	// ComposeProperties the form properties layer uses.
+	return validateStructure(spec, opts, "columns", func(composed *compose.OMap, loader compose.FileLoader, composeOpts compose.ComposeOptions) error {
+		// Pass 1c (G5): compose the search form-spec reference. search is INPUT (SPEC
+		// §9.1: search = a form-spec reference); its $ref/$patch resolves to a sub-form
+		// through the SAME ComposeSpec, and that sub-form then rides pass 2 below. No
+		// new search-specific logic.
+		s, ok := composed.Get("search")
+		if !ok {
+			return nil
+		}
+		sm, isMap := s.(*compose.OMap)
+		if !isMap {
+			return nil
+		}
+		expandedSearch, err := compose.ComposeSpec(sm, loader, composeOpts)
+		if err != nil {
+			return err
+		}
+		composed.Set("search", expandedSearch)
+		return nil
+	})
+}
+
+// validateStructure composes the root of a read structure and its field map under mapKey,
+// lets expand compose the members that are specific to the structure (nil for none), and
+// forbidden-scans the whole composed tree to arbitrary depth (pass 2, §6). The scanner is a
+// generic tree walker (form parity: index.go scans the composed properties), so a forbidden
+// key anywhere is a LOAD failure whose trace starts at the root key, as in every
+// implementation and the shared list-validity fixture. A structure has no rows, so there is
+// no DATA pass: a clean structure is valid with no errors.
+func validateStructure(
+	spec *compose.OMap,
+	opts Options,
+	mapKey string,
+	expand func(composed *compose.OMap, loader compose.FileLoader, composeOpts compose.ComposeOptions) error,
+) (ListValidationResult, error) {
 	// Input text is checked first (docs/spec/input-text.md).
 	if err := checkText(spec, opts); err != nil {
 		return ListValidationResult{}, err
 	}
 	spec, loader, composeOpts := composeInput(spec, opts)
 
-	// Pass 1a/1b (G5): compose the list ROOT (a list may be a $ref overlay, SPEC
-	// §9.1) and the columns map — the read sister of properties — with the SAME
-	// ComposeProperties the form properties layer uses.
-	composed, err := composeRootAndFieldMap(spec, "columns", loader, composeOpts)
+	composed, err := composeRootAndFieldMap(spec, mapKey, loader, composeOpts)
 	if err != nil {
 		return ListValidationResult{}, err
 	}
-
-	// Pass 1c (G5): compose the search form-spec reference. search is INPUT (SPEC
-	// §9.1: search = a form-spec reference); its $ref/$patch resolves to a sub-form
-	// through the SAME ComposeSpec, and that sub-form then rides pass 2 below. No
-	// new search-specific logic.
-	if s, ok := composed.Get("search"); ok {
-		if sm, isMap := s.(*compose.OMap); isMap {
-			expandedSearch, serr := compose.ComposeSpec(sm, loader, composeOpts)
-			if serr != nil {
-				return ListValidationResult{}, serr
-			}
-			composed.Set("search", expandedSearch)
+	if expand != nil {
+		if err := expand(composed, loader, composeOpts); err != nil {
+			return ListValidationResult{}, err
 		}
 	}
-
-	// Pass 2 (§6): forbidden-scan the WHOLE composed list tree to arbitrary depth.
-	// The scanner is a generic tree walker (form parity: index.go scans the
-	// composed properties), so it applies to the list tree unchanged — a forbidden
-	// key anywhere (column key, CellFormat options bucket, search sub-form, …) is a
-	// LOAD failure. The trace starts at the list root key (columns.<name>…), as
-	// in every implementation and the shared list-validity fixture.
 	if scanErr := model.ScanForbiddenKeys(composed, nil); scanErr != nil {
 		return ListValidationResult{}, scanErr
 	}
-
-	// A list has no rows → no DATA pass. A clean list is valid with no errors. The
-	// emitted shape matches the form path (Errors is [] not nil at the wire).
 	return ListValidationResult{Valid: true, Errors: nil}, nil
 }
 

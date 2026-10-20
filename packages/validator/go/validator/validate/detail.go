@@ -17,7 +17,6 @@ package validate
 import (
 	"fmt"
 
-	model "github.com/polyspec/crudui/packages/validator/go/validator"
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 )
 
@@ -26,20 +25,7 @@ import (
 // clean. An unresolved composition or a forbidden meta key returns a
 // *compose.ComposeLoadError.
 func ValidateDetail(spec *compose.OMap, opts Options) (ListValidationResult, error) {
-	// Input text is checked first (docs/spec/input-text.md).
-	if err := checkText(spec, opts); err != nil {
-		return ListValidationResult{}, err
-	}
-	spec, loader, composeOpts := composeInput(spec, opts)
-
-	composed, err := composeRootAndFieldMap(spec, "fields", loader, composeOpts)
-	if err != nil {
-		return ListValidationResult{}, err
-	}
-	if scanErr := model.ScanForbiddenKeys(composed, nil); scanErr != nil {
-		return ListValidationResult{}, scanErr
-	}
-	return ListValidationResult{Valid: true, Errors: nil}, nil
+	return validateStructure(spec, opts, "fields", nil)
 }
 
 // ValidateDetailJSON decodes a raw JSON detail-spec and the optional

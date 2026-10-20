@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: cc4a14b263dc6d3efc076dfd7d26993689bc050c4edbd3cf84e8eea1548a2b0a -->
+<!-- source-sha256: 314b0d5526bbc9a57c7728ee794af93e0d4d5b3e07e99a1b56bfc49c0005eae6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -45,3 +45,4 @@
 | C16.28 | form comparison은 step을 kit의 process-group runner로, unit을 node:test test로 실행한다 (examples/form-comparison/src/step-runner.mjs와 unit-pool.mjs를 대체). step runner는 kit export를 기다린다 | examples/form-comparison, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.29 | form comparison의 public server는 http-proxy package로 request를 전달한다 (examples/form-comparison/src/forward.mjs를 대체) | examples/form-comparison, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.30 | parameter를 받는 PHP validator rule은 검사 종류마다 하나의 base class를 공유한다 | packages/validator/php/src/Rules (ParameterRule, FlagRule, MeasuredRule, NumericRule, LengthRule, CountRule and the eleven rules) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |
+| C16.31 | Go validator는 slot의 shape marshal과 list, detail 검증을 공유 함수로 수행한다 | packages/validator/go/validator/ordered.go, types.go, validate/list.go, validate/detail.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestForbidden\|TestParameterChecks' ./...`, `make lint-go` | [o] |

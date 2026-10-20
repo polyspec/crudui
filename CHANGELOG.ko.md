@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c729718678c079c8c5cd61690912878d9e2361021ff865f72a5914d771f35c78 -->
+<!-- source-sha256: 16dd0304387a009839088df59b65ac112e3eb443f000e75287740a8050ac0af7 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go validator의 공유 slot shape와 structure 검증 (C16.31)
+
+- `shapeLiteral`은 `ValidateSlot`, `DesignSlot`, `BehaviorSlot`, `OptionsSlot`(각각 `shape` method로 자기 shape를 알림)의 다형 slot에 대한 null, false, true literal을 쓰고, `validateStructure`는 list나 detail을 composition, 확장, 금지 key scan하므로 `ValidateList`와 `ValidateDetail`은 field map과 list에만 있는 member만 적습니다 (C16.31). Red: `make duplication-check`가 `packages/validator/go`의 clone 4건을 나열했고, green: 없음. Go test 748건과 `make lint-go`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — parameter를 받는 PHP rule의 base class (C16.30)
 

@@ -413,16 +413,15 @@ var validateNamedKeys = map[string]bool{
 	"match":    true,
 }
 
+// shape reports the false shape (Cancel) and the true shape (Bare) of the slot.
+func (s *ValidateSlot) shape() (cancel, bare bool) {
+	return s.Cancel, s.Bare
+}
+
 // MarshalJSON emits a ValidateSlot as false, true, or the body object.
 func (s *ValidateSlot) MarshalJSON() ([]byte, error) {
-	if s == nil {
-		return []byte("null"), nil
-	}
-	if s.Cancel {
-		return []byte("false"), nil
-	}
-	if s.Bare {
-		return []byte("true"), nil
+	if literal, ok := shapeLiteral(s); ok {
+		return literal, nil
 	}
 	type alias ValidateSlot
 	body, err := json.Marshal((*alias)(s))
@@ -496,16 +495,15 @@ type DesignSlot struct {
 	Prepend *DesignNode `json:"prepend,omitempty"`
 }
 
+// shape reports the false shape (Cancel) and the true shape (Bare) of the slot.
+func (s *DesignSlot) shape() (cancel, bare bool) {
+	return s.Cancel, s.Bare
+}
+
 // MarshalJSON emits a DesignSlot as false, true, or the body object.
 func (s *DesignSlot) MarshalJSON() ([]byte, error) {
-	if s == nil {
-		return []byte("null"), nil
-	}
-	if s.Cancel {
-		return []byte("false"), nil
-	}
-	if s.Bare {
-		return []byte("true"), nil
+	if literal, ok := shapeLiteral(s); ok {
+		return literal, nil
 	}
 	type alias DesignSlot
 	return json.Marshal((*alias)(s))
@@ -683,16 +681,15 @@ type BehaviorSlot struct {
 	Onload any `json:"onload,omitempty"`
 }
 
+// shape reports the false shape (Cancel) and the true shape (Bare) of the slot.
+func (s *BehaviorSlot) shape() (cancel, bare bool) {
+	return s.Cancel, s.Bare
+}
+
 // MarshalJSON emits a BehaviorSlot as false, true, or the body object.
 func (s *BehaviorSlot) MarshalJSON() ([]byte, error) {
-	if s == nil {
-		return []byte("null"), nil
-	}
-	if s.Cancel {
-		return []byte("false"), nil
-	}
-	if s.Bare {
-		return []byte("true"), nil
+	if literal, ok := shapeLiteral(s); ok {
+		return literal, nil
 	}
 	type alias BehaviorSlot
 	return json.Marshal((*alias)(s))
@@ -790,17 +787,16 @@ var optionsNamedKeys = map[string]bool{
 	"event":              true,
 }
 
+// shape reports the false shape (Cancel) and the true shape (Bare) of the slot.
+func (s *OptionsSlot) shape() (cancel, bare bool) {
+	return s.Cancel, s.Bare
+}
+
 // MarshalJSON emits an OptionsSlot as false, true, or the body object, inlining
 // Extra keys after the named fields.
 func (s *OptionsSlot) MarshalJSON() ([]byte, error) {
-	if s == nil {
-		return []byte("null"), nil
-	}
-	if s.Cancel {
-		return []byte("false"), nil
-	}
-	if s.Bare {
-		return []byte("true"), nil
+	if literal, ok := shapeLiteral(s); ok {
+		return literal, nil
 	}
 	type alias OptionsSlot
 	body, err := json.Marshal((*alias)(s))
