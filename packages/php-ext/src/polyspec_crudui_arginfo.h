@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 3a754d27033d4a16fa250bcb864bd1abcffd33aa */
+ * Stub hash: 4978fab53d94e65dcc2b82b5c8eaac9b64d7a60e */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -24,14 +24,14 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_renderList, 0, 2, IS_STRING, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
-	ZEND_ARG_TYPE_INFO(0, rows, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, spec, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO(0, rows, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_buildList, 0, 1, stdClass, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
-	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, rows, IS_ARRAY, 0, "[]")
+	ZEND_ARG_TYPE_INFO(0, spec, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, rows, IS_MIXED, 0, "[]")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
@@ -94,14 +94,14 @@ ZEND_END_ARG_INFO()
 #define arginfo_class_Polyspec_Crudui_Generator_redoChange arginfo_class_Polyspec_Crudui_Generator_undoChange
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_renderDetail, 0, 1, IS_STRING, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
-	ZEND_ARG_OBJ_TYPE_MASK(0, record, stdClass, MAY_BE_ARRAY, "new stdClass()")
+	ZEND_ARG_TYPE_INFO(0, spec, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, record, IS_MIXED, 0, "new stdClass()")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_buildDetail, 0, 1, stdClass, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
-	ZEND_ARG_OBJ_TYPE_MASK(0, record, stdClass, MAY_BE_ARRAY, "new stdClass()")
+	ZEND_ARG_TYPE_INFO(0, spec, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, record, IS_MIXED, 0, "new stdClass()")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 

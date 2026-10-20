@@ -112,7 +112,9 @@ use `INVALID_FORM_INPUT`. A failure while constructing a supported field uses
 PHP scalar types are preserved. Sequential PHP arrays represent JSON arrays;
 associative arrays and `stdClass` represent objects. Use `stdClass` for an
 explicit empty object. An empty array is accepted for an empty root object
-argument, whose type is fixed by its API. Nested values retain their type.
+argument, whose type is fixed by its API, except the specification, rows, record and `data` of the
+list and detail displays: there a list array is no object ([display formats](../spec/display-formats.md#input)).
+Nested values retain their type.
 At a JSON input boundary, use `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`;
 associative mode cannot preserve empty objects and can make objects with
 sequential numeric keys appear as arrays. Associative arrays remain valid for

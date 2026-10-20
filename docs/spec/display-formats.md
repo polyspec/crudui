@@ -144,7 +144,9 @@ that markup.
 
 A list receives a specification, rows and options; a detail receives a specification, one record
 and options. Invalid input fails with code `INVALID_FORM_INPUT`, the message below and an empty
-location.
+location. In PHP the caller states an object with a `stdClass` or an associative array: a list array,
+the empty array included, is no object ([CURP-026](runtime-packages.md)), and a value of any other type
+fails with the message of its rule.
 
 - **CUDF-024** list specification — Rule: an object; Message: `List specification must be an object`
 - **CUDF-025** list rows — Rule: an array; Message: `List rows must be an array`

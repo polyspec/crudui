@@ -9,8 +9,8 @@ namespace Polyspec\Crudui {
         public static function bindButtons(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
         public static function formButtonsHtml(array $buttons): string {}
         public static function renderForm(Form $form, mixed $options = []): string {}
-        public static function renderList(array|\stdClass $spec, array $rows, array $options = []): string {}
-        public static function buildList(array|\stdClass $spec, array $rows = [], array $options = []): \stdClass {}
+        public static function renderList(mixed $spec, mixed $rows, array $options = []): string {}
+        public static function buildList(mixed $spec, mixed $rows = [], array $options = []): \stdClass {}
         public static function buildOutline(array $nodes): array {}
         public static function resolveAction(array|\stdClass $input): ?\stdClass {}
         public static function runAction(Form $form, array|\stdClass $target): ?\stdClass {}
@@ -26,8 +26,8 @@ namespace Polyspec\Crudui {
         public static function canRedo(\stdClass $history): bool {}
         public static function undoChange(\stdClass $history, mixed $current): \stdClass {}
         public static function redoChange(\stdClass $history, mixed $current): \stdClass {}
-        public static function renderDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): string {}
-        public static function buildDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): \stdClass {}
+        public static function renderDetail(mixed $spec, mixed $record = new \stdClass(), array $options = []): string {}
+        public static function buildDetail(mixed $spec, mixed $record = new \stdClass(), array $options = []): \stdClass {}
         public static function sequenceRowKey(int|string $sequence): string {}
         public static function createRowKey(): string {}
     }

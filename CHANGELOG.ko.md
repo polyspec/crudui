@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: bf6448c17ad5ef27e67262e0320ef9efc1e9e431a2897cb68fa7e7eb0daeefb7 -->
+<!-- source-sha256: f64b4b3e0ba580c4ecb4981f5c93f845e0a6469cd5f46d0d6fbd4016ffa92449 -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — Go generator는 공유 form-complete, list-render, detail-render suite를 실행한다 (C16.86)
 
 - `packages/generator/go/form_complete_suite_test.go`(신규)는 `tests/fixtures/form-complete/cases.json`의 28개 case를 case의 render 옵션으로 `RenderForm`에 실행하고, `list_render_suite_test.go`는 `list-render`의 157개 case, `detail_render_suite_test.go`는 `detail-render`의 62개 case를 실행합니다. result body는 image preload link를 뺀 뒤 공유 normalizer가 만든 layout으로 비교하고, failure case는 기록된 code와 message로 확인합니다(C16.86). `form_render_suite_test.go`의 `renderFormCase`는 render 옵션을 받습니다. list와 detail의 입력 규칙은 CUDF-025와 CUDF-033을 따릅니다: `RenderList`, `BuildList`는 `rows any`를, `RenderDetail`, `BuildDetail`은 `record any`를 받으며(디코딩된 값; `[]*Object`도 그대로 받음), 배열이 아닌 rows는 `List rows must be an array`로(`list.go` `listRows`), 객체가 아닌 record는 fields 검사보다 먼저 `Detail record must be an object`로 실패하고, nil record는 더 이상 빈 객체가 되지 않습니다(`detail.go` `BuildDetail`). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormCompleteSuite|TestListRenderSuite|TestDetailRenderSuite'` exit 1, 250 subtest 중 7개 실패(`reject-record-before-fields`, `reject-record-before-context`, `reject-non-object-record`, `reject-object-rows`, `reject-rows-before-columns`); green: exit 0이며 250 subtest가 통과하고, 변경된 API를 호출하는 파일의 27개 test(89 subtest)가 통과하며 `go vet` exit 0입니다.
+
+### 2026-10-20 — PHP generator와 PHP extension은 공유 list-render와 detail-render suite를 실행한다 (C16.87)
+
+- `packages/generator/php/tests/ListRenderConformanceTest.php`와 `DetailRenderConformanceTest.php`(신규, trait `LayoutTree.php`)는 list case 157개와 detail case 62개를 실행합니다. PHP 라이브러리와 extension은 `renderList`, `buildList`, `renderDetail`, `buildDetail`의 인수 모양을 인수 순서대로 검사합니다(`Generator`, `Internal/Lists.php`, `Internal/Details.php`, `polyspec_crudui.stub.php`, `polyspec_crudui_arginfo.h`, `crudui.c`). 빈 배열을 포함한 목록 배열은 객체가 아니고, 다른 타입의 값은 그 규칙의 메시지로 실패하며, `data`는 객체 옵션입니다. 명세, record, `data`에 `[]`를 넘기던 기존 PHP 호출자(`DisplayRulesTest`, `DetailTest`, `ApiReport.php`)를 고치고, 네이티브 PHP program은 디코딩한 JSON 값을 라이브러리에 그대로 넘깁니다. 규칙은 `docs/spec/display-formats.md`에 있습니다(C16.87). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php` exit 1, 221개 중 13개 실패(`reject-string-specification`은 TypeError, `reject-array-specification`, `reject-array-context`, `reject-record-before-context` 등); green: 같은 실행 exit 0, 221 OK, `make test-php-ext CASES=ListRenderConformanceTest|DetailRenderConformanceTest` exit 0, 221 passed.
 
 ### 2026-10-20 — PHP generator와 PHP extension은 공유 form-complete suite를 실행한다 (C16.85)
 

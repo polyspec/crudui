@@ -11,21 +11,23 @@ use stdClass;
 final class Details
 {
     /** Build a detail model by delegating fields and cells to the list engine. */
-    public static function build(array|stdClass $spec, array|stdClass $record, array $options): stdClass
+    public static function build(mixed $spec, mixed $record, array $options): stdClass
     {
-        $spec = self::specification($spec);
-        // Argument shapes in argument order, then the declaration, then options.
-        $record = self::root($record, 'Detail record must be an object');
+        // Argument shapes in argument order, then the declaration, then options (docs/spec/display-formats.md).
+        if (!Value::isObject($spec)) {
+            throw new FormError('INVALID_FORM_INPUT', 'Detail specification must be an object');
+        }
+        if (!Value::isObject($record)) {
+            throw new FormError('INVALID_FORM_INPUT', 'Detail record must be an object');
+        }
+        $spec = Value::spec($spec);
+        $record = Value::object($record);
         if (!property_exists($spec, 'fields')) {
             throw new FormError('INVALID_FORM_INPUT', 'Detail specification must declare fields');
         }
-        // An absent or null context is empty; data is a fixed object option.
+        // An absent or null context is empty; data is an object option.
         $data = $options['data'] ?? null;
-        if (
-            $data !== null
-            && !$data instanceof stdClass
-            && !(is_array($data) && ($data === [] || !array_is_list($data)))
-        ) {
+        if ($data !== null && !Value::isObject($data)) {
             throw new FormError('INVALID_FORM_INPUT', 'Detail context must be an object');
         }
         // Page and total are list options; a detail neither checks nor uses them.
@@ -56,26 +58,8 @@ final class Details
         return (object) ['fields' => $fields, 'actions' => $model->actions, 'design' => $model->design];
     }
 
-    /**
-     * A root object argument, as every PHP API reads one: an empty array is the empty object and a
-     * non-empty list-shaped array is not an object.
-     */
-    private static function root(array|stdClass $value, string $message): stdClass
-    {
-        if (is_array($value) && $value !== [] && array_is_list($value)) {
-            throw new FormError('INVALID_FORM_INPUT', $message);
-        }
-        return Value::object($value);
-    }
-
-    /** A root specification argument in specification member order. */
-    private static function specification(array|stdClass $value): stdClass
-    {
-        return Value::spec(self::root($value, 'Detail specification must be an object'));
-    }
-
     /** Render one read-only detail: image preload links, the actions and the definition list. */
-    public static function render(array|stdClass $spec, array|stdClass $record, array $options): string
+    public static function render(mixed $spec, mixed $record, array $options): string
     {
         $model = self::build($spec, $record, $options);
         $design = $model->design;

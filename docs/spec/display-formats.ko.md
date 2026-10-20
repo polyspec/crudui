@@ -1,6 +1,6 @@
 # 표시 형식
 <!-- doc-id: docs-spec-display-formats -->
-<!-- source-sha256: 39f53e55f3506c0ce444e7753c38162a8f92fb3570dbceaabfd6f6f57137a72d -->
+<!-- source-sha256: 81bbd2b4e4d8b8cc5603100984bb4e12efd9b545b2c2523c71a6e781fc6fbad1 -->
 
 [English](display-formats.md).
 
@@ -129,7 +129,7 @@ columns:
 ## 입력
 
 목록은 명세, 행, 옵션을 받고, 상세는 명세, 레코드 하나, 옵션을 받습니다. 잘못된 입력은 코드
-`INVALID_FORM_INPUT`, 아래 메시지, 빈 위치로 실패합니다.
+`INVALID_FORM_INPUT`, 아래 메시지, 빈 위치로 실패합니다. PHP에서 호출자는 객체를 `stdClass` 또는 연관 배열로 나타냅니다. 빈 배열을 포함한 목록 배열은 객체가 아니며([CURP-026](runtime-packages.ko.md)), 다른 타입의 값은 그 규칙의 메시지로 실패합니다.
 
 - **CUDF-024** 목록 명세 — 규칙: 객체; 메시지: `List specification must be an object`
 - **CUDF-025** 목록 행 — 규칙: 배열; 메시지: `List rows must be an array`

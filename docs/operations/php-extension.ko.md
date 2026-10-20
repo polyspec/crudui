@@ -1,6 +1,6 @@
 # PHP 확장
 <!-- doc-id: docs-operations-php-extension -->
-<!-- source-sha256: 752f07b8af0d26fc1153c4af39eb2adc69a35d9f4a3b365898064174b81b9de1 -->
+<!-- source-sha256: a76411f0c98cf81dbb6407925c6b0286aaa6b33bdcbf92ec7cac220cfa18af52 -->
 
 [English](php-extension.md).
 구현, 검증, 패키지 게시 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -111,7 +111,8 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 PHP 스칼라 타입을 유지합니다. 순차 PHP 배열은 JSON 배열을 나타내고,
 연관 배열과 `stdClass`는 객체를 나타냅니다. 명시적인 빈 객체에는
 `stdClass`를 사용합니다. API가 루트 객체 타입을 정한 인수에는 빈 배열을
-빈 루트 객체로 허용합니다. 중첩 값은 타입을 유지합니다.
+빈 루트 객체로 허용합니다. 다만 목록과 상세 표시의 명세, 행, 레코드, `data`에서는 목록 배열이
+객체가 아닙니다([표시 형식](../spec/display-formats.ko.md#입력)). 중첩 값은 타입을 유지합니다.
 JSON 입력 경계에서는 `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`를
 사용해야 합니다. 연관 배열 모드는 빈 객체를 보존할 수 없고, 연속된 숫자 키를
 가진 객체를 배열처럼 만들 수 있습니다. 호출자가 이미 값이 객체임을 알고 있는

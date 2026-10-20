@@ -15,6 +15,7 @@ use Polyspec\Crudui\Generator\Outline;
 use Polyspec\Crudui\Generator\Rendering;
 use Polyspec\Crudui\Generator\Template;
 use Polyspec\Crudui\Generator\View;
+use Polyspec\Crudui\Generator\Value;
 use stdClass;
 
 /** Compile form structures, bind values and render forms or lists. */
@@ -290,14 +291,14 @@ final class Generator
     }
 
     /** Render supplied list rows using the table or card layout. */
-    public static function renderList(array|stdClass $spec, array $rows, array $options = []): string
+    public static function renderList(mixed $spec, mixed $rows, array $options = []): string
     {
         self::checkDisplay($spec, ['rows', $rows], $options);
         return Lists::render($spec, $rows, $options);
     }
 
     /** Build one read-only list model from supplied rows. */
-    public static function buildList(array|stdClass $spec, array $rows = [], array $options = []): stdClass
+    public static function buildList(mixed $spec, mixed $rows = [], array $options = []): stdClass
     {
         self::checkDisplay($spec, ['rows', $rows], $options);
         return Lists::buildPublic($spec, $rows, $options);
@@ -305,8 +306,8 @@ final class Generator
 
     /** Render one read-only detail from a supplied record. */
     public static function renderDetail(
-        array|stdClass $spec,
-        array|stdClass $record = new stdClass(),
+        mixed $spec,
+        mixed $record = new stdClass(),
         array $options = []
     ): string {
         self::checkDisplay($spec, ['record', $record], $options);
@@ -315,8 +316,8 @@ final class Generator
 
     /** Build one read-only detail model from a supplied record. */
     public static function buildDetail(
-        array|stdClass $spec,
-        array|stdClass $record = new stdClass(),
+        mixed $spec,
+        mixed $record = new stdClass(),
         array $options = []
     ): stdClass {
         self::checkDisplay($spec, ['record', $record], $options);
@@ -325,14 +326,19 @@ final class Generator
 
     /**
      * Input text of a list or detail operation: the specification, the files, the rows or record,
-     * then the display options.
+     * then the display options. A value that is no object or array has no text to check here; its
+     * shape fails in the operation, in argument order.
      *
      * @param array{0: string, 1: mixed} $input
      */
-    private static function checkDisplay(array|stdClass $spec, array $input, array $options): void
+    private static function checkDisplay(mixed $spec, array $input, array $options): void
     {
-        InputText::specification($spec, $options);
-        InputText::inputs([$input], $options, InputText::DISPLAY);
+        if (Value::isObject($spec)) {
+            InputText::specification($spec, $options);
+        }
+        if (is_array($input[1]) || $input[1] instanceof stdClass) {
+            InputText::inputs([$input], $options, InputText::DISPLAY);
+        }
     }
 
     /** Format a nonnegative sequence with thirteen decimal digits. */

@@ -109,36 +109,17 @@ try {
             $result = Generator::formButtonsHtml($buttons);
             break;
         case 'renderList':
-            // JSON decides each type before the library applies the PHP value rules.
-            $spec = $objectValue($member($request, 'spec'), 'List specification must be an object');
+            // The JSON types reach the library unchanged: it checks the shape of the specification, the rows and the
+            // record in argument order (docs/spec/display-formats.md).
+            $spec = $member($request, 'spec');
             $rows = property_exists($request, 'rows') ? $request->rows : [];
-            if (!is_array($rows)) {
-                throw new InvalidArgumentException('List rows must be an array');
-            }
-            foreach ($rows as $row) {
-                $objectValue($row, 'List rows must be objects');
-            }
             $listOptions = $options(property_exists($request, 'options') ? $request->options : new stdClass());
-            // The context is checked after the columns declaration, which the library checks first.
-            if (property_exists($spec, 'columns') && isset($listOptions['data'])) {
-                $objectValue($listOptions['data'], 'List context must be an object');
-            }
             $result = Generator::renderList($spec, $rows, $listOptions);
             break;
         case 'buildList':
-            $spec = $objectValue($member($request, 'spec'), 'List specification must be an object');
+            $spec = $member($request, 'spec');
             $rows = property_exists($request, 'rows') ? $request->rows : [];
-            if (!is_array($rows)) {
-                throw new InvalidArgumentException('List rows must be an array');
-            }
-            foreach ($rows as $row) {
-                $objectValue($row, 'List rows must be objects');
-            }
             $listOptions = $options(property_exists($request, 'options') ? $request->options : new stdClass());
-            // The context is checked after the columns declaration, which the library checks first.
-            if (property_exists($spec, 'columns') && isset($listOptions['data'])) {
-                $objectValue($listOptions['data'], 'List context must be an object');
-            }
             $result = Generator::buildList($spec, $rows, $listOptions);
             break;
         case 'buildOutline':
@@ -154,16 +135,9 @@ try {
         case 'buildDetail':
         case 'renderDetail':
             $method = $request->operation;
-            $spec = $objectValue($member($request, 'spec'), 'Detail specification must be an object');
-            $record = property_exists($request, 'record') ? $objectValue(
-                $request->record,
-                'Detail record must be an object'
-            ) : new stdClass();
+            $spec = $member($request, 'spec');
+            $record = property_exists($request, 'record') ? $request->record : new stdClass();
             $detailOptions = $options(property_exists($request, 'options') ? $request->options : new stdClass());
-            // The context is checked after the fields, which the library checks first.
-            if (property_exists($spec, 'fields') && isset($detailOptions['data'])) {
-                $objectValue($detailOptions['data'], 'Detail context must be an object');
-            }
             $result = Generator::$method($spec, $record, $detailOptions);
             break;
         case 'renderForm':

@@ -30,9 +30,10 @@ final class DisplayRulesTest extends TestCase
         self::fail('Expected failure: ' . $message);
     }
 
-    public function testAnEmptyArraySpecificationIsTheEmptyRootObject(): void
+    public function testAnEmptyArraySpecificationIsNoObject(): void
     {
-        self::assertFailure('List specification must declare columns', fn () => Generator::renderList([], []));
+        self::assertFailure('List specification must be an object', fn () => Generator::renderList([], []));
+        self::assertFailure('List specification must declare columns', fn () => Generator::renderList((object) [], []));
     }
 
     public function testRejectsAListShapedSpecification(): void
@@ -60,9 +61,9 @@ final class DisplayRulesTest extends TestCase
         $table = Generator::renderList(self::SPEC, [['v' => 'a']]);
         foreach (
             [
-                ['data' => []],
                 ['data' => null],
                 ['data' => new stdClass()],
+                ['data' => ['v' => 'a']],
                 ['page' => null],
                 ['total' => null],
                 ['layout' => null],
@@ -70,7 +71,7 @@ final class DisplayRulesTest extends TestCase
         ) {
             self::assertSame($table, Generator::renderList(self::SPEC, [['v' => 'a']], $options));
         }
-        foreach ([['x'], 'x', 1, true] as $value) {
+        foreach ([[], ['x'], 'x', 1, true] as $value) {
             self::assertFailure(
                 'List context must be an object',
                 fn () => Generator::renderList(self::SPEC, [], ['data' => $value])
@@ -129,7 +130,7 @@ final class DisplayRulesTest extends TestCase
         // The detail model neither checks nor uses the list page options.
         self::assertSame(
             '<dl class="crudui-detail"></dl>',
-            Generator::renderDetail(['fields' => new stdClass()], [], ['page' => 'x', 'total' => -1])
+            Generator::renderDetail(['fields' => new stdClass()], new stdClass(), ['page' => 'x', 'total' => -1])
         );
     }
 
@@ -171,21 +172,17 @@ final class DisplayRulesTest extends TestCase
     {
         self::assertSame(
             '<dl class="crudui-detail"></dl>',
-            Generator::renderDetail(['fields' => new stdClass()], [], ['data' => []])
+            Generator::renderDetail(['fields' => new stdClass()], new stdClass(), ['data' => null])
         );
-        self::assertSame(
-            '<dl class="crudui-detail"></dl>',
-            Generator::renderDetail(['fields' => new stdClass()], [], ['data' => null])
-        );
-        foreach ([['x'], 'x', 1] as $value) {
+        foreach ([[], ['x'], 'x', 1] as $value) {
             self::assertFailure(
                 'Detail context must be an object',
-                fn () => Generator::buildDetail(['fields' => new stdClass()], [], ['data' => $value])
+                fn () => Generator::buildDetail(['fields' => new stdClass()], new stdClass(), ['data' => $value])
             );
         }
         self::assertFailure(
             'Detail specification must declare fields',
-            fn () => Generator::renderDetail([], [], ['data' => 1])
+            fn () => Generator::renderDetail((object) [], new stdClass(), ['data' => 1])
         );
         self::assertFailure(
             'Detail record must be an object',
@@ -214,19 +211,19 @@ final class DisplayRulesTest extends TestCase
         $field = ['fields' => ['name' => ['field' => 'name', 'design' => ['label' => ['text' => 'x']]]]];
         self::assertFailure(
             'Invalid design.label.text at fields.name: unknown key',
-            fn () => Generator::renderDetail($field, [])
+            fn () => Generator::renderDetail($field, new stdClass())
         );
         self::assertFailure(
             'Invalid design.label.text at fields.name: unknown key',
-            fn () => Generator::buildDetail($field, [])
+            fn () => Generator::buildDetail($field, new stdClass())
         );
         self::assertFailure(
             'Invalid design.wrapper at detail: expected an object',
-            fn () => Generator::renderDetail(['design' => ['wrapper' => 'box'], 'fields' => new stdClass()], [])
+            fn () => Generator::renderDetail(['design' => ['wrapper' => 'box'], 'fields' => new stdClass()], new stdClass())
         );
         self::assertFailure(
             'Invalid design.wrapper at detail: expected an object',
-            fn () => Generator::buildDetail(['design' => ['wrapper' => 'box'], 'fields' => new stdClass()], [])
+            fn () => Generator::buildDetail(['design' => ['wrapper' => 'box'], 'fields' => new stdClass()], new stdClass())
         );
         // Declared designs that follow the rules render.
         self::assertStringContainsString(
@@ -256,7 +253,7 @@ final class DisplayRulesTest extends TestCase
             'Invalid design at fields.b: expected a boolean or an object',
             fn () => Generator::buildDetail(
                 ['fields' => ['a' => ['design' => false], 'b' => ['design' => null], 'c' => ['design' => ['x' => 1]]]],
-                []
+                new stdClass()
             )
         );
         // Within one design: closed keys in member order, then show, class and style, then each node.
@@ -272,14 +269,14 @@ final class DisplayRulesTest extends TestCase
             'Invalid design.label.text at detail: unknown key',
             fn () => Generator::renderDetail(
                 ['design' => ['label' => ['class' => 1, 'text' => 'x']], 'fields' => new stdClass()],
-                []
+                new stdClass()
             )
         );
         self::assertFailure(
             'Invalid design.group.class at detail: expected a string or a condition map',
             fn () => Generator::renderDetail(
                 ['design' => ['group' => ['class' => []], 'prepend' => 1], 'fields' => new stdClass()],
-                []
+                new stdClass()
             )
         );
         // Input rules come before the declarations.
@@ -307,13 +304,13 @@ final class DisplayRulesTest extends TestCase
         );
         self::assertFailure(
             'Detail context must be an object',
-            fn () => Generator::buildDetail(['design' => 1, 'fields' => new stdClass()], [], ['data' => 1])
+            fn () => Generator::buildDetail(['design' => 1, 'fields' => new stdClass()], new stdClass(), ['data' => 1])
         );
         // Composition load failures come before the declarations; composed designs are checked.
         foreach (
             [
                 fn () => Generator::renderList(['design' => 1, 'columns' => ['$ref' => 'absent.yml']], []),
-                fn () => Generator::buildDetail(['design' => 1, 'fields' => ['$ref' => 'absent.yml']], []),
+                fn () => Generator::buildDetail(['design' => 1, 'fields' => ['$ref' => 'absent.yml']], new stdClass()),
             ] as $operation
         ) {
             try {
@@ -327,7 +324,7 @@ final class DisplayRulesTest extends TestCase
             'Invalid design.main at fields.name: unknown key',
             fn () => Generator::renderDetail(
                 ['fields' => ['name' => ['$ref' => 'name.yml']]],
-                [],
+                new stdClass(),
                 ['files' => ['name.yml' => ['properties' => ['design' => ['main' => ['class' => 'x']]]]]]
             )
         );

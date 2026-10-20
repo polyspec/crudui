@@ -85,22 +85,17 @@ static void call_two(zval *first, zval *options, bool form_errors, ps_result (*o
     ps_value_free(input);
 }
 
-/* A non-empty list-shaped PHP array, which is never an object. */
-static bool list_array(zval *value)
-{
-    return value && Z_TYPE_P(value) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(value)) != 0 &&
-        zend_array_is_list(Z_ARRVAL_P(value));
-}
-
 /*
- * The list and detail options data and files are fixed object options: an empty PHP array given
- * for one is the empty object.
+ * The options data and files are fixed object options: an empty PHP array given for one is the empty object. The display
+ * operations fix only files; their data is an object option, and an empty array is no object (docs/spec/display-formats.md).
  */
-static bool fixed_object_options(zval *options, ps_value *converted)
+static const char *const fixed_keys[] = {"data", "files"};
+static const char *const display_fixed_keys[] = {"files"};
+
+static bool fixed_object_options(zval *options, ps_value *converted, const char *const *keys, size_t count)
 {
-    static const char *const keys[] = {"data", "files"};
     if (!options) return true;
-    for (size_t i = 0; i < sizeof(keys) / sizeof(*keys); ++i) {
+    for (size_t i = 0; i < count; ++i) {
         zval *value = zend_hash_str_find_deref(Z_ARRVAL_P(options), keys[i], strlen(keys[i]));
         if (value && Z_TYPE_P(value) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(value)) == 0 &&
             !ps_value_insert(converted, (const uint8_t *) keys[i], strlen(keys[i]), ps_value_new(PS_OBJECT))) {
@@ -118,7 +113,24 @@ static void call_three(zval *first, zval *second, bool second_is_object, zval *o
     ps_value *data = crudui_from_php(second, second_is_object, form_errors);
     if (!data) { ps_value_free(input); return; }
     ps_value *opts = crudui_from_php(options, true, form_errors);
-    if (opts && fixed_objects && !fixed_object_options(options, opts)) { ps_value_free(opts); opts = NULL; }
+    if (opts && fixed_objects && !fixed_object_options(options, opts, fixed_keys, COUNT(fixed_keys))) { ps_value_free(opts); opts = NULL; }
+    if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
+    ps_value_free(data);
+    ps_value_free(input);
+}
+
+/*
+ * A list or detail operation. The specification and the rows or record keep the PHP type they have, so the operation checks
+ * their shape in argument order: a list array, the empty array included, is no object (docs/spec/display-formats.md).
+ */
+static void call_display(zval *spec, zval *value, zval *options, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *), zval *return_value)
+{
+    ps_value *input = crudui_from_php(spec, false, true);
+    if (!input) return;
+    ps_value *data = crudui_from_php(value, false, true);
+    if (!data) { ps_value_free(input); return; }
+    ps_value *opts = crudui_from_php(options, true, true);
+    if (opts && !fixed_object_options(options, opts, display_fixed_keys, COUNT(display_fixed_keys))) { ps_value_free(opts); opts = NULL; }
     if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
     ps_value_free(data);
     ps_value_free(input);
@@ -402,66 +414,49 @@ PHP_METHOD(Polyspec_Crudui_Generator, renderList)
 {
     zval *spec, *rows, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(2, 3)
-        Z_PARAM_ARRAY_OR_OBJECT(spec)
-        Z_PARAM_ARRAY(rows)
+        Z_PARAM_ZVAL(spec)
+        Z_PARAM_ZVAL(rows)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     if (!display_text(spec, "rows", rows, options)) return;
-    /* The specification is a root object; rows is a list whose rows keep their PHP type. */
-    if (list_array(spec)) {
-        crudui_invalid_value("List specification must be an object", true);
-        return;
-    }
-    call_three(spec, rows, false, options, true, true, ps_render_list, return_value);
+    call_display(spec, rows, options, ps_render_list, return_value);
 }
 
 PHP_METHOD(Polyspec_Crudui_Generator, buildList)
 {
     zval *spec, *rows = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_ARRAY_OR_OBJECT(spec)
+        Z_PARAM_ZVAL(spec)
         Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY(rows)
+        Z_PARAM_ZVAL(rows)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     if (!display_text(spec, "rows", rows, options)) return;
-    if (list_array(spec)) {
-        crudui_invalid_value("List specification must be an object", true);
-        return;
-    }
     if (!rows) {
         zval empty; array_init(&empty); rows = &empty;
-        call_three(spec, rows, false, options, true, true, ps_build_list, return_value);
+        call_display(spec, rows, options, ps_build_list, return_value);
         zval_ptr_dtor(&empty);
         return;
     }
-    call_three(spec, rows, false, options, true, true, ps_build_list, return_value);
+    call_display(spec, rows, options, ps_build_list, return_value);
 }
 
-/*
- * Specification and record are root objects: an empty PHP array is the empty root object, as for
- * every root object argument, and a non-empty list-shaped array is rejected.
- */
+/* An omitted record is the empty object; a record that is an array is checked by the operation, as every display argument. */
 static void call_detail(INTERNAL_FUNCTION_PARAMETERS, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *))
 {
     zval *spec, *record = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_ARRAY_OR_OBJECT(spec)
+        Z_PARAM_ZVAL(spec)
         Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY_OR_OBJECT(record)
+        Z_PARAM_ZVAL(record)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     if (!display_text(spec, "record", record, options)) return;
-    if (list_array(spec)) {
-        crudui_invalid_value("Detail specification must be an object", true);
-        return;
-    }
-    if (list_array(record)) {
-        crudui_invalid_value("Detail record must be an object", true);
-        return;
-    }
-    call_three(spec, record, true, options, true, true, operation, return_value);
+    zval empty;
+    if (!record) { object_init(&empty); record = &empty; }
+    call_display(spec, record, options, operation, return_value);
+    if (record == &empty) zval_ptr_dtor(&empty);
 }
 
 PHP_METHOD(Polyspec_Crudui_Generator, renderDetail)

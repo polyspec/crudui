@@ -14,23 +14,26 @@ use stdClass;
 final class Lists
 {
     /** Build one read-only list model from validated public inputs. */
-    public static function buildPublic(array|stdClass $spec, array $rows, array $options): stdClass
+    public static function buildPublic(mixed $spec, mixed $rows, array $options): stdClass
     {
         self::checkInput($spec, $rows, $options);
         return self::build(Value::object($spec), $rows, $options, 'list', 'columns');
     }
 
-    /** Check the list input in the order every runtime uses (docs/spec/display-formats.md). */
-    private static function checkInput(array|stdClass $spec, array $rows, array $options): void
+    /**
+     * Check the list input in the order every runtime uses (docs/spec/display-formats.md): the argument shapes in argument
+     * order, then the declaration, then the options.
+     */
+    private static function checkInput(mixed $spec, mixed $rows, array $options): void
     {
-        if (is_array($spec) && !self::isObject($spec, true)) {
+        if (!Value::isObject($spec)) {
             throw new FormError('INVALID_FORM_INPUT', 'List specification must be an object');
         }
-        if (!array_is_list($rows)) {
+        if (!is_array($rows) || !array_is_list($rows)) {
             throw new FormError('INVALID_FORM_INPUT', 'List rows must be an array');
         }
         foreach ($rows as $row) {
-            if (!self::isObject($row, false)) {
+            if (!Value::isObject($row)) {
                 throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
             }
         }
@@ -79,7 +82,7 @@ final class Lists
     }
 
     /** Render composed list columns, supplied rows, the description, actions and pagination. */
-    public static function render(array|stdClass $spec, array $rows, array $options): string
+    public static function render(mixed $spec, mixed $rows, array $options): string
     {
         self::checkInput($spec, $rows, $options);
         $layout = $options['layout'] ?? 'table';
@@ -258,7 +261,7 @@ final class Lists
         }
         $rowModels = [];
         foreach ($rows as $row) {
-            if (!self::isObject($row, false)) {
+            if (!Value::isObject($row)) {
                 throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
             }
             $row = Value::object($row);
@@ -335,20 +338,10 @@ final class Lists
         ]);
     }
 
-    /**
-     * Whether a PHP value is an object: a stdClass or an array that is not a list. An empty array
-     * is the empty object only where the object type is fixed (a root argument or a fixed option);
-     * a nested value such as a row keeps its type.
-     */
-    private static function isObject(mixed $value, bool $fixed): bool
-    {
-        return $value instanceof stdClass || is_array($value) && (!array_is_list($value) || $fixed && $value === []);
-    }
-
     /** An absent or null option is none; any other value must be an object. */
     private static function optionObject(array $options, string $key, string $message): void
     {
-        if (isset($options[$key]) && !self::isObject($options[$key], true)) {
+        if (isset($options[$key]) && !Value::isObject($options[$key])) {
             throw new FormError('INVALID_FORM_INPUT', $message);
         }
     }

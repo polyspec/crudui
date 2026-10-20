@@ -44,16 +44,17 @@ final class DetailTest extends TestCase
         self::assertStringContainsString('>Ada</dd>', $html);
     }
 
-    public function testAcceptsAnEmptyArrayAsTheEmptyRootRecord(): void
+    public function testAnEmptyArrayIsNoRecordAndAnEmptyObjectIs(): void
     {
-        $emptyObject = json_decode('{}', true, 512, JSON_THROW_ON_ERROR);
-        $emptyArray = json_decode('[]', true, 512, JSON_THROW_ON_ERROR);
-
-        self::assertSame($emptyArray, $emptyObject);
+        $emptyObject = json_decode('{}', false, 512, JSON_THROW_ON_ERROR);
         self::assertSame(
             '<dl class="crudui-detail"></dl>',
             Generator::renderDetail(['fields' => new stdClass()], $emptyObject)
         );
+        // An associative decode of {} is the empty array, which is a list and so no object (docs/spec/display-formats.md).
+        $emptyArray = json_decode('{}', true, 512, JSON_THROW_ON_ERROR);
+        $this->expectExceptionMessage('Detail record must be an object');
+        Generator::renderDetail(['fields' => new stdClass()], $emptyArray);
     }
 
     public function testRejectsAssociativeDecodeOfASequentialNumericObject(): void
@@ -71,9 +72,9 @@ final class DetailTest extends TestCase
         Generator::renderDetail((object) [], ['name' => 'Ada']);
     }
 
-    public function testReadsAnEmptyArraySpecificationAsTheEmptyRootObject(): void
+    public function testRejectsAnEmptyArraySpecification(): void
     {
-        $this->expectExceptionMessage('Detail specification must declare fields');
+        $this->expectExceptionMessage('Detail specification must be an object');
         Generator::renderDetail([], ['name' => 'Ada']);
     }
 

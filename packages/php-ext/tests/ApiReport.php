@@ -511,22 +511,22 @@ final class ApiReport
             [
                 fn()=>Generator::renderDetail(
                     ['fields' => ['name' => ['field' => 'name','design' => ['label' => ['text' => 'x']]]]],
-                    []
+                    new stdClass()
                 ),
                 'Invalid design.label.text at fields.name: unknown key'
             ],
             [
-                fn()=>Generator::buildDetail(['fields' => ['a' => ['design' => false],'b' => ['design' => null]]], []),
+                fn()=>Generator::buildDetail(['fields' => ['a' => ['design' => false],'b' => ['design' => null]]], new stdClass()),
                 'Invalid design at fields.b: expected a boolean or an object'
             ],
             [
-                fn()=>Generator::buildDetail(['design' => ['wrapper' => 'box'],'fields' => new stdClass()], []),
+                fn()=>Generator::buildDetail(['design' => ['wrapper' => 'box'],'fields' => new stdClass()], new stdClass()),
                 'Invalid design.wrapper at detail: expected an object'
             ],
             [
                 fn()=>Generator::renderDetail(
                     ['design' => ['group' => ['class' => []],'prepend' => 1],'fields' => new stdClass()],
-                    []
+                    new stdClass()
                 ),
                 'Invalid design.group.class at detail: expected a string or a condition map'
             ],
@@ -536,7 +536,7 @@ final class ApiReport
                 'List layout must be table or card'
             ],
             [
-                fn()=>Generator::buildDetail(['design' => 1,'fields' => new stdClass()], [], ['data' => 1]),
+                fn()=>Generator::buildDetail(['design' => 1,'fields' => new stdClass()], new stdClass(), ['data' => 1]),
                 'Detail context must be an object'
             ],
             ] as [$operation, $message]
@@ -555,7 +555,7 @@ final class ApiReport
         $composedError = self::fails(
             fn()=>Generator::buildDetail(
                 ['fields' => ['name' => ['$ref' => 'name.yml']]],
-                [],
+                new stdClass(),
                 ['files' => ['name.yml' => ['properties' => ['design' => ['main' => ['class' => 'x']]]]]]
             ),
             FormError::class,
@@ -675,7 +675,7 @@ final class ApiReport
         self::same($detailHtml, Generator::renderDetail($detailSpec, ['name' => 'Ada']), 'Detail HTML changed');
         self::same(
             $detailHtml,
-            Generator::renderDetail((object)$detailSpec, (object)['name' => 'Ada'], []),
+            Generator::renderDetail((object)$detailSpec, (object)['name' => 'Ada'], new stdClass()),
             'Object detail HTML differs'
         );
         self::same(
@@ -686,12 +686,12 @@ final class ApiReport
         // An empty PHP array is the empty root object; a non-empty list-shaped array is not an object.
         self::same(
             '<dl class="crudui-detail"></dl>',
-            Generator::renderDetail(['fields' => new stdClass()], []),
+            Generator::renderDetail(['fields' => new stdClass()], new stdClass()),
             'Empty array detail record changed'
         );
         self::same(
             [],
-            Generator::buildDetail(['fields' => new stdClass()], [])->fields,
+            Generator::buildDetail(['fields' => new stdClass()], new stdClass())->fields,
             'Empty array detail record model changed'
         );
         foreach (['renderDetail', 'buildDetail'] as $method) {
@@ -724,7 +724,8 @@ final class ApiReport
                 "Display failure changed: $message; received " . $error->getMessage()
             );
         };
-        $displayFailure(fn()=>Generator::renderList([], []), 'List specification must declare columns');
+        $displayFailure(fn()=>Generator::renderList([], []), 'List specification must be an object');
+        $displayFailure(fn()=>Generator::renderList((object) [], []), 'List specification must declare columns');
         $displayFailure(fn()=>Generator::renderList([['columns']], []), 'List specification must be an object');
         $displayFailure(fn()=>Generator::renderList($listSpec, ['a' => ['v' => 1]]), 'List rows must be an array');
         foreach ([[1], [[]], [['a']], [null]] as $rows) {
@@ -750,13 +751,13 @@ final class ApiReport
                 'Accepted list options changed: ' . json_encode($options)
             );
         }
-        foreach ([['x'], 'x', 1, true] as $value) {
+        foreach ([[], ['x'], 'x', 1, true] as $value) {
             $displayFailure(
                 fn()=>Generator::renderList($listSpec, [], ['data' => $value]),
                 'List context must be an object'
             );
             $displayFailure(
-                fn()=>Generator::renderDetail(['fields' => new stdClass()], [], ['data' => $value]),
+                fn()=>Generator::renderDetail(['fields' => new stdClass()], new stdClass(), ['data' => $value]),
                 'Detail context must be an object'
             );
         }
@@ -868,7 +869,7 @@ final class ApiReport
         }
         self::same(
             '<dl class="crudui-detail"></dl>',
-            Generator::renderDetail(['fields' => new stdClass()], [], ['page' => 'x', 'total' => -1]),
+            Generator::renderDetail(['fields' => new stdClass()], new stdClass(), ['page' => 'x', 'total' => -1]),
             'Detail must ignore list page options'
         );
         foreach (['grid', '', 5, ['table']] as $layout) {
@@ -891,13 +892,13 @@ final class ApiReport
             'List total must be a nonnegative integer'
         );
         $displayFailure(
-            fn()=>Generator::renderDetail([], [], ['data' => 1]),
+            fn()=>Generator::renderDetail((object) [], new stdClass(), ['data' => 1]),
             'Detail specification must declare fields'
         );
         self::same(
             '<dl class="crudui-detail"></dl>',
-            Generator::renderDetail(['fields' => new stdClass()], [], ['data' => []]),
-            'Empty array detail context changed'
+            Generator::renderDetail(['fields' => new stdClass()], new stdClass(), ['data' => null]),
+            'Null detail context changed'
         );
         $displayValue = fn(array $format, mixed $value) => Generator::buildDetail(
             ['fields' => ['v' => ['field' => 'v','format' => $format]]],
