@@ -14,6 +14,14 @@
       "reason": "generated from contracts/unicode-properties.json by packages/validator/php/scripts/generate-unicode-data.php; the tables are data"
     },
     {
+      "glob": "packages/validator/go/validator/validate/unicode_data.go",
+      "reason": "generated from contracts/unicode-properties.json by packages/validator/go/validator/validate/unicode_data_generate.go; the tables are data"
+    },
+    {
+      "glob": "packages/validator/ts/src/unicode/properties.ts",
+      "reason": "generated from contracts/unicode-properties.json by packages/validator/ts/scripts/generate-unicode-properties.mjs; the tables are data"
+    },
+    {
       "glob": "tests/**",
       "reason": "a test states its case in full; the rule separates the concerns of components; tests/fixtures holds data"
     },

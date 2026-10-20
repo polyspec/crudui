@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b5dfbb040d4f3e4582e97e7470610c0d1ce76c658b31dae6edac1e722e720d4b -->
+<!-- source-sha256: 6a4906d18d7c67f7d031be0d94b16eae164f975c0eba4119468165806a07b83e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -33,3 +33,4 @@
 | C16.18 | PHP validator는 range parameter의 pair를 하나의 method로 읽는다 | packages/validator/php/src/Values/Numeric.php, packages/validator/php/src/Values/LengthLimit.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Values/NumericTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |
 | C16.19 | PHP data validator는 rule 적용과 field 순회를 공유 method로 수행한다 | packages/validator/php/src/Validate/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/PublicApiTest.php`, `make lint-php` | [o] |
 | C16.20 | PHP의 string rule과 field 참조 rule은 두 base class로 guard를 공유한다 | packages/validator/php/src/Rules/StringRule.php, ReferenceRule.php, Email.php, Url.php, DateISO.php, EndDate.php, EqualTo.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |
+| C16.21 | config/duplication.json은 생성된 Go와 TypeScript Unicode table도 제외한다 | config/duplication.json | `make duplication-check` | [o] |

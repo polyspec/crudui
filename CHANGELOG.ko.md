@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7f92b3386ca9b2f9980c93f42a16b05eb1de19b2a0d7bc3fb30260b160d9b101 -->
+<!-- source-sha256: 537a163308db441d3c0ab8760fcd98388afb87be3b938c6d784e0eee7a22f9aa -->
 
 ## Unreleased
+
+### 2026-10-20 — duplication 제외 목록의 생성된 Go와 TypeScript table (C16.21)
+
+- `config/duplication.json`은 `contracts/unicode-properties.json`에서 생성되는 `packages/validator/go/validator/validate/unicode_data.go`(`unicode_data_generate.go`가 씀)와 `packages/validator/ts/src/unicode/properties.ts`(`generate-unicode-properties.mjs`가 씀)를 각각의 이유와 함께 제외합니다 (C16.21). Red: `make duplication-check`가 clone 168건을 나열했고 그중 10건이 이 두 file에 있었으며, 이 item의 결과: clone 158건이 남습니다.
 
 ### 2026-10-20 — C16.15의 clone 수 (C16.15-1)
 
