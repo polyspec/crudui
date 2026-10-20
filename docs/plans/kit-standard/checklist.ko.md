@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 809555a88bec0e32bfce337e6205dab299d973cd50e1a3f23d3ff65fcab12abb -->
+<!-- source-sha256: 5042707901c6318e48baa8033495dd7882c5489edf9184ebfe1efbcef1847df2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -208,3 +208,4 @@
 | C16.113 | Unicode data contract contracts/unicode-properties.json(CUVR-018)를 각 구현에서 검사하는 feature unit을 둔다: Go, Rust, TypeScript, Python과 PHP library test, 그리고 PHP extension | config/parity.json (feature unit unicode-data), the Unicode tests of five implementations | `make parity-declarations-check` | [!] 원인: PHP extension의 Unicode data는 node engine test만 검사하는데, 이 test는 php-extension의 internal이며 다른 runner에서 돈다. library의 UnicodeDataTest는 extension이 선언하지 않은 Values\UnicodeData를 읽으므로 extension의 PHP test를 binding할 수 없다; 재시도: extension의 Unicode table을 검사하는 public PHP 방법이나, 다른 runner에서 도는 구현의 contract 검사를 허용하는 kit 규칙이 생긴 뒤 |
 | C16.116 | 확장 API 테스트가 make build-php-ext가 모듈을 쓰는 위치(var/php-ext)에서 모듈을 찾고, API 보고서는 renderDetail과 renderList가 타입을 지정한 옵션에 배열을 전달하며, 빈 상세 specification은 객체가 아니고 목록의 빈 data 옵션은 실패해야 한다고 기대한다 | packages/php-ext/tests/ApiTest.php, packages/php-ext/tests/ApiReport.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext -- --filter ApiTest` | [o] |
 | C16.117 | fresh make install-packages는 설치만 하고, svelte 도구는 설치 뒤에 link한다 | Makefile, .github/workflows/ci.yml, .github/workflows/dependency-review.yml, .github/workflows/pages.yml, .github/workflows/push-gate.yml, .github/workflows/release.yml, tests/build/ci-local.test.mts | `make link-state-check`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
+| C16.108 | Go generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 실행하며, unpaired surrogate를 보존하는 order 유지 reader로 case를 읽는다 | packages/generator/go/input_text_test.go | `cd packages/generator/go && go test -count=1 -run TestInputTextCases .` | [o] |

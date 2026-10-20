@@ -1,15 +1,19 @@
 package generator
 
 import (
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator/go/validator/text"
 )
 
-// Byte strings that are not UTF-8 are invalid text in every generator input;
-// the shared JSON cases run through the native generator suite.
+// Byte strings that are not UTF-8 are invalid text in every generator input.
+// The shared cases of tests/fixtures/text-validity run in TestInputTextCases.
 func TestInputTextRejectsInvalidUTF8(t *testing.T) {
 	const bad = "\xed\xa0\x80"
 	message := func(e error) string {
@@ -90,5 +94,262 @@ func TestInputTextRejectsInvalidUTF8(t *testing.T) {
 	cyclic[0] = cyclic
 	if e := form.SetValue("name", cyclic); message(e) != "Recursive or excessively nested value: value" {
 		t.Errorf("cyclic value: %v", e)
+	}
+}
+
+// fixtureCase is one case of a text-validity fixture: each member decoded
+// with the order-preserving reader, and the raw JSON text of each member, which
+// a case gives as a template.
+type fixtureCase struct {
+	members map[string]any
+	raw     map[string][]byte
+}
+
+func loadTextFixture(t *testing.T, feature string) []fixtureCase {
+	t.Helper()
+	path := filepath.Join("..", "..", "..", "tests", "fixtures", "text-validity", feature, "cases.json")
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("shared text-validity fixture not found at %s: %v", path, err)
+	}
+	var items []json.RawMessage
+	if err := json.Unmarshal(raw, &items); err != nil {
+		t.Fatalf("fixture json decode: %v", err)
+	}
+	cases := make([]fixtureCase, 0, len(items))
+	for _, item := range items {
+		members, err := compose.DecodeRawMembers(item)
+		if err != nil {
+			t.Fatalf("fixture case decode: %v", err)
+		}
+		c := fixtureCase{members: map[string]any{}, raw: map[string][]byte{}}
+		for _, m := range members {
+			v, err := compose.DecodeOrdered(m.Value)
+			if err != nil {
+				t.Fatalf("fixture member %s decode: %v", m.Name, err)
+			}
+			c.members[m.Name] = v
+			c.raw[m.Name] = m.Value
+		}
+		cases = append(cases, c)
+	}
+	if len(cases) == 0 {
+		t.Fatal("fixture is empty")
+	}
+	return cases
+}
+
+// argObject returns the object member key of a case, or an empty object when
+// the case has none.
+func argObject(c fixtureCase, key string) *Object {
+	if o, ok := c.members[key].(*Object); ok {
+		return o
+	}
+	return NewObject()
+}
+
+func textOptionValue(options *Object, key string) any {
+	v, _ := options.Get(key)
+	return v
+}
+
+func textOptionString(options *Object, key string) string {
+	s, _ := textOptionValue(options, key).(string)
+	return s
+}
+
+func textOptionFiles(options *Object) map[string]*Object {
+	files := map[string]*Object{}
+	if group, ok := textOptionValue(options, "files").(*Object); ok {
+		for _, name := range group.Keys() {
+			if o, ok := textOptionValue(group, name).(*Object); ok {
+				files[name] = o
+			}
+		}
+	}
+	return files
+}
+
+func listOptionsOf(options *Object) ListOptions {
+	return ListOptions{
+		Language: textOptionString(options, "language"),
+		Data:     textOptionValue(options, "data"),
+		Layout:   textOptionValue(options, "layout"),
+		Basepath: textOptionString(options, "basepath"),
+		Files:    textOptionFiles(options),
+	}
+}
+
+func bindOptionsOf(options *Object) BindOptions {
+	return BindOptions{
+		IDPrefix:    textOptionValue(options, "idPrefix"),
+		Language:    textOptionValue(options, "language"),
+		KeyPrefix:   textOptionValue(options, "keyPrefix"),
+		Unsupported: textOptionValue(options, "unsupported"),
+	}
+}
+
+// templateOf decodes the template a case gives as JSON text, or compiles its
+// specification when the case gives none.
+func templateOf(c fixtureCase) (*FormTemplate, error) {
+	if raw, ok := c.raw["template"]; ok {
+		// A template decoded from JSON text is checked before its decoding, which
+		// reports its shape (CheckBindText).
+		if err := checkInputText(text.Input{Name: "template", Value: c.members["template"]}); err != nil {
+			return nil, err
+		}
+		var template FormTemplate
+		if err := json.Unmarshal(raw, &template); err != nil {
+			return nil, err
+		}
+		return &template, nil
+	}
+	return CompileForm(argObject(c, "spec"), CompileOptions{})
+}
+
+func rowsOf(c fixtureCase) []any {
+	if rows, ok := c.members["rows"].([]any); ok {
+		return rows
+	}
+	return []any{}
+}
+
+func asString(v any) string {
+	s, _ := v.(string)
+	return s
+}
+
+func asInt(v any) int {
+	n, _ := v.(float64)
+	return int(n)
+}
+
+// runAction calls the form method that a case's action names, with its args.
+func runAction(form *Form, action *Object) error {
+	method := textOptionString(action, "method")
+	args, _ := textOptionValue(action, "args").([]any)
+	arg := func(i int) any {
+		if i < len(args) {
+			return args[i]
+		}
+		return nil
+	}
+	switch method {
+	case "setData":
+		data, _ := arg(0).(*Object)
+		return form.SetData(data)
+	case "setValue":
+		return form.SetValue(asString(arg(0)), arg(1))
+	case "getValue":
+		_, err := form.GetValue(asString(arg(0)))
+		return err
+	case "addRow":
+		var options AddRowOptions
+		if o, ok := arg(1).(*Object); ok {
+			options.Key = textOptionString(o, "key")
+			options.AfterKey = textOptionString(o, "afterKey")
+			options.Value = textOptionValue(o, "value")
+			options.ValueProvided = o.Has("value")
+		}
+		_, err := form.AddRow(asString(arg(0)), options)
+		return err
+	case "copyRow":
+		_, err := form.CopyRow(asString(arg(0)), asString(arg(1)), AddRowOptions{})
+		return err
+	case "removeRow":
+		return form.RemoveRow(asString(arg(0)), asString(arg(1)))
+	case "moveRow":
+		return form.MoveRow(asString(arg(0)), asString(arg(1)), asInt(arg(2)))
+	case "rekeyRow":
+		return form.RekeyRow(asString(arg(0)), asString(arg(1)), asString(arg(2)))
+	}
+	return errors.New("unknown form action " + method)
+}
+
+// textOperations runs one case of each generator operation of the input text
+// fixtures and returns its error, or nil when the case passes.
+var textOperations = map[string]func(c fixtureCase) error{
+	"compileForm": func(c fixtureCase) error {
+		options := argObject(c, "options")
+		_, err := CompileForm(argObject(c, "spec"), CompileOptions{
+			Files:             textOptionFiles(options),
+			Basepath:          textOptionString(options, "basepath"),
+			KeyPrefix:         textOptionString(options, "keyPrefix"),
+			KeyPrefixProvided: options.Has("keyPrefix"),
+		})
+		return err
+	},
+	"bindForm": func(c fixtureCase) error {
+		template, err := templateOf(c)
+		if err != nil {
+			return err
+		}
+		_, err = BindForm(template, argObject(c, "data"), bindOptionsOf(argObject(c, "options")))
+		return err
+	},
+	"createForm": func(c fixtureCase) error {
+		template, err := templateOf(c)
+		if err != nil {
+			return err
+		}
+		form, err := NewForm(template, argObject(c, "data"), bindOptionsOf(argObject(c, "options")))
+		if err != nil {
+			return err
+		}
+		action, ok := c.members["action"].(*Object)
+		if !ok {
+			return nil
+		}
+		return runAction(form, action)
+	},
+	"buildList": func(c fixtureCase) error {
+		_, err := BuildList(argObject(c, "spec"), rowsOf(c), listOptionsOf(argObject(c, "options")))
+		return err
+	},
+	"buildDetail": func(c fixtureCase) error {
+		record, ok := c.members["record"]
+		if !ok || record == nil {
+			record = NewObject()
+		}
+		_, err := BuildDetail(argObject(c, "spec"), record, listOptionsOf(argObject(c, "options")))
+		return err
+	},
+}
+
+// outcomeOf returns the case outcome in the fixture's expect shape: "pass", or
+// the failure code, message and path.
+func outcomeOf(err error) any {
+	if err == nil {
+		return "pass"
+	}
+	var load *compose.ComposeLoadError
+	if errors.As(err, &load) {
+		return NewObject("code", string(load.Code), "message", load.Message, "at", strings.Join(load.Trace, "."))
+	}
+	return NewObject("code", "INVALID_FORM_INPUT", "message", err.Error(), "at", "")
+}
+
+// TestInputTextCases runs every case of the five generator fixtures of
+// tests/fixtures/text-validity (CUIT-010..013 and the form operations of
+// CUIT-011, CUIT-014..020) through the public generator API.
+func TestInputTextCases(t *testing.T) {
+	for _, feature := range []string{"compileForm", "bindForm", "createForm", "buildList", "buildDetail"} {
+		run := textOperations[feature]
+		for _, c := range loadTextFixture(t, feature) {
+			name, _ := c.members["name"].(string)
+			t.Run(feature+"/"+name, func(t *testing.T) {
+				got, err := json.Marshal(outcomeOf(run(c)))
+				if err != nil {
+					t.Fatal(err)
+				}
+				want, err := json.Marshal(c.members["expect"])
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(got) != string(want) {
+					t.Errorf("got %s\nwant %s", got, want)
+				}
+			})
+		}
 	}
 }
