@@ -4,8 +4,8 @@
 [한국어](README.ko.md).
 
 `cases.json` contains the shared `$ref` and `$patch` composition cases for TypeScript, PHP, the
-PHP extension, Go and Rust. Each case provides `name`, `note`, `input`, and either `expected` or
-`expectError` with its `code`. `input` has `entry`, optional `files`, optional `kind`
+PHP extension, Go and Rust. Each case provides `name`, `note`, `requirements` (the composition requirement CUSC-007 of the
+`docs/spec/schema.md` specification), `input`, and either `expected` or `expectError` with its `code`. `input` has `entry`, optional `files`, optional `kind`
 (`properties` by default, or `spec`) and optional `basepath`.
 
 These cases check reference inheritance, path references, the order of several references, nested
@@ -28,7 +28,7 @@ The cases are read by the composition conformance tests in
 [PHP](../../../packages/validator/php/tests/Compose/ComposeConformanceTest.php),
 [Go](../../../packages/validator/go/validator/compose/conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/compose_conformance.rs) and the
-[PHP extension engine test](../../../packages/php-ext/tests/engine/engine.test.mjs).
+[PHP extension contract test](../../../packages/php-ext/tests/contract/compose.test.mjs).
 
 ## Regeneration
 

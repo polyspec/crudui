@@ -1,11 +1,12 @@
 # 합성 고정 데이터
 <!-- doc-id: tests-fixtures-compose-readme -->
-<!-- source-sha256: 08578b84210cc0629666922ee3a22d6b034774318849e618f5bf0f3015ee3877 -->
+<!-- source-sha256: 3566f6174d6c505d0eb70006e0f474096acdff2b5eb342762543a57ff080a266 -->
 
 [English](README.md).
 
 `cases.json`은 TypeScript, PHP, PHP 확장, Go, Rust가 공유하는 `$ref`·`$patch` 합성 사례입니다. 각 사례는
-`name`, `note`, `input`, 그리고 `expected` 또는 `code`를 가진 `expectError`를 제공합니다. `input`은
+`name`, `note`, `requirements`(명세 스키마의 합성 요구사항 CUSC-007), `input`, 그리고 `expected` 또는
+`code`를 가진 `expectError`를 제공합니다. `input`은
 `entry`, 선택적인 `files`, 선택적인 `kind`(기본값 `properties`, 또는 `spec`), 선택적인 `basepath`를
 가집니다.
 
@@ -26,7 +27,7 @@
 [PHP](../../../packages/validator/php/tests/Compose/ComposeConformanceTest.php),
 [Go](../../../packages/validator/go/validator/compose/conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/compose_conformance.rs)의 합성 적합성 검사와
-[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine/engine.test.mjs)가 사용합니다.
+[PHP 확장 계약 검사](../../../packages/php-ext/tests/contract/compose.test.mjs)가 사용합니다.
 
 ## 재생성
 

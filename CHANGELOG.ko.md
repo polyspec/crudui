@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2eeffc08eb1f54a91aadd3ff2d9c9612049bc9081ba3c7b03505f419da36a709 -->
+<!-- source-sha256: e3bb6409a6d858f4147b428ae44e36f904e9c878dd21356bdd973a026ad4d2c9 -->
 
 ## Unreleased
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 
 - Makefile의 `crudui-install`이 `crudui-install-python`과 `crudui-install-composer` 뒤, `crudui-install-phpdocumentor` 앞에서 `install-link`를 실행한다 (C16.149). composer install은 추적되는 `composer.lock`에서 `vendor/composer/platform_check.php`를 쓰는데, 배포된 polyspec/ordered-json 0.0.9 때문에 PHP 8.5를 요구한다. `.php-version`의 PHP 8.4.1로 검사를 다시 쓰는 link는 `make install`의 끝에서만 실행되어, `make worktree-setup`이 phpDocumentor에서 "Composer detected issues in your platform"으로 멈췄다. Red: `make -n crudui-install`의 순서 검사가 379832f3에서 exit 1; green: exit 0, worktree에서 `make install-link` 뒤 `make crudui-install-phpdocumentor`가 phpDocumentor 3.10.0을 설치한다.
+
+### 2026-10-21 — 합성 suite를 선언하고 여섯 implementation에 binding한다 (C16.57-3-2)
+
+- 합성 고정 데이터 `tests/fixtures/compose/cases.json`을 suite unit `compose`로 선언하고 ts, php, go, rust, python, php-extension에 binding한다(`config/parity.json`). 각 case는 `docs/spec/schema.md`의 요구사항 CUSC-007을 이름으로 밝히며, 생성기 `packages/validator/ts/scripts/generate-compose-cases.mts`가 모든 case에 `requirements`를 씁니다. 고정 데이터는 다시 생성했고 추가된 키만 달라집니다. TypeScript binding `packages/validator/ts/src/compose.conformance.test.ts`는 case마다 그 이름의 최상위 test로 실행하여 parity 검사가 case를 이름으로 읽게 합니다 (C16.57-3-2). Red: `make -s parity-declarations-check`가 exit 1이며 `R4 undeclared-suite tests/fixtures/compose/cases.json`을 냅니다; green: 그 줄이 없고, 여섯 binding 명령이 모두 통과합니다 (vitest 20, phpunit 20, go 21, cargo 1, python 4, node 20/20 case).
 
 ### 2026-10-21 — PHP extension의 C engine이 expression suite를 실행한다 (C16.57-3-1)
 

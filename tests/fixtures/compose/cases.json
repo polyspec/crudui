@@ -2,6 +2,9 @@
   {
     "name": "ref-inherit-base",
     "note": "plain $ref pulls the file properties layer as the base (a,b)",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -35,6 +38,9 @@
   {
     "name": "ref-path-specified",
     "note": "path-specified $ref descends group.properties then properties",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -62,6 +68,9 @@
   {
     "name": "ref-multiple-order",
     "note": "$ref: [x,y] merges in order; y overrides x on a shared key",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "x.yml": {
@@ -110,6 +119,9 @@
   {
     "name": "patch-deep-path-set",
     "note": "deep-path set updates only field.validate.required, preserving siblings",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -156,6 +168,9 @@
   {
     "name": "patch-add-field",
     "note": "structured add inserts a new field into the expanded spec",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -189,6 +204,9 @@
   {
     "name": "patch-replace-scalar",
     "note": "replace overrides a scalar leaf (deep-merge: latter scalar wins)",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -225,6 +243,9 @@
   {
     "name": "patch-remove-whole-key",
     "note": "remove deletes a whole field from the expanded spec",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -256,6 +277,9 @@
   {
     "name": "patch-remove-deep-path",
     "note": "remove a deep subkey (field.options.max_tags); field + siblings stay",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -291,6 +315,9 @@
   {
     "name": "ref-nested-flatten",
     "note": "a $ref inside the resolved base is expanded recursively to a single spec",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -329,6 +356,9 @@
   {
     "name": "ref-then-patch-order",
     "note": "$ref base laid down first, then $patch overlays (deep-path set)",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -369,6 +399,9 @@
   {
     "name": "ref-sibling-override",
     "note": "a named sibling after $ref overrides the inherited base key",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -398,6 +431,9 @@
   {
     "name": "spec-level-ref",
     "note": "a field-level $ref inherits a base spec; its properties also compose",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "kind": "spec",
       "files": {
@@ -428,6 +464,9 @@
   {
     "name": "ref-basepath-relative",
     "note": "relative $ref gets the basepath prefix before lookup",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "basepath": "/forms",
       "files": {
@@ -452,6 +491,9 @@
   {
     "name": "err-ref-file-missing",
     "note": "A missing $ref file produces a load error.",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {},
       "entry": {
@@ -465,6 +507,9 @@
   {
     "name": "err-ref-format",
     "note": "malformed path-specified $ref is a ref-format load error",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {},
       "entry": {
@@ -478,6 +523,9 @@
   {
     "name": "err-ref-detect-key",
     "note": "absent detectKey is a not-found load error",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -499,6 +547,9 @@
   {
     "name": "err-ref-cycle",
     "note": "a $ref cycle is detected as a load error (no infinite recursion)",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "a.yml": {
@@ -523,6 +574,9 @@
   {
     "name": "err-patch-remove-missing",
     "note": "strict deep-path remove of an absent target is a load error",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -549,6 +603,9 @@
   {
     "name": "err-patch-path-conflict",
     "note": "deep-path set descending into a scalar leaf is a load error",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {
         "base.yml": {
@@ -573,6 +630,9 @@
   {
     "name": "err-ref-value-type",
     "note": "$ref that is neither string nor string[] is a load error",
+    "requirements": [
+      "CUSC-007"
+    ],
     "input": {
       "files": {},
       "entry": {

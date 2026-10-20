@@ -17,7 +17,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { describe, test, expect } from 'vitest';
+import { test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -123,37 +123,35 @@ function proves(name: string, body: () => void): Promise<void> {
   );
 }
 
-describe('compose — success cases reproduce the expanded single spec', () => {
-  for (const c of cases.filter((x) => !x.expectError)) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        const result = run(c);
-        expect(canon(result)).toStrictEqual(canon(c.expected));
-        // Composition keys must be eliminated (single-spec equivalence, SPEC §5).
-        const json = JSON.stringify(result);
-        expect(json).not.toContain('"$ref"');
-        expect(json).not.toContain('"$patch"');
-        // Composition is pure pre-processing (field-layer invariant): a composed single spec
-        // must be bit-identical to the same content written WITHOUT composition. Re-composing
-        // the already-expanded spec (no $ref/$patch left) must be a fixed point.
-        const again = composeProperties(result, new MemoryLoader({}));
-        expect(canon(again), `${c.name} — re-compose is a fixed point`).toStrictEqual(canon(result));
-      }));
-  }
-});
+// Each case is a top-level test named by the case, which the parity check reads as the case it runs.
+for (const c of cases.filter((x) => !x.expectError)) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      const result = run(c);
+      expect(canon(result)).toStrictEqual(canon(c.expected));
+      // Composition keys must be eliminated (single-spec equivalence, SPEC §5).
+      const json = JSON.stringify(result);
+      expect(json).not.toContain('"$ref"');
+      expect(json).not.toContain('"$patch"');
+      // Composition is pure pre-processing (field-layer invariant): a composed single spec
+      // must be bit-identical to the same content written WITHOUT composition. Re-composing
+      // the already-expanded spec (no $ref/$patch left) must be a fixed point.
+      const again = composeProperties(result, new MemoryLoader({}));
+      expect(canon(again), `${c.name} — re-compose is a fixed point`).toStrictEqual(canon(result));
+    }));
+}
 
-describe('compose — unresolved composition is a LOAD ERROR, never valid:true', () => {
-  for (const c of cases.filter((x) => x.expectError)) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        let thrown: unknown;
-        try {
-          run(c);
-        } catch (e) {
-          thrown = e;
-        }
-        assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
-        expect(thrown.code).toStrictEqual(c.expectError?.code);
-      }));
-  }
-});
+// An unresolved composition is a load error that names the recorded code, never a valid result.
+for (const c of cases.filter((x) => x.expectError)) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      let thrown: unknown;
+      try {
+        run(c);
+      } catch (e) {
+        thrown = e;
+      }
+      assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
+      expect(thrown.code).toStrictEqual(c.expectError?.code);
+    }));
+}

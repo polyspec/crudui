@@ -2159,6 +2159,46 @@
         "CUXP-022",
         "CUXP-023"
       ]
+    },
+    {
+      "id": "compose",
+      "kind": "suite",
+      "file": "tests/fixtures/compose/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/compose.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Compose/ComposeConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Compose\\ComposeConformanceTest::testComposeMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/compose/conformance_test.go",
+          "symbol": "TestComposeMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/compose_conformance.rs",
+          "symbol": "compose_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_compose.py"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/php-ext/tests/contract/compose.test.mjs",
+          "runner": "node",
+          "reason": "the C engine of the extension is checked with node, which compiles the engine sources and runs each case of the suite"
+        }
+      ],
+      "requirements": [
+        "CUSC-007"
+      ]
     }
   ],
   "tools": [

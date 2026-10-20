@@ -16,6 +16,7 @@
  * `input.basepath`: relative-`$ref` basepath (default '').
  * `expected`      : the engine's expanded single spec (composition keys gone).
  * `expectError`   : `{ code }` — the ComposeLoadError.code the engine throws.
+ * `requirements` : the spec requirements the case tests: composition (CUSC-007) of docs/spec/schema.md.
  *
  * Regenerate (from repo root):
  *   node packages/validator/ts/scripts/generate-compose-cases.mts > tests/fixtures/compose/cases.json
@@ -36,6 +37,9 @@ interface CaseSpec {
   note: string;
   input: CaseInput;
 }
+
+// Every case tests the composition of field definitions, the requirement CUSC-007 of docs/spec/schema.md.
+const REQUIREMENTS = ['CUSC-007'];
 
 // ---------------------------------------------------------------------------
 // Cases — one per fixture_case_ideas entry in the analysis (single truth).
@@ -393,6 +397,7 @@ const SPECS: CaseSpec[] = [
 interface OutCase {
   name: string;
   note: string;
+  requirements: string[];
   input: CaseInput;
   expected?: unknown;
   expectError?: { code: string };
@@ -403,7 +408,7 @@ const out: OutCase[] = SPECS.map((spec) => {
   const kind = spec.input.kind ?? 'properties';
   const opts = spec.input.basepath ? { basepath: spec.input.basepath } : {};
 
-  const base: OutCase = { name: spec.name, note: spec.note, input: spec.input };
+  const base: OutCase = { name: spec.name, note: spec.note, requirements: REQUIREMENTS, input: spec.input };
   try {
     const result =
       kind === 'spec'
