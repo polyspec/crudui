@@ -11,13 +11,7 @@
       ],
       "roots": [
         "packages/generator/ts",
-        "packages/validator/ts",
-        "packages/html",
-        "packages/react",
-        "packages/vue",
-        "packages/svelte",
-        "packages/form-binding",
-        "packages/cli"
+        "packages/validator/ts"
       ]
     },
     {
@@ -92,12 +86,32 @@
       "reason": "the tests of the build, documentation and API tooling scripts of the repository; they test no contract"
     },
     {
-      "root": "tests/build",
-      "reason": "the tests of the repository tooling (CI, Makefile, manifests, locks, names, generators); they test no contract"
+      "root": "tests",
+      "reason": "the tests of the repository tooling (CI, Makefile, manifests, locks, names, generators, documentation) and the browser tests of the styles, widget scripts, form inspector and markup names of the generated HTML; they test no contract of an implementation"
     },
     {
-      "root": "tests/docs",
-      "reason": "the tests of the documentation site tooling; they test no contract"
+      "root": "packages/html",
+      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+    },
+    {
+      "root": "packages/react",
+      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+    },
+    {
+      "root": "packages/vue",
+      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+    },
+    {
+      "root": "packages/svelte",
+      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+    },
+    {
+      "root": "packages/form-binding",
+      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+    },
+    {
+      "root": "packages/cli",
+      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     }
   ],
   "comparators": [
