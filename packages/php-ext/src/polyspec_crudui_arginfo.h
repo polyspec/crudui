@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 4978fab53d94e65dcc2b82b5c8eaac9b64d7a60e */
+ * Stub hash: 5c4d39dbecca5262da809f34265b7b7f644924e0 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -8,7 +8,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_bindForm, 0, 1, IS_ARRAY, 0)
 	ZEND_ARG_OBJ_INFO(0, template, stdClass, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, data, stdClass, MAY_BE_ARRAY, "[]")
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, data, IS_MIXED, 0, "[]")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
@@ -124,7 +124,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Polyspec_Crudui_Form___construct, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, template, stdClass, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, data, stdClass, MAY_BE_ARRAY, "[]")
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, data, IS_MIXED, 0, "[]")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
@@ -148,7 +148,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_getVa
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_setData, 0, 1, IS_VOID, 0)
-	ZEND_ARG_OBJ_TYPE_MASK(0, data, stdClass, MAY_BE_ARRAY, NULL)
+	ZEND_ARG_TYPE_INFO(0, data, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_setValue, 0, 2, IS_VOID, 0)

@@ -5,8 +5,8 @@
 namespace Polyspec\Crudui {
     final class Generator {
         public static function compileForm(array|\stdClass $spec, array $options = []): \stdClass {}
-        public static function bindForm(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
-        public static function bindButtons(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
+        public static function bindForm(\stdClass $template, mixed $data = [], array $options = []): array {}
+        public static function bindButtons(\stdClass $template, mixed $data = [], array $options = []): array {}
         public static function formButtonsHtml(array $buttons): string {}
         public static function renderForm(Form $form, mixed $options = []): string {}
         public static function renderList(mixed $spec, mixed $rows, array $options = []): string {}
@@ -37,7 +37,7 @@ namespace Polyspec\Crudui {
         public static function validateDetail(array|\stdClass $spec, array $options = []): \stdClass {}
     }
     final class Form {
-        public function __construct(\stdClass $template, array|\stdClass $data = [], array $options = []) {}
+        public function __construct(\stdClass $template, mixed $data = [], array $options = []) {}
         public function getTemplate(): \stdClass {}
         public function getFields(): array {}
         public function getButtons(): array {}
@@ -46,7 +46,7 @@ namespace Polyspec\Crudui {
         public function getRevision(): int {}
         public function getData(): \stdClass {}
         public function getValue(string $path): mixed {}
-        public function setData(array|\stdClass $data): void {}
+        public function setData(mixed $data): void {}
         public function setValue(string $path, mixed $value): void {}
         public function addRow(string $path, array $options = []): string {}
         public function copyRow(string $path, string $key, array $options = []): string {}

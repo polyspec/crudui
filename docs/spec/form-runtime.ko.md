@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 30b271874dc9c4c2600002aae71b5c84b5246ebf654013be5b6b618727f0299f -->
+<!-- source-sha256: 82d6fea79806ffff4bb0fe9f176f3a0a541a65ab64c0bff1a2a60b2160a75fcc -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -118,6 +118,8 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 - **CURT-001** 객체가 아닌 루트 데이터: `Form data must be an object`
 - **CURT-002** 값이 있지만 객체가 아닌 그룹 값 또는 그룹 행: `Group data must be an object: {path}`
 - **CURT-003** 값이 있지만 키 기반 객체가 아닌 반복 값: `Repeated data must be a keyed object: {path}`
+
+PHP에서 폼 데이터는 `stdClass`, 연관 배열 또는 빈 배열(빈 객체)일 때 객체입니다. 비어 있지 않은 목록 배열과 그 밖의 타입의 값은 객체가 아니며([CURP-026](runtime-packages.ko.md)) CURT-001 메시지로 실패합니다.
 
 그룹 또는 반복 데이터가 없는 것은 실패가 아닙니다. 검사는 템플릿 필드 순서를 깊이
 우선으로 따르며, 컬렉션을 행보다 먼저 검사하고 행은 데이터 순서를 따릅니다.

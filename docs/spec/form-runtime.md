@@ -128,6 +128,8 @@ including row keys:
 - **CURT-002** A present group value or group row that is not an object: `Group data must be an object: {path}`
 - **CURT-003** A present repeated value that is not a keyed object: `Repeated data must be a keyed object: {path}`
 
+In PHP, form data is an object when it is a `stdClass`, an associative array or the empty array (the empty object); a non-empty list array and a value of any other type are no object ([CURP-026](runtime-packages.md)) and fail with the CURT-001 message.
+
 Missing group or repeated data is not a failure. Checks follow template field order,
 depth first; a collection is checked before its rows, and rows follow data order.
 `addRow` checks a supplied group row value at `{collection}.{key}`.

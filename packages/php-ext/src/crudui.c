@@ -70,11 +70,27 @@ static bool display_text(zval *spec, const char *name, zval *value, zval *option
         crudui_check_input_text(&(crudui_text_input){name, value}, 1, options, display_options, COUNT(display_options), true);
 }
 
-/* Input text of a form binding: the template, the data, then the options. */
+/*
+ * Form data is an object: a stdClass, an associative array or the empty array; a non-empty list array and any other value
+ * are no object (CURP-026) and fail with the root message of CURT-001. An absent value is the default empty object.
+ */
+static bool form_data_object(zval *data)
+{
+    if (!data) return true;
+    ZVAL_DEREF(data);
+    bool object = Z_TYPE_P(data) == IS_OBJECT && instanceof_function(Z_OBJCE_P(data), zend_standard_class_def);
+    if (Z_TYPE_P(data) == IS_ARRAY) {
+        object = zend_hash_num_elements(Z_ARRVAL_P(data)) == 0 || !zend_array_is_list(Z_ARRVAL_P(data));
+    }
+    if (!object) crudui_invalid_value("Form data must be an object", true);
+    return object;
+}
+
+/* Input text of a form binding: the template, the data, then the options; the data is then an object. */
 static bool bind_text(zval *template, zval *data, zval *options)
 {
     crudui_text_input inputs[] = {{"template", template}, {"data", data}};
-    return crudui_check_input_text(inputs, 2, options, bind_options, COUNT(bind_options), true);
+    return crudui_check_input_text(inputs, 2, options, bind_options, COUNT(bind_options), true) && form_data_object(data);
 }
 
 static void call_two(zval *first, zval *options, bool form_errors, ps_result (*operation)(const ps_value *, const ps_value *), zval *return_value)
@@ -182,7 +198,7 @@ PHP_METHOD(Polyspec_Crudui_Generator, bindForm)
     ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
         Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY_OR_OBJECT(data)
+        Z_PARAM_ZVAL(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     if (!bind_text(template, data, options)) return;
@@ -195,7 +211,7 @@ PHP_METHOD(Polyspec_Crudui_Generator, bindButtons)
     ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
         Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY_OR_OBJECT(data)
+        Z_PARAM_ZVAL(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     if (!bind_text(template, data, options)) return;
@@ -585,7 +601,7 @@ PHP_METHOD(Polyspec_Crudui_Form, __construct)
     ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
         Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY_OR_OBJECT(data)
+        Z_PARAM_ZVAL(data)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     if (!bind_text(template, data, options)) return;
@@ -677,7 +693,8 @@ PHP_METHOD(Polyspec_Crudui_Form, getValue)
 PHP_METHOD(Polyspec_Crudui_Form, setData)
 {
     zval *data;
-    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY_OR_OBJECT(data) ZEND_PARSE_PARAMETERS_END();
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ZVAL(data) ZEND_PARSE_PARAMETERS_END();
+    if (!form_data_object(data)) return;
     apply_form(Z_OBJ_P(ZEND_THIS), 1, 1, (zval *[]){data}, (bool[]){true}, return_value);
 }
 

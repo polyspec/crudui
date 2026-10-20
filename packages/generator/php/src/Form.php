@@ -34,12 +34,12 @@ final class Form
     private array $options;
 
     /** Create independent instance data over a copied template. */
-    public function __construct(stdClass $template, array|stdClass $data = [], array $options = [])
+    public function __construct(stdClass $template, mixed $data = [], array $options = [])
     {
         InputText::inputs([['template', $template], ['data', $data]], $options, InputText::BIND);
         $this->template = Template::checked($template);
         $this->options = $options;
-        $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
+        $this->data = $this->normalizeFields($this->template->fields, Value::formData($data));
         $this->history = Generator::emptyHistory();
         $this->view = View::initial();
         $this->fields = Binding::bind($this->template, $this->data, $this->bindOptions($this->view));
@@ -98,11 +98,11 @@ final class Form
     }
 
     /** Replace the record and reevaluate fields atomically; the undo history restarts (CURT-065). */
-    public function setData(array|stdClass $data): void
+    public function setData(mixed $data): void
     {
         InputText::inputs([['data', $data]]);
         $this->replace(
-            $this->normalizeFields($this->template->fields, Value::object($data)),
+            $this->normalizeFields($this->template->fields, Value::formData($data)),
             Generator::emptyHistory(),
             View::initial()
         );

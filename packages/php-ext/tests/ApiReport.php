@@ -147,7 +147,7 @@ final class ApiReport
         );
         self::fails(fn()=>new Form($template, ['companies' => []]), FormError::class, 'INVALID_FORM_INPUT');
         self::fails(fn()=>new Form($template, [1]), FormError::class, 'INVALID_FORM_INPUT');
-        self::fails(fn()=>new Form($template, null), TypeError::class);
+        self::fails(fn()=>new Form($template, null), FormError::class, 'INVALID_FORM_INPUT');
         self::same(
             ['companies' => new stdClass()],
             (array)(new Form($template, ['companies' => new stdClass()]))->getData(),
@@ -355,7 +355,7 @@ final class ApiReport
             Generator::bindForm($arrayField, ['name' => 'a']),
             'An associative array field changed binding'
         );
-        self::fails(fn()=>Generator::bindButtons($buttonTemplate, null), TypeError::class);
+        self::fails(fn()=>Generator::bindButtons($buttonTemplate, null), FormError::class, 'INVALID_FORM_INPUT');
         self::fails(fn()=>Generator::formButtonsHtml(null), TypeError::class);
         foreach (
             [

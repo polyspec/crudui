@@ -13,10 +13,10 @@ final class Binding
     private const LANGUAGES = ['ko', 'en', 'ja', 'zh'];
 
     /** Evaluate every field using one template and record. */
-    public static function bind(stdClass $template, array|stdClass $data, array $options): array
+    public static function bind(stdClass $template, mixed $data, array $options): array
     {
         $template = Template::checked($template);
-        $data = Value::object($data);
+        $data = Value::formData($data);
         $options['language'] = self::language($options);
         foreach (['keyPrefix', 'idPrefix'] as $name) {
             if (($options[$name] ?? null) !== null && !is_string($options[$name])) {

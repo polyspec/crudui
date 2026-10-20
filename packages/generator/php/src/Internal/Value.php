@@ -21,6 +21,19 @@ final class Value
         }
     }
 
+    /**
+     * Copy PHP form data as a JSON object: a stdClass, an associative array or the empty array (the empty object). A
+     * non-empty list array and any other value are no object (CURP-026), and fail with the root message of CURT-001.
+     */
+    public static function formData(mixed $value): stdClass
+    {
+        $object = $value instanceof stdClass || (is_array($value) && ($value === [] || !array_is_list($value)));
+        if (!$object) {
+            throw new FormError('INVALID_FORM_INPUT', 'Form data must be an object');
+        }
+        return self::object($value);
+    }
+
     /** Copy a PHP root specification or template in specification member order. */
     public static function spec(array|stdClass $value): stdClass
     {

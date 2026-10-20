@@ -63,9 +63,9 @@ final class Buttons
     }
 
     /** Evaluate public input with the same template, data and option checks as form binding. */
-    public static function bindPublic(stdClass $template, array|stdClass $data, array $options): array
+    public static function bindPublic(stdClass $template, mixed $data, array $options): array
     {
-        return self::bind(Template::checked($template), Value::object($data), Binding::language($options));
+        return self::bind(Template::checked($template), Value::formData($data), Binding::language($options));
     }
 
     /** Markup of public input after checking that every element is an evaluated button. */

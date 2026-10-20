@@ -75,7 +75,7 @@ final class Generator
      * Evaluate fields without modifying template or record data. The option `collapsed` lists the row paths
      * `{collection}.{key}` rendered collapsed.
      */
-    public static function bindForm(stdClass $template, array|stdClass $data = [], array $options = []): array
+    public static function bindForm(stdClass $template, mixed $data = [], array $options = []): array
     {
         InputText::inputs([['template', $template], ['data', $data]], $options, InputText::BIND);
         return Binding::bind($template, $data, $options);
@@ -265,7 +265,7 @@ final class Generator
     }
 
     /** Evaluate the template buttons for a record as objects with type, tag, text and ordered attrs. */
-    public static function bindButtons(stdClass $template, array|stdClass $data = [], array $options = []): array
+    public static function bindButtons(stdClass $template, mixed $data = [], array $options = []): array
     {
         InputText::inputs([['template', $template], ['data', $data]], $options, InputText::BIND);
         return Buttons::bindPublic($template, $data, $options);
