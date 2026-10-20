@@ -148,6 +148,22 @@ final class DisplayRulesTest extends TestCase
         );
     }
 
+    /** A non-finite page or total is no integer: the operation reports the rule of the option, as the extension must too. */
+    public function testNonFiniteCountsFailWithTheirRules(): void
+    {
+        $spec = ['columns' => ['v' => ['field' => 'v']]];
+        foreach ([INF, -INF, NAN] as $value) {
+            self::assertFailure(
+                'List page must be a positive integer',
+                fn () => Generator::buildList($spec, [], ['page' => $value])
+            );
+            self::assertFailure(
+                'List total must be a nonnegative integer',
+                fn () => Generator::renderList($spec, [], ['total' => $value])
+            );
+        }
+    }
+
     public function testListInputIsCheckedInOrder(): void
     {
         $all = ['data' => 1, 'page' => 0, 'total' => -1, 'layout' => 'grid'];

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: aa9bac9522ad79e0ce3dc4758dbd39753cb037df47b1bbdfb067b66c23471448 -->
+<!-- source-sha256: bb4e94e4b0f9876d3211aebf1b07f5b28b1f6a7f63384f19ea5723d5574a2863 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -174,3 +174,4 @@
 | C16.85 | PHP generator와 PHP extension은 공유 form-complete suite를 실행한다 | packages/generator/php/tests/FormCompleteConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormCompleteConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=FormCompleteConformanceTest` | [o] |
 | C16.87 | PHP generator와 PHP extension은 공유 list-render와 detail-render suite를 실행한다 | packages/generator/php/tests/ListRenderConformanceTest.php, packages/generator/php/tests/DetailRenderConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='ListRenderConformanceTest\|DetailRenderConformanceTest'` | [o] |
 | C16.83 | TypeScript 구현은 generator core, validator와 HTML renderer packages/html로 구성된다(CURP-028); 그 html test는 binding되거나 internal로 선언된다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/html -- src/conformance.test.ts src/form-complete.conformance.test.ts src/outline.conformance.test.ts src/list-conformance.test.ts src/detail-conformance.test.ts` | [o] |
+| C16.89 | PHP extension은 유한하지 않은 page 또는 total 옵션을 라이브러리와 같이 읽는다 | packages/php-ext/src/crudui.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |

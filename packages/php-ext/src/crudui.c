@@ -3,6 +3,7 @@
 #endif
 
 #include "php_crudui.h"
+#include <math.h>
 #include "ext/standard/info.h"
 #include "polyspec_crudui_arginfo.h"
 
@@ -123,13 +124,38 @@ static void call_three(zval *first, zval *second, bool second_is_object, zval *o
  * A list or detail operation. The specification and the rows or record keep the PHP type they have, so the operation checks
  * their shape in argument order: a list array, the empty array included, is no object (docs/spec/display-formats.md).
  */
+/*
+ * The page and total options of a list are integers, and a non-finite float is no integer: the library reports the rule
+ * of the option (CUDF-029, CUDF-030) for INF and NAN. The converter has no value for a non-finite float, so such an
+ * option is given an empty string in a copy, which the count check refuses with the same message; the caller's array is
+ * not changed, and every other value still fails in the converter.
+ */
+static zval *counts_for_conversion(zval *options, zval *copy)
+{
+    static const char *const keys[] = {"page", "total"};
+    bool copied = false;
+    if (!options || Z_TYPE_P(options) != IS_ARRAY) return options;
+    for (size_t i = 0; i < sizeof(keys) / sizeof(*keys); ++i) {
+        zval *value = zend_hash_str_find_deref(Z_ARRVAL_P(options), keys[i], strlen(keys[i]));
+        if (!value || Z_TYPE_P(value) != IS_DOUBLE || isfinite(Z_DVAL_P(value))) continue;
+        if (!copied) { ZVAL_ARR(copy, zend_array_dup(Z_ARRVAL_P(options))); copied = true; }
+        zval empty;
+        ZVAL_EMPTY_STRING(&empty);
+        zend_hash_str_update(Z_ARRVAL_P(copy), keys[i], strlen(keys[i]), &empty);
+    }
+    return copied ? copy : options;
+}
+
 static void call_display(zval *spec, zval *value, zval *options, ps_result (*operation)(const ps_value *, const ps_value *, const ps_value *), zval *return_value)
 {
     ps_value *input = crudui_from_php(spec, false, true);
     if (!input) return;
     ps_value *data = crudui_from_php(value, false, true);
     if (!data) { ps_value_free(input); return; }
-    ps_value *opts = crudui_from_php(options, true, true);
+    zval copy;
+    zval *converted = counts_for_conversion(options, &copy);
+    ps_value *opts = crudui_from_php(converted, true, true);
+    if (converted == &copy) zval_ptr_dtor(&copy);
     if (opts && !fixed_object_options(options, opts, display_fixed_keys, COUNT(display_fixed_keys))) { ps_value_free(opts); opts = NULL; }
     if (opts) { crudui_return(operation(input, data, opts), return_value); ps_value_free(opts); }
     ps_value_free(data);

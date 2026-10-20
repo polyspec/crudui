@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6ce3605a9723b9372ec2fc011fbfaa5f443f2c8ed5fc95d20a6c3d6c6e4d8adb -->
+<!-- source-sha256: 09e04a084f782e0fb19d77a8c6d8d06c3e549147b5d1a13ab24c2688914e16f4 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP extension은 유한하지 않은 page 또는 total 옵션을 라이브러리와 같이 읽는다 (C16.89)
+
+- `packages/php-ext/src/crudui.c`(`counts_for_conversion`, `call_display`): 표시 옵션 `page` 또는 `total`이 INF나 NAN이면 값 변환기에서 `Unsupported PHP value: float`로 실패하는 대신 라이브러리와 같이 그 옵션의 규칙을 적용합니다(CUDF-029, CUDF-030). 호출자의 배열은 바뀌지 않으며, 행과 data는 그 메시지를 그대로 받습니다. `DisplayRulesTest::testNonFiniteCountsFailWithTheirRules`(C16.89)는 `buildList`와 `renderList`를 다룹니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` exit 2, 2개 실패(`testPageAndTotalAreSafeIntegers`는 `Unsupported PHP value: float`, 새 test); 라이브러리 실행 `DisplayRulesTest` exit 0, 22 OK. Green: extension 실행 exit 0, 22 passed; 라이브러리 실행 exit 0, 22 OK.
 
 ### 2026-10-20 — 렌더링과 outline suite를 parity unit으로 선언한다 (C16.83)
 
