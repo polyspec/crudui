@@ -141,6 +141,16 @@ try {
             }
             $result = Generator::buildList($spec, $rows, $listOptions);
             break;
+        case 'buildOutline':
+            $nodes = $member($request, 'nodes');
+            if (!is_array($nodes)) {
+                throw new InvalidArgumentException('Outline nodes must be a list');
+            }
+            foreach ($nodes as $node) {
+                $objectValue($node, 'Outline nodes must be evaluated node objects');
+            }
+            $result = Generator::buildOutline($nodes);
+            break;
         case 'buildDetail':
         case 'renderDetail':
             $method = $request->operation;

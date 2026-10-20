@@ -10,6 +10,7 @@ use Polyspec\Crudui\Generator\Details;
 use Polyspec\Crudui\Generator\FormRender;
 use Polyspec\Crudui\Generator\InputText;
 use Polyspec\Crudui\Generator\Lists;
+use Polyspec\Crudui\Generator\Outline;
 use Polyspec\Crudui\Generator\Rendering;
 use Polyspec\Crudui\Generator\Template;
 use stdClass;
@@ -30,6 +31,18 @@ final class Generator
     {
         InputText::inputs([['template', $template], ['data', $data]], $options, InputText::BIND);
         return Binding::bind($template, $data, $options);
+    }
+
+    /**
+     * Build the structure map of evaluated nodes: the rows of the form, each with the rows nested in it and the
+     * row controls placed in the map (`multiple.controls: outline`).
+     *
+     * @param list<stdClass> $nodes the evaluated nodes that bindForm returns
+     * @return list<stdClass>
+     */
+    public static function buildOutline(array $nodes): array
+    {
+        return Outline::build($nodes);
     }
 
     /** Evaluate the template buttons for a record as objects with type, tag, text and ordered attrs. */

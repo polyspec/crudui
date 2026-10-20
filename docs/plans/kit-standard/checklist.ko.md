@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: da3eff3f1e06b5761c694ccf83376dd1c288c8bc5a78bc7e72e0fde61b86dfd0 -->
+<!-- source-sha256: 6851d849364b9262425ac179df53e703c07c588a0e1ceb54217b8ede56b40344 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -74,6 +74,7 @@
 | C16.49-1 | 공유 구조 지도 사례는 expected_outline_rows를 가지며, Rust 생성기의 build_outline은 bind_form의 node에 대해 이를 재현합니다 | `tests/fixtures/form-outline/`, `packages/generator/rust/src/outline.rs`, `packages/generator/rust/src/lib.rs`, `packages/generator/rust/src/tests.rs`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_outline_fixture` | [o] |
 | C16.49-2 | native generator protocol은 form-outline 사례를 쓰는 buildOutline operation을 가지며, Go 생성기는 BuildOutline을 가집니다 | `tests/native-generators/`, `packages/generator/go/outline.go`, `packages/generator/go/outline_test.go`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target go --check outline` and `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestOutlineFixture` | [o] |
 | C16.49-3 | native generator protocol의 Rust program은 buildOutline에 답합니다 | `tests/native-generators/programs/rust/src/main.rs`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target rust --check outline` | [o] |
+| C16.49-4 | PHP 생성기는 Generator::buildOutline을 가지며, native generator protocol의 PHP program은 buildOutline에 답합니다 | `packages/generator/php/src/Generator.php`, `packages/generator/php/src/Internal/Outline.php`, `packages/generator/php/tests/OutlineTest.php`, `tests/native-generators/programs/php/generate.php`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/OutlineTest.php` and `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target php --check outline` | [o] |
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
