@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 12f57a80382b0466466fda1b936714cb1e6f4b2e384b739d93a5a8da2c81d66f -->
+<!-- source-sha256: 3712536d5d878b7b95d9470f4ace3220f7b4653eb9820512431ec79dd54a4229 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -195,3 +195,4 @@
 | C16.100 | 모든 implementation이 담은 interface message는 contracts/interface-messages.json과 같다: CUMK-065를 인용하는 여섯 binding의 feature unit | config/parity.json docs/spec/form-markup.md docs/spec/form-markup.ko.md packages/generator/php/tests/InterfaceMessagesConformanceTest.php packages/generator/python/tests/test_interface_messages.py | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/InterfaceMessagesConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_interface_messages` | [o] |
 | C16.100-2 | PHP test는 extension이 담은 list 메시지를 검사한다: list 메시지의 공개 접근자가 필요하다 | packages/generator/php/tests/InterfaceMessagesConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/InterfaceMessagesConformanceTest.php` | [!] 원인: 공개 PHP API(packages/php-ext/src/polyspec_crudui.stub.php)는 Form::getMessages()로 form 메시지만 돌려주며, extension이 담은 list 메시지를 돌려주는 공개 메서드가 없어 어떤 PHP test도 이를 검사하지 않습니다; 재시도: list 메시지의 공개 접근자에 대한 결정 후 |
 | C16.112 | kit copy는 kit 0.0.54(9b8b4444)를 따른다 | .oxlintrc.json, phpcs.xml.dist, PRINCIPLES.md, scripts/kit/bootstrap/install-mise.mts, config/commit-identity.json, .githooks/prepare-commit-msg, Makefile | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make kit-check`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make suppression-check`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-ts` | [o] |
+| C16.115 | layout check는 native program의 Go test와 Composer vendor folder를 받아들인다 | config/layout.yml, config/php-lint/.gitignore, packages/generator/php/.gitignore, packages/php-ext/.gitignore, packages/validator/php/.gitignore, tests/release-install/composer/.gitignore | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make layout-check` | [o] |

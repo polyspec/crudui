@@ -79,6 +79,8 @@ rules:
   #   language (`php` and `go generate`), which several packages of that language use;
   # - tests/native-generators/python.py and programs/{go,php,rust}: the programs of the native generator runner, one per
   #   language, which drive the generator of that language;
+  #   the test of the Go program (tests/native-generators/programs/go/main_test.go), which drives the Go generator
+  #   as main.go does;
   - id: layout-infrastructure-typescript
     paths:
       - "scripts/**/*.{js,mjs,cjs,py,sh,bash,zsh,rb,pl,php,go,rs,ps1,bat,cmd}"
@@ -93,6 +95,7 @@ rules:
       - "!tests/conformance/python/**"
       - "!tests/native-generators/python.py"
       - "!tests/native-generators/programs/go/main.go"
+      - "!tests/native-generators/programs/go/main_test.go"
       - "!tests/native-generators/programs/php/generate.php"
       - "!tests/native-generators/programs/rust/src/main.rs"
 

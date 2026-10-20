@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e6f7a440a4f15127d351e28596c54e1be45e99fbd8495e59a28cebd42435960f -->
+<!-- source-sha256: 75b6968d31c1b6c3b2d482066eaba4ed81c0e66e6a55874b044cdde6ba1ff5fe -->
 
 ## Unreleased
+
+### 2026-10-21 — layout check가 native program의 Go test와 Composer vendor folder를 받아들인다 (C16.115)
+
+- `config/layout.yml`: native Go program의 S9 exception이 그 test file `tests/native-generators/programs/go/main_test.go`를 main.go와 같은 이유로 덮습니다. 이 test는 Go generator를 구동하는 program의 test입니다(C16.115). `config/php-lint`, `packages/generator/php`, `packages/php-ext`, `packages/validator/php`, `tests/release-install/composer`의 `.gitignore`가 `/vendor/`를 무시합니다. K372의 generated-files 검사가 요구하는 항목입니다(C16.115). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make layout-check` exit 2. `main_test.go`는 TypeScript 기반의 S9 infrastructure로, vendor folder는 무시되지 않아 실패합니다(K372). `kit link`가 쓰는 root의 `composer.link.json`과 `composer.link.lock`은 git이 무시합니다(K304-1). main checkout에 대한 읽기 전용 `alint` 실행은 `main_test.go`만 보고합니다. 이 worktree에서는 검사 전에 두 file을 옮겼고, `make link`가 다시 만듭니다. Green: 같은 명령 exit 0.
 
 ### 2026-10-21 — kit copy들이 kit 0.0.54를 따른다 (C16.112)
 
