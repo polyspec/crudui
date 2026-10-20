@@ -621,6 +621,69 @@ function normalize(v: unknown): boolean | string | number | null {
   throw new Error('non-scalar evaluation value: ' + JSON.stringify(v));
 }
 
+/** The token type that each requirement of docs/spec/expressions.md (CUXP-001 to CUXP-017) defines. */
+const TOKEN_REQUIREMENTS: Record<string, string> = {
+  DOT: 'CUXP-001',
+  DOT_DOT: 'CUXP-002',
+  ASTERISK: 'CUXP-003',
+  IDENTIFIER: 'CUXP-004',
+  STRING: 'CUXP-005',
+  NUMBER: 'CUXP-006',
+  BOOLEAN: 'CUXP-007',
+  NULL: 'CUXP-008',
+  EQ: 'CUXP-009',
+  NE: 'CUXP-009',
+  GT: 'CUXP-010',
+  GE: 'CUXP-010',
+  LT: 'CUXP-010',
+  LE: 'CUXP-010',
+  AND: 'CUXP-011',
+  OR: 'CUXP-011',
+  NOT: 'CUXP-011',
+  IN: 'CUXP-012',
+  NOT_IN: 'CUXP-012',
+  QUESTION: 'CUXP-013',
+  COLON: 'CUXP-013',
+  LPAREN: 'CUXP-014',
+  RPAREN: 'CUXP-014',
+  LBRACKET: 'CUXP-015',
+  RBRACKET: 'CUXP-015',
+  COMMA: 'CUXP-015',
+  EOF: 'CUXP-017',
+};
+
+/**
+ * The requirements of docs/spec/expressions.md that a case tests: each one whose token type, whitespace, or AST node
+ * the case contains (CUXP-016 whitespace, CUXP-018 to CUXP-023 the operators and nodes of the precedence and AST).
+ */
+function requirementsOf(expr: string, tokens: unknown[], ast: unknown): string[] {
+  const found = new Set<string>();
+  for (const token of tokens) {
+    const type = isRecord(token) ? token.type : undefined;
+    const requirement = typeof type === 'string' ? TOKEN_REQUIREMENTS[type] : undefined;
+    if (requirement !== undefined) found.add(requirement);
+  }
+  if (/\s/.test(expr)) found.add('CUXP-016');
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+      return;
+    }
+    if (!isRecord(node)) return;
+    if (node.type === 'Ternary') found.add('CUXP-018');
+    if (node.type === 'Binary' && node.operator === '||') found.add('CUXP-019');
+    if (node.type === 'Binary' && node.operator === '&&') found.add('CUXP-020');
+    if (node.type === 'Unary' && node.operator === '!') found.add('CUXP-021');
+    if (node.type === 'In' || (node.type === 'Binary' && ['==', '!=', '>', '>=', '<', '<='].includes(String(node.operator)))) {
+      found.add('CUXP-022');
+    }
+    if (node.type === 'Path' || node.type === 'Literal' || node.type === 'Group') found.add('CUXP-023');
+    Object.values(node).forEach(walk);
+  };
+  walk(ast);
+  return [...found].sort();
+}
+
 const out = SPECS.map((spec) => {
   const tokens = serializeTokens(spec.expr);
   const ast = buildAst(spec.expr);
@@ -642,7 +705,7 @@ const out = SPECS.map((spec) => {
     return entry;
   });
 
-  return { name: spec.name, expr: spec.expr, tokens, ast, cases };
+  return { name: spec.name, expr: spec.expr, requirements: requirementsOf(spec.expr, tokens, ast), tokens, ast, cases };
 });
 
 const rejected = REJECTED.map(({ name, expr }) => {
@@ -650,7 +713,8 @@ const rejected = REJECTED.map(({ name, expr }) => {
     new Parser(new Lexer(expr).tokenize()).parse();
   } catch (error) {
     if (error instanceof ParseError) {
-      return { name, expr, error: error.message.split('\n')[0] };
+      const requirements = requirementsOf(expr, serializeTokens(expr), undefined);
+      return { name, expr, requirements, error: error.message.split('\n')[0] };
     }
     throw error;
   }

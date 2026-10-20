@@ -2096,6 +2096,62 @@
         "CURP-024",
         "CURT-050"
       ]
+    },
+    {
+      "id": "expr",
+      "kind": "suite",
+      "file": "tests/fixtures/expr/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/expr.conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/expr/conformance_test.go",
+          "symbol": "TestExpressionMatchesFixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_expr.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/expr_conformance.rs",
+          "symbol": "expression_fixture_matches"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Expr/ExprConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Expr\\ExprConformanceTest::testExpressionMatchesFixture"
+        }
+      ],
+      "requirements": [
+        "CUXP-001",
+        "CUXP-002",
+        "CUXP-003",
+        "CUXP-004",
+        "CUXP-005",
+        "CUXP-006",
+        "CUXP-007",
+        "CUXP-008",
+        "CUXP-009",
+        "CUXP-010",
+        "CUXP-011",
+        "CUXP-012",
+        "CUXP-013",
+        "CUXP-014",
+        "CUXP-015",
+        "CUXP-016",
+        "CUXP-017",
+        "CUXP-018",
+        "CUXP-019",
+        "CUXP-020",
+        "CUXP-021",
+        "CUXP-022",
+        "CUXP-023"
+      ]
     }
   ],
   "tools": [

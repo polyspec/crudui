@@ -1,12 +1,12 @@
 # 공통 표현식 고정 사례
 <!-- doc-id: tests-fixtures-expr-readme -->
-<!-- source-sha256: 2c87cd0439b27f5e7aa31ed6faa3c295a15b627adfb1e74a21cd96a5ceb5dd7a -->
+<!-- source-sha256: b5a373448bacfe71660f51dbca3ab5a35561bf21656c8c47f10b49d6a0224089 -->
 
 [English](README.md).
 
 TypeScript·PHP·Go·Rust와 PHP 확장은 `cases.json`을 불러옵니다. 각 사례는
 표현식, 기대 토큰·AST, 기대 불리언·값 결과를 포함한 데이터 컨텍스트를
-제공합니다. 거부 사례는 `name`, `expr`, 파싱 오류 메시지의 첫 줄인 `error`만
+제공합니다. 거부 사례는 `name`, `expr`, `requirements`, 파싱 오류 메시지의 첫 줄인 `error`만
 포함하며 메시지를 보고하지 않는 PHP 확장은 파싱에 실패하는지 확인합니다.
 [표현식 계약](../../../docs/spec/expressions.ko.md)이 의미를 정의합니다.
 토큰·AST 비교에서는 소스 위치를 제외합니다.

@@ -5,10 +5,14 @@
 
 TypeScript, PHP, Go, Rust and the PHP extension load `cases.json`. Each case
 contains an expression, expected tokens and AST, and data contexts with expected
-boolean and value results. A rejected case contains only `name`, `expr` and
-`error`, the first line of the parse error message; the PHP extension, which
+boolean and value results. A rejected case contains only `name`, `expr`,
+`requirements` and `error`, the first line of the parse error message; the PHP extension, which
 reports no message, checks that the expression does not parse. The [expression contract](../../../docs/spec/expressions.md) defines
 semantics. Source positions are excluded from token and AST comparison.
+
+Each case lists in `requirements` the ids of the [expression contract](../../../docs/spec/expressions.md) that it
+tests: an id is listed when the case contains the token type, the whitespace or the tree node that the id defines
+(CUXP-001 to CUXP-017 by token, CUXP-016 by whitespace, CUXP-018 to CUXP-023 by tree node).
 
 Tokens contain `type`, `value` and `literal`. Whitespace is omitted and the final
 token is `EOF`. AST fields are:

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7657511cf3c92a4b204045abdba7811e6c7d49f1446494cbdb6770ac6d9fbe1d -->
+<!-- source-sha256: da17944356c214d8ab767821536326b0a2b15ef33051f50bcc8970cc6fbc1271 -->
 
 ## Unreleased
 
@@ -606,6 +606,10 @@ C16.141이 보고한 인수 기준 여섯 개(CURT-050부터 CURT-056까지)에 
 ### 2026-10-20 — PHP extension이 form action을 실행한다: resolveAction과 runAction (C16.50-5)
 
 - `packages/php-ext/src/actions.c`(새 파일)는 PHP library의 action 11개 이름으로 `ps_resolve_action`과 `ps_run_action`을 구현한다. 실행은 각 연산을 `ps_form_apply`로 적용하므로(`add-row`, `copy-row`, `remove-row`, `toggle-row`, `move-up`, `move-down`, `expand-all`, `collapse-all`, `undo`, `redo`) 실패한 연산은 form을 바꾸지 않는다. `crudui.c`는 `Generator::resolveAction`과 `Generator::runAction`을 추가하며, `polyspec_crudui.stub.php`와 `polyspec_crudui_arginfo.h`가 이를 선언한다(C16.50-5). Red: `make test-php-ext CASES='FormStateTest'`가 선언 단계에서 exit 2로 실패했고, `Generator::resolveAction`과 `Generator::runAction`이 누락("extension none")되어 있었다. Green: `make lint-php-ext`가 exit 0이고, `make test-php-ext CASES='FormStateTest'`도 exit 0이다. generator suite는 extension 위에서 28개 test를 실행하며, form action session 9개(`resolve-action-names`부터 `run-action-unknown-name`까지)를 포함해 통과한다. validator와 php-ext library에는 CASES가 고른 case가 없다(C16.50-5).
+
+### 2026-10-20 — expression suite는 test가 CUXP 요구사항을 이름으로 밝히는 unit이 인용한다 (C16.57-3)
+
+- `packages/validator/ts/scripts/generate-expr-cases.mts`가 `tests/fixtures/expr/cases.json`의 각 case에 `requirements` 목록을 기록합니다. docs/spec/expressions.md의 CUXP id 가운데, case가 그 id가 정의하는 토큰 종류(CUXP-001 ~ CUXP-017), 공백(CUXP-016), 트리 노드(CUXP-018 ~ CUXP-023)를 포함하는 것을 나열하며, 거부 case는 토큰에서 같은 방식으로 나열합니다. `config/parity.json`은 이 파일을 덮는 suite unit `expr`을 선언하며, CUXP-001 ~ CUXP-023과 ts, go, python, rust, php binding을 가집니다. php-extension binding은 없습니다: extension은 expression API를 등록하지 않으므로 `make test-php-ext CASES='ExprConformanceTest'`는 PHP library의 `Expr` 소스를 로드하고 kit가 그 실행을 거부합니다. parity check는 C16.81 행이 extension의 expression API를 정할 때까지 그 R2 finding을 유지합니다(C16.57-3). Red: `make parity-declarations-check`가 exit 2이고 finding 603건이며, 그중 CUXP-001 ~ CUXP-023에 대한 R13이 23건, `tests/fixtures/expr/cases.json`에 대한 R4가 1건입니다. Green: 이 커밋의 main에서 exit 2, finding 576건이며, 이 id들의 R13, R4, R14, R15는 0건이고 `expr`의 php-extension에 대한 R2가 1건입니다. Owner test(`make item-test`): ts 74 passed; go `TestExpressionMatchesFixture` 283 passed; python `tests.test_expr` 4 passed; rust `expr_conformance` 4 passed; phpunit `ExprConformanceTest.php` 78 passed. CUXP-010은 GT, GE, LT case가 인용하며, `<=`(LE)를 포함한 case가 없어 LE 토큰은 시험되지 않습니다.
 
 ### 2026-10-20 — validate suite는 검증 규칙 requirement CUVR-001부터 CUVR-011, CUVR-013부터 CUVR-057까지를 인용한다 (C16.57-4)
 
