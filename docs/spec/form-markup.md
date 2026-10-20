@@ -465,18 +465,16 @@ checks every case at both widths in Chromium, Firefox and WebKit.
 
 ### Tailwind CSS
 
-A page styled with Tailwind CSS 4 uses
-`@polyspec/crudui-generator-core/crudui.tailwind.css` in place of `crudui.css`, and imports it after
-`tailwindcss`. The file holds the rules of `crudui.css` unchanged inside the cascade layer
-`components`, so a utility class of the page, which lies in the later layer `utilities`,
-overrides a CRUDUI rule. The markup is the same for both files. `packages/generator/ts/scripts/write-tailwind-styles.mjs`
-writes the file from `crudui.css`, and its `--check` mode fails when the committed file differs,
-so the two files never hold different rules. A page themes the blocks with the
+A page styled with Tailwind CSS 4 imports `@polyspec/crudui-generator-core/crudui.css` into the
+cascade layer `components`, after `tailwindcss`: `@import "@polyspec/crudui-generator-core/crudui.css" layer(components);`.
+The rules of `crudui.css` lie unchanged in that layer, so a utility class of the page, which lies in
+the later layer `utilities`, overrides a CRUDUI rule. The markup is the same. No copy of the
+stylesheet is generated. A page themes the blocks with the
 `--crudui-*` properties, as with `crudui.css`, for example with the colors of its Tailwind theme:
 `.crudui-form, .crudui-list { --crudui-accent: var(--color-indigo-600); }`.
 
 Compiled with the theme and the utilities of the latest stable Tailwind CSS and no other
-stylesheet, `crudui.tailwind.css` gives every element of the expected HTML of every shared render
+stylesheet, that import gives every element of the expected HTML of every shared render
 fixture the same computed style, without custom properties, as `crudui.css` at the viewport widths
 360 and 1280. `tests/tailwind-styles.test.mts` compares them in Chromium, Firefox and WebKit.
 

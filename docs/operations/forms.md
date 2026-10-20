@@ -143,11 +143,9 @@ the run with the command that installs it; no engine is skipped. The [browser va
 `packages/form-binding/tests/browser.test.ts` runs in the same three engines.
 `tests/viewport.test.mts` places the expected HTML of the 432 shared render cases at 360 and
 1280 CSS pixels and requires no horizontal overflow of the document, and
-`tests/tailwind-styles.test.mts` compiles `crudui.tailwind.css` with Tailwind CSS and requires the
-computed styles of `crudui.css`, both in the same three engines. `test:forms` first runs
-`node packages/generator/ts/scripts/write-tailwind-styles.mjs --check`, which fails when
-`crudui.tailwind.css` differs from `crudui.css`; after a change of `crudui.css`, run the script
-without `--check` and commit both files.
+`tests/tailwind-styles.test.mts` compiles the import of `crudui.css` into the layer `components` with
+Tailwind CSS and requires the computed styles of `crudui.css`, both in the same three engines. No file
+is generated from `crudui.css`, so a change of `crudui.css` needs no other file to be committed.
 `tests/widget-script-runs.test.mts` runs the script rule in the same three engines for the HTML,
 React, Vue and Svelte renderers, each rendered in the browser and rendered on the server and
 hydrated: a form row script and an `html` list cell script run once on the first render and

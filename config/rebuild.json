@@ -378,10 +378,6 @@
       "kind": "policy",
       "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
-    "packages/generator/ts/scripts/write-tailwind-styles.mjs": {
-      "kind": "replaced",
-      "reason": "replaced by the CSS import of crudui.css with layer(components), which CSS and Tailwind CSS 4 provide natively; item C16.12 registers the replacement"
-    },
     "packages/php-ext/tools/generate-interface-messages.mjs": {
       "kind": "policy",
       "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"

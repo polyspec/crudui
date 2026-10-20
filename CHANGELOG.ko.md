@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 759b306d34e2ce0bab89142989c04671edc9f3ade98ef3409f97cae93d68cf9d -->
+<!-- source-sha256: 515f9f2eb8bd913fd57596ff2accfe4b8513ef05c4727c2baebc4a82f8c08cac -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
+
+### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
+
+- `packages/generator/ts/styles/crudui.tailwind.css`와 `packages/generator/ts/scripts/write-tailwind-styles.mjs`를 지웠습니다. page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를 `layer(components)`로 import합니다. 이것은 CSS와 Tailwind CSS 4가 제공하는 기능입니다(C16.12). package는 더 이상 `./crudui.tailwind.css`를 export하지 않고, `test:forms`는 script를 실행하지 않습니다. `tests/tailwind-styles.test.mts`는 같은 `crudui.css` import를 layer `components`로 compile합니다. compile된 CSS는 같습니다: test 입력은 변경 전후 모두 21,286 byte로 compile되며 두 출력은 다른 줄이 없습니다. `config/rebuild.json`은 script의 항목을 뺐고, `docs/spec/form-markup.ko.md`, `docs/operations/forms.ko.md`, `docs/features.ko.md`는 그 import를 설명합니다. Red: 생성 file과 import의 compile 결과(package build로 비교)가 같았습니다. Green: `make rebuild-check` exit 0, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/tailwind-styles.test.mts` exit 0, 1363 passed.
 
 ### 2026-10-20 — 렌더링과 outline suite를 parity unit으로 선언한다 (C16.83)
 

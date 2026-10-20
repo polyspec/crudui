@@ -1,5 +1,5 @@
 // The Tailwind version of the core stylesheet (form markup contract, Tailwind CSS): compiled with the
-// theme and the utilities of Tailwind CSS, @polyspec/crudui-generator-core/crudui.tailwind.css gives every
+// theme and the utilities of Tailwind CSS, crudui.css imported into the layer components gives every
 // element of the expected HTML of every shared render fixture the same computed style, without custom
 // properties, as crudui.css at 360 and 1280 CSS pixels in Chromium, Firefox and WebKit.
 import assert from 'node:assert/strict';
@@ -27,12 +27,12 @@ const browsers: Partial<Record<Engine, EngineBrowser>> = {};
 let core: string, tailwind: string;
 setup('stylesheet compile and browser launch', async () => {
   core = readFileSync(`${styles}/crudui.css`, 'utf8');
-  // A stylesheet that imports the Tailwind theme and utilities and then the CRUDUI file.
+  // A stylesheet that imports the Tailwind theme and utilities, and the CRUDUI file into the layer components.
   const input = [
     '@layer theme, base, components, utilities;',
     '@import "tailwindcss/theme.css" layer(theme);',
     '@import "tailwindcss/utilities.css" layer(utilities);',
-    `@import "${styles}/crudui.tailwind.css";`,
+    `@import "${styles}/crudui.css" layer(components);`,
   ].join('\n');
   const compiler = await compile(input, { base: root, onDependency: () => {} });
   tailwind = compiler.build([]);

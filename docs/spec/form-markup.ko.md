@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: d5256b4412b96adf72f8190fa99750040d251c0c8812093f610989e4ac94d67f -->
+<!-- source-sha256: 773272df6352dd53f4aa65787f96388212cf11f8d8d172903f893a17a98edeb5 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -428,17 +428,15 @@ Firefox, WebKit에서 모든 case를 두 폭으로 검사합니다.
 
 ### Tailwind CSS
 
-Tailwind CSS 4로 꾸미는 page는 `crudui.css` 대신
-`@polyspec/crudui-generator-core/crudui.tailwind.css`를 쓰고, 이 file을 `tailwindcss` 뒤에 import합니다. 이
-file은 `crudui.css`의 rule을 바꾸지 않고 cascade layer `components` 안에 담습니다. 그래서 더 뒤의 layer
-`utilities`에 있는 page의 utility class가 CRUDUI rule보다 우선합니다. markup은 두 file에서
-같습니다. `packages/generator/ts/scripts/write-tailwind-styles.mjs`가 `crudui.css`에서 이 file을 쓰고,
-그 `--check` mode는 커밋된 file이 다르면 실패하므로, 두 file은 다른 rule을 담지 않습니다. page는
+Tailwind CSS 4로 꾸미는 page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를
+cascade layer `components`로 import합니다: `@import "@polyspec/crudui-generator-core/crudui.css" layer(components);`.
+`crudui.css`의 rule은 그 layer 안에서 바뀌지 않으므로, 더 뒤의 layer `utilities`에 있는 page의 utility class가
+CRUDUI rule보다 우선합니다. markup은 같습니다. 이 stylesheet에서 생성된 복사본은 없습니다. page는
 `crudui.css`와 같이 `--crudui-*` property로 block의 theme을 정합니다. 예를 들어 Tailwind theme의 색을 쓸
 수 있습니다: `.crudui-form, .crudui-list { --crudui-accent: var(--color-indigo-600); }`.
 
 최신 stable Tailwind CSS의 theme과 utility로 compile하고 다른 stylesheet가 없을 때,
-`crudui.tailwind.css`는 viewport 폭 360과 1280에서 모든 공유 render fixture의 expected HTML의 모든
+그 import는 viewport 폭 360과 1280에서 모든 공유 render fixture의 expected HTML의 모든
 element에 `crudui.css`와 같은 computed style(custom property 제외)을 줍니다.
 `tests/tailwind-styles.test.mts`가 Chromium, Firefox, WebKit에서 둘을 비교합니다.
 
