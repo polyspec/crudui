@@ -5,6 +5,7 @@
 
 ### 2026-10-21 — The build cases and the form state root case cite their runtime requirements (C16.57-16)
 
+- The link state after the fresh `make install-packages` of C16.134 is restored by `make install-link` with `UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV)`, which exits 0; `make link-state-check` exits 0 after it (C16.134).
 - The buildList cases of `tests/fixtures/text-validity/buildList` (11 cases) cite CURP-014 (`buildList`), and the buildDetail cases of `tests/fixtures/text-validity/buildDetail` (6 cases) cite CURP-016 (`buildDetail`): every case runs its operation. The form state root case `set-data-rejects-a-root-that-is-not-an-object` cites CURP-026, since its list root is no object in PHP (the caller states the type, and the list fails explicitly).
 - `tests/fixtures/form-actions/cases.json` is regenerated from its generator. Besides CURP-026, the session cases that the C16.57-14 generator already cites with CURP-020 now carry that id in the committed file. The units of `config/parity.json` cite the three ids.
 
