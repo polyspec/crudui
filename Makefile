@@ -285,7 +285,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
 	$(MAKE) --no-print-directory records-check || status=1; \
-	$(NODE) $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts scripts/json-schema.test.mts || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status

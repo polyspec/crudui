@@ -5,7 +5,13 @@ import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { parseJson, readJson, record, string, strings } from './values.mts';
+import { checkedShape, readShape, shapeOf } from './json-schema.mts';
+
+// The shapes that the helpers of this script check (kit K157, K158): an object, an array, a string and an array of strings.
+const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
+const ARRAY = shapeOf<unknown[]>({ type: 'array' });
+const STRING = shapeOf<string>({ type: 'string' });
+const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 
 const repository = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -18,8 +24,8 @@ interface LoggedCall {
 
 /** A line of calls.jsonl, which the mocked tools write, checked. */
 function loggedCall(value: unknown): LoggedCall {
-  const call = record(value, 'a logged call');
-  return { command: string(call.command, 'command of a logged call'), cwd: string(call.cwd, 'cwd of a logged call'), args: strings(call.args, 'args of a logged call') };
+  const call = checkedShape(OBJECT, value, 'a logged call');
+  return { command: checkedShape(STRING, call.command, 'command of a logged call'), cwd: checkedShape(STRING, call.cwd, 'cwd of a logged call'), args: checkedShape(STRINGS, call.args, 'args of a logged call') };
 }
 
 function environment<T>(operation: (root: string) => T): T {
@@ -79,7 +85,7 @@ for (const [target, command] of toolTargets) {
     const additions = target === 'rust' ? mockRust(root) : (mock(root, command), {});
     const result = run(root, target, additions);
     assert.equal(result.status, 0, result.stderr);
-    const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(line => loggedCall(parseJson(line)));
+    const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(line => loggedCall(JSON.parse(line)));
     if (target === 'php') {
       assert.equal(calls.length, 1);
       assert.deepEqual(calls[0]?.args, [join(root, 'scripts/php-doc-coverage.php')]);
@@ -97,11 +103,11 @@ test('every TypeScript package checks its public API with API Extractor and comm
   for (const pkg of TS_PACKAGES) {
     const directory = join(repository, 'packages', pkg);
     let config: Record<string, unknown>;
-    try { config = record(readJson(join(directory, 'api-extractor.json')), `${pkg}/api-extractor.json`); } catch (error) { problems.push(`${pkg}: ${error instanceof Error ? error.message : String(error)}`); continue; }
+    try { config = checkedShape(OBJECT, readShape(OBJECT, join(directory, 'api-extractor.json')), `${pkg}/api-extractor.json`); } catch (error) { problems.push(`${pkg}: ${error instanceof Error ? error.message : String(error)}`); continue; }
     const root = '../'.repeat(pkg.split('/').length + 1);
     if (config.extends !== `${root}config/api-extractor.kit.json`) problems.push(`${pkg}: extends ${String(config.extends)}`);
     if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${String(config.mainEntryPointFilePath)}`);
-    const name = string(record(readJson(join(directory, 'package.json')), `${pkg}/package.json`).name, `name of ${pkg}/package.json`).replace(/^@[^/]+\//, '');
+    const name = checkedShape(STRING, checkedShape(OBJECT, readShape(OBJECT, join(directory, 'package.json')), `${pkg}/package.json`).name, `name of ${pkg}/package.json`).replace(/^@[^/]+\//, '');
     try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch { problems.push(`${pkg}: etc/${name}.api.md is missing`); }
   }
   assert.deepEqual(problems, []);

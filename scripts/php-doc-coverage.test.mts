@@ -5,7 +5,13 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
-import { parseJson, strings } from './values.mts';
+import { checkedShape, shapeOf } from './json-schema.mts';
+
+// The shapes that the helpers of this script check (kit K157, K158): an object, an array, a string and an array of strings.
+const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
+const ARRAY = shapeOf<unknown[]>({ type: 'array' });
+const STRING = shapeOf<string>({ type: 'string' });
+const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 
 // Polyspec\\Crudui\\Docs\\DocCoverage loads through the autoload-dev of the development root vendor/.
 const rootAutoload = fileURLToPath(new URL('../vendor/autoload.php', import.meta.url));
@@ -55,5 +61,5 @@ test('PHP enums require source docs without requiring docs on runtime-generated 
 });
 test('PHP checker rejects a source tree without declarations', () => {
   const result = check('<?php');
-  assert.equal(result.status, 0, result.stderr); assert.match(strings(parseJson(result.stdout), 'the problems of the PHP checker')[0] ?? '', /no class declarations found/);
+  assert.equal(result.status, 0, result.stderr); assert.match(checkedShape(STRINGS, JSON.parse(result.stdout), 'the problems of the PHP checker')[0] ?? '', /no class declarations found/);
 });

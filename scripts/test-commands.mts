@@ -5,7 +5,13 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { parseFeatureManifest } from './features-manifest.mts';
-import { isRecord, parseJson, record, string } from './values.mts';
+import { checkedShape, shapeOf } from './json-schema.mts';
+
+// The shapes that the helpers of this script check (kit K157, K158): an object, an array, a string and an array of strings.
+const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
+const ARRAY = shapeOf<unknown[]>({ type: 'array' });
+const STRING = shapeOf<string>({ type: 'string' });
+const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 
 /** A command of a project file, by the name of its script, target or step. */
 export interface ProjectCommand {
@@ -64,9 +70,9 @@ export function projectCommands(file: string, text: string): ProjectCommand[] {
     return parseFeatureManifest(text, file).features.flatMap(feature => feature.verification.map(item => ({ name: `${feature.id}/${item.id}`, command: item.command })));
   }
   if (name === 'package.json' || name === 'composer.json') {
-    const manifest = parseJson(text);
-    const scripts = isRecord(manifest) && manifest.scripts !== undefined ? record(manifest.scripts, `scripts of ${file}`) : {};
-    return Object.entries(scripts).flatMap(([script, value]) => [value].flat().map(command => ({ name: script, command: string(command, `script ${script} of ${file}`) })));
+    const manifest = JSON.parse(text);
+    const scripts = OBJECT(manifest) && manifest.scripts !== undefined ? checkedShape(OBJECT, manifest.scripts, `scripts of ${file}`) : {};
+    return Object.entries(scripts).flatMap(([script, value]) => [value].flat().map(command => ({ name: script, command: checkedShape(STRING, command, `script ${script} of ${file}`) })));
   }
   if (name === 'Makefile') {
     const commands: ProjectCommand[] = [];
