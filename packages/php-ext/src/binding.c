@@ -808,7 +808,7 @@ static ps_result invalid_button_type(const ps_value *template)
 {
     const ps_value *declared = member(template, "buttons");
     for (size_t i = 0; declared && declared->kind == PS_ARRAY && i < ps_size(declared); ++i) {
-        ps_text type = string_member(ps_at(declared, i), "type");
+        ps_text type = text_member(ps_at(declared, i), "type");
         if (ps_text_is(type, "link") || ps_text_is(type, "submit") || ps_text_is(type, "button") ||
             ps_text_is(type, "reset"))
             continue;

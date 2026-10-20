@@ -625,25 +625,29 @@ static size_t row_position(const ps_value *rows, ps_text key)
     return SIZE_MAX;
 }
 
-/* Open the collection of a row operation; false with failure set when the collection cannot be opened. */
-static bool open_collection(ps_form *form, ps_text source, form_path *path, const ps_value **field,
-                            const ps_value **rows, ps_result *failure)
-{
-    ps_value *error = NULL;
-    if (editable_collection(form, source, path, field, rows, &error)) return true;
-    *failure = (ps_result){NULL, error};
-    return false;
-}
+/* The collection of a row operation and the state its checks fill in. */
+typedef struct {
+    form_path path;
+    const ps_value *field;
+    const ps_value *rows;
+    ps_value *error;
+} row_scope;
 
-/* The collection of a row to add or copy: its options must be an object. */
-static bool open_row_collection(ps_form *form, ps_text source, const ps_value *options, form_path *path,
-                                const ps_value **field, const ps_value **rows, ps_result *failure)
+/*
+ * Open the collection of a row operation into scope: false, with failure set, when the operation may not go on. A row to
+ * add or copy takes options, which must be an object (needs_options); the other row operations take none.
+ */
+static bool open_row_scope(ps_form *form, ps_text source, const ps_value *options, bool needs_options,
+                           row_scope *scope, ps_result *failure)
 {
-    if (!options || options->kind != PS_OBJECT) {
+    *scope = (row_scope){0};
+    if (needs_options && (!options || options->kind != PS_OBJECT)) {
         *failure = (ps_result){NULL, input_error("Row options must be an object")};
         return false;
     }
-    return open_collection(form, source, path, field, rows, failure);
+    if (editable_collection(form, source, &scope->path, &scope->field, &scope->rows, &scope->error)) return true;
+    *failure = (ps_result){NULL, scope->error};
+    return false;
 }
 
 /* The failure of a key that the collection does not hold; the path is released. */
@@ -665,64 +669,62 @@ static ps_result finish_change(ps_form *form, ps_value *data, ps_value *view, ps
 
 static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
 {
-    form_path path = {0};
-    const ps_value *field = NULL, *rows = NULL;
+    row_scope scope;
     ps_result failure;
-    if (!open_row_collection(form, source, options, &path, &field, &rows, &failure)) return failure;
-    ps_value *error = NULL;
+    if (!open_row_scope(form, source, options, true, &scope, &failure)) return failure;
     bool has_max = false;
-    double maximum = numeric_setting(field, "max", &has_max);
-    if (has_max && (double)ps_size(rows) >= maximum) {
-        free_path(&path);
+    double maximum = numeric_setting(scope.field, "max", &has_max);
+    if (has_max && (double)ps_size(scope.rows) >= maximum) {
+        free_path(&scope.path);
         return (ps_result){NULL, input_error_with("Maximum row count reached: ", source, "")};
     }
     const ps_value *requested = member(options, "key");
     ps_value *key = NULL;
-    if (!requested || requested->kind == PS_NULL) key = fresh_key(rows, &error);
+    if (!requested || requested->kind == PS_NULL) key = fresh_key(scope.rows, &scope.error);
     else if (requested->kind == PS_STRING) key = ps_value_clone(requested);
-    else error = input_error("A row key must be a string");
+    else scope.error = input_error("A row key must be a string");
     if (!key) {
-        free_path(&path);
-        return (ps_result){NULL, error ? error : internal_error()};
+        free_path(&scope.path);
+        return (ps_result){NULL, scope.error ? scope.error : internal_error()};
     }
-    error = checked_key_error(ps_string(key));
-    if (error || ps_has_text(rows, ps_string(key))) {
-        if (!error) error = input_error_with("Row key already exists: ", ps_string(key), "");
+    scope.error = checked_key_error(ps_string(key));
+    if (scope.error || ps_has_text(scope.rows, ps_string(key))) {
+        if (!scope.error) scope.error = input_error_with("Row key already exists: ", ps_string(key), "");
         ps_value_free(key);
-        free_path(&path);
-        return (ps_result){NULL, error};
+        free_path(&scope.path);
+        return (ps_result){NULL, scope.error};
     }
-    size_t at = ps_size(rows);
+    size_t at = ps_size(scope.rows);
     const ps_value *after = member(options, "afterKey");
     if (after && after->kind != PS_NULL) {
-        if (after->kind != PS_STRING) error = input_error("afterKey must be a string");
+        if (after->kind != PS_STRING) scope.error = input_error("afterKey must be a string");
         else {
-            size_t found = row_position(rows, ps_string(after));
-            if (found == SIZE_MAX) error = input_error_with("Unknown row: ", ps_string(after), "");
+            size_t found = row_position(scope.rows, ps_string(after));
+            if (found == SIZE_MAX) scope.error = input_error_with("Unknown row: ", ps_string(after), "");
             else at = found + 1;
         }
     }
     const ps_value *source_value = ps_has(options, "value") ? member(options, "value") : NULL;
     /* A supplied row value is checked at "<collection path>.<key>". */
-    ps_chars row_path = error ? (ps_chars){NULL, 0} : ps_copy(path.items[0]);
-    for (size_t index = 1; row_path.bytes && index <= path.length; ++index) {
+    ps_chars row_path = scope.error ? (ps_chars){NULL, 0} : ps_copy(scope.path.items[0]);
+    for (size_t index = 1; row_path.bytes && index <= scope.path.length; ++index) {
         ps_chars next = ps_join_path(ps_view(row_path),
-            index < path.length ? path.items[index] : ps_string(key));
+            index < scope.path.length ? scope.path.items[index] : ps_string(key));
         free(row_path.bytes);
         row_path = next;
     }
-    if (!error && !row_path.bytes) error = internal_error();
-    ps_value *row = error ? NULL : normalize_row(field, source_value, ps_view(row_path), true, &error);
+    if (!scope.error && !row_path.bytes) scope.error = internal_error();
+    ps_value *row = scope.error ? NULL : normalize_row(scope.field, source_value, ps_view(row_path), true, &scope.error);
     free(row_path.bytes);
     ps_value *next_rows = row
-        ? object_with_insert(rows, ps_string(key), row, at) : NULL;
+        ? object_with_insert(scope.rows, ps_string(key), row, at) : NULL;
     ps_value *data = next_rows
-        ? put_at(form->data, path.items, path.length, next_rows) : NULL;
+        ? put_at(form->data, scope.path.items, scope.path.length, next_rows) : NULL;
     ps_value_free(next_rows);
-    free_path(&path);
+    free_path(&scope.path);
     if (!data) {
         ps_value_free(key);
-        return (ps_result){NULL, error ? error : internal_error()};
+        return (ps_result){NULL, scope.error ? scope.error : internal_error()};
     }
     ps_result result = commit(form, data, NULL, NULL);
     if (result.error) {
@@ -736,26 +738,24 @@ static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
 static ps_result copy_row(ps_form *form, ps_text source, ps_text key,
                           const ps_value *options)
 {
-    form_path path = {0};
-    const ps_value *field = NULL, *rows = NULL;
+    row_scope scope;
     ps_result failure;
-    if (!open_row_collection(form, source, options, &path, &field, &rows, &failure)) return failure;
-    ps_value *error = NULL;
-    const ps_value *value = ps_get_text(rows, key);
+    if (!open_row_scope(form, source, options, true, &scope, &failure)) return failure;
+    const ps_value *value = ps_get_text(scope.rows, key);
     if (!value) {
-        free_path(&path);
+        free_path(&scope.path);
         return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
     }
-    ps_value *copied = copy_row_value(field, value, &error);
+    ps_value *copied = copy_row_value(scope.field, value, &scope.error);
     ps_value *next_options = ps_value_clone(options);
     if (!copied || !next_options || !ps_set(next_options, "value", copied) ||
         ((!member(next_options, "afterKey") || member(next_options, "afterKey")->kind == PS_NULL) &&
          !ps_set(next_options, "afterKey", ps_text_value(key)))) {
         ps_value_free(next_options);
-        free_path(&path);
-        return (ps_result){NULL, error ? error : internal_error()};
+        free_path(&scope.path);
+        return (ps_result){NULL, scope.error ? scope.error : internal_error()};
     }
-    free_path(&path);
+    free_path(&scope.path);
     ps_result result = add_row(form, source, next_options);
     ps_value_free(next_options);
     return result;
@@ -763,29 +763,27 @@ static ps_result copy_row(ps_form *form, ps_text source, ps_text key,
 
 static ps_result remove_row(ps_form *form, ps_text source, ps_text key)
 {
-    form_path path = {0};
-    const ps_value *field = NULL, *rows = NULL;
+    row_scope scope;
     ps_result failure;
-    if (!open_collection(form, source, &path, &field, &rows, &failure)) return failure;
-    ps_value *error = NULL;
-    if (!ps_has_text(rows, key)) return unknown_row(&path, key);
+    if (!open_row_scope(form, source, NULL, false, &scope, &failure)) return failure;
+    if (!ps_has_text(scope.rows, key)) return unknown_row(&scope.path, key);
     bool has_min = false;
-    double minimum = numeric_setting(field, "min", &has_min);
-    if (has_min && (double)ps_size(rows) <= minimum) {
-        free_path(&path);
+    double minimum = numeric_setting(scope.field, "min", &has_min);
+    if (has_min && (double)ps_size(scope.rows) <= minimum) {
+        free_path(&scope.path);
         return (ps_result){NULL, input_error_with("Minimum row count reached: ", source, "")};
     }
-    ps_value *next_rows = ps_value_clone(rows);
+    ps_value *next_rows = ps_value_clone(scope.rows);
     if (!next_rows || !ps_delete_text(next_rows, key)) {
         ps_value_free(next_rows);
-        free_path(&path);
+        free_path(&scope.path);
         return (ps_result){NULL, internal_error()};
     }
-    ps_value *data = put_at(form->data, path.items, path.length, next_rows);
+    ps_value *data = put_at(form->data, scope.path.items, scope.path.length, next_rows);
     ps_value_free(next_rows);
-    ps_value *view = data ? view_without_row(form, &path, key, &error) : NULL;
-    free_path(&path);
-    return finish_change(form, data, view, error);
+    ps_value *view = data ? view_without_row(form, &scope.path, key, &scope.error) : NULL;
+    free_path(&scope.path);
+    return finish_change(form, data, view, scope.error);
 }
 
 static ps_value *reordered_rows(const ps_value *rows, size_t from, size_t to)
@@ -809,32 +807,30 @@ static ps_value *reordered_rows(const ps_value *rows, size_t from, size_t to)
 static ps_result move_row(ps_form *form, ps_text source, ps_text key,
                           int64_t position)
 {
-    form_path path = {0};
-    const ps_value *field = NULL, *rows = NULL;
+    row_scope scope;
     ps_result failure;
-    if (!open_collection(form, source, &path, &field, &rows, &failure)) return failure;
-    ps_value *error = NULL;
-    (void)field;
-    size_t from = row_position(rows, key);
+    if (!open_row_scope(form, source, NULL, false, &scope, &failure)) return failure;
+    (void)scope.field;
+    size_t from = row_position(scope.rows, key);
     if (from == SIZE_MAX) {
-        free_path(&path);
+        free_path(&scope.path);
         return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
     }
-    if (position < 0 || (uint64_t)position >= ps_size(rows)) {
-        free_path(&path);
+    if (position < 0 || (uint64_t)position >= ps_size(scope.rows)) {
+        free_path(&scope.path);
         char message[64];
         snprintf(message, sizeof(message), "Invalid row position: %lld", (long long)position);
         return (ps_result){NULL, input_error(message)};
     }
     if (from == (size_t)position) {
-        free_path(&path);
+        free_path(&scope.path);
         return ps_ok(ps_null_value());
     }
-    ps_value *next_rows = reordered_rows(rows, from, (size_t)position);
+    ps_value *next_rows = reordered_rows(scope.rows, from, (size_t)position);
     ps_value *data = next_rows
-        ? put_at(form->data, path.items, path.length, next_rows) : NULL;
+        ? put_at(form->data, scope.path.items, scope.path.length, next_rows) : NULL;
     ps_value_free(next_rows);
-    free_path(&path);
+    free_path(&scope.path);
     return data ? commit(form, data, NULL, NULL) : (ps_result){NULL, internal_error()};
 }
 
