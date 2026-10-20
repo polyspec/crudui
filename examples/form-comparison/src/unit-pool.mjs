@@ -16,6 +16,14 @@ function assertUnit(unit) {
   return unit;
 }
 
+/** The value of a passed outcome and the error text of a failed one, the part of a result that follows its timing. */
+function resultPayload(outcome) {
+  return {
+    ...(outcome.status === 'passed' && outcome.value !== undefined ? { value: outcome.value } : {}),
+    ...(outcome.status === 'failed' ? { error: String(outcome.error?.stack ?? outcome.error) } : {}),
+  };
+}
+
 /**
  * Run one unit. Its action receives an AbortSignal that aborts at the unit's timeout; the unit
  * then fails as timed out without waiting for the action, which must release what it holds when
@@ -50,11 +58,7 @@ export async function runUnit(unit, options = {}) {
     : outcome.status === 'timed-out' ? `ran ${formatDuration(durationMs)} and exceeded its ${formatDuration(unit.timeoutMs)} timeout`
       : `failed after ${formatDuration(durationMs)}: ${outcome.error?.stack ?? outcome.error}`;
   write(`[${label}] ${unit.id}: ${detail}\n`);
-  return {
-    id: unit.id, status: outcome.status, durationMs, timeoutMs: unit.timeoutMs,
-    ...(outcome.status === 'passed' && outcome.value !== undefined ? { value: outcome.value } : {}),
-    ...(outcome.status === 'failed' ? { error: String(outcome.error?.stack ?? outcome.error) } : {}),
-  };
+  return { id: unit.id, status: outcome.status, durationMs, timeoutMs: unit.timeoutMs, ...resultPayload(outcome) };
 }
 
 /**
@@ -79,11 +83,7 @@ export async function runOperation({ id, run }, options = {}) {
   const durationMs = performance.now() - started;
   write(`[${label}] ${id}: ${outcome.status === 'passed' ? `passed in ${formatDuration(durationMs)}`
     : `failed after ${formatDuration(durationMs)}: ${outcome.error?.stack ?? outcome.error}`}\n`);
-  return {
-    id, status: outcome.status, durationMs,
-    ...(outcome.status === 'passed' && outcome.value !== undefined ? { value: outcome.value } : {}),
-    ...(outcome.status === 'failed' ? { error: String(outcome.error?.stack ?? outcome.error) } : {}),
-  };
+  return { id, status: outcome.status, durationMs, ...resultPayload(outcome) };
 }
 
 /** Run units with at most `concurrency` at a time; results keep the order of the units. */

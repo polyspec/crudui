@@ -5,6 +5,7 @@ import { parseArgs } from 'node:util';
 import { encodeJson, decodeJson, readJson } from './src/json.mjs';
 import { formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 import { finalizePersistenceReport } from './persistence-report.mjs';
+import { appendNativeFields } from './src/native-fields.mjs';
 import { assertSourceIdentity } from './src/source-identity.mjs';
 
 // The persistence check against one running local stack while no browser check runs. Usage:
@@ -31,15 +32,7 @@ assert.equal(sourceResponse.status, 200, 'source identity response');
 const source = assertSourceIdentity(await sourceResponse.json());
 
 function native(data, format) {
-  const fields = format === 'multipart' ? new FormData() : new URLSearchParams();
-  function append(value, name) {
-    if (value !== null && typeof value === 'object') {
-      for (const [key, child] of Object.entries(value)) append(child, `${name}[${key}]`);
-    } else fields.append(name, value == null ? '' : String(value));
-  }
-  append(data, 'form');
-  fields.append('_form_complete', '1');
-  return fields;
+  return appendNativeFields(format === 'multipart' ? new FormData() : new URLSearchParams(), data);
 }
 
 for (const server of servers) {

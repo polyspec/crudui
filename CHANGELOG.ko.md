@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b6dafbcaf5c759ae8feba0b11dab7a19e75dd41829110706ff4c85eb27f3aabb -->
+<!-- source-sha256: e01553bd0b9d2f17962d147dd10b7a324367b9bc28e183caf1f39ca5174f81d0 -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
+
+### 2026-10-21 — form-comparison script와 frame이 entry guard, native form field, 결과 payload를 공유한다 (C16.58-9)
+
+- `examples/form-comparison/src/entry-point.mjs`(신규)는 script가 entry point일 때 `main`을 실행하는 guard를 담고, `check-pipeline.mjs`와 `local-verification.mjs`가 그것을 부릅니다. `src/native-fields.mjs`(신규)는 제출의 native form field를 담고, `check-servers.mjs`와 `src/frame.mjs`가 그것으로 제출을 만듭니다. `src/unit-pool.mjs`는 unit과 operation 결과의 value와 error 부분을 `resultPayload` 하나로 만들며, 각 결과의 key 순서는 바뀌지 않았습니다(C16.58-9). duplication check는 그 clone들을 없앴습니다(변경 전 41 clone, 후 38 clone). Red: `make duplication-check` exit 2, 41 clone(guard, native field, 결과 payload 포함); green: 같은 check가 exit 2, 38 clone이며 이 파일들에는 없습니다; owner test `src/unit-pool.test.mjs`(7 passed), `check-servers.test.mjs`(4 passed), `check-verification.test.mjs`(8 passed)가 exit 0입니다.
 
 ### 2026-10-21 — form-comparison stage page들이 form의 binding 평가를 공유한다 (C16.58-8)
 

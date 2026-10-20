@@ -4,7 +4,6 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import puppeteer from 'puppeteer';
 
@@ -14,6 +13,7 @@ import {
 } from './src/pipeline-flow.mjs';
 import { recordServers } from './src/record-contract.mjs';
 import { assertSourceIdentity } from './src/source-identity.mjs';
+import { runAsEntryPoint } from './src/entry-point.mjs';
 import { formatDuration } from './src/step-runner.mjs';
 import { runOperation, runUnits } from './src/unit-pool.mjs';
 
@@ -74,9 +74,4 @@ async function main() {
   if (!report.passed) process.exitCode = 1;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(error => {
-    process.stderr.write(`${error.stack ?? error}\n`);
-    process.exitCode = 1;
-  });
-}
+runAsEntryPoint(import.meta.url, main);

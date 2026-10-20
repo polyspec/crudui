@@ -20,6 +20,7 @@ import { parseArgs } from 'node:util';
 
 import { exampleDirectory, repositoryRoot, startLocalStack } from './src/local-servers.mjs';
 import { formServers } from './src/runtime-paths.mjs';
+import { runAsEntryPoint } from './src/entry-point.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
 import { formatDuration, runStages, stopStepsOnSignal } from './src/step-runner.mjs';
@@ -186,9 +187,4 @@ async function main() {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(error => {
-    process.stderr.write(`${error.stack ?? error}\n`);
-    process.exitCode = 1;
-  });
-}
+runAsEntryPoint(import.meta.url, main);

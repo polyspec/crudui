@@ -8,6 +8,7 @@ import { decodeJson, encodeJson, readJson } from './json.mjs';
 import { formInitializations, pipelineServers } from './runtime-paths.mjs';
 import { domSnapshot, identical, renderedNodes } from '../../../tests/form-inspector/form-snapshot.mts';
 import { serverGeneration } from './server-generation.mjs';
+import { appendNativeFields } from './native-fields.mjs';
 import { createActionCompletion } from './action-completion.mjs';
 import { exclusive } from './storage-lock.mjs';
 
@@ -109,15 +110,7 @@ async function request(action, body, json = false) {
   return { status: response.status, ...result };
 }
 function nativeData(data) {
-  const fields = new FormData();
-  function append(value, name) {
-    if (value !== null && typeof value === 'object') {
-      for (const [key, child] of Object.entries(value)) append(child, `${name}[${key}]`);
-    } else fields.append(name, value == null ? '' : String(value));
-  }
-  append(data, 'form');
-  fields.append('_form_complete', '1');
-  return fields;
+  return appendNativeFields(new FormData(), data);
 }
 const submitData = data => transport.value === 'json'
   ? request('save', data, true) : request('save', nativeData(data));
