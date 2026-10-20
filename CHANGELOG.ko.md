@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 907e230043df895c252a838576e7e825efcbdf91946cd821a7fa4999a10eff6d -->
+<!-- source-sha256: 27621b77a2dc9b0d54737b07891270a770a2d8cdc62e8894e5f9bcf542586f3a -->
 
 ## Unreleased
 
@@ -89,6 +89,10 @@
 - `tests/fixtures/form-state/generate.mts`에 바인딩이 거부하는 데이터로 record를 바꾸는 세션 세 개를 추가합니다. root가 text, `null` 또는 list인 경우(CURT-001, `Form data must be an object`), group row가 text인 경우(CURT-002, `Group data must be an object: teams.{key}`), 반복 값이 list 또는 text인 경우(CURT-003, `Repeated data must be a keyed object: teams`)입니다. reference는 코드 `INVALID_FORM_INPUT`과 메시지를 기록하며, record와 history는 그대로 남습니다. `tests/fixtures/form-actions/cases.json`에 이 case 세 개가 추가되며(9개에서 12개), `config/parity.json`의 `form-actions` unit이 CURT-001, CURT-002, CURT-003을 인용합니다.
 - PHP extension의 form state engine 테스트는 form 함수가 링크하는 `history.c`와 `view.c`를 소스 목록에 포함합니다.
 - Red: PHP library의 `Form::setData`는 매개변수 타입이 `array|stdClass`이므로 text나 `null`에 대해 PHP TypeError를 던집니다. 이 결함은 C16.57-13-1로 등록되었습니다.
+
+### 2026-10-21 — TypeScript의 choice group과 hidden path unit test는 internal이다 (C16.114)
+
+- `config/parity.json`은 `packages/validator/ts/src/choice-groups.test.ts`와 `packages/validator/ts/src/hidden-paths.test.ts`를 TypeScript의 internal로 선언합니다. 이들의 검사는 `tests/fixtures/validate`를 거쳐 validate suite가 덮습니다. choice group case는 CUVR-011과 CUVR-050을, hidden case는 CUVR-017과 CUSC-055의 `hidden` member를 덮고, 잘못된 data 형태 오류는 `input-root-data-not-object`가 덮습니다. 검사는 이들을 R5 undeclared-test로 더 이상 보고하지 않습니다.
 
 ### 2026-10-21 — TypeScript file이 oxlint를 통과한다 (C16.107-1)
 

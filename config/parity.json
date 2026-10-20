@@ -158,6 +158,14 @@
         {
           "glob": "packages/validator/ts/src/text/json.test.ts",
           "reason": "test: unit tests of the TypeScript specification parser (input-text.md, JSON text)"
+        },
+        {
+          "glob": "packages/validator/ts/src/choice-groups.test.ts",
+          "reason": "test: the TypeScript unit test of `in` with choice groups; the validate suite (CUVR-011, CUVR-050) covers each of its assertions in tests/fixtures/validate"
+        },
+        {
+          "glob": "packages/validator/ts/src/hidden-paths.test.ts",
+          "reason": "test: the TypeScript unit test of hiddenPaths; the validate suite (CUVR-017, CUSC-055) covers its hidden member in tests/fixtures/validate, and input-root-data-not-object covers its non-object data error"
         }
       ]
     },
