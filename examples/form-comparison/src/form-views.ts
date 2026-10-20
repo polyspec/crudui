@@ -1,6 +1,6 @@
 // The types that the adapters (src/adapters) and the stage pages (src/pages) share: the containers of the form page, the
 // record data, the options of a list and the view state that bindFormController passes on each load.
-import type { BuildListOptions } from '@polyspec/crudui-generator-core';
+import { bindButtons, bindForm, type BuildListOptions, type FormTemplate, type Language } from '@polyspec/crudui-generator-core';
 
 /** The three containers of the form page: the form, its structure map and its data panel. */
 export interface FormViews {
@@ -24,6 +24,14 @@ export interface BindView extends RowView {
 
 /** The state before any change: no row is collapsed and nothing can be undone. */
 export const emptyView: BindView = { collapsed: new Set<string>(), canUndo: false };
+
+/** The binding of a template to record data and the view state, which a stage page evaluates on each load. */
+export function evaluateBinding(template: FormTemplate, language: Language) {
+  return (next: RecordData, view: RowView) => ({
+    fields: bindForm(template, next, { language, collapsed: view.collapsed }),
+    buttons: bindButtons(template, next, { language }),
+  });
+}
 
 /** The options of the list of the stage: the options of buildList and the layout of the list components. */
 export interface StageListOptions extends BuildListOptions {

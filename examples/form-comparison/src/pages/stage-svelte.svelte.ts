@@ -3,13 +3,13 @@
 // server-rendered view and mounts its own nodes.
 import { flushSync, mount, unmount } from 'svelte';
 import type { LegacyComponentType } from 'svelte/legacy';
-import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@polyspec/crudui-generator-core';
+import { buildDetail, buildList, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import Detail from '#svelte/Detail.svelte';
 import Form from '#svelte/Form.svelte';
 import FormFields from '#svelte/FormFields.svelte';
 import List from '#svelte/List.svelte';
 import type { BuildDetailOptions, FormInstance, FormTemplate, Language } from '@polyspec/crudui-generator-core';
-import type { RecordData, RowView, StageListOptions } from '../form-views.ts';
+import { evaluateBinding, type RecordData, type RowView, type StageListOptions } from '../form-views.ts';
 
 /** No row is collapsed when the form starts. */
 const initialView: RowView = { collapsed: new Set<string>() };
@@ -29,10 +29,7 @@ export function detail(container: HTMLElement, spec: RecordData, record: RecordD
 
 export function bindFormView(container: HTMLElement, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const messages = formMessages(language);
-  const evaluate = (next: RecordData, view: RowView) => ({
-    fields: bindForm(template, next, { language, collapsed: view.collapsed }),
-    buttons: bindButtons(template, next, { language }),
-  });
+  const evaluate = evaluateBinding(template, language);
   // The component reads the current binding through props, so a new binding renders it again.
   let current = $state.raw(evaluate(data, initialView));
   const app = start(container, FormFields, {

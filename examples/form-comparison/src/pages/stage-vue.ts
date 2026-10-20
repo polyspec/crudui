@@ -1,14 +1,14 @@
 // The canonical page with the Vue components. An SSR application hydrates the server-rendered
 // nodes; a CSR application mounts its own.
 import { createApp, createSSRApp, h, nextTick, shallowRef } from 'vue';
-import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@polyspec/crudui-generator-core';
+import { buildDetail, buildList, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import { failOnErrors } from '../vue-errors.mjs';
 import { Detail } from '#vue/Detail';
 import { Form } from '#vue/Form';
 import { FormFields } from '#vue/FormFields';
 import { List } from '#vue/List';
 import type { BuildDetailOptions, FormInstance, FormTemplate, Language } from '@polyspec/crudui-generator-core';
-import type { RecordData, RowView, StageListOptions } from '../form-views.ts';
+import { evaluateBinding, type RecordData, type RowView, type StageListOptions } from '../form-views.ts';
 import type { VNode } from 'vue';
 
 function start(container: HTMLElement, render: () => VNode, hydrate: boolean) {
@@ -32,10 +32,7 @@ export function detail(container: HTMLElement, spec: RecordData, record: RecordD
 
 export function bindFormView(container: HTMLElement, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const messages = formMessages(language);
-  const evaluate = (next: RecordData, view: RowView) => ({
-    fields: bindForm(template, next, { language, collapsed: view.collapsed }),
-    buttons: bindButtons(template, next, { language }),
-  });
+  const evaluate = evaluateBinding(template, language);
   const state = shallowRef(evaluate(data, { collapsed: new Set<string>() }));
   const app = start(container, () => FormFields(state.value.fields, state.value.buttons, messages, undefined, undefined, formDescription(template, { language })), hydrate);
   return {

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 74ffaa4840f2c81c36a2884543174ec03cf55a7110c9340e05b9e52aaed40e18 -->
+<!-- source-sha256: b6dafbcaf5c759ae8feba0b11dab7a19e75dd41829110706ff4c85eb27f3aabb -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
+
+### 2026-10-21 — form-comparison stage page들이 form의 binding 평가를 공유한다 (C16.58-8)
+
+- `examples/form-comparison/src/form-views.ts`에 `evaluateBinding`을 더했습니다. 이 함수는 template을 record data와 view 상태에 bind합니다. `pages/stage-svelte.svelte.ts`와 `pages/stage-vue.ts`는 같은 평가를 각자 가지는 대신 이 함수를 씁니다(C16.58-8). duplication check는 그 clone을 없앴습니다(변경 전 42 clone, 후 41 clone). page의 동작은 같습니다. Red: `make duplication-check` exit 2, 42 clone(두 page 사이의 stage clone); green: 같은 check가 exit 2, 41 clone이며 stage clone이 없습니다; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/public/pipeline.test.mjs` exit 0, 9 passed; `node examples/form-comparison/build.mjs <절대 경로>`가 page를 bundle합니다. adapter의 mount와 hydrate wrapper는 남깁니다. `src/adapter-completion.test.mjs`가 각 adapter가 자기 signature로 그것을 선언하기를 요구하기 때문입니다.
 
 ### 2026-10-21 — PHP table generator들이 contract reader와 source writer를 공유한다 (C16.58-7)
 
