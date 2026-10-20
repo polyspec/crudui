@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e19d484f68571f79280a420cf9d6fe53fb5228f350878ee3ccee511c266fbe7d -->
+<!-- source-sha256: 2410d8386721f21749e159e919b17546d65f0dd7c73c8b8a6255e9934724a4da -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -81,6 +81,7 @@
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.51-1 | 뷰 상태, 이력, 작업의 중립 규칙과 공유 case 를 쓴다: docs/spec/form-runtime.md 의 CURT-061 부터 CURT-090, TypeScript reference 가 생성하는 고정 데이터 family form-view, form-history, form-actions, view-functions, history-functions, 그리고 중립 입력을 받는 TypeScript resolveAction | docs/spec/form-runtime.md, tests/fixtures/form-state, form-view, form-history, form-actions, view-functions, history-functions, packages/generator/ts/src/actions.ts, form-state.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |
+| C16.51-2 | form-view 세션에서 canUndo 와 canRedo 를 뺀다. 이력이 없는 구현도 실행할 수 있게 한다 | tests/fixtures/form-state, tests/fixtures/form-view, packages/generator/ts/src/form-state.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |

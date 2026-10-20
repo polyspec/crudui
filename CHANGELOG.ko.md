@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 42b73debd8fa260556ef28b7fb8e85cda0af0d8533604f9a6470bf98c3492d39 -->
+<!-- source-sha256: b4a3c2854114dbaa5174d790af97b9ff72c0664055e4f5a12cf2561d5ee53dca -->
 
 ## Unreleased
+
+### 2026-10-20 — 이력 flag 없는 뷰 세션 (C16.51-2)
+
+- `form-view` 세션의 관찰에는 `canUndo`와 `canRedo`가 없어 뷰 상태가 있고 이력이 없는 구현도 실행할 수 있고, `form-history`와 `form-actions`는 그대로 가집니다. Red: 뷰 상태가 있고 이력이 없는 Go 폼이 `form-view`의 `rekeyRow` step을 `canUndo`에서 실패했습니다. Green: `src/form-state.test.ts`의 40개 case가 통과합니다.
 
 ### 2026-10-20 — 뷰 상태, 이력, 작업의 중립 규칙과 공유 case (C16.51-1)
 

@@ -9,10 +9,11 @@ const ROOT = path.resolve(__dirname, '../../../..');
 const cases = (family: string) => readCases(fs.readFileSync(path.join(ROOT, `tests/fixtures/${family}/cases.json`), 'utf8'));
 
 for (const family of ['form-view', 'form-history', 'form-actions']) {
+  const history = family !== 'form-view';
   describe(family, () => {
     for (const entry of cases(family).map(sessionCase)) {
       it(entry.name, () => {
-        expect(observeSession(core, entry)).toStrictEqual(entry.expected);
+        expect(observeSession(core, entry, history)).toStrictEqual(entry.expected);
       });
     }
   });

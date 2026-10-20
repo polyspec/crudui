@@ -1,6 +1,6 @@
 # 폼 상태 고정 데이터 (공유 module)
 <!-- doc-id: tests-fixtures-form-state-readme -->
-<!-- source-sha256: 3ea661cadbe32bffb5b29a09192bfff58b24da9a0d13ba4d3ad7b7b9cdf7e8c6 -->
+<!-- source-sha256: 266e214f39e801fae48344f0313a86f677611fd33b7ce2bb0766a524de91b29b -->
 
 [English](README.md).
 
@@ -16,7 +16,7 @@ step은 `{ op, args }`입니다. `op`는 폼 인스턴스의 method(`addRow`, `c
 
 - `result`: step이 반환한 값이며 값이 없으면 `null`, 아무것도 반환하지 않는 method는 없습니다.
 - `error`: step이 일으킨 오류의 `{ code, message }`.
-- `data`, `revision`, `canUndo`, `canRedo`: 폼의 `getData()`, revision, 이력 flag.
+- `data`, `revision`, `canUndo`, `canRedo`: 폼의 `getData()`, revision, 이력 flag. `form-view` 세션에는 `canUndo`와 `canRedo`가 없어 이력이 없는 구현도 실행할 수 있습니다.
 - `collapsed`: 폼 필드에서 `collapsible`이 참이고 `expanded`가 거짓인 행의 행 경로 `{collection}.{key}`이며 필드 순서의 깊이 우선입니다.
 
 case가 `spec`, `data`, `steps`에 쓰지 않은 행 키는 작업이 생성한 키입니다. 관찰은 그 키를 `result`, `data`, `collapsed`에

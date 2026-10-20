@@ -119,8 +119,11 @@ function perform(core: Core, form: FormLike, { op, args }: Step): unknown {
   }
 }
 
-/** What the reference observes after each step of a session. */
-export function observeSession(core: Core, entry: { spec: Json; data: Json; steps: Step[] }): Json[] {
+/**
+ * What the reference observes after each step of a session. The observation of `form-view` sessions has no `canUndo`
+ * and `canRedo` (`history` false), so that an implementation without history can run them.
+ */
+export function observeSession(core: Core, entry: { spec: Json; data: Json; steps: Step[] }, history = true): Json[] {
   const name = namer(new Set(JSON.stringify([entry.spec, entry.data, entry.steps]).match(KEY) ?? []));
   const form = core.createForm(core.compileForm(entry.spec), entry.data, {});
   return entry.steps.map(step => {
@@ -134,8 +137,10 @@ export function observeSession(core: Core, entry: { spec: Json; data: Json; step
     const snapshot = form.getSnapshot();
     observed.data = name(form.getData());
     observed.revision = snapshot.revision;
-    observed.canUndo = snapshot.canUndo;
-    observed.canRedo = snapshot.canRedo;
+    if (history) {
+      observed.canUndo = snapshot.canUndo;
+      observed.canRedo = snapshot.canRedo;
+    }
     observed.collapsed = name(collapsedRows(snapshot.fields));
     return observed;
   });

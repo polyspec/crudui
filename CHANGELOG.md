@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — View sessions without history flags (C16.51-2)
+
+- The sessions of `form-view` have no `canUndo` and `canRedo` in their observations, so that an implementation that has view state and no history runs them; `form-history` and `form-actions` keep them. Red: a Go form with view state and no history failed the `rekeyRow` step of `form-view` on `canUndo`. Green: the 40 cases of `src/form-state.test.ts` pass.
+
 ### 2026-10-20 — Neutral rules and shared cases of view state, history and actions (C16.51-1)
 
 - `docs/spec/form-runtime.md` defines `CURT-061` to `CURT-090`: the snapshot flags, the history limit and merge rules, the view rules, the option `collapsed` of `bindForm`, the view and history functions, `resolveAction({ action, path?, key? })` and the eleven actions of `runAction`. The fixture families `form-view`, `form-history`, `form-actions`, `view-functions` and `history-functions` hold the cases that `tests/fixtures/form-state/generate.mts` writes from the TypeScript reference, with generated row keys named `$1`, `$2`. `resolveAction` of TypeScript takes the values of the neutral rule or a DOM button. Red: `src/form-state.test.ts` failed with `ENOENT` for `tests/fixtures/form-view/cases.json`. Green: its 40 cases pass in the TypeScript package.

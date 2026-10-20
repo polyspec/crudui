@@ -60,9 +60,9 @@ const data: Json = {
 };
 
 
-function session(entry: { name: string; note: string; requirements: string[]; steps: Step[] }): Case {
+function session(entry: { name: string; note: string; requirements: string[]; steps: Step[] }, history = true): Case {
   const steps: Json[] = entry.steps.map(({ op, args }) => ({ op, args }));
-  return { name: entry.name, note: entry.note, requirements: entry.requirements, spec, data, steps, expected: observeSession(core, { spec, data, steps: entry.steps }) };
+  return { name: entry.name, note: entry.note, requirements: entry.requirements, spec, data, steps, expected: observeSession(core, { spec, data, steps: entry.steps }, history) };
 }
 
 const step = (op: string, ...args: Json[]): Step => ({ op, args });
@@ -80,13 +80,13 @@ const all: Case[] = [
       step('toggleRow', 'teams', k(9)),
       step('toggleRow', 'teams', A),
     ],
-  }),
+  }, false),
   session({
     name: 'set-all-expanded-collapses-every-collapsible-row',
     note: 'Collapsing every row lists the collapsible rows depth first; expanding all clears the view.',
     requirements: ['CURT-010', 'CURT-073'],
     steps: [step('setAllExpanded', false), step('toggleRow', 'teams', B), step('setAllExpanded', true), step('setAllExpanded', false)],
-  }),
+  }, false),
   session({
     name: 'row-removal-drops-and-rekey-moves-view',
     note: 'Removing a row drops the collapsed state of the row and of its rows; rekeying moves it to the new key.',
@@ -97,7 +97,7 @@ const all: Case[] = [
       step('removeRow', 'teams', B),
       step('rekeyRow', `teams.${k(3)}.members`, M2, k(14)),
     ],
-  }),
+  }, false),
   session({
     name: 'set-data-restarts-history-and-view',
     note: 'Replacing the record clears the history and expands every row.',

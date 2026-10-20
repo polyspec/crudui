@@ -16,7 +16,8 @@ which call the function of that name with `args[0]`. After a step the implementa
 
 - `result`: the value that the step returned, `null` for no value; absent for a method that returns nothing;
 - `error`: `{ code, message }` of the error that the step raised;
-- `data`, `revision`, `canUndo` and `canRedo`: `getData()`, the revision and the history flags of the form;
+- `data`, `revision`, `canUndo` and `canRedo`: `getData()`, the revision and the history flags of the form; the sessions of
+  `form-view` have no `canUndo` and `canRedo`, so that an implementation without history can run them;
 - `collapsed`: the row paths `{collection}.{key}` of the rows of the form fields with `collapsible` true and `expanded`
   false, depth first in field order.
 
