@@ -108,7 +108,7 @@ const stackOrigin = 'http://127.0.0.1:41000';
 const formServerIds = () => [...formServers];
 const prepared = {
   orderedJsonModule: '/run/sources/ordered-json/packages/php-ext/src/modules/ordered_json.so',
-  cruduiModule: '/checkout/packages/php-ext/modules/crudui.so',
+  cruduiModule: '/checkout/packages/php-ext/modules/polyspec_crudui.so',
 };
 
 test('verifies the local stack in stages, against the origin of its public server', () => {

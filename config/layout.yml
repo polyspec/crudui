@@ -104,8 +104,3 @@ rules:
   # beside the validator until the evidence writer is exported by a package of its own.
   - id: suites-at-root
     paths: ["packages/**/integration", "packages/**/conformance", "!packages/validator/go/validator/internal/conformance"]
-
-  # S10: the stub of the PHP extension is crudui.stub.php, and its functions and classes keep the names of CRUDUI. The move
-  # to src/polyspec_crudui.stub.php renames the extension, a change that the rollout of the kit standard does not make yet.
-  - id: php-ext-stub-place
-    paths: ["**/*.stub.php", "!packages/php-ext/src/*.stub.php", "!packages/php-ext/crudui.stub.php"]

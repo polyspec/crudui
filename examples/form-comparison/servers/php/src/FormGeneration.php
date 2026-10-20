@@ -36,7 +36,7 @@ final class FormGeneration
             throw new RuntimeException('Unknown PHP generator runtime');
         }
         $native = $runtime === 'php-ext';
-        if (extension_loaded('crudui') !== $native) {
+        if (extension_loaded('polyspec_crudui') !== $native) {
             throw new RuntimeException('CRUDUI extension state does not match the selected server');
         }
         $sourceRoot = self::regularDirectory($sourceRoot, 'library directory');
@@ -62,7 +62,8 @@ final class FormGeneration
         ];
         foreach ($sourceFiles as $name => $files) {
             $class = new ReflectionClass($name);
-            if ($class->isInternal() !== $native || $class->getExtensionName() !== ($native ? 'crudui' : false)) {
+            $extension = $native ? 'polyspec_crudui' : false;
+            if ($class->isInternal() !== $native || $class->getExtensionName() !== $extension) {
                 throw new RuntimeException('Incorrect CRUDUI implementation: ' . $name);
             }
             if (!$native) {

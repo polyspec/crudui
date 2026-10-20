@@ -286,7 +286,7 @@ No build embeds a commit.
 
 ## Builds and browser readiness
 
-One PHP extension builder builds `crudui.so` and `ordered_json.so`. Each extension has an explicit build entry point and declares
+One PHP extension builder builds `polyspec_crudui.so` and `ordered_json.so`. Each extension has an explicit build entry point and declares
 its sources, module name, output directory and load check. The builder reads the
 PHP executable, headers and build flags from one `php-config` executable and
 compiles both modules directly without `phpize`, Autoconf or libtool. It resolves
@@ -326,7 +326,7 @@ publishing progress, but reaching that limit cannot produce a successful result.
 This section and the next three describe the benchmark console's form matrix; the
 canonical page uses the record resource above. PHP, the PHP extension, Go and Rust
 implement the same compile, render, validation, persistence and SSR request contract. Each server uses its own
-generator and validator. The PHP extension process loads `crudui.so` and
+generator and validator. The PHP extension process loads `polyspec_crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension.
 Both PHP processes load the Composer autoloader of the checkout, whose root `composer.json` requires
 the validator and the generator through path repositories, so each package is its own source
@@ -639,7 +639,7 @@ identity in `source.json` of its results directory and runs these stages in orde
 first stage with a failed step:
 
 1. the PHPUnit suite of the PHP server (`servers/php`) in the php mode, whose group `modules` runs the
-   processor modes in child processes that load the `crudui.so` and `ordered_json.so` of this run;
+   processor modes in child processes that load the `polyspec_crudui.so` and `ordered_json.so` of this run;
 2. the same suite in the php-ext mode, whose PHP loads both modules of this run through the repeatable
    `--php-extension` of the run-tests of kit (K165), without the group `php`, which constructs the PHP
    library;

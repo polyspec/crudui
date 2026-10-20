@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 5c45279a1511a96aa620c186623eb73699cab8fd11aa4376f9c9d6718c5e97a7 -->
+<!-- source-sha256: 4856d83b55057a82a3c3ed3480ad0b57c9942e82828833b14c00f5920ba1c02d -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -57,3 +57,4 @@
 | C16.37 | PHP generator는 image preload link와 object 판별을 공유한다 | packages/generator/php/src/Internal (Rendering.php, Value.php, Details.php, Lists.php, DisplayDeclaration.php, Template.php) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |
 | C16.38 | Rust generator는 저장소 root의 contract를 찾는다 | packages/generator/rust/tools/generate-interface-messages.mjs, packages/validator/rust/tools/generate-unicode-properties.mjs, tests/build/rust-generators.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/rust-generators.test.mts` | [o] |
 | C16.39 | Rust generator는 binding language, fixture 결과 정리, message table을 공유하고 Rust test는 사본 없이 순서 있는 object를 만든다 | packages/generator/rust/src/binding.rs, tests.rs, tools/generate-interface-messages.mjs, packages/validator/rust/src/compose/compose.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_fixture_records`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/rust-generators.test.mts`, `make lint-rust` | [o] |
+| C16.40 | PHP library가 둘인 저장소의 PHP extension은 S10의 layout과 이름을 따른다. polyspec_crudui, src/의 하나뿐인 stub, composer.json, config.m4 | packages/php-ext (composer.json, src/config.m4, src/polyspec_crudui.stub.php, src/polyspec_crudui_arginfo.h, src/crudui.c), config/layout.yml, the module name in the Makefile, the examples, the tests and the documents | `make lint-php-ext`, `make layout-check`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext -- tests/ApiTest.php` | [o] |

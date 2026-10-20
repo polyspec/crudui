@@ -27,9 +27,13 @@ final class ProcessorModeTest extends TestCase
     {
         yield 'php-ext without extensions' => ['php-ext', [], 'OrderedJSON extension state does not match'];
         yield 'php-ext without crudui' => ['php-ext', ['ordered_json'], 'CRUDUI extension state does not match'];
-        yield 'php-ext without ordered_json' => ['php-ext', ['crudui'], 'OrderedJSON extension state does not match'];
+        yield 'php-ext without ordered_json' => [
+            'php-ext',
+            ['polyspec_crudui'],
+            'OrderedJSON extension state does not match',
+        ];
         yield 'php with ordered_json' => ['php', ['ordered_json'], 'OrderedJSON extension state does not match'];
-        yield 'php with crudui' => ['php', ['crudui'], 'CRUDUI extension state does not match'];
+        yield 'php with crudui' => ['php', ['polyspec_crudui'], 'CRUDUI extension state does not match'];
     }
 
     /** @param list<string> $extensions */
@@ -57,7 +61,7 @@ final class ProcessorModeTest extends TestCase
 
     public function testThePhpExtensionModeRunsOnlyClassesOfTheExtension(): void
     {
-        $hash = var_export(hash_file('sha256', self::module('crudui')), true);
+        $hash = var_export(hash_file('sha256', self::module('polyspec_crudui')), true);
         $result = self::extensionProcess(
             'new ' . self::generation() . '("php-ext", ' . self::arguments() . ', ' . $hash . ');'
             . self::generation() . '::assertNativeClasses(); echo "native";',
@@ -82,7 +86,7 @@ final class ProcessorModeTest extends TestCase
     private static function extensionProcess(string $script): PhpProcess
     {
         return PhpProcess::run(
-            [self::module('ordered_json'), self::module('crudui')],
+            [self::module('ordered_json'), self::module('polyspec_crudui')],
             $script,
             ['FORM_PHP_SERVER' => 'php-ext'],
         );
@@ -103,7 +107,7 @@ final class ProcessorModeTest extends TestCase
     /** The absolute module of one extension, which FORM_ORDERED_JSON_MODULE or FORM_CRUDUI_MODULE names. */
     private static function module(string $extension): string
     {
-        $variable = $extension === 'crudui' ? 'FORM_CRUDUI_MODULE' : 'FORM_ORDERED_JSON_MODULE';
+        $variable = $extension === 'polyspec_crudui' ? 'FORM_CRUDUI_MODULE' : 'FORM_ORDERED_JSON_MODULE';
         $module = getenv($variable);
         if (!is_string($module) || !str_starts_with($module, '/') || !is_file($module)) {
             throw new RuntimeException("$variable must name the absolute $extension module of the run");

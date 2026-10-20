@@ -3,7 +3,7 @@
 
 [한국어](README.ko.md).
 
-The `crudui` extension provides `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` and
+The `polyspec_crudui` extension provides `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` and
 `Polyspec\Crudui\Form` in the PHP process. The C module registers the PHP classes and
 converts PHP values directly to its ordered value model.
 
@@ -36,7 +36,7 @@ composer install
 node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
-  --extension "$(pwd)/packages/php-ext/modules/crudui.so" \
+  --extension "$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
   --report .git/native-generators/report.json
 ```
 
@@ -46,12 +46,12 @@ method signatures, conversion, exceptions, cloning, row operations and repeated
 instance creation. Validation uses shared form and list validity fixtures.
 Generator conformance checks the extension separately from the PHP package.
 
-`crudui.stub.php` defines native PHP signatures. Regenerate
-`crudui_arginfo.h` with the PHP development tools after changing the stubs:
+`src/polyspec_crudui.stub.php` defines native PHP signatures. Regenerate
+`src/polyspec_crudui_arginfo.h` with the PHP development tools after changing the stubs:
 
 ```sh
 /absolute/path/to/php -n /absolute/path/to/php-build/gen_stub.php \
-  packages/php-ext/crudui.stub.php
+  packages/php-ext/src/polyspec_crudui.stub.php
 ```
 
 Both external paths must be regular files from the same PHP development
@@ -67,7 +67,7 @@ The PHP example loads the extension and calls its public classes:
 
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \
-  php -n -d "extension=$(pwd)/packages/php-ext/modules/crudui.so" \
+  php -n -d "extension=$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
   -S 127.0.0.1:8080 packages/generator/php/examples/index.php
 ```
 

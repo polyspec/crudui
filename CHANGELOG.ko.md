@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0d19d42aab1a5f82680371e4494f4f05900e59148785c9b4b382ca25810036ff -->
+<!-- source-sha256: 2ff9f53c529a9f824a21077a45d9b20b600afc820b104aa0b1619e10c13bd132 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP extension의 S10 layout (C16.40)
+
+- extension의 이름은 `polyspec_crudui`입니다(module entry, `--ri` 이름, `extension_loaded('polyspec_crudui')`, module file `polyspec_crudui.so`). 하나뿐인 stub과 arginfo header는 `packages/php-ext/src/`에 `polyspec_crudui.stub.php`와 `polyspec_crudui_arginfo.h`로 있고, `packages/php-ext/composer.json`은 `polyspec/crudui-php-ext`로 이름을 정하며, `packages/php-ext/src/config.m4`는 source와 함께 extension을 선언하고 version을 `../composer.json`에서 가져오며, 옛 stub 위치에 대한 `config/layout.yml`의 예외는 없어집니다(kit K293) (C16.40). Red: `make lint-php-ext` exit 1, finding 4건(composer.json, stub 위치, config.m4, 없는 stub), green: exit 0, `make layout-check` 통과, `scripts/`의 builder가 새 이름으로 build한 module에 대해 `ApiTest`(4건) 통과.
 
 ### 2026-10-20 — path는 Composer package 이름이 아니다 (C16.7-13)
 

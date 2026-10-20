@@ -4,7 +4,7 @@
 
 #include "php_crudui.h"
 #include "ext/standard/info.h"
-#include "../crudui_arginfo.h"
+#include "polyspec_crudui_arginfo.h"
 
 zend_class_entry *crudui_generator_ce;
 zend_class_entry *crudui_validator_ce;
@@ -508,7 +508,7 @@ PHP_METHOD(Polyspec_Crudui_Form, rekeyRow)
     apply_form(Z_OBJ_P(ZEND_THIS), 7, 3, (zval *[]){&p, &o, &n}, (bool[]){false, false, false}, return_value);
 }
 
-PHP_MINIT_FUNCTION(crudui)
+PHP_MINIT_FUNCTION(polyspec_crudui)
 {
     (void)type;
     (void)module_number;
@@ -527,7 +527,7 @@ PHP_MINIT_FUNCTION(crudui)
     return SUCCESS;
 }
 
-PHP_MINFO_FUNCTION(crudui)
+PHP_MINFO_FUNCTION(polyspec_crudui)
 {
     (void)zend_module;
     php_info_print_table_start();
@@ -542,14 +542,14 @@ static const zend_module_dep crudui_deps[] = {
     ZEND_MOD_END
 };
 
-zend_module_entry crudui_module_entry = {
+zend_module_entry polyspec_crudui_module_entry = {
     STANDARD_MODULE_HEADER_EX, NULL, crudui_deps,
-    "crudui", NULL, PHP_MINIT(crudui), NULL, NULL, NULL, PHP_MINFO(crudui), "0.0.7", STANDARD_MODULE_PROPERTIES
+    "polyspec_crudui", NULL, PHP_MINIT(polyspec_crudui), NULL, NULL, NULL, PHP_MINFO(polyspec_crudui), "0.0.7", STANDARD_MODULE_PROPERTIES
 };
 
-#ifdef COMPILE_DL_CRUDUI
+#ifdef COMPILE_DL_POLYSPEC_CRUDUI
 #ifdef ZTS
 ZEND_TSRMLS_CACHE_DEFINE()
 #endif
-ZEND_GET_MODULE(crudui)
+ZEND_GET_MODULE(polyspec_crudui)
 #endif

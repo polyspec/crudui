@@ -41,7 +41,7 @@ final class FormGenerationTest extends TestCase
         foreach ($provenance['classes'] as $class) {
             self::assertTrue(
                 $class['internal'] === ($runtime === 'php-ext')
-                    && $class['extension'] === ($runtime === 'php-ext' ? 'crudui' : null),
+                    && $class['extension'] === ($runtime === 'php-ext' ? 'polyspec_crudui' : null),
                 'Incorrect class implementation'
             );
         }

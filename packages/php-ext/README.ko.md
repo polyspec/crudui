@@ -1,6 +1,6 @@
 # PHP 네이티브 생성과 검증
 <!-- doc-id: packages-php-ext-readme -->
-<!-- source-sha256: 1178b451c46c29637b06dbf858b8a84eeedd140a80ecf2f4582c7325751d66e3 -->
+<!-- source-sha256: 99fbb2a96347e8db82bd0f7c041951e2ac89733475712867945544e4da2ec437 -->
 
 [English](README.md).
 
@@ -35,7 +35,7 @@ composer install
 node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
-  --extension "$(pwd)/packages/php-ext/modules/crudui.so" \
+  --extension "$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
   --report .git/native-generators/report.json
 ```
 
@@ -44,12 +44,12 @@ API 검사는 확장을 비활성화한 PHP, Composer 없는 확장, Composer를
 행 작업, 반복 인스턴스 생성을 검사합니다. 검증기는 공용 폼과 목록 유효성
 데이터를 사용합니다. 생성기 적합성 검사는 확장과 PHP 패키지를 별도로 검사합니다.
 
-`crudui.stub.php`는 네이티브 PHP 서명을 정의합니다. 스텁을 변경하면 PHP
-개발 도구로 `crudui_arginfo.h`를 다시 생성합니다.
+`src/polyspec_crudui.stub.php`는 네이티브 PHP 서명을 정의합니다. 스텁을 변경하면 PHP
+개발 도구로 `src/polyspec_crudui_arginfo.h`를 다시 생성합니다.
 
 ```sh
 /absolute/path/to/php -n /absolute/path/to/php-build/gen_stub.php \
-  packages/php-ext/crudui.stub.php
+  packages/php-ext/src/polyspec_crudui.stub.php
 ```
 
 두 외부 경로는 같은 PHP 개발 도구 설치의 정규 파일이어야 합니다. 빌드는 PHP 빌드
@@ -65,7 +65,7 @@ PHP 예제는 확장을 로드하고 공개 클래스를 호출합니다.
 
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \
-  php -n -d "extension=$(pwd)/packages/php-ext/modules/crudui.so" \
+  php -n -d "extension=$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
   -S 127.0.0.1:8080 packages/generator/php/examples/index.php
 ```
 

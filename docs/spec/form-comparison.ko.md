@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: fee72ecb8288446221b168f3f5ee078643f9264d09b9cc3f6cdc09113f3620f5 -->
+<!-- source-sha256: cceb49aa176811d5c3129f1d1fb3d44947e72bc4d8b748771d9075c23b22e9ee -->
 
 [English](form-comparison.md).
 
@@ -257,7 +257,7 @@ Rust 서버는 상태·생성·SSR 응답마다 이 파일을 읽고, 메인 페
 
 ## 빌드와 브라우저 준비
 
-공용 PHP 확장 빌더 하나가 `crudui.so`와 `ordered_json.so`를 빌드합니다. 각 확장은 명시적인 빌드 진입점에서 소스, 모듈 이름, 출력 디렉터리, 로드
+공용 PHP 확장 빌더 하나가 `polyspec_crudui.so`와 `ordered_json.so`를 빌드합니다. 각 확장은 명시적인 빌드 진입점에서 소스, 모듈 이름, 출력 디렉터리, 로드
 검사를 선언합니다. 빌더는 `php-config` 실행 파일 하나에서 PHP 실행 파일, 헤더, 빌드
 플래그를 읽고 `phpize`, Autoconf, libtool 없이 두 모듈을 직접 컴파일합니다. 컴파일
 전에 필요한 각 실행 파일을 한 번 확인합니다. 상대경로, 심볼릭 링크, 누락된 도구, 여러
@@ -293,7 +293,7 @@ console은 그것이 import하는 소스 모듈(`browser-job.mjs`, `frame-readin
 이 절과 이어지는 세 절은 벤치마크 콘솔의 폼 매트릭스를 설명합니다. 정본 페이지는 위의 레코드
 리소스를 사용합니다. PHP, PHP 확장, Go, Rust는 동일한 컴파일, 렌더링, 검증, 영속 저장, SSR 요청 계약을
 구현합니다. 각 서버는 자체 생성기와 검증기를 사용합니다. PHP 확장 프로세스는
-`crudui.so`와 `ordered_json.so`를 로드하고 PHP 프로세스는 두 확장을 로드하지
+`polyspec_crudui.so`와 `ordered_json.so`를 로드하고 PHP 프로세스는 두 확장을 로드하지
 않습니다.
 두 PHP 프로세스는 체크아웃의 Composer 오토로더를 불러옵니다. root `composer.json`은 path
 저장소로 검증기와 생성기를 요구하므로 각 패키지는 자신의 소스 디렉터리이고 자신의 `composer.json`이
@@ -561,7 +561,7 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 로컬 프로세스로 실행합니다. 결과 디렉터리의 `source.json`에 식별자를 기록한 뒤 다음 단계를 순서대로
 실행하며 실패한 단계가 있는 첫 단계에서 멈춥니다.
 
-1. php 모드의 PHP 서버(`servers/php`) PHPUnit suite. 그 group `modules`는 이 실행이 빌드한 `crudui.so`와
+1. php 모드의 PHP 서버(`servers/php`) PHPUnit suite. 그 group `modules`는 이 실행이 빌드한 `polyspec_crudui.so`와
    `ordered_json.so`를 로드하는 child process에서 처리 모드를 실행합니다
 2. php-ext 모드의 같은 suite. 그 PHP는 kit run-tests의 반복 가능한 `--php-extension`(K165)으로 이 실행의
    두 모듈을 로드하며, PHP 라이브러리를 구성하는 group `php`는 빼고 실행합니다

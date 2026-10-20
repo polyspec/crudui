@@ -35,7 +35,7 @@ const generatedPaths = [
   'configure~',
   'confdefs.h',
   'libtool',
-  'crudui.la',
+  'polyspec_crudui.la',
   'run-tests.php',
 ];
 
@@ -70,7 +70,7 @@ export async function buildCRUDUIPhpExtension(
     ?? await selectedPhpConfig(undefined, environment);
   return buildPhpExtension({
     sourceRoot: path.join(repositoryRoot, 'packages/php-ext'),
-    moduleName: 'crudui',
+    moduleName: 'polyspec_crudui',
     minimumPhpVersion: 80400,
     require64Bit: true,
     sources: [
@@ -114,7 +114,7 @@ export async function buildCRUDUIPhpExtension(
       'src/form.c',
     ],
     includeDirectories: ['src'],
-    definitions: ['COMPILE_DL_CRUDUI=1', 'ZEND_COMPILE_DL_EXT=1'],
+    definitions: ['COMPILE_DL_POLYSPEC_CRUDUI=1', 'ZEND_COMPILE_DL_EXT=1'],
     generatedPaths,
     buildDirectory: '.build',
     outputDirectory: 'modules',

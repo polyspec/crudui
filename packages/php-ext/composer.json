@@ -1,0 +1,19 @@
+{
+    "name": "polyspec/crudui-php-ext",
+    "version": "0.0.7",
+    "description": "Native PHP extension for CRUDUI form generation and validation",
+    "type": "php-ext",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.4"
+    },
+    "php-ext": {
+        "extension-name": "polyspec_crudui",
+        "build-path": "src"
+    },
+    "config": {
+        "platform": {
+            "php": "8.4.1"
+        }
+    }
+}

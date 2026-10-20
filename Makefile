@@ -42,7 +42,7 @@ include scripts/kit/kit-bootstrap.mk
 # `make bench BENCH_ITERS=100000`).
 BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
-PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
+PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/polyspec_crudui.so
 # Reports live in the Git directory, which is a file-referenced directory in a worktree: NATIVE_REPORT of the JavaScript,
 # HTML, Go and Rust targets and PHP_NATIVE_REPORT of the PHP and native PHP targets of tests/native-generators/run.mts.
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)

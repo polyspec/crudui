@@ -68,7 +68,7 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   const failed = results.find(result => result.status !== 'passed');
   assert.equal(failed, undefined, `Building ${failed?.id} ${failed?.status}`);
   return {
-    cruduiModule: path.join(repositoryRoot, 'packages/php-ext/modules/crudui.so'),
+    cruduiModule: path.join(repositoryRoot, 'packages/php-ext/modules/polyspec_crudui.so'),
     orderedJsonModule: path.join(localOrderedJsonDirectory, 'packages/php-ext/src/modules/ordered_json.so'),
     binaries: {
       go: goBinary,

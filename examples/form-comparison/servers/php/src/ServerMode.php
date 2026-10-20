@@ -22,7 +22,7 @@ final class ServerMode
         if (extension_loaded('ordered_json') !== ($mode === 'php-ext')) {
             throw new RuntimeException('OrderedJSON extension state does not match the selected server');
         }
-        if (extension_loaded('crudui') !== ($mode === 'php-ext')) {
+        if (extension_loaded('polyspec_crudui') !== ($mode === 'php-ext')) {
             throw new RuntimeException('CRUDUI extension state does not match the selected server');
         }
         return $mode;

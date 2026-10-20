@@ -32,7 +32,7 @@ export function phpClassProvenanceFailure(classes, native, sourceDirectory) {
     const field = 'generator.classes.' + name;
     if (!source || typeof source !== 'object' || Array.isArray(source)) return field;
     if (source.internal !== native) return field + '.internal';
-    if (source.extension !== (native ? 'crudui' : null)) return field + '.extension';
+    if (source.extension !== (native ? 'polyspec_crudui' : null)) return field + '.extension';
     if (source.file !== (native ? null : files[name])) return field + '.file';
   }
   return null;

@@ -23,7 +23,7 @@ import { PHP_PROGRAM, VALIDATORS, validatorProcesses } from './validate-runner.m
 const read = file => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
 
 // The native PHP module the Makefile builds; PHP_EXTENSION names another build, as in `make crudui-test-native`.
-const extension = process.env.PHP_EXTENSION ?? path.join(ROOT, 'packages/php-ext/modules/crudui.so');
+const extension = process.env.PHP_EXTENSION ?? path.join(ROOT, 'packages/php-ext/modules/polyspec_crudui.so');
 const extensionArgs = ['-d', `extension=${extension}`];
 
 // The php-native process runs the same PHP program with the extension loaded, whose internal
