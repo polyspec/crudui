@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 976118fd6ec03fe38bf83b5d58781e26781aaea4a9de5c3fc3c335df9c1efe95 -->
+<!-- source-sha256: 2aecca12794071bcaa86ee434fc3881c565715dc9bb91a5d7ef7d97fcc8d575a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -210,3 +210,4 @@
 | C16.117 | fresh make install-packages는 설치만 하고, svelte 도구는 설치 뒤에 link한다 | Makefile, .github/workflows/ci.yml, .github/workflows/dependency-review.yml, .github/workflows/pages.yml, .github/workflows/push-gate.yml, .github/workflows/release.yml, tests/build/ci-local.test.mts | `make link-state-check`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.108 | Go generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 실행하며, unpaired surrogate를 보존하는 order 유지 reader로 case를 읽는다 | packages/generator/go/input_text_test.go | `cd packages/generator/go && go test -count=1 -run TestInputTextCases .` | [o] |
 | C16.109 | PHP generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 실행하며, unpaired surrogate를 보존하는 reader로 case를 읽고 PHP extension 아래에서도 통과한다 | packages/generator/php/tests/InputTextTest.php | `make test-php-ext CASES=InputTextTest` | [o] |
+| C16.110 | Rust generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 trial 하나씩 실행하며, 각 operation은 generator text 검사와 validator JsonText로 JSON text를 먼저 검사한다 | packages/generator/rust/tests/input_text.rs, packages/generator/rust/Cargo.toml | `cd packages/generator/rust && cargo test --locked --test input_text` | [o] |

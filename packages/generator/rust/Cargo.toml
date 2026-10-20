@@ -24,6 +24,10 @@ libtest-mimic = "0.8"
 name = "history_functions"
 harness = false
 
+[[test]]
+name = "input_text"
+harness = false
+
 [lints]
 workspace = true
 

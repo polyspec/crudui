@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a5db223ad8b77a143f0b49bb2032526f6a5b48a02904eccc3eeeca1cbc515539 -->
+<!-- source-sha256: 48bd6b5ae81ee2a3b7bad54e5737f589ed0bcf4ea01b8ddc567a4776ad36b894 -->
 
 ## Unreleased
 
@@ -56,6 +56,10 @@
 
 - `config/parity.json`은 테스트 파일 23개를 internal로 선언합니다. TypeScript 22개와 Python 1개이며, 각 이유는 행동을 덮는 공유 suite와 unit의 이름을 적습니다. generator TypeScript 파일 14개는 form-render, list-render, detail-render, form-complete 아래에 있고, 다만 `css.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. validator TypeScript 파일 8개는 validate 아래에 있고, 다만 `types.roundtrip.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. `packages/validator/python/tests/test_pattern_states.py`는 validate 아래에 있습니다.
 - 검사는 이 23개 파일을 R5 undeclared-test로 더 이상 보고하지 않습니다. 남은 TypeScript와 Python 파일 26개는 compose, expr, interface-messages, unicode-data 파일이거나 분류 기록의 gap이며, 뒤의 행에서 다룹니다.
+
+### 2026-10-21 — Rust generator가 text-validity fixture의 모든 case를 실행한다 (C16.110)
+
+- `packages/generator/rust/tests/input_text.rs`는 `tests/fixtures/text-validity`의 generator fixture 다섯 개의 case 48개를 public generator API로 실행하며, case마다 libtest-mimic trial 하나를 둡니다. case의 member는 unpaired surrogate를 보존하는 `polyspec_crudui_validator::text::JsonText`로 읽고, 각 operation은 member를 값으로 decode하기 전에 generator `text` 검사로 `docs/spec/input-text.md`의 순서대로 text를 먼저 검사합니다.
 
 ### 2026-10-21 — PHP generator가 text-validity fixture의 모든 case를 실행한다 (C16.109)
 
