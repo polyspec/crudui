@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ce62bc80eb633b935f301359b595162bb534953c63296e781fbffb1b4c7b4f7a -->
+<!-- source-sha256: 200ed27d0c1b9aedc6b76b0ba4a80d48c4b4be42a9a0c4fd9e528e1fcd7eeebe -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -70,7 +70,7 @@
 | C16.47-1 | 옮겨진 C engine test는 새 folder에서 green으로 실행된다 | CHANGELOG.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C16.48 | 저장소는 kit의 divergence-check, link-state-check, bypass-check와 internal test를 채택하고 engine test를 나눈다 | Makefile, config/parity.json, config/duplication.json, packages/php-ext/tests/engine, packages/php-ext/tests/comparison | `make kit-check`, `make parity-declarations-check`, and the two engine test files | [o] |
 | C16.48-1 | C engine test는 자체 implementation 없이 php-extension implementation의 internal test이다 | config/parity.json | `make parity-declarations-check` | [o] |
-| C16.49 | buildOutline은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of buildOutline | [ ] |
+| C16.49 | buildOutline은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/contract-manifest.test.mts`; make divergence-check names no unsupported entry of buildOutline | [o] |
 | C16.49-1 | 공유 구조 지도 사례는 expected_outline_rows를 가지며, Rust 생성기의 build_outline은 bind_form의 node에 대해 이를 재현합니다 | `tests/fixtures/form-outline/`, `packages/generator/rust/src/outline.rs`, `packages/generator/rust/src/lib.rs`, `packages/generator/rust/src/tests.rs`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_outline_fixture` | [o] |
 | C16.49-2 | native generator protocol은 form-outline 사례를 쓰는 buildOutline operation을 가지며, Go 생성기는 BuildOutline을 가집니다 | `tests/native-generators/`, `packages/generator/go/outline.go`, `packages/generator/go/outline_test.go`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target go --check outline` and `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestOutlineFixture` | [o] |
 | C16.49-3 | native generator protocol의 Rust program은 buildOutline에 답합니다 | `tests/native-generators/programs/rust/src/main.rs`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target rust --check outline` | [o] |

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — buildOutline is implemented in every implementation (C16.49)
+
+- `buildOutline` is `pass` in php, go, rust, php-native and python in `contracts/features.json`, with the Go, Rust, PHP, PHP extension and Python generators and the declaration of C16.49-1 to C16.49-7 (C16.49). Red: `make divergence-check` reported 5 `unsupported` entries of `buildOutline`; green: it reports none, 17 divergences remain.
+
 ### 2026-10-20 — The Korean changelog follows the English one after the rebase (C16.66)
 
 - `CHANGELOG.ko.md` lists the seven entries of C16.49-1 to C16.49-7 in the order of `CHANGELOG.md` and holds one `source-sha256` marker, after the rebase of `feat/outline-C16.49` onto main (C16.66). Red: `tests/docs/changelog.test.mts` ended `2 passed, 2 failed` (`must list the same dated entries in the same order`) and `check-documents` named 3 markers; green: `4 passed, 0 failed` and `check-documents` passes.

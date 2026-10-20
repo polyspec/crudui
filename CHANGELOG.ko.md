@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4c61a28f2af333bdd324160aa605ce794a0186e62af0c6b992599887a344e145 -->
+<!-- source-sha256: d257338662b74721b294a58df73d57a40f49df6f5cda22d532db2ba5cd819ffb -->
 
 ## Unreleased
+
+### 2026-10-20 — buildOutline은 모든 implementation에 구현되었다 (C16.49)
+
+- `contracts/features.json`에서 `buildOutline`은 php, go, rust, php-native, python 모두 `pass`이며, Go, Rust, PHP, PHP 확장, Python generator와 C16.49-1부터 C16.49-7의 선언이 이를 뒷받침합니다(C16.49). Red: `make divergence-check`가 `buildOutline`의 `unsupported` 항목 5건을 보고했고, green: 보고하지 않으며 남은 divergence는 17건입니다.
 
 ### 2026-10-20 — 한국어 changelog가 rebase 뒤 영어 changelog를 따른다 (C16.66)
 
