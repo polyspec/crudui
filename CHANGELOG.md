@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The CI-only rule in AGENTS and the testing guide (C16.7-2)
+
+- `AGENTS.md` and `docs/operations/testing.md` (and their Korean twins) state that the full suite runs only in CI, as PRINCIPLES.md says: the rule about `make ci`, `make crudui-check`, the full-run guard and `make rerun-failed` is removed, and `CI_TARGETS` is described as the list of the workflow (C16.7-2). Red: both documents described a local full run of kit's `full-run.mjs`, which kit 0.0.54 does not have (`make rules-check` and `check-documents` passed, so the check is the removed text: `git grep` for `rerun-failed` and `full-run` in the two files counted 16 lines); green: no line. The Makefile targets that still call `full-run.mjs` are item C16.7-3.
+
 ### 2026-10-20 — Shared guards of the PHP string and reference rules (C16.20)
 
 - `Rules\StringRule` holds the switch-off and string guard of `Email`, `Url` and `DateISO`, and `Rules\ReferenceRule` the switch-off and field lookup of `EndDate` and `EqualTo`; each rule keeps only what decides its result (C16.20). Red: `make duplication-check` listed 5 clones between `Date`, `DateISO`, `Email`, `Url`, `EndDate` and `EqualTo`; green: none of them, and `ValidateConformanceTest` (318), `DocCoverageTest`, `FieldSpecTest` (17) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.

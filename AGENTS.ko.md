@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 745afe3373bee24a1e2087bbc204946b6a88c86f43c9e82b1e4e4f741d3837d5 -->
+<!-- source-sha256: d847d05c27c4fc0de2676495813865784a5ef59cafafe55fe55fa9175770e464 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -15,11 +15,6 @@
   cross-check suite, 전체 build), `make owner-check`와 전체 실행은 `main`에 push될 때 CI에서 실행합니다. CI가 보고한
   실패는 다른 결함과 같이 작업으로 올립니다.
   Enforced by: none, commit 전에 어떤 unit test를 실행하는지는 어떤 검사도 읽지 않는 절차입니다.
-- `make ci`는 요청할 때 이 machine에서 CI workflow를 재현하고, `make crudui-check`는 kit의 검사(`CHECK_TARGETS`)를 실행합니다.
-  둘 다 `@polyspec/kit`의 전체 실행 guard 아래에서 committed tree마다 한 번 실행합니다. guard는 작업이 `[~]`이거나,
-  추적 중인 변경이 커밋되지 않았거나, `var/full-run.json`이 현재 tree의 전체 실행을 이미 기록한 경우 실행을 거부합니다.
-  `make rerun-failed`는 현재 tree에서 통과하지 못한 target만 다시 실행합니다(`docs/operations/testing.md`).
-  Enforced by: `make kit-check`
 - push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook
   `.githooks/pre-push`은 `make push-gate-hook`을 실행하며, 이 명령은 그런 push를 거부하고 진행 중인 작업을 각각 밝힙니다.
   모든 `make` 실행은 `core.hooksPath`를 `.githooks`로 설정하며, hook이 설치되지 않았으면 `make hooks-check`가 실패합니다.

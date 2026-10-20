@@ -15,12 +15,6 @@ only the rules of crudui.
   comparison, the native and cross-check suites, full builds), `make owner-check` and the full run run in CI on the push
   to `main`. A failure that CI reports gets a task like any other defect.
   Enforced by: none, which unit tests a developer runs before a commit is a procedure that no check reads.
-- `make ci` reproduces the CI workflow on this machine on request, and `make crudui-check` runs the checks of kit
-  (`CHECK_TARGETS`). Both run under the full-run guard of `@polyspec/kit`, once per committed tree: the guard refuses a run
-  while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json` already records a full run of
-  the current tree. `make rerun-failed` reruns only the targets of the current tree that did not pass
-  (`docs/operations/testing.md`).
-  Enforced by: `make kit-check`
 - A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the working tree. The
   tracked pre-push hook `.githooks/pre-push` runs `make push-gate-hook`, which refuses such a push and names each task in
   progress. Every `make` run sets `core.hooksPath` to `.githooks`, and `make hooks-check` fails while the hook is not

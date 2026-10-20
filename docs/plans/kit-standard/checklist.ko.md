@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b0bc1e8cf67abd76c095ea44c366f604fa3f2cf23896bafbc8e02f441edfb2c0 -->
+<!-- source-sha256: 2b1301f72be4192d578dfbf7e34f9bcf9ce8a952d5e6ed426da643bc35515ea9 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -12,7 +12,8 @@
 | C16.6 | PHP generator에 빈 catch가 없다 | packages/generator/php/src/Internal/Design.php, packages/generator/php/tests/FormTest.php | `make lint-php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormTest.php` | [o] |
 | C16.7 | repository의 모든 도구가 config/rebuild.json에 class를 가진다 | config/rebuild.json, docs/rebuild | `make rebuild-check` | [o] |
 | C16.7-1 | config/rebuild.json과 config/duplication.json은 config/owner-checks.json에 owner를 가진다 | config/owner-checks.json | `make owner-validate` | [o] |
-| C16.7-2 | AGENTS.md는 전체 suite가 CI에서만 실행된다는 kit 규칙을 적는다 (make ci, full-run guard, rerun-failed 없음) | AGENTS.md, AGENTS.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md | `make rules-check`, `make docs-check-documents` | [ ] |
+| C16.7-2 | AGENTS.md는 전체 suite가 CI에서만 실행된다는 kit 규칙을 적는다 (make ci, full-run guard, rerun-failed 없음) | AGENTS.md, AGENTS.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md | `make rules-check`, `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
+| C16.7-3 | Makefile에 kit의 제거된 full-run 도구가 필요한 target(ci, check, crudui-check, rerun-failed)이 없다 | Makefile, tests/build/ci-local.test.mts, CHECK_TARGETS | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [ ] |
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |

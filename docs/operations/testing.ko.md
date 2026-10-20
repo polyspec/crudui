@@ -27,9 +27,9 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 `npm run test:runtimes`가 실행하는 `tests/build/rust-release-profile.test.mts`가 이를 검사합니다.
 
 개발하는 동안에는 바뀐 것을 소유한 unit test, 곧 그 Red와 Green case만 실행합니다. end-to-end 검사(browser,
-container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 `main`으로의 push의
+container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행은 `main`으로의 push의
 CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
-동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
+동안 push를 거부할 뿐입니다(아래).
 
 workflow의 모든 step은 make 대상을 실행합니다. 설치(`rust-toolchain.toml`의 Rust toolchain도 설치하는 `make install-tools`,
 `make install-packages`, `make crudui-install-composer`, `make crudui-install-crates`, `make crudui-install-browsers BROWSERS="..."`), 도구 검사
@@ -38,9 +38,8 @@ workflow의 모든 step은 make 대상을 실행합니다. 설치(`rust-toolchai
 `tests/build/ci-local.test.mts`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
 실패합니다.
 
-`make ci`는 `conformance-reset`을 실행한 뒤 `CI_TARGETS`의 모든 대상을 워크플로 순서대로 실행하고, 적합성 증거를 모아
-CI의 마지막 작업처럼 검사합니다. `tests/build/ci-local.test.mts`는 이 목록이 `.github/workflows/ci.yml`과 다르면
-실패합니다.
+Makefile의 `CI_TARGETS`는 workflow의 대상을 그 순서대로 나열합니다. `tests/build/ci-local.test.mts`는 이 목록이
+`.github/workflows/ci.yml`과 다르면 실패합니다.
 
 실패는 이후 검사를 멈추지 않으므로 한 번의 실행이 모든 실패를 보고합니다. 각 CI job은 검사를 한 step,
 `make ci-targets TARGETS="..."`로 실행하고 이것은 모든 대상을 끝까지 실행하며, 그 step은 `if: ${{ !cancelled() }}`를
@@ -57,33 +56,8 @@ package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검
 뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않습니다.
 `scripts/run-contract-tests.mts`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
-`make crudui-check`는 kit의 검사, 곧 Makefile의 `CHECK_TARGETS`(`kit-check`, `toolchain-check`, `layout-check`, `docs-check`,
-`owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, `lint-*` 대상, `records-check`)를 `make ci`와
-같은 guard로 실행합니다.
-
-`make ci`는 `docs/plans/execution-checklist/checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 대상보다
-먼저 `node_modules/@polyspec/kit/dist/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고 다음의 경우 status 1로 거부합니다. checklist의
-작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. checklist를 읽을 수 없으면 거부합니다. pre-push hook이
-설치되지 않았으면(`make hooks-check`, 아래) 거부합니다. 추적 파일에 커밋되지 않은 변경이 있거나 무시되지 않는 새 file이 있으면
-거부합니다. 전체 실행은 그 둘을 담지 않는 커밋된 tree를 검증하기 때문입니다. `var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의
-전체 실행을 기록하고 있으면 그 실행을 commit, 시작 시각, 결과와 함께 밝히며 거부합니다. `incomplete` record의 process가 아직 실행 중이면
-거부합니다. guard는 첫 읽기부터 마지막 쓰기까지 lock `var/full-run.lock`을 잡습니다.
-
-대상은 커밋된 commit의 working tree에서 실행됩니다. 전체 실행은 이전 실행의 적합성 증거를 지우는 `conformance-reset`을 실행한 뒤,
-`CI_TARGETS`의 각 대상을 `make -k <target>`으로 끝까지, 대상이 실패한 뒤에도 계속 실행합니다. 각 대상의 시작과 결과를 경과 시간과 함께
-출력하고 각 대상의 출력을 `var/report/full-run/targets/<target>.log`에 씁니다. 어떤 대상에도 시간 제한이 없습니다. 각 대상의 앞뒤에
-`var/full-run.json`을 씁니다. 이 record는 tree, commit, process와 그 시작 시각, 시작과 끝 시각, 결과(마지막 대상이 끝날 때까지
-`incomplete`, 그다음 `passed` 또는 `failed`), 그리고 각 대상의 상태(`pending`, `running`, `passed`, `failed`), 시각, 실패한 대상의 마지막 출력
-줄을 담습니다. 따라서 멈춘 실행은 실행 중이던 대상과 함께 `incomplete`로 기록되어 남습니다. `var/`는 Git이 무시하므로 checkout과
-worktree마다 자기 record를 가집니다. tree를 바꾸는 commit은 `[~]` 작업이 없을 때 새 전체 실행을 허용합니다.
-
-`make rerun-failed`는 현재 tree에서 통과하지 못한 대상, 즉 실패한 대상과 `incomplete` 실행이 끝내지 못한 대상만 다시 실행합니다. `node
-scripts/check-conformance.mts`가 읽는, 통과한 대상의 적합성 증거는 유지합니다. 진행 중인 작업, 커밋되지 않은 변경, 실행 중인 process에 대해서는
-`make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
-record의 `reruns`에 쓰고, 모든 대상이 통과하면 그 tree의 결과는 `passed`가 됩니다.
-
-CI workflow는 `main`으로의 push와 수동 실행(`workflow_dispatch`)마다 같은 대상을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
-CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
+CI workflow는 `main`으로의 push와 수동 실행(`workflow_dispatch`)마다 이 대상을 job에서 실행합니다. 전체 suite는 다른 곳에서
+실행하지 않습니다(PRINCIPLES.md, Verification).
 
 native suite는 세 CI job에서 실행되므로 어떤 job도 다른 runtime이 필요한 suite를 기다리지 않습니다.
 `php-engine`은 Node.js와 C compiler로 `make crudui-test-php-engine`을 한 번, `native-generators`는
@@ -121,7 +95,7 @@ ref와 commit 또는 `working tree`와 함께 출력하고, push를 막는 상�
 Git은 hook을 version 관리하지 않습니다. make 실행은 checkout이 `.githooks/pre-push`를 추적하면 `core.hooksPath`를 `.githooks`로 설정하므로(`@polyspec/kit`의 `kit.mk`),
 어떤 make target이든 실행한 checkout에는 hook이 있습니다. `make hooks`(`node node_modules/@polyspec/kit/dist/git-hooks.mjs install`)는 `core.hooksPath`를 설정하고 hook을 쓰고 실행 가능하게
 하며, `make hooks-check`는 `core.hooksPath`가 `.githooks`가 아니거나 `.githooks/pre-push`가 없거나 실행 가능한 file이 아니거나 도구의 hook과 다른 내용이면
-실패하고 해결 방법을 적습니다. `make ci`의 guard도 같은 이유로 거부합니다.
+실패하고 해결 방법을 적습니다.
 
 hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. `.github/workflows/push-gate.yml`의 job `push-gate`는 branch로의 모든 push에서 실행되어,
 push된 commit을 checkout하고 `make ci-targets TARGETS="push-gate-commit records-check"`를 실행합니다. `make push-gate-commit`
@@ -156,8 +130,8 @@ PHPUnit을 실행하며, `packages/`의 모든 package에서는 root입니다(ki
 
 ## 린트
 
-`make lint`는 kit의 `make lint-ts`와 `packages/svelte`의 Svelte lint를 실행합니다. CI의 빌드·린트·타입 작업과
-`make ci`가 이를 호출하고, `make crudui-check`는 `lint-ts`를 실행합니다. `make lint-ts`는 copy된 `.oxlintrc.json`으로 Git이 무시하지 않는
+`make lint`는 kit의 `make lint-ts`와 `packages/svelte`의 Svelte lint를 실행합니다. CI의 빌드·린트·타입 작업이
+이를 호출합니다. `make lint-ts`는 copy된 `.oxlintrc.json`으로 Git이 무시하지 않는
 모든 file에 oxlint를(oxlint-tsgolint로 type-aware, warning 거부), copy된 `knip.json`으로 root에서 knip을, `api-extractor.json`을
 가진 각 package에서 API Extractor를 실행합니다. oxlint에는 Svelte 규칙이 없으므로 `npm run lint -w @polyspec/crudui-generator-svelte`가
 그 package의 component에 eslint-plugin-svelte를 쓰는 ESLint를 실행하며(`packages/svelte/eslint.config.js`), 그 TypeScript

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5e032e26fd26903756197c42479a9a0172b28f171dec27ef2bed078f98e8f4b6 -->
+<!-- source-sha256: 47377cd5e2d10c20fbc83df77bf9c3053a84e732fbc2c9ad6921f3a337be35b6 -->
 
 ## Unreleased
+
+### 2026-10-20 — AGENTS와 testing guide의 CI 전용 규칙 (C16.7-2)
+
+- `AGENTS.md`와 `docs/operations/testing.md`(와 한국어 쌍)는 PRINCIPLES.md대로 전체 suite가 CI에서만 실행된다고 적습니다. `make ci`, `make crudui-check`, full-run guard, `make rerun-failed`에 관한 규칙을 제거하고 `CI_TARGETS`는 workflow의 목록으로 설명합니다 (C16.7-2). Red: 두 문서가 kit 0.0.54에 없는 `full-run.mjs`의 local 전체 실행을 설명했고(`make rules-check`와 `check-documents`는 통과하므로 검사는 제거할 문장입니다: 두 파일에서 `rerun-failed`와 `full-run`을 `git grep`하면 16줄), green: 0줄. `full-run.mjs`를 아직 호출하는 Makefile target은 C16.7-3입니다.
 
 ### 2026-10-20 — PHP string rule과 참조 rule의 공유 guard (C16.20)
 

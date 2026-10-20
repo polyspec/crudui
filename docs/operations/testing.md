@@ -30,9 +30,9 @@ Every crate that declares a release profile sets `strip = "none"`;
 
 During development, run only the unit tests that own the change: its Red and Green cases.
 End-to-end checks (browsers, containers, the form comparison, the native and cross-check suites,
-full builds), `make owner-check` and the full run `make ci` run in CI on the push to `main`, and no rule
+full builds), `make owner-check` and the full run run in CI on the push to `main`, and no rule
 requires a local check before a push or a commit; the pre-push hook only refuses a push while a
-checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
+checklist task is `[~]` (below).
 
 Every step of the workflows runs a make target: the installs (`make install-tools`, which installs
 the Rust toolchain of `rust-toolchain.toml` too, `make install-packages`, `make crudui-install-composer`,
@@ -42,8 +42,7 @@ recipes start every tool with the offline settings, `$(NPM)` and the toolchains 
 `tests/build/ci-local.test.mts` fails for a step that starts node, npm, npx, cargo, go, php,
 composer, rustup, python3 or sh without make.
 
-`make ci` runs `conformance-reset` and then every target of `CI_TARGETS` in the workflow's order, collects
-the conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mts` fails
+`CI_TARGETS` of the Makefile lists the targets of the workflow in its order; `tests/build/ci-local.test.mts` fails
 when the list differs from `.github/workflows/ci.yml`.
 
 A failure never stops the later checks, so one run reports every failure. Each CI job runs its
@@ -64,43 +63,8 @@ and an `&&` chain puts no step after a check.
 `scripts/run-contract-tests.mts` runs every declared command, also after an earlier one failed, and
 fails after the last one.
 
-`make crudui-check` runs the checks of kit, `CHECK_TARGETS` of the Makefile (`kit-check`, `toolchain-check`, `layout-check`,
-`docs-check`, `owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, the
-`lint-*` targets and `records-check`), through the same guard as `make ci`.
-
-`make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist/checklist.md` is
-`[~]`. Before any target it starts `node_modules/@polyspec/kit/dist/full-run.mjs`, which prints its decision with the
-reason and refuses with status 1 while a task row of the checklist is `[~]`, listing each active ID
-with its task; while the checklist cannot be read; while the pre-push hook is not installed
-(`make hooks-check`, below); while tracked files have uncommitted changes or new files are not
-ignored, because a full run verifies a committed tree, which holds neither; when `var/full-run.json`
-records a full run of the current tree (`git rev-parse HEAD^{tree}`), naming that run with its
-commit, its start time and its result; and while the process of an `incomplete` record still runs.
-The guard holds the lock `var/full-run.lock` from its first read to its last write.
-
-The targets run in the working tree of the committed commit. A full run runs `conformance-reset`,
-which removes the conformance evidence of earlier runs, then each target of `CI_TARGETS` as
-`make -k <target>` to its end, also after a target fails. It prints the start and the result of
-each target with the elapsed time and writes the output of each target to
-`var/report/full-run/targets/<target>.log`; no target has a time limit. It writes `var/full-run.json`
-before and after each target: the tree, the commit, the process and its start time, the start and
-end times, the result (`incomplete` until the last target ends, then `passed` or `failed`), and each
-target with its status (`pending`, `running`, `passed`, `failed`), its times and, for a failed target,
-its last output lines. A run that is stopped therefore stays recorded as `incomplete`, with the
-target that was running. `var/` is ignored by Git, so each checkout and worktree has its own record.
-A commit that changes the tree permits a new full run when no task is `[~]`.
-
-`make rerun-failed` reruns only the targets of the current tree that did not pass: the failed
-targets and the targets that an `incomplete` run did not finish. It keeps the conformance evidence
-of the targets that passed, which `node scripts/check-conformance.mts` reads. It is refused like
-`make ci` for a task in progress, uncommitted changes and a running process, and also when there is
-no record, when the record belongs to another tree and when the full run of the tree passed. It
-writes each rerun into `reruns` of the record; when every target has passed, the result of the tree
-becomes `passed`.
-
-The CI workflow runs the same targets in its jobs on each push to `main` and each manual run
-(`workflow_dispatch`) and does not run `make ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
-runs there when no task is `[~]` and the tree is clean.
+The CI workflow runs these targets in its jobs on each push to `main` and each manual run (`workflow_dispatch`); the
+full suite runs nowhere else (PRINCIPLES.md, Verification).
 
 The native suites run in three CI jobs, so no job waits for a suite that another runtime needs:
 `php-engine` runs `make crudui-test-php-engine` once with Node.js and the C compiler, `native-generators`
@@ -148,7 +112,7 @@ Git does not version hooks. A make run sets `core.hooksPath` to `.githooks` when
 `make hooks` (`node node_modules/@polyspec/kit/dist/git-hooks.mjs install`) sets `core.hooksPath`, writes the hook and makes
 it executable, and `make hooks-check` fails while `core.hooksPath` is not `.githooks` or
 `.githooks/pre-push` is missing, is not an executable file or has other content than the hook of the
-tool, and names the fix. The guard of `make ci` refuses for the same reasons.
+tool, and names the fix.
 
 A clone without the hook, or a push that skips it, still reaches GitHub. The job `push-gate` of
 `.github/workflows/push-gate.yml` runs on every push to a branch, checks out the pushed commit and runs
@@ -188,7 +152,7 @@ install compilation and production rendering.
 ## Lint
 
 `make lint` runs `make lint-ts` of kit and the Svelte lint of `packages/svelte`; CI's build, lint and types
-job and `make ci` call it, and `make crudui-check` runs `lint-ts`. `make lint-ts` runs oxlint with the copied `.oxlintrc.json`
+job calls it. `make lint-ts` runs oxlint with the copied `.oxlintrc.json`
 (type-aware through oxlint-tsgolint, warnings denied) over every file that Git does not ignore, knip from the root with the
 copied `knip.json`, and API Extractor in each package with an `api-extractor.json`. oxlint has no Svelte rules, so
 `npm run lint -w @polyspec/crudui-generator-svelte` runs ESLint with eslint-plugin-svelte on the components of that
