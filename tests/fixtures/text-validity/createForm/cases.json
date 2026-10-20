@@ -2,6 +2,10 @@
   {
     "name": "pass-paired-surrogates",
     "note": "a surrogate pair is valid text in data and in a set value.",
+    "requirements": [
+      "CUIT-011",
+      "CUIT-015"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -26,6 +30,9 @@
   {
     "name": "data-lone-low-value",
     "note": "a lone low surrogate in initial data is an input failure.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -47,6 +54,9 @@
   {
     "name": "data-before-options",
     "note": "the data is checked before the options.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -71,6 +81,9 @@
   {
     "name": "key-prefix",
     "note": "an invalid key prefix is an input failure.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -92,6 +105,9 @@
   {
     "name": "template-member-name",
     "note": "an invalid member name in a template is reported at its object.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "template": {
       "kind": "crudui/form-template",
       "fields": [
@@ -120,6 +136,9 @@
   {
     "name": "set-data",
     "note": "replacing the record checks its text.",
+    "requirements": [
+      "CUIT-014"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -167,6 +186,9 @@
   {
     "name": "set-value-value",
     "note": "a set value is checked after its path.",
+    "requirements": [
+      "CUIT-015"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -192,6 +214,9 @@
   {
     "name": "set-value-path",
     "note": "an invalid path is an input failure before the path is resolved.",
+    "requirements": [
+      "CUIT-015"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -217,6 +242,9 @@
   {
     "name": "get-value-path",
     "note": "an invalid read path is an input failure.",
+    "requirements": [
+      "CUIT-016"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -241,6 +269,9 @@
   {
     "name": "add-row-key",
     "note": "an explicit row key is checked with the other row options in name order.",
+    "requirements": [
+      "CUIT-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -288,6 +319,9 @@
   {
     "name": "add-row-value",
     "note": "a supplied row value is checked as an option.",
+    "requirements": [
+      "CUIT-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -334,6 +368,9 @@
   {
     "name": "copy-row-key",
     "note": "the copied row key is an input failure before the collection is resolved.",
+    "requirements": [
+      "CUIT-018"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -383,6 +420,9 @@
   {
     "name": "remove-row-key",
     "note": "a removed row key is checked after the path.",
+    "requirements": [
+      "CUIT-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -432,6 +472,9 @@
   {
     "name": "move-row-key",
     "note": "a moved row key is an input failure.",
+    "requirements": [
+      "CUIT-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -482,6 +525,9 @@
   {
     "name": "rekey-row-new-key",
     "note": "the new row key is checked after the old key.",
+    "requirements": [
+      "CUIT-020"
+    ],
     "spec": {
       "type": "group",
       "properties": {

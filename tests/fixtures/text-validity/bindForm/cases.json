@@ -2,6 +2,9 @@
   {
     "name": "pass-paired-surrogates",
     "note": "a surrogate pair is valid text in data and in the identifier prefix.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -22,6 +25,9 @@
   {
     "name": "data-lone-high-value",
     "note": "a lone high surrogate in a data value is an input failure.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -43,6 +49,9 @@
   {
     "name": "data-member-name",
     "note": "an invalid data member name is reported at its object.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -64,6 +73,9 @@
   {
     "name": "data-nested-row",
     "note": "a keyed row value is located by its row key.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -106,6 +118,9 @@
   {
     "name": "data-before-options",
     "note": "the data is checked before the options.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -130,6 +145,9 @@
   {
     "name": "options-in-name-order",
     "note": "options are checked in code point order of their names.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -152,6 +170,9 @@
   {
     "name": "language-before-support",
     "note": "an invalid language is a text failure before the supported-language check.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -173,6 +194,9 @@
   {
     "name": "key-prefix",
     "note": "an invalid key prefix is an input failure.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -194,6 +218,9 @@
   {
     "name": "template-before-data",
     "note": "a template decoded from JSON text is checked before the data.",
+    "requirements": [
+      "CUIT-011"
+    ],
     "template": {
       "kind": "crudui/form-template",
       "fields": [

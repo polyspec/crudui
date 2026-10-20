@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 48bd6b5ae81ee2a3b7bad54e5737f589ed0bcf4ea01b8ddc567a4776ad36b894 -->
+<!-- source-sha256: 7d764dfdec1815df9efa0b928075853276c8b9624dd8f3d783d8ec70b1a48ef8 -->
 
 ## Unreleased
 
@@ -56,6 +56,11 @@
 
 - `config/parity.json`은 테스트 파일 23개를 internal로 선언합니다. TypeScript 22개와 Python 1개이며, 각 이유는 행동을 덮는 공유 suite와 unit의 이름을 적습니다. generator TypeScript 파일 14개는 form-render, list-render, detail-render, form-complete 아래에 있고, 다만 `css.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. validator TypeScript 파일 8개는 validate 아래에 있고, 다만 `types.roundtrip.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. `packages/validator/python/tests/test_pattern_states.py`는 validate 아래에 있습니다.
 - 검사는 이 23개 파일을 R5 undeclared-test로 더 이상 보고하지 않습니다. 남은 TypeScript와 Python 파일 26개는 compose, expr, interface-messages, unicode-data 파일이거나 분류 기록의 gap이며, 뒤의 행에서 다룹니다.
+
+### 2026-10-21 — input text fixture의 generator case가 요구사항을 적고, 다섯 suite unit이 이를 binding한다 (C16.111)
+
+- `tests/fixtures/text-validity`의 generator case 파일 다섯 개(`compileForm`, `bindForm`, `createForm`, `buildList`, `buildDetail`)는 각 case가 검사하는 요구사항을 `requirements`에 적습니다. `compileForm`은 CUIT-010, `bindForm`과 action이 없는 `createForm` case는 CUIT-011, `buildList`는 CUIT-012, `buildDetail`은 CUIT-013이며, `createForm`의 action case는 method에 따라 CUIT-014부터 CUIT-020까지입니다.
+- `config/parity.json`은 case 파일마다 suite unit 하나를 선언하며, TypeScript와 Python generator test, Go, PHP, PHP extension, Rust runner의 여섯 binding을 둡니다. CUIT-010부터 CUIT-020까지는 이제 unit이 인용하므로 검사는 이를 추적되지 않은 요구사항으로 보고하지 않습니다.
 
 ### 2026-10-21 — Rust generator가 text-validity fixture의 모든 case를 실행한다 (C16.110)
 

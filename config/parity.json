@@ -1716,6 +1716,208 @@
           "id": "test_embedded_messages_equal_the_contract"
         }
       ]
+    },
+    {
+      "id": "text-compile-form",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/compileForm/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/input-text.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/input_text_test.go",
+          "symbol": "TestInputTextCases"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_text_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/input_text.rs",
+          "symbol": "input_text"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        }
+      ],
+      "requirements": [
+        "CUIT-010"
+      ]
+    },
+    {
+      "id": "text-bind-form",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/bindForm/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/input-text.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/input_text_test.go",
+          "symbol": "TestInputTextCases"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_text_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/input_text.rs",
+          "symbol": "input_text"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        }
+      ],
+      "requirements": [
+        "CUIT-011"
+      ]
+    },
+    {
+      "id": "text-create-form",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/createForm/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/input-text.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/input_text_test.go",
+          "symbol": "TestInputTextCases"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_text_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/input_text.rs",
+          "symbol": "input_text"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        }
+      ],
+      "requirements": [
+        "CUIT-011",
+        "CUIT-014",
+        "CUIT-015",
+        "CUIT-016",
+        "CUIT-017",
+        "CUIT-018",
+        "CUIT-019",
+        "CUIT-020"
+      ]
+    },
+    {
+      "id": "text-build-list",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/buildList/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/input-text.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/input_text_test.go",
+          "symbol": "TestInputTextCases"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_text_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/input_text.rs",
+          "symbol": "input_text"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        }
+      ],
+      "requirements": [
+        "CUIT-012"
+      ]
+    },
+    {
+      "id": "text-build-detail",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/buildDetail/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/input-text.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/input_text_test.go",
+          "symbol": "TestInputTextCases"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_text_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/input_text.rs",
+          "symbol": "input_text"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/InputTextTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\InputTextTest::testGeneratorCase"
+        }
+      ],
+      "requirements": [
+        "CUIT-013"
+      ]
     }
   ],
   "tools": [

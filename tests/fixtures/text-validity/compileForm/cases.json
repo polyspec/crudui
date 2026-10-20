@@ -2,6 +2,9 @@
   {
     "name": "pass-paired-surrogates",
     "note": "a surrogate pair is valid text in a specification and in the key prefix.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -19,6 +22,9 @@
   {
     "name": "spec-lone-high-in-label",
     "note": "a lone high surrogate in a label is a load failure.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -37,6 +43,9 @@
   {
     "name": "spec-button-text",
     "note": "button text is specification text.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -61,6 +70,9 @@
   {
     "name": "spec-before-shape",
     "note": "text is checked before the specification shape.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "\ud800"
     },
@@ -73,6 +85,9 @@
   {
     "name": "file-document",
     "note": "invalid text in a file is located at the file name and path.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -103,6 +118,9 @@
   {
     "name": "options-in-name-order",
     "note": "options are checked in code point order of their names.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -125,6 +143,9 @@
   {
     "name": "key-prefix",
     "note": "an invalid key prefix is an input failure.",
+    "requirements": [
+      "CUIT-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {

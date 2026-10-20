@@ -56,6 +56,11 @@
 - `config/parity.json` declares 23 test files internal, 22 TypeScript and 1 Python, each with a reason that names the shared suite and the unit that cover its behaviour. The 14 generator files are internal under form-render, list-render, detail-render and form-complete, except `css.test.ts`, which is internal to its implementation alone; the 8 validator files are internal under validate, except `types.roundtrip.test.ts`, which is internal to its implementation alone; `packages/validator/python/tests/test_pattern_states.py` is internal under validate.
 - The check no longer reports these 23 files as R5 undeclared-test. The 26 TypeScript and Python files that remain are compose, expr, interface-messages and unicode-data files, or gaps of the classification in the scratchpad, and stay for later rows.
 
+### 2026-10-21 — The generator cases of the input text fixtures name their requirements, and five suite units bind them (C16.111)
+
+- The five generator case files of `tests/fixtures/text-validity` (`compileForm`, `bindForm`, `createForm`, `buildList` and `buildDetail`) name the requirements that each case tests in `requirements`: CUIT-010 for `compileForm`, CUIT-011 for `bindForm` and for the `createForm` cases without an action, CUIT-012 for `buildList`, CUIT-013 for `buildDetail`, and CUIT-014 to CUIT-020 for the `createForm` actions by method.
+- `config/parity.json` declares one suite unit for each case file, with the six bindings of the TypeScript and Python generator tests, the Go, PHP, PHP extension and Rust runners. The requirements CUIT-010 to CUIT-020 are now cited by a unit, so the check no longer reports them as untraced.
+
 ### 2026-10-21 — The Rust generator runs every case of the text-validity fixtures (C16.110)
 
 - `packages/generator/rust/tests/input_text.rs` runs the 48 cases of the five generator fixtures of `tests/fixtures/text-validity` through the public generator API, one libtest-mimic trial per case. A case's members are read with `polyspec_crudui_validator::text::JsonText`, which keeps unpaired surrogates, and each operation checks its text in the order of `docs/spec/input-text.md` through the generator's `text` checks before the members are decoded into values.
