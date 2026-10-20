@@ -7,6 +7,21 @@
 
 - `examples/form-comparison/servers/php/main.mjs` starts the php-fpm of the PHP that built the modules (the `php-config` of `var/tools/bin`, the PHP of `.php-version`) from the `sbin` of its installation, in `phpFpmPath()`, instead of `php-fpm` from PATH; a missing php-fpm fails with the path it looked for (C16.62). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` exit 1, 104 passed, 26 failed; the php-ext store fails with "ordered_json: Unable to initialize module" because the php-fpm on PATH (`/opt/homebrew/sbin/php-fpm`, PHP 8.5) loads modules built for API 20240924 of PHP 8.4; green: exit 0, 130 passed, 0 failed.
 
+### 2026-10-21 — The generator tests that no binding runs have a place (C16.155)
+
+- The six generator test files that no binding ran are declared in `config/parity.json`: five TypeScript files as internal tests of the `ts` implementation and one PHP file as an internal test of the `php` implementation (C16.155). No test file changed, and no file is bound, because each file's cases are either a browser runtime behaviour, an internal helper, or a second test of a contract whose suite already has a binding in its implementation.
+
+| File | Decision | Reason |
+|---|---|---|
+| packages/generator/ts/src/display-validity.test.ts | internal (ts) | render acceptance of the list-validity and detail-validity cases through buildList and buildDetail; the validator bindings of those suites run the same cases |
+| packages/generator/ts/src/dom-sync.test.ts | internal (ts) | browser runtime: connectForm writes the server render values into live controls; no README section documents it yet (docs/spec/form-runtime.md) |
+| packages/generator/ts/src/expr.test.ts | internal (ts) | evalAppearance, evalShow and evalFlag are TypeScript helpers; the expression language is tested by the shared expr suite |
+| packages/generator/ts/src/form.test.ts | internal (ts) | TypeScript form API and its declaration messages; the row contract is tested by form-actions and form-view through form-state.test.ts |
+| packages/generator/ts/src/patch.test.ts | internal (ts) | browser runtime documented in packages/html/README.md (Keeping controls across re-renders, Scripts in rendered markup) |
+| packages/generator/php/tests/Internal/InterfaceMessagesTest.php | internal (php) | the generated PHP source equals the output of its generator script; the message contract is the interface-messages unit |
+
+Red: `make item-red ID=C16.155 BEFORE=69bd6b3b` exit 1 with the six `R5 undeclared-test` lines of the files above; green: the Verification exits 0, the six lines are gone, no line appears, and the findings of `make parity-declarations-check` go from 61 to 55.
+
 ### 2026-10-21 — make install of a fresh worktree runs to its end (C16.149)
 
 - `crudui-install` of the Makefile runs `install-link` after `crudui-install-python` and `crudui-install-composer` and before `crudui-install-phpdocumentor` (C16.149). composer install writes `vendor/composer/platform_check.php` from the tracked `composer.lock`, which demands PHP 8.5 for the released polyspec/ordered-json 0.0.9, and the link that writes the check for the PHP 8.4.1 of `.php-version` ran only at the end of `make install`, so `make worktree-setup` stopped at phpDocumentor with "Composer detected issues in your platform". Red: the order check of `make -n crudui-install` exit 1 on 379832f3; green: exit 0, and `make install-link` then `make crudui-install-phpdocumentor` install phpDocumentor 3.10.0 in the worktree.

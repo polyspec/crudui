@@ -172,6 +172,26 @@
           "reason": "test: the TypeScript unit test of hiddenPaths; the validate suite (CUVR-017, CUSC-055) covers its hidden member in tests/fixtures/validate, and input-root-data-not-object covers its non-object data error"
         },
         {
+          "glob": "packages/generator/ts/src/display-validity.test.ts",
+          "reason": "test: the render acceptance of the list-validity and detail-validity cases through the TypeScript buildList and buildDetail (a case the validator rejects is refused by the render); the validator bindings of those two suites run the same cases, so this file is a second internal test of them"
+        },
+        {
+          "glob": "packages/generator/ts/src/dom-sync.test.ts",
+          "reason": "test: the browser runtime behaviour of connectForm, which writes the values of the server render into the live controls (docs/spec/form-runtime.md, the connectForm paragraph), which only the TypeScript browser runtime has"
+        },
+        {
+          "glob": "packages/generator/ts/src/expr.test.ts",
+          "reason": "test: the appearance, show and flag evaluation helpers of the TypeScript generator (evalAppearance, evalShow, evalFlag), which only the TypeScript generator has in this form; the expression language is tested by the shared expr suite through packages/validator/ts/src/expr.conformance.test.ts"
+        },
+        {
+          "glob": "packages/generator/ts/src/form.test.ts",
+          "reason": "test: unit tests of the TypeScript form API (compileForm, bindForm, createForm, the cached template, the row operations and the declaration checks with TypeScript's messages), which only the TypeScript generator has in this form; the row contract is tested by the shared suites form-actions and form-view through packages/generator/ts/src/form-state.test.ts"
+        },
+        {
+          "glob": "packages/generator/ts/src/patch.test.ts",
+          "reason": "test: the browser runtime behaviour documented in packages/html/README.md (Keeping controls across re-renders and Scripts in rendered markup), which only the TypeScript browser runtime has"
+        },
+        {
           "glob": "packages/generator/ts/src/decode-template.test.ts",
           "reason": "test: the TypeScript decodeFormTemplate of a template across the JSON boundary and its JSON Pointers; the decoder is a TypeScript API (form-runtime.md, Decoding a template), so no other implementation checks the pointers"
         },
@@ -196,6 +216,10 @@
         "packages/validator/php"
       ],
       "internal": [
+        {
+          "glob": "packages/generator/php/tests/Internal/InterfaceMessagesTest.php",
+          "reason": "test: the generated PHP source of the interface messages equals the output of its generator script, which only the PHP generator has; the message contract is tested by the interface-messages unit (InterfaceMessagesConformanceTest)"
+        },
         {
           "glob": "packages/generator/php/tests/ButtonsTest.php",
           "reason": "test: unit tests of the PHP form buttons; the contract is tested by the shared form-render suite (unit form-render)"

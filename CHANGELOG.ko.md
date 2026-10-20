@@ -1,12 +1,27 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: bfc1e8c5635f2a5c0edcda3d4df3f6823ad74d80442b846578580ce7d0ca7d77 -->
+<!-- source-sha256: a4e0f0db0be39e24213b2b0cc29cab3b211beecfee6d933e13b13e601bf1a9e0 -->
 
 ## Unreleased
 
 ### 2026-10-21 — php 기록 서버가 자신의 모듈을 빌드한 PHP의 php-fpm을 실행한다 (C16.62)
 
 - `examples/form-comparison/servers/php/main.mjs`가 PATH의 `php-fpm` 대신, 모듈을 빌드한 PHP(`.php-version`의 PHP, `var/tools/bin`의 `php-config`)의 설치 `sbin`에서 php-fpm을 실행한다 (`phpFpmPath()`). 찾는 php-fpm이 없으면 찾은 경로를 적어 실패한다 (C16.62). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` 종료 코드 1, 104 passed, 26 failed; php-ext 저장소가 "ordered_json: Unable to initialize module"로 실패한다. PATH의 php-fpm(`/opt/homebrew/sbin/php-fpm`, PHP 8.5)이 PHP 8.4의 API 20240924로 빌드된 모듈을 불러오기 때문이다; green: 종료 코드 0, 130 passed, 0 failed.
+
+### 2026-10-21 — 어떤 바인딩도 실행하지 않던 generator 테스트에 자리가 생긴다 (C16.155)
+
+- 어떤 바인딩도 실행하지 않던 generator 테스트 파일 여섯 개를 `config/parity.json`에 선언한다. 다섯 개 TypeScript 파일은 `ts` 구현의 internal 테스트로, 한 개 PHP 파일은 `php` 구현의 internal 테스트로 선언한다 (C16.155). 테스트 파일은 바뀌지 않았고 어떤 파일도 바인딩되지 않았다. 각 파일의 case는 브라우저 런타임 동작, internal 헬퍼, 또는 이미 바인딩된 스위트가 맡은 계약의 두 번째 테스트이기 때문이다.
+
+| 파일 | 결정 | 이유 |
+|---|---|---|
+| packages/generator/ts/src/display-validity.test.ts | internal (ts) | buildList와 buildDetail을 통한 list-validity와 detail-validity case의 render 수용. validator 바인딩이 같은 case를 실행한다 |
+| packages/generator/ts/src/dom-sync.test.ts | internal (ts) | 브라우저 런타임: connectForm이 서버 render의 값을 live control에 쓴다. 이를 문서화한 README 절이 아직 없다 (docs/spec/form-runtime.md) |
+| packages/generator/ts/src/expr.test.ts | internal (ts) | evalAppearance, evalShow, evalFlag는 TypeScript 헬퍼다. 표현식 언어는 공유 expr 스위트가 시험한다 |
+| packages/generator/ts/src/form.test.ts | internal (ts) | TypeScript form API와 그 선언 메시지. row 계약은 form-state.test.ts를 통해 form-actions와 form-view가 시험한다 |
+| packages/generator/ts/src/patch.test.ts | internal (ts) | packages/html/README.md에 문서화된 브라우저 런타임 (Keeping controls across re-renders, Scripts in rendered markup) |
+| packages/generator/php/tests/Internal/InterfaceMessagesTest.php | internal (php) | 생성된 PHP 소스가 생성 스크립트의 출력과 같다. 메시지 계약은 interface-messages unit이다 |
+
+Red: `make item-red ID=C16.155 BEFORE=69bd6b3b`가 exit 1로, 위 파일의 `R5 undeclared-test` 줄 여섯 개와 함께 실패한다. green: Verification이 exit 0으로 끝나고, 여섯 줄이 사라지며, 새 줄은 나타나지 않고, `make parity-declarations-check`의 findings가 61에서 55로 줄어든다.
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 
