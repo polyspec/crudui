@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2ff9f53c529a9f824a21077a45d9b20b600afc820b104aa0b1619e10c13bd132 -->
+<!-- source-sha256: 0cc5507ab7a6be2da1e84c2015a35fc663763f2ea6562868b502393ffa585d09 -->
 
 ## Unreleased
+
+### 2026-10-20 — project 명령 안의 Rust generator test (C16.38-1)
+
+- `tests/build/rust-generators.test.mts`를 `package.json`의 `test:runtimes` script에 나열하여 project 명령이 이를 실행합니다 (C16.38-1). Red: `test-commands.test.mts`의 `every node:test file runs in a project command`가 이 file을 이름으로 하여 실패했고, green: 그 test가 통과합니다.
 
 ### 2026-10-20 — PHP extension의 S10 layout (C16.40)
 

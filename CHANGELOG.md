@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust generator test in a project command (C16.38-1)
+
+- `tests/build/rust-generators.test.mts` is listed in the `test:runtimes` script of `package.json`, so a project command runs it (C16.38-1). Red: `every node:test file runs in a project command` of `test-commands.test.mts` failed naming that file; green: that test passes.
+
 ### 2026-10-20 — The S10 layout of the PHP extension (C16.40)
 
 - The extension is named `polyspec_crudui` (the module entry, the `--ri` name, `extension_loaded('polyspec_crudui')` and the module file `polyspec_crudui.so`); its one stub and its arginfo header lie in `packages/php-ext/src/` as `polyspec_crudui.stub.php` and `polyspec_crudui_arginfo.h`; `packages/php-ext/composer.json` names it `polyspec/crudui-php-ext`; `packages/php-ext/src/config.m4` declares it with its sources and takes its version from `../composer.json`; and the exception of `config/layout.yml` for the old stub place is gone (kit K293) (C16.40). Red: `make lint-php-ext` exit 1 with 4 findings (composer.json, stub place, config.m4, missing stub); green: exit 0, `make layout-check` passes and `ApiTest` (4) passes against the module that the builder of `scripts/` builds under the new name.

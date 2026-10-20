@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 4856d83b55057a82a3c3ed3480ad0b57c9942e82828833b14c00f5920ba1c02d -->
+<!-- source-sha256: 9eaf14b4a402347bea6296f467258a705dcfaa1599feaedb4ca46515faede2c1 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -56,5 +56,7 @@
 | C16.36 | Go generator는 binding 검사, image preload, row suffix, declaration 오류, number 읽기를 공유한다 | packages/generator/go (bind.go, buttons.go, detail.go, list.go, image_preloads.go, value.go, template.go, display_declaration.go) | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test .`, `make lint-go` | [o] |
 | C16.37 | PHP generator는 image preload link와 object 판별을 공유한다 | packages/generator/php/src/Internal (Rendering.php, Value.php, Details.php, Lists.php, DisplayDeclaration.php, Template.php) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |
 | C16.38 | Rust generator는 저장소 root의 contract를 찾는다 | packages/generator/rust/tools/generate-interface-messages.mjs, packages/validator/rust/tools/generate-unicode-properties.mjs, tests/build/rust-generators.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/rust-generators.test.mts` | [o] |
+| C16.38-1 | rust-generators test는 test:runtimes에서 실행된다 | package.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts` | [o] |
 | C16.39 | Rust generator는 binding language, fixture 결과 정리, message table을 공유하고 Rust test는 사본 없이 순서 있는 object를 만든다 | packages/generator/rust/src/binding.rs, tests.rs, tools/generate-interface-messages.mjs, packages/validator/rust/src/compose/compose.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_fixture_records`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/rust-generators.test.mts`, `make lint-rust` | [o] |
 | C16.40 | PHP library가 둘인 저장소의 PHP extension은 S10의 layout과 이름을 따른다. polyspec_crudui, src/의 하나뿐인 stub, composer.json, config.m4 | packages/php-ext (composer.json, src/config.m4, src/polyspec_crudui.stub.php, src/polyspec_crudui_arginfo.h, src/crudui.c), config/layout.yml, the module name in the Makefile, the examples, the tests and the documents | `make lint-php-ext`, `make layout-check`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext -- tests/ApiTest.php` | [o] |
+| C16.41 | run-rust-command.mts는 mise shim이 pin한 cargo를 쓰고 scripts/tool-resolution.mts는 제거한다 | scripts/run-rust-command.mts, scripts/tool-resolution.mts, config/rebuild.json | `make rebuild-check` | [ ] |
