@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6255cb8ff61bb323a2ef43fa4ca7310160158019c94ebb6387ba4628b26fb00b -->
+<!-- source-sha256: 1d309cfb70864d2aa7e4c62a17dbf6de570b62a0ebbed9124b4e3d9f5d59d28e -->
 
 ## Unreleased
+
+### 2026-10-20 — offline-checks test의 online target (C16.7-8)
+
+- `tests/build/offline-checks.test.mts`는 `$(ONLINE)`으로 실행하는 target을 kit 0.0.54의 `kit.mk`가 정의한 대로 기대합니다. `php-ext-arginfo`와 `unlink`는 online으로 실행하고, `release-tools`와 `release-backend`는 더는 그렇지 않습니다 (C16.7-8). Red: `the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it`이 이 네 이름으로 실패했고, green: 이 file의 4건이 모두 통과합니다.
 
 ### 2026-10-20 — ci-local test의 release workflow trigger (C16.7-7)
 

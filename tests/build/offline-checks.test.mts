@@ -36,7 +36,7 @@ const CHECK = 'cargo-downloads-check';
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
 // the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). release-consumer installs the archives of a release in clean projects: the tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock', 'php-ext-arginfo', 'unlink'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 // The install targets of the Makefile itself that run a recipe: by the rule of docs/spec/package-build.md only they

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The online targets in the offline-checks test (C16.7-8)
+
+- `tests/build/offline-checks.test.mts` expects the targets that run with `$(ONLINE)` as the `kit.mk` of kit 0.0.54 defines them: `php-ext-arginfo` and `unlink` run online, `release-tools` and `release-backend` no longer do (C16.7-8). Red: `the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it` failed with those four names; green: all 4 tests of the file pass.
+
 ### 2026-10-20 — The release workflow triggers in the ci-local test (C16.7-7)
 
 - `tests/build/ci-local.test.mts` expects the triggers of `.github/workflows/release.yml` as `@polyspec/kit` copies it: tags `v*` and `**/v*`, and a manual run that names the tag (C16.7-7). Red: `each workflow declares exactly its triggers` failed on `release.yml`, which declares `workflow_dispatch` with the input `tag`; green: all 17 tests of `ci-local.test.mts` pass.
