@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0812e1a7f470e03ec23b8c5706450ace2823a904a8df3bd929c5454c4377438c -->
+<!-- source-sha256: 3226bd46c0396cbc60c41ca6eb349c5c5dd4a23ee34a658ef394aee81835e31d -->
 
 ## Unreleased
 
@@ -79,6 +79,10 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001부터 CURP-005까지 | 1 (native 통합) | 모든 구현이 같은 네 능력을 자기 형태로 가지므로, 구현별 다섯 항목을 중립 항목 하나로 대체한다 |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, R13 줄 다섯 개(CURP-001부터 CURP-005까지 정의되고 어떤 단위도 인용하지 않음), 61 findings; green: exit 0, CURP-001부터 CURP-005까지의 줄이 남지 않음, 56 findings, `check-documents` 통과 (C16.150).
+### 2026-10-21 — React form render scenario의 두 collection case가 spec을 공유한다 (C16.58-30)
+
+- packages/react/scripts/scenario-form-render-cases.ts: `collectionShownByVisible`이 `visible` member가 보이거나 숨기는 collection의 spec을 한 번 적고, `collection-shown-by-condition`과 `collection-hidden-by-condition` case가 이를 `spec`으로 받는다(C16.58-30). 생성기는 tests/fixtures/form-render/cases.json을 바꾸지 않는다. Red: `make duplication-check`가 scenario-form-render-cases.ts [394:81 - 402:21] = [407:119 - 415:21]을 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, 생성기가 cases.json을 바꾸지 않는다(`git diff --exit-code` exit 0), `make lint-ts` 0 errors.
+
 ### 2026-10-21 — C row view 연산이 하나의 list 복사로 row를 toggle하고 remove한다 (C16.58-29)
 
 - packages/php-ext/src/view.c: `rows_without`가 접힌 row들을 복사하면서 predicate가 지정한 항목을 뺀다(toggle은 `drops_same_row`, 제거는 `drops_row_inside`). 그래서 `ps_toggle_row_view`와 `ps_remove_row_view`가 복사를 공유한다(C16.58-29). toggle은 list에 없던 row를 여전히 덧붙이고, 실패 경로는 그대로다. Red: `make duplication-check`가 view.c [144:29 - 150:39] = [177:29 - 183:39]를 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, CASES 조건의 `make test-php-ext`가 544 passed(FormStateTest가 두 연산을 다룬다).

@@ -38,6 +38,15 @@ const groupClassByItems = {
   },
 };
 
+/** A collection of named rows that a `visible` text member shows or hides by its show condition. */
+const collectionShownByVisible = {
+  type: 'group',
+  properties: {
+    visible: { type: 'text', label: { en: 'Visible' } },
+    items: { type: 'group', label: { en: 'Items' }, multiple: true, design: { show: '.visible' }, properties: { name: { type: 'text', label: { en: 'Name' } } } },
+  },
+};
+
 /** The fixture matrix (one entry per `fixture_ideas` scenario). */
 export const SCENARIOS: ScenarioCase[] = [
   {
@@ -392,26 +401,14 @@ export const SCENARIOS: ScenarioCase[] = [
   {
     name: 'collection-shown-by-condition',
     note: 'A collection whose show condition holds renders its rows (CUEC-006).',
-    spec: {
-      type: 'group',
-      properties: {
-        visible: { type: 'text', label: { en: 'Visible' } },
-        items: { type: 'group', label: { en: 'Items' }, multiple: true, design: { show: '.visible' }, properties: { name: { type: 'text', label: { en: 'Name' } } } },
-      },
-    },
+    spec: collectionShownByVisible,
     data: { visible: 'yes', items: { __0000000000001__: { name: 'Alpha' } } },
     options: { language: 'en' },
   },
   {
     name: 'collection-hidden-by-condition',
     note: 'A collection whose show condition fails is hidden, and its row is still rendered with its data (CUEC-006).',
-    spec: {
-      type: 'group',
-      properties: {
-        visible: { type: 'text', label: { en: 'Visible' } },
-        items: { type: 'group', label: { en: 'Items' }, multiple: true, design: { show: '.visible' }, properties: { name: { type: 'text', label: { en: 'Name' } } } },
-      },
-    },
+    spec: collectionShownByVisible,
     data: { visible: '', items: { __0000000000001__: { name: 'Alpha' } } },
     options: { language: 'en' },
   },
