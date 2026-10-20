@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -81,7 +82,7 @@ func parseNative(body []byte, contentType string) (*object, error) {
 		reader := multipart.NewReader(strings.NewReader(string(body)), params["boundary"])
 		for {
 			part, err := reader.NextPart()
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			if err != nil {
@@ -168,7 +169,12 @@ func required(s shape) requiredShape { return requiredShape{s} }
 func fieldsOf(pairs ...any) shape {
 	result := shape{}
 	for index := 0; index < len(pairs); index += 2 {
-		member := field{name: pairs[index].(string)}
+		// Every caller passes literal member names, so a non-string name is a broken invariant of the caller.
+		name, ok := pairs[index].(string)
+		if !ok {
+			panic(fmt.Sprintf("fieldsOf: member %d is %T, not a name", index, pairs[index]))
+		}
+		member := field{name: name}
 		switch child := pairs[index+1].(type) {
 		case requiredShape:
 			member.shape, member.required = child.shape, true

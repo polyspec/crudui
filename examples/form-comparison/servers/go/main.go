@@ -70,7 +70,10 @@ func writeJSON(w http.ResponseWriter, status int, body *object) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	_, _ = w.Write(encoded)
+	// The status is written, so a failed write is the client's broken connection: it is logged, not retried.
+	if _, err = w.Write(encoded); err != nil {
+		log.Printf("JSON response failed: %v", err)
+	}
 }
 func failure(w http.ResponseWriter, status int, err error) {
 	writeJSON(w, status, record("error", err.Error()))
@@ -202,14 +205,19 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 400, err)
 		return
 	}
-	data := completed.(*object)
+	data, ok := completed.(*object)
+	if !ok {
+		failure(w, 500, fmt.Errorf("Expected a scenario object, got %T", completed))
+		return
+	}
 	spec, err := readObject(filepath.Join(s.publicDir, "spec.json"))
 	if err != nil {
 		failure(w, 500, err)
 		return
 	}
 	result, err := validate.Validate(spec, validatorData(data), validate.Options{})
-	if _, input := err.(*validate.FormInputError); input {
+	var input *validate.FormInputError
+	if errors.As(err, &input) {
 		failure(w, 400, err)
 		return
 	}

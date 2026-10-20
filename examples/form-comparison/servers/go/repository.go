@@ -137,7 +137,11 @@ func (r repository) transaction(operation func(*object) (*object, *object, error
 	if err != nil {
 		return nil, err
 	}
-	return result.(*object), nil
+	state, ok := result.(*object)
+	if !ok {
+		return nil, fmt.Errorf("Expected stored object")
+	}
+	return state, nil
 }
 
 func (r repository) read() (*object, error) {
@@ -172,31 +176,68 @@ func integer(value any) int {
 	}
 	panic("Expected stored integer")
 }
-func storedRows(state *object, kind string) []any { return get(state, kind).([]any) }
 
-func sortedRows(items []any, parent, sequence string) []*object {
+// storedRows returns the rows of kind in a stored state; the state is read from the form file, so a
+// missing or mistyped collection is a wrong input.
+func storedRows(state *object, kind string) ([]any, error) {
+	rows, ok := get(state, kind).([]any)
+	if !ok {
+		return nil, fmt.Errorf("Expected stored %s", kind)
+	}
+	return rows, nil
+}
+
+func sortedRows(state *object, kind, parent, sequence string) ([]*object, error) {
+	items, err := storedRows(state, kind)
+	if err != nil {
+		return nil, err
+	}
 	result := []*object{}
 	for _, item := range items {
-		row := item.(*object)
+		row, ok := item.(*object)
+		if !ok {
+			return nil, fmt.Errorf("Expected stored %s row", kind)
+		}
 		if parent == "" || get(row, parent+"_seq") == sequence {
 			result = append(result, row)
 		}
 	}
 	sort.SliceStable(result, func(i, j int) bool { return integer(get(result[i], "position")) < integer(get(result[j], "position")) })
-	return result
+	return result, nil
 }
 
 // loadData reconstructs collection order from stored positions and parent IDs.
 func loadData(state *object) (*object, error) {
 	companies := []row{}
-	for _, company := range sortedRows(storedRows(state, "companies"), "", "") {
-		companySeq := get(company, "company_seq").(string)
+	companyRows, err := sortedRows(state, "companies", "", "")
+	if err != nil {
+		return nil, err
+	}
+	for _, company := range companyRows {
+		companySeq, ok := get(company, "company_seq").(string)
+		if !ok {
+			return nil, fmt.Errorf("Expected stored company_seq")
+		}
 		stores := []row{}
-		for _, store := range sortedRows(storedRows(state, "stores"), "company", companySeq) {
-			storeSeq := get(store, "store_seq").(string)
+		storeRows, err := sortedRows(state, "stores", "company", companySeq)
+		if err != nil {
+			return nil, err
+		}
+		for _, store := range storeRows {
+			storeSeq, ok := get(store, "store_seq").(string)
+			if !ok {
+				return nil, fmt.Errorf("Expected stored store_seq")
+			}
 			departments := []row{}
-			for _, department := range sortedRows(storedRows(state, "departments"), "store", storeSeq) {
-				seq := get(department, "department_seq").(string)
+			departmentRows, err := sortedRows(state, "departments", "store", storeSeq)
+			if err != nil {
+				return nil, err
+			}
+			for _, department := range departmentRows {
+				seq, ok := get(department, "department_seq").(string)
+				if !ok {
+					return nil, fmt.Errorf("Expected stored department_seq")
+				}
 				key, err := sequenceKey(seq)
 				if err != nil {
 					return nil, err
@@ -224,8 +265,14 @@ func allocate(item row, existing []any, kind string, next *object, seen map[stri
 	field := kind + "_seq"
 	sequence := ""
 	for _, raw := range existing {
-		candidate := raw.(*object)
-		seq := get(candidate, field).(string)
+		candidate, ok := raw.(*object)
+		if !ok {
+			return "", fmt.Errorf("Expected stored %s row", kind)
+		}
+		seq, ok := get(candidate, field).(string)
+		if !ok {
+			return "", fmt.Errorf("Expected stored %s", field)
+		}
 		key, err := sequenceKey(seq)
 		if err != nil {
 			return "", err
@@ -250,20 +297,31 @@ func allocate(item row, existing []any, kind string, next *object, seen map[stri
 	return sequence, nil
 }
 
-func owned(items []any, parent, sequence string) []any {
+func owned(items []any, parent, sequence string) ([]any, error) {
 	result := []any{}
 	for _, raw := range items {
-		if get(raw.(*object), parent+"_seq") == sequence {
+		item, ok := raw.(*object)
+		if !ok {
+			return nil, fmt.Errorf("Expected stored row of %s", parent)
+		}
+		if get(item, parent+"_seq") == sequence {
 			result = append(result, raw)
 		}
 	}
-	return result
+	return result, nil
 }
 
 func checkParent(key string, items []any, kind, parent, sequence string) error {
 	for _, raw := range items {
-		item := raw.(*object)
-		saved, err := sequenceKey(get(item, kind+"_seq").(string))
+		item, ok := raw.(*object)
+		if !ok {
+			return fmt.Errorf("Expected stored %s row", kind)
+		}
+		seq, ok := get(item, kind+"_seq").(string)
+		if !ok {
+			return fmt.Errorf("Expected stored %s_seq", kind)
+		}
+		saved, err := sequenceKey(seq)
 		if err != nil {
 			return err
 		}
@@ -277,7 +335,22 @@ func checkParent(key string, items []any, kind, parent, sequence string) error {
 // save assigns sequences, preserves existing ownership and returns scoped key changes.
 func (r repository) save(data *object) (*object, error) {
 	return r.transaction(func(before *object) (*object, *object, error) {
-		next := clone(get(before, "next")).(*object)
+		next, ok := clone(get(before, "next")).(*object)
+		if !ok {
+			return nil, nil, fmt.Errorf("Expected stored next counters")
+		}
+		storedCompanies, err := storedRows(before, "companies")
+		if err != nil {
+			return nil, nil, err
+		}
+		storedStores, err := storedRows(before, "stores")
+		if err != nil {
+			return nil, nil, err
+		}
+		storedDepartments, err := storedRows(before, "departments")
+		if err != nil {
+			return nil, nil, err
+		}
 		companies, stores, departments, changes := []any{}, []any{}, []any{}, []any{}
 		seenCompany, seenStore, seenDepartment := map[string]bool{}, map[string]bool{}, map[string]bool{}
 		change := func(path, key, sequence string) error {
@@ -295,7 +368,7 @@ func (r repository) save(data *object) (*object, error) {
 			return nil, nil, err
 		}
 		for _, company := range companyRows {
-			companySeq, err := allocate(company, storedRows(before, "companies"), "company", next, seenCompany)
+			companySeq, err := allocate(company, storedCompanies, "company", next, seenCompany)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -305,10 +378,14 @@ func (r repository) save(data *object) (*object, error) {
 				return nil, nil, err
 			}
 			for i, store := range storeRows {
-				if err = checkParent(store.key, storedRows(before, "stores"), "store", "company", companySeq); err != nil {
+				if err = checkParent(store.key, storedStores, "store", "company", companySeq); err != nil {
 					return nil, nil, err
 				}
-				storeSeq, err := allocate(store, owned(storedRows(before, "stores"), "company", companySeq), "store", next, seenStore)
+				ownedStores, err := owned(storedStores, "company", companySeq)
+				if err != nil {
+					return nil, nil, err
+				}
+				storeSeq, err := allocate(store, ownedStores, "store", next, seenStore)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -318,10 +395,14 @@ func (r repository) save(data *object) (*object, error) {
 					return nil, nil, err
 				}
 				for j, department := range departmentRows {
-					if err = checkParent(department.key, storedRows(before, "departments"), "department", "store", storeSeq); err != nil {
+					if err = checkParent(department.key, storedDepartments, "department", "store", storeSeq); err != nil {
 						return nil, nil, err
 					}
-					departmentSeq, err := allocate(department, owned(storedRows(before, "departments"), "store", storeSeq), "department", next, seenDepartment)
+					ownedDepartments, err := owned(storedDepartments, "store", storeSeq)
+					if err != nil {
+						return nil, nil, err
+					}
+					departmentSeq, err := allocate(department, ownedDepartments, "department", next, seenDepartment)
 					if err != nil {
 						return nil, nil, err
 					}

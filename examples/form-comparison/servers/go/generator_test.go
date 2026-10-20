@@ -168,7 +168,7 @@ func TestCompileAndRenderUseCachedStructure(t *testing.T) {
 	if status != 200 {
 		t.Fatalf("compile: %d %#v", status, compiled)
 	}
-	provenance := get(compiled, "generator").(*object)
+	provenance := objectOf(t, get(compiled, "generator"))
 	identity, ok := get(provenance, "source").(*object)
 	if get(provenance, "runtime") != "go" || !ok || strings.Join(identity.Keys(), ",") != "commit,changes" || get(identity, "commit") != testCommit || get(identity, "changes") != nil {
 		t.Fatal("incorrect generation provenance")
@@ -180,7 +180,7 @@ func TestCompileAndRenderUseCachedStructure(t *testing.T) {
 	if status != 200 || get(direct, "referenceReads") != float64(0) {
 		t.Fatalf("inline compilation did not report zero actual reads: %d %#v", status, get(direct, "referenceReads"))
 	}
-	template := get(compiled, "template").(*object)
+	template := objectOf(t, get(compiled, "template"))
 	if get(template, "kind") != "crudui/form-template" {
 		t.Fatal("incorrect template kind")
 	}
@@ -196,21 +196,22 @@ func TestCompileAndRenderUseCachedStructure(t *testing.T) {
 		if status != 200 {
 			t.Fatalf("render: %d %#v", status, rendered)
 		}
-		if get(get(rendered, "data").(*object), "name") != name {
+		if get(objectOf(t, get(rendered, "data")), "name") != name {
 			t.Fatal("render changed the record")
 		}
-		fields := get(rendered, "fields").([]any)
-		attrs := get(get(fields[0].(*object), "widget").(*object), "attrs").(*object)
+		fields := arrayOf(t, get(rendered, "fields"))
+		widget := objectOf(t, get(objectOf(t, fields[0]), "widget"))
+		attrs := objectOf(t, get(widget, "attrs"))
 		if get(attrs, "name") != "form[name]" || get(attrs, "value") != name || get(attrs, "id") != "cached:name" {
 			t.Fatal("bound control differs from supplied data or options")
 		}
-		if !strings.Contains(get(rendered, "html").(string), "&lt;notes&gt; &amp; text") {
+		if !strings.Contains(textOf(t, get(rendered, "html")), "&lt;notes&gt; &amp; text") {
 			t.Fatal("rendered textarea is missing")
 		}
 		if get(rendered, "revision") != float64(0) {
 			t.Fatal("new instance has an incorrect revision")
 		}
-		if get(get(rendered, "generator").(*object), "runtime") != "go" {
+		if get(objectOf(t, get(rendered, "generator")), "runtime") != "go" {
 			t.Fatal("render provenance is missing")
 		}
 	}
@@ -287,7 +288,7 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		get(state, "companies").([]any)[0].(*object).Set("name", framework+" <company> & co")
+		objectOf(t, arrayOf(t, get(state, "companies"))[0]).Set("name", framework+" <company> & co")
 		data, err := encodeJSON(state)
 		if err != nil {
 			t.Fatal(err)
@@ -376,7 +377,7 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if get(get(stored, "companies").([]any)[0].(*object), "name") != framework+" saved" {
+		if get(objectOf(t, arrayOf(t, get(stored, "companies"))[0]), "name") != framework+" saved" {
 			t.Fatal("normal form submission did not update storage")
 		}
 	}

@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	orderedjson "github.com/polyspec/ordered-json/packages/go"
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
+	orderedjson "github.com/polyspec/ordered-json/packages/go"
 )
 
 type object = compose.OMap
@@ -15,7 +15,12 @@ type object = compose.OMap
 func record(fields ...any) *object {
 	result := compose.NewOMap()
 	for i := 0; i < len(fields); i += 2 {
-		result.Set(fields[i].(string), fields[i+1])
+		// Every caller passes literal string keys, so a non-string key is a broken invariant of the caller.
+		key, ok := fields[i].(string)
+		if !ok {
+			panic(fmt.Sprintf("record: key %d is %T, not a string", i, fields[i]))
+		}
+		result.Set(key, fields[i+1])
 	}
 	return result
 }
@@ -34,7 +39,10 @@ func decodeJSON(data []byte) (any, error) {
 func fromJSON(value *orderedjson.Value) (any, error) {
 	switch value.Kind() {
 	case orderedjson.ObjectKind:
-		members, _ := value.Members()
+		members, err := value.Members()
+		if err != nil {
+			return nil, err
+		}
 		result := record()
 		for _, key := range members.Keys() {
 			name, err := key.StringValue()
@@ -49,7 +57,10 @@ func fromJSON(value *orderedjson.Value) (any, error) {
 		}
 		return result, nil
 	case orderedjson.ArrayKind:
-		items, _ := value.Items()
+		items, err := value.Items()
+		if err != nil {
+			return nil, err
+		}
 		result := make([]any, 0, len(items))
 		for _, item := range items {
 			child, err := fromJSON(item)
@@ -62,7 +73,10 @@ func fromJSON(value *orderedjson.Value) (any, error) {
 	case orderedjson.StringKind:
 		return value.StringValue()
 	case orderedjson.NumberKind:
-		literal, _ := value.NumberLiteral()
+		literal, err := value.NumberLiteral()
+		if err != nil {
+			return nil, err
+		}
 		number, err := strconv.ParseFloat(literal, 64)
 		if err != nil || math.IsInf(number, 0) || math.IsNaN(number) || (math.Trunc(number) == number && math.Abs(number) > 9007199254740991) {
 			return nil, fmt.Errorf("JSON number exceeds the form data range")
@@ -159,7 +173,11 @@ func numberText(value float64) string {
 	}
 	mantissa, exponent, _ := strings.Cut(strconv.FormatFloat(value, 'e', -1, 64), "e")
 	digits := strings.Replace(mantissa, ".", "", 1)
-	e, _ := strconv.Atoi(exponent)
+	// FormatFloat with 'e' always writes a signed decimal exponent, so Atoi cannot fail.
+	e, err := strconv.Atoi(exponent)
+	if err != nil {
+		panic(fmt.Sprintf("numberText: exponent %q: %v", exponent, err))
+	}
 	k, n := len(digits), e+1
 	switch {
 	case k <= n && n <= 21:

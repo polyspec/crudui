@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"net/http"
 	"net/url"
@@ -306,5 +307,8 @@ func (s server) serveSSRFrame(w http.ResponseWriter, r *http.Request, renderingP
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
-	_, _ = io.WriteString(w, document)
+	// The status is written, so a failed write is the client's broken connection: it is logged, not retried.
+	if _, err := io.WriteString(w, document); err != nil {
+		log.Printf("SSR response failed: %v", err)
+	}
 }

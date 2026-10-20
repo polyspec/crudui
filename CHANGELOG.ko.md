@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 88d2fdc288681084ccf8c7ce72d8cfc43911f6c897a63beee2efaea854431fb8 -->
+<!-- source-sha256: 1bb6f618d3a06eb60e1b5a90278b424a413c30f1b9d890f9cf14e4dc46c6bc3f -->
 
 ## Unreleased
+
+### 2026-10-20 — form-comparison Go 서버는 숨은 오류를 처리한다 (C16.67-2)
+
+- `examples/form-comparison/servers/go`는 kit lint가 보고하는 모든 오류를 검사하거나 반환합니다 (C16.67-2). `repository.go`는 저장된 form 상태의 타입이 다르면 unchecked assertion 대신 오류를 반환하고(`storedRows`, `sortedRows`, `owned`, `checkParent`, `allocate`, `loadData`, `save`), `records.go`는 `submission`, `submittedForm`, `saveRecord`, `formText`, `recordView`의 오류를 반환하며 `storedRecord`는 `checkRecords`가 세우는 invariant를 명시합니다. `form.go`는 multipart 본문의 끝을 `errors.Is`로 비교하고 `fieldsOf`의 member 이름을 검사합니다. `json.go`는 `Members`, `Items`, `NumberLiteral`과 `numberText`의 `Atoi` 오류를 검사하고, `main.go`와 `generator.go`는 응답 쓰기 실패를 로그에 남기며 form 입력 오류는 `errors.As`로 찾습니다. 테스트는 `objectOf`, `arrayOf`, `textOf`, `mustEncode`, `mustRead` 도우미를 쓰며 `t.Fatal`로 실패합니다. Red: `golangci-lint run --config=../../../../.golangci.yml ./...`가 `66 issues`(errcheck 64, errorlint 2)로 exit 1; green: exit 0이며 `0 issues`, `go test -run Test ./...`는 `16 passed, 0 failed`입니다.
 
 ### 2026-10-20 — Go generator는 숨은 오류를 처리한다 (C16.67-12)
 

@@ -145,11 +145,25 @@ func (s server) storedRecords() ([]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.([]any), nil
+	records, ok := result.([]any)
+	if !ok {
+		return nil, fmt.Errorf("Expected stored records")
+	}
+	return records, nil
+}
+
+// storedRecord returns a stored record. checkRecords validates every record before a lookup sees it
+// (the seed, the store and the reset all pass through it), so another type is a broken invariant.
+func storedRecord(item any) *object {
+	stored, ok := item.(*object)
+	if !ok {
+		panic(fmt.Sprintf("stored record is %T, not an object: checkRecords validates the store", item))
+	}
+	return stored
 }
 
 func recordIndex(records []any, id string) int {
-	return slices.IndexFunc(records, func(item any) bool { return get(item.(*object), "id") == id })
+	return slices.IndexFunc(records, func(item any) bool { return get(storedRecord(item), "id") == id })
 }
 
 // pageOf returns the records of one page, or 404 beyond the last page.
@@ -274,7 +288,11 @@ func submittedForm(w http.ResponseWriter, r *http.Request) (*object, error) {
 	if err != nil {
 		return nil, err
 	}
-	return form.(*object), nil
+	result, ok := form.(*object)
+	if !ok {
+		return nil, fmt.Errorf("Expected a form object, got %T", form)
+	}
+	return result, nil
 }
 
 // submission reads one form submission, as the record save and the benchmark take it: JSON with
@@ -291,7 +309,11 @@ func submission(body []byte, kind, contentType string) (*object, error) {
 	} else {
 		var value any
 		value, err = decodeJSON(body)
-		root, _ = value.(*object)
+		var isObject bool
+		root, isObject = value.(*object)
+		if err == nil && !isObject {
+			err = fmt.Errorf("Expected a JSON object")
+		}
 	}
 	if err != nil || root == nil {
 		return nil, fail(http.StatusBadRequest, "Expected a form request object")
@@ -359,7 +381,11 @@ func (s server) saveRecord(w http.ResponseWriter, r *http.Request, id string) (*
 	if !result.Valid {
 		return record("validation", validation), nil
 	}
-	score, err := strconv.ParseFloat(strings.TrimFunc(get(form, "score").(string), func(r rune) bool { return unicode.Is(unicode.White_Space, r) }), 64)
+	scoreText, ok := get(form, "score").(string)
+	if !ok {
+		return nil, fmt.Errorf("Expected form score text")
+	}
+	score, err := strconv.ParseFloat(strings.TrimFunc(scoreText, func(r rune) bool { return unicode.Is(unicode.White_Space, r) }), 64)
 	if err != nil && !errors.Is(err, strconv.ErrRange) || math.IsInf(score, 0) {
 		return nil, fail(http.StatusBadRequest, "Expected a finite score")
 	}
@@ -368,7 +394,7 @@ func (s server) saveRecord(w http.ResponseWriter, r *http.Request, id string) (*
 		if index < 0 {
 			return nil, nil, fail(http.StatusNotFound, "Record not found")
 		}
-		previous := records[index].(*object)
+		previous := storedRecord(records[index])
 		next := record()
 		for _, name := range recordMembers {
 			value := get(form, name)
@@ -378,7 +404,11 @@ func (s server) saveRecord(w http.ResponseWriter, r *http.Request, id string) (*
 			case "score":
 				value = score
 			case "relation":
-				value = record("name", get(get(form, "relation").(*object), "name"))
+				relation, ok := get(form, "relation").(*object)
+				if !ok {
+					return nil, nil, fmt.Errorf("Expected form relation object")
+				}
+				value = record("name", get(relation, "name"))
 			}
 			next.Set(name, value)
 		}
@@ -451,12 +481,19 @@ func appendHref(spec *object, query string, path ...string) error {
 }
 
 // formText is the form data of one stored record: every member as text, without the avatar.
-func formText(stored *object) *object {
-	relation := get(stored, "relation").(*object)
+func formText(stored *object) (*object, error) {
+	relation, ok := get(stored, "relation").(*object)
+	if !ok {
+		return nil, fmt.Errorf("Expected stored relation object")
+	}
+	score, ok := get(stored, "score").(float64)
+	if !ok {
+		return nil, fmt.Errorf("Expected stored score number")
+	}
 	return record("id", get(stored, "id"), "name", get(stored, "name"), "status", get(stored, "status"),
-		"joined", get(stored, "joined"), "score", numberText(get(stored, "score").(float64)),
+		"joined", get(stored, "joined"), "score", numberText(score),
 		"relation", record("name", get(relation, "name")), "markup", get(stored, "markup"),
-		"companies", clone(get(stored, "companies")))
+		"companies", clone(get(stored, "companies"))), nil
 }
 
 func (s server) recordView(view, rawQuery string) (*object, error) {
@@ -481,7 +518,7 @@ func (s server) recordView(view, rawQuery string) (*object, error) {
 		if index < 0 {
 			return nil, fail(http.StatusNotFound, "Record not found")
 		}
-		stored = records[index].(*object)
+		stored = storedRecord(records[index])
 	}
 	spec, err := s.recordSpec(view)
 	if err != nil {
@@ -497,7 +534,7 @@ func (s server) recordView(view, rawQuery string) (*object, error) {
 		}
 		rows := make([]*generator.Object, len(items))
 		for index, item := range items {
-			rows[index] = item.(*object)
+			rows[index] = storedRecord(item)
 		}
 		html, err = generator.RenderList(spec, rows, generator.ListOptions{Language: language, Layout: "table", Page: page, Total: len(records)})
 		data = record("page", page, "perPage", recordsPerPage, "total", len(records), "records", items)
@@ -513,8 +550,13 @@ func (s server) recordView(view, rawQuery string) (*object, error) {
 		if err != nil {
 			return nil, err
 		}
+		var text *object
+		text, err = formText(stored)
+		if err != nil {
+			return nil, err
+		}
 		var form *generator.Form
-		form, err = generator.NewForm(template, formText(stored), generator.BindOptions{Language: language})
+		form, err = generator.NewForm(template, text, generator.BindOptions{Language: language})
 		if err != nil {
 			return nil, err
 		}

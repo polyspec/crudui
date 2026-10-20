@@ -12,6 +12,56 @@ import (
 	"testing"
 )
 
+// objectOf returns a decoded object, failing the test when the value has another type.
+func objectOf(t *testing.T, value any) *object {
+	t.Helper()
+	result, ok := value.(*object)
+	if !ok {
+		t.Fatalf("expected an object, got %T", value)
+	}
+	return result
+}
+
+// arrayOf returns a decoded array, failing the test when the value has another type.
+func arrayOf(t *testing.T, value any) []any {
+	t.Helper()
+	result, ok := value.([]any)
+	if !ok {
+		t.Fatalf("expected an array, got %T", value)
+	}
+	return result
+}
+
+// textOf returns a decoded string, failing the test when the value has another type.
+func textOf(t *testing.T, value any) string {
+	t.Helper()
+	result, ok := value.(string)
+	if !ok {
+		t.Fatalf("expected a string, got %T", value)
+	}
+	return result
+}
+
+// mustEncode returns the JSON text of value, failing the test when it cannot be encoded.
+func mustEncode(t *testing.T, value any) []byte {
+	t.Helper()
+	encoded, err := encodeJSON(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return encoded
+}
+
+// mustRead returns the contents of file, failing the test when it cannot be read.
+func mustRead(t *testing.T, file string) []byte {
+	t.Helper()
+	contents, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return contents
+}
+
 // recordServer starts a server whose public directory holds the customer fixture and specs.
 func recordServer(t *testing.T) (server, *httptest.Server) {
 	t.Helper()
@@ -63,18 +113,18 @@ const savedForm = `{"form":{"id":"22","name":"Saved","status":"active","joined":
 func TestRecordStoreSeedsListsAndSaves(t *testing.T) {
 	s, host := recordServer(t)
 	status, page := recordRequest(t, host, "GET", "/api/records?page=3", "", "")
-	if status != 200 || get(page, "total") != 45.0 || len(get(page, "records").([]any)) != 5 {
+	if status != 200 || get(page, "total") != 45.0 || len(arrayOf(t, get(page, "records"))) != 5 {
 		t.Fatalf("page 3: %d %v", status, page.Keys())
 	}
 	if _, err := os.Stat(s.recordStore()); err != nil {
 		t.Fatalf("the first read seeds the store: %v", err)
 	}
 	status, saved := recordRequest(t, host, "POST", "/api/records/22", "application/json", savedForm)
-	stored := get(saved, "record").(*object)
+	stored := objectOf(t, get(saved, "record"))
 	if status != 200 || get(stored, "score") != 1234567.5 || get(stored, "avatar") == nil || get(stored, "name") != "Saved" {
 		t.Fatalf("save: %d", status)
 	}
-	if companies, _ := encodeJSON(get(stored, "companies")); string(companies) != savedCompanies {
+	if companies := mustEncode(t, get(stored, "companies")); string(companies) != savedCompanies {
 		t.Fatalf("save keeps the rows, their keys and order and the hidden notes: %s", companies)
 	}
 	contents, err := os.ReadFile(s.recordStore())
@@ -82,17 +132,17 @@ func TestRecordStoreSeedsListsAndSaves(t *testing.T) {
 		t.Fatalf("the store writes the number as ECMAScript does: %s", contents)
 	}
 	status, invalid := recordRequest(t, host, "POST", "/api/records/22", "application/json", strings.Replace(savedForm, `"Saved"`, `""`, 1))
-	if status != 422 || get(get(invalid, "validation").(*object), "valid") != false {
+	if status != 422 || get(objectOf(t, get(invalid, "validation")), "valid") != false {
 		t.Fatalf("invalid save: %d", status)
 	}
-	after, _ := os.ReadFile(s.recordStore())
+	after := mustRead(t, s.recordStore())
 	if !bytes.Equal(after, contents) {
 		t.Fatal("an invalid save changed the store")
 	}
 	if status, _ := recordRequest(t, host, "POST", "/api/records/reset", "", ""); status != 200 {
 		t.Fatalf("reset: %d", status)
 	}
-	if _, record := recordRequest(t, host, "GET", "/api/records/22", "", ""); get(get(record, "record").(*object), "name") == "Saved" {
+	if _, record := recordRequest(t, host, "GET", "/api/records/22", "", ""); get(objectOf(t, get(record, "record")), "name") == "Saved" {
 		t.Fatal("reset kept the saved record")
 	}
 }
@@ -105,9 +155,9 @@ func TestRecordStoreKeepsAMalformedFile(t *testing.T) {
 	}
 	withoutCompanies := record()
 	for _, name := range recordMembers[:len(recordMembers)-1] {
-		withoutCompanies.Set(name, get(fixture[0].(*object), name))
+		withoutCompanies.Set(name, get(objectOf(t, fixture[0]), name))
 	}
-	missing, _ := encodeJSON(append([]any{withoutCompanies}, fixture[1:]...))
+	missing := mustEncode(t, append([]any{withoutCompanies}, fixture[1:]...))
 	for _, malformed := range []string{`[{"id":"1"}]`, string(missing)} {
 		if err := os.WriteFile(s.recordStore(), []byte(malformed), 0600); err != nil {
 			t.Fatal(err)
@@ -119,7 +169,7 @@ func TestRecordStoreKeepsAMalformedFile(t *testing.T) {
 				t.Errorf("%s %s: %d", request[0], request[1], status)
 			}
 		}
-		if contents, _ := os.ReadFile(s.recordStore()); string(contents) != malformed {
+		if contents, err := os.ReadFile(s.recordStore()); err != nil || string(contents) != malformed {
 			t.Fatalf("the malformed store was replaced: %s", contents)
 		}
 	}
@@ -128,8 +178,8 @@ func TestRecordStoreKeepsAMalformedFile(t *testing.T) {
 		t.Fatalf("reset over a malformed store: %d", status)
 	}
 	stored, err := s.storedRecords()
-	expected, _ := encodeJSON(fixture)
-	if actual, _ := encodeJSON(stored); err != nil || !bytes.Equal(actual, expected) {
+	expected := mustEncode(t, fixture)
+	if actual := mustEncode(t, stored); err != nil || !bytes.Equal(actual, expected) {
 		t.Fatalf("reset did not restore the fixture: %v", err)
 	}
 }
@@ -153,10 +203,10 @@ func TestRecordViewsCheckTheQuery(t *testing.T) {
 			t.Errorf("%s: %d", path, status)
 		}
 		if status == 200 && get(body, "view") == "form" &&
-			!strings.HasPrefix(get(body, "html").(string), `<form id="record-form" method="post" action="/api/go/records/22" enctype="multipart/form-data">`) {
+			!strings.HasPrefix(textOf(t, get(body, "html")), `<form id="record-form" method="post" action="/api/go/records/22" enctype="multipart/form-data">`) {
 			t.Errorf("%s: form start", path)
 		}
-		if status == 200 && get(body, "view") == "list" && !strings.Contains(get(body, "html").(string), "/detail?id=21&amp;"+strings.ReplaceAll(query, "&", "&amp;")) {
+		if status == 200 && get(body, "view") == "list" && !strings.Contains(textOf(t, get(body, "html")), "/detail?id=21&amp;"+strings.ReplaceAll(query, "&", "&amp;")) {
 			t.Errorf("%s: list links carry the selection", path)
 		}
 	}
@@ -192,7 +242,7 @@ func TestShapedCompletesAbsentFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if encoded, _ := encodeJSON(value); string(encoded) != expected {
+	if encoded := mustEncode(t, value); string(encoded) != expected {
 		t.Fatalf("completed companies: %s", encoded)
 	}
 	form, err := shaped(shapeValue(t, `{"id":"22"}`), formShape, "form")
@@ -200,13 +250,13 @@ func TestShapedCompletesAbsentFields(t *testing.T) {
 		t.Fatal(err)
 	}
 	const completeForm = `{"id":"22","name":"","status":"","joined":"","score":"","relation":{"name":""},"markup":"","companies":{}}`
-	if encoded, _ := encodeJSON(form); string(encoded) != completeForm {
+	if encoded := mustEncode(t, form); string(encoded) != completeForm {
 		t.Fatalf("completed form: %s", encoded)
 	}
 	if _, err := shaped(shapeValue(t, `{"name":"N"}`), formShape, "form"); err == nil {
 		t.Fatal("a form without id is rejected")
 	}
-	if value, err := shaped(shapeValue(t, `{}`), scenarioShape, "form"); err != nil || len(get(value.(*object), "companies").(*object).Keys()) != 0 {
+	if value, err := shaped(shapeValue(t, `{}`), scenarioShape, "form"); err != nil || len(objectOf(t, get(objectOf(t, value), "companies")).Keys()) != 0 {
 		t.Fatalf("an absent collection has no rows: %v", err)
 	}
 }
@@ -271,7 +321,7 @@ func TestStoredCompaniesAreComplete(t *testing.T) {
 func TestRecordStoreRejectsCompanyShapes(t *testing.T) {
 	s, host := recordServer(t)
 	recordRequest(t, host, "GET", "/api/records/22", "", "")
-	before, _ := os.ReadFile(s.recordStore())
+	before := mustRead(t, s.recordStore())
 	for _, companies := range []string{`"x"`, `{"first":{"name":"C","stores":{}}}`} {
 		body := strings.Replace(savedForm, savedCompanies, companies, 1)
 		if status, _ := recordRequest(t, host, "POST", "/api/records/22", "application/json", body); status != 400 {
@@ -288,12 +338,12 @@ func TestRecordStoreRejectsCompanyShapes(t *testing.T) {
 	if status, _ := recordRequest(t, host, "POST", "/api/records/22", "application/x-www-form-urlencoded", repeated.Encode()); status != 400 {
 		t.Errorf("a repeated native field: %d", status)
 	}
-	if after, _ := os.ReadFile(s.recordStore()); !bytes.Equal(before, after) {
+	if after := mustRead(t, s.recordStore()); !bytes.Equal(before, after) {
 		t.Fatal("a rejected save changed the store")
 	}
 	// A native form without companies rows posts no companies field and stores no rows.
 	status, saved := recordRequest(t, host, "POST", "/api/records/22", "application/x-www-form-urlencoded", native.Encode())
-	if companies, _ := encodeJSON(get(get(saved, "record").(*object), "companies")); status != 200 || string(companies) != "{}" {
+	if companies := mustEncode(t, get(objectOf(t, get(saved, "record")), "companies")); status != 200 || string(companies) != "{}" {
 		t.Fatalf("native save without companies: %d %s", status, companies)
 	}
 }
@@ -304,7 +354,7 @@ func TestBenchmarkUsesTheCompaniesShape(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	companies := get(get(get(specs, "form").(*object), "properties").(*object), "companies")
+	companies := get(objectOf(t, get(objectOf(t, get(specs, "form")), "properties")), "companies")
 	encoded, err := encodeJSON(record("type", "group", "properties", record("companies", companies)))
 	if err != nil {
 		t.Fatal(err)
@@ -318,7 +368,7 @@ func TestBenchmarkUsesTheCompaniesShape(t *testing.T) {
 			"&form[companies][__0000000000001__][stores][__0000000000002__][detail]=Kept"+
 			"&form[companies][__0000000000001__][stores][__0000000000002__][title][ko]=K"+
 			"&form[companies][__0000000000001__][stores][__0000000000002__][title][en]=E&_form_complete=1")
-	normalized, _ := encodeJSON(get(completed, "normalized"))
+	normalized := mustEncode(t, get(completed, "normalized"))
 	const expected = `{"companies":{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"","detail":"Kept","title":{"ko":"K","en":"E"},"departments":{}}}}}}`
 	if status != 200 || string(normalized) != expected {
 		t.Fatalf("native completion: %d %s", status, normalized)
@@ -336,13 +386,13 @@ func TestBenchmarkUsesTheCompaniesShape(t *testing.T) {
 	// JSON data of a newly added row completes as the native form does.
 	status, completed = recordRequest(t, host, "POST", path, "application/json",
 		`{"form":{"companies":{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"1","departments":{"__0000000000003__":{}}}}}}}}`)
-	normalized, _ = encodeJSON(get(completed, "normalized"))
+	normalized = mustEncode(t, get(completed, "normalized"))
 	const added = `{"companies":{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__0000000000003__":{"name":""}}}}}}}`
 	if status != 200 || string(normalized) != added {
 		t.Fatalf("JSON completion: %d %s", status, normalized)
 	}
 	status, completed = recordRequest(t, host, "POST", path, "application/json", `{"form":{}}`)
-	if normalized, _ = encodeJSON(get(completed, "normalized")); status != 200 || string(normalized) != `{"companies":{}}` {
+	if normalized = mustEncode(t, get(completed, "normalized")); status != 200 || string(normalized) != `{"companies":{}}` {
 		t.Errorf("an absent collection has no rows: %d %s", status, normalized)
 	}
 }
