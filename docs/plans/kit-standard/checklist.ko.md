@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 29b8b21dbc33e128e4c3cc6fe01937f2472d3c2bd80461e46e19046c384ec1ec -->
+<!-- source-sha256: 307ff612ca8f06a98a1bc108dd6e63ae47336fdb83f895a8ce076f476947c1e1 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -83,3 +83,4 @@
 | C16.59 | docs/spec은 여섯 implementation의 규칙만 담는다: tooling 문서는 docs/operations로 옮기고 runtime-packages와 php-extension은 나눈다 | docs/operations, docs/spec, the links to the moved documents | `make docs-check` link check, `make check-documents`, and no document of docs/spec without a requirement id | [o] |
 | C16.60 | record server 준비는 OrderedJSON extension source의 내용을 복사하므로 phpize가 config.m4를 찾는다 | examples/form-comparison/src/local-servers.mjs, examples/form-comparison/src/local-servers.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C16.61 | 중립 규칙은 각 implementation이 폼 값 모델을 네이티브 타입으로 옮기는 방식을 서술한다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md | `make parity-declarations-check` defines CURP-026 and `check-documents` passes | [o] |
+| C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [ ] |
