@@ -60,15 +60,19 @@
             "WIDGET_COUNT",
             "WIDGET_KINDS",
             "WIDGET_LAYOUTS",
+            "actionHtml",
             "affixHtml",
             "buildListLayout",
             "choiceLabelClass",
             "choicesHtml",
+            "detailRenderer",
             "escAttr",
             "escText",
             "formRenderModel",
             "groupButtonHtml",
             "hasEventAttr",
+            "isUnsupported",
+            "listRenderer",
             "optionSections",
             "paginationPages",
             "parseStyle",
@@ -77,7 +81,9 @@
             "rawOptions",
             "rawVoid",
             "searchHtml",
-            "serializeAttrs"
+            "serializeAttrs",
+            "sortDir",
+            "widgetRootHtml"
           ]
         }
       }

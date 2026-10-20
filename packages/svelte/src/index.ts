@@ -5,8 +5,8 @@
 
 import type { Component } from 'svelte';
 import { render } from 'svelte/server';
-import { buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance, type FormRenderOptions } from '@polyspec/crudui-generator-core';
-import { buildListLayout } from '@polyspec/crudui-generator-core/internal';
+import type { FormInstance, FormRenderOptions, RenderDetail, RenderList } from '@polyspec/crudui-generator-core';
+import { detailRenderer, listRenderer } from '@polyspec/crudui-generator-core/internal';
 import NodeComponent, { type NodeProps } from './components/Node.svelte';
 import ControlsComponent, { type ControlsProps } from './components/Controls.svelte';
 import OutlineComponent, { type OutlineProps } from './components/Outline.svelte';
@@ -48,32 +48,13 @@ export function renderForm(form: FormInstance, options?: FormRenderOptions): str
   return render(FormComponent, { props: { form, options } }).body;
 }
 
-/** Options for list rendering. */
-export interface RenderListOptions extends BuildListOptions {
-  /** Table (default) or stacked-card layout. */
-  layout?: 'table' | 'card';
-}
+export type { RenderListOptions } from '@polyspec/crudui-generator-core';
 
 /**
  * Compose a list specification, evaluate supplied rows and render list HTML.
  * Throws `ComposeLoadError` when a composition reference cannot be resolved.
  */
-export function renderList(
-  listSpec: Record<string, unknown>,
-  rows: Array<Record<string, unknown>> = [],
-  options: RenderListOptions = {}
-): string {
-  const { vm, layout } = buildListLayout(listSpec, rows, options);
-  const { body } = render(ListComponent, { props: { vm, layout } });
-  return body;
-}
+export const renderList: RenderList = listRenderer((vm, layout) => render(ListComponent, { props: { vm, layout } }).body);
 
 /** Compose, evaluate and render one read-only detail without data access. */
-export function renderDetail(
-  detailSpec: Record<string, unknown>,
-  record: Record<string, unknown> = {},
-  options: BuildDetailOptions = {},
-): string {
-  const vm = buildDetail(detailSpec, record, options);
-  return render(DetailComponent, { props: { vm } }).body;
-}
+export const renderDetail: RenderDetail = detailRenderer((vm) => render(DetailComponent, { props: { vm } }).body);

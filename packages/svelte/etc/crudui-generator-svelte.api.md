@@ -4,17 +4,18 @@
 
 ```ts
 
-import { BuildDetailOptions } from '@polyspec/crudui-generator-core';
-import { BuildListOptions } from '@polyspec/crudui-generator-core';
 import type { Component } from 'svelte';
 import type { ControlsVM } from '@polyspec/crudui-generator-core';
 import type { DetailViewModel } from '@polyspec/crudui-generator-core';
-import { FormInstance } from '@polyspec/crudui-generator-core';
+import type { FormInstance } from '@polyspec/crudui-generator-core';
 import type { FormMessages } from '@polyspec/crudui-generator-core';
-import { FormRenderOptions } from '@polyspec/crudui-generator-core';
+import type { FormRenderOptions } from '@polyspec/crudui-generator-core';
 import type { ListViewModel } from '@polyspec/crudui-generator-core';
 import type { NodeVM } from '@polyspec/crudui-generator-core';
 import type { OutlineState } from '@polyspec/crudui-generator-core';
+import type { RenderDetail } from '@polyspec/crudui-generator-core';
+import type { RenderList } from '@polyspec/crudui-generator-core';
+import { RenderListOptions } from '@polyspec/crudui-generator-core';
 import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import type { WidgetModel } from '@polyspec/crudui-generator-core';
 
@@ -99,18 +100,15 @@ export interface OutlineViewProps {
 }
 
 // @public
-export function renderDetail(detailSpec: Record<string, unknown>, record?: Record<string, unknown>, options?: BuildDetailOptions): string;
+export const renderDetail: RenderDetail;
 
 // @public
 export function renderForm(form: FormInstance, options?: FormRenderOptions): string;
 
 // @public
-export function renderList(listSpec: Record<string, unknown>, rows?: Array<Record<string, unknown>>, options?: RenderListOptions): string;
+export const renderList: RenderList;
 
-// @public
-export interface RenderListOptions extends BuildListOptions {
-    layout?: 'table' | 'card';
-}
+export { RenderListOptions }
 
 // @public
 export const Widget: Component<WidgetProps>;

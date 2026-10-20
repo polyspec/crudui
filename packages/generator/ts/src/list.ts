@@ -95,6 +95,16 @@ function listMessages(language: string): (typeof LIST_MESSAGES)[keyof typeof LIS
   return Object.entries(LIST_MESSAGES).find(([name]) => name === language)?.[1] ?? LIST_MESSAGES.en;
 }
 
+/**
+ * The active sort direction of a column ('asc' or 'desc'), or undefined. A column matches the declared `sort` by its
+ * `field` or its `key`; the sorted column carries `data-sort-dir`, so the declared sort is visible. The list is read-only:
+ * the server applies the real ORDER BY.
+ */
+export function sortDir(vm: ListViewModel, col: ColumnVM): 'asc' | 'desc' | undefined {
+  const sort = vm.sort;
+  return sort && (sort.field === col.field || sort.field === col.key) ? sort.dir : undefined;
+}
+
 /** Return a bounded page-number window so a large total cannot allocate an unbounded DOM. */
 export function paginationPages(page: number, pageCount: number): number[] {
   if (pageCount <= 0) return [];
@@ -337,6 +347,30 @@ export function buildListLayout(
   const loader = checkListInput(listSpec, rows, options);
   const layout = listLayout(options.layout);
   return { vm: buildDisplay(listSpec, rows, loader ? { ...options, loader } : options, { own: 'list', members: 'columns' }), layout };
+}
+
+/** Options for list rendering. */
+export interface RenderListOptions extends BuildListOptions {
+  /** Table (default) or stacked-card layout. */
+  layout?: 'table' | 'card';
+}
+
+/**
+ * Compose a list specification, evaluate supplied rows and render list HTML. Throws `ComposeLoadError` when a
+ * composition reference cannot be resolved.
+ */
+export type RenderList = (
+  listSpec: Record<string, unknown>,
+  rows?: Array<Record<string, unknown>>,
+  options?: RenderListOptions,
+) => string;
+
+/** The list renderer of a framework: the core builds the model, `render` writes the framework's HTML of it. */
+export function listRenderer(render: (vm: ListViewModel, layout: 'table' | 'card') => string): RenderList {
+  return (listSpec, rows = [], options = {}) => {
+    const { vm, layout } = buildListLayout(listSpec, rows, options);
+    return render(vm, layout);
+  };
 }
 
 /**

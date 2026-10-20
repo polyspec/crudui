@@ -7,6 +7,8 @@
  * class, data attribute, item and script is evaluated by the core.
  */
 
+import type { ActionVM } from './list';
+import type { UnsupportedVM } from './viewmodel';
 import type { Affix, Attrs, OptionModel, WidgetModel } from './widget';
 import { optionSections } from './widget';
 import { escAttr, escText } from './util';
@@ -126,4 +128,48 @@ export function searchHtml(w: WidgetModel): string {
   const style = w.styleChrome ? `<style nonce="">${w.styleChrome}</style>` : '';
   const script = `<script nonce="">${w.script ?? ''}</script>`;
   return style + script + fieldSearch;
+}
+
+/**
+ * One action's raw `<a>` or `<button>` html. The opaque `behavior` event attributes are kept verbatim, so a framework
+ * serializes the whole action chrome as one raw boundary: a `link` format action becomes an `<a>` (its `href` is the
+ * un-interpolated template, since toolbar actions are row-agnostic), any other action a `<button>`.
+ */
+export function actionHtml(action: ActionVM): string {
+  const behavior = Object.entries(action.behavior ?? {})
+    .map(([attribute, script]) => ` ${escAttr(attribute)}="${escAttr(script)}"`)
+    .join('');
+  const label = escText(action.label);
+  const cls = action.design?.main.class ? ` class="${escAttr(action.design.main.class)}"` : '';
+  const style = action.design?.main.style ? ` style="${escAttr(action.design.main.style)}"` : '';
+  if (action.format?.type === 'link') {
+    const href = typeof action.format.options.href === 'string' ? action.format.options.href : '#';
+    const target = typeof action.format.options.target === 'string' ? ` target="${escAttr(action.format.options.target)}"` : '';
+    return `<a href="${escAttr(href)}"${target}${cls}${style}${behavior}>${label}</a>`;
+  }
+  return `<button type="button"${cls}${style}${behavior}>${label}</button>`;
+}
+
+/** A widget the core evaluated, or the marker of a field type the renderers do not support. */
+export type AnyWidget = WidgetModel | UnsupportedVM;
+
+/** True when the core marked a widget unsupported. */
+export function isUnsupported(w: AnyWidget): w is UnsupportedVM {
+  return 'unsupported' in w && w.unsupported;
+}
+
+/**
+ * The raw html of a widget that the node body injects whole, or null when the framework renders it as a real container:
+ * bare controls (`bare` serializes one, null keeps a stable real element), host-script widgets (an editor or tagify and
+ * its script), buttons, choices and search carry empty, boolean or opaque on-event attributes that a server renderer
+ * would mangle.
+ */
+export function widgetRootHtml(w: AnyWidget, bare: (widget: WidgetModel) => string | null = rawControl): string | null {
+  if (isUnsupported(w)) return null;
+  if (w.layout === 'bare') return bare(w);
+  if (w.layout === 'host-script') return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
+  if (w.layout === 'button') return rawElement('button', w.attrs, escText(w.text ?? ''));
+  if (w.layout === 'choices') return choicesHtml(w);
+  if (w.layout === 'search') return searchHtml(w);
+  return null;
 }

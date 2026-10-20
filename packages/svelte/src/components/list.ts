@@ -19,7 +19,6 @@ import type {
   CellVM,
   ActionVM,
   ResolvedNode,
-  ListViewModel,
 } from '@polyspec/crudui-generator-core';
 
 /** Join base class + a design node's class into one className ('' → undefined). */
@@ -63,64 +62,7 @@ export function sortMarker(col: ColumnVM): string {
   return col.sortable ? '↕' : '';
 }
 
-/**
- * The active sort direction for a column ('asc'/'desc'), or undefined. A column
- * matches the declared `sort` by its `field` or its `key` — the sorted column
- * carries `data-sort-dir` so the declared sort is visible (read-only; the server
- * applies the real ORDER BY, SPEC §9.1).
- */
-export function sortDir(vm: ListViewModel, col: ColumnVM): 'asc' | 'desc' | undefined {
-  const s = vm.sort;
-  if (!s) return undefined;
-  if (s.field === col.field || s.field === col.key) return s.dir;
-  return undefined;
-}
-
-function escAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
-
-function escText(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/**
- * Serialize an action's behavior on* attrs to a raw attr string (one of the
- * sanctioned raw boundaries — opaque host scripts, preserved verbatim). Returns
- * '' when the action carries no behavior. Each behavior key is an event attribute name
- * (e.g. `onclick`); its value is the opaque script body kept verbatim by the core.
- */
-function actionBehaviorAttrs(action: ActionVM): string {
-  if (!action.behavior) return '';
-  let out = '';
-  for (const [attribute, script] of Object.entries(action.behavior)) {
-    out += ` ${escAttr(attribute)}="${escAttr(script)}"`;
-  }
-  return out;
-}
-
-/**
- * Serialize one action to its raw `<a>`/`<button>` html (root-raw — behavior on*
- * attrs are coerced/dropped by svelte/server's dynamic spread, so the whole
- * action chrome is one raw boundary). A `link` format action becomes an `<a>`
- * (href from the action's format, here the un-interpolated template — actions are
- * row-agnostic in the toolbar); otherwise a `<button>` carrying the behavior.
- */
-export function actionHtml(action: ActionVM): string {
-  const behavior = actionBehaviorAttrs(action);
-  const label = escText(action.label);
-  const cls = action.design?.main.class ? ` class="${escAttr(action.design.main.class)}"` : '';
-  const style = action.design?.main.style ? ` style="${escAttr(action.design.main.style)}"` : '';
-  if (action.format?.type === 'link') {
-    const href = typeof action.format.options.href === 'string' ? action.format.options.href : '#';
-    const target =
-      typeof action.format.options.target === 'string'
-        ? ` target="${escAttr(action.format.options.target)}"`
-        : '';
-    return `<a href="${escAttr(href)}"${target}${cls}${style}${behavior}>${label}</a>`;
-  }
-  return `<button type="button"${cls}${style}${behavior}>${label}</button>`;
-}
+export { actionHtml, sortDir } from '@polyspec/crudui-generator-core/internal';
 
 /** Whether the list has any toolbar actions. */
 export function hasActions(actions: ActionVM[]): boolean {

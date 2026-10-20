@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { AnyWidget } from '@polyspec/crudui-generator-core';
 import type { CellVM } from '@polyspec/crudui-generator-core';
 import type { ControlsVM } from '@polyspec/crudui-generator-core';
 import type { DetailViewModel } from '@polyspec/crudui-generator-core';
@@ -14,11 +15,8 @@ import type { ListViewModel } from '@polyspec/crudui-generator-core';
 import type { NodeVM } from '@polyspec/crudui-generator-core';
 import { OutlineState } from '@polyspec/crudui-generator-core';
 import * as React_2 from 'react';
-import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
-import type { WidgetModel } from '@polyspec/crudui-generator-core';
 
-// @public
-export type AnyWidget = WidgetModel | UnsupportedVM;
+export { AnyWidget }
 
 // @public
 export function Cell(input: {

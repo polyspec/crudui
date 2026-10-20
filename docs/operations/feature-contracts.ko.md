@@ -1,6 +1,6 @@
 # 기능 계약
 <!-- doc-id: docs-operations-feature-contracts -->
-<!-- source-sha256: c9560602d759bd878c945feba269655f9fb770650f91d6f3a09eb2502f068b00 -->
+<!-- source-sha256: b09e209e7043ebddac66c1c38ff11c27c8195f61d92284495385d4c3fe861367 -->
 
 [English](feature-contracts.md).
 
@@ -37,7 +37,7 @@
 | 패키지 | 진입점 | 공개 범위 | 값 export |
 | --- | --- | --- | --- |
 | `@polyspec/crudui-generator-core` | `.` | public | `ComposeLoadError`, `FormInputError`, `FormInstance`, `FormRenderOptionsError`, `FormTemplateError`, `UnsupportedFieldTypeError`, `bindButtons`, `bindForm`, `buildDetail`, `buildList`, `buildOutline`, `canRedo`, `canUndo`, `collapsibleRows`, `compileForm`, `connectForm`, `connectOutline`, `connectStickyHeaders`, `createForm`, `createRowKey`, `decodeFormRenderOptions`, `decodeFormTemplate`, `emptyHistory`, `formButtonsHtml`, `formDescription`, `formMessages`, `initialView`, `patchContent`, `recordChange`, `redoChange`, `rekeyRowView`, `removeRowView`, `resolveAction`, `runAction`, `sequenceRowKey`, `setAllExpandedView`, `toggleRowView`, `undoChange` |
-| `@polyspec/crudui-generator-core` | `./internal` | internal | `CELL_FORMATS`, `CELL_FORMAT_DEFAULT`, `CELL_RENDERERS`, `WIDGET_CANONICAL`, `WIDGET_COUNT`, `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `affixHtml`, `buildListLayout`, `choiceLabelClass`, `choicesHtml`, `escAttr`, `escText`, `formRenderModel`, `groupButtonHtml`, `hasEventAttr`, `optionSections`, `paginationPages`, `parseStyle`, `rawControl`, `rawElement`, `rawOptions`, `rawVoid`, `searchHtml`, `serializeAttrs` |
+| `@polyspec/crudui-generator-core` | `./internal` | internal | `CELL_FORMATS`, `CELL_FORMAT_DEFAULT`, `CELL_RENDERERS`, `WIDGET_CANONICAL`, `WIDGET_COUNT`, `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `actionHtml`, `affixHtml`, `buildListLayout`, `choiceLabelClass`, `choicesHtml`, `detailRenderer`, `escAttr`, `escText`, `formRenderModel`, `groupButtonHtml`, `hasEventAttr`, `isUnsupported`, `listRenderer`, `optionSections`, `paginationPages`, `parseStyle`, `rawControl`, `rawElement`, `rawOptions`, `rawVoid`, `searchHtml`, `serializeAttrs`, `sortDir`, `widgetRootHtml` |
 | `@polyspec/crudui-generator-html` | `.` | public | `renderData`, `renderDataPanel`, `renderDetail`, `renderForm`, `renderFormView`, `renderList`, `renderOutline`, `renderOutlineView` |
 | `@polyspec/crudui-generator-react` | `.` | public | `Cell`, `Controls`, `DataPanel`, `DataView`, `Detail`, `Form`, `List`, `Node`, `Outline`, `OutlineView`, `Widget` |
 | `@polyspec/crudui-generator-react` | `./server` | public | `renderDetail`, `renderForm`, `renderList` |

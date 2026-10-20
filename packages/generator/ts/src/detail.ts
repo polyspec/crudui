@@ -72,3 +72,15 @@ export function buildDetail(
     design: vm.design,
   };
 }
+
+/** Compose, evaluate and render one read-only detail without data access. */
+export type RenderDetail = (
+  detailSpec: Record<string, unknown>,
+  record?: Record<string, unknown>,
+  options?: BuildDetailOptions,
+) => string;
+
+/** The detail renderer of a framework: the core builds the model, `render` writes the framework's HTML of it. */
+export function detailRenderer(render: (vm: DetailViewModel) => string): RenderDetail {
+  return (detailSpec, record = {}, options = {}) => render(buildDetail(detailSpec, record, options));
+}

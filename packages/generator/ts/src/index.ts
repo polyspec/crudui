@@ -44,6 +44,7 @@ export type {
 export { formMessages } from './messages';
 export type { FormMessages } from './messages';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel, OptionGroupModel, SourceAttrs } from './widget';
+export type { AnyWidget } from './raw-markup';
 
 // Errors the API throws.
 export { ComposeLoadError } from '@polyspec/crudui-validator';
@@ -65,9 +66,11 @@ export type {
   SortVM,
   ActionVM,
   BuildListOptions,
+  RenderList,
+  RenderListOptions,
 } from './list';
 export { buildDetail } from './detail';
-export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from './detail';
+export type { DetailViewModel, DetailFieldVM, BuildDetailOptions, RenderDetail } from './detail';
 export type {
   CellFormatModel,
   CellDisplay,

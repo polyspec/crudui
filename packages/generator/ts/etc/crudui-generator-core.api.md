@@ -52,6 +52,9 @@ export interface Affix {
 }
 
 // @public
+export type AnyWidget = WidgetModel | UnsupportedVM;
+
+// @public
 export type Attrs = Record<string, string>;
 
 // @public
@@ -575,6 +578,17 @@ export function rekeyRowView(view: ViewState, oldPath: string, newPath: string):
 
 // @public
 export function removeRowView(view: ViewState, rowPath: string): ViewState;
+
+// @public
+export type RenderDetail = (detailSpec: Record<string, unknown>, record?: Record<string, unknown>, options?: BuildDetailOptions) => string;
+
+// @public
+export type RenderList = (listSpec: Record<string, unknown>, rows?: Array<Record<string, unknown>>, options?: RenderListOptions) => string;
+
+// @public
+export interface RenderListOptions extends BuildListOptions {
+    layout?: 'table' | 'card';
+}
 
 // @public
 export function resolveAction(source: Element | ActionInput): ActionTarget | undefined;

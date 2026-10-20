@@ -19,7 +19,7 @@
  */
 
 import * as React from 'react';
-import type { Affix, Attrs, OptionModel, UnsupportedVM, WidgetModel } from '@polyspec/crudui-generator-core';
+import type { Affix, AnyWidget, Attrs, OptionModel, WidgetModel } from '@polyspec/crudui-generator-core';
 import {
   affixHtml,
   choiceLabelClass,
@@ -27,6 +27,7 @@ import {
   escText,
   groupButtonHtml,
   hasEventAttr,
+  isUnsupported,
   optionSections,
   rawControl,
   rawElement,
@@ -37,11 +38,7 @@ import { inputProps, plainProps, resolvedStyleProps, styleObject } from './attrs
 import { RawContainer, RawText } from './raw';
 
 /** Widget model accepted by the renderer, including unsupported markers. */
-export type AnyWidget = WidgetModel | UnsupportedVM;
-
-function isUnsupported(w: AnyWidget): w is UnsupportedVM {
-  return 'unsupported' in w && w.unsupported;
-}
+export type { AnyWidget };
 
 /** Prepend/append affix span (real JSX). */
 function AffixSpan({ affix }: { affix: Affix }): React.ReactElement {

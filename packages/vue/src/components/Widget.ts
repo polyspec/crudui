@@ -27,27 +27,21 @@
  */
 
 import { h, type VNode } from 'vue';
-import type { WidgetModel } from '@polyspec/crudui-generator-core';
-import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
+import type { AnyWidget, WidgetModel } from '@polyspec/crudui-generator-core';
 import { plainProps } from './attrs.js';
 import { rawContainer } from './raw.js';
 import {
   affixHtml,
-  choicesHtml,
   escAttr,
   escText,
   rawControl,
-  rawElement,
   rawVoid,
-  searchHtml,
+  isUnsupported,
+  widgetRootHtml,
 } from '@polyspec/crudui-generator-core/internal';
 
 /** Widget model accepted by the renderer, including unsupported markers. */
-export type AnyWidget = WidgetModel | UnsupportedVM;
-
-function isUnsupported(w: AnyWidget): w is UnsupportedVM {
-  return 'unsupported' in w && w.unsupported;
-}
+export type { AnyWidget };
 
 // ---------------------------------------------------------------------------
 // raw control / affix serialization (control bytes only)
@@ -108,17 +102,7 @@ function displayVNode(w: WidgetModel): VNode {
  * (editors/tagify), and button (a button element with its content) — all carry
  * empty/boolean or opaque on* control attrs Vue would mangle as real vnodes.
  */
-export function widgetRootRaw(w: AnyWidget): string | null {
-  if (isUnsupported(w)) return null;
-  if (w.layout === 'bare') return rawControl(w);
-  if (w.layout === 'host-script') {
-    return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
-  }
-  if (w.layout === 'button') return rawElement('button', w.attrs, escText(w.text ?? ''));
-  if (w.layout === 'choices') return choicesHtml(w);
-  if (w.layout === 'search') return searchHtml(w);
-  return null;
-}
+export const widgetRootRaw: (w: AnyWidget) => string | null = widgetRootHtml;
 
 // ---------------------------------------------------------------------------
 // dispatch

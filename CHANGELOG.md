@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The adapters take the list and detail renderers and the action and widget root markup from the core (C16.58-4)
+
+- `@polyspec/crudui-generator-core` has `listRenderer`, `detailRenderer`, `sortDir`, `actionHtml`, `isUnsupported` and `widgetRootHtml` in its internal entry and the types `RenderList`, `RenderListOptions`, `RenderDetail` and `AnyWidget` in its public entry; `renderList` and `renderDetail` of React and Svelte, `sortDir` and `actionHtml` of the Vue and Svelte lists and `AnyWidget`, `isUnsupported` and `widgetRootRaw` of the React, Vue and Svelte widgets use them, and `contracts/features.json` declares the six internal names (C16.58-4). Red: `make duplication-check` found 40 clones, 6 of them between `packages/react/src/server.ts`, `packages/svelte/src` and `packages/vue/src/components`; green: 34 clones, none in the adapters, and the list, detail and form render conformance tests pass in React (811), Vue (786) and Svelte (786).
+
 ### 2026-10-20 — The contract manifest declares the internal raw markup exports of generator-core (C16.64)
 
 - The entry `./internal` of `@polyspec/crudui-generator-core` in `contracts/features.json` declares the 13 raw markup helpers that the React, Vue and Svelte adapters import since C16.27 (`affixHtml`, `choiceLabelClass`, `choicesHtml`, `escAttr`, `escText`, `groupButtonHtml`, `hasEventAttr`, `rawControl`, `rawElement`, `rawOptions`, `rawVoid`, `searchHtml`, `serializeAttrs`), and `docs/operations/feature-contracts.md` lists them (C16.64). Red: `make manifest-check` exited 2 with `"./internal": exported but not declared` and those 13 names; green: it passes with 21 features, 7 packages with 10 entries and 26 fixture links.

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0610e059db0b25765f161e52141db5611a1dbe8b61954c4c13388e05f1caef7e -->
+<!-- source-sha256: 20bad334d797f556ab953bdef87c41b0c82517b2cafcea00cf894cb41f4e5f18 -->
 
 ## Unreleased
+
+### 2026-10-20 — adapter는 list와 detail renderer, action과 widget root markup을 core에서 가져온다 (C16.58-4)
+
+- `@polyspec/crudui-generator-core`는 internal 진입점에 `listRenderer`, `detailRenderer`, `sortDir`, `actionHtml`, `isUnsupported`, `widgetRootHtml`을, public 진입점에 type `RenderList`, `RenderListOptions`, `RenderDetail`, `AnyWidget`을 가지며, React와 Svelte의 `renderList`, `renderDetail`, Vue와 Svelte list의 `sortDir`, `actionHtml`, React, Vue, Svelte widget의 `AnyWidget`, `isUnsupported`, `widgetRootRaw`가 이를 쓰고, `contracts/features.json`이 internal 이름 6개를 선언합니다(C16.58-4). Red: `make duplication-check`가 clone 40건을 찾았고 그중 6건이 `packages/react/src/server.ts`, `packages/svelte/src`, `packages/vue/src/components` 사이에 있었습니다. Green: clone 34건이며 adapter에는 없고, list, detail, form render conformance test가 React(811), Vue(786), Svelte(786)에서 통과합니다.
 
 ### 2026-10-20 — contract manifest는 generator-core의 internal raw markup export를 선언한다 (C16.64)
 

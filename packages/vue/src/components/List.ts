@@ -21,6 +21,7 @@
  */
 
 import { h, type VNode } from 'vue';
+import { actionHtml, sortDir } from '@polyspec/crudui-generator-core/internal';
 import { rawContainer } from './raw.js';
 import type {
   ListViewModel,
@@ -132,14 +133,6 @@ function cellVNode(cell: CellVM): VNode {
 // table layout (default)
 // ---------------------------------------------------------------------------
 
-/** The active sort direction for a column ('asc'/'desc'), or undefined. */
-function sortDir(vm: ListViewModel, col: ColumnVM): 'asc' | 'desc' | undefined {
-  const s = vm.sort;
-  if (!s) return undefined;
-  if (s.field === col.field || s.field === col.key) return s.dir;
-  return undefined;
-}
-
 /** One header `<th>`: `.crudui-list__heading-label` + a `.crudui-list__sort` marker (sortable). */
 function headerVNode(col: ColumnVM, vm: ListViewModel): VNode {
   const dir = sortDir(vm, col);
@@ -214,46 +207,6 @@ function cardsVNode(vm: ListViewModel): VNode {
 // ---------------------------------------------------------------------------
 // actions toolbar + pagination chrome
 // ---------------------------------------------------------------------------
-
-function escAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
-
-function escText(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/** An action's behavior map → ` attribute="script"` raw attr string (verbatim). */
-function behaviorAttrs(behavior: Record<string, string> | undefined): string {
-  if (!behavior) return '';
-  let out = '';
-  for (const [attribute, script] of Object.entries(behavior)) {
-    out += ` ${escAttr(attribute)}="${escAttr(script)}"`;
-  }
-  return out;
-}
-
-/**
- * One action's RAW html (the `<span class="crudui-list__action">` host is a vnode; its
- * inner `<a>`/`<button>` is serialized verbatim so the opaque behavior `on*`
- * bytes survive). Mirrors Svelte list.ts `actionHtml`.
- */
-function actionHtml(action: ActionVM): string {
-  const behavior = behaviorAttrs(action.behavior);
-  const label = escText(action.label);
-  const cls = action.design?.main.class ? ` class="${escAttr(action.design.main.class)}"` : '';
-  const style = action.design?.main.style ? ` style="${escAttr(action.design.main.style)}"` : '';
-  if (action.format?.type === 'link') {
-    const href =
-      typeof action.format.options.href === 'string' ? action.format.options.href : '#';
-    const target =
-      typeof action.format.options.target === 'string'
-        ? ` target="${escAttr(action.format.options.target)}"`
-        : '';
-    return `<a href="${escAttr(href)}"${target}${cls}${style}${behavior}>${label}</a>`;
-  }
-  return `<button type="button"${cls}${style}${behavior}>${label}</button>`;
-}
 
 /**
  * The actions of a list or detail: `{block}__actions` with one `{block}__action` span per action

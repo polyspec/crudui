@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { AnyWidget } from '@polyspec/crudui-generator-core';
 import { BuildDetailOptions } from '@polyspec/crudui-generator-core';
 import { BuildListOptions } from '@polyspec/crudui-generator-core';
 import { ComponentOptionsMixin } from 'vue';
@@ -23,12 +24,9 @@ import { PublicProps } from 'vue';
 import { RendererElement } from 'vue';
 import { RendererNode } from 'vue';
 import { ShallowRef } from 'vue';
-import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import { VNode } from 'vue';
-import type { WidgetModel } from '@polyspec/crudui-generator-core';
 
-// @public
-export type AnyWidget = WidgetModel | UnsupportedVM;
+export { AnyWidget }
 
 // @public
 export function controlsVNode(controls: ControlsVM): VNode;

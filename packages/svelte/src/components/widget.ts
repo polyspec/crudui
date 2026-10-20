@@ -13,26 +13,23 @@
  * display RAW, script/style chrome, and behavior on* attrs pass through `{@html}`.
  */
 
-import type { WidgetModel, UnsupportedVM } from '@polyspec/crudui-generator-core';
+import type { AnyWidget, WidgetModel } from '@polyspec/crudui-generator-core';
 import {
   affixHtml,
-  choicesHtml,
   escAttr,
   escText,
   hasEventAttr,
+  isUnsupported,
   rawControl,
-  rawElement,
   rawVoid,
-  searchHtml,
+  widgetRootHtml,
 } from '@polyspec/crudui-generator-core/internal';
 
 export { affixHtml };
 
-export type AnyWidget = WidgetModel | UnsupportedVM;
+export type { AnyWidget };
 
-export function isUnsupported(w: AnyWidget): w is UnsupportedVM {
-  return 'unsupported' in w && w.unsupported;
-}
+export { isUnsupported };
 
 /** Keep an ordinary editable control as one DOM element across value updates. */
 export function usesStableControl(w: WidgetModel): boolean {
@@ -80,13 +77,5 @@ export function fileGroupBody(w: WidgetModel): string {
  * would mangle as real elements.
  */
 export function widgetRootRaw(w: AnyWidget): string | null {
-  if (isUnsupported(w)) return null;
-  if (w.layout === 'bare') return usesStableControl(w) ? null : rawControl(w);
-  if (w.layout === 'host-script') {
-    return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
-  }
-  if (w.layout === 'button') return rawElement('button', w.attrs, escText(w.text ?? ''));
-  if (w.layout === 'choices') return choicesHtml(w);
-  if (w.layout === 'search') return searchHtml(w);
-  return null;
+  return widgetRootHtml(w, (bare) => (usesStableControl(bare) ? null : rawControl(bare)));
 }
