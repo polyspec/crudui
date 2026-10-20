@@ -983,6 +983,253 @@
     ]
   },
   {
+    "name": "rekey-moves-validation-errors-to-the-new-paths",
+    "note": "A required member with no name is an error at its data path; after the team and the member are rekeyed, the same error is reported at the new path (CURT-054).",
+    "requirements": [
+      "CURT-054",
+      "CURP-010",
+      "CURP-012",
+      "CURP-020",
+      "CURP-027"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name",
+                  "validate": {
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": ""
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "validate",
+        "args": []
+      },
+      {
+        "op": "rekeyRow",
+        "args": [
+          "teams",
+          "__0000000000001__",
+          "__0000000000006__"
+        ]
+      },
+      {
+        "op": "rekeyRow",
+        "args": [
+          "teams.__0000000000006__.members",
+          "__0000000000011__",
+          "__0000000000015__"
+        ]
+      },
+      {
+        "op": "validate",
+        "args": []
+      }
+    ],
+    "expected": [
+      {
+        "result": {
+          "valid": false,
+          "errors": [
+            {
+              "path": "teams.__0000000000001__.members.__0000000000011__.name",
+              "field": "name",
+              "rule": "required",
+              "message": "This field is required."
+            }
+          ]
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": ""
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000006__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": ""
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000006__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000015__": {
+                  "name": ""
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "valid": false,
+          "errors": [
+            {
+              "path": "teams.__0000000000006__.members.__0000000000015__.name",
+              "field": "name",
+              "rule": "required",
+              "message": "This field is required."
+            }
+          ]
+        },
+        "data": {
+          "teams": {
+            "__0000000000006__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000015__": {
+                  "name": ""
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
     "name": "set-data-rejects-a-root-that-is-not-an-object",
     "note": "Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.",
     "requirements": [

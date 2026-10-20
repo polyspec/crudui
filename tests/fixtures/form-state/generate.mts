@@ -202,6 +202,44 @@ const all: Case[] = [
     ],
   }),
   session({
+    name: 'rekey-moves-validation-errors-to-the-new-paths',
+    note: 'A required member with no name is an error at its data path; after the team and the member are rekeyed, the same error is reported at the new path (CURT-054).',
+    requirements: ['CURT-054'],
+    spec: {
+      type: 'group',
+      properties: {
+        teams: {
+          type: 'group',
+          label: 'Team',
+          multiple: { min: 1, max: 5, sortable: true, copy: true, title: 'name' },
+          properties: {
+            name: { type: 'text', label: 'Name' },
+            members: {
+              type: 'group',
+              label: 'Member',
+              multiple: { title: 'name' },
+              properties: { name: { type: 'text', label: 'Name', validate: { required: true } } },
+            },
+          },
+        },
+        note: { type: 'text', label: 'Note' },
+      },
+    },
+    data: {
+      teams: {
+        [A]: { name: 'Alpha', members: { [M1]: { name: '' }, [M2]: { name: 'Two' } } },
+        [B]: { name: 'Beta', members: { [M3]: { name: 'Three' } } },
+      },
+      note: '',
+    },
+    steps: [
+      step('validate'),
+      step('rekeyRow', 'teams', A, k(6)),
+      step('rekeyRow', `teams.${k(6)}.members`, M1, k(15)),
+      step('validate'),
+    ],
+  }),
+  session({
     name: 'set-data-rejects-a-root-that-is-not-an-object',
     note: 'Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.',
     requirements: ['CURT-001', 'CURP-026'],

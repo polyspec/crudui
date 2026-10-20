@@ -4,6 +4,8 @@
  * TypeScript test of the fixtures requires them again.
  */
 
+import { validate } from '@polyspec/crudui-validator';
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type Step = { op: string; args: Json[] };
 export interface SessionCase { name: string; spec: Json; data: Json; steps: Step[]; expected: Json[] }
@@ -98,10 +100,24 @@ function failure(error: unknown): Json {
   return { code: 'code' in error && typeof error.code === 'string' ? error.code : 'ERROR', message: error.message };
 }
 
+/**
+ * The errors of the validator for the specification and the record: each error's data path, field name, rule and message,
+ * in the order of the validator; the `valid` flag and the errors are the observation of a `validate` step.
+ */
+function validation(spec: Json, form: FormLike): Json {
+  if (!isRecord(spec)) throw new Error('A session specification is no object');
+  const result = validate(spec, form.getData());
+  return {
+    valid: result.valid,
+    errors: result.errors.map(error => ({ path: error.path, field: error.field, rule: error.rule, message: error.message })),
+  };
+}
+
 /** Runs one step on the form and returns what the step returned. */
-function perform(core: Core, form: FormLike, { op, args }: Step): unknown {
+function perform(core: Core, form: FormLike, { op, args }: Step, spec: Json): unknown {
   const [a, b, c] = args;
   switch (op) {
+    case 'validate': return validation(spec, form);
     case 'runAction': return core.runAction(form, a);
     case 'resolveAction': return core.resolveAction(a);
     case 'addRow': return form.addRow(a, b ?? {});
@@ -129,7 +145,7 @@ export function observeSession(core: Core, entry: { spec: Json; data: Json; step
   return entry.steps.map(step => {
     const observed: Record<string, Json> = {};
     try {
-      const result = perform(core, form, step);
+      const result = perform(core, form, step, entry.spec);
       if (step.op === 'runAction' || step.op === 'resolveAction' || result !== undefined) observed.result = name(result);
     } catch (error) {
       observed.error = failure(error);

@@ -33,6 +33,12 @@ changes. The form-actions unit cites CURT-053, CURT-054 and CURT-055. Every runn
 - The template-shape fixture gets two cases that bind records from one serialized template: `create-two-records-from-serialized-template` and `create-three-records-independent`. The compiled template resolves a composition file (`$ref` in a repeated group) before any record exists, serializes to JSON, and each record is bound from that template alone, with no composition file given to the binding. Each record reads its own values; in the three-record case the third binding reads what the first one read. CURT-050 is cited on both cases and in the unit `template-shape`.
 - All six runners run the two cases: the TypeScript, Go, Rust, PHP (with the extension) and Python runners compare the values that each binding reads with the expectation, which the TypeScript reference computed.
 
+### 2026-10-21 — The form state sessions observe the validation errors with their data paths (C16.148-1)
+
+- `tests/fixtures/form-state/harness.mts` has a `validate` step: it runs the validator on the session's specification and the current data, and observes `valid` and each error's data path, field name, rule and message, in validator order.
+- `tests/fixtures/form-state/generate.mts` adds `rekey-moves-validation-errors-to-the-new-paths` (CURT-054): a required member with no name is reported at its data path, and after its team and member are rekeyed the same error is reported at the new paths. Its citation of CURT-054 comes with the stack's last row.
+- The other five form state runners do not implement the `validate` step yet; they are red until their rows of this stack land.
+
 ### 2026-10-21 — CUIT-041 has a Python entry (C16.140-2)
 
 - The table of CUIT-041 gets a Python entry, which names the classes that the Python packages raise, checked in the sources: validation raises `ComposeLoadError` (`compose_errors.py`) for a load failure and `FormInputError` (`errors.py`) for an input failure; generation raises the same `ComposeLoadError` for a load failure, as the validator package does when it composes a specification, and `FormError` (`generator/errors.py`) for an input failure. The owner decided that the spec, not the runners, carried the gap: the Python runners already assert these types.
