@@ -16368,5 +16368,75 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "expression-scalar-equals-array-is-false",
+    "note": "'a' == .tags is false for tags ['a']: an array compared with a scalar has no text, so the note is not required. JavaScript loose equality gives true there, so this case rejects it (CUSC-038).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "multichoice",
+          "items": [
+            "a",
+            "b"
+          ]
+        },
+        "note": {
+          "type": "text",
+          "validate": {
+            "required": "'a' == .tags"
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": [
+        "a"
+      ],
+      "note": ""
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-038"
+    ]
+  },
+  {
+    "name": "expression-zero-equals-empty-array-is-false",
+    "note": "0 == .tags is false for an empty array, so the note is not required. JavaScript loose equality gives true (0 == []), so this case rejects it (CUSC-038).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "multichoice",
+          "items": [
+            "a",
+            "b"
+          ]
+        },
+        "note": {
+          "type": "text",
+          "validate": {
+            "required": "0 == .tags"
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": [],
+      "note": ""
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-038"
+    ]
   }
 ]

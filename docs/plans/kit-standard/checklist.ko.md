@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d3badb96dbafbab628e9a44ddc42f9b186a6258a95cc2f98ab8c3d7f5ccfb060 -->
+<!-- source-sha256: c487d30649243cb56bf9c377199afcb52810deaaa3b39b36f00ddc53244531b6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -258,3 +258,4 @@
 | C16.140-2 | CUIT-041의 표에 Python 항목을 더한다. Python 패키지가 던지는 클래스를 적는다. 검증은 ComposeLoadError와 FormInputError, 생성은 로드 실패가 ComposeLoadError, 입력 실패가 FormError다 | docs/spec/input-text.md, docs/spec/input-text.ko.md | `grep -q "Python: in validation" docs/spec/input-text.md` | [o] |
 | C16.143 | 테스트로 확인할 수 없는 두 요구사항(CUSC-037, CUSC-040)을 id 없는 평문으로 바꿉니다 | docs/spec/schema.md, docs/spec/schema.ko.md, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-declarations-check > var/pd-C16.143.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines (CUSC-037\|CUSC-040)," var/pd-C16.143.log'` | [o] |
 | C16.145 | 클래스 이름 짓기, 뷰 상태, 기록 요구사항(CUMK-001~003, 057, 061)을 이를 검증하는 form-render, form-view, form-history 사례가 인용하도록 합니다 | packages/react/scripts/generate-form-render-cases.mts, tests/fixtures/form-render/cases.json, tests/fixtures/form-view/cases.json, tests/fixtures/form-history/cases.json, config/parity.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-declarations-check > var/pd-C16.145.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines (CUMK-001\|CUMK-002\|CUMK-003\|CUMK-057\|CUMK-061)," var/pd-C16.145.log'` | [o] |
+| C16.144 | 추적되지 않은 CUSC 요구사항(CUSC-005, 016, 022, 038, 039, 043, 044, 046)에 공유 사례를 줍니다. 검증하는 기존 사례는 인용하고, 나머지는 form-render와 validate에 사례를 추가합니다 | packages/react/scripts/generate-form-render-cases.mts, packages/react/scripts/scenario-form-render-cases.ts, tests/fixtures/form-render/cases.json, tests/fixtures/validate/cases.json, config/parity.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-declarations-check > var/pd-C16.144.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines (CUSC-005\|CUSC-016\|CUSC-022\|CUSC-038\|CUSC-039\|CUSC-043\|CUSC-044\|CUSC-046)," var/pd-C16.144.log'` | [o] |

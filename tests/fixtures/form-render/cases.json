@@ -443,7 +443,8 @@
       "CUMK-023",
       "CUMK-036",
       "CUMK-058",
-      "CUMK-063"
+      "CUMK-063",
+      "CUSC-044"
     ],
     "spec": {
       "type": "group",
@@ -749,7 +750,8 @@
     "requirements": [
       "CUMK-001",
       "CUMK-002",
-      "CUMK-003"
+      "CUMK-003",
+      "CUSC-005"
     ],
     "spec": {
       "type": "group",
@@ -868,7 +870,8 @@
       "CUMK-036",
       "CUMK-058",
       "CUMK-060",
-      "CUMK-063"
+      "CUMK-063",
+      "CUSC-043"
     ],
     "spec": {
       "type": "group",
@@ -1124,6 +1127,192 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 3</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000005__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000005__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 0</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000005__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000005__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][name]\" id=\"crudui:items.__0000000000005__.name\" name=\"items[__0000000000005__][name]\" type=\"text\" value=\"Five\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items.__0000000000005__.children\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div><div class=\"crudui-node__footer\"><div aria-label=\"Collection controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000007__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000007__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000007__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000007__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][name]\" id=\"crudui:items.__0000000000007__.name\" name=\"items[__0000000000007__][name]\" type=\"text\" value=\"Seven\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items.__0000000000007__.children\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000007__.children.__0000000000001__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">2.1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000007__.children.__0000000000001__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000007__.children.__0000000000001__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][children][][name]\" id=\"crudui:items.__0000000000007__.children.__0000000000001__.name\" name=\"items[__0000000000007__][children][__0000000000001__][name]\" type=\"text\" value=\"Child\"></div></div></div></div></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:items.__0000000000001__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__number\">3</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 0</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:items.__0000000000001__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"items.__0000000000001__.name\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"items[][name]\" id=\"crudui:items.__0000000000001__.name\" name=\"items[__0000000000001__][name]\" type=\"text\" value=\"One\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items.__0000000000001__.children\"><div class=\"crudui-node__header\"><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div><div class=\"crudui-node__footer\"><div aria-label=\"Collection controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "stacked-layout-group",
+    "note": "A group that declares design.layout stacked lays its label above its controls, like a form without a declaration (CUSC-016).",
+    "requirements": [
+      "CUSC-016"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "profile": {
+          "type": "group",
+          "label": "Profile",
+          "design": {
+            "layout": "stacked"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--group\" data-field-path=\"profile\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Profile</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"profile.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:profile.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"profile[name]\" id=\"crudui:profile.name\" name=\"profile[name]\" type=\"text\" value=\"\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-controls-header",
+    "note": "multiple.controls header places the row controls in the header of each row (CUSC-046, the default position).",
+    "requirements": [
+      "CUSC-046"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "text",
+          "label": {
+            "en": "Row"
+          },
+          "multiple": {
+            "controls": "header",
+            "copy": true
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "b"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000001__\" name=\"rows[__0000000000001__]\" type=\"text\" value=\"a\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">2</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000002__\" name=\"rows[__0000000000002__]\" type=\"text\" value=\"b\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-controls-footer",
+    "note": "multiple.controls footer places the row controls in the footer of each row (CUSC-046).",
+    "requirements": [
+      "CUSC-046"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "text",
+          "label": {
+            "en": "Row"
+          },
+          "multiple": {
+            "controls": "footer",
+            "copy": true
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "b"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000001__\" name=\"rows[__0000000000001__]\" type=\"text\" value=\"a\"></div></div><div class=\"crudui-node__footer\"><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000002__\" name=\"rows[__0000000000002__]\" type=\"text\" value=\"b\"></div></div><div class=\"crudui-node__footer\"><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-controls-outline",
+    "note": "multiple.controls outline moves the row controls to the structure map and leaves none in the form (CUSC-046).",
+    "requirements": [
+      "CUSC-046"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "text",
+          "label": {
+            "en": "Row"
+          },
+          "multiple": {
+            "controls": "outline",
+            "copy": true
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "b"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000001__\" name=\"rows[__0000000000001__]\" type=\"text\" value=\"a\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000002__\" name=\"rows[__0000000000002__]\" type=\"text\" value=\"b\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-min-reached-disables-remove",
+    "note": "With two rows at multiple.min 2 the remove-row controls are unavailable and marked aria-disabled, and add-row stays available (CUSC-043, CUMK-035).",
+    "requirements": [
+      "CUSC-043"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "text",
+          "label": {
+            "en": "Row"
+          },
+          "multiple": {
+            "min": 2
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "b"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-disabled=\"true\" aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000001__\" name=\"rows[__0000000000001__]\" type=\"text\" value=\"a\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">2</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-disabled=\"true\" aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000002__\" name=\"rows[__0000000000002__]\" type=\"text\" value=\"b\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "lang-values-keep-language-whatever-display",
+    "note": "Each language input shows the value written for its language, whatever the display language: the Korean value is not copied to the English input (CUSC-039).",
+    "requirements": [
+      "CUSC-039"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "title": {
+          "type": "text",
+          "label": {
+            "ko": "제목",
+            "en": "Title"
+          },
+          "lang": true
+        }
+      }
+    },
+    "data": {
+      "title": {
+        "ko": "원문 제목",
+        "en": "Source title"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--lang crudui-node--framed\" data-field-path=\"title\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Title</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"ko\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">ko</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"ko\" data-rule-name=\"title[ko]\" id=\"crudui:title.ko\" name=\"title[ko]\" type=\"text\" value=\"원문 제목\"></div></div></div><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"en\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">en</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"en\" data-rule-name=\"title[en]\" id=\"crudui:title.en\" name=\"title[en]\" type=\"text\" value=\"Source title\"></div></div></div><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"ja\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">ja</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"ja\" data-rule-name=\"title[ja]\" id=\"crudui:title.ja\" name=\"title[ja]\" type=\"text\" value=\"\"></div></div></div><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"zh\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">zh</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"zh\" data-rule-name=\"title[zh]\" id=\"crudui:title.zh\" name=\"title[zh]\" type=\"text\" value=\"\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
     "name": "password-bare",
@@ -6559,7 +6748,8 @@
       "CUMK-001",
       "CUMK-002",
       "CUMK-003",
-      "CUMK-011"
+      "CUMK-011",
+      "CUSC-022"
     ],
     "spec": {
       "type": "group",

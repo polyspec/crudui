@@ -440,4 +440,80 @@ export const SCENARIOS: ScenarioCase[] = [
     },
     options: { language: 'en' },
   },
+  {
+    name: 'stacked-layout-group',
+    note: 'A group that declares design.layout stacked lays its label above its controls, like a form without a declaration (CUSC-016).',
+    spec: {
+      type: 'group',
+      properties: {
+        profile: {
+          type: 'group',
+          label: 'Profile',
+          design: { layout: 'stacked' },
+          properties: { name: { type: 'text', label: 'Name' } },
+        },
+      },
+    },
+    options: { language: 'en' },
+  },
+  {
+    name: 'multiple-controls-header',
+    note: 'multiple.controls header places the row controls in the header of each row (CUSC-046, the default position).',
+    spec: {
+      type: 'group',
+      properties: {
+        rows: { type: 'text', label: { en: 'Row' }, multiple: { controls: 'header', copy: true } },
+      },
+    },
+    data: { rows: { __0000000000001__: 'a', __0000000000002__: 'b' } },
+    options: { language: 'en' },
+  },
+  {
+    name: 'multiple-controls-footer',
+    note: 'multiple.controls footer places the row controls in the footer of each row (CUSC-046).',
+    spec: {
+      type: 'group',
+      properties: {
+        rows: { type: 'text', label: { en: 'Row' }, multiple: { controls: 'footer', copy: true } },
+      },
+    },
+    data: { rows: { __0000000000001__: 'a', __0000000000002__: 'b' } },
+    options: { language: 'en' },
+  },
+  {
+    name: 'multiple-controls-outline',
+    note: 'multiple.controls outline moves the row controls to the structure map and leaves none in the form (CUSC-046).',
+    spec: {
+      type: 'group',
+      properties: {
+        rows: { type: 'text', label: { en: 'Row' }, multiple: { controls: 'outline', copy: true } },
+      },
+    },
+    data: { rows: { __0000000000001__: 'a', __0000000000002__: 'b' } },
+    options: { language: 'en' },
+  },
+  {
+    name: 'multiple-min-reached-disables-remove',
+    note: 'With two rows at multiple.min 2 the remove-row controls are unavailable and marked aria-disabled, and add-row stays available (CUSC-043, CUMK-035).',
+    spec: {
+      type: 'group',
+      properties: {
+        rows: { type: 'text', label: { en: 'Row' }, multiple: { min: 2 } },
+      },
+    },
+    data: { rows: { __0000000000001__: 'a', __0000000000002__: 'b' } },
+    options: { language: 'en' },
+  },
+  {
+    name: 'lang-values-keep-language-whatever-display',
+    note: 'Each language input shows the value written for its language, whatever the display language: the Korean value is not copied to the English input (CUSC-039).',
+    spec: {
+      type: 'group',
+      properties: {
+        title: { type: 'text', label: { ko: '제목', en: 'Title' }, lang: true },
+      },
+    },
+    data: { title: { ko: '원문 제목', en: 'Source title' } },
+    options: { language: 'en' },
+  },
 ];

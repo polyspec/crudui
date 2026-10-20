@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 32f471a6a7f648c4fac53d2087a12a3e9ea8cf53cf41c172b0307b9590a3ce32 -->
+<!-- source-sha256: 97bd515bbe3bee839e677815c869581a34a67e5bd768eb25dbb12adc52ec6fe2 -->
 
 ## Unreleased
 
@@ -18,6 +18,25 @@
 - case와 unit: validate, validateList, validateDetail, value-graphs fixture와 validator unit 네 개는 CUIT-032, CUIT-033, CUIT-035 대신 CUIT-041을 인용합니다.
 - runner(각각 모든 실패의 native class를 검사하며 통과합니다): TypeScript validator와 generator(`ComposeLoadError`, `FormInputError`); PHP validator, generator, PHP extension(검증에서 `ComposeLoadError`, `FormInputError`, 생성에서 `FormError`); Go validator(`*compose.ComposeLoadError`, `*FormInputError`)와 generator(잘못된 text의 로드 타입); Rust validator(`ValidateError::Load`, `ValidateError::Input`); Python validator(`ComposeLoadError`, `FormInputError`)와 generator(생성의 `FormError`).
 - Rust generator: 바뀌지 않았고 요구사항을 충족하지 않습니다. 생성 operation은 모든 실패에 `FormError`를 돌려주며, `From<ComposeLoadError>` 구현은 로드 종류를 code `INVALID_TEXT`에만 남기므로 Rust generator에서 로드 실패와 입력 실패는 서로 다른 오류 타입이 아닙니다. 중립 요구사항은 로드 실패용 두 번째 오류 타입이나 명시된 예외를 요구하며, 어느 쪽인지는 소유자가 정합니다.
+### 2026-10-21 — 추적되지 않은 CUSC 요구사항에 공유 사례가 있습니다 (C16.144)
+
+`docs/spec/schema.md`의 추적되지 않은 CUSC id 8개의 결정표입니다(결정은 해당 문장을 검증하는 사례, 각 사례는 해당 suite의 모든 runner가 실행합니다):
+
+| 요구사항 | 결정 | 사례(suite) | 문장을 검증하는 이유 |
+|---|---|---|---|
+| CUSC-005 behavior: 이벤트 스크립트는 표현식 평가 없이 보존 | 인용 | `behavior-opaque-passthrough` (form-render) | `onchange` 값은 그대로 유지되며 표현식 엔진이 적용되지 않습니다. |
+| CUSC-016 stacked: 레이블을 컨트롤 위에 둡니다 | 신규 | `stacked-layout-group` (form-render) | `design.layout`을 stacked로 선언한 group은 레이블을 컨트롤 위에 둡니다. |
+| CUSC-022 레이블 배열은 작성 순서와 인덱스를 유지 | 인용 | `choice-list-index-labels` (form-render) | 항목이 작성 순서대로 유지되는 레이블 배열이며 인덱스가 값입니다. 이 사례가 이미 같은 문장을 검증합니다. |
+| CUSC-038 조건은 JavaScript가 아닌 표현식 파서로 평가 | 신규 | `expression-scalar-equals-array-is-false`, `expression-zero-equals-empty-array-is-false` (validate) | `'a' == .tags`는 `tags: ['a']`에서 거짓이고, `0 == .tags`는 빈 배열에서 거짓입니다(docs/spec/expressions.md). JavaScript 느슨한 동등 비교는 둘 다 참이므로 메모는 필수가 아닙니다. |
+| CUSC-039 언어별 입력값은 표시 언어와 독립 | 신규 | `lang-values-keep-language-whatever-display` (form-render) | 각 언어 입력은 표시 언어와 관계없이 그 언어로 작성된 값을 보여줍니다. |
+| CUSC-043 multiple.min과 multiple.max | 인용(max)과 신규(min) | `multiple-max-reached-disables-add`(인용, max), `multiple-min-reached-disables-remove`(신규, min) | 양쪽을 모두 검증하므로 두 사례 모두에 CUSC-043을 인용합니다. |
+| CUSC-044 multiple.copy와 multiple.sortable | 인용 | `multiple-settings-bucket` (form-render) | `sortable`과 `copy`에 대해 위로, 아래로, 행 복사 컨트롤이 표시됩니다. |
+| CUSC-046 multiple.controls의 header, footer, outline | 신규 | `multiple-controls-header`, `multiple-controls-footer`, `multiple-controls-outline` (form-render) | 각 값이 문장대로 행 컨트롤의 위치를 정합니다. |
+
+유닛 `form-render`와 `validate`가 id를 나열합니다. `packages/react/scripts/generate-form-render-cases.mts`의 표가 이를 인용하고, `tests/fixtures/form-render/cases.json`을 다시 생성했습니다. 새 사례 6개가 추가되고, 인용한 사례 4개는 `requirements` 멤버만 늘어납니다. Go, Rust, Python form-render runner와 Python validate runner가 새 사례 수(결과 150개, 전체 201개, validate 결과 202개)를 확인합니다. 빨강: a3ef53a5에서 `make item-red ID=C16.144`, 수정 전에는 이 id들의 R13 grep이 실패합니다.
+
+실행: 두 suite의 각 runner를 한 번씩 소유자 선택으로 실행했고 모두 0으로 끝났습니다. Validate: ts, php, php 확장, go, rust, python. Form-render: ts, go, python, php, php 확장, rust. 린트: 변경된 언어에 대해 `make lint-ts`, `lint-go`, `lint-rust`, `lint-python`.
+
 ### 2026-10-21 — 클래스 이름 짓기, 뷰 상태, 기록 요구사항을 해당 사례가 인용합니다 (C16.145)
 
 추적되지 않은 CUMK id의 결정표입니다(결정은 요구사항을 검증하고 인용하는 사례):

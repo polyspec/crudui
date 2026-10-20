@@ -17,6 +17,25 @@
 - Cases and units: the validate, validateList, validateDetail and value-graphs fixtures and the four validator units cite CUIT-041 in place of CUIT-032, CUIT-033 and CUIT-035.
 - Runners (each asserts the native class of every failure, and passes): the TypeScript validator and generator (`ComposeLoadError`, `FormInputError`); the PHP validator and generator and the PHP extension (`ComposeLoadError`, `FormInputError` in validation and `FormError` in generation); the Go validator (`*compose.ComposeLoadError`, `*FormInputError`) and generator (the load type of invalid text); the Rust validator (`ValidateError::Load`, `ValidateError::Input`); the Python validator (`ComposeLoadError`, `FormInputError`) and generator (`FormError` in generation).
 - Rust generator: unchanged, and not fulfilled. Its generation operations return `FormError` for every failure, and the `From<ComposeLoadError>` impl keeps the load kind only in the code `INVALID_TEXT`, so a load failure and an input failure are not distinct error types of the Rust generator. The neutral rule requires either a second error type for load failures or a documented exception; the owner decides which.
+### 2026-10-21 — The untraced CUSC requirements have shared cases (C16.144)
+
+Decision table for the eight untraced CUSC ids of `docs/spec/schema.md` (decision = the case that tests the sentence; each case is run by every runner of its suite):
+
+| Requirement | Decision | Case (suite) | Why it tests the sentence |
+|---|---|---|---|
+| CUSC-005 behavior: event scripts kept without expression evaluation | cited | `behavior-opaque-passthrough` (form-render) | The `onchange` value is kept verbatim, and the expression engine is not applied to it. |
+| CUSC-016 stacked: the label above the control | new | `stacked-layout-group` (form-render) | A group that declares `design.layout` stacked lays its label above its controls. |
+| CUSC-022 an array of labels keeps the written order with indexes | cited | `choice-list-index-labels` (form-render) | Its items are an array of labels, kept in written order with the indexes as values. The sentence was already covered by this case. |
+| CUSC-038 conditions by the expression parser, not JavaScript | new | `expression-scalar-equals-array-is-false`, `expression-zero-equals-empty-array-is-false` (validate) | `'a' == .tags` is false for `tags: ['a']` and `0 == .tags` is false for an empty array (docs/spec/expressions.md). JavaScript loose equality gives true for both, so the note is not required. |
+| CUSC-039 language input values independent of the display language | new | `lang-values-keep-language-whatever-display` (form-render) | Each language input shows the value written for its language, whatever the display language. |
+| CUSC-043 multiple.min and multiple.max | cited (max) and new (min) | `multiple-max-reached-disables-add` (cited, max); `multiple-min-reached-disables-remove` (new, min) | Both sides are covered, so CUSC-043 is cited on both cases. |
+| CUSC-044 multiple.copy and multiple.sortable | cited | `multiple-settings-bucket` (form-render) | The move-up, move-down and copy-row controls are shown for `sortable` and `copy`. |
+| CUSC-046 multiple.controls header, footer or outline | new | `multiple-controls-header`, `multiple-controls-footer`, `multiple-controls-outline` (form-render) | Each value places the row controls where the sentence says. |
+
+The parity units `form-render` and `validate` list the ids. The generator table of `packages/react/scripts/generate-form-render-cases.mts` cites them, and `tests/fixtures/form-render/cases.json` is regenerated: the six new cases are added and the four cited cases gain `requirements` members only. The Go, Rust and Python form-render runners and the Python validate runner assert the new case counts (150 result cases, 201 cases; 202 result cases in validate). Red: `make item-red ID=C16.144` on a3ef53a5, the R13 grep for these ids fails before the fix.
+
+Runs: each runner of the two suites was run once with its owner selection and exited 0. Validate: ts, php, php extension, go, rust, python. Form-render: ts, go, python, php, php extension, rust. Lint: `make lint-ts`, `lint-go`, `lint-rust` and `lint-python` on the changed languages.
+
 ### 2026-10-21 — The class naming, view-state and history requirements are cited by their cases (C16.145)
 
 Decision table for the untraced CUMK ids (decision = the cases that test the requirement and cite it):

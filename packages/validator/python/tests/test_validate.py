@@ -35,8 +35,8 @@ class TestValidateConformance(unittest.TestCase):
         self.assertGreater(len(self.cases), 0)
 
     def test_result_cases_reproduce_the_expected_result(self):
-        self.assertEqual(len(self.cases), 339)
-        self.assertEqual(len(self.result_cases), 200)
+        self.assertEqual(len(self.cases), 341)
+        self.assertEqual(len(self.result_cases), 202)
         for case in self.result_cases:
             with (
                 self.subTest(case=case["name"]),
