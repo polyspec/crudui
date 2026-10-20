@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 498e09abcc1a029b51bd10b9097d9dc7aa5ab24bd757042c7046df9e077c8e5b -->
+<!-- source-sha256: 1e710c21cf15496ba115ef169e1c9c1008c215b55edbda8688f950c69f2ea7ec -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -98,3 +98,4 @@
 | C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [ ] |
 | C16.63 | make link가 Go module 옆에 쓰는 go.work와 go.work.sum file은 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` writes the Go links without refusing | [o] |
 | C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [ ] |
+| C16.65 | 관리하는 문서와 changelog는 합격 검사를 gate라는 말로 부르지 않는다 (records-check) | CHANGELOG.md, CHANGELOG.ko.md, the documents of docs/ | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [ ] |
