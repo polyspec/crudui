@@ -320,4 +320,53 @@ export const SCENARIOS: ScenarioCase[] = [
     },
     data: { x: 1 },
   },
+  {
+    name: 'multiple-nested-depth-three',
+    note: 'Three collections nested in one another: one recursive node renders every depth, each row keeps its own key and number (CUMK-059, CUMK-058).',
+    spec: {
+      type: 'group',
+      properties: {
+        teams: {
+          type: 'group',
+          label: { en: 'Team' },
+          multiple: true,
+          properties: {
+            members: {
+              type: 'group',
+              label: { en: 'Member' },
+              multiple: true,
+              properties: {
+                tags: {
+                  type: 'group',
+                  label: { en: 'Tag' },
+                  multiple: true,
+                  properties: { name: { type: 'text', label: { en: 'Name' } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    data: {
+      teams: {
+        __0000000000001__: {
+          members: { __0000000000002__: { tags: { __0000000000003__: { name: 'Core' } } } },
+        },
+      },
+    },
+    options: { language: 'en' },
+  },
+  {
+    name: 'multiple-max-reached-disables-add',
+    note: 'With two rows at multiple.max 2 the add-row and copy-row controls are unavailable and marked aria-disabled, so no third row can be added (CUMK-060, CUMK-036).',
+    spec: {
+      type: 'group',
+      properties: {
+        rows: { type: 'text', label: { en: 'Row' }, multiple: { max: 2, copy: true } },
+      },
+    },
+    data: { rows: { __0000000000001__: 'a', __0000000000002__: 'b' } },
+    options: { language: 'en' },
+  },
 ];

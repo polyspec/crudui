@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b8959612ac358705dd2f71e91fe8091601152239abf90d1bae84380e8c40577f -->
+<!-- source-sha256: 218959711efb7b6292e66fae93325cb51c88e83ec3997f0c6504982aa2841806 -->
 
 ## Unreleased
 
@@ -11,6 +11,10 @@
 ### 2026-10-20 — PHP extension은 유한하지 않은 page 또는 total 옵션을 라이브러리와 같이 읽는다 (C16.89)
 
 - `packages/php-ext/src/crudui.c`(`counts_for_conversion`, `call_display`): 표시 옵션 `page` 또는 `total`이 INF나 NAN이면 값 변환기에서 `Unsupported PHP value: float`로 실패하는 대신 라이브러리와 같이 그 옵션의 규칙을 적용합니다(CUDF-029, CUDF-030). 호출자의 배열은 바뀌지 않으며, 행과 data는 그 메시지를 그대로 받습니다. `DisplayRulesTest::testNonFiniteCountsFailWithTheirRules`(C16.89)는 `buildList`와 `renderList`를 다룹니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` exit 2, 2개 실패(`testPageAndTotalAreSafeIntegers`는 `Unsupported PHP value: float`, 새 test); 라이브러리 실행 `DisplayRulesTest` exit 0, 22 OK. Green: extension 실행 exit 0, 22 passed; 라이브러리 실행 exit 0, 22 OK.
+
+### 2026-10-20 — 렌더링 case가 시험하는 form markup 규칙을 인용한다 (C16.57-9)
+
+- `tests/fixtures/form-render/cases.json`에 case 두 개가 `packages/react/scripts/scenario-form-render-cases.ts`를 거쳐 React reference로 렌더링되어 추가되었습니다(C16.57-9): `multiple-nested-depth-three`는 collection 세 개가 서로 중첩되는 case이고(CUMK-059), `multiple-max-reached-disables-add`는 `multiple.max` 2에 행 두 개가 있는 case로 add-row와 copy-row control이 `aria-disabled`입니다(CUMK-060). `generate-form-render-cases.mts`의 requirement table은 이제 해당 markup을 보이는 case에 CUMK-005, 031, 058, 059, 060, 062, 063, 064를 둡니다. `config/parity.json`의 form-render unit이 이를 인용합니다. Runner는 case 수를 셉니다: Go, Rust, Python 결과 수는 139이고 Python 전체 수는 190입니다. Owner test는 통과합니다(ts 328, Go 191, Rust 1, Python 5). PHP 라이브러리는 `RenderingConformanceTest`의 190개 case를 모두 통과합니다(phpunit). `make test-php-ext`는 이 test가 extension이 제공하지 않는 라이브러리 내부 class(`Internal\Buttons`, `Value`, `Messages`)를 로드하므로 실행을 거부하며, 그래서 form-render의 php-extension binding은 이 명령으로 검증되지 않습니다. Red: main의 `make parity-declarations-check`는 finding 317개(R13 168, R4 7, R5 141, R6 1)를 보고합니다; green: finding 309개(R13 161, R4 7, R5 140, R6 1)이며 새 finding 줄은 없습니다. 아직 추적되지 않은 CUMK id 25개는 class 이름 규칙 CUMK-001에서 003, outline과 data class CUMK-008과 009(이 case들의 HTML은 TypeScript runner만 비교합니다), CSS 변수 CUMK-039에서 055(case가 CSS를 싣지 않음), 그리고 CUMK-056, 057, 061(polling, expansion view state, undo: markup suite가 시험하지 않음)입니다.
 
 ### 2026-10-20 — 렌더링과 outline suite를 parity unit으로 선언한다 (C16.83)
 

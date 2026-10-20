@@ -223,6 +223,7 @@
     "name": "group-class-condmap-has-data",
     "note": "The design.group.class condition map selects has-data or empty according to the items value.",
     "requirements": [
+      "CUMK-005",
       "CUMK-013",
       "CUMK-021"
     ],
@@ -267,6 +268,7 @@
     "name": "group-class-condmap-empty",
     "note": "Same group.class condition map; no data → empty branch.",
     "requirements": [
+      "CUMK-005",
       "CUMK-013",
       "CUMK-021"
     ],
@@ -307,12 +309,15 @@
     "name": "multiple-leaf-two-rows",
     "note": "multiple:true + 2 keyed rows → collection node with 2 row nodes, each with add-row and remove-row controls.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-014",
       "CUMK-016",
       "CUMK-022",
-      "CUMK-023"
+      "CUMK-023",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -341,12 +346,15 @@
     "name": "multiple-leaf-empty-placeholder",
     "note": "multiple:true + empty data → a single placeholder row.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-014",
       "CUMK-016",
       "CUMK-022",
-      "CUMK-023"
+      "CUMK-023",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -370,13 +378,16 @@
     "name": "multiple-settings-bucket",
     "note": "multiple:{ max:5, sortable:true, copy:true } → move-up/move-down, add-row, copy-row and remove-row controls with computed disabled states (canonical keys only).",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-014",
       "CUMK-016",
       "CUMK-022",
       "CUMK-023",
-      "CUMK-036"
+      "CUMK-036",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -408,6 +419,7 @@
     "name": "multiple-group-rows",
     "note": "type:group + multiple:true + 1 row → collapsible row node with number, controls and child nodes (no position id leakage; the row key is the identity).",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -417,7 +429,9 @@
       "CUMK-018",
       "CUMK-022",
       "CUMK-023",
-      "CUMK-033"
+      "CUMK-033",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -455,6 +469,7 @@
     "name": "lang-default-langs",
     "note": "lang:true → default ko/en/ja/zh lang-item nodes, each labelled with its code. Content label translation stays separate.",
     "requirements": [
+      "CUMK-005",
       "CUMK-015",
       "CUMK-024",
       "CUMK-025"
@@ -481,6 +496,7 @@
     "name": "lang-settings-only-frame-off",
     "note": "lang:{ only:[ko,en], title:{ko:언어팩}, frame:false } → 2 languages, frame off (p-0 border-0), title applied.",
     "requirements": [
+      "CUMK-005",
       "CUMK-015",
       "CUMK-024",
       "CUMK-025",
@@ -516,6 +532,7 @@
     "name": "group-nested-properties",
     "note": "type:group + properties:{a,b} → group node with 2 recursive child nodes.",
     "requirements": [
+      "CUMK-005",
       "CUMK-013",
       "CUMK-021"
     ],
@@ -664,6 +681,126 @@
       "x": 1
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"field\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"field\" data-rule-name=\"field\" id=\"crudui:field\" name=\"field\" onchange=\"foo()\" type=\"text\" value=\"\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+  },
+  {
+    "name": "multiple-nested-depth-three",
+    "note": "Three collections nested in one another: one recursive node renders every depth, each row keeps its own key and number (CUMK-059, CUMK-058).",
+    "requirements": [
+      "CUMK-005",
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-031",
+      "CUMK-033",
+      "CUMK-058",
+      "CUMK-059",
+      "CUMK-063"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": {
+            "en": "Team"
+          },
+          "multiple": true,
+          "properties": {
+            "members": {
+              "type": "group",
+              "label": {
+                "en": "Member"
+              },
+              "multiple": true,
+              "properties": {
+                "tags": {
+                  "type": "group",
+                  "label": {
+                    "en": "Tag"
+                  },
+                  "multiple": true,
+                  "properties": {
+                    "name": {
+                      "type": "text",
+                      "label": {
+                        "en": "Name"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "members": {
+            "__0000000000002__": {
+              "tags": {
+                "__0000000000003__": {
+                  "name": "Core"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"teams\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Team</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:teams.__0000000000001__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Team</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:teams.__0000000000001__:body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"teams.__0000000000001__.members\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Member</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:teams.__0000000000001__.members.__0000000000002__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Member</span><span class=\"crudui-node__number\">1.1</span><span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:teams.__0000000000001__.members.__0000000000002__:body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"teams.__0000000000001__.members.__0000000000002__.tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tag</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000003__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:teams.__0000000000001__.members.__0000000000002__.tags.__0000000000003__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Tag</span><span class=\"crudui-node__number\">1.1.1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:teams.__0000000000001__.members.__0000000000002__.tags.__0000000000003__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"teams.__0000000000001__.members.__0000000000002__.tags.__0000000000003__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:teams.__0000000000001__.members.__0000000000002__.tags.__0000000000003__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"teams[][members][][tags][][name]\" id=\"crudui:teams.__0000000000001__.members.__0000000000002__.tags.__0000000000003__.name\" name=\"teams[__0000000000001__][members][__0000000000002__][tags][__0000000000003__][name]\" type=\"text\" value=\"Core\"></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-max-reached-disables-add",
+    "note": "With two rows at multiple.max 2 the add-row and copy-row controls are unavailable and marked aria-disabled, so no third row can be added (CUMK-060, CUMK-036).",
+    "requirements": [
+      "CUMK-005",
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-036",
+      "CUMK-058",
+      "CUMK-060",
+      "CUMK-063"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "text",
+          "label": {
+            "en": "Row"
+          },
+          "multiple": {
+            "max": 2,
+            "copy": true
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "b"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-disabled=\"true\" aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-disabled=\"true\" aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000001__\" name=\"rows[__0000000000001__]\" type=\"text\" value=\"a\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">2</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-disabled=\"true\" aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-disabled=\"true\" aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000002__\" name=\"rows[__0000000000002__]\" type=\"text\" value=\"b\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
     "name": "password-bare",
@@ -2851,6 +2988,7 @@
     "name": "control-attributes-rows-lang-group",
     "note": "design.attributes on every row control of a repeated scalar field and every language control; wrapper attributes on the collection, lang and group roots and none on row or lang-item nodes.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -2864,7 +3002,9 @@
       "CUMK-024",
       "CUMK-025",
       "CUMK-026",
-      "CUMK-028"
+      "CUMK-028",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -3249,13 +3389,15 @@
     "name": "inline-layout-fields",
     "note": "an inline group → crudui-node--inline on every field node before the wrapper class; a checkbox and a switcher with a label write the label and the description in the header and the input alone in the body; a checkbox without a label keeps its caption; buttons with and without a label.",
     "requirements": [
+      "CUMK-005",
       "CUMK-007",
       "CUMK-011",
       "CUMK-013",
       "CUMK-020",
       "CUMK-021",
       "CUMK-027",
-      "CUMK-029"
+      "CUMK-029",
+      "CUMK-064"
     ],
     "spec": {
       "type": "group",
@@ -3336,6 +3478,7 @@
     "name": "inline-layout-line-stacked",
     "note": "a line group in an inline group → crudui-node--inline crudui-node--line and plain child fields; a nested group inherits inline; a stacked group ends it; a lang field in an inline group; a line group outside an inline layout.",
     "requirements": [
+      "CUMK-005",
       "CUMK-011",
       "CUMK-013",
       "CUMK-015",
@@ -3345,7 +3488,8 @@
       "CUMK-024",
       "CUMK-025",
       "CUMK-029",
-      "CUMK-030"
+      "CUMK-030",
+      "CUMK-064"
     ],
     "spec": {
       "type": "group",
@@ -3451,6 +3595,7 @@
     "name": "inline-layout-repeated",
     "note": "an inline repeated group → the fields of its rows have crudui-node--inline; the collection and row nodes do not.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-011",
@@ -3463,7 +3608,10 @@
       "CUMK-022",
       "CUMK-023",
       "CUMK-029",
-      "CUMK-033"
+      "CUMK-033",
+      "CUMK-058",
+      "CUMK-063",
+      "CUMK-064"
     ],
     "spec": {
       "type": "group",
@@ -5081,6 +5229,7 @@
     "name": "multiple-only-group-rows",
     "note": "multiple: only renders exactly the data rows in data order under their data keys; each row keeps its toggle, label and number and has no row controls.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -5092,7 +5241,9 @@
       "CUMK-022",
       "CUMK-023",
       "CUMK-033",
-      "CUMK-034"
+      "CUMK-034",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -5135,6 +5286,7 @@
     "name": "multiple-only-object-title-sticky",
     "note": "multiple.only: true combines with title and header: rows are titled and sticky, with no row controls.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -5147,7 +5299,10 @@
       "CUMK-032",
       "CUMK-033",
       "CUMK-034",
-      "CUMK-038"
+      "CUMK-038",
+      "CUMK-058",
+      "CUMK-062",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -5188,6 +5343,7 @@
     "name": "multiple-only-missing-data",
     "note": "Missing data of a multiple: only collection is zero rows, not an initial row: the header and an empty body render, with no footer and no add-row control.",
     "requirements": [
+      "CUMK-005",
       "CUMK-022",
       "CUMK-034"
     ],
@@ -5221,6 +5377,7 @@
     "name": "multiple-only-empty-data",
     "note": "An empty multiple: only collection renders its header and an empty body, with no add-row control.",
     "requirements": [
+      "CUMK-005",
       "CUMK-022",
       "CUMK-034"
     ],
@@ -5256,10 +5413,13 @@
     "name": "multiple-only-scalar-rows",
     "note": "A repeated scalar declared multiple: only renders its data rows under their keys without row controls.",
     "requirements": [
+      "CUMK-005",
       "CUMK-014",
       "CUMK-022",
       "CUMK-023",
-      "CUMK-034"
+      "CUMK-034",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -5286,6 +5446,7 @@
     "name": "design-show-hidden-group-keeps-values",
     "note": "A group hidden by design.show carries the hidden attribute and still renders the values of its fields and rows, which stay part of native submission.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -5294,7 +5455,9 @@
       "CUMK-017",
       "CUMK-021",
       "CUMK-022",
-      "CUMK-023"
+      "CUMK-023",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -5341,6 +5504,7 @@
     "name": "design-show-row-parent-on",
     "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -5352,7 +5516,9 @@
       "CUMK-022",
       "CUMK-023",
       "CUMK-033",
-      "CUMK-034"
+      "CUMK-034",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
@@ -5403,6 +5569,7 @@
     "name": "design-show-row-parent-off",
     "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
     "requirements": [
+      "CUMK-005",
       "CUMK-006",
       "CUMK-007",
       "CUMK-013",
@@ -5414,7 +5581,9 @@
       "CUMK-022",
       "CUMK-023",
       "CUMK-033",
-      "CUMK-034"
+      "CUMK-034",
+      "CUMK-058",
+      "CUMK-063"
     ],
     "spec": {
       "type": "group",
