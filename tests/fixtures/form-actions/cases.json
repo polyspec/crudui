@@ -1,5 +1,122 @@
 [
   {
+    "name": "visibility-hides-and-shows-rows-without-changing-data",
+    "note": "A show condition that hides a collection keeps its rows and their data, and showing it again restores them unchanged (CUEC-006).",
+    "requirements": [
+      "CUEC-006",
+      "CURP-010",
+      "CURP-012",
+      "CURP-020"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "visible": {
+          "type": "text"
+        },
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "design": {
+            "show": ".visible"
+          },
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "visible": "yes",
+      "items": {
+        "__0000000000001__": {
+          "name": "Alpha"
+        },
+        "__0000000000002__": {
+          "name": "Beta"
+        }
+      }
+    },
+    "steps": [
+      {
+        "op": "setValue",
+        "args": [
+          "visible",
+          ""
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "visible",
+          "yes"
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "visible",
+          ""
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "data": {
+          "visible": "",
+          "items": {
+            "__0000000000001__": {
+              "name": "Alpha"
+            },
+            "__0000000000002__": {
+              "name": "Beta"
+            }
+          }
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "visible": "yes",
+          "items": {
+            "__0000000000001__": {
+              "name": "Alpha"
+            },
+            "__0000000000002__": {
+              "name": "Beta"
+            }
+          }
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "visible": "",
+          "items": {
+            "__0000000000001__": {
+              "name": "Alpha"
+            },
+            "__0000000000002__": {
+              "name": "Beta"
+            }
+          }
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
     "name": "set-data-rejects-a-root-that-is-not-an-object",
     "note": "Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.",
     "requirements": [

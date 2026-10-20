@@ -390,6 +390,32 @@ export const SCENARIOS: ScenarioCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'collection-shown-by-condition',
+    note: 'A collection whose show condition holds renders its rows (CUEC-006).',
+    spec: {
+      type: 'group',
+      properties: {
+        visible: { type: 'text', label: { en: 'Visible' } },
+        items: { type: 'group', label: { en: 'Items' }, multiple: true, design: { show: '.visible' }, properties: { name: { type: 'text', label: { en: 'Name' } } } },
+      },
+    },
+    data: { visible: 'yes', items: { __0000000000001__: { name: 'Alpha' } } },
+    options: { language: 'en' },
+  },
+  {
+    name: 'collection-hidden-by-condition',
+    note: 'A collection whose show condition fails is hidden, and its row is still rendered with its data (CUEC-006).',
+    spec: {
+      type: 'group',
+      properties: {
+        visible: { type: 'text', label: { en: 'Visible' } },
+        items: { type: 'group', label: { en: 'Items' }, multiple: true, design: { show: '.visible' }, properties: { name: { type: 'text', label: { en: 'Name' } } } },
+      },
+    },
+    data: { visible: '', items: { __0000000000001__: { name: 'Alpha' } } },
+    options: { language: 'en' },
+  },
+  {
     name: 'nested-empty-collections-keep-sibling-order',
     note: 'An explicit empty collection nested in a row has no rows, and sibling rows keep their keys and data order, the nested empty collection of the first and third rows included (CUEC-001, CURP-027).',
     spec: {

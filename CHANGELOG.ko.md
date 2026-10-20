@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 91142bb60e2c336763a4bc3802a670590f655ffaecc61b0a42dc1a72576478bd -->
+<!-- source-sha256: 5de2c5740f1083cca125b350f3d8b4a4b42d2f56050f6a62ec3c161346da9871 -->
 
 ## Unreleased
 
@@ -15,6 +15,12 @@
 ### 2026-10-21 — make install-packages는 npm ci 뒤 svelte 도구를 설치하고 link를 실행하지 않는다 (C16.134)
 
 - kit K428(kit 76e340de)은 `install-packages`의 npm ci 뒤에 `INSTALL_PACKAGES_EXTRA`의 target을 실행합니다. `Makefile`은 `INSTALL_PACKAGES_EXTRA := crudui-install-svelte-tools`를 두며, `make install`은 그 뒤에 `install-link`로 link합니다. svelte recipe는 더 이상 `make link`(와 `UV_PROJECT_ENVIRONMENT`)를 실행하지 않고, `crudui-install`은 더 이상 `crudui-install-svelte-tools`를 이름으로 두지 않으며(`install-packages`의 extra로만 남음), C16.117이 추가한 CI step(Python 설치와 svelte step)은 job에서 제거되어 그 job들은 `make install-packages`로 svelte 도구를 받습니다. kit copy는 `make kit-sync`로 kit 0.0.54에서 동기화했습니다(`scripts/kit/kit-bootstrap.mk`의 extra target, `install-npm.mts`의 comment, 그 kit의 PRINCIPLES P10과 P36 ~ P38). `tests/build/ci-local.test.mts`의 `install-packages installs the svelte tools after its npm ci and runs no link` test가 C16.117의 test를 대체합니다(C16.134). Red: 새 test가 03403a2f에서 실패합니다(install-packages dry run에 svelte 도구가 없음). Green: `make link-state-check` exit 0, ci-local test 18 passed, `make kit-check` exit 0, 새 worktree의 fresh `make install-packages`가 exit 0이고 svelte 도구가 설치됩니다.
+
+### 2026-10-21 — 명시적 빈 collection이 suite에 인용되고, 그 unit test는 internal입니다 (C16.57-17)
+
+- `tests/fixtures/text-validity/bindForm/cases.json`에 키 기반 객체가 아닌 collection 데이터(반복 group과 반복 scalar에 대한 배열, text 목록, null, text)의 거부 case 여덟 개를 추가합니다. `INVALID_FORM_INPUT`과 `Repeated data must be a keyed object: items`(CUEC-003)입니다. bindForm runner 여섯 개가 모두 통과합니다.
+- `tests/fixtures/form-state/generate.mts`에 `visibility-hides-and-shows-rows-without-changing-data`를 추가합니다. show 조건이 반복 collection을 숨기고 보이게 하며, 관찰된 데이터는 매 단계 같습니다(CUEC-006). `tests/fixtures/form-render/cases.json`에는 `collection-shown-by-condition`, `collection-hidden-by-condition`(CUEC-006)과 `scalar-multiple-empty-object-has-no-rows`(CUEC-001, CUEC-004)가 추가되며, 이전 행의 중첩 형제 case와 함께 runner의 개수가 갱신됩니다.
+- `packages/generator/ts/src/empty-collections.test.ts`는 ts의 internal로 선언됩니다. 이 파일의 모든 단언은 form-render, form-actions, text-bind-form의 인용된 case가 시험하는 동작입니다.
 
 ### 2026-10-21 — form render case가 중첩 행의 명시적 빈 collection을 인용한다 (C16.57-17)
 

@@ -30,7 +30,7 @@ fn form_render_cases_reproduce_the_normalized_layout_or_the_failure() {
         .iter()
         .filter(|case| case.get("expected_html").is_some())
         .collect();
-    assert_eq!(results.len(), 142, "form-render holds 142 result cases");
+    assert_eq!(results.len(), 144, "form-render holds 144 result cases");
     for case in results {
         let name = case["name"].as_str().unwrap();
         let form = match instance(case) {

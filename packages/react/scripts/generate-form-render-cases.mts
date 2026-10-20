@@ -424,6 +424,8 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "lang-settings-only-frame-off": ["CUMK-005", "CUMK-015", "CUMK-024", "CUMK-025", "CUMK-032"],
   "group-nested-properties": ["CUMK-005", "CUMK-013", "CUMK-021"],
   "nested-empty-collections-keep-sibling-order": ["CUEC-001", "CURP-027"],
+  "collection-shown-by-condition": ["CUEC-006"],
+  "collection-hidden-by-condition": ["CUEC-006"],
   "scalar-multiple-empty-object-has-no-rows": ["CUEC-001", "CUEC-004"],
   "multiple-nested-depth-three": ["CUMK-005", "CUMK-006", "CUMK-007", "CUMK-013", "CUMK-014", "CUMK-016", "CUMK-017", "CUMK-018", "CUMK-022", "CUMK-023", "CUMK-031", "CUMK-033", "CUMK-058", "CUMK-059", "CUMK-063"],
   "multiple-max-reached-disables-add": ["CUMK-005", "CUMK-006", "CUMK-007", "CUMK-014", "CUMK-016", "CUMK-022", "CUMK-023", "CUMK-036", "CUMK-058", "CUMK-060", "CUMK-063"],

@@ -247,5 +247,221 @@
       "message": "Text must be Unicode scalar values: template.fields.0.spec.label",
       "at": ""
     }
+  },
+  {
+    "name": "items-group-array-rejected",
+    "note": "collection data of a repeated group that is array is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": []
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-group-list-of-text-rejected",
+    "note": "collection data of a repeated group that is list-of-text is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": [
+        "a"
+      ]
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-group-null-rejected",
+    "note": "collection data of a repeated group that is null is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": null
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-group-text-rejected",
+    "note": "collection data of a repeated group that is text is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "items": "a"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-scalar-array-rejected",
+    "note": "collection data of a repeated scalar that is array is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "text",
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "items": []
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-scalar-list-of-text-rejected",
+    "note": "collection data of a repeated scalar that is list-of-text is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "text",
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "items": [
+        "a"
+      ]
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-scalar-null-rejected",
+    "note": "collection data of a repeated scalar that is null is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "text",
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "items": null
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
+  },
+  {
+    "name": "items-scalar-text-rejected",
+    "note": "collection data of a repeated scalar that is text is not a keyed object: the input fails with the path of the collection (CUEC-003).",
+    "requirements": [
+      "CUEC-003"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "text",
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "items": "a"
+    },
+    "expect": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: items",
+      "at": ""
+    }
   }
 ]

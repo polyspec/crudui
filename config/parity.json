@@ -84,6 +84,10 @@
           "reason": "test: the unit test of the buildDetail display model; the shared suite detail-render covers it through packages/html/src/detail-conformance.test.ts; this file reads no fixture of tests/fixtures"
         },
         {
+          "glob": "packages/generator/ts/src/empty-collections.test.ts",
+          "reason": "test: unit tests of explicit empty collections (group and scalar empty objects, initial rows, rejected non-keyed data, visibility and nested sibling order); the contract is tested by the shared suites form-render (CUEC-001, CUEC-002, CUEC-004, CUEC-006 cases; unit form-render), form-actions (CUEC-006 session; unit form-actions) and text-bind-form (CUEC-003 cases; unit text-bind-form)"
+        },
+        {
           "glob": "packages/generator/ts/src/form-render.test.ts",
           "reason": "test: the unit test of the decoding of render options (decodeFormRenderOptions); the shared suite form-complete covers it through packages/html/src/form-complete.conformance.test.ts; this file reads no fixture of tests/fixtures"
         },
@@ -861,7 +865,8 @@
         "CURT-002",
         "CURT-003",
         "CURP-020",
-        "CURP-026"
+        "CURP-026",
+        "CUEC-006"
       ]
     },
     {
@@ -1475,7 +1480,8 @@
         "CUSC-024",
         "CUSC-025",
         "CUSC-026",
-        "CURP-027"
+        "CURP-027",
+        "CUEC-006"
       ]
     },
     {
@@ -1907,7 +1913,8 @@
         }
       ],
       "requirements": [
-        "CUIT-011"
+        "CUIT-011",
+        "CUEC-003"
       ]
     },
     {

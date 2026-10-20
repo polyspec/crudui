@@ -128,6 +128,20 @@ const all: Case[] = [
     ],
   }),
   session({
+    name: 'visibility-hides-and-shows-rows-without-changing-data',
+    note: 'A show condition that hides a collection keeps its rows and their data, and showing it again restores them unchanged (CUEC-006).',
+    requirements: ['CUEC-006'],
+    spec: {
+      type: 'group',
+      properties: {
+        visible: { type: 'text' },
+        items: { type: 'group', multiple: true, design: { show: '.visible' }, properties: { name: { type: 'text' } } },
+      },
+    },
+    data: { visible: 'yes', items: { [k(1)]: { name: 'Alpha' }, [k(2)]: { name: 'Beta' } } },
+    steps: [step('setValue', 'visible', ''), step('setValue', 'visible', 'yes'), step('setValue', 'visible', '')],
+  }),
+  session({
     name: 'set-data-rejects-a-root-that-is-not-an-object',
     note: 'Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.',
     requirements: ['CURT-001', 'CURP-026'],

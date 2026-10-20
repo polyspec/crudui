@@ -67,7 +67,7 @@ class TestGeneratorTextValidityConformance(unittest.TestCase):
         from polyspec.crudui.generator import Generator
 
         cases = cases_of("text-validity", "bindForm/cases.json")
-        self.assertEqual(len(cases), 9)
+        self.assertEqual(len(cases), 17)
         for case in cases:
             with (
                 self.subTest(case=case["name"]),
