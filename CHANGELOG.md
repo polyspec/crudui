@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Adopt the divergence, link-state and bypass gates and the internal tests (C16.48)
+
+- `CHECK_TARGETS` lists `divergence-check`, `link-state-check` and `bypass-check`; the reasons of `config/duplication.json` and of the `tools` roots of `config/parity.json` begin with a kind that kit defines; `packages/php-ext/tests/engine/engine.test.mjs` is split into `packages/php-ext/tests/comparison/comparison.test.mjs`, which holds only the checks of the native engine against the TypeScript reference and is the comparator, and the C engine tests, which are the `internal` tests of the implementation `php-extension-engine` with a reason; the shared helpers are `packages/php-ext/tests/engine/support.mjs`, and the comma locale is chosen by the locale list instead of the platform (C16.48). Red: `make kit-check` reported 2 findings, `make divergence-check` named the unkinded reasons and `process.platform` in the engine test; green: `make kit-check` passes, the two engine test files pass (27 and 11 tests), `make parity-declarations-check` reports 0 R6. `make divergence-check` still reports the `partial` and `unsupported` entries of `contracts/features.json` and `--exclude-group` in two example scripts, which are the next items.
+
 ### 2026-10-20 — The moved C engine test runs green (C16.47-1)
 
 - `packages/php-ext/tests/engine/engine.test.mjs` runs from its new folder with the relative paths of C16.47 and passes (C16.47-1). Green: `node --test` reports 38 passed, 0 failed, 0 timed out, 0 skipped.

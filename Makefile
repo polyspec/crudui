@@ -364,7 +364,7 @@ bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 # failure; any failure fails the target.
 crudui-test-php-engine:
 	$(NODE) scripts/require-current-build.mts
-	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine/engine.test.mjs
+	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine/engine.test.mjs packages/php-ext/tests/comparison/comparison.test.mjs
 
 crudui-test-native-generators: cargo-downloads-check
 	$(NODE) scripts/require-current-build.mts
@@ -504,6 +504,9 @@ CHECK_TARGETS = \
 	commits-check \
 	link-check \
 	link-metadata-check \
+	divergence-check \
+	link-state-check \
+	bypass-check \
 	lint-ts \
 	lint-php \
 	lint-python \

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: fb902dcddce963469661fca1cbc0a18a12cc69c53ad58624a50a84e681bd20b7 -->
+<!-- source-sha256: e09194fa63b940870f1b9bf669561ab16a297f15c7b312aba2e92b9d8234a77e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -68,3 +68,4 @@
 | C16.46-1 | config/parity.json은 TypeScript 전용 package와 tooling test를 implementation root 밖에 둔다 | config/parity.json | `make parity-declarations-check` | [!] 원인: make parity-declarations-check는 unit과 spec id가 없애는 finding 187건(R4 19건, R5 166건)과, php-extension root 안에 있는 C engine의 node test인 packages/php-ext/tests/engine.test.mjs(R6)를 계속 보고한다; 재시도: unit, requirement id, C engine test의 위치에 대한 결정 뒤 |
 | C16.47 | C engine test는 php-ext test folder에 있고 config/parity.json에 선언된다 | packages/php-ext/tests/engine/engine.test.mjs, config/parity.json, config/owner-checks.json | `make parity-declarations-check` | [o] |
 | C16.47-1 | 옮겨진 C engine test는 새 folder에서 green으로 실행된다 | CHANGELOG.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/engine/engine.test.mjs` | [o] |
+| C16.48 | 저장소는 kit의 divergence-check, link-state-check, bypass-check와 internal test를 채택하고 engine test를 나눈다 | Makefile, config/parity.json, config/duplication.json, packages/php-ext/tests/engine, packages/php-ext/tests/comparison | `make kit-check`, `make parity-declarations-check`, and the two engine test files | [o] |

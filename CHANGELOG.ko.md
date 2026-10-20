@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9d148a0e90d43cfe6627923bf7b10df68e88a03b5386a2e3e180cf2c820650a8 -->
+<!-- source-sha256: 87927013f1cd93e8c140025a48ba06ef90fc31fb3333a07665e3175d390b6edd -->
 
 ## Unreleased
+
+### 2026-10-20 — divergence, link-state, bypass gate와 internal test를 채택한다 (C16.48)
+
+- `CHECK_TARGETS`는 `divergence-check`, `link-state-check`, `bypass-check`를 담고, `config/duplication.json`과 `config/parity.json`의 `tools` root의 reason은 kit이 정의한 종류로 시작하며, `packages/php-ext/tests/engine/engine.test.mjs`는 native engine을 TypeScript reference와 비교하는 검사만 담아 comparator인 `packages/php-ext/tests/comparison/comparison.test.mjs`와, reason을 가진 implementation `php-extension-engine`의 `internal` test인 C engine test로 나뉘고, 공용 helper는 `packages/php-ext/tests/engine/support.mjs`이며, comma locale은 platform 대신 locale 목록으로 고릅니다 (C16.48). Red: `make kit-check`가 finding 2건을, `make divergence-check`가 종류 없는 reason과 engine test의 `process.platform`을 보고했고, green: `make kit-check`가 통과하고, 두 engine test file이 통과하며(27건과 11건), `make parity-declarations-check`가 R6 0건을 보고합니다. `make divergence-check`는 `contracts/features.json`의 `partial`과 `unsupported` 항목과 example script 두 곳의 `--exclude-group`을 계속 보고하며, 이는 다음 item입니다.
 
 ### 2026-10-20 — 옮겨진 C engine test가 green이다 (C16.47-1)
 

@@ -792,7 +792,7 @@
         "packages/generator/php/tests/DetailTest.php",
         "packages/generator/go/detail_test.go",
         "packages/generator/rust/src/detail.rs",
-        "packages/php-ext/tests/engine/engine.test.mjs",
+        "packages/php-ext/tests/comparison/comparison.test.mjs",
         "packages/php-ext/tests/ApiReport.php",
         "tests/native-generators/run.mts",
         "packages/generator/ts/src/input-text.test.ts"

@@ -40,6 +40,25 @@
       ]
     },
     {
+      "name": "php-extension-engine",
+      "runner": "node",
+      "prose": [
+        "PHP extension engine"
+      ],
+      "roots": [
+        "packages/php-ext/tests/engine"
+      ],
+      "tests": [
+        "packages/php-ext/tests/engine/*.test.mjs"
+      ],
+      "internal": [
+        {
+          "glob": "packages/php-ext/tests/engine/*.test.mjs",
+          "reason": "test: the tests of the C engine of the extension, which compile and run C programs of its own parts (text, values, numbers, locale, sanitizers, allocation failure, build); the comparison against the TypeScript reference is in packages/php-ext/tests/comparison"
+        }
+      ]
+    },
+    {
       "name": "go",
       "runner": "go",
       "prose": [
@@ -83,35 +102,35 @@
   "tools": [
     {
       "root": "scripts",
-      "reason": "the tests of the build, documentation and API tooling scripts of the repository; they test no contract"
+      "reason": "harness: the tests of the build, documentation and API tooling scripts of the repository; they test no contract"
     },
     {
       "root": "tests",
-      "reason": "the tests of the repository tooling (CI, Makefile, manifests, locks, names, generators, documentation) and the browser tests of the styles, widget scripts, form inspector and markup names of the generated HTML; they test no contract of an implementation"
+      "reason": "test: the tests of the repository tooling (CI, Makefile, manifests, locks, names, generators, documentation) and the browser tests of the styles, widget scripts, form inspector and markup names of the generated HTML; they test no contract of an implementation"
     },
     {
       "root": "packages/html",
-      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     },
     {
       "root": "packages/react",
-      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     },
     {
       "root": "packages/vue",
-      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     },
     {
       "root": "packages/svelte",
-      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     },
     {
       "root": "packages/form-binding",
-      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     },
     {
       "root": "packages/cli",
-      "reason": "the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     }
   ],
   "comparators": [
@@ -119,6 +138,6 @@
     "examples/form-comparison",
     "examples/cross-check-console",
     "examples/product-forms",
-    "packages/php-ext/tests/engine"
+    "packages/php-ext/tests/comparison"
   ]
 }
