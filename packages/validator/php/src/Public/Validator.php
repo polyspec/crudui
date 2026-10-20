@@ -64,29 +64,46 @@ final class Validator
     /** Validate list composition and metadata without validating row data. */
     public static function validateList(array|stdClass $spec, array $options = []): stdClass
     {
-        self::checkText($spec, $options, []);
-        $loader = self::loader($options);
-        $basepath = $options['basepath'] ?? '';
-        $composed = self::composeRoot($spec, $loader, $basepath);
-        self::composeMap($composed, 'columns', $loader, $basepath);
-        if (JsonValue::isObject($composed['search'] ?? null)) {
-            $search = (array) $composed['search'];
-            if (array_key_exists('$ref', $search) || array_key_exists('$patch', $search)) {
-                self::composeMap($composed, 'search', $loader, $basepath);
-            }
-        }
-        ForbiddenScan::scan($composed);
-        return (object) ['valid' => true, 'errors' => []];
+        return self::validateComposition(
+            $spec,
+            $options,
+            static function (array &$composed, MemoryLoader $loader, string $basepath): void {
+                self::composeMap($composed, 'columns', $loader, $basepath);
+                if (JsonValue::isObject($composed['search'] ?? null)) {
+                    $search = (array) $composed['search'];
+                    if (array_key_exists('$ref', $search) || array_key_exists('$patch', $search)) {
+                        self::composeMap($composed, 'search', $loader, $basepath);
+                    }
+                }
+            },
+        );
     }
 
     /** Validate detail composition and metadata without validating record data. */
     public static function validateDetail(array|stdClass $spec, array $options = []): stdClass
     {
+        return self::validateComposition(
+            $spec,
+            $options,
+            static function (array &$composed, MemoryLoader $loader, string $basepath): void {
+                self::composeMap($composed, 'fields', $loader, $basepath);
+            },
+        );
+    }
+
+    /**
+     * Compose the root of a specification and the object maps that `$composeMaps` names, then
+     * scan the result for forbidden members. A composition failure throws.
+     *
+     * @param \Closure(array<string, mixed> &, MemoryLoader, string): void $composeMaps
+     */
+    private static function validateComposition(array|stdClass $spec, array $options, \Closure $composeMaps): stdClass
+    {
         self::checkText($spec, $options, []);
         $loader = self::loader($options);
         $basepath = $options['basepath'] ?? '';
         $composed = self::composeRoot($spec, $loader, $basepath);
-        self::composeMap($composed, 'fields', $loader, $basepath);
+        $composeMaps($composed, $loader, $basepath);
         ForbiddenScan::scan($composed);
         return (object) ['valid' => true, 'errors' => []];
     }

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c6b1cc2e4c19da00f282f17cb30aba6a44ca889ba7abf5d8ce5588f368216192 -->
+<!-- source-sha256: c051fed25ee04b66f9db6b025ea41f98591a42296786ece8f86ee5d578bc4f8f -->
 
 ## Unreleased
+
+### 2026-10-20 — list와 detail이 쓰는 하나의 composition 검증 (C16.17)
+
+- `Validator::validateComposition`은 text 검사, root와 지정된 map의 composition, 금지 member 검사를 한 번만 수행하고, `validateList`와 `validateDetail`은 자기 map만 지정합니다 (C16.17). Red: `make duplication-check`가 `Public/Validator.php`의 clone 1건을 나열했고, green: 없음. list(20), detail(14), text validity(46) conformance test와 `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — PHP expression parser의 literal reader 하나 (C16.16)
 

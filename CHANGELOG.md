@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — One composition validation for list and detail (C16.17)
+
+- `Validator::validateComposition` checks the text, composes the root and the named maps and scans for forbidden members once; `validateList` and `validateDetail` name only their maps (C16.17). Red: `make duplication-check` listed 1 clone in `Public/Validator.php`; green: none, the list (20), detail (14) and text validity (46) conformance tests and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — One literal reader in the PHP expression parser (C16.16)
 
 - `Parser::literal` consumes a string, number or boolean token as a `LiteralNode`, which `parsePrimary` and `parseValueListItem` each spelled out three times (C16.16). Red: `make duplication-check` listed 2 clones in `Expr/Parser.php`; green: none, `ExprConformanceTest` (78) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
