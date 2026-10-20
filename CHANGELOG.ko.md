@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9143f81c04f281360d6ba969451f4a4777e1edab2723e6cde4b976593d1cca13 -->
+<!-- source-sha256: 9df27261c9b452ce47715e629abad4b5064d9b8419b3fff9940052e940e66b42 -->
 
 ## Unreleased
 
@@ -48,6 +48,10 @@
 ### 2026-10-20 — docs-check는 DOCS_CHECKS hook을 통해 doc-coverage gate를 실행한다 (C16.94)
 
 - crudui의 Makefile은 doc-coverage gate를 prerequisite `docs-check: crudui-docs-check` 대신 `DOCS_CHECKS += crudui-docs-check`로 추가하여(C16.94), kit의 docs-check가 check-documents와 hook의 모든 target을 각각 독립적으로 실행하게 합니다. `scripts/test-commands.mts`는 hook을 따라가므로(`makeHooks`, `ProjectDeclarations.hooks`) `make docs-check`가 hook된 target을 통해 여전히 test runner에 닿고, `tests/build/test-commands.test.mts`에는 그 fixture(test를 실행하는 hook target과 실행하지 않는 것)가 추가됩니다. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts`가 "no Makefile target takes a target that runs tests as a prerequisite"에서 exit 1; green: exit 0, 16 passed. `make -n docs-check`는 check-documents와 crudui-docs-check를 명명하며 overriding 경고를 출력하지 않습니다.
+
+### 2026-10-20 — 모든 implementation이 담은 interface message는 CUMK-065 아래 contract와 같다 (C16.100)
+
+- `docs/spec/form-markup.md`는 요구사항을 항목 CUMK-065로 씁니다(모든 implementation은 `contracts/interface-messages.json`에서 생성한 소스를 담고, 담은 문구가 다르면 test가 실패합니다). `config/parity.json`은 CUMK-065를 인용하는 feature unit `interface-messages`를 여섯 binding과 함께 선언합니다. TypeScript test, Go test, `messages/mod.rs`의 Rust test, 새 Python test `tests/test_interface_messages.py`(`FORM`과 `LIST` 표를 contract와 비교), 새 PHP test `InterfaceMessagesConformanceTest.php`(공개 API `Generator::compileForm`과 `Form::getMessages()`만 써서 contract의 각 언어를 검사하며, PHP 확장도 실행합니다)입니다(C16.100). Red: parity check에는 CUMK-065 binding이 없었고 TypeScript, Go, Rust, Python contract test가 묶이지 않았습니다(`R5 undeclared-test`). Green: `make parity-declarations-check`는 전 303건에서 후 300건이 되었고, R5 세 줄(Go, Rust, TypeScript)이 빠졌으며 새 줄은 없습니다. 확장 실행 `make test-php-ext CASES=InterfaceMessagesConformanceTest`는 exit 0이며 5 passed이고, 라이브러리 실행도 통과합니다. 공개 API는 form 표만 돌려주므로 PHP test는 `LIST` 표를 검사하지 않습니다(Python, Go, TypeScript test가 검사합니다). list 메시지를 돌려주는 공개 PHP 메서드는 없으며, 추가하는 것은 계약 변경이라 따로 결정해야 합니다.
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 

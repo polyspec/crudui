@@ -9,7 +9,7 @@ import (
 )
 
 // TestInterfaceMessagesMatchesContract fails when interface_messages.go differs from
-// contracts/interface-messages.json; run `go generate` to rewrite it.
+// contracts/interface-messages.json; run `go generate` to rewrite it (CUMK-065).
 func TestInterfaceMessagesMatchesContract(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "contracts", "interface-messages.json"))
 	if err != nil {

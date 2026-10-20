@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 773272df6352dd53f4aa65787f96388212cf11f8d8d172903f893a17a98edeb5 -->
+<!-- source-sha256: 16b54799d2a0c24437ab733c7c3d45ebd7b38e3527e76141cf881b8733c74b50 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -365,6 +365,8 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 버튼이 가리키는 폼 행의 첫 컨트롤에 포커스하고, 그 컨트롤을 고정 헤더와 푸터에 가리지 않게 스크롤합니다.
 
 ## 화면 문구
+
+- **CUMK-065** 모든 구현은 `contracts/interface-messages.json`에서 생성한 소스를 담고, 담은 문구가 파일과 다르면 테스트가 실패하므로 모든 구현이 같은 문구를 사용합니다.
 
 컨트롤 레이블, 개수, 요약은 `ko`, `en`, `ja`, `zh` 문구 표 하나,
 [`contracts/interface-messages.json`](../../contracts/interface-messages.json)에서

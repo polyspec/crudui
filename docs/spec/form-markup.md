@@ -400,6 +400,8 @@ view clear of the sticky headers and the footer.
 
 ## Interface messages
 
+- **CUMK-065** Every implementation embeds a source generated from `contracts/interface-messages.json` and a test fails when the embedded text differs from it, so every implementation uses the same text.
+
 Control labels, counts and summaries come from one message table for `ko`, `en`,
 `ja` and `zh`, [`contracts/interface-messages.json`](../../contracts/interface-messages.json).
 Every implementation embeds a source generated from that file and a test fails when

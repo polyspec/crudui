@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a18ef0c9f221167660778ca81cea2d8b3dd0c5ceb300e2de201bfcd64c2c81bc -->
+<!-- source-sha256: bb924a54b863143a2ac44bf02d7d60fa8aeb196da9b7252b4c4993b16f8f25c2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -192,3 +192,4 @@
 | C16.107 | repository의 PHP file은 phpcs 줄 길이 규칙을 통과한다 | the PHP files that phpcs reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` | [o] |
 | C16.107-1 | repository의 TypeScript file은 oxlint를 통과한다 | the TypeScript files that oxlint reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-ts` | [o] |
 | C16.94 | docs-check는 prerequisite가 아니라 kit K419의 DOCS_CHECKS hook을 통해 저장소의 doc-coverage gate를 실행한다 | Makefile | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts` | [o] |
+| C16.100 | 모든 implementation이 담은 interface message는 contracts/interface-messages.json과 같다: CUMK-065를 인용하는 여섯 binding의 feature unit | config/parity.json docs/spec/form-markup.md docs/spec/form-markup.ko.md packages/generator/php/tests/InterfaceMessagesConformanceTest.php packages/generator/python/tests/test_interface_messages.py | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/InterfaceMessagesConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_interface_messages` | [o] |

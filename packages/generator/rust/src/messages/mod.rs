@@ -126,6 +126,7 @@ mod tests {
         result
     }
 
+    /// The embedded messages equal contracts/interface-messages.json (CUMK-065).
     #[test]
     fn embedded_messages_match_the_contract() {
         let contract: Value = match serde_json::from_str(include_str!(

@@ -1348,6 +1348,45 @@
         "CUDF-087",
         "CUDF-088"
       ]
+    },
+    {
+      "id": "interface-messages",
+      "kind": "feature",
+      "requirements": [
+        "CUMK-065"
+      ],
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/interface-messages.test.ts",
+          "id": "src/interface-messages.ts equals contracts/interface-messages.json"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/InterfaceMessagesConformanceTest.php",
+          "id": "testEmbeddedMessagesEqualsTheContract"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/InterfaceMessagesConformanceTest.php",
+          "id": "testEmbeddedMessagesEqualsTheContract"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/interface_messages_test.go",
+          "id": "TestInterfaceMessagesMatchesContract"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/src/messages/mod.rs",
+          "id": "embedded_messages_match_the_contract"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_interface_messages.py",
+          "id": "test_embedded_messages_equal_the_contract"
+        }
+      ]
     }
   ],
   "tools": [

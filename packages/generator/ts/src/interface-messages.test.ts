@@ -1,6 +1,6 @@
 /**
  * The embedded interface messages equal their source, contracts/interface-messages.json: every
- * table, every language and every key, in the contract's order.
+ * table, every language and every key, in the contract's order (CUMK-065).
  */
 
 import { test, expect } from 'vitest';
