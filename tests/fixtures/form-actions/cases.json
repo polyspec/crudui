@@ -576,7 +576,8 @@
     "requirements": [
       "CURT-081",
       "CURP-010",
-      "CURP-012"
+      "CURP-012",
+      "CURP-020"
     ],
     "spec": {
       "type": "group",
@@ -900,7 +901,8 @@
       "CURT-011",
       "CURT-012",
       "CURP-010",
-      "CURP-012"
+      "CURP-012",
+      "CURP-020"
     ],
     "spec": {
       "type": "group",
@@ -1313,6 +1315,7 @@
       "CURT-083",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {
@@ -1631,6 +1634,7 @@
       "CURT-005",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {
@@ -1949,6 +1953,7 @@
       "CURT-086",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {
@@ -2157,7 +2162,8 @@
     "requirements": [
       "CURT-088",
       "CURP-010",
-      "CURP-012"
+      "CURP-012",
+      "CURP-020"
     ],
     "spec": {
       "type": "group",
@@ -2328,6 +2334,7 @@
       "CURT-007",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {
@@ -2586,6 +2593,7 @@
       "CURT-082",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {
@@ -2920,7 +2928,8 @@
     "requirements": [
       "CURT-091",
       "CURP-010",
-      "CURP-012"
+      "CURP-012",
+      "CURP-020"
     ],
     "spec": {
       "type": "group",

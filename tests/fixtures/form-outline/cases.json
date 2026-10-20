@@ -4,7 +4,10 @@
     "note": "Korean map of top-level and nested rows with undo available; data view escapes markup characters.",
     "requirements": [
       "CUMK-031",
-      "CUMK-032"
+      "CUMK-032",
+      "CURP-006",
+      "CURP-007",
+      "CURP-021"
     ],
     "spec": {
       "type": "group",
@@ -115,7 +118,10 @@
       "CUMK-031",
       "CUMK-032",
       "CUMK-035",
-      "CUMK-037"
+      "CUMK-037",
+      "CURP-006",
+      "CURP-007",
+      "CURP-021"
     ],
     "spec": {
       "type": "group",
@@ -322,7 +328,10 @@
       "CUMK-031",
       "CUMK-032",
       "CUMK-035",
-      "CUMK-037"
+      "CUMK-037",
+      "CURP-006",
+      "CURP-007",
+      "CURP-021"
     ],
     "spec": {
       "type": "group",
@@ -544,7 +553,12 @@
     "canRedo": false,
     "expected_outline_rows": [],
     "expected_outline_html": "<div class=\"crudui-outline\"><div class=\"crudui-outline__header\"><div aria-label=\"表单操作\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"expand-all\" type=\"button\">全部展开</button><button class=\"crudui-action crudui-action--text\" data-crudui-action=\"collapse-all\" type=\"button\">全部折叠</button><button aria-disabled=\"true\" class=\"crudui-action crudui-action--text\" data-crudui-action=\"undo\" type=\"button\">撤销</button><button aria-disabled=\"true\" class=\"crudui-action crudui-action--text\" data-crudui-action=\"redo\" type=\"button\">重做</button></div></div><div class=\"crudui-outline__body\"></div></div>",
-    "expected_data_html": "<div class=\"crudui-data\"><div class=\"crudui-data__header\">当前数据</div><pre class=\"crudui-data__body\">{\n  \"title\": \"Plain\"\n}</pre></div>"
+    "expected_data_html": "<div class=\"crudui-data\"><div class=\"crudui-data__header\">当前数据</div><pre class=\"crudui-data__body\">{\n  \"title\": \"Plain\"\n}</pre></div>",
+    "requirements": [
+      "CURP-006",
+      "CURP-007",
+      "CURP-021"
+    ]
   },
   {
     "name": "outline-only-rows-en",
@@ -554,7 +568,10 @@
       "CUMK-032",
       "CUMK-034",
       "CUMK-035",
-      "CUMK-037"
+      "CUMK-037",
+      "CURP-006",
+      "CURP-007",
+      "CURP-021"
     ],
     "spec": {
       "type": "group",

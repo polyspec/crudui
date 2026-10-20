@@ -7,7 +7,8 @@
       "CURT-067",
       "CURT-068",
       "CURP-010",
-      "CURP-012"
+      "CURP-012",
+      "CURP-020"
     ],
     "spec": {
       "type": "group",
@@ -275,7 +276,8 @@
       "CURT-010",
       "CURT-073",
       "CURP-010",
-      "CURP-012"
+      "CURP-012",
+      "CURP-020"
     ],
     "spec": {
       "type": "group",
@@ -510,6 +512,7 @@
       "CURT-008",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {

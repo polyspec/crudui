@@ -1123,8 +1123,7 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
 
 /** The requirement ids that each case tests (docs/spec); a case that tests none keeps no requirements member. */
 function withRequirements<T extends { name: string; note: string }>(c: T): T & { requirements?: readonly string[] } {
-  const ids = REQUIREMENTS[c.name];
-  if (ids === undefined) return c;
+  const ids = [...(REQUIREMENTS[c.name] ?? []), 'CURP-015'];
   return Object.assign({ name: c.name, note: c.note, requirements: ids }, c);
 }
 process.stdout.write(JSON.stringify(build().map(withRequirements), null, 2) + '\n');

@@ -1,12 +1,18 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ce95bae09e50fc59e69cf80ae426561088c7ee51aa80a0be133c7211636335d3 -->
+<!-- source-sha256: 82286c6f71ae0b86ebd6bc6d62fe5e71c20cfd4fda8096bc317a21f2bf0bacaf -->
 
 ## Unreleased
 
 ### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
 
 - `make install-packages`는 설치만 합니다(kit K246-2). Makefile은 `crudui-install-svelte-tools`를 더 이상 prerequisite로 두지 않습니다. 그 target은 fresh worktree에서 kit의 `npm ci`보다 먼저 실행되어 `node_modules/@polyspec/kit`이 없어 실패했습니다(C16.117). `crudui-install-svelte-tools`는 svelte 도구를 설치한 뒤 link하며, kit의 link가 `var/python`의 Python 환경을 요구하므로 `crudui-install`은 그것을 `install-kit`, `crudui-install-composer`, `crudui-install-python` 뒤에 실행합니다. link는 `UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV)`을 `make link`에 넘깁니다. `make install-packages`를 실행하던 CI job은 이제 `make crudui-install-python`과 `make crudui-install-svelte-tools`를 실행합니다(`ci-passed` job은 둘 다 실행하지 않음). 그 job마다 Python 설치 하나가 더해집니다. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` exit 1, 새 test `install-packages only installs; the svelte tools link after their install`이 실패하며, install-packages의 dry run에 link가 나타납니다. Green: `make link-state-check` exit 0, 같은 ci-local test 18 passed.
+
+### 2026-10-21 — 제품군이 시험하는 런타임 요구사항을 case가 인용한다 (C16.57-14)
+
+- render와 outline 제품군은 자기 case가 실행하는 런타임 operation을 인용합니다. `tests/fixtures/form-complete`는 CURP-013(`renderForm`), `tests/fixtures/list-render`는 CURP-015(`renderList`), `tests/fixtures/detail-render`는 CURP-017(`renderDetail`), `tests/fixtures/form-outline`은 CURP-006(`compileForm`), CURP-007(`bindForm`), CURP-021(바인딩이 record에 대해 field를 평가함)을 인용합니다. form state 세션(`form-view`, `form-history`, `form-actions`)은 각 세션이 record와 row 작업을 소유하는 instance를 만들므로 CURP-020을 인용합니다. `config/parity.json`의 unit도 같은 id를 인용합니다.
+- 확장된 제품군의 모든 runner가 한 번씩 통과합니다. TypeScript, Go, Python, Rust, PHP library runner와 PHP extension runner입니다.
+- 아직 인용하지 않은 id와 그 이유입니다. CURP-001부터 CURP-005까지는 각각 네 가지 기능을 명시하는 언어별 행입니다. validation과 composition 부분은 validate 제품군이 시험하지만, 다섯 런타임에서 모든 기능을 함께 실행하는 제품군은 없으며, 기능별 인용에 대한 판정이 필요합니다. CURP-008과 CURP-009(`bindButtons`, `formButtonsHtml`)는 실행하는 제품군이 없고, 추가하려면 여섯 runner에 새 operation이 필요합니다. CURP-014와 CURP-016(`buildList`, `buildDetail`)은 text-validity case만 실행하며, 그 파일은 C16.111을 기다립니다. CURP-019(컴파일된 template의 직렬화와 캐시)는 직렬화된 컴파일 출력을 비교하는 제품군이 없습니다. CURP-023(브라우저 바인딩)은 JavaScript 브라우저 런타임만 가지는 단일 구현 요구사항이므로 판정을 기다립니다. CURP-024(한 런타임이 컴파일한 template을 다른 런타임이 바인딩함)는 그런 제품군이 없으며 C16.111을 기다립니다. CURP-025(ordered JSON 전송)는 ordered-json 저장소에서 시험합니다. CURP-026(PHP 배열이 객체인지 목록인지)은 C16.57-13이 main에 들어간 뒤 form state 세션의 PHP root case가 인용합니다.
 
 ### 2026-10-21 — layout check가 native program의 Go test와 Composer vendor folder를 받아들인다 (C16.115)
 

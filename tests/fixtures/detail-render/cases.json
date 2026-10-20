@@ -4,7 +4,8 @@
     "note": "a NUL character in a label and in a value is written like any other character.",
     "requirements": [
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -27,7 +28,8 @@
     "note": "plain text fields with translated labels; values are escaped.",
     "requirements": [
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -75,7 +77,8 @@
     "note": "the same declaration in Korean selects the Korean labels.",
     "requirements": [
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -128,7 +131,8 @@
       "CUDF-047",
       "CUDF-048",
       "CUDF-049",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -179,7 +183,8 @@
       "CUDF-048",
       "CUDF-049",
       "CUDF-050",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -232,7 +237,8 @@
       "CUDF-049",
       "CUDF-051",
       "CUDF-052",
-      "CUDF-084"
+      "CUDF-084",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -282,7 +288,8 @@
       "CUDF-048",
       "CUDF-049",
       "CUDF-054",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -318,7 +325,8 @@
       "CUDF-049",
       "CUDF-054",
       "CUDF-055",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -361,7 +369,8 @@
       "CUDF-048",
       "CUDF-049",
       "CUDF-053",
-      "CUDF-085"
+      "CUDF-085",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -409,7 +418,8 @@
       "CUDF-047",
       "CUDF-048",
       "CUDF-049",
-      "CUDF-086"
+      "CUDF-086",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -484,7 +494,8 @@
       "CUDF-048",
       "CUDF-049",
       "CUDF-050",
-      "CUDF-087"
+      "CUDF-087",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -533,7 +544,8 @@
       "CUDF-047",
       "CUDF-048",
       "CUDF-049",
-      "CUDF-087"
+      "CUDF-087",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -581,7 +593,8 @@
       "CUDF-047",
       "CUDF-048",
       "CUDF-049",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -641,6 +654,9 @@
   {
     "name": "reject-number-decimals-above-range",
     "note": "decimals above 100 are rejected.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {
         "n": {
@@ -664,6 +680,9 @@
   {
     "name": "reject-number-decimals-below-range",
     "note": "negative decimals are rejected.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {
         "n": {
@@ -694,7 +713,8 @@
       "CUDF-047",
       "CUDF-048",
       "CUDF-049",
-      "CUDF-088"
+      "CUDF-088",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -735,7 +755,8 @@
     "note": "a field whose path is absent from the record renders an empty cell.",
     "requirements": [
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -774,7 +795,8 @@
     "requirements": [
       "CUDF-041",
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "design": {
@@ -822,7 +844,8 @@
     "note": "a field hidden by its condition is not rendered.",
     "requirements": [
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -865,6 +888,9 @@
   {
     "name": "composed-fields",
     "note": "fields resolved from a referenced file.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {
         "$ref": "shared.json"
@@ -906,6 +932,9 @@
   {
     "name": "empty-fields",
     "note": "a declaration with no fields renders an empty container.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {}
     },
@@ -945,7 +974,8 @@
       "CUDF-066",
       "CUDF-067",
       "CUDF-068",
-      "CUDF-069"
+      "CUDF-069",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1016,7 +1046,8 @@
       "CUDF-072",
       "CUDF-073",
       "CUDF-074",
-      "CUDF-075"
+      "CUDF-075",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1094,7 +1125,8 @@
       "CUDF-066",
       "CUDF-068",
       "CUDF-069",
-      "CUDF-087"
+      "CUDF-087",
+      "CURP-017"
     ],
     "spec": {
       "design": {
@@ -1151,7 +1183,8 @@
     "requirements": [
       "CUDF-041",
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1189,7 +1222,8 @@
     "name": "reject-non-object-specification",
     "note": "a declaration that is not an object is rejected.",
     "requirements": [
-      "CUDF-032"
+      "CUDF-032",
+      "CURP-017"
     ],
     "spec": [],
     "record": {
@@ -1219,7 +1253,8 @@
     "name": "reject-missing-fields",
     "note": "a declaration without fields is rejected.",
     "requirements": [
-      "CUDF-034"
+      "CUDF-034",
+      "CURP-017"
     ],
     "spec": {},
     "record": {
@@ -1261,7 +1296,8 @@
       "CUDF-053",
       "CUDF-054",
       "CUDF-083",
-      "CUDF-085"
+      "CUDF-085",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1329,7 +1365,8 @@
     "note": "the list-only page, total and layout options are neither checked nor used by a detail.",
     "requirements": [
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1368,7 +1405,8 @@
     "name": "reject-specification-before-record",
     "note": "the specification rule is checked before the record rule.",
     "requirements": [
-      "CUDF-032"
+      "CUDF-032",
+      "CURP-017"
     ],
     "spec": [],
     "record": [],
@@ -1381,7 +1419,8 @@
     "name": "reject-record-before-fields",
     "note": "argument shapes are checked before the declaration: the record rule precedes the fields rule.",
     "requirements": [
-      "CUDF-033"
+      "CUDF-033",
+      "CURP-017"
     ],
     "spec": {},
     "record": [],
@@ -1394,7 +1433,8 @@
     "name": "reject-record-before-context",
     "note": "the record rule is checked before the context rule.",
     "requirements": [
-      "CUDF-033"
+      "CUDF-033",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1417,7 +1457,8 @@
     "name": "reject-field-design-node-key",
     "note": "a design node key that the schema does not list is rejected at its field path.",
     "requirements": [
-      "CUDF-045"
+      "CUDF-045",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1458,6 +1499,9 @@
   {
     "name": "reject-detail-design-node-value",
     "note": "the detail's own design node must be an object.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "design": {
         "wrapper": "box"
@@ -1496,7 +1540,8 @@
     "name": "reject-array-context",
     "note": "a data option that is not an object is rejected.",
     "requirements": [
-      "CUDF-035"
+      "CUDF-035",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1536,7 +1581,8 @@
     "name": "reject-non-object-record",
     "note": "a record that is not an object is rejected.",
     "requirements": [
-      "CUDF-033"
+      "CUDF-033",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1556,7 +1602,8 @@
     "name": "reject-root-ref-without-fields",
     "note": "a root $ref is not composed, so a specification without its own fields declares none.",
     "requirements": [
-      "CUDF-034"
+      "CUDF-034",
+      "CURP-017"
     ],
     "spec": {
       "$ref": "base-detail.yml"
@@ -1600,6 +1647,9 @@
   {
     "name": "reject-forbidden-field-key",
     "note": "a forbidden key in a field fails the forbidden-key scan.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {
         "name": {
@@ -1634,6 +1684,9 @@
   {
     "name": "reject-forbidden-root-key",
     "note": "a forbidden root key fails the scan before the declaration rules.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {
         "name": {
@@ -1668,6 +1721,9 @@
   {
     "name": "reject-number-fields",
     "note": "fields are an object.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": 5
     },
@@ -1698,7 +1754,8 @@
     "name": "reject-unknown-root-key",
     "note": "a detail root member that the schema does not list is rejected.",
     "requirements": [
-      "CUDF-041"
+      "CUDF-041",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1736,6 +1793,9 @@
   {
     "name": "reject-root-ref",
     "note": "a root $ref beside the fields is not composed.",
+    "requirements": [
+      "CURP-017"
+    ],
     "spec": {
       "fields": {
         "name": {
@@ -1771,7 +1831,8 @@
     "name": "reject-field-not-object",
     "note": "each field is an object.",
     "requirements": [
-      "CUDF-043"
+      "CUDF-043",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1805,7 +1866,8 @@
     "name": "reject-field-sortable",
     "note": "a detail field does not declare sorting.",
     "requirements": [
-      "CUDF-045"
+      "CUDF-045",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1842,7 +1904,8 @@
     "name": "reject-field-path",
     "note": "the field path is a string.",
     "requirements": [
-      "CUDF-046"
+      "CUDF-046",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1880,7 +1943,8 @@
     "name": "reject-field-label",
     "note": "a label is content.",
     "requirements": [
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1917,7 +1981,8 @@
     "name": "reject-field-format",
     "note": "a format is a boolean, a string or an object.",
     "requirements": [
-      "CUDF-048"
+      "CUDF-048",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1954,7 +2019,8 @@
     "name": "reject-field-format-items",
     "note": "a choice list value is a string or a finite number.",
     "requirements": [
-      "CUDF-055"
+      "CUDF-055",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -1999,7 +2065,8 @@
     "name": "reject-field-format-alt",
     "note": "an image alternative text is content.",
     "requirements": [
-      "CUDF-050"
+      "CUDF-050",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2039,7 +2106,8 @@
     "name": "reject-actions",
     "note": "actions are an object.",
     "requirements": [
-      "CUDF-062"
+      "CUDF-062",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2076,7 +2144,8 @@
     "name": "reject-action-ref",
     "note": "actions are not composed.",
     "requirements": [
-      "CUDF-063"
+      "CUDF-063",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2115,7 +2184,8 @@
     "name": "reject-action",
     "note": "an action is a script or an object.",
     "requirements": [
-      "CUDF-064"
+      "CUDF-064",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2155,7 +2225,8 @@
     "note": "an action object holds label, format, behavior and design.",
     "requirements": [
       "CUDF-065",
-      "CUDF-066"
+      "CUDF-066",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2198,7 +2269,8 @@
     "note": "a script action holds label and script.",
     "requirements": [
       "CUDF-065",
-      "CUDF-066"
+      "CUDF-066",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2241,7 +2313,8 @@
     "note": "an action label is content.",
     "requirements": [
       "CUDF-047",
-      "CUDF-068"
+      "CUDF-068",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2282,7 +2355,8 @@
     "name": "reject-action-format",
     "note": "an action format follows the format rules.",
     "requirements": [
-      "CUDF-053"
+      "CUDF-053",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2326,7 +2400,8 @@
     "name": "reject-action-behavior-entry",
     "note": "a behavior entry is a script or an object.",
     "requirements": [
-      "CUDF-072"
+      "CUDF-072",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2371,7 +2446,8 @@
     "requirements": [
       "CUDF-065",
       "CUDF-066",
-      "CUDF-076"
+      "CUDF-076",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2414,7 +2490,8 @@
     "name": "reject-fields-before-actions",
     "note": "the fields are checked before the actions.",
     "requirements": [
-      "CUDF-043"
+      "CUDF-043",
+      "CURP-017"
     ],
     "spec": {
       "actions": [],
@@ -2450,7 +2527,8 @@
     "note": "the own design is checked before the actions.",
     "requirements": [
       "CUDF-037",
-      "CUDF-041"
+      "CUDF-041",
+      "CURP-017"
     ],
     "spec": {
       "actions": [],
@@ -2490,7 +2568,8 @@
     "name": "reject-list-description",
     "note": "a detail does not declare a description.",
     "requirements": [
-      "CUDF-041"
+      "CUDF-041",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2528,7 +2607,8 @@
     "note": "root members are checked before the own design.",
     "requirements": [
       "CUDF-036",
-      "CUDF-041"
+      "CUDF-041",
+      "CURP-017"
     ],
     "spec": {
       "design": {
@@ -2570,7 +2650,8 @@
     "requirements": [
       "CUDF-001",
       "CUDF-045",
-      "CUDF-047"
+      "CUDF-047",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2599,7 +2680,8 @@
       "CUDF-045",
       "CUDF-047",
       "CUDF-048",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2634,7 +2716,8 @@
       "CUDF-045",
       "CUDF-047",
       "CUDF-048",
-      "CUDF-083"
+      "CUDF-083",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2664,7 +2747,8 @@
       "CUDF-047",
       "CUDF-048",
       "CUDF-053",
-      "CUDF-085"
+      "CUDF-085",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2699,7 +2783,8 @@
       "CUDF-045",
       "CUDF-047",
       "CUDF-048",
-      "CUDF-085"
+      "CUDF-085",
+      "CURP-017"
     ],
     "spec": {
       "fields": {
@@ -2726,7 +2811,8 @@
     "note": "a field checks its unknown keys in member order before its known members (CUDF-038).",
     "requirements": [
       "CUDF-038",
-      "CUDF-045"
+      "CUDF-045",
+      "CURP-017"
     ],
     "spec": {
       "fields": {

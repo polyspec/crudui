@@ -35,6 +35,7 @@ interface OutlineCase {
   expected_outline_html?: string;
   expected_data_html?: string;
   expected_outline_rows?: unknown;
+  requirements?: string[];
 }
 
 const k1 = '__0000000000001__';
@@ -162,6 +163,9 @@ for (const item of CASES) {
   }
   item.expected_data_html = normalizeHtml(renderToStaticMarkup(React.createElement(DataPanel, { data: item.data, messages })));
 }
+
+// Every case compiles its specification and binds its record (CURP-006, CURP-007) and the binding evaluates the fields against the record (CURP-021).
+for (const item of CASES) item.requirements = [...(item.requirements ?? []), 'CURP-006', 'CURP-007', 'CURP-021'];
 
 const output = resolve(dirname(fileURLToPath(import.meta.url)), 'cases.json');
 writeFileSync(output, JSON.stringify(CASES, null, 2) + '\n');

@@ -64,7 +64,7 @@ const data: Json = {
 const ROW_OPERATIONS = ['addRow', 'copyRow', 'removeRow', 'moveRow', 'rekeyRow'];
 const ROW_ACTIONS = ['add-row', 'copy-row', 'remove-row', 'move-up', 'move-down'];
 function runtimeRequirements(steps: Step[]): string[] {
-  const ids = ['CURP-010', 'CURP-012'];
+  const ids = ['CURP-010', 'CURP-012', 'CURP-020'];
   if (steps.some(({ op }) => op === 'setData')) ids.push('CURP-011');
   const rowStep = steps.some(({ op, args }) => {
     if (ROW_OPERATIONS.includes(op)) return true;
