@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 1e710c21cf15496ba115ef169e1c9c1008c215b55edbda8688f950c69f2ea7ec -->
+<!-- source-sha256: ce62bc80eb633b935f301359b595162bb534953c63296e781fbffb1b4c7b4f7a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -99,3 +99,4 @@
 | C16.63 | make link가 Go module 옆에 쓰는 go.work와 go.work.sum file은 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` writes the Go links without refusing | [o] |
 | C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [ ] |
 | C16.65 | 관리하는 문서와 changelog는 합격 검사를 gate라는 말로 부르지 않는다 (records-check) | CHANGELOG.md, CHANGELOG.ko.md, the documents of docs/ | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [ ] |
+| C16.66 | CHANGELOG.ko.md는 CHANGELOG.md의 모든 항목을 같은 순서로 한 번씩 담고 revision marker를 하나만 가진다 | CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/changelog.test.mts` | [o] |

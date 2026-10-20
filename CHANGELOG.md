@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Korean changelog follows the English one after the rebase (C16.66)
+
+- `CHANGELOG.ko.md` lists the seven entries of C16.49-1 to C16.49-7 in the order of `CHANGELOG.md` and holds one `source-sha256` marker, after the rebase of `feat/outline-C16.49` onto main (C16.66). Red: `tests/docs/changelog.test.mts` ended `2 passed, 2 failed` (`must list the same dated entries in the same order`) and `check-documents` named 3 markers; green: `4 passed, 0 failed` and `check-documents` passes.
+
 ### 2026-10-20 — The cross-check console shares its JSON parser, its download, its matrix column and its request reader (C16.58-6)
 
 - `parseJsonText`, `downloadJson`, `matrixColumn` of `client/app.js` and `readBodyAndSpec` of `server/server.mjs` replace the copies of the data and record parsers, of the two fixture downloads, of the validate and render columns, and of the body and specification reading of six endpoints (C16.58-6). Red: `make duplication-check` reported 40 clones before; green: 37 clones after, and the targeted check passes (24 passed).

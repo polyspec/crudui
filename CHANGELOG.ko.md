@@ -1,12 +1,44 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 89633c2871c5ebdd256b5d7017b66b912b0534b77ad94c5ca519395b20e8b25a -->
+<!-- source-sha256: 4c61a28f2af333bdd324160aa605ce794a0186e62af0c6b992599887a344e145 -->
 
 ## Unreleased
+
+### 2026-10-20 — 한국어 changelog가 rebase 뒤 영어 changelog를 따른다 (C16.66)
+
+- `CHANGELOG.ko.md`는 `feat/outline-C16.49`를 main 위로 rebase한 뒤 C16.49-1부터 C16.49-7까지 일곱 항목을 `CHANGELOG.md`의 순서로 담고 `source-sha256` marker를 하나만 가집니다(C16.66). Red: `tests/docs/changelog.test.mts`가 `2 passed, 2 failed`(`must list the same dated entries in the same order`)였고 `check-documents`가 marker 3개를 보고했으며, green: `4 passed, 0 failed`이고 `check-documents`가 통과합니다.
 
 ### 2026-10-20 — 교차 검사 콘솔은 JSON parser, download, matrix column, request reader를 공유한다 (C16.58-6)
 
 - `client/app.js`의 `parseJsonText`, `downloadJson`, `matrixColumn`과 `server/server.mjs`의 `readBodyAndSpec`가 data와 record parser, fixture download 두 개, validate와 render column, endpoint 여섯 개의 body와 specification 읽기의 사본을 대신합니다 (C16.58-6). Red: `make duplication-check`는 이전에 중복 40건을 보고했고, green: 이후 37건이며 대상 검사가 통과합니다(24 passed).
+
+### 2026-10-20 — 모든 구현의 buildOutline (C16.49-7)
+
+- 기능 계약은 PHP, Go, Rust, php-native, Python 구현의 buildOutline을 해당 테스트와 함께 통과로 선언합니다. (C16.49-7)
+
+### 2026-10-20 — Python 생성기 buildOutline (C16.49-6)
+
+- Python 생성기는 Generator.buildOutline을 가지며, 공유 form-outline fixture로 시험합니다. (C16.49-6)
+
+### 2026-10-20 — PHP 확장 buildOutline (C16.49-5)
+
+- php-native 확장은 C 엔진이 만드는 Generator::buildOutline을 가지며, 다른 생성기와 같이 form-outline fixture에 답합니다. (C16.49-5)
+
+### 2026-10-20 — PHP 생성기에 buildOutline이 있습니다 (C16.49-4)
+
+- `Generator::buildOutline(array $nodes)`는 `bindForm`이 반환한 node에 대해 공유 사례의 member 순서로 `stdClass` entry의 폼 행을 반환하고, native generator protocol의 PHP program이 이 operation에 답합니다 (C16.49-4). Red: PHP program이 group `outline`의 사례 5개에 `Unknown generator operation`으로 답함; green: 5개 모두 통과하고 `OutlineTest` 5 case와 문서 coverage test가 통과합니다.
+
+### 2026-10-20 — Rust program이 buildOutline에 답합니다 (C16.49-3)
+
+- native generator protocol의 Rust program은 생성기의 `build_outline`으로 `buildOutline`에 답합니다 (C16.49-3). Red: group `outline`의 사례 5개에 `Unknown generator operation`으로 답함; green: 5개 모두 통과하고 `make lint-rust`가 통과합니다.
+
+### 2026-10-20 — native generator protocol은 buildOutline을 가지며 Go 생성기는 BuildOutline을 가집니다 (C16.49-2)
+
+- `tests/native-generators`의 protocol은 operation `buildOutline`(요청 `nodes`, 응답은 `OutlineRow`의 행)을 가지고, JavaScript dispatcher는 `buildOutline`으로 답하며, group `outline`은 `tests/fixtures/form-outline/cases.json`의 각 사례에 대해 `bindForm`이 반환한 node를 모든 program에 보내 행을 reference와 member 순서까지, 그리고 `expected_outline_rows`와 비교합니다. Go 생성기는 `BuildOutline(nodes)`를 제공하고 Go program이 이 operation에 답합니다 (C16.49-2). Red: Go program이 사례 5개에 `Unknown generator operation`으로 답함; green: 5개 모두 통과, `TestOutlineFixture` 통과, `make lint-go` 통과.
+
+### 2026-10-20 — 구조 지도 사례는 buildOutline의 행을 가지며 Rust에 build_outline이 있습니다 (C16.49-1)
+
+- `tests/fixtures/form-outline/cases.json`의 사례는 `buildOutline(bindForm(compileForm(spec), data, options))`이 반환하는 행인 `expected_outline_rows`를 가지며(고정 데이터 생성기가 씀), Rust 생성기는 자체 `bind_form`의 node에 대해 같은 행을 반환하는 `build_outline(nodes)`를 제공합니다 (C16.49-1). Red: `build_outline`이 없어 `native_outline_fixture`가 compile되지 않음; green: 사례 5개에 통과하고 `make lint-rust`가 통과합니다.
 
 ### 2026-10-20 — PHP와 Go table generator는 contract reader와 생성 source writer를 하나씩 공유한다 (C16.58-5)
 
