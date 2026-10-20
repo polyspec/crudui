@@ -18,12 +18,7 @@ use polyspec_crudui_generator::{
 };
 use polyspec_crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::{json, Number, Value};
-use std::{
-    fs::{self, OpenOptions},
-    io::Write,
-    path::PathBuf,
-    sync::Arc,
-};
+use std::{fs, io::Write, path::PathBuf, sync::Arc};
 
 const SERVER: &str = "rust";
 const PER_PAGE: usize = 20;
@@ -137,12 +132,7 @@ impl Store {
 
     /// Run the operation under the exclusive store lock.
     fn locked<T>(&self, operation: impl FnOnce() -> Result<T>) -> Result<T> {
-        let lock = OpenOptions::new()
-            .create(true)
-            .truncate(false)
-            .read(true)
-            .write(true)
-            .open(self.file.with_extension("json.lock"))?;
+        let lock = crate::repository::open_lock(&self.file)?;
         lock.lock()?;
         operation()
     }

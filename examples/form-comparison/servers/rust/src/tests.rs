@@ -296,10 +296,7 @@ fn native_fields(value: &Value, name: &str, output: &mut Vec<(String, String)>) 
 async fn server_html_uses_framework_storage_and_native_submission() {
     let (_directory, server) = fixture();
     let app = application(server.clone());
-    let repo = Repository {
-        file: server.data.join("rust-createForm-react.json"),
-        fixtures: server.public.join("records.json"),
-    };
+    let repo = react_repository(&server);
     let state = repo.reset("nonsequential").unwrap();
     let (status, html) = ssr(
         &app,
@@ -362,18 +359,7 @@ async fn server_html_uses_framework_storage_and_native_submission() {
     data["companies"]["__0000000000005__"]["name"] = json!("Native update");
     let mut fields = Vec::new();
     native_fields(&data, "form", &mut fields);
-    fields.push(("_form_complete".into(), "1".into()));
-    let body = form_urlencoded::Serializer::new(String::new())
-        .extend_pairs(fields)
-        .finish();
-    let response = request(
-        &app,
-        "POST",
-        "/api/save/createForm/react",
-        "application/x-www-form-urlencoded",
-        body,
-    )
-    .await;
+    let response = post_native(&app, fields).await;
     assert_eq!(response.status(), StatusCode::OK);
     let native = decoded(response).await;
     assert_eq!(native["validation"]["valid"], true);
@@ -465,10 +451,7 @@ async fn ssr_frame_rejects_wrong_queries_and_templates() {
         );
     }
     let valid = "?lang=en&server=rust&initialization=ssr";
-    let repo = Repository {
-        file: server.data.join("rust-createForm-react.json"),
-        fixtures: server.public.join("records.json"),
-    };
+    let repo = react_repository(&server);
     let mut data = load_data(&repo.reset("nonsequential").unwrap()).unwrap();
     data["companies"]["__0000000000005__"]["name"] = json!("</script><b>&amp;");
     post(&app, "save", json!({"form":data})).await;
@@ -557,6 +540,30 @@ fn edited(id: &str) -> Value {
 
 /// Native fields as the rendered record form posts them: an unchecked `enabled` and a
 /// collection without rows post nothing.
+/// The repository of the React create form, which the server saves to its data folder.
+fn react_repository(server: &Server) -> Repository {
+    Repository {
+        file: server.data.join("rust-createForm-react.json"),
+        fixtures: server.public.join("records.json"),
+    }
+}
+
+/// Post native form fields to the React create form, as a browser submits it; the completion marker is added here.
+async fn post_native(app: &Router, mut fields: Vec<(String, String)>) -> Response {
+    fields.push(("_form_complete".into(), "1".into()));
+    let body = form_urlencoded::Serializer::new(String::new())
+        .extend_pairs(fields)
+        .finish();
+    request(
+        app,
+        "POST",
+        "/api/save/createForm/react",
+        "application/x-www-form-urlencoded",
+        body,
+    )
+    .await
+}
+
 fn record_fields(data: &Value) -> Vec<(String, String)> {
     let mut fields = Vec::new();
     native_fields(data, "form", &mut fields);
@@ -1283,10 +1290,7 @@ fn companies_reject_every_other_shape() {
 async fn benchmark_saves_and_validations_use_the_companies_rule() {
     let (_directory, server) = fixture();
     let app = application(server.clone());
-    let repo = Repository {
-        file: server.data.join("rust-createForm-react.json"),
-        fixtures: server.public.join("records.json"),
-    };
+    let repo = react_repository(&server);
     let data = load_data(&repo.reset("nonsequential").unwrap()).unwrap();
     let before = fs::read(&repo.file).unwrap();
     let company = |change: &dyn Fn(&mut Map<String, Value>)| {
@@ -1378,19 +1382,7 @@ async fn benchmark_saves_and_validations_use_the_companies_rule() {
     let store = stores.values_mut().next().unwrap();
     store["enabled"] = json!("");
     store["departments"] = json!({});
-    let mut fields = record_fields(&expected);
-    fields.push(("_form_complete".into(), "1".into()));
-    let body = form_urlencoded::Serializer::new(String::new())
-        .extend_pairs(fields)
-        .finish();
-    let response = request(
-        &app,
-        "POST",
-        "/api/save/createForm/react",
-        "application/x-www-form-urlencoded",
-        body,
-    )
-    .await;
+    let response = post_native(&app, record_fields(&expected)).await;
     assert_eq!(response.status(), StatusCode::OK);
     let saved = decoded(response).await;
     assert_eq!(saved["normalized"], expected);
@@ -1412,10 +1404,7 @@ async fn repeated_native_fields_are_rejected() {
     assert!(form::insert_native(&mut root, "form[a]", "y".into()).is_err());
     call(&app, "POST", "/api/records/reset", "", String::new()).await;
     let before = store(&server);
-    let repo = Repository {
-        file: server.data.join("rust-createForm-react.json"),
-        fixtures: server.public.join("records.json"),
-    };
+    let repo = react_repository(&server);
     let benchmark = load_data(&repo.reset("nonsequential").unwrap()).unwrap();
     let benchmark_before = fs::read(&repo.file).unwrap();
     let boundary = "crudui-boundary";

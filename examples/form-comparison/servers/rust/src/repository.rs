@@ -16,6 +16,16 @@ pub struct Repository {
     pub fixtures: PathBuf,
 }
 
+/// Open the lock file of a store file. The caller holds its lock for one whole transaction.
+pub fn open_lock(file: &Path) -> std::io::Result<fs::File> {
+    OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .read(true)
+        .write(true)
+        .open(file.with_extension("json.lock"))
+}
+
 pub fn read_object(path: &Path) -> Result<Value> {
     let value = codec::decode(&fs::read(path)?)?;
     if !value.is_object() {
@@ -37,12 +47,7 @@ impl Repository {
         &self,
         operation: impl FnOnce(&Value) -> Result<(Value, Value)>,
     ) -> Result<Value> {
-        let lock = OpenOptions::new()
-            .create(true)
-            .truncate(false)
-            .read(true)
-            .write(true)
-            .open(self.file.with_extension("json.lock"))?;
+        let lock = open_lock(&self.file)?;
         lock.lock()?;
         let before = match fs::read(&self.file) {
             Ok(bytes) => codec::decode(&bytes)?,

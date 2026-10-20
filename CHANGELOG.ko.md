@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e01553bd0b9d2f17962d147dd10b7a324367b9bc28e183caf1f39ca5174f81d0 -->
+<!-- source-sha256: 50afc5a76709be0a11c2b64b41bdf104a12d2be6d1044c8a3c3c6525b2a0d9cd -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
+
+### 2026-10-21 — form-comparison Rust server가 lock 열기와 test fixture를 공유한다 (C16.58-10)
+
+- `examples/form-comparison/servers/rust/src/repository.rs`에 `open_lock`을 더했습니다. 이 함수는 store file의 lock file을 엽니다. `Repository::transaction`과 `records.rs`의 `Store::locked`가 모두 이것을 씁니다(C16.58-10). `tests.rs`에는 React create form의 repository를 만드는 `react_repository`와 그 native form 제출을 보내는 `post_native`를 더했고, 네 test가 되풀이하던 `Repository` literal과 form POST block을 대신합니다. duplication check는 example의 Rust clone을 없앴습니다(변경 전 38 clone, 후 35 clone; 수에는 C16.58-9의 변경이 포함됩니다). Red: `make duplication-check` exit 2, 38 clone(example Rust clone 세 개 포함); green: 같은 check가 exit 2, 35 clone이며 이 파일들에는 없습니다; Rust owner test(`tests::`, 18 passed)가 exit 0입니다. `rustfmt --check`는 `repository.rs`와 `tests.rs`에서 차이가 없고, `records.rs`의 차이(`specs`)는 HEAD에도 있습니다.
 
 ### 2026-10-21 — form-comparison script와 frame이 entry guard, native form field, 결과 payload를 공유한다 (C16.58-9)
 
