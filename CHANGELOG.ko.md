@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 75b6968d31c1b6c3b2d482066eaba4ed81c0e66e6a55874b044cdde6ba1ff5fe -->
+<!-- source-sha256: dfd8b1cfa15c89a9262e619add3b24c69f326bb7df8388f8d9eac182304b5578 -->
 
 ## Unreleased
 
@@ -61,6 +61,10 @@
 ### 2026-10-20 — 모든 implementation이 담은 interface message는 CUMK-065 아래 contract와 같다 (C16.100)
 
 - `docs/spec/form-markup.md`는 요구사항을 항목 CUMK-065로 씁니다(모든 implementation은 `contracts/interface-messages.json`에서 생성한 소스를 담고, 담은 문구가 다르면 test가 실패합니다). `config/parity.json`은 CUMK-065를 인용하는 feature unit `interface-messages`를 여섯 binding과 함께 선언합니다. TypeScript test, Go test, `messages/mod.rs`의 Rust test, 새 Python test `tests/test_interface_messages.py`(`FORM`과 `LIST` 표를 contract와 비교), 새 PHP test `InterfaceMessagesConformanceTest.php`(공개 API `Generator::compileForm`과 `Form::getMessages()`만 써서 contract의 각 언어를 검사하며, PHP 확장도 실행합니다)입니다(C16.100). Red: parity check에는 CUMK-065 binding이 없었고 TypeScript, Go, Rust, Python contract test가 묶이지 않았습니다(`R5 undeclared-test`). Green: `make parity-declarations-check`는 전 303건에서 후 300건이 되었고, R5 세 줄(Go, Rust, TypeScript)이 빠졌으며 새 줄은 없습니다. 확장 실행 `make test-php-ext CASES=InterfaceMessagesConformanceTest`는 exit 0이며 5 passed이고, 라이브러리 실행도 통과합니다. 공개 API는 form 표만 돌려주므로 PHP test는 `LIST` 표를 검사하지 않습니다(Python, Go, TypeScript test가 검사합니다). list 메시지를 돌려주는 공개 PHP 메서드는 없으며, 추가하는 것은 계약 변경이라 따로 결정해야 합니다.
+
+### 2026-10-20 — Go의 공유 suite를 시험하지 않는 test 파일은 internal로 선언한다 (C16.102)
+
+- `config/parity.json`은 `go` implementation의 Go test 파일 23개를 `internal`로 선언합니다. 공유 suite가 다루는 규칙이나 렌더링을 시험하는 16개는 이유에 그 suite unit 또는 validate unit을 밝히고, Go 내부만 시험하는 7개는 Go ordered-object decoder, Go template shape, Go loader wrapper, Go FieldSpec round trip, 두 문서 gate와 예제 서버입니다(C16.102). internal 파일은 requirement id를 명시하지 않으므로 R16은 깨끗합니다. Red: `make parity-declarations-check`가 exit 2이며 finding 303건, 그중 `R5 undeclared-test go` 31건이었습니다. Green: exit 2이며 finding 280건입니다. R5 23건이 빠졌고 새 줄은 없습니다(총계만 바뀝니다). 남은 R5 8건은 compose와 expr conformance test(C16.81의 unit 대기), C16.100의 interface-messages test(바인딩됨), Unicode 데이터 contract test와 Go의 바이트 수준 text 검사(gap, 후보 row), compose order test와 expr engine·recognition test(unit 대기)입니다. verification cell은 선언한 파일이 R5 줄에 나오지 않음을 검사합니다.
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 
