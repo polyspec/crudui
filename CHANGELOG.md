@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The PHP generator has the history functions (C16.52-6)
+
+- `Generator::emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` of `packages/generator/php` (rules in `src/Internal/History.php`) follow CURT-062, CURT-063 and CURT-076 to CURT-080 over a history object `{entries, redoEntries, lastPath?}`; an undo or a redo with nothing to restore throws `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. `HistoryFunctionsTest` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as data sets named by the case, and `config/parity.json` binds it to the unit `history-functions`; green: 13 of 13 pass (run with PHP 8.5, because the vendor directory of the main checkout requires it). The row stays `[~]` until the verification command runs in a checkout with a vendor directory.
+
 ### 2026-10-20 — The Rust generator has the history functions (C16.52-5)
 
 - `packages/generator/rust/src/history.rs` defines `History<T>` (`entries`, `redo_entries`, `last_path`) and `empty_history`, `record_change`, `can_undo`, `can_redo`, `undo_change` and `redo_change` as CURT-062, CURT-063 and CURT-076 to CURT-080 state them; an undo or a redo with nothing to restore returns a `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. The test target `history_functions` (`harness = false`, with `libtest-mimic` as a dev-dependency, so that a test is named by the case, such as `history_functions::empty-history`) runs the 13 cases of `tests/fixtures/history-functions/cases.json`, and `config/parity.json` binds it to the unit `history-functions`; red: the test did not compile without the functions, green: 13 of 13 pass, and `clippy -D warnings` and `rustfmt` report nothing for the new files. The review record of `config/dependency-review.json` still has to record the new lock of the crate.

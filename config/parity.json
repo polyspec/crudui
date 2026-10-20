@@ -112,6 +112,11 @@
           "implementation": "rust",
           "test": "packages/generator/rust/tests/history_functions.rs",
           "symbol": "history_functions"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/HistoryFunctionsTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\HistoryFunctionsTest::testHistoryFunctionMatchesTheSharedFixture"
         }
       ],
       "requirements": [

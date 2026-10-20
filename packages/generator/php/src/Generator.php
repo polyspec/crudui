@@ -8,6 +8,7 @@ use Polyspec\Crudui\Generator\Binding;
 use Polyspec\Crudui\Generator\Buttons;
 use Polyspec\Crudui\Generator\Details;
 use Polyspec\Crudui\Generator\FormRender;
+use Polyspec\Crudui\Generator\History;
 use Polyspec\Crudui\Generator\InputText;
 use Polyspec\Crudui\Generator\Lists;
 use Polyspec\Crudui\Generator\Outline;
@@ -25,6 +26,42 @@ final class Generator
         InputText::specification($spec, $options);
         InputText::inputs([], $options, ['basepath', 'keyPrefix']);
         return Template::compile($spec, $options);
+    }
+
+    /** Return the history with no record (CURT-076). */
+    public static function emptyHistory(): stdClass
+    {
+        return History::empty();
+    }
+
+    /** Return the history after a change from the previous record, with at most 100 records in each direction (CURT-077). */
+    public static function recordChange(stdClass $history, mixed $previous, ?string $path = null): stdClass
+    {
+        return History::record($history, $previous, $path);
+    }
+
+    /** Return whether a record can be restored (CURT-078). */
+    public static function canUndo(stdClass $history): bool
+    {
+        return History::canUndo($history);
+    }
+
+    /** Return whether an undone change can be reapplied (CURT-078). */
+    public static function canRedo(stdClass $history): bool
+    {
+        return History::canRedo($history);
+    }
+
+    /** Return the history and the record before the last change; fail when there is none (CURT-079). */
+    public static function undoChange(stdClass $history, mixed $current): stdClass
+    {
+        return History::undo($history, $current);
+    }
+
+    /** Return the history and the record after the last undone change; fail when there is none (CURT-080). */
+    public static function redoChange(stdClass $history, mixed $current): stdClass
+    {
+        return History::redo($history, $current);
     }
 
     /**
