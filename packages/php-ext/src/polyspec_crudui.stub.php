@@ -12,6 +12,8 @@ namespace Polyspec\Crudui {
         public static function renderList(array|\stdClass $spec, array $rows, array $options = []): string {}
         public static function buildList(array|\stdClass $spec, array $rows = [], array $options = []): \stdClass {}
         public static function buildOutline(array $nodes): array {}
+        public static function resolveAction(array|\stdClass $input): ?\stdClass {}
+        public static function runAction(Form $form, array|\stdClass $target): ?\stdClass {}
         public static function initialView(): array {}
         public static function collapsibleRows(array $nodes): array {}
         public static function toggleRowView(array $view, string $rowPath): array {}

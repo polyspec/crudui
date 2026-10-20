@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5a423b9fdb915a8c286dc16837e9ea570eca615831fd9cfbba7873a96cd4f055 -->
+<!-- source-sha256: 4c1ca750f60883c428ffc7971ef6de6c050af7be3e6baedf8f6ca929ced8266f -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP extension이 form action을 실행한다: resolveAction과 runAction (C16.50-5)
+
+- `packages/php-ext/src/actions.c`(새 파일)는 PHP library의 action 11개 이름으로 `ps_resolve_action`과 `ps_run_action`을 구현한다. 실행은 각 연산을 `ps_form_apply`로 적용하므로(`add-row`, `copy-row`, `remove-row`, `toggle-row`, `move-up`, `move-down`, `expand-all`, `collapse-all`, `undo`, `redo`) 실패한 연산은 form을 바꾸지 않는다. `crudui.c`는 `Generator::resolveAction`과 `Generator::runAction`을 추가하며, `polyspec_crudui.stub.php`와 `polyspec_crudui_arginfo.h`가 이를 선언한다(C16.50-5). Red: `make test-php-ext CASES='FormStateTest'`가 선언 단계에서 exit 2로 실패했고, `Generator::resolveAction`과 `Generator::runAction`이 누락("extension none")되어 있었다. Green: `make lint-php-ext`가 exit 0이고, `make test-php-ext CASES='FormStateTest'`도 exit 0이다. generator suite는 extension 위에서 28개 test를 실행하며, form action session 9개(`resolve-action-names`부터 `run-action-unknown-name`까지)를 포함해 통과한다. validator와 php-ext library에는 CASES가 고른 case가 없다(C16.50-5).
 
 ### 2026-10-20 — validate suite는 빈 collection requirement CUEC-003, CUEC-005, CUEC-006을 인용한다 (C16.57-2)
 

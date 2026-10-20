@@ -378,6 +378,26 @@ PHP_METHOD(Polyspec_Crudui_Generator, redoChange)
     call_root_and_value(history, current, false, ps_redo_change, return_value);
 }
 
+PHP_METHOD(Polyspec_Crudui_Generator, resolveAction)
+{
+    zval *input;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY_OR_OBJECT(input) ZEND_PARSE_PARAMETERS_END();
+    ps_value *value = crudui_from_php(input, true, true);
+    if (value) { crudui_return(ps_resolve_action(value), return_value); ps_value_free(value); }
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, runAction)
+{
+    zval *form_value, *target;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT_OF_CLASS(form_value, crudui_form_ce)
+        Z_PARAM_ARRAY_OR_OBJECT(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ps_form *form = require_form(Z_OBJ_P(form_value));
+    ps_value *value = form ? crudui_from_php(target, true, true) : NULL;
+    if (value) { crudui_return(ps_run_action(form, value), return_value); ps_value_free(value); }
+}
+
 PHP_METHOD(Polyspec_Crudui_Generator, renderList)
 {
     zval *spec, *rows, *options = NULL;

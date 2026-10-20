@@ -76,5 +76,8 @@ ps_result ps_form_read(const ps_form *form, uint8_t member);
 /* Render the complete form with render options; NULL options are empty options. */
 ps_result ps_form_render_html(const ps_form *form, const ps_value *options);
 ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args);
+/* Form actions (actions.c): the target of an action button, and the run of an action on a form. */
+ps_result ps_resolve_action(const ps_value *input);
+ps_result ps_run_action(ps_form *form, const ps_value *target);
 
 #endif
