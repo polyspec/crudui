@@ -479,3 +479,15 @@ test('only the release workflow starts on a tag push', async () => {
   const { checks } = parseJson<{ checks: string[] }>(await read('config/release.json'), { properties: { checks: { elements: { type: 'string' } } }, additionalProperties: true }, 'config/release.json');
   assert.deepEqual(checks, ['push-gate', 'ci-passed']);
 });
+
+// make install-packages only installs (kit K246-2, C16.117): its dry run runs no link, and the svelte tools of packages/svelte
+// are installed by crudui-install-svelte-tools, which links after its install, so that no fresh install links before kit.
+test('install-packages only installs; the svelte tools link after their install', () => {
+  const run = makeDryRun(ROOT, 'install-packages');
+  assert.equal(run.status, 0, run.stderr);
+  assert.doesNotMatch(run.stdout, /link\.mjs|--no-print-directory link/, 'install-packages runs no link');
+  const svelte = makeDryRun(ROOT, 'crudui-install-svelte-tools');
+  assert.equal(svelte.status, 0, svelte.stderr);
+  assert.match(svelte.stdout, /npm ci --prefix packages\/svelte\/tools/);
+  assert.match(svelte.stdout, /--no-print-directory link/, 'the svelte tools link after their install');
+});

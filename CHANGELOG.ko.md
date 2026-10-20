@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 43a39cff8eda2e9a850fd92513df12f395f4b5c1d5ad27c6baf6f86d7f2353ea -->
+<!-- source-sha256: b9e10ed7d1ba1df4bbfd545e7cc19cd066c7a610cc91af2eb17d04f549737857 -->
 
 ## Unreleased
+
+### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
+
+- `make install-packages`는 설치만 합니다(kit K246-2). Makefile은 `crudui-install-svelte-tools`를 더 이상 prerequisite로 두지 않습니다. 그 target은 fresh worktree에서 kit의 `npm ci`보다 먼저 실행되어 `node_modules/@polyspec/kit`이 없어 실패했습니다(C16.117). `crudui-install-svelte-tools`는 svelte 도구를 설치한 뒤 link하며, kit의 link가 `var/python`의 Python 환경을 요구하므로 `crudui-install`은 그것을 `install-kit`, `crudui-install-composer`, `crudui-install-python` 뒤에 실행합니다. link는 `UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV)`을 `make link`에 넘깁니다. `make install-packages`를 실행하던 CI job은 이제 `make crudui-install-python`과 `make crudui-install-svelte-tools`를 실행합니다(`ci-passed` job은 둘 다 실행하지 않음). 그 job마다 Python 설치 하나가 더해집니다. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` exit 1, 새 test `install-packages only installs; the svelte tools link after their install`이 실패하며, install-packages의 dry run에 link가 나타납니다. Green: `make link-state-check` exit 0, 같은 ci-local test 18 passed.
 
 ### 2026-10-21 — layout check가 native program의 Go test와 Composer vendor folder를 받아들인다 (C16.115)
 

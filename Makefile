@@ -109,20 +109,21 @@ help: ## 타겟 설명
 install: crudui-install ## Install the declared tools with the Rust toolchain, the npm, Composer, Python and Cargo dependencies and phpDocumentor
 
 # crudui-install is the repository step of install: it runs after install-kit, the bootstrap of kit (K246-2).
-crudui-install: install-kit crudui-install-composer crudui-install-python crudui-install-crates crudui-install-go-modules crudui-install-phpdocumentor crudui-install-browsers
+crudui-install: install-kit crudui-install-composer crudui-install-python crudui-install-svelte-tools crudui-install-crates crudui-install-go-modules crudui-install-phpdocumentor crudui-install-browsers
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of
 # kit-bootstrap.mk installs package-lock.json with the npm of var/tools (make install-tools TOOLS=npm).
 # .npmrc sets strict-allow-scripts, so an install script that allowScripts of package.json does not approve fails the install.
-install-packages: crudui-install-svelte-tools
+# install-packages only installs; the tools project of packages/svelte is installed by crudui-install-svelte-tools, which
+# links after its install and so runs after install-kit.
 
 # The tools of packages/svelte that need the TypeScript 6 API (svelte-check, @sveltejs/package and the Svelte lint)
 # are a project of their own outside the npm workspaces, so that no package that npm hoists to the root reaches the
 # TypeScript 7 of the root (C14.4).
 crudui-install-svelte-tools: ## Install the tools project of packages/svelte from its package-lock.json; ONLINE
 	$(ONLINE) $(NPM) ci --prefix packages/svelte/tools --no-audit --no-fund
-	$(MAKE) --no-print-directory link
+	UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV) $(MAKE) --no-print-directory link
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
 # repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload,
