@@ -1458,7 +1458,7 @@ fn bind_buttons_and_form_buttons_html_match_the_javascript_output() {
         r#"[{"type":"link","tag":"a","text":"List","attrs":{"class":"crudui-action crudui-action--text","href":"/list?a=1&b=\"2\""}},{"type":"submit","tag":"button","text":"Save <draft>","attrs":{"type":"submit","class":"crudui-action crudui-action--text","name":"mode","value":"draft"}},{"type":"button","tag":"button","text":"Preview","attrs":{"type":"button","class":"crudui-action crudui-action--text primary","style":"color: red; font-weight: bold","onclick":"preview(\"x\")"}},{"type":"reset","tag":"button","text":"Reset","attrs":{"type":"reset","class":"crudui-action crudui-action--text","onclick":"clear()"}}]"#
     );
     assert_eq!(
-        form_buttons_html(&buttons).unwrap(),
+        form_buttons_html(&json!(buttons)).unwrap(),
         r#"<a class="crudui-action crudui-action--text" href="/list?a=1&amp;b=&quot;2&quot;">List</a><button type="submit" class="crudui-action crudui-action--text" name="mode" value="draft">Save &lt;draft&gt;</button><button type="button" class="crudui-action crudui-action--text primary" style="color: red; font-weight: bold" onclick="preview(&quot;x&quot;)">Preview</button><button type="reset" class="crudui-action crudui-action--text" onclick="clear()">Reset</button>"#
     );
 
@@ -1473,7 +1473,7 @@ fn bind_buttons_and_form_buttons_html_match_the_javascript_output() {
         r#"[{"type":"submit","tag":"button","text":"저장","attrs":{"type":"submit","class":"crudui-action crudui-action--text"}}]"#
     );
     assert_eq!(
-        form_buttons_html(&buttons).unwrap(),
+        form_buttons_html(&json!(buttons)).unwrap(),
         r#"<button type="submit" class="crudui-action crudui-action--text">저장</button>"#
     );
     let english = bind_buttons(&default, &json!({}), &options).unwrap();
@@ -1509,7 +1509,7 @@ fn bind_buttons_and_form_buttons_html_match_the_javascript_output() {
         json!({"tag":"a","text":""}),
         json!({"tag":"a","text":"","attrs":[]}),
     ] {
-        let error = form_buttons_html(&[invalid]).unwrap_err();
+        let error = form_buttons_html(&json!([invalid])).unwrap_err();
         assert_eq!(
             (
                 error.code.as_str(),
@@ -1524,9 +1524,9 @@ fn bind_buttons_and_form_buttons_html_match_the_javascript_output() {
         );
     }
     assert_eq!(
-        form_buttons_html(&[
+        form_buttons_html(&json!([
             json!({"type":1,"tag":"button","text":"x","attrs":{"onclick":"go()"}})
-        ])
+        ]))
         .unwrap(),
         r#"<button onclick="go()">x</button>"#
     );

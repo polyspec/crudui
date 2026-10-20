@@ -111,8 +111,16 @@ pub fn bind_buttons(
 ) -> FormResult<Vec<Value>> {
     let language = bindable_language(template, data, options)?;
     let messages = form_messages(language)?;
+    let members = member_ordered_template(template);
+    let declared = &members.buttons;
+    for button in declared {
+        let kind = button.get("type").and_then(Value::as_str).unwrap_or_default();
+        if !matches!(kind, "submit" | "reset" | "button" | "link") {
+            return Err(FormError::input(format!("Invalid button type: {kind}")));
+        }
+    }
     Ok(crate::buttons::button_models(
-        &member_ordered_template(template).buttons,
+        declared,
         data,
         language,
         messages,
@@ -124,8 +132,11 @@ pub fn bind_buttons(
 /// Every button must be an object with tag `a` or `button`, string text and `attrs`
 /// whose names are type, class, style, name, value, href or onclick and whose values are
 /// strings; anything else is an input error.
-pub fn form_buttons_html(buttons: &[Value]) -> FormResult<String> {
-    crate::buttons::buttons_markup(buttons)
+pub fn form_buttons_html(buttons: &Value) -> FormResult<String> {
+    let list = buttons
+        .as_array()
+        .ok_or_else(|| FormError::input("Form buttons must be a list"))?;
+    crate::buttons::buttons_markup(list)
 }
 
 /// The language of a binding, once the record is an object and the template a form template.

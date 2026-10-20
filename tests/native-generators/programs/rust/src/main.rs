@@ -181,10 +181,7 @@ fn generate(request: &Value, text: Option<&JsonText>) -> FormResult<Value> {
             Ok(bind_buttons(&template, data, &decode::<BindOptions>(options)?)?.into())
         }
         Some("formButtonsHtml") => {
-            let buttons = request["buttons"]
-                .as_array()
-                .ok_or_else(|| input("Form buttons must be a list"))?;
-            Ok(form_buttons_html(buttons)?.into())
+            Ok(form_buttons_html(&request["buttons"])?.into())
         }
         Some("buildList") | Some("renderList") => {
             if text.is_some() {
