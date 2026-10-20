@@ -147,6 +147,20 @@ func run(request *gen.Object) (any, error) {
 			return gen.BuildDetail(spec, record, detailOptions)
 		}
 		return gen.RenderDetail(spec, record, detailOptions)
+	case "buildOutline":
+		nodes, ok := val(request, "nodes").([]any)
+		if !ok {
+			return nil, fmt.Errorf("Outline nodes must be a list")
+		}
+		evaluated := make([]*gen.Object, 0, len(nodes))
+		for _, v := range nodes {
+			o := obj(v)
+			if o == nil {
+				return nil, fmt.Errorf("Outline nodes must be evaluated node objects")
+			}
+			evaluated = append(evaluated, o)
+		}
+		return gen.BuildOutline(evaluated), nil
 	case "formButtonsHtml":
 		list, ok := val(request, "buttons").([]any)
 		if !ok {

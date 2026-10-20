@@ -1,6 +1,6 @@
 import { buffer } from 'node:stream/consumers';
 import { pathToFileURL } from 'node:url';
-import { compileForm, bindForm, bindButtons, formButtonsHtml, buildList, buildDetail, createForm, FormInputError, FormInstance } from '@polyspec/crudui-generator-core';
+import { compileForm, bindForm, bindButtons, formButtonsHtml, buildList, buildDetail, buildOutline, createForm, FormInputError, FormInstance } from '@polyspec/crudui-generator-core';
 import * as react from '@polyspec/crudui-generator-react/server';
 import * as html from '@polyspec/crudui-generator-html';
 import type { ErrorRecord, FormState, JsonObject } from './protocol.mts';
@@ -47,6 +47,7 @@ export function createDispatch({ renderForm, renderList, renderDetail }: Rendere
       case 'formButtonsHtml': return call(formButtonsHtml, request['buttons']);
       case 'renderList': return call(renderList, request['spec'], rows, options);
       case 'buildList': return call(buildList, request['spec'], rows, options);
+      case 'buildOutline': return call(buildOutline, request['nodes']);
       case 'buildDetail':
       case 'renderDetail':
         // The library checks the record in rule order; an absent record is the empty object.

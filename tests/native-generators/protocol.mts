@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import type { ButtonVM, NodeVM } from '@polyspec/crudui-generator-core';
+import type { ButtonVM, NodeVM, OutlineRow } from '@polyspec/crudui-generator-core';
 
 /** A JSON object value. */
 export type JsonObject = Record<string, unknown>;
@@ -30,6 +30,7 @@ export interface ResponseMap {
   renderList: string;
   buildList: CheckedList;
   buildDetail: CheckedDetail;
+  buildOutline: OutlineRow[];
   renderDetail: string;
   renderForm: string;
   form: FormResponse;
@@ -171,6 +172,21 @@ function validateDetail(value: unknown): asserts value is CheckedDetail {
   }
 }
 
+/** Checks the structure map rows `value`: the members of each row in their order, and the rows nested in it. */
+function validateOutline(value: unknown): asserts value is OutlineRow[] {
+  assert.ok(array(value), 'Outline rows must be an array');
+  for (const row of value) {
+    assert.ok(object(row), 'Outline row must be an object');
+    const members = Object.keys(row);
+    assert.deepEqual(members, ['path', 'key', 'number', 'title', 'controls', 'rows'].filter(name => members.includes(name)), 'Outline row members differ');
+    assert.ok(members.includes('rows') && members.includes('path') && members.includes('key'), 'Outline row needs path, key and rows');
+    assert.equal(typeof row.path, 'string', 'Outline row path must be a string');
+    assert.equal(typeof row.key, 'string', 'Outline row key must be a string');
+    if (members.includes('controls')) validateControls(row.controls);
+    validateOutline(row.rows);
+  }
+}
+
 /** Checks the response `value` of a form request with `actions`: its state and one step for each action. */
 export function validateForm(value: unknown, actions: unknown): asserts value is FormResponse {
   validateState(value);
@@ -198,6 +214,7 @@ const responses: { [O in Operation]: (value: unknown, request: ProtocolRequest) 
   renderList: (value) => text(value, 'List HTML'),
   buildList: (value) => { validateList(value); return value; },
   buildDetail: (value) => { validateDetail(value); return value; },
+  buildOutline: (value) => { validateOutline(value); return value; },
   renderDetail: (value) => text(value, 'Detail HTML'),
   renderForm: (value) => text(value, 'Form HTML'),
   form: (value, request) => { validateForm(value, request.actions); return value; },

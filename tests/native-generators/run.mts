@@ -97,6 +97,7 @@ interface FormRenderCase { name: string; spec: JsonObject; options?: JsonObject;
 // A case that the library rejects holds a member of another JSON type: those members are unknown.
 interface CompleteCase { name: string; spec: JsonObject; data: JsonObject; options: JsonObject; render?: unknown; expected_html?: string; expectError?: ExpectedError }
 interface ListCase { name: string; spec?: unknown; rows?: unknown; options?: JsonObject; expectError?: ExpectedError }
+interface OutlineCase { name: string; spec: JsonObject; data: JsonObject; options: JsonObject; expected_outline_rows?: unknown }
 interface DetailCase { name: string; spec?: unknown; record?: unknown; options?: JsonObject; expectError?: ExpectedError }
 interface TextCase {
   name: string;
@@ -130,6 +131,11 @@ const listCaseSchema: JTDSchemaType<ListCase> = {
 const detailCaseSchema: JTDSchemaType<DetailCase> = {
   properties: { name: { type: 'string' } },
   optionalProperties: { spec: {}, record: {}, options: { values: {} }, expectError: expectedErrorSchema },
+  additionalProperties: true,
+};
+const outlineCaseSchema: JTDSchemaType<OutlineCase> = {
+  properties: { name: { type: 'string' }, spec: { values: {} }, data: { values: {} }, options: { values: {} } },
+  optionalProperties: { expected_outline_rows: {} },
   additionalProperties: true,
 };
 const textCaseSchema: JTDSchemaType<TextCase> = {
@@ -256,7 +262,7 @@ async function inputManifest(): Promise<InputManifest> {
     }
   };
   // The sources are the files of the checkout that Git tracks or does not ignore (checkedFiles of @polyspec/kit/tracked-files).
-  const sources = /^(?:packages\/(?:generator-[^/]+|validator-[^/]+|php-ext)|tests\/native-generators|tests\/fixtures\/(?:form-render|list-render|detail-render|text-validity))\//;
+  const sources = /^(?:packages\/(?:generator-[^/]+|validator-[^/]+|php-ext)|tests\/native-generators|tests\/fixtures\/(?:form-render|list-render|detail-render|form-outline|text-validity))\//;
   for (const file of checkedFiles(ROOT)) {
     if (sources.test(file) && (sourceFile.test(file) || path.basename(file) === 'Makefile')) entries[file] = digest(await readFile(path.join(ROOT, file)));
   }
@@ -558,8 +564,10 @@ function textRequest(feature: string, fixture: TextCase): InvokeRequest {
 }
 const listCases = readJson<ListCase[]>(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), { elements: listCaseSchema });
 const detailCases = readJson<DetailCase[]>(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), { elements: detailCaseSchema });
+const outlineCases = readJson<OutlineCase[]>(path.join(ROOT, 'tests/fixtures/form-outline/cases.json'), { elements: outlineCaseSchema });
 assert.equal(formCases.length, 188, 'The form fixture inventory changed; review coverage before changing this assertion');
 assert.equal(listCases.length, 157, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(outlineCases.length, 5, 'The form-outline fixture inventory changed; review coverage before changing this assertion');
 assert.equal(detailCases.length, 62, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 const targetNames = targets.map(target => target.name);
@@ -845,6 +853,19 @@ for (const target of available) {
     }
     return { model: evidence.buildDetail, html: evidence.renderDetail, rawHTML: true };
   }, { fixture: 'tests/fixtures/detail-render/cases.json', case: fixture.name, model: ['buildDetail'], html: ['renderDetail'] });
+
+  // The structure map rows of the nodes that bindForm returns, as the fixture states them and as the reference builds them.
+  for (const fixture of outlineCases) check(target, `outline:${fixture.name}`, async () => {
+    const template = oracle({ operation: 'compileForm' as const, spec: fixture.spec });
+    const nodes = oracle({ operation: 'bindForm' as const, template, data: fixture.data, options: fixture.options });
+    const request = { operation: 'buildOutline' as const, nodes };
+    const expected = oracle(request);
+    assert.ok(Array.isArray(fixture.expected_outline_rows), 'The fixture case has no expected_outline_rows');
+    equalOrdered(expected, fixture.expected_outline_rows, '$.outline');
+    const actual = await invoke(target, request);
+    equalOrdered(actual, expected, '$.outline');
+    return { model: digest(actual) };
+  }, { fixture: 'tests/fixtures/form-outline/cases.json', case: fixture.name, model: ['buildOutline'] });
 
   for (const [index, item] of numberCases.entries()) check(target, `number:${index}`, async () => {
     const format: { type: string; decimals?: unknown } = { type: 'number' };
