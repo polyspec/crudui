@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 4a26fbc7facbb2a5d26b00808c8d9df2ea3721131bc510cb853734ce83f243ba -->
+<!-- source-sha256: af353e8ad23a14c7e45a27dfae804000fb9958018341edee831dcc4cc314ff57 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -62,3 +62,4 @@
 | C16.41 | run-rust-command.mts는 mise shim이 pin한 cargo를 쓰고 scripts/tool-resolution.mts는 제거한다 | scripts/run-rust-command.mts, scripts/tool-resolution.mts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
+| C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [!] 원인: make rules-check가 AGENTS.md:18을 계속 보고한다(make hooks-check에 닿지 않음). kit check-rules.mts:184는 target ci-targets에 이미 닿았다는 이유로 이후의 make ci-targets TARGETS=... 호출을 건너뛰므로 .github/workflows/push-gate.yml의 push-gate-commit에 닿지 않는다; 재시도: kit이 닿은 target을 target과 variable로 구분한 뒤 |
