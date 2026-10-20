@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 949188679ef1813ea61d9bea27d2732d5d51aa7afc2d7ba28abb8e97b1040718 -->
+<!-- source-sha256: 6293deb9e3b2d322c2d38d94a96c411623daa7d4762457fcdfb1ae432c875b71 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator의 공유 helper (C16.36)
+
+- `checkedBinding`은 `BindForm`과 `BindButtons`의 template, record, option을 검사하고, `preloadLinks`는 list와 detail의 image preload link를 쓰며, `splitRowSuffix`는 `leafName`과 `ruleName`을, `invalidMember`와 `unknownMember`는 declaration 검사를, `checkLabelAndFormat`은 display와 action declaration을 처리하고, `asNumber`는 type switch를 두는 대신 validator의 `expr.NumberValue`를 호출합니다 (C16.36). Red: `make duplication-check`가 `packages/generator/go`의 clone 7건을 나열했고, green: 1건이 남으며(generator program `interface_messages_generate.go`와 validator의 것, 공유 generator code로 이후 item), package test 112건과 `make lint-go`가 통과합니다. 동작은 바뀌지 않으므로(`asNumber`는 `expr.NumberValue`처럼 `uintptr`도 읽음) red는 clone 목록입니다.
 
 ### 2026-10-20 — TypeScript generator core의 공유 helper (C16.35)
 

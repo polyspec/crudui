@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f3b0fd4f3296699951427a6380f0035b14852318be6ec69c46d6e91bc2e2c32e -->
+<!-- source-sha256: 09845fbd028bacf177a8f96c82341ba62b0f64f759628bbc22d1a4c485f8fba7 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -50,3 +50,4 @@
 | C16.33 | Rust validator는 ef 해석, JSON type 이름, structure text 읽기를 공유 함수로 수행한다 | packages/validator/rust/src (compose/compose.rs, compose/members.rs, expr/evaluator.rs, json_type.rs, text.rs, lib.rs) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml text`, `make lint-rust` | [o] |
 | C16.34 | Python validator는 composition member를 하나의 함수로 layering하고 모든 진입점에서 null atch를 거부한다 | packages/validator/python/src/polyspec/crudui/validator/compose.py, validator.py, tests/test_compose.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity`, `make lint-python` | [o] |
 | C16.35 | TypeScript generator core는 action click handler, declaration 검사, path suffix, file widget, choice option, registry probe를 공유한다 | packages/generator/ts/src (dom.ts, form.ts, util.ts, widget.ts) | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src`, `make lint-ts` | [o] |
+| C16.36 | Go generator는 binding 검사, image preload, row suffix, declaration 오류, number 읽기를 공유한다 | packages/generator/go (bind.go, buttons.go, detail.go, list.go, image_preloads.go, value.go, template.go, display_declaration.go) | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test .`, `make lint-go` | [o] |

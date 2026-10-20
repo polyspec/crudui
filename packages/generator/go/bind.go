@@ -45,8 +45,9 @@ func layoutState(s bindState, layout string) bindState {
 	return s
 }
 
-// BindForm creates the node models of the form grammar without changing the template or record.
-func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Object, error) {
+// checkedBinding checks the text of a template, a record and the options, the order of the record and the kind
+// of the template, in that order, and returns the record (an empty one for none) to bind.
+func checkedBinding(template *FormTemplate, data *Object, options BindOptions) (*Object, error) {
 	if e := CheckBindText(template, data, options); e != nil {
 		return nil, e
 	}
@@ -58,6 +59,15 @@ func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Obj
 	}
 	if data == nil {
 		data = NewObject()
+	}
+	return data, nil
+}
+
+// BindForm creates the node models of the form grammar without changing the template or record.
+func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Object, error) {
+	data, e := checkedBinding(template, data, options)
+	if e != nil {
+		return nil, e
 	}
 	// Nil selects each default. Type errors come in option order, before a supported-language check.
 	language, e := bindLanguage(options)

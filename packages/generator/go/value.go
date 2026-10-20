@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
 )
 
 // Object preserves JSON member order. Arrays use []any and null uses nil.
@@ -170,38 +171,10 @@ func defaultString(value, def any) string {
 	}
 	return scalar(value)
 }
+
+// asNumber is the double value of a number of any Go numeric type or json.Number.
 func asNumber(v any) (float64, bool) {
-	switch n := v.(type) {
-	case float32:
-		return float64(n), true
-	case int8:
-		return float64(n), true
-	case int16:
-		return float64(n), true
-	case int32:
-		return float64(n), true
-	case uint:
-		return float64(n), true
-	case uint8:
-		return float64(n), true
-	case uint16:
-		return float64(n), true
-	case uint32:
-		return float64(n), true
-	case uint64:
-		return float64(n), true
-	case float64:
-		return n, true
-	case int:
-		return float64(n), true
-	case int64:
-		return float64(n), true
-	case json.Number:
-		f, e := n.Float64()
-		return f, e == nil
-	default:
-		return 0, false
-	}
+	return expr.NumberValue(v)
 }
 func keys(v any) []string {
 	if o := object(v); o != nil {
@@ -288,13 +261,19 @@ func containsInt(a []int, n int) bool {
 	}
 	return false
 }
-func leafName(path string, rows []int) string {
+
+// splitRowSuffix splits a path into the path without its trailing "[]", that suffix and the segments
+// of the path without it.
+func splitRowSuffix(path string) (string, string, []string) {
 	suffix := ""
 	if strings.HasSuffix(path, "[]") {
 		suffix = "[]"
 		path = strings.TrimSuffix(path, "[]")
 	}
-	s := parsePath(path)
+	return path, suffix, parsePath(path)
+}
+func leafName(path string, rows []int) string {
+	path, suffix, s := splitRowSuffix(path)
 	if len(s) == 0 {
 		return path + suffix
 	}
@@ -305,12 +284,7 @@ func leafName(path string, rows []int) string {
 	return s[n] + suffix
 }
 func ruleName(path string, rows []int) string {
-	suffix := ""
-	if strings.HasSuffix(path, "[]") {
-		suffix = "[]"
-		path = strings.TrimSuffix(path, "[]")
-	}
-	s := parsePath(path)
+	path, suffix, s := splitRowSuffix(path)
 	if len(s) == 0 {
 		return path + suffix
 	}

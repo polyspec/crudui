@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared helpers in the Go generator (C16.36)
+
+- `checkedBinding` checks the template, the record and the options of `BindForm` and `BindButtons`; `preloadLinks` writes the image preload links of a list and a detail; `splitRowSuffix` serves `leafName` and `ruleName`; `invalidMember` and `unknownMember` serve the declaration checks; `checkLabelAndFormat` serves the display and action declarations; and `asNumber` calls `expr.NumberValue` of the validator instead of holding its type switch (C16.36). Red: `make duplication-check` listed 7 clones in `packages/generator/go`; green: 1 remains, the generator program `interface_messages_generate.go` against the one of the validator (shared generator code, a later item); the 112 package tests and `make lint-go` pass. The behaviour is unchanged (`asNumber` also reads `uintptr`, as `expr.NumberValue` does), so the red is the clone list.
+
 ### 2026-10-20 — Shared helpers in the TypeScript generator core (C16.35)
 
 - `actionClick` builds the click handler of the action buttons for `connectForm` and `connectOutline`; `has`, `fail` and `closed` check the declarations of a form, a field and a design; `splitRowSuffix` serves `leafName` and `ruleNameForPath`; `fileWidget` builds `image`, `file` and `cover`; `choiceOptions` builds the options of `choice` and `multichoice`; and `probeRegistry` reads `WIDGET_LAYOUTS` and `WIDGET_CANONICAL` (C16.35). Red: `make duplication-check` listed 6 clones in `packages/generator/ts`; green: none; the 305 tests of the package, the Vue and Svelte conformance tests on the rebuilt core, and `make lint-ts` pass. The output is unchanged, so the red is the clone list.

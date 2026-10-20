@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator/go/validator/text"
-	"strings"
 )
 
 // DetailOptions supplies composition, display language and caller-owned data options.
@@ -83,19 +82,9 @@ func RenderDetail(spec *Object, record *Object, options DetailOptions) (string, 
 }
 
 func detailImagePreloads(vm *Object) string {
-	seen := map[string]bool{}
-	var out strings.Builder
+	preloads := newPreloadLinks()
 	for _, field := range objectList(read(vm, "fields")) {
-		display := object(read(field, "display"))
-		if display == nil || stringAt(display, "kind") != "image" {
-			continue
-		}
-		src := stringAt(display, "src")
-		if src == "" || strings.HasPrefix(strings.ToLower(src), "data:") || seen[src] {
-			continue
-		}
-		seen[src] = true
-		out.WriteString("<link" + attrs(NewObject("rel", "preload", "as", "image", "href", src), false, false) + "/>")
+		preloads.add(object(read(field, "display")))
 	}
-	return out.String()
+	return preloads.String()
 }

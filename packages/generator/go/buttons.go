@@ -47,17 +47,9 @@ func buttonScript(button *Object, action string) string {
 // Each button is an object with type, tag, text and attrs; attrs keeps the output order
 // type, class, style, name, value, href, onclick. Only the Language option applies.
 func BindButtons(template *FormTemplate, data *Object, options BindOptions) ([]*Object, error) {
-	if e := CheckBindText(template, data, options); e != nil {
+	data, e := checkedBinding(template, data, options)
+	if e != nil {
 		return nil, e
-	}
-	if e := checkOrderedValue(data); e != nil {
-		return nil, e
-	}
-	if template == nil || template.Kind != "crudui/form-template" {
-		return nil, fmt.Errorf("Unsupported form template")
-	}
-	if data == nil {
-		data = NewObject()
 	}
 	language, e := bindLanguage(options)
 	if e != nil {

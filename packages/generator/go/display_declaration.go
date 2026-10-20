@@ -133,13 +133,8 @@ func checkMemberDeclaration(name string, member any, paths displayPaths) error {
 	if o.Has("field") && !isString(read(o, "field")) {
 		return expected("field", path, "a string")
 	}
-	if o.Has("label") && !isContent(read(o, "label")) {
-		return expected("label", path, contentExpected)
-	}
-	if o.Has("format") {
-		if e := checkFormatDeclaration(read(o, "format"), path); e != nil {
-			return e
-		}
+	if e := checkLabelAndFormat(o, path); e != nil {
+		return e
 	}
 	if o.Has("design") {
 		if e := checkDesignDeclaration(read(o, "design"), path, false, nil); e != nil {
@@ -198,13 +193,8 @@ func checkActionDeclaration(name string, action any) error {
 	if e := rejectUnknownKeys(o, "", actionKeys, path); e != nil {
 		return e
 	}
-	if o.Has("label") && !isContent(read(o, "label")) {
-		return expected("label", path, contentExpected)
-	}
-	if o.Has("format") {
-		if e := checkFormatDeclaration(read(o, "format"), path); e != nil {
-			return e
-		}
+	if e := checkLabelAndFormat(o, path); e != nil {
+		return e
 	}
 	if o.Has("behavior") {
 		behavior := read(o, "behavior")
@@ -312,6 +302,17 @@ func checkDisplayDeclarations(spec *Object, paths displayPaths) error {
 	}
 	if spec.Has("pagination") {
 		return checkPaginationDeclaration(read(spec, "pagination"), own)
+	}
+	return nil
+}
+
+// checkLabelAndFormat rejects a wrong label (content) or format declaration of o at path.
+func checkLabelAndFormat(o *Object, path string) error {
+	if o.Has("label") && !isContent(read(o, "label")) {
+		return expected("label", path, contentExpected)
+	}
+	if o.Has("format") {
+		return checkFormatDeclaration(read(o, "format"), path)
 	}
 	return nil
 }

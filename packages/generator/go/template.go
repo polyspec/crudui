@@ -231,15 +231,21 @@ func unknownKey(o *Object, bucket string) (string, bool) {
 	return "", false
 }
 
+// invalidMember is the error for a member of a declaration at path that is not of the expected kind.
+func invalidMember(path, key, expected string) error {
+	return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+}
+
+// unknownMember is the error for a key that a closed declaration at path does not list.
+func unknownMember(path, key string) error {
+	return fmt.Errorf("Invalid %s at %s: unknown key", key, path)
+}
+
 // checkDeclarations rejects a wrong value type or an unknown key in one field's closed declarations.
 // Only a form field (field) accepts declared attributes in its design.
 func checkDeclarations(spec *Object, path string, field bool) error {
-	fail := func(key, expected string) error {
-		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
-	}
-	unknown := func(key string) error {
-		return fmt.Errorf("Invalid %s at %s: unknown key", key, path)
-	}
+	fail := func(key, expected string) error { return invalidMember(path, key, expected) }
+	unknown := func(key string) error { return unknownMember(path, key) }
 	// Buttons and the submission target belong to the form, not to a field.
 	for _, key := range []string{"buttons", "action"} {
 		if spec.Has(key) {
@@ -430,12 +436,8 @@ func groupLayouts(spec *Object) []string {
 // rule; only a form field (field) accepts attributes and wrapper.attributes, and only a group
 // field (non-nil layouts) accepts layout, one of layouts.
 func checkDesignDeclaration(design any, path string, field bool, layouts []string) error {
-	fail := func(key, expected string) error {
-		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
-	}
-	unknown := func(key string) error {
-		return fmt.Errorf("Invalid %s at %s: unknown key", key, path)
-	}
+	fail := func(key, expected string) error { return invalidMember(path, key, expected) }
+	unknown := func(key string) error { return unknownMember(path, key) }
 	d := object(design)
 	if _, isBool := design.(bool); !isBool && d == nil {
 		return fail("design", "a boolean or an object")
