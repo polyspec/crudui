@@ -1522,29 +1522,57 @@ ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const p
 
 #undef ORDERED_VIEW
 
-static ps_result render_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options)
+/*
+ * The input checks of a list, in the order the shared rules give: the specification, the rows and each row, the columns,
+ * the options and their context, the page and the total. False with failure set on the first input that fails.
+ */
+static bool check_list_input(const ps_value *spec, const ps_value *rows, const ps_value *options, ps_result *failure)
 {
-    if (!spec || spec->kind != PS_OBJECT)
-        return ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
-    if (!rows || rows->kind != PS_ARRAY)
-        return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be an array", "");
-    for (size_t i = 0; i < ps_size(rows); ++i)
-        if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT)
-            return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
-    if (!ps_has(spec, "columns"))
-        return ps_fail("form", "INVALID_FORM_INPUT", "List specification must declare columns", "");
-    if (!options || options->kind != PS_OBJECT)
-        return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
+    if (!spec || spec->kind != PS_OBJECT) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
+        return false;
+    }
+    if (!rows || rows->kind != PS_ARRAY) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "List rows must be an array", "");
+        return false;
+    }
+    for (size_t i = 0; i < ps_size(rows); ++i) {
+        if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT) {
+            *failure = ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
+            return false;
+        }
+    }
+    if (!ps_has(spec, "columns")) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "List specification must declare columns", "");
+        return false;
+    }
+    if (!options || options->kind != PS_OBJECT) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
+        return false;
+    }
     /* An absent or null context is none; any other value must be an object. */
     const ps_value *data = member(options, "data");
-    if (data && data->kind != PS_NULL && data->kind != PS_OBJECT)
-        return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
+    if (data && data->kind != PS_NULL && data->kind != PS_OBJECT) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
+        return false;
+    }
     bool present;
     int64_t count;
-    if (!count_option(member(options, "page"), 1, &present, &count))
-        return ps_fail("form", "INVALID_FORM_INPUT", "List page must be a positive integer", "");
-    if (!count_option(member(options, "total"), 0, &present, &count))
-        return ps_fail("form", "INVALID_FORM_INPUT", "List total must be a nonnegative integer", "");
+    if (!count_option(member(options, "page"), 1, &present, &count)) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "List page must be a positive integer", "");
+        return false;
+    }
+    if (!count_option(member(options, "total"), 0, &present, &count)) {
+        *failure = ps_fail("form", "INVALID_FORM_INPUT", "List total must be a nonnegative integer", "");
+        return false;
+    }
+    return true;
+}
+
+static ps_result render_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options)
+{
+    ps_result failure;
+    if (!check_list_input(spec, rows, options, &failure)) return failure;
     const ps_value *layout_value = member(options, "layout");
     const char *layout = !layout_value || layout_value->kind == PS_NULL ? "table"
         : ps_is_string(layout_value, "table") ? "table"
@@ -1686,16 +1714,8 @@ static ps_value *list_model(list_session *session)
 
 static ps_result build_list_view(const ps_value *spec, const ps_value *rows, const ps_value *options)
 {
-    if (!spec || spec->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
-    if (!rows || rows->kind != PS_ARRAY) return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be an array", "");
-    for (size_t i = 0; i < ps_size(rows); ++i) if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
-    if (!ps_has(spec, "columns")) return ps_fail("form", "INVALID_FORM_INPUT", "List specification must declare columns", "");
-    if (!options || options->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
-    const ps_value *data = member(options, "data");
-    if (data && data->kind != PS_NULL && data->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
-    bool present; int64_t count;
-    if (!count_option(member(options, "page"), 1, &present, &count)) return ps_fail("form", "INVALID_FORM_INPUT", "List page must be a positive integer", "");
-    if (!count_option(member(options, "total"), 0, &present, &count)) return ps_fail("form", "INVALID_FORM_INPUT", "List total must be a nonnegative integer", "");
+    ps_result input_failure;
+    if (!check_list_input(spec, rows, options, &input_failure)) return input_failure;
     list_session session; ps_value *error = list_open(&session, spec, rows, options, "table", "list", "columns");
     if (error) { list_close(&session); return (ps_result){NULL, error}; }
     ps_value *model = list_model(&session); const char *failure = session.context.failure; list_close(&session);
