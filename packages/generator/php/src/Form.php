@@ -27,6 +27,8 @@ final class Form
 
     private int $revision = 0;
 
+    private stdClass $history;
+
     private array $view;
 
     private array $options;
@@ -38,6 +40,7 @@ final class Form
         $this->template = Template::checked($template);
         $this->options = $options;
         $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
+        $this->history = Generator::emptyHistory();
         $this->view = View::initial();
         $this->fields = Binding::bind($this->template, $this->data, $this->bindOptions($this->view));
         $this->buttons = Buttons::bind($this->template, $this->data, $this->language());
@@ -94,19 +97,50 @@ final class Form
         return $value === Missing::Value ? null : Value::copy($value);
     }
 
-    /** Replace the record and reevaluate fields atomically. */
+    /** Replace the record and reevaluate fields atomically; the undo history restarts (CURT-065). */
     public function setData(array|stdClass $data): void
     {
         InputText::inputs([['data', $data]]);
-        $this->commit($this->normalizeFields($this->template->fields, Value::object($data)), View::initial());
+        $this->replace(
+            $this->normalizeFields($this->template->fields, Value::object($data)),
+            Generator::emptyHistory(),
+            View::initial()
+        );
     }
 
-    /** Replace one path value and reevaluate fields atomically. */
+    /** Replace one path value and reevaluate fields atomically; consecutive edits of one path share an undo record. */
     public function setValue(string $path, mixed $value): void
     {
         InputText::inputs([['path', $path], ['value', $value]]);
-        $data = self::put($this->data, self::checkedPath($path), Value::copy($value));
-        $this->commit($this->normalizeFields($this->template->fields, $data));
+        $segments = self::checkedPath($path);
+        $data = self::put($this->data, $segments, Value::copy($value));
+        $this->commit($this->normalizeFields($this->template->fields, $data), null, implode('.', $segments));
+    }
+
+    /** Restore the record before the last data change; fails when nothing can be undone (CURT-011). */
+    public function undo(): void
+    {
+        $step = Generator::undoChange($this->history, $this->data);
+        $this->replace($step->value, $step->history, $this->view);
+    }
+
+    /** Reapply the most recently undone data change; fails when nothing can be redone (CURT-012). */
+    public function redo(): void
+    {
+        $step = Generator::redoChange($this->history, $this->data);
+        $this->replace($step->value, $step->history, $this->view);
+    }
+
+    /** Return whether undo can restore an earlier record (CURT-061). */
+    public function canUndo(): bool
+    {
+        return Generator::canUndo($this->history);
+    }
+
+    /** Return whether redo can reapply a reverted change (CURT-061). */
+    public function canRedo(): bool
+    {
+        return Generator::canRedo($this->history);
     }
 
     /** Insert one supplied or defaulted row and return its key. */
@@ -258,13 +292,26 @@ final class Form
         $this->view = $view;
     }
 
-    /** Replace the record and the view together; a failure leaves both unchanged. */
-    private function commit(stdClass $data, ?array $view = null): void
+    /**
+     * Replace the record and the view together and record the previous record in the history; a failure leaves
+     * all unchanged. `$path` is the dotted path of a value edit, or null for a row operation.
+     */
+    private function commit(stdClass $data, ?array $view = null, ?string $path = null): void
     {
-        $view ??= $this->view;
+        $this->replace(
+            $data,
+            Generator::recordChange($this->history, $this->data, $path),
+            $view ?? $this->view
+        );
+    }
+
+    /** Replace the record, the history and the view together and count one revision; a failure leaves all unchanged. */
+    private function replace(stdClass $data, stdClass $history, array $view): void
+    {
         $fields = Binding::bind($this->template, $data, $this->bindOptions($view));
         $buttons = Buttons::bind($this->template, $data, $this->language());
         $this->view = $view;
+        $this->history = $history;
         $this->data = $data;
         $this->fields = $fields;
         $this->buttons = $buttons;

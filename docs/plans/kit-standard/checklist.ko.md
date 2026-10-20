@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ab8798ca1f1d7193f97d98402f499c8a5ed1ed6f679c8efac738a71b77cd72cd -->
+<!-- source-sha256: a189a7ba15bfc2ad5e4bca27acc61c4ce0b25ec492d48dd5126e0c0763c51a1e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -102,6 +102,7 @@
 | C16.52-7 | Go form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/go/instance.go packages/generator/go/form_state_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory\|TestFormView\|TestHistoryFunctions' .` | [o] |
 | C16.52-8 | Python form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/python/src/polyspec/crudui/generator/form.py packages/generator/python/tests/test_form_state.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state tests.test_form_history` | [o] |
 | C16.52-9 | Rust form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/rust/src/instance.rs packages/generator/rust/tests/form_state.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state --test history_functions` | [o] |
+| C16.52-10 | PHP form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/php/src/Form.php packages/generator/php/tests/FormStateTest.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DocCoverageTest.php` | [o] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
 | C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [o] |

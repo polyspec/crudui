@@ -45,6 +45,12 @@ final class FormStateTest extends TestCase
     }
 
     /** @return array<string, array{stdClass}> */
+    public static function historySessions(): array
+    {
+        return self::cases('form-history');
+    }
+
+    /** @return array<string, array{stdClass}> */
     public static function viewFunctions(): array
     {
         return self::cases('view-functions');
@@ -52,6 +58,20 @@ final class FormStateTest extends TestCase
 
     #[DataProvider('viewSessions')]
     public function testViewSessionsEqualTheRecordedObservations(stdClass $case): void
+    {
+        $this->assertSession($case, false);
+    }
+
+    #[DataProvider('historySessions')]
+    public function testHistorySessionsEqualTheRecordedObservations(stdClass $case): void
+    {
+        $this->assertSession($case, true);
+    }
+
+    /**
+     * Run the steps of a session; `$history` adds the flags `canUndo` and `canRedo` of the form to each observation.
+     */
+    private function assertSession(stdClass $case, bool $history): void
     {
         $namer = new FixtureNamer(json_encode([$case->spec, $case->data, $case->steps], JSON_THROW_ON_ERROR));
         $form = new Form(Generator::compileForm($case->spec), $case->data);
@@ -67,6 +87,10 @@ final class FormStateTest extends TestCase
             }
             $observed['data'] = $namer->walk($form->getData());
             $observed['revision'] = $form->getRevision();
+            if ($history) {
+                $observed['canUndo'] = $form->canUndo();
+                $observed['canRedo'] = $form->canRedo();
+            }
             $observed['collapsed'] = $namer->walk(self::collapsedRows($form->getFields()));
             self::assertSame(
                 self::text($case->expected[$index]),
@@ -104,6 +128,8 @@ final class FormStateTest extends TestCase
             'setData' => $form->setData($args[0]),
             'toggleRow' => $form->toggleRow($args[0], $args[1]),
             'setAllExpanded' => $form->setAllExpanded($args[0]),
+            'undo' => $form->undo(),
+            'redo' => $form->redo(),
             default => throw new \LogicException('unknown step ' . $op),
         };
     }

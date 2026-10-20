@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7a43fcddbd2b8125be9f7fd12e0e4481c7b4babffbf775735fa5ea1bf66e2e62 -->
+<!-- source-sha256: b71262b7c44322a3543e760ee98650ebc37aec6fdfd32ec0a4a59114a4ee4e21 -->
 
 ## Unreleased
 
@@ -124,6 +124,9 @@
 ### 2026-10-20 — Python validator의 날짜 파서는 layout fallback을 명시한다 (C16.67-10)
 
 - `packages/validator/python/src/polyspec/crudui/validator/rules.py`에 `_strptime_layout`을 두어 다른 layout인 값에는 None을 반환하게 하고, `_parse_date`가 허용된 layout을 모두 이 함수로 시도하므로 `try`/`except` 블록이 조용히 `continue`나 `pass`하지 않습니다(C16.67-10). Red: `ruff check --config ruff.toml rules.py`가 exit 1이며 finding 2건 S112 `try`-`except`-`continue`를 455행과 460행에서 보고했습니다. `tests.test_validate` 3 passed, `tests.test_text_validity` 4 passed. Green: ruff exit 0(`All checks passed!`), 두 test module 모두 통과(3, 4 passed).
+### 2026-10-20 — PHP form instance는 undo 이력을 가진다 (C16.52-10)
+
+- `packages/generator/php/src/Form.php`의 `Form`은 `undo()`, `redo()`, `canUndo()`, `canRedo()`를 가지고, 이력을 `Generator::recordChange`, `undoChange`, `redoChange`로 유지하며, `setData`는 이력을 다시 시작합니다. `packages/generator/php/tests/FormStateTest.php`는 공유 `form-history` session을 `canUndo`와 `canRedo` flag와 함께 실행합니다(C16.52-10). Red: `phpunit tests/FormStateTest.php` exit 1, `Errors: 5`, `Call to undefined method Polyspec\Crudui\Form::undo()`와 `::canUndo()`; green: `tests/FormStateTest.php` exit 0, `OK (19 tests, 254 assertions)`, `tests/DocCoverageTest.php` exit 0, `OK (1 test, 62 assertions)`.
 
 ### 2026-10-20 — adapter는 list와 detail renderer, action과 widget root markup을 core에서 가져온다 (C16.58-4)
 
