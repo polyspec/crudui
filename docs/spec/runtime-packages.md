@@ -84,17 +84,20 @@ structure or validation rules.
 
 ## Data and interoperability
 
-Compiled templates share one JSON contract across runtimes. A template compiled
-by one runtime can be bound by another without modification. Template field order
-and keyed record order are preserved. An unordered host-language map cannot be
-used to infer a lost declaration or row order.
-
-The [ordered JSON procedure](../operations/ordered-json.md) defines transport
-verification. Ordered JSON object members become ordered runtime objects;
-arrays remain arrays. Absent values, `null`, empty objects and empty arrays remain
-distinct. Runtime conversion does not introduce identity or ordering fields.
-
-Repeated row keys identify rows within their parent collection. Saved sequences,
-new keys, ordering and scoped row operations follow the form runtime contract in
-every implementation. Invalid operations leave both data and evaluated fields
-unchanged.
+- **CURP-024** Compiled templates share one JSON contract across runtimes. A template compiled
+  by one runtime can be bound by another without modification. Template field order
+  and keyed record order are preserved. An unordered host-language map cannot be
+  used to infer a lost declaration or row order.
+- **CURP-025** The [ordered JSON procedure](../operations/ordered-json.md) defines transport
+  verification. Ordered JSON object members become ordered runtime objects;
+  arrays remain arrays. Absent values, `null`, empty objects and empty arrays remain
+  distinct. Runtime conversion does not introduce identity or ordering fields.
+- **CURP-026** Each implementation maps the form value model to the native types of its
+  language and back without losing the difference between an empty object and an empty array,
+  between a missing member and `null`, the order of object members or the type of a scalar.
+  Where the language has one type for both an array and an object, such as a PHP array, the
+  caller states which it is, and a value that no native type can carry exactly fails explicitly.
+- **CURP-027** Repeated row keys identify rows within their parent collection. Saved sequences,
+  new keys, ordering and scoped row operations follow the form runtime contract in
+  every implementation. Invalid operations leave both data and evaluated fields
+  unchanged.

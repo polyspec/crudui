@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — A neutral rule for the native value mapping (C16.61)
+
+- `docs/spec/runtime-packages.md` states in `CURP-026` that each implementation maps the form value model to the native types of its language and back without losing the difference between an empty object and an empty array, between a missing member and `null`, the order of object members or the type of a scalar; the PHP array-or-object mapping is the PHP binding of that rule, and the other paragraphs of the section became the rules `CURP-024`, `CURP-025` and `CURP-027` (C16.61). Red: no requirement stated the mapping; green: `CURP-026` is defined and `check-documents` passes. Its tests in the six implementations are the work of C16.57.
+
 ### 2026-10-20 — The record servers build the OrderedJSON module (C16.60)
 
 - `prepareRecordServers` copies the contents of `packages/php-ext/src` of the OrderedJSON checkout into the build directory with `orderedJsonCopyArguments`; `path.join` had dropped the trailing `/.` of the source, so `cp -R` put the directory inside the destination and `phpize` found no `config.m4` (C16.60). Red: `examples/form-comparison/record-stores.test.mjs` ended `0 passed, 130 failed` at `7cafb4fb^` and at `HEAD` with `ordered-json-phpize: failed (exit 1)`; green: the new test of `local-servers.test.mjs` passes (6 passed) and the record-stores run is `78 passed, 52 failed`: the js, go and rust stores pass and the 52 failures are the php and php-ext stores, which load `vendor/polyspec/ordered-json` that the Composer link item installs.

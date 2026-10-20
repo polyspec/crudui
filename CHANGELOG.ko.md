@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8d7fef333606ea90c170e1193b94d2fbd94fb22a6178236a13f672e070f4758d -->
+<!-- source-sha256: e4edbd9e9745aad9cb441a1a2e301e1a2b26cc5851158dc146b9f57d55d5079c -->
 
 ## Unreleased
+
+### 2026-10-20 — 네이티브 값 매핑의 중립 규칙 (C16.61)
+
+- `docs/spec/runtime-packages.ko.md`는 `CURP-026`에서 각 구현이 폼 값 모델을 자기 언어의 네이티브 타입으로 또 그 반대로 옮길 때 빈 객체와 빈 배열의 차이, 없는 항목과 `null`의 차이, 객체 항목의 순서, 스칼라의 타입을 잃지 않는다고 서술합니다. PHP의 배열 또는 객체 매핑은 그 규칙의 PHP binding이며, 같은 절의 다른 문단은 규칙 `CURP-024`, `CURP-025`, `CURP-027`이 되었습니다(C16.61). Red: 매핑을 서술한 requirement가 없었고, green: `CURP-026`이 정의되고 `check-documents`가 통과합니다. 여섯 구현의 test는 C16.57의 일입니다.
 
 ### 2026-10-20 — record server가 OrderedJSON module을 빌드한다 (C16.60)
 
