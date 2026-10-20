@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7d764dfdec1815df9efa0b928075853276c8b9624dd8f3d783d8ec70b1a48ef8 -->
+<!-- source-sha256: ce95bae09e50fc59e69cf80ae426561088c7ee51aa80a0be133c7211636335d3 -->
 
 ## Unreleased
 
@@ -56,6 +56,10 @@
 
 - `config/parity.json`은 테스트 파일 23개를 internal로 선언합니다. TypeScript 22개와 Python 1개이며, 각 이유는 행동을 덮는 공유 suite와 unit의 이름을 적습니다. generator TypeScript 파일 14개는 form-render, list-render, detail-render, form-complete 아래에 있고, 다만 `css.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. validator TypeScript 파일 8개는 validate 아래에 있고, 다만 `types.roundtrip.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. `packages/validator/python/tests/test_pattern_states.py`는 validate 아래에 있습니다.
 - 검사는 이 23개 파일을 R5 undeclared-test로 더 이상 보고하지 않습니다. 남은 TypeScript와 Python 파일 26개는 compose, expr, interface-messages, unicode-data 파일이거나 분류 기록의 gap이며, 뒤의 행에서 다룹니다.
+
+### 2026-10-21 — Go input text runner가 fixture를 읽는 type assertion을 모두 처리한다 (C16.108-1)
+
+- `packages/generator/go/input_text_test.go`는 option과 argument를 읽는 함수에 `t`를 넘깁니다. 예상과 다른 type의 option이나 argument는 case 이름과 함께 실패하고, 없거나 null인 값은 기본값이므로 `ok` 값을 버리지 않으며 `errcheck`가 보고하지 않습니다.
 
 ### 2026-10-21 — input text fixture의 generator case가 요구사항을 적고, 다섯 suite unit이 이를 binding한다 (C16.111)
 

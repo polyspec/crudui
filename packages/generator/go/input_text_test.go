@@ -153,8 +153,16 @@ func textOptionValue(options *Object, key string) any {
 	return v
 }
 
-func textOptionString(options *Object, key string) string {
-	s, _ := textOptionValue(options, key).(string)
+// textOptionString reads an option that is text; an absent or null option is "", and any other type fails the case.
+func textOptionString(t *testing.T, options *Object, key string) string {
+	v := textOptionValue(options, key)
+	if v == nil {
+		return ""
+	}
+	s, ok := v.(string)
+	if !ok {
+		t.Fatalf("option %s is %T, not text", key, v)
+	}
 	return s
 }
 
@@ -170,12 +178,12 @@ func textOptionFiles(options *Object) map[string]*Object {
 	return files
 }
 
-func listOptionsOf(options *Object) ListOptions {
+func listOptionsOf(t *testing.T, options *Object) ListOptions {
 	return ListOptions{
-		Language: textOptionString(options, "language"),
+		Language: textOptionString(t, options, "language"),
 		Data:     textOptionValue(options, "data"),
 		Layout:   textOptionValue(options, "layout"),
-		Basepath: textOptionString(options, "basepath"),
+		Basepath: textOptionString(t, options, "basepath"),
 		Files:    textOptionFiles(options),
 	}
 }
@@ -214,20 +222,36 @@ func rowsOf(c fixtureCase) []any {
 	return []any{}
 }
 
-func asString(v any) string {
-	s, _ := v.(string)
+func asString(t *testing.T, v any) string {
+	if v == nil {
+		return ""
+	}
+	s, ok := v.(string)
+	if !ok {
+		t.Fatalf("argument is %T, not text", v)
+	}
 	return s
 }
 
-func asInt(v any) int {
-	n, _ := v.(float64)
+func asInt(t *testing.T, v any) int {
+	if v == nil {
+		return 0
+	}
+	n, ok := v.(float64)
+	if !ok {
+		t.Fatalf("argument is %T, not a number", v)
+	}
 	return int(n)
 }
 
 // runAction calls the form method that a case's action names, with its args.
-func runAction(form *Form, action *Object) error {
-	method := textOptionString(action, "method")
-	args, _ := textOptionValue(action, "args").([]any)
+func runAction(t *testing.T, form *Form, action *Object) error {
+	method := textOptionString(t, action, "method")
+	raw := textOptionValue(action, "args")
+	args, ok := raw.([]any)
+	if !ok && raw != nil {
+		t.Fatalf("the action args are %T, not an array", raw)
+	}
 	arg := func(i int) any {
 		if i < len(args) {
 			return args[i]
@@ -236,50 +260,57 @@ func runAction(form *Form, action *Object) error {
 	}
 	switch method {
 	case "setData":
-		data, _ := arg(0).(*Object)
+		var data *Object
+		if v := arg(0); v != nil {
+			o, ok := v.(*Object)
+			if !ok {
+				t.Fatalf("the data of setData is %T, not an object", v)
+			}
+			data = o
+		}
 		return form.SetData(data)
 	case "setValue":
-		return form.SetValue(asString(arg(0)), arg(1))
+		return form.SetValue(asString(t, arg(0)), arg(1))
 	case "getValue":
-		_, err := form.GetValue(asString(arg(0)))
+		_, err := form.GetValue(asString(t, arg(0)))
 		return err
 	case "addRow":
 		var options AddRowOptions
 		if o, ok := arg(1).(*Object); ok {
-			options.Key = textOptionString(o, "key")
-			options.AfterKey = textOptionString(o, "afterKey")
+			options.Key = textOptionString(t, o, "key")
+			options.AfterKey = textOptionString(t, o, "afterKey")
 			options.Value = textOptionValue(o, "value")
 			options.ValueProvided = o.Has("value")
 		}
-		_, err := form.AddRow(asString(arg(0)), options)
+		_, err := form.AddRow(asString(t, arg(0)), options)
 		return err
 	case "copyRow":
-		_, err := form.CopyRow(asString(arg(0)), asString(arg(1)), AddRowOptions{})
+		_, err := form.CopyRow(asString(t, arg(0)), asString(t, arg(1)), AddRowOptions{})
 		return err
 	case "removeRow":
-		return form.RemoveRow(asString(arg(0)), asString(arg(1)))
+		return form.RemoveRow(asString(t, arg(0)), asString(t, arg(1)))
 	case "moveRow":
-		return form.MoveRow(asString(arg(0)), asString(arg(1)), asInt(arg(2)))
+		return form.MoveRow(asString(t, arg(0)), asString(t, arg(1)), asInt(t, arg(2)))
 	case "rekeyRow":
-		return form.RekeyRow(asString(arg(0)), asString(arg(1)), asString(arg(2)))
+		return form.RekeyRow(asString(t, arg(0)), asString(t, arg(1)), asString(t, arg(2)))
 	}
 	return errors.New("unknown form action " + method)
 }
 
 // textOperations runs one case of each generator operation of the input text
 // fixtures and returns its error, or nil when the case passes.
-var textOperations = map[string]func(c fixtureCase) error{
-	"compileForm": func(c fixtureCase) error {
+var textOperations = map[string]func(t *testing.T, c fixtureCase) error{
+	"compileForm": func(t *testing.T, c fixtureCase) error {
 		options := argObject(c, "options")
 		_, err := CompileForm(argObject(c, "spec"), CompileOptions{
 			Files:             textOptionFiles(options),
-			Basepath:          textOptionString(options, "basepath"),
-			KeyPrefix:         textOptionString(options, "keyPrefix"),
+			Basepath:          textOptionString(t, options, "basepath"),
+			KeyPrefix:         textOptionString(t, options, "keyPrefix"),
 			KeyPrefixProvided: options.Has("keyPrefix"),
 		})
 		return err
 	},
-	"bindForm": func(c fixtureCase) error {
+	"bindForm": func(t *testing.T, c fixtureCase) error {
 		template, err := templateOf(c)
 		if err != nil {
 			return err
@@ -287,7 +318,7 @@ var textOperations = map[string]func(c fixtureCase) error{
 		_, err = BindForm(template, argObject(c, "data"), bindOptionsOf(argObject(c, "options")))
 		return err
 	},
-	"createForm": func(c fixtureCase) error {
+	"createForm": func(t *testing.T, c fixtureCase) error {
 		template, err := templateOf(c)
 		if err != nil {
 			return err
@@ -300,18 +331,18 @@ var textOperations = map[string]func(c fixtureCase) error{
 		if !ok {
 			return nil
 		}
-		return runAction(form, action)
+		return runAction(t, form, action)
 	},
-	"buildList": func(c fixtureCase) error {
-		_, err := BuildList(argObject(c, "spec"), rowsOf(c), listOptionsOf(argObject(c, "options")))
+	"buildList": func(t *testing.T, c fixtureCase) error {
+		_, err := BuildList(argObject(c, "spec"), rowsOf(c), listOptionsOf(t, argObject(c, "options")))
 		return err
 	},
-	"buildDetail": func(c fixtureCase) error {
+	"buildDetail": func(t *testing.T, c fixtureCase) error {
 		record, ok := c.members["record"]
 		if !ok || record == nil {
 			record = NewObject()
 		}
-		_, err := BuildDetail(argObject(c, "spec"), record, listOptionsOf(argObject(c, "options")))
+		_, err := BuildDetail(argObject(c, "spec"), record, listOptionsOf(t, argObject(c, "options")))
 		return err
 	},
 }
@@ -336,9 +367,12 @@ func TestInputTextCases(t *testing.T) {
 	for _, feature := range []string{"compileForm", "bindForm", "createForm", "buildList", "buildDetail"} {
 		run := textOperations[feature]
 		for _, c := range loadTextFixture(t, feature) {
-			name, _ := c.members["name"].(string)
+			name, ok := c.members["name"].(string)
+			if !ok {
+				t.Fatalf("a %s case has no name", feature)
+			}
 			t.Run(feature+"/"+name, func(t *testing.T) {
-				got, err := json.Marshal(outcomeOf(run(c)))
+				got, err := json.Marshal(outcomeOf(run(t, c)))
 				if err != nil {
 					t.Fatal(err)
 				}

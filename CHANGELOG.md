@@ -56,6 +56,10 @@
 - `config/parity.json` declares 23 test files internal, 22 TypeScript and 1 Python, each with a reason that names the shared suite and the unit that cover its behaviour. The 14 generator files are internal under form-render, list-render, detail-render and form-complete, except `css.test.ts`, which is internal to its implementation alone; the 8 validator files are internal under validate, except `types.roundtrip.test.ts`, which is internal to its implementation alone; `packages/validator/python/tests/test_pattern_states.py` is internal under validate.
 - The check no longer reports these 23 files as R5 undeclared-test. The 26 TypeScript and Python files that remain are compose, expr, interface-messages and unicode-data files, or gaps of the classification in the scratchpad, and stay for later rows.
 
+### 2026-10-21 — The Go input text runner handles each type assertion of its fixture reads (C16.108-1)
+
+- `packages/generator/go/input_text_test.go` passes `t` to its option and argument readers. An option or argument of an unexpected type fails the case by name, and an absent or null value is the default, so no `ok` value is dropped and `errcheck` reports no finding.
+
 ### 2026-10-21 — The generator cases of the input text fixtures name their requirements, and five suite units bind them (C16.111)
 
 - The five generator case files of `tests/fixtures/text-validity` (`compileForm`, `bindForm`, `createForm`, `buildList` and `buildDetail`) name the requirements that each case tests in `requirements`: CUIT-010 for `compileForm`, CUIT-011 for `bindForm` and for the `createForm` cases without an action, CUIT-012 for `buildList`, CUIT-013 for `buildDetail`, and CUIT-014 to CUIT-020 for the `createForm` actions by method.
