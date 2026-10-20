@@ -1522,6 +1522,47 @@
       ]
     },
     {
+      "id": "buttons",
+      "kind": "suite",
+      "file": "tests/fixtures/buttons/cases.json",
+      "cases": "$[*].name",
+      "requirements": [
+        "CURP-008",
+        "CURP-009"
+      ],
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/buttons.conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/buttons_conformance_test.go",
+          "symbol": "TestButtonsSuite"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_buttons.py",
+          "symbol": "TestButtonsSuite.test_every_case_reproduces_its_expectation"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/ButtonsConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\ButtonsConformanceTest::testCaseWritesItsExpectation"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/ButtonsConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\ButtonsConformanceTest::testCaseWritesItsExpectation"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/buttons.rs",
+          "symbol": "every_case_reproduces_its_expectation"
+        }
+      ]
+    },
+    {
       "id": "list-render",
       "kind": "suite",
       "file": "tests/fixtures/list-render/cases.json",
