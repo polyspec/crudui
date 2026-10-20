@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7eb943ddf8343d01f1c10870eb40fb7f25eb57952c09d464b3d50d3a67bf7835 -->
+<!-- source-sha256: 513a6e913a5018740a52ea12540cc471c9e8760511bf61568c466bdd719b5753 -->
 
 ## Unreleased
+
+### 2026-10-21 — build case와 form state root case가 런타임 요구사항을 인용한다 (C16.57-16)
+
+- `tests/fixtures/text-validity/buildList`의 buildList case 11개는 CURP-014(`buildList`)를, `tests/fixtures/text-validity/buildDetail`의 buildDetail case 6개는 CURP-016(`buildDetail`)을 인용합니다. 모든 case가 자기 operation을 실행합니다. form state root case `set-data-rejects-a-root-that-is-not-an-object`는 CURP-026을 인용합니다. 목록 root는 PHP에서 객체가 아니므로(호출자가 타입을 밝히며, 목록은 명시적으로 실패합니다) 이 case가 그 대응을 시험합니다.
+- `tests/fixtures/form-actions/cases.json`은 generator에서 다시 생성했습니다. CURP-026 외에, C16.57-14 generator가 이미 CURP-020으로 인용하는 session case들이 커밋된 파일에도 그 id를 갖게 됩니다. `config/parity.json`의 unit은 세 id를 인용합니다.
 
 ### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
 

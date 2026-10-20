@@ -3,7 +3,8 @@
     "name": "pass-paired-surrogates",
     "note": "a surrogate pair is valid text in a label and a record value.",
     "requirements": [
-      "CUIT-013"
+      "CUIT-013",
+      "CURP-016"
     ],
     "spec": {
       "fields": {
@@ -22,7 +23,8 @@
     "name": "spec-lone-low-in-label",
     "note": "a lone low surrogate in a field label is a load failure.",
     "requirements": [
-      "CUIT-013"
+      "CUIT-013",
+      "CURP-016"
     ],
     "spec": {
       "fields": {
@@ -43,7 +45,8 @@
     "name": "spec-before-shape",
     "note": "text is checked before the declared fields are required.",
     "requirements": [
-      "CUIT-013"
+      "CUIT-013",
+      "CURP-016"
     ],
     "spec": {
       "design": {
@@ -61,7 +64,8 @@
     "name": "record-value",
     "note": "a record value is an input failure naming the record path.",
     "requirements": [
-      "CUIT-013"
+      "CUIT-013",
+      "CURP-016"
     ],
     "spec": {
       "fields": {
@@ -84,7 +88,8 @@
     "name": "record-member-name",
     "note": "an invalid record member name is reported at the record.",
     "requirements": [
-      "CUIT-013"
+      "CUIT-013",
+      "CURP-016"
     ],
     "spec": {
       "fields": {
@@ -107,7 +112,8 @@
     "name": "context",
     "note": "invalid text in the detail context is an input failure.",
     "requirements": [
-      "CUIT-013"
+      "CUIT-013",
+      "CURP-016"
     ],
     "spec": {
       "fields": {

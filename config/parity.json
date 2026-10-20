@@ -860,7 +860,8 @@
         "CURT-001",
         "CURT-002",
         "CURT-003",
-        "CURP-020"
+        "CURP-020",
+        "CURP-026"
       ]
     },
     {
@@ -1990,7 +1991,8 @@
         }
       ],
       "requirements": [
-        "CUIT-012"
+        "CUIT-012",
+        "CURP-014"
       ]
     },
     {
@@ -2029,7 +2031,8 @@
         }
       ],
       "requirements": [
-        "CUIT-013"
+        "CUIT-013",
+        "CURP-016"
       ]
     }
   ],

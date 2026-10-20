@@ -4,8 +4,10 @@
     "note": "Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.",
     "requirements": [
       "CURT-001",
+      "CURP-026",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-011"
     ],
     "spec": {
@@ -242,6 +244,7 @@
       "CURT-002",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-011"
     ],
     "spec": {
@@ -412,6 +415,7 @@
       "CURT-003",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-011"
     ],
     "spec": {
@@ -3135,6 +3139,7 @@
       "CURT-004",
       "CURP-010",
       "CURP-012",
+      "CURP-020",
       "CURP-027"
     ],
     "spec": {

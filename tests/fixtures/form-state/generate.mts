@@ -130,7 +130,7 @@ const all: Case[] = [
   session({
     name: 'set-data-rejects-a-root-that-is-not-an-object',
     note: 'Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.',
-    requirements: ['CURT-001'],
+    requirements: ['CURT-001', 'CURP-026'],
     steps: [step('setData', 'text'), step('setData', null), step('setData', ['a']), step('setValue', 'note', 'after')],
   }),
   session({

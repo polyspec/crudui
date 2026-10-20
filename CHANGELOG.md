@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+### 2026-10-21 — The build cases and the form state root case cite their runtime requirements (C16.57-16)
+
+- The buildList cases of `tests/fixtures/text-validity/buildList` (11 cases) cite CURP-014 (`buildList`), and the buildDetail cases of `tests/fixtures/text-validity/buildDetail` (6 cases) cite CURP-016 (`buildDetail`): every case runs its operation. The form state root case `set-data-rejects-a-root-that-is-not-an-object` cites CURP-026, since its list root is no object in PHP (the caller states the type, and the list fails explicitly).
+- `tests/fixtures/form-actions/cases.json` is regenerated from its generator. Besides CURP-026, the session cases that the C16.57-14 generator already cites with CURP-020 now carry that id in the committed file. The units of `config/parity.json` cite the three ids.
+
 ### 2026-10-21 — A fresh make install-packages no longer runs the link (C16.117)
 
 - `make install-packages` only installs (kit K246-2): the Makefile no longer makes `crudui-install-svelte-tools` its prerequisite, which ran before kit's `npm ci` in a fresh worktree and failed on the missing `node_modules/@polyspec/kit` (C16.117). `crudui-install-svelte-tools` installs the svelte tools and links after that install, and `crudui-install` runs it after `install-kit`, `crudui-install-composer` and `crudui-install-python`, since kit's link needs the Python environment of `var/python`; the link passes `UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV)` to `make link`. The CI jobs that ran `make install-packages` now run `make crudui-install-python` and then `make crudui-install-svelte-tools` (the `ci-passed` job runs neither), which costs one Python install per such job. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` exit 1, the new test `install-packages only installs; the svelte tools link after their install` fails, its dry run of install-packages names the link. Green: `make link-state-check` exit 0 and the same ci-local test 18 passed.
