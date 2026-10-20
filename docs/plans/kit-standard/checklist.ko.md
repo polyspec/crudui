@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a23ac3138d0513ca17eabe75cb1d01fdeca123f947354b21dcf804bf89240348 -->
+<!-- source-sha256: 4ff98b16546294cf40db56bbdd30a25b0b686ff94beb97bfb5352b0bfb9db395 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -70,3 +70,11 @@
 | C16.47-1 | 옮겨진 C engine test는 새 folder에서 green으로 실행된다 | CHANGELOG.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C16.48 | 저장소는 kit의 divergence-check, link-state-check, bypass-check와 internal test를 채택하고 engine test를 나눈다 | Makefile, config/parity.json, config/duplication.json, packages/php-ext/tests/engine, packages/php-ext/tests/comparison | `make kit-check`, `make parity-declarations-check`, and the two engine test files | [o] |
 | C16.48-1 | C engine test는 자체 implementation 없이 php-extension implementation의 internal test이다 | config/parity.json | `make parity-declarations-check` | [o] |
+| C16.49 | buildOutline은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of buildOutline | [ ] |
+| C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
+| C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
+| C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
+| C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [ ] |
+| C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
+| C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [ ] |
+| C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [ ] |
