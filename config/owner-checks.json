@@ -6,8 +6,7 @@
     "tests/build/package-names.test.mts"
   ],
   "fullSuite": [
-    "ci",
-    "rerun-failed"
+    "ci"
   ],
   "owners": [
     {

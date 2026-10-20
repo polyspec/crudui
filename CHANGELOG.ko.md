@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7a1d23a87af9dcb76386735e6ebde7379c43ed86c16db20078c2b6412f53f9ab -->
+<!-- source-sha256: 2159296abd750ed568ef1ea6072fe881cb0c268af536e9485955add6b2b4fc4e -->
 
 ## Unreleased
+
+### 2026-10-20 — rerun-failed 없는 owner 검사 (C16.7-1)
+
+- `config/owner-checks.json`의 `fullSuite`는 `ci`만 담습니다. kit K240이 local 전체 실행과 `rerun-failed` target을 제거했습니다 (C16.7-1). Red: `make owner-validate` exit 1 (`fullSuite names rerun-failed, which is not a target`), green: exit 0 (`owns every tracked path`). C16.7-2가 local 전체 실행을 아직 설명하는 AGENTS.md의 규칙을 다시 씁니다.
 
 ### 2026-10-20 — duplication 제외 목록 (C16.14)
 

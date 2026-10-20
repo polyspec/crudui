@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The owner check without rerun-failed (C16.7-1)
+
+- `config/owner-checks.json` lists only `ci` in `fullSuite`: kit K240 removed the local full run and its `rerun-failed` target (C16.7-1). Red: `make owner-validate` exit 1 (`fullSuite names rerun-failed, which is not a target`); green: exit 0 (`owns every tracked path`). C16.7-2 rewrites the rules of AGENTS.md that still describe the local full run.
+
 ### 2026-10-20 — The duplication exclusions (C16.14)
 
 - `config/duplication.json` excludes the Unicode tables that `generate-unicode-data.mjs`, `generate_unicode_data.py` and `generate-unicode-data.php` write from `contracts/unicode-properties.json`, and the tests (`tests/**`, `packages/*/tests/**`, `packages/*/*/tests/**`, `*.test.*`, `*_test.go`), each with its reason; `examples/**` stays under the check (C16.14). Red: `make duplication-check` exit 2 with 428 clones; green for this item: 183 clones remain (c 19, go 28, javascript 10, php 53, python 3, rust 17, typescript 53), which later items remove.
