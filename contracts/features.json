@@ -1275,17 +1275,22 @@
         "react": "pass",
         "vue": "pass",
         "svelte": "pass",
-        "php": "unsupported",
-        "go": "unsupported",
-        "rust": "unsupported",
-        "php-native": "unsupported",
-        "python": "unsupported"
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "undo history owned by a form instance or a bindForm controller",
       "tests": [
         "packages/generator/ts/src/node.test.ts",
-        "examples/form-comparison/src/bind-form-controller.test.mjs"
+        "examples/form-comparison/src/bind-form-controller.test.mjs",
+        "packages/generator/go/history_test.go",
+        "packages/generator/go/form_state_test.go",
+        "packages/generator/rust/tests/history_functions.rs",
+        "packages/generator/php/tests/HistoryFunctionsTest.php",
+        "packages/generator/python/tests/test_form_history.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md"
@@ -1294,6 +1299,22 @@
         {
           "id": "test-1",
           "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory|TestHistoryFunctions'"
+        },
+        {
+          "id": "test-3",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_history"
+        },
+        {
+          "id": "test-4",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test history_functions"
+        },
+        {
+          "id": "test-5",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php"
         }
       ]
     },

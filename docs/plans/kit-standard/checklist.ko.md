@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 1316a6a072c2db85a0ff1ce811a1b32aa5039e32ce01ba775cb0b9798cab6519 -->
+<!-- source-sha256: 249ba0468e18061340f71ff7d2b97cddcf430b58d339988f68ccfff431b5be77 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -94,7 +94,7 @@
 | C16.51-5-1 | BindOptions에 collapsed가 생긴 뒤에도 form comparison의 Rust record server가 빌드된다: 그 form 렌더링은 초기 뷰를 명시한다 | examples/form-comparison/servers/rust/src/generation.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path examples/form-comparison/servers/rust/Cargo.toml compilation_and_cached_rendering` | [o] |
 | C16.51-6 | PHP generator 가 뷰 상태를 가진다: Generator 의 뷰 함수, bindForm 옵션 collapsed, Form::toggleRow 와 Form::setAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/php (src/Internal/View.php, Form.php, Generator.php, Internal/Binding.php, tests/FormStateTest.php, tests/FixtureNamer.php), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [o] |
 | C16.51-7 | PHP extension은 PHP library의 view state와 history 함수를 등록한다: Generator의 view와 history method, Form::toggleRow와 Form::setAllExpanded, form instance의 view, bindForm 옵션 collapsed | packages/php-ext/src (crudui.c, form.c, binding.c, view.c, history.c, crudui_engine.h, config.m4, polyspec_crudui.stub.php, polyspec_crudui_arginfo.h) | `make lint-php-ext`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='FormStateTest\|HistoryFunctionsTest'` | [o] |
-| C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
+| C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/contract-manifest.test.mts`, `make manifest-docs-check`; make divergence-check names no unsupported entry of formHistory | [o] |
 | C16.52-2 | Python generator는 history 함수 emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange를 가진다 | packages/generator/python/src/polyspec/crudui/generator/history.py, __init__.py, tests/test_form_history.py, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_history` | [o] |
 | C16.52-3 | history-functions의 TypeScript test는 case마다 test 하나를 둔 unit의 binding이다 | packages/generator/ts/src/history-functions.test.ts, packages/generator/ts/src/form-state.test.ts, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/history-functions.test.ts` | [o] |
 | C16.52-4 | Go generator는 history 함수 EmptyHistory, RecordChange, CanUndo, CanRedo, UndoChange, RedoChange를 가진다 | packages/generator/go/history.go, packages/generator/go/history_test.go, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestHistoryFunctions .` | [o] |

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d8894dd07b127644829f769e627d7013e10f0125cd5a6aa6df122e93b5b993d1 -->
+<!-- source-sha256: 12b036d75793101a9bdf4731d009c6b8e2b846ca38a5aa95b2b270142d16d77d -->
 
 ## Unreleased
 
@@ -10,6 +10,10 @@
 ### 2026-10-20 — form-state suite는 test가 이름을 밝히는 unit이 인용한다 (C16.57-1)
 
 - `config/parity.json`이 `tests/fixtures/{form-view,form-history,form-actions,view-functions}/cases.json`을 덮는 suite unit 네 개를 선언하며, 각 unit은 case가 나열한 요구사항을 인용합니다. form-view는 CURT-009, 010, 066, 067, 068, 073, 074, 075, form-history는 CURT-011, 012, 061 ~ 065, 067, form-actions는 CURT-011, 012, 081 ~ 091, view-functions는 CURT-068 ~ 075입니다. 각 unit은 ts, go, python, rust, php binding을 가지며, PHP extension이 실행하는 세 family는 php-extension binding도 가집니다. form-actions는 extension에 `resolveAction`과 `runAction`이 없어 php-extension binding이 없습니다. `history-functions`에는 php-extension binding과, 그 case가 나열하는 CURT-062를 추가했습니다(C16.57-1). Red: `make parity-declarations-check`가 exit 2이고 finding 650건이며, 그중 이 family들의 id에 대한 R13이 29건, 네 cases 파일에 대한 R4가 4건, `history-functions`의 php-extension에 대한 R2가 1건입니다. Green: exit 2, finding 612건; 이 family의 R13, R4, R14, R15는 0건이고, 보고된 R2 1건(form-actions의 php-extension binding 누락)이 남습니다. Owner test: vitest `src/form-state.test.ts` 28 passed; go `-run 'TestFormActions|TestFormHistory|TestFormView|TestViewFunctions'` 32 passed; python `tests.test_form_state` 4 passed; rust `--test form_state` 4 passed; phpunit `tests/FormStateTest.php` 28 passed, `tests/HistoryFunctionsTest.php` 13 passed; php-extension(PHP 8.4, `var/php-ext/polyspec_crudui.so` 로드): FormStateTest의 세 method filter는 19 tests 통과, form-actions session 9건은 `resolveAction` 부재로 실패, HistoryFunctionsTest는 13 passed.
+### 2026-10-20 — formHistory를 php, go, rust, php-native, python에 선언한다 (C16.52)
+
+- `contracts/features.json`에서 `formHistory`의 support를 `php`, `go`, `rust`, `php-native`, `python`에 대해 `pass`로 바꾸고(C16.52), 해당 history test를 tests 목록에 추가하며, go, python, rust, php 검증 명령을 추가합니다(C16.52-2..11은 main에 있음). 생성된 feature contract 문서가 이를 따릅니다. Red: `make divergence-check`가 exit 2이며 `contracts/features.json`이 다섯 implementation의 `formHistory`를 unsupported로 명명; green: 이 check는 `formHistory`의 entry를 명명하지 않습니다. 이 worktree에서 python과 rust 검증 명령(`tests.test_form_history`, `--test history_functions`)은 통과했습니다. go 명령은 runner가 worktree의 `mise.toml`을 신뢰하지 않는다고 보고하여 재현하지 못했고, php 명령은 Composer 의존성이 PHP 8.5 이상을 요구하여 재현하지 못했습니다. php-native support는 같은 PHP 사유로 php-ext 실행 없이 선언했습니다.
+
 ### 2026-10-20 — viewState를 php-native에 선언한다 (C16.51)
 
 - `contracts/features.json`에서 `viewState`의 `php-native` support를 `pass`로 바꿉니다(C16.51). 모든 implementation이 C16.51-7(f6b52795)부터 view state를 가지며 PHP extension도 포함됩니다. 생성된 feature contract 문서가 이를 따릅니다. Red: `make divergence-check`가 exit 2이며 `contracts/features.json`이 `viewState`의 `php-native`를 unsupported로 명명; green: 이 check는 `viewState`의 entry를 명명하지 않으며 남은 finding은 다른 row의 것입니다. 이 worktree에서는 Composer 의존성이 PHP 8.5 이상을 요구하여 php-ext의 `FormStateTest` 검증을 실행할 수 없었으므로 검증 목록에 추가하지 않았습니다.
