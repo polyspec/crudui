@@ -23,7 +23,7 @@
 import { ComposeLoadError } from './errors';
 import { isRecord } from '../record';
 import type { FileLoader } from './loader';
-import { applyPatch } from './patch';
+import { layerMembers } from './layer';
 
 /** The regex that splits `(path).keys`. */
 const PATH_SPEC_RE = /^\((?<path>.*?)\)\.(?<keys>.*)$/;
@@ -164,29 +164,7 @@ function expandNestedRefs(
     return node;
   }
 
-  let base: Record<string, unknown> = {};
-  let patch: unknown;
-  const own: Record<string, unknown> = {};
-
   // Preserve declaration order: $ref expands to the base; keys declared after it
   // override, keys before it are overridden by it.
-  for (const k of Object.keys(node)) {
-    if (k === '$ref') {
-      // base = (earlier own keys) overlaid by ref: the ref merges onto whatever
-      // was processed before it.
-      base = { ...own, ...resolveRef(node[k], basepath, loader, visiting) };
-      // own keys already folded into base; reset so later keys override base.
-      for (const ok of Object.keys(own)) delete own[ok];
-    } else if (k === '$patch') {
-      patch = node[k];
-    } else {
-      own[k] = node[k];
-    }
-  }
-
-  let result = { ...base, ...own };
-  if (patch !== undefined) {
-    result = applyPatch(result, patch);
-  }
-  return result;
+  return layerMembers(node, (ref) => resolveRef(ref, basepath, loader, visiting));
 }

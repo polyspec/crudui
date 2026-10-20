@@ -4,8 +4,7 @@
  * Validates that a value is a valid URL
  */
 
-import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
+import { formatRule } from './factories';
 import { trim } from '../values/index';
 
 /**
@@ -37,27 +36,5 @@ function isValidUrl(value: unknown): boolean {
   }
 }
 
-/**
- * URL rule definition
- */
-export const urlRule: RuleDefinition = {
-  validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages } = context;
-
-    // Skip if rule is disabled
-    if (ruleParam === false) {
-      return null;
-    }
-
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
-
-    if (!isValidUrl(value)) {
-      return messages?.url ?? 'Please enter a valid URL.';
-    }
-
-    return null;
-  },
-};
+/** URL rule definition. */
+export const urlRule = formatRule('url', isValidUrl, 'Please enter a valid URL.');

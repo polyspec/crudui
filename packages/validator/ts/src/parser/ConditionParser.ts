@@ -35,6 +35,11 @@ function numberLiteral(token: Token): number {
   return token.literal;
 }
 
+/** The Literal node of a token. */
+function literalNode(token: Token, valueType: 'string' | 'number' | 'boolean' | 'null', value: string | number | boolean | null): ASTNode {
+  return { type: 'Literal', valueType, value, position: token.position };
+}
+
 /** The boolean literal of a BOOLEAN token; the lexer gives every BOOLEAN token its boolean. */
 function booleanLiteral(token: Token): boolean {
   if (typeof token.literal !== 'boolean') throw new TypeError(`The ${token.type} token holds no boolean literal`);
@@ -815,41 +820,26 @@ export class Parser {
     return values;
   }
 
+  /** Consume a token of `type` as a literal of `valueType` read by `read`, or leave the input and return undefined. */
+  private matchLiteral(
+    type: TokenType,
+    valueType: 'string' | 'number' | 'boolean' | 'null',
+    read: (token: Token) => string | number | boolean | null
+  ): ASTNode | undefined {
+    if (!this.match(type)) return undefined;
+    const prev = this.previous();
+    return literalNode(prev, valueType, read(prev));
+  }
+
   private parseValueListItem(): ASTNode {
     const token = this.peek();
 
     // For "in" operator, unquoted identifiers are treated as strings
-    if (this.match(TokenType.IDENTIFIER)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'string',
-        value: prev.value,
-        position: prev.position,
-      };
-    }
-
-    // Numbers
-    if (this.match(TokenType.NUMBER)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'number',
-        value: numberLiteral(prev),
-        position: prev.position,
-      };
-    }
-
-    // Strings
-    if (this.match(TokenType.STRING)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'string',
-        value: stringLiteral(prev),
-        position: prev.position,
-      };
-    }
+    const literal =
+      this.matchLiteral(TokenType.IDENTIFIER, 'string', (prev) => prev.value) ??
+      this.matchLiteral(TokenType.NUMBER, 'number', numberLiteral) ??
+      this.matchLiteral(TokenType.STRING, 'string', stringLiteral);
+    if (literal) return literal;
 
     throw new ParseError(
       'Invalid value in list',
@@ -880,12 +870,7 @@ export class Parser {
         // No dot after identifier - treat as string literal
         const prev = this.previous();
         this.height = 1;
-        return {
-          type: 'Literal',
-          valueType: 'string',
-          value: prev.value,
-          position: prev.position,
-        };
+        return literalNode(prev, 'string', prev.value);
       }
 
       // Has a dot - this is a path reference, backtrack
@@ -943,45 +928,12 @@ export class Parser {
     }
 
     // Literals
-    if (this.match(TokenType.STRING)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'string',
-        value: stringLiteral(prev),
-        position: prev.position,
-      };
-    }
-
-    if (this.match(TokenType.NUMBER)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'number',
-        value: numberLiteral(prev),
-        position: prev.position,
-      };
-    }
-
-    if (this.match(TokenType.BOOLEAN)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'boolean',
-        value: booleanLiteral(prev),
-        position: prev.position,
-      };
-    }
-
-    if (this.match(TokenType.NULL)) {
-      const prev = this.previous();
-      return {
-        type: 'Literal',
-        valueType: 'null',
-        value: null,
-        position: prev.position,
-      };
-    }
+    const literal =
+      this.matchLiteral(TokenType.STRING, 'string', stringLiteral) ??
+      this.matchLiteral(TokenType.NUMBER, 'number', numberLiteral) ??
+      this.matchLiteral(TokenType.BOOLEAN, 'boolean', booleanLiteral) ??
+      this.matchLiteral(TokenType.NULL, 'null', () => null);
+    if (literal) return literal;
 
     const token = this.peek();
     throw new ParseError(

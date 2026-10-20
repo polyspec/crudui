@@ -9,7 +9,6 @@
 
 export { composeProperties, composeSpec } from './compose';
 export { resolveRef } from './ref';
-export { applyPatch } from './patch';
 export { MemoryLoader } from './loader';
 export type { FileLoader, LoadedDoc } from './loader';
 export { ComposeLoadError } from './errors';

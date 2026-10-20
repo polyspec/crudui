@@ -25,7 +25,7 @@
 
 import { isRecord } from '../record';
 import { resolveRef } from './ref';
-import { applyPatch } from './patch';
+import { layerMembers } from './layer';
 import type { FileLoader } from './loader';
 
 /** Options for a composition pass. */
@@ -47,29 +47,7 @@ export function composeProperties(
 ): Record<string, unknown> {
   const basepath = opts.basepath ?? '';
 
-  let base: Record<string, unknown> = {};
-  let patch: unknown;
-  const own: Record<string, unknown> = {};
-  let sawPatch = false;
-
-  for (const k of Object.keys(properties)) {
-    if (k === '$ref') {
-      // $ref array_merges onto whatever was declared before it.
-      base = { ...own, ...resolveRef(properties[k], basepath, loader) };
-      for (const ok of Object.keys(own)) delete own[ok];
-    } else if (k === '$patch') {
-      sawPatch = true;
-      patch = properties[k];
-    } else {
-      own[k] = properties[k];
-    }
-  }
-
-  // No composition keys: still recurse into children so nested $ref expands.
-  let result: Record<string, unknown> = { ...base, ...own };
-  if (sawPatch) {
-    result = applyPatch(result, patch);
-  }
+  let result = layerMembers(properties, (ref) => resolveRef(ref, basepath, loader));
 
   // Recurse into every child field's `properties` (the tree may compose deeper).
   for (const fieldName of Object.keys(result)) {
@@ -98,24 +76,8 @@ export function composeSpec(
 
   // Field-level $ref / $patch (a field may inherit a whole base spec).
   if ('$ref' in spec || '$patch' in spec) {
-    let base: Record<string, unknown> = {};
-    let patch: unknown;
-    const own: Record<string, unknown> = {};
-    for (const k of Object.keys(spec)) {
-      if (k === '$ref') {
-        // Field-level $ref resolves a file's properties layer too.
-        base = { ...own, ...resolveRef(spec[k], basepath, loader) };
-        for (const ok of Object.keys(own)) delete own[ok];
-      } else if (k === '$patch') {
-        patch = spec[k];
-      } else {
-        own[k] = spec[k];
-      }
-    }
-    resolved = { ...base, ...own };
-    if (patch !== undefined) {
-      resolved = applyPatch(resolved, patch);
-    }
+    // Field-level $ref resolves a file's properties layer too.
+    resolved = layerMembers(spec, (ref) => resolveRef(ref, basepath, loader));
   } else {
     resolved = { ...spec };
   }

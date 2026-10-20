@@ -4,8 +4,7 @@
  * Validates that a field contains a valid email address
  */
 
-import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
+import { formatRule } from './factories';
 
 /**
  * Email regex pattern based on RFC 5322
@@ -49,28 +48,10 @@ function isValidEmail(value: unknown): boolean {
   return true;
 }
 
-/**
- * Email rule definition
- */
-export const emailRule: RuleDefinition = {
-  validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages } = context;
-
-    // If rule is disabled, skip validation
-    if (ruleParam !== true) {
-      return null;
-    }
-
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
-
-    // Check if value is a valid email
-    if (!isValidEmail(value)) {
-      return messages?.email ?? 'Please enter a valid email address.';
-    }
-
-    return null;
-  },
-};
+/** Email rule definition. */
+export const emailRule = formatRule(
+  'email',
+  isValidEmail,
+  'Please enter a valid email address.',
+  (ruleParam) => ruleParam === true
+);

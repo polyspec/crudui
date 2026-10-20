@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d15d12c25d6365fd06f370fe18c4a157c34573335fdd0044dd5d4a92d7394f80 -->
+<!-- source-sha256: 58b36caf789a829c6231ada51265c6bed25f197c69bb4292473ecdb428e37dc8 -->
 
 ## Unreleased
+
+### 2026-10-20 — TypeScript validator의 공유 composition layering, literal reader, rule 형태 (C16.26)
+
+- `layerMembers`(`compose/layer.ts`)는 `composeProperties`, `composeSpec`, `composeRoot`, `expandNestedRefs`를 위해 node의 member를 layering하고, `ConditionParser.matchLiteral`은 literal token을 읽으며, `parameterRule`, `flagRule`, `formatRule`(`rules/factories.ts`)은 `max`, `min`, `range`, `step`, `maxlength`, `minlength`, `rangelength`, `maxcount`, `mincount`, `digits`, `number`, `date`, `dateISO`, `url`, `email`, `enddate`, `equalTo`가 각자 풀어 적던 parameter 검사, 빈 값 건너뛰기, message 선택을 담습니다 (C16.26). Red: `make duplication-check`가 `packages/validator/ts`의 clone 10건을 나열했고, green: 없음. conformance와 unit test 465건과 `make lint-ts`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — Rust validator의 공유 함수 (C16.25)
 

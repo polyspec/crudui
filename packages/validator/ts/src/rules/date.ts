@@ -4,8 +4,7 @@
  * Validates that a value is a valid date
  */
 
-import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
+import { formatRule } from './factories';
 import { trim } from '../values/index';
 
 /**
@@ -84,27 +83,5 @@ export function parseDate(value: unknown): Date | null {
   return null;
 }
 
-/**
- * Date rule definition
- */
-export const dateRule: RuleDefinition = {
-  validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages } = context;
-
-    // Skip if rule is disabled
-    if (ruleParam === false) {
-      return null;
-    }
-
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
-
-    if (!isValidDate(value)) {
-      return messages?.date ?? 'Please enter a valid date.';
-    }
-
-    return null;
-  },
-};
+/** Date rule definition. */
+export const dateRule = formatRule('date', isValidDate, 'Please enter a valid date.');

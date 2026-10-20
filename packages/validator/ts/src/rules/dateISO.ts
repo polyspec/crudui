@@ -4,8 +4,7 @@
  * Validates that a value is a valid ISO 8601 date format (YYYY-MM-DD)
  */
 
-import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
+import { formatRule } from './factories';
 import { trim } from '../values/index';
 
 /**
@@ -55,27 +54,9 @@ function isValidDateISO(value: unknown): boolean {
          date.getUTCDate() === day;
 }
 
-/**
- * DateISO rule definition
- */
-export const dateISORule: RuleDefinition = {
-  validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages } = context;
-
-    // Skip if rule is disabled
-    if (ruleParam === false) {
-      return null;
-    }
-
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
-
-    if (!isValidDateISO(value)) {
-      return messages?.dateISO ?? 'Please enter a valid date in ISO format (YYYY-MM-DD).';
-    }
-
-    return null;
-  },
-};
+/** DateISO rule definition. */
+export const dateISORule = formatRule(
+  'dateISO',
+  isValidDateISO,
+  'Please enter a valid date in ISO format (YYYY-MM-DD).'
+);

@@ -1,6 +1,7 @@
 /** Root composition shared by the list and detail structure validators. */
 
-import { resolveRef, applyPatch } from './compose/index';
+import { resolveRef } from './compose/index';
+import { layerMembers } from './compose/layer';
 import type { FileLoader } from './compose/index';
 
 /**
@@ -19,23 +20,5 @@ export function composeRoot(
     return { ...spec };
   }
   const basepath = opts.basepath ?? '';
-  let base: Record<string, unknown> = {};
-  let patch: unknown;
-  const own: Record<string, unknown> = {};
-  for (const k of Object.keys(spec)) {
-    if (k === '$ref') {
-      base = { ...own, ...resolveRef(spec[k], basepath, loader) };
-      for (const ok of Object.keys(own)) delete own[ok];
-    } else if (k === '$patch') {
-      patch = spec[k];
-    } else {
-      own[k] = spec[k];
-    }
-  }
-  let resolved: Record<string, unknown> = { ...base, ...own };
-  if (patch !== undefined) {
-    resolved = applyPatch(resolved, patch);
-  }
-  return resolved;
+  return layerMembers(spec, (ref) => resolveRef(ref, basepath, loader));
 }
-

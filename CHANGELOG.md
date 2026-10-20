@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared composition layering, literal reader and rule shapes in the TypeScript validator (C16.26)
+
+- `layerMembers` (`compose/layer.ts`) layers the members of a node for `composeProperties`, `composeSpec`, `composeRoot` and `expandNestedRefs`; `ConditionParser.matchLiteral` reads a literal token; `parameterRule`, `flagRule` and `formatRule` (`rules/factories.ts`) hold the parameter check, the empty-value skip and the message choice that `max`, `min`, `range`, `step`, `maxlength`, `minlength`, `rangelength`, `maxcount`, `mincount`, `digits`, `number`, `date`, `dateISO`, `url`, `email`, `enddate` and `equalTo` each spelled out (C16.26). Red: `make duplication-check` listed 10 clones in `packages/validator/ts`; green: none; 465 conformance and unit tests and `make lint-ts` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Shared functions in the Rust validator (C16.25)
 
 - `compose::members` holds `layer_members` (the `$ref` base, later members and `$patch`) and `kind_of`, which `compose`, `ref_` and `patch` each held a copy of; `file_accepted` serves both file shapes of the `accept` rule; `numbers_equal` serves the two equalities; `validate_field_rules` takes an `element_level` flag instead of a copy (`validate_element_rules`); and `list_or_detail_input` reads the input of `validate_list_text` and `validate_detail_text` (C16.25). Red: `make duplication-check` listed 11 clones in `packages/validator/rust`; green: 4 remain (function heads and a type-name match), the `compose` (23), `validate` (46), `text` (12) and `expr` (1) tests and `make lint-rust` pass. The behaviour is unchanged, so the red is the clone list.

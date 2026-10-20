@@ -4,9 +4,12 @@
  * Validates that a value matches another field's value
  */
 
-import { RuleDefinition, ValidationContext } from '../types';
-import { isEmpty } from './required';
+import type { ValidationContext } from '../types';
+import { parameterRule } from './factories';
 import { resolveFieldReference } from '../parser/PathResolver';
+
+/** Whether a rule parameter is a field reference: a string. */
+export const isFieldReference = (param: unknown): param is string => typeof param === 'string';
 
 /**
  * Resolve a rule param that references another field (relative or absolute).
@@ -24,34 +27,13 @@ export function resolveFieldParam(
   });
 }
 
-/**
- * Equal To rule definition
- */
-export const equalToRule: RuleDefinition = {
-  validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages } = context;
-
-    // A false or null parameter disables the rule.
-    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
-      return null;
-    }
-    if (typeof ruleParam !== 'string') {
-      throw new TypeError('Invalid equalTo parameter: expected a field reference string');
-    }
-
-    // Skip validation if value is empty (required rule handles this)
-    if (isEmpty(value)) {
-      return null;
-    }
-
-    // Resolve the target field's value via the shared path resolver
-    const targetValue = resolveFieldParam(ruleParam, context);
-
-    // Compare values
-    if (value !== targetValue) {
-      return messages?.equalTo ?? 'Please enter the same value again.';
-    }
-
-    return null;
-  },
-};
+/** Equal To rule definition. */
+export const equalToRule = parameterRule(
+  isFieldReference,
+  'Invalid equalTo parameter: expected a field reference string',
+  (value, reference, context) =>
+    // Compare with the target field's value, resolved by the shared path resolver
+    value !== resolveFieldParam(reference, context)
+      ? (context.messages?.equalTo ?? 'Please enter the same value again.')
+      : null
+);

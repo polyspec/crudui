@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 890df19c2f9ef7aedd8e31dd878b489b44a2cdcaa5e03de6a922db2f1f29b18d -->
+<!-- source-sha256: 25d2a961f529397918375d9e34817c21a5397d5cf6a508840f34e217c57c3a1b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -39,3 +39,4 @@
 | C16.23 | Go validator model은 순서가 있는 object를 두 generic helper로 읽고 쓴다 | packages/validator/go/validator/ordered.go, types.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestParameterChecks\|TestDecodeOrderedKeepsText' ./...`, `make lint-go` | [o] |
 | C16.24 | Go validate package는 field 순회, rule 해제, composition 입력을 공유한다 | packages/validator/go/validator/validate/helpers.go, list.go, detail.go, index.go, params.go, validator.go, rules.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestParameterChecks\|TestUnique' ./...`, `make lint-go` | [o] |
 | C16.25 | Rust validator는 composition member layering, 허용된 file 판별, list와 detail 입력 읽기를 공유 함수로 수행한다 | packages/validator/rust/src/compose/members.rs, compose.rs, ref_.rs, patch.rs, expr/evaluator.rs, validate/rules.rs, validate/validator.rs, text.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml validate`, `make lint-rust` | [o] |
+| C16.26 | TypeScript validator는 composition layering, literal reader, rule의 형태를 공유한다 | packages/validator/ts/src/compose/layer.ts, rules/factories.ts, compose-root.ts, parser/ConditionParser.ts and the rules | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/validate.conformance.test.ts src/compose.conformance.test.ts src/expr.conformance.test.ts src/validate/parameters.unit.test.ts src/values/values.unit.test.ts`, `make lint-ts` | [o] |
