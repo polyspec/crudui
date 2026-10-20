@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 12b036d75793101a9bdf4731d009c6b8e2b846ca38a5aa95b2b270142d16d77d -->
+<!-- source-sha256: 5a423b9fdb915a8c286dc16837e9ea570eca615831fd9cfbba7873a96cd4f055 -->
 
 ## Unreleased
 
@@ -17,6 +17,9 @@
 ### 2026-10-20 — viewState를 php-native에 선언한다 (C16.51)
 
 - `contracts/features.json`에서 `viewState`의 `php-native` support를 `pass`로 바꿉니다(C16.51). 모든 implementation이 C16.51-7(f6b52795)부터 view state를 가지며 PHP extension도 포함됩니다. 생성된 feature contract 문서가 이를 따릅니다. Red: `make divergence-check`가 exit 2이며 `contracts/features.json`이 `viewState`의 `php-native`를 unsupported로 명명; green: 이 check는 `viewState`의 entry를 명명하지 않으며 남은 finding은 다른 row의 것입니다. 이 worktree에서는 Composer 의존성이 PHP 8.5 이상을 요구하여 php-ext의 `FormStateTest` 검증을 실행할 수 없었으므로 검증 목록에 추가하지 않았습니다.
+### 2026-10-20 — PHP validator contract test는 library의 내부 class를 읽지 않는다 (C16.70)
+
+- `packages/validator/php/tests/Validate/TextValidityConformanceTest.php`는 fixture를 private `decodeFixture`로 읽습니다. 이 함수는 `json_decode`로 읽고, unpaired surrogate escape를 private-use code point로 바꿨다가 복원하므로 `Support\JsonText`를 쓰지 않습니다. 내부 `Support\Text`와 `Support\JsonText`를 직접 검사하던 부분은 `packages/validator/php/tests/Validate/TextInternalsTest.php`로 옮겼고, 이 test는 PHP source를 읽으므로 library에서만 실행합니다(P32, C16.70). `packages/validator/php/tests/Validate/UniqueValuesTest.php`는 한 validation의 row를 내부 `Validate\Validator` 대신 `Validator::validate`로 검사합니다. pure PHP runtime을 가정하던 `assertFalse(isInternal())` 검사를 conformance test와 `PublicApiTest`에서 제거합니다(S10: library test는 extension에 따라 분기하지 않으며, kit의 `test-php-ext`가 library source가 읽히지 않았는지 검사합니다). Red: 이전 test 파일로 `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='TextValidityConformanceTest'`가 exit 2이며 `A source of the PHP library was loaded, so the run did not test the extension: .../packages/validator/php/src/Support/JsonText.php`를 보고했습니다. Green: 일곱 CASES `ValidateConformanceTest|ListValidateConformanceTest|DetailValidateConformanceTest|ForbiddenScanConformanceTest|MessagePlaceholderTest|UniqueValuesTest|TextValidityConformanceTest`가 exit 0이고 440 passed이며 source가 읽히지 않았습니다. 변경한 파일의 library PHPUnit 실행은 OK(444 tests)입니다.
 
 ### 2026-10-20 — Go native program은 타입이 잘못된 member를 거부한다 (C16.79)
 

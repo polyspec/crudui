@@ -52,10 +52,6 @@ final class ValidateConformanceTest extends TestCase
     #[DataProvider('fixtureProvider')]
     public function testValidateMatchesFixture(array $case): void
     {
-        self::assertFalse(
-            (new \ReflectionClass(Validator::class))->isInternal(),
-            'PHPUnit evidence proves the pure PHP runtime, not the native extension'
-        );
         $passed = false;
         try {
             $this->assertCase($case);

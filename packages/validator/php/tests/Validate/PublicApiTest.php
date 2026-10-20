@@ -112,7 +112,6 @@ final class PublicApiTest extends TestCase
     public function testPublicClassesUseComposerClassAutoloading(): void
     {
         $reflection = new \ReflectionClass(Validator::class);
-        self::assertFalse($reflection->isInternal());
         self::assertFalse(class_exists('Polyspec\Crudui\Validator\Validate\Validate'));
         self::assertFalse(class_exists('Polyspec\Crudui\Validator\Validate\ListValidate'));
         self::assertSame(

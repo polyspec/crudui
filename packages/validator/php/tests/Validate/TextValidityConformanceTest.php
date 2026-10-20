@@ -6,8 +6,6 @@ namespace Polyspec\Crudui\Validator\Tests\Validate;
 
 use Polyspec\Crudui\Validator;
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
-use Polyspec\Crudui\Validator\Support\JsonText;
-use Polyspec\Crudui\Validator\Support\Text;
 use Polyspec\Crudui\Validator\Validate\FormInputError;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -16,9 +14,9 @@ use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * Input text conformance (docs/spec/input-text.md). The validation families of
- * tests/fixtures/text-validity are JSON text with unpaired surrogate escapes; JsonText decodes
- * them into strings that are not valid UTF-8, and the validator reports the failure each case
- * declares. Byte strings that JSON text cannot carry are checked here directly.
+ * tests/fixtures/text-validity are JSON text with unpaired surrogate escapes; decodeFixture
+ * decodes them into strings that are not valid UTF-8, and the validator reports the failure each
+ * case declares. Byte strings that JSON text cannot carry are checked here directly.
  */
 final class TextValidityConformanceTest extends TestCase
 {
@@ -29,11 +27,59 @@ final class TextValidityConformanceTest extends TestCase
         foreach (['validate', 'validateList', 'validateDetail'] as $feature) {
             $raw = \file_get_contents(__DIR__ . "/../../../../../tests/fixtures/text-validity/{$feature}/cases.json");
             self::assertIsString($raw);
-            foreach (JsonText::decode($raw) as $case) {
+            foreach (self::decodeFixture($raw) as $case) {
                 $out["{$feature}/{$case->name}"] = [$feature, $case];
             }
         }
         return $out;
+    }
+
+    /**
+     * Decodes fixture JSON text as json_decode($json, false, 512, JSON_THROW_ON_ERROR) does, except that
+     * an unpaired surrogate escape becomes the three-byte encoding of that surrogate, which json_decode
+     * rejects (JSON_ERROR_UTF16). Each unpaired escape is first rewritten to a private-use code point
+     * U+F800 to U+FFFF (U+F800 + the surrogate - U+D800), which json_decode accepts; after decoding, each
+     * such code point of a string or member name is written back as the surrogate. The fixture text
+     * holds no such code point, which is checked, so every one found is such an escape. Nothing is replaced.
+     */
+    private static function decodeFixture(string $raw): mixed
+    {
+        self::assertSame(0, \preg_match('/\\\\u[fF][89a-fA-F][0-9a-fA-F]{2}/', $raw), 'the fixture holds no private-use escape');
+        self::assertSame(0, \preg_match('/\\xEF[\\xA0-\\xBF]/', $raw), 'the fixture holds no private-use character');
+        $marked = \preg_replace_callback(
+            '/\\\\u[dD][89a-fA-F][0-9a-fA-F]{2}\\\\u[dD][c-fC-F][0-9a-fA-F]{2}|\\\\u([dD][89a-fA-F][0-9a-fA-F]{2})|\\\\./',
+            static fn (array $match): string => isset($match[1])
+                ? '\\u' . \dechex(0xF800 + \hexdec($match[1]) - 0xD800)
+                : $match[0],
+            $raw
+        );
+        return self::restoreSurrogates(\json_decode($marked, false, 512, JSON_THROW_ON_ERROR));
+    }
+
+    private static function restoreSurrogates(mixed $value): mixed
+    {
+        if (\is_string($value)) {
+            return \preg_replace_callback(
+                '/\\xEF[\\xA0-\\xBF][\\x80-\\xBF]/',
+                static function (array $match): string {
+                    $code = ((\ord($match[0][0]) & 0x0F) << 12) | ((\ord($match[0][1]) & 0x3F) << 6) | (\ord($match[0][2]) & 0x3F);
+                    $unit = 0xD800 + $code - 0xF800;
+                    return \chr(0xE0 | $unit >> 12) . \chr(0x80 | $unit >> 6 & 0x3F) . \chr(0x80 | $unit & 0x3F);
+                },
+                $value
+            );
+        }
+        if (\is_array($value)) {
+            return \array_map(self::restoreSurrogates(...), $value);
+        }
+        if ($value instanceof stdClass) {
+            $out = new stdClass();
+            foreach (\get_object_vars($value) as $name => $member) {
+                $out->{self::restoreSurrogates((string) $name)} = self::restoreSurrogates($member);
+            }
+            return $out;
+        }
+        return $value;
     }
 
     private static function outcome(callable $run): mixed
@@ -54,10 +100,6 @@ final class TextValidityConformanceTest extends TestCase
     #[DataProvider('fixtureProvider')]
     public function testInputTextMatchesFixture(string $feature, stdClass $case): void
     {
-        self::assertFalse(
-            (new \ReflectionClass(Validator::class))->isInternal(),
-            'PHPUnit evidence proves the pure PHP runtime, not the native extension'
-        );
         $passed = false;
         try {
             $options = (array) ($case->options ?? []);
@@ -99,7 +141,7 @@ final class TextValidityConformanceTest extends TestCase
         $raw = \file_get_contents(__DIR__ . '/../../../../../tests/fixtures/text-validity/value-graphs.json');
         self::assertIsString($raw);
         $out = [];
-        foreach (JsonText::decode($raw) as $case) {
+        foreach (self::decodeFixture($raw) as $case) {
             $out[$case->name] = [$case];
         }
         return $out;
@@ -162,19 +204,18 @@ final class TextValidityConformanceTest extends TestCase
             'above U+10FFFF' => \chr(0xf4) . \chr(0x90) . \chr(0x80) . \chr(0x80),
         ];
         foreach ($sequences as $name => $bytes) {
-            self::assertFalse(Text::isScalar($bytes), $name);
             self::assertSame(
-                ['code' => 'INVALID_TEXT', 'message' => Text::MESSAGE, 'at' => 'properties.name.label'],
+                ['code' => 'INVALID_TEXT', 'message' => 'Text must be Unicode scalar values', 'at' => 'properties.name.label'],
                 self::outcome(static fn () => Validator::validate($spec('A' . $bytes), [])),
                 $name
             );
             self::assertSame(
-                ['code' => 'INVALID_FORM_INPUT', 'message' => Text::MESSAGE . ': data.rows.1', 'at' => ''],
+                ['code' => 'INVALID_FORM_INPUT', 'message' => 'Text must be Unicode scalar values' . ': data.rows.1', 'at' => ''],
                 self::outcome(static fn () => Validator::validate($spec('A'), ['rows' => ['ok', [$bytes => 1]]])),
                 $name
             );
             self::assertSame(
-                ['code' => 'INVALID_TEXT', 'message' => Text::MESSAGE, 'at' => ''],
+                ['code' => 'INVALID_TEXT', 'message' => 'Text must be Unicode scalar values', 'at' => ''],
                 self::outcome(static fn () => Validator::validateList(
                     ['columns' => []],
                     ['files' => [$bytes => new stdClass()]]
@@ -182,68 +223,10 @@ final class TextValidityConformanceTest extends TestCase
                 $name
             );
             self::assertSame(
-                ['code' => 'INVALID_FORM_INPUT', 'message' => Text::MESSAGE . ': options.basepath', 'at' => ''],
+                ['code' => 'INVALID_FORM_INPUT', 'message' => 'Text must be Unicode scalar values' . ': options.basepath', 'at' => ''],
                 self::outcome(static fn () => Validator::validateDetail(['fields' => []], ['basepath' => $bytes])),
                 $name
             );
         }
-        $bad = \chr(0xff);
-        // Integer member names are decimal names in code point order: "10" precedes "9".
-        self::assertSame(['10'], Text::failure((object) ['9' => $bad, '10' => $bad]));
-        self::assertSame(['10'], Text::failure([9 => ['a' => $bad], 10 => $bad]));
-        self::assertSame(['1'], Text::failure(['ok', $bad]));
-        self::assertSame(['0', 'a', '0', 'b'], Text::failure([(object) ['a' => [(object) ['b' => $bad]]]]));
-        $shared = (object) ['b' => $bad];
-        self::assertSame(['y', 'b'], Text::failure((object) ['y' => $shared, 'z' => $shared]));
-        // A value is walked as the tree it denotes: one that contains itself is beyond its limits.
-        $cyclic = new stdClass();
-        $cyclic->self = $cyclic;
-        self::assertFalse(Text::failure($cyclic));
-        $cyclic->a = $bad;
-        self::assertSame(['a'], Text::failure($cyclic));
-    }
-
-    public function testJsonTextDecodesAsJsonDecode(): void
-    {
-        $same = [
-            '{"a":[1,-2.5e3,0,true,false,null,{"b":"\u00e9\ud83d\ude00\n\/"}],"a":"last","":{}}',
-            ' [ ] ',
-            '123',
-            '"\u0000"',
-            '12345678901234567890',
-            '{"_empty_":1}'
-        ];
-        foreach ($same as $json) {
-            self::assertEquals(\json_decode($json, false, 512, JSON_THROW_ON_ERROR), JsonText::decode($json), $json);
-        }
-        $surrogate = \chr(0xed) . \chr(0xa0) . \chr(0x80);
-        $low = \chr(0xed) . \chr(0xb0) . \chr(0x80);
-        self::assertSame(
-            $surrogate . 'A' . $low . $surrogate . \chr(0xff),
-            JsonText::decode('"\ud800A\udc00\ud800' . \chr(0xff) . '"')
-        );
-        $decoded = JsonText::decode('{"\ud800":{"\ud800":[1,"x"]}}');
-        self::assertSame([1, 'x'], $decoded->{$surrogate}->{$surrogate});
-        $rejected = [
-            '',
-            '{',
-            '[1,]',
-            '01',
-            '"\x"',
-            '"a' . \chr(1) . '"',
-            '{} {}',
-            '"\ud800',
-            '{"\u0000a":"\ud800"}',
-            \str_repeat('[', 512) . '"\ud800"' . \str_repeat(']', 512)
-        ];
-        foreach ($rejected as $json) {
-            try {
-                JsonText::decode($json);
-                self::fail("accepted {$json}");
-            } catch (\JsonException) {
-                self::addToAssertionCount(1);
-            }
-        }
-        self::assertIsArray(JsonText::decode(\str_repeat('[', 511) . '"\ud800"' . \str_repeat(']', 511)));
     }
 }
