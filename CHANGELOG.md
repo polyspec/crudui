@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The parity declaration holds with no finding (C16.57)
+
+- Every requirement id of docs/spec is cited by a unit whose tests name it: `make parity-declarations-check` reports no finding on main after C16.146..C16.158 (no R4, R13, R14 or R15 line), so the row is done. Red: the check exit 2 on 1788f7ca (five R5 lines of the Unicode tests); green: exit 0 (C16.57).
+
 ### 2026-10-21 — The PRINCIPLES copies follow kit K431 (C16.164)
 
 - `make kit-sync` rewrites `PRINCIPLES.md` and `PRINCIPLES.ko.md` from the linked kit (C16.164): kit K431 added to P-rules that a comment or document that a change makes stale is corrected in that commit, and one found later is a sub-item whose Verification is `make text-absent FILE=<path> TEXT=<stale text>`. Red: `make kit-check` exit 2 on aaa19888 (both copies differ); green: exit 0.

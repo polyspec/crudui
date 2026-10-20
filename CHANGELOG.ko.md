@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 95ba368d5596171820c7046ae0b4856b3bcd04b388ec3956ea3d14c552abf878 -->
+<!-- source-sha256: f84873983e4e0ad18b76f10d9bfa963d1ea4c9b4fd566dd242ad40afc48299cd -->
 
 ## Unreleased
+
+### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.57)
+
+- docs/spec의 모든 요구사항 id를 그것을 명명하는 테스트의 unit이 인용한다: C16.146..C16.158 뒤 main에서 `make parity-declarations-check`가 발견을 보고하지 않으므로(R4, R13, R14, R15 줄 없음) 행이 끝났다. Red: 1788f7ca에서 exit 2(Unicode 테스트의 R5 다섯 줄); green: exit 0 (C16.57).
 
 ### 2026-10-21 — PRINCIPLES 사본이 kit K431을 따른다 (C16.164)
 
