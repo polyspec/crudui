@@ -1805,6 +1805,217 @@
     ]
   },
   {
+    "name": "record-keeps-member-order-and-distinct-empty-values",
+    "note": "A record keeps the order of its members and rows; an absent members value, an empty object and an empty array stay distinct, and a null value stays null.",
+    "requirements": [
+      "CURP-010",
+      "CURP-011",
+      "CURP-012",
+      "CURP-020",
+      "CURP-025"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "setData",
+        "args": [
+          {
+            "teams": {
+              "__0000000000002__": {
+                "name": "Beta",
+                "members": {}
+              },
+              "__0000000000001__": {
+                "name": "Alpha"
+              }
+            },
+            "note": "n"
+          }
+        ]
+      },
+      {
+        "op": "setData",
+        "args": [
+          {
+            "teams": {
+              "__0000000000002__": {
+                "name": "Beta",
+                "members": []
+              }
+            },
+            "note": "n"
+          }
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "note",
+          null
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "teams.__0000000000001__.name",
+          "Alpha 2"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {}
+            },
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": "n"
+        },
+        "revision": 1,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Repeated data must be a keyed object: teams.__0000000000002__.members"
+        },
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {}
+            },
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": "n"
+        },
+        "revision": 1,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {}
+            },
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": null
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {}
+            },
+            "__0000000000001__": {
+              "name": "Alpha 2",
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": null
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
     "name": "resolve-action-names",
     "note": "An action resolves to a target with a non-empty path and key; an unknown or empty action resolves to nothing.",
     "requirements": [

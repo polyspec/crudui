@@ -310,6 +310,17 @@ const all: Case[] = [
     ],
   }),
   session({
+    name: 'record-keeps-member-order-and-distinct-empty-values',
+    note: 'A record keeps the order of its members and rows; an absent members value, an empty object and an empty array stay distinct, and a null value stays null.',
+    requirements: ['CURP-025'],
+    steps: [
+      step('setData', { teams: { [B]: { name: 'Beta', members: {} }, [A]: { name: 'Alpha' } }, note: 'n' }),
+      step('setData', { teams: { [B]: { name: 'Beta', members: [] } }, note: 'n' }),
+      step('setValue', 'note', null),
+      step('setValue', `teams.${A}.name`, 'Alpha 2'),
+    ],
+  }),
+  session({
     name: 'resolve-action-names',
     note: 'An action resolves to a target with a non-empty path and key; an unknown or empty action resolves to nothing.',
     requirements: ['CURT-081'],

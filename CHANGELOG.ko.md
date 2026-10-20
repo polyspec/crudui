@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c45d1902c161f6dc633ad1943c5df153aa9761e978ef4157c79b930e9aa25d4a -->
+<!-- source-sha256: c3986cbb4d269b3fc5171397a8e28dfec014696c8e7cb874c2851a2dbcc713bc -->
 
 ## Unreleased
 
@@ -22,6 +22,10 @@
 | packages/generator/php/tests/Internal/InterfaceMessagesTest.php | internal (php) | 생성된 PHP 소스가 생성 스크립트의 출력과 같다. 메시지 계약은 interface-messages unit이다 |
 
 Red: `make item-red ID=C16.155 BEFORE=69bd6b3b`가 exit 1로, 위 파일의 `R5 undeclared-test` 줄 여섯 개와 함께 실패한다. green: Verification이 exit 0으로 끝나고, 여섯 줄이 사라지며, 새 줄은 나타나지 않고, `make parity-declarations-check`의 findings가 61에서 55로 줄어든다.
+### 2026-10-21 — CURP-025는 여섯 runner가 통과하는 form-actions case가 전부 인용한다 (C16.152)
+
+- `tests/fixtures/form-state/generate.mts`에 세션 `record-keeps-member-order-and-distinct-empty-values`를 추가한다 (CURP-025, C16.152). 명세의 순서와 다른 멤버와 행 순서, 없는 `members`, 빈 객체, 빈 배열(거부됨), null 값, 그 뒤의 편집을 가진 `setData`다. case는 CURP-025의 각 절을 보인다. 멤버 순서가 유지된다(runner가 데이터의 JSON 텍스트를 비교한다), 배열은 배열로 남는다(목록은 거부됨), 없음, null, `{}`, `[]`가 구분된다, 데이터에 identity나 순서 필드가 나타나지 않는다. `tests/fixtures/form-actions/cases.json`을 재생성하고, `config/parity.json`의 form-actions unit이 CURP-025를 인용한다. Red: `make item-red ID=C16.152` exit 0, Verification이 907530ff에서 실패하며 R13 줄 `untraced-requirement: docs/spec/runtime-packages.md defines CURP-025`이 나온다. Green: TypeScript(`src/form-state.test.ts`, 39 passed), Go(`TestFormActions`, ok), Python(`tests/test_form_state.py`, 4 passed), Rust(`--test form_state`, 4 passed), PHP(`FormStateTest`, 39 tests OK), PHP 확장(`make test-php-ext CASES="FormStateTest"`, 39 tests OK) runner가 모두 통과한다. `make -s parity-declarations-check`는 CURP-025 줄만 사라지고 다른 줄은 그대로다(변경 전 61 findings, 후 60 findings).
+
 ### 2026-10-21 — form-view와 form-history의 cases가 생성기와 같다 (C16.154)
 
 - `tests/fixtures/form-state/generate.mts`가 세 view 세션에 CUMK-057을, 네 history 세션에 CUMK-061을 인용한다 (C16.154). main이 `tests/fixtures/form-view/cases.json`과 `tests/fixtures/form-history/cases.json`에 손으로 써 넣은 인용이다. `session()`은 각 case의 `requirements`를 main과 같이 정렬하여 쓰므로, 재생성이 main의 파일을 그대로 만든다. `set-data-restarts-history-and-view`의 requirements 순서와 `tests/fixtures/form-actions/cases.json`의 case 순서가 바뀌며, 내용은 바뀌지 않는다. Red: `sh -c 'node tests/fixtures/form-state/generate.mts && git diff --exit-code -- tests/fixtures/form-view/cases.json tests/fixtures/form-history/cases.json tests/fixtures/form-actions/cases.json'` exit 1, 재생성이 form-history의 네 case에서 CUMK-061을 빼고 requirements 순서를 바꾼다. Green: 재생성된 파일에서 exit 0이며, `make -s parity-declarations-check`의 출력 줄은 변경 전과 같다.
