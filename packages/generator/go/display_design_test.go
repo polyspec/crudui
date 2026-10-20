@@ -1,6 +1,9 @@
 package generator
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestListAndDetailDesignDeclarations(t *testing.T) {
 	record := `{"name":"Ada"}`
@@ -76,7 +79,11 @@ func TestShowUsesTheValidatorVisibilityRule(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := evalShow(c.value, data, nil, nil); got != c.show {
+			got, e := evalShow(c.value, data, nil, nil)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if got != c.show {
 				t.Fatalf("show = %v, want %v", got, c.show)
 			}
 			if c.value == nil {
@@ -86,5 +93,26 @@ func TestShowUsesTheValidatorVisibilityRule(t *testing.T) {
 				t.Fatalf("flag = %v, want %v", got, c.flag)
 			}
 		})
+	}
+}
+
+// TestAppearanceErrorsAreNotHidden shows that an evaluation error of an appearance ternary reaches
+// the caller instead of being dropped.
+func TestAppearanceErrorsAreNotHidden(t *testing.T) {
+	boom := errors.New("injected evaluation failure")
+	evaluate := evaluateValue
+	evaluateValue = func(string, map[string]any, []string, []int) (any, error) { return nil, boom }
+	t.Cleanup(func() { evaluateValue = evaluate })
+
+	template := compile(t, `{"type":"group","properties":{"tier":{"type":"text","design":{"class":"1 > 0 ? 'btn-a' : 'btn-b'"}}}}`)
+	if _, e := NewForm(template, parseObject(t, `{}`), BindOptions{}); !errors.Is(e, boom) {
+		t.Fatalf("NewForm error = %v, want the evaluation error", e)
+	}
+
+	// A string that does not parse is an ordinary literal, so no evaluation runs for it.
+	text := "(1 / 0) > 0 ? 'btn-a' : 'btn-b'"
+	got, e := evalAppearance(text, map[string]any{}, []string{"tier"}, nil)
+	if e != nil || got != text {
+		t.Fatalf("appearance of a string that does not parse = %q, %v; want the literal text", got, e)
 	}
 }

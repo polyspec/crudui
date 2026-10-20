@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
@@ -23,48 +22,46 @@ func conditionMap(o *Object, data map[string]any, path []string, rowKeys []int) 
 	return nil
 }
 
-// evaluateParsed evaluates an expression that expr.Parse has already accepted. EvaluateValue
-// fails only when Parse fails, and Parse of the same text gives the same result, so an error
-// here is a broken invariant.
-func evaluateParsed(s string, data map[string]any, path []string, rowKeys []int) any {
-	x, e := expr.EvaluateValue(s, data, path, rowKeys)
-	if e != nil {
-		panic(fmt.Sprintf("expr: evaluating %q after a successful parse: %v", s, e))
-	}
-	return x
-}
+// evaluateValue evaluates a parsed expression. It is a variable so that a test can inject an
+// evaluation failure; expr.EvaluateValue fails only on a parse error, which Parse has excluded.
+var evaluateValue = expr.EvaluateValue
 
 // evalShow resolves design.show like the validators resolve a conditional
 // parameter in the row context: a condition map selects its value, a ternary its
 // branch and a condition expression that parses completely its result; any
 // other string is a literal.
 // Only a resolved false hides; a missing show, a map that selects nothing and a
-// literal string are visible.
-func evalShow(v any, data map[string]any, path []string, rowKeys []int) bool {
+// literal string are visible. An evaluation error is returned.
+func evalShow(v any, data map[string]any, path []string, rowKeys []int) (bool, error) {
 	if v == nil || isAbsent(v) {
-		return true
+		return true, nil
 	}
-	return resolveParameter(v, data, path, rowKeys) != false
+	x, e := resolveParameter(v, data, path, rowKeys)
+	if e != nil {
+		return false, e
+	}
+	return x != false, nil
 }
 
-// resolveParameter resolves a conditional parameter value.
-func resolveParameter(v any, data map[string]any, path []string, rowKeys []int) any {
+// resolveParameter resolves a conditional parameter value. A string that does not parse is literal
+// text; the evaluation error of a ternary or a condition expression is returned.
+func resolveParameter(v any, data map[string]any, path []string, rowKeys []int) (any, error) {
 	if o := object(v); o != nil {
-		return conditionMap(o, data, path, rowKeys)
+		return conditionMap(o, data, path, rowKeys), nil
 	}
 	s, ok := v.(string)
 	if !ok {
-		return v
+		return v, nil
 	}
 	if ast, e := expr.Parse(s); e == nil {
 		if _, ok := ast.(*expr.TernaryNode); ok {
-			return evaluateParsed(s, data, path, rowKeys)
+			return evaluateValue(s, data, path, rowKeys)
 		}
 	}
 	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
-		return evaluateParsed(s, data, path, rowKeys)
+		return evaluateValue(s, data, path, rowKeys)
 	}
-	return s
+	return s, nil
 }
 
 // evalFlag resolves a boolean flag such as a list column's sortable: a
@@ -84,56 +81,87 @@ var ternaryTextRE = regexp.MustCompile(`\?[^:]*:`)
 // evalAppearance resolves an appearance setting such as design.class: a
 // condition map selects its value, a ternary its branch and a condition
 // expression that parses completely its result; any other string is literal text.
-func evalAppearance(v any, data map[string]any, path []string, rowKeys []int) string {
+// An evaluation error of a ternary or a condition expression is returned.
+func evalAppearance(v any, data map[string]any, path []string, rowKeys []int) (string, error) {
 	if v == nil || isAbsent(v) {
-		return ""
+		return "", nil
 	}
 	if o := object(v); o != nil {
 		x := conditionMap(o, data, path, rowKeys)
 		if x == nil || isAbsent(x) {
-			return ""
+			return "", nil
 		}
-		return jsString(x)
+		return jsString(x), nil
 	}
 	s, ok := v.(string)
 	if !ok {
-		return jsString(v)
+		return jsString(v), nil
 	}
 	if ast, e := expr.Parse(s); e == nil {
 		if _, ok := ast.(*expr.TernaryNode); ok {
-			x := evaluateParsed(s, data, path, rowKeys)
-			if x == nil {
-				return ""
+			x, e := evaluateValue(s, data, path, rowKeys)
+			if e != nil {
+				return "", e
 			}
-			return jsString(x)
+			if x == nil {
+				return "", nil
+			}
+			return jsString(x), nil
 		}
 	}
 	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
-		x := evaluateParsed(s, data, path, rowKeys)
-		if x == nil || x == false {
-			return ""
+		x, e := evaluateValue(s, data, path, rowKeys)
+		if e != nil {
+			return "", e
 		}
-		return jsString(x)
+		if x == nil || x == false {
+			return "", nil
+		}
+		return jsString(x), nil
 	}
-	return s
+	return s, nil
 }
-func resolveNode(v any, data map[string]any, path []string, rowKeys []int) *Object {
-	return NewObject("class", evalAppearance(read(v, "class"), data, path, rowKeys), "style", evalAppearance(read(v, "style"), data, path, rowKeys))
+
+// resolveNode resolves the class and style of a design node.
+func resolveNode(v any, data map[string]any, path []string, rowKeys []int) (*Object, error) {
+	class, e := evalAppearance(read(v, "class"), data, path, rowKeys)
+	if e != nil {
+		return nil, e
+	}
+	style, e := evalAppearance(read(v, "style"), data, path, rowKeys)
+	if e != nil {
+		return nil, e
+	}
+	return NewObject("class", class, "style", style), nil
 }
-func resolveDesign(v any, data map[string]any, path []string, rowKeys []int) *Object {
+
+// resolveDesign resolves a design declaration; an evaluation error of any part is returned.
+func resolveDesign(v any, data map[string]any, path []string, rowKeys []int) (*Object, error) {
 	d := NewObject("show", true, "main", NewObject("class", "", "style", ""))
 	for _, k := range []string{"label", "wrapper", "group", "prepend"} {
 		d.Set(k, NewObject("class", "", "style", ""))
 	}
 	if object(v) == nil {
-		return d
+		return d, nil
 	}
-	d.Set("show", evalShow(read(v, "show"), data, path, rowKeys))
-	d.Set("main", resolveNode(v, data, path, rowKeys))
+	show, e := evalShow(read(v, "show"), data, path, rowKeys)
+	if e != nil {
+		return nil, e
+	}
+	d.Set("show", show)
+	mainNode, e := resolveNode(v, data, path, rowKeys)
+	if e != nil {
+		return nil, e
+	}
+	d.Set("main", mainNode)
 	for _, k := range []string{"label", "wrapper", "group", "prepend"} {
-		d.Set(k, resolveNode(read(v, k), data, path, rowKeys))
+		node, e := resolveNode(read(v, k), data, path, rowKeys)
+		if e != nil {
+			return nil, e
+		}
+		d.Set(k, node)
 	}
-	return d
+	return d, nil
 }
 func nodeClass(design *Object, node string) string { return stringAt(read(design, node), "class") }
 func nodeStyle(design *Object, node string) string { return stringAt(read(design, node), "style") }

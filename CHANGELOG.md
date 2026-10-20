@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go generator returns the evaluation error of an appearance ternary (C16.72)
+
+- `packages/generator/go` returns the evaluation error of an appearance or show ternary instead of rendering an empty string (C16.72): `design.go` `evalAppearance`, `evalShow`, `resolveParameter`, `resolveNode` and `resolveDesign` return `(…, error)`, and the callers in `bind.go`, `buttons.go` and `list.go` return it; a string that does not parse stays literal text. `display_design_test.go` `TestAppearanceErrorsAreNotHidden` injects the failure through the `evaluateValue` variable and shows that `NewForm` returns it. Red: `go test -run TestAppearanceErrorsAreNotHidden` exit 1, `panic: expr: evaluating "1 > 0 ? 'btn-a' : 'btn-b'" after a successful parse: injected evaluation failure`; green: exit 0, and `go test -run Test ./...` gives `161 passed, 0 failed`, with `golangci-lint run` exit 0.
+
 ### 2026-10-20 — The native Rust generator program handles the hidden error that the kit lint reports (C16.67-9)
 
 - `tests/native-generators/programs/rust/src/main.rs` `main` no longer discards the error of reading standard input: a `std::io::ErrorKind::InvalidData` error (input that is not UTF-8) keeps the message `Request must be valid JSON`, and any other read failure is returned as `Cannot read the request: <error>` (C16.67-9). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason` exit 101 with 1 finding (`map_err` wildcard pattern at src/main.rs:340); green: exit 0, `cargo build --locked` of the crate exits 0, and non-UTF-8 standard input still prints the same error with exit 1.

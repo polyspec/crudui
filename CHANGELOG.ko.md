@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 924cfd06ced4dfd733d01c77095d6cabcc92a4e09730671b82c914acad3b9303 -->
+<!-- source-sha256: 1cf7164bd6472e71cfdb9606ebb7277775ae3fd648c23a428da0ee38dc81cca0 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator는 appearance ternary의 평가 오류를 반환한다 (C16.72)
+
+- `packages/generator/go`는 appearance 또는 show ternary의 평가 오류를 빈 문자열로 그리는 대신 반환합니다(C16.72). `design.go`의 `evalAppearance`, `evalShow`, `resolveParameter`, `resolveNode`, `resolveDesign`은 `(…, error)`를 반환하고, `bind.go`, `buttons.go`, `list.go`의 호출자가 이를 반환합니다. 파싱되지 않는 문자열은 literal text로 남습니다. `display_design_test.go`의 `TestAppearanceErrorsAreNotHidden`은 `evaluateValue` 변수로 실패를 주입하고 `NewForm`이 이를 반환함을 보입니다. Red: `go test -run TestAppearanceErrorsAreNotHidden`이 exit 1이며 `panic: expr: evaluating "1 > 0 ? 'btn-a' : 'btn-b'" after a successful parse: injected evaluation failure`; green: exit 0이며, `go test -run Test ./...`는 `161 passed, 0 failed`, `golangci-lint run`은 exit 0.
 
 ### 2026-10-20 — native Rust generator program은 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-9)
 
