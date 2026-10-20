@@ -16,7 +16,8 @@ use Polyspec\Crudui\Conformance\Evidence;
  * Input text conformance (docs/spec/input-text.md). The validation families of
  * tests/fixtures/text-validity are JSON text with unpaired surrogate escapes; decodeFixture
  * decodes them into strings that are not valid UTF-8, and the validator reports the failure each
- * case declares. Byte strings that JSON text cannot carry are checked here directly.
+ * case declares. Byte strings that JSON text cannot carry are checked here directly. CUIT-041: a load failure
+ * is a ComposeLoadError and an input failure is a FormInputError; each run asserts the class it throws.
  */
 final class TextValidityConformanceTest extends TestCase
 {
@@ -89,19 +90,42 @@ final class TextValidityConformanceTest extends TestCase
         return $value;
     }
 
-    private static function outcome(callable $run): mixed
+    /** The record of a run and the class of the error it throws (CUIT-041), or 'none' when it throws nothing. */
+    private static function outcome(callable $run): array
     {
         try {
-            return \json_decode(\json_encode($run(), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+            return [
+                'record' => \json_decode(\json_encode($run(), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR),
+                'type' => 'none',
+            ];
         } catch (ComposeLoadError $error) {
             return [
-                'code' => $error->getErrorCode(),
-                'message' => $error->getMessage(),
-                'at' => \implode('.', $error->getCompositionTrace())
+                'record' => [
+                    'code' => $error->getErrorCode(),
+                    'message' => $error->getMessage(),
+                    'at' => \implode('.', $error->getCompositionTrace())
+                ],
+                'type' => ComposeLoadError::class,
             ];
         } catch (FormInputError $error) {
-            return ['code' => $error->getErrorCode(), 'message' => $error->getMessage(), 'at' => ''];
+            return [
+                'record' => ['code' => $error->getErrorCode(), 'message' => $error->getMessage(), 'at' => ''],
+                'type' => FormInputError::class,
+            ];
         }
+    }
+
+    /**
+     * The class that the expectation names (CUIT-041): a load failure is a ComposeLoadError, an input failure a
+     * FormInputError.
+     */
+    private static function nativeType(stdClass $expect): string
+    {
+        return match ($expect->code ?? null) {
+            'INVALID_TEXT' => ComposeLoadError::class,
+            'INVALID_FORM_INPUT' => FormInputError::class,
+            default => 'none',
+        };
     }
 
     #[DataProvider('fixtureProvider')]
@@ -129,7 +153,8 @@ final class TextValidityConformanceTest extends TestCase
             if ($rootString) {
                 $expected['message'] .= '.0';
             }
-            self::assertSame($expected, $actual);
+            self::assertSame($expected, $actual['record']);
+            self::assertSame(self::nativeType($case->expect), $actual['type']);
             $passed = true;
         } finally {
             Evidence::record(
@@ -192,8 +217,9 @@ final class TextValidityConformanceTest extends TestCase
         $actual = self::outcome(static fn () => Validator::validate($inputs['spec'], $inputs['data'], $options));
         self::assertSame(
             \json_decode(\json_encode($case->expect, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR),
-            $actual
+            $actual['record']
         );
+        self::assertSame(self::nativeType($case->expect), $actual['type']);
     }
 
     public function testInvalidUtf8Bytes(): void
@@ -217,7 +243,12 @@ final class TextValidityConformanceTest extends TestCase
                     'message' => 'Text must be Unicode scalar values',
                     'at' => 'properties.name.label',
                 ],
-                self::outcome(static fn () => Validator::validate($spec('A' . $bytes), [])),
+                self::outcome(static fn () => Validator::validate($spec('A' . $bytes), []))['record'],
+                $name
+            );
+            self::assertSame(
+                ComposeLoadError::class,
+                self::outcome(static fn () => Validator::validate($spec('A' . $bytes), []))['type'],
                 $name
             );
             self::assertSame(
@@ -226,7 +257,18 @@ final class TextValidityConformanceTest extends TestCase
                     'message' => 'Text must be Unicode scalar values' . ': data.rows.1',
                     'at' => '',
                 ],
-                self::outcome(static fn () => Validator::validate($spec('A'), ['rows' => ['ok', [$bytes => 1]]])),
+                self::outcome(static fn () => Validator::validate(
+                    $spec('A'),
+                    ['rows' => ['ok', [$bytes => 1]]]
+                ))['record'],
+                $name
+            );
+            self::assertSame(
+                FormInputError::class,
+                self::outcome(static fn () => Validator::validate(
+                    $spec('A'),
+                    ['rows' => ['ok', [$bytes => 1]]]
+                ))['type'],
                 $name
             );
             self::assertSame(
@@ -234,7 +276,15 @@ final class TextValidityConformanceTest extends TestCase
                 self::outcome(static fn () => Validator::validateList(
                     ['columns' => []],
                     ['files' => [$bytes => new stdClass()]]
-                )),
+                ))['record'],
+                $name
+            );
+            self::assertSame(
+                ComposeLoadError::class,
+                self::outcome(static fn () => Validator::validateList(
+                    ['columns' => []],
+                    ['files' => [$bytes => new stdClass()]]
+                ))['type'],
                 $name
             );
             self::assertSame(
@@ -243,7 +293,18 @@ final class TextValidityConformanceTest extends TestCase
                     'message' => 'Text must be Unicode scalar values' . ': options.basepath',
                     'at' => '',
                 ],
-                self::outcome(static fn () => Validator::validateDetail(['fields' => []], ['basepath' => $bytes])),
+                self::outcome(static fn () => Validator::validateDetail(
+                    ['fields' => []],
+                    ['basepath' => $bytes]
+                ))['record'],
+                $name
+            );
+            self::assertSame(
+                FormInputError::class,
+                self::outcome(static fn () => Validator::validateDetail(
+                    ['fields' => []],
+                    ['basepath' => $bytes]
+                ))['type'],
                 $name
             );
         }

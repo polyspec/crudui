@@ -8,7 +8,8 @@ text check rejects it. The value graphs of `value-graphs.json` are built with
 shared and self-containing containers, which Python values can hold.
 
 Each case either throws the recorded failure `{code, message, at}` or returns
-the recorded result.
+the recorded result. CUIT-041: a load failure is a ComposeLoadError and an input
+failure is a FormInputError, and each case asserts the class it throws.
 """
 
 import unittest
@@ -31,8 +32,17 @@ ENTRIES = {
 }
 
 
-def outcome(case, entry):
-    """The failure record of a thrown failure, or the validation result."""
+def native_type(expect):
+    """The class that an expectation names (CUIT-041): a load failure is a ComposeLoadError, an input failure a FormInputError."""
+    if isinstance(expect, dict) and expect.get("code") == "INVALID_TEXT":
+        return "ComposeLoadError"
+    if isinstance(expect, dict) and expect.get("code") == "INVALID_FORM_INPUT":
+        return "FormInputError"
+    return "none"
+
+
+def run_case(case, entry):
+    """The record of a run and the class of the error it throws, or 'none'."""
     options = {}
     if case.get("files") is not None:
         options["files"] = case["files"]
@@ -42,14 +52,14 @@ def outcome(case, entry):
     try:
         result = entry(case["spec"], data, options)
     except (ComposeLoadError, FormInputError) as error:
-        return failure_record(error)
+        return failure_record(error), type(error).__name__
     if "hidden" in result:
         return {
             "valid": result["valid"],
             "errors": result["errors"],
             "hidden": result["hidden"],
-        }
-    return {"valid": result["valid"], "errors": result["errors"]}
+        }, "none"
+    return {"valid": result["valid"], "errors": result["errors"]}, "none"
 
 
 def build_graph(graph):
@@ -73,6 +83,12 @@ def build_graph(graph):
 class TestTextValidityConformance(unittest.TestCase):
     """The input text rule holds at the same operations, in the same order."""
 
+    def assertOutcome(self, case, entry):
+        """The record of the run is the expectation, and the class it throws is the class that the expectation names."""
+        record, native = run_case(case, entry)
+        self.assertEqual(record, case["expect"])
+        self.assertEqual(native, native_type(case["expect"]))
+
     def test_validate_cases(self):
         cases = cases_of("text-validity", "validate/cases.json")
         self.assertEqual(len(cases), 21)
@@ -85,7 +101,7 @@ class TestTextValidityConformance(unittest.TestCase):
                     case["name"],
                 ) as proof,
             ):
-                self.assertEqual(outcome(case, ENTRIES["validate"]), case["expect"])
+                self.assertOutcome(case, ENTRIES["validate"])
                 proof.passed = True
 
     def test_validate_list_cases(self):
@@ -100,7 +116,7 @@ class TestTextValidityConformance(unittest.TestCase):
                     case["name"],
                 ) as proof,
             ):
-                self.assertEqual(outcome(case, ENTRIES["validateList"]), case["expect"])
+                self.assertOutcome(case, ENTRIES["validateList"])
                 proof.passed = True
 
     def test_validate_detail_cases(self):
@@ -115,9 +131,7 @@ class TestTextValidityConformance(unittest.TestCase):
                     case["name"],
                 ) as proof,
             ):
-                self.assertEqual(
-                    outcome(case, ENTRIES["validateDetail"]), case["expect"]
-                )
+                self.assertOutcome(case, ENTRIES["validateDetail"])
                 proof.passed = True
 
     def test_value_graph_cases(self):
@@ -137,10 +151,10 @@ class TestTextValidityConformance(unittest.TestCase):
                     options["files"][path[1]][member] = graph
                 else:
                     data[member] = graph
-                result = outcome(
-                    {"spec": spec, "data": data, **options}, ENTRIES["validate"]
+                self.assertOutcome(
+                    {"spec": spec, "data": data, **options, "expect": case["expect"]},
+                    ENTRIES["validate"],
                 )
-                self.assertEqual(result, case["expect"])
 
 
 if __name__ == "__main__":

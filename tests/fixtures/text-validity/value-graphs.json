@@ -18,9 +18,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
@@ -32,9 +30,7 @@
     "note": "invalid text met before the node limit is reported at its path in the tree: the first leaf of the doubled list.",
     "requirements": [
       "CUIT-021",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
@@ -49,9 +45,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "loop": { "type": "text" } } },
     "data": { "loop": null },
@@ -66,9 +60,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": {}, "loop": null },
     "data": {},
@@ -83,9 +75,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "bad": { "type": "text" } } },
     "files": { "big.yml": { "list": null } },
@@ -112,9 +102,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
@@ -140,9 +128,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
@@ -154,9 +140,7 @@
     "note": "members are walked in code point order of their names: invalid text in a precedes the self-reference in b.",
     "requirements": [
       "CUIT-021",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "a": { "type": "text" }, "b": { "type": "text" } } },
     "data": { "b": null, "a": "\ud800" },
@@ -171,9 +155,7 @@
       "CUIT-029",
       "CUIT-030",
       "CUIT-031",
-      "CUIT-032",
-      "CUIT-033",
-      "CUIT-035"
+      "CUIT-041"
     ],
     "spec": { "type": "group", "properties": { "a": { "type": "text" }, "b": { "type": "text" } } },
     "data": { "b": "\ud800", "a": null },

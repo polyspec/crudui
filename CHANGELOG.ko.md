@@ -1,12 +1,20 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9faf28071702dcd8ed8f8b58ce094d2fc513b39249be69931eb1cde33ba31b9c -->
+<!-- source-sha256: 494a4c1c43fcf4bd0e918890019d11e7e2aab603c435ae1dac59eb19534c0c72 -->
 
 ## Unreleased
+
+### 2026-10-21 — input text의 오류 타입은 모든 구현이 검사하는 하나의 요구사항 CUIT-041이다 (C16.140)
+
+- CUIT-032부터 CUIT-036까지에 대한 경로 1(native 통합): 다섯 항목은 언어별 오류 타입을 적었고, 이를 CUIT-041 하나로 다시 씁니다. 로드 실패와 입력 실패는 각 구현의 서로 다른 오류 타입입니다. 언어별 타입 표는 설명으로 따릅니다. 옛 id는 `docs/spec/input-text.md`와 한국어 문서, 그리고 그 id를 인용하던 모든 case와 unit에서 없어졌습니다.
+- case와 unit: validate, validateList, validateDetail, value-graphs fixture와 validator unit 네 개는 CUIT-032, CUIT-033, CUIT-035 대신 CUIT-041을 인용합니다.
+- runner(각각 모든 실패의 native class를 검사하며 통과합니다): TypeScript validator와 generator(`ComposeLoadError`, `FormInputError`); PHP validator, generator, PHP extension(검증에서 `ComposeLoadError`, `FormInputError`, 생성에서 `FormError`); Go validator(`*compose.ComposeLoadError`, `*FormInputError`)와 generator(잘못된 text의 로드 타입); Rust validator(`ValidateError::Load`, `ValidateError::Input`); Python validator(`ComposeLoadError`, `FormInputError`)와 generator(생성의 `FormError`).
+- Rust generator: 바뀌지 않았고 요구사항을 충족하지 않습니다. 생성 operation은 모든 실패에 `FormError`를 돌려주며, `From<ComposeLoadError>` 구현은 로드 종류를 code `INVALID_TEXT`에만 남기므로 Rust generator에서 로드 실패와 입력 실패는 서로 다른 오류 타입이 아닙니다. 중립 요구사항은 로드 실패용 두 번째 오류 타입이나 명시된 예외를 요구하며, 어느 쪽인지는 소유자가 정합니다.
 
 ### 2026-10-21 — kit copy들이 kit에만 있는 check를 이름으로 대지 않는다 (C16.139)
 
 - `PRINCIPLES.md`와 `PRINCIPLES.ko.md`는 K359-2(`f9f80e60`, "Name no check that only kit has")가 든 kit 0.0.54의 copy입니다. P10은 kit에만 있는 `tests/kit/worktree-setup.test.mts`를 더 이상 이름으로 대지 않으므로 `make rules-check`가 그 file이 없다고 보고하지 않습니다(C16.139). Red: 0afab14d에서 `make rules-check` exit 2, `PRINCIPLES.md:44: tests/kit/worktree-setup.test.mts does not exist`. Green: `make rules-check`, `make kit-check`, `make layout-check`, `make link-state-check` exit 0입니다.
+
 ### 2026-10-21 — 양식 마크업의 추적되지 않은 요구사항을 배치하거나 보고합니다 (C16.142)
 
 `docs/spec/form-markup.md`의 추적되지 않은 CUMK 25개 id에 대한 결정표입니다(경로 1은 네이티브 통합, 경로 2는 한 런타임에만 해당하는 내용으로, 해당 패키지 문서로 옮기며 어떤 유닛도 인용하지 않습니다):

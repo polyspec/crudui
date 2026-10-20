@@ -1,7 +1,8 @@
 /**
  * Input text of the generator operations (docs/spec/input-text.md). The generator families of
  * tests/fixtures/text-validity run here in process; the native generator suite runs the same cases
- * through every language's program and records the conformance evidence.
+ * through every language's program and records the conformance evidence. CUIT-041: a load failure is a
+ * ComposeLoadError and an input failure a FormInputError, which each case asserts with the class it throws.
  */
 
 import { describe, expect, test } from 'vitest';
@@ -91,15 +92,31 @@ function runFormAction(form: ReturnType<typeof createForm>, { method, args }: { 
   }
 }
 
+/** The class of the error that the last run of `failure` threw (CUIT-041), or 'none'. */
+let thrownType = 'none';
+
 function failure(run: () => unknown): unknown {
+  thrownType = 'none';
   try {
     run();
     return 'pass';
   } catch (error) {
-    if (error instanceof ComposeLoadError) return { code: error.code, message: error.message, at: error.trace.join('.') };
-    if (error instanceof FormInputError) return { code: error.code, message: error.message, at: '' };
+    if (error instanceof ComposeLoadError) {
+      thrownType = 'ComposeLoadError';
+      return { code: error.code, message: error.message, at: error.trace.join('.') };
+    }
+    if (error instanceof FormInputError) {
+      thrownType = 'FormInputError';
+      return { code: error.code, message: error.message, at: '' };
+    }
     throw error;
   }
+}
+
+/** The class that an expectation names (CUIT-041): a load failure is a ComposeLoadError, an input failure a FormInputError. */
+function nativeType(expected: unknown): string {
+  if (!isRecord(expected) || typeof expected.code !== 'string') return 'none';
+  return expected.code === 'INVALID_TEXT' ? 'ComposeLoadError' : 'FormInputError';
 }
 
 const template = (c: TextCase): unknown => c.template ?? compileForm(c.spec ?? {});
@@ -127,7 +144,12 @@ for (const [feature, run] of Object.entries(operations)) {
   assert(Array.isArray(decoded), `the ${feature} cases are a list`);
   const cases = decoded.map(textCase);
   describe(`${feature} — input text`, () => {
-    for (const c of cases) test(c.name, () => expect(run(c)).toStrictEqual(c.expect));
+    for (const c of cases) {
+      test(c.name, () => {
+        expect(run(c)).toStrictEqual(c.expect);
+        expect(thrownType).toBe(nativeType(c.expect));
+      });
+    }
   });
 }
 

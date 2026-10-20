@@ -106,11 +106,17 @@ A value beyond the value limits is an input failure in every argument and option
   argument name, or `options.` and the option name, with no path;
 - **CUIT-031** an empty location.
 
-- **CUIT-032** JavaScript — Load failure: `ComposeLoadError`; Input failure: `FormInputError`
-- **CUIT-033** PHP and PHP extension, validation — Load failure: `ComposeLoadError`; Input failure: `FormInputError`
-- **CUIT-034** PHP and PHP extension, generation — Load failure: `ComposeLoadError`; Input failure: `FormError`
-- **CUIT-035** Go — Load failure: `*compose.ComposeLoadError`; Input failure: validation `*validate.FormInputError`; generation an error with the message
-- **CUIT-036** Rust — Load failure: `ComposeLoadError` in `ValidateError::Load` or `FormError`; Input failure: `FormInputError` in `ValidateError::Input` or `FormError`
+- **CUIT-041** A load failure and an input failure are distinct error types of each implementation, and a check that
+  reads the text reports one of them. The types of each implementation are:
+  - JavaScript: a load failure is `ComposeLoadError`, and an input failure is `FormInputError`;
+  - PHP and PHP extension: in validation a load failure is `ComposeLoadError` and an input failure is `FormInputError`;
+    in generation a load failure is `ComposeLoadError` and an input failure is `FormError`;
+  - Go: a load failure is `*compose.ComposeLoadError`; an input failure is `*validate.FormInputError` in validation and an
+    error with the message in generation;
+  - Rust: a load failure is `ComposeLoadError` in `ValidateError::Load` or `FormError`, and an input failure is
+    `FormInputError` in `ValidateError::Input` or `FormError`;
+  - Python: in validation a load failure is `ComposeLoadError` and an input failure is `FormInputError`; in generation an
+    input failure is `FormError`.
 
 ## JSON text
 

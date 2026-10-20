@@ -1,6 +1,6 @@
 # 입력 텍스트
 <!-- doc-id: docs-spec-input-text -->
-<!-- source-sha256: 5594897a03a912ff12161ad4ee66898713f21c189a0f887dd18992f4b2c1334d -->
+<!-- source-sha256: 9de6dd4af82a0259fc942fe3277bbb277e885aa061c9a20b5c50bbcbc06fcbd6 -->
 
 [English](input-text.md).
 
@@ -101,11 +101,17 @@ PHP 라이브러리의 값 복사와 확장의 값 변환은 변환하는 모든
   또는 `options.`와 옵션 이름이며 경로는 붙지 않습니다
 - **CUIT-031** 빈 위치
 
-- **CUIT-032** JavaScript — 로드 실패: `ComposeLoadError`; 입력 실패: `FormInputError`
-- **CUIT-033** PHP와 PHP 확장, 검증 — 로드 실패: `ComposeLoadError`; 입력 실패: `FormInputError`
-- **CUIT-034** PHP와 PHP 확장, 생성 — 로드 실패: `ComposeLoadError`; 입력 실패: `FormError`
-- **CUIT-035** Go — 로드 실패: `*compose.ComposeLoadError`; 입력 실패: 검증은 `*validate.FormInputError`, 생성은 메시지를 담은 오류
-- **CUIT-036** Rust — 로드 실패: `ValidateError::Load` 또는 `FormError` 안의 `ComposeLoadError`; 입력 실패: `ValidateError::Input` 또는 `FormError` 안의 `FormInputError`
+- **CUIT-041** 로드 실패와 입력 실패는 각 구현의 서로 다른 오류 타입이며, 텍스트를 읽는 검사는 그중 하나를 보고합니다.
+  각 구현의 타입은 다음과 같습니다.
+  - JavaScript: 로드 실패는 `ComposeLoadError`, 입력 실패는 `FormInputError`입니다.
+  - PHP와 PHP 확장: 검증에서 로드 실패는 `ComposeLoadError`, 입력 실패는 `FormInputError`입니다. 생성에서 로드 실패는
+    `ComposeLoadError`, 입력 실패는 `FormError`입니다.
+  - Go: 로드 실패는 `*compose.ComposeLoadError`입니다. 입력 실패는 검증에서 `*validate.FormInputError`, 생성에서는
+    메시지를 담은 오류입니다.
+  - Rust: 로드 실패는 `ValidateError::Load` 또는 `FormError` 안의 `ComposeLoadError`이고, 입력 실패는
+    `ValidateError::Input` 또는 `FormError` 안의 `FormInputError`입니다.
+  - Python: 검증에서 로드 실패는 `ComposeLoadError`, 입력 실패는 `FormInputError`입니다. 생성에서 입력 실패는
+    `FormError`입니다.
 
 ## JSON 텍스트
 

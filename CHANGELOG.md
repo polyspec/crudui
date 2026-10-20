@@ -3,9 +3,17 @@
 
 ## Unreleased
 
+### 2026-10-21 — The error types of the input text are one requirement, CUIT-041, that every implementation asserts (C16.140)
+
+- Path 1 (native integration) for CUIT-032 to CUIT-036: the five items named each language's error types, and they are rewritten once as CUIT-041, a load failure and an input failure are distinct error types of each implementation. The table of each language's types follows as a description; the old ids are gone from `docs/spec/input-text.md` and its Korean twin, and from every case and unit that cited them.
+- Cases and units: the validate, validateList, validateDetail and value-graphs fixtures and the four validator units cite CUIT-041 in place of CUIT-032, CUIT-033 and CUIT-035.
+- Runners (each asserts the native class of every failure, and passes): the TypeScript validator and generator (`ComposeLoadError`, `FormInputError`); the PHP validator and generator and the PHP extension (`ComposeLoadError`, `FormInputError` in validation and `FormError` in generation); the Go validator (`*compose.ComposeLoadError`, `*FormInputError`) and generator (the load type of invalid text); the Rust validator (`ValidateError::Load`, `ValidateError::Input`); the Python validator (`ComposeLoadError`, `FormInputError`) and generator (`FormError` in generation).
+- Rust generator: unchanged, and not fulfilled. Its generation operations return `FormError` for every failure, and the `From<ComposeLoadError>` impl keeps the load kind only in the code `INVALID_TEXT`, so a load failure and an input failure are not distinct error types of the Rust generator. The neutral rule requires either a second error type for load failures or a documented exception; the owner decides which.
+
 ### 2026-10-21 — The copies of kit name no check that only kit has (C16.139)
 
 - `PRINCIPLES.md` and `PRINCIPLES.ko.md` are the copies of kit at 0.0.54 with K359-2 (`f9f80e60`, "Name no check that only kit has"): P10 no longer names `tests/kit/worktree-setup.test.mts`, which only kit holds, so `make rules-check` no longer reports that the file does not exist (C16.139). Red: `make rules-check` exit 2 on 0afab14d, `PRINCIPLES.md:44: tests/kit/worktree-setup.test.mts does not exist`. Green: `make rules-check`, `make kit-check`, `make layout-check` and `make link-state-check` exit 0.
+
 ### 2026-10-21 — The untraced form-markup requirements are placed or reported (C16.142)
 
 Decision table for the 25 untraced CUMK ids of `docs/spec/form-markup.md` (path 1 = native integration, path 2 = one runtime by nature, moved to that package's documentation and cited by no unit):

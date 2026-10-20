@@ -1,7 +1,8 @@
 package validate
 
 // Input text conformance verifies the Go validator against the validation
-// families of tests/fixtures/text-validity. The fixture JSON text carries
+// families of tests/fixtures/text-validity. CUIT-041: a load failure is a *compose.ComposeLoadError and an input failure a
+// *FormInputError; each run asserts the type it returns. The fixture JSON text carries
 // unpaired surrogate escapes; compose.DecodeOrdered keeps them as text that is
 // not valid UTF-8, so the JSON entry points and the value entry points report
 // the failure the fixture declares.
@@ -121,15 +122,16 @@ func (c textCase) valueInputs(t *testing.T) (*compose.OMap, Options) {
 	return specMap, opts
 }
 
-// textOutcome is the failure {code, message, at} or the validation result.
+// textOutcome is the failure {code, message, at, type} or the validation result with type "none". The type names the
+// native error (CUIT-041): a load failure is *compose.ComposeLoadError, an input failure is *FormInputError.
 func textOutcome(t *testing.T, result any, err error) any {
 	var load *compose.ComposeLoadError
 	if errors.As(err, &load) {
-		return map[string]any{"code": string(load.Code), "message": load.Message, "at": strings.Join(load.Trace, ".")}
+		return map[string]any{"code": string(load.Code), "message": load.Message, "at": strings.Join(load.Trace, "."), "type": "ComposeLoadError"}
 	}
 	var input *FormInputError
 	if errors.As(err, &input) {
-		return map[string]any{"code": input.Code(), "message": input.Message, "at": ""}
+		return map[string]any{"code": input.Code(), "message": input.Message, "at": "", "type": "FormInputError"}
 	}
 	if err != nil {
 		return err.Error()
@@ -145,14 +147,43 @@ func textOutcome(t *testing.T, result any, err error) any {
 	if out["errors"] == nil {
 		out["errors"] = []any{}
 	}
+	out["type"] = "none"
 	return out
 }
 
 func checkTextOutcome(t *testing.T, c textCase, label string, got any) {
 	t.Helper()
+	checkOutcome(t, label, got, c["expect"])
+}
+
+// checkOutcome compares an outcome with its expectation, and the native type of the error with the type that the
+// expectation names: a load failure is a ComposeLoadError, an input failure a FormInputError, and a pass none (CUIT-041).
+func checkOutcome(t *testing.T, label string, got any, expect json.RawMessage) {
+	t.Helper()
 	var want any
-	if err := json.Unmarshal(c["expect"], &want); err != nil {
+	if err := json.Unmarshal(expect, &want); err != nil {
 		t.Fatal(err)
+	}
+	native := ""
+	if m, ok := got.(map[string]any); ok {
+		typed, found := m["type"].(string)
+		if !found {
+			t.Fatalf("%s: the outcome %#v names no native type", label, got)
+		}
+		native = typed
+		delete(m, "type")
+	}
+	expected := "none"
+	if m, ok := want.(map[string]any); ok {
+		switch m["code"] {
+		case "INVALID_TEXT":
+			expected = "ComposeLoadError"
+		case "INVALID_FORM_INPUT":
+			expected = "FormInputError"
+		}
+	}
+	if native != expected {
+		t.Errorf("%s: the native type is %q, want %q", label, native, expected)
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("%s: got %#v, want %#v", label, got, want)
@@ -435,14 +466,7 @@ func TestValueGraphsMatchFixture(t *testing.T) {
 			// Each case is one test within the runner's per-test limit, which a walk that grows
 			// with the tree a value denotes (2^40 nodes) never meets.
 			result, validateErr := Validate(spec, data, opts)
-			got := textOutcome(t, result, validateErr)
-			var want any
-			if err := json.Unmarshal(c.Want, &want); err != nil {
-				t.Fatal(err)
-			}
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("got %#v, want %#v", got, want)
-			}
+			checkOutcome(t, c.Name, textOutcome(t, result, validateErr), c.Want)
 		})
 	}
 }

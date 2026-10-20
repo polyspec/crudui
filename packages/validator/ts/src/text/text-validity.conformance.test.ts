@@ -1,7 +1,8 @@
 /**
  * Input text conformance for the JavaScript validator. It runs the shared validation cases of
  * tests/fixtures/text-validity, whose JSON text carries unpaired surrogate escapes that
- * `JSON.parse` keeps as unpaired code units, and unit cases for the text helpers.
+ * `JSON.parse` keeps as unpaired code units, and unit cases for the text helpers. CUIT-041: a load failure is a
+ * ComposeLoadError and an input failure is a FormInputError, which each case asserts with its record.
  */
 
 import assert from 'node:assert/strict';
@@ -54,14 +55,32 @@ function readCases<T>(fixture: string, read: (item: unknown, at: string) => T): 
   return value.map((item: unknown, index) => read(item, `case ${index} of ${fixture}`));
 }
 
-function outcome(run: () => unknown): unknown {
+/** The record of a run and the native type of the error it throws (CUIT-041), or 'none' when it throws nothing. */
+function outcome(run: () => unknown): { record: unknown; type: string } {
   try {
-    return run();
+    return { record: run(), type: 'none' };
   } catch (error) {
-    if (error instanceof ComposeLoadError) return { code: error.code, message: error.message, at: error.trace.join('.') };
-    if (error instanceof FormInputError) return { code: error.code, message: error.message, at: '' };
+    if (error instanceof ComposeLoadError) {
+      return { record: { code: error.code, message: error.message, at: error.trace.join('.') }, type: 'ComposeLoadError' };
+    }
+    if (error instanceof FormInputError) {
+      return { record: { code: error.code, message: error.message, at: '' }, type: 'FormInputError' };
+    }
     throw error;
   }
+}
+
+/** The native type that the expectation names: a load failure is a ComposeLoadError, an input failure a FormInputError. */
+function nativeType(expected: unknown): string {
+  if (!isRecord(expected) || typeof expected.code !== 'string') return 'none';
+  return expected.code === 'INVALID_TEXT' ? 'ComposeLoadError' : 'FormInputError';
+}
+
+/** Checks the record of a run against its expectation and the native type of its error against the expected type. */
+function expectOutcome(run: () => unknown, expected: unknown): void {
+  const { record, type } = outcome(run);
+  expect(record).toStrictEqual(expected);
+  expect(type).toBe(nativeType(expected));
 }
 
 const operations = {
@@ -78,7 +97,7 @@ for (const [feature, run] of Object.entries(operations)) {
     for (const c of cases) {
       test(c.name, () =>
         provesConformance({ features: [feature], fixture, runtime: 'javascript', case: c.name }, () => {
-          expect(outcome(() => run(c))).toStrictEqual(c.expect);
+          expectOutcome(() => run(c), c.expect);
         }));
     }
   });
@@ -139,7 +158,7 @@ describe('value graphs \u2014 input limits', () => {
       Reflect.set(target, members[members.length - 1], build(c.graph));
       // Each case is one test within the runner's per-test limit, which a walk that grows with the
       // tree a value denotes (2^40 nodes) never meets.
-      expect(outcome(() => operations.validate(c))).toStrictEqual(c.expect);
+      expectOutcome(() => operations.validate(c), c.expect);
     });
   }
 });
@@ -179,11 +198,11 @@ describe('input text helpers', () => {
   test('a custom loader document is checked when it is loaded', () => {
     const loader = new MemoryLoader({ 'base.yml': { properties: { x: { type: 'text', label: '\ud800' } } } });
     const spec = { type: 'group', properties: { $ref: 'base.yml' } };
-    expect(outcome(() => validate(spec, {}, { loader }))).toStrictEqual({
+    expectOutcome(() => validate(spec, {}, { loader }), {
       code: 'INVALID_TEXT', message: 'Text must be Unicode scalar values', at: 'base.yml.properties.x.label',
     });
     // A loader replaces the files, which are then not read.
-    expect(outcome(() => validate({ type: 'group', properties: {} }, {}, { loader, files: { '\ud800': {} } })))
-      .toStrictEqual({ valid: true, errors: [], hidden: [] });
+    expectOutcome(() => validate({ type: 'group', properties: {} }, {}, { loader, files: { '\ud800': {} } }),
+      { valid: true, errors: [], hidden: [] });
   });
 });

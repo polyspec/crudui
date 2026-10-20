@@ -21,14 +21,20 @@ def _options_of(case):
     return options
 
 
+# The class of the error that the last run of `_outcome` threw (CUIT-041), or 'none'.
+_THROWN = ["none"]
+
+
 def _outcome(run):
     """The failure record of a thrown failure, or 'pass'."""
     from polyspec.crudui.generator import FormError
     from polyspec.crudui.validator import ComposeLoadError, FormInputError
 
+    _THROWN[0] = "none"
     try:
         run()
     except (ComposeLoadError, FormInputError, FormError) as error:
+        _THROWN[0] = type(error).__name__
         if isinstance(error, ComposeLoadError):
             return {
                 "code": error.code,
@@ -38,6 +44,15 @@ def _outcome(run):
         at = error.path if isinstance(error, FormError) else ""
         return {"code": error.code, "message": str(error), "at": at}
     return "pass"
+
+
+def _native_type(expect):
+    """The class that a generation expectation names (CUIT-041): a load failure is a ComposeLoadError, an input failure a FormError."""
+    if isinstance(expect, dict) and expect.get("code") == "INVALID_TEXT":
+        return "ComposeLoadError"
+    if isinstance(expect, dict) and expect.get("code") == "INVALID_FORM_INPUT":
+        return "FormError"
+    return "none"
 
 
 class TestGeneratorTextValidityConformance(unittest.TestCase):
@@ -61,6 +76,7 @@ class TestGeneratorTextValidityConformance(unittest.TestCase):
                     lambda: Generator.compileForm(case["spec"], _options_of(case))
                 )
                 self.assertEqual(outcome, case["expect"])
+                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
                 proof.passed = True
 
     def test_bind_form_cases(self):
@@ -88,6 +104,7 @@ class TestGeneratorTextValidityConformance(unittest.TestCase):
                     )
                 )
                 self.assertEqual(outcome, case["expect"])
+                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
                 proof.passed = True
 
     def test_create_form_cases(self):
@@ -114,6 +131,8 @@ class TestGeneratorTextValidityConformance(unittest.TestCase):
 
                 self.assertEqual(_outcome(run), case["expect"])
 
+                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
+
     def test_build_list_cases(self):
         from polyspec.crudui.generator import Generator
 
@@ -134,6 +153,7 @@ class TestGeneratorTextValidityConformance(unittest.TestCase):
                     )
                 )
                 self.assertEqual(outcome, case["expect"])
+                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
                 proof.passed = True
 
     def test_build_detail_cases(self):
@@ -156,6 +176,7 @@ class TestGeneratorTextValidityConformance(unittest.TestCase):
                     )
                 )
                 self.assertEqual(outcome, case["expect"])
+                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
                 proof.passed = True
 
 

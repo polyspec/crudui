@@ -30,6 +30,25 @@ fn fixture(feature: &str) -> (String, Vec<JsonText>) {
     }
 }
 
+/// The native type of a run (CUIT-041): a load failure is ComposeLoadError in ValidateError::Load, an input failure
+/// FormInputError in ValidateError::Input, and a run that passes is none.
+fn native_type<T>(result: &Result<T, polyspec_crudui_validator::ValidateError>) -> &'static str {
+    match result {
+        Ok(_) => "none",
+        Err(polyspec_crudui_validator::ValidateError::Load(_)) => "ComposeLoadError",
+        Err(polyspec_crudui_validator::ValidateError::Input(_)) => "FormInputError",
+    }
+}
+
+/// The native type that an expectation names, read from its code.
+fn expected_type(expected: &Value) -> &'static str {
+    match expected.get("code").and_then(Value::as_str) {
+        Some("INVALID_TEXT") => "ComposeLoadError",
+        Some("INVALID_FORM_INPUT") => "FormInputError",
+        _ => "none",
+    }
+}
+
 fn outcome(result: Result<Value, polyspec_crudui_validator::ValidateError>) -> Value {
     match result {
         Ok(value) => value,
@@ -56,18 +75,20 @@ fn input_text_matches_fixture() {
                 let spec = case.get("spec").expect("spec");
                 let files = case.get("files");
                 let basepath = case.get("options").and_then(|options| options.get("basepath"));
-                let actual = outcome(match feature {
+                let result = match feature {
                     "validate" => text::validate_text(spec, case.get("data"), files, basepath).map(|result| {
                         json!({"valid": result.valid, "errors": result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": result.hidden})
                     }),
                     "validateList" => text::validate_list_text(spec, files, basepath).map(|()| clean()),
                     _ => text::validate_detail_text(spec, files, basepath).map(|()| clean()),
-                });
+                };
+                let native = native_type(&result);
+                let actual = outcome(result);
                 let expected = case.get("expect").and_then(JsonText::to_value).expect("expect");
-                if actual == expected {
+                if actual == expected && native == expected_type(&expected) {
                     Vec::new()
                 } else {
-                    vec![format!("{feature}/{name}: got {actual}, want {expected}")]
+                    vec![format!("{feature}/{name}: got {actual} ({native}), want {expected} ({})", expected_type(&expected))]
                 }
             }));
         }
@@ -296,6 +317,7 @@ fn value_graph_limits() {
         // Run validation
         let result = text::validate_text(spec, Some(&data), None, None);
 
+        let native = native_type(&result);
         let actual = match result {
             Ok(validation_result) => {
                 json!({"valid": validation_result.valid, "errors": validation_result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": validation_result.hidden})
@@ -309,10 +331,10 @@ fn value_graph_limits() {
             .and_then(JsonText::to_value)
             .expect("expect");
 
-        if actual != expected {
+        if actual != expected || native != expected_type(&expected) {
             failures.push(format!(
-                "value-graphs/{}: got {}, want {}",
-                name, actual, expected
+                "value-graphs/{}: got {} ({}), want {} ({})",
+                name, actual, native, expected, expected_type(&expected)
             ));
         }
     }

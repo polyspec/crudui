@@ -163,7 +163,7 @@ final class InputTextTest extends TestCase
     }
 
     /**
-     * CUIT-034: a generation failure is a ComposeLoadError when its input text is invalid and a FormError when an
+     * CUIT-041: a generation failure is a ComposeLoadError when its input text is invalid and a FormError when an
      * input is refused, and each case that passes throws nothing. The type is checked, not only the code.
      */
     public function testGenerationFailuresHaveTheRuleTypes(): void

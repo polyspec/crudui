@@ -388,7 +388,7 @@ func TestInputTextCases(t *testing.T) {
 	}
 }
 
-// TestInputTextFailureTypes checks CUIT-035: a generation failure of invalid text is a *compose.ComposeLoadError, and an
+// TestInputTextFailureTypes checks CUIT-041: a generation failure of invalid text is a *compose.ComposeLoadError, and an
 // input failure is an error with its message that is not a load failure. The type is checked, not only the code.
 func TestInputTextFailureTypes(t *testing.T) {
 	for _, feature := range []string{"compileForm", "bindForm", "createForm", "buildList", "buildDetail"} {
