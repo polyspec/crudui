@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b6826813d7fd1119ad77d1978317b610464c35cf26c5ccc5363df632893d8e82 -->
+<!-- source-sha256: f6fb1dd7a849946843a87c2fb76e6ea8cac5b5fc3a8cd633406876639152e300 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -177,3 +177,4 @@
 | C16.83 | TypeScript 구현은 generator core, validator와 HTML renderer packages/html로 구성된다(CURP-028); 그 html test는 binding되거나 internal로 선언된다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/html -- src/conformance.test.ts src/form-complete.conformance.test.ts src/outline.conformance.test.ts src/list-conformance.test.ts src/detail-conformance.test.ts` | [o] |
 | C16.89 | PHP extension은 유한하지 않은 page 또는 total 옵션을 라이브러리와 같이 읽는다 | packages/php-ext/src/crudui.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |
 | C16.90 | PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 | packages/generator/php/tests/DisplayRulesTest.php, packages/php-ext/src/list.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |
+| C16.95 | ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |

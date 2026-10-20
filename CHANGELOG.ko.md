@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 218959711efb7b6292e66fae93325cb51c88e83ec3997f0c6504982aa2841806 -->
+<!-- source-sha256: c9f27f86fb2e0843afda2f8743ad78b0d4e2d1dfa546c8e1868ba6d35d3b8910 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-20 — 렌더링 case가 시험하는 form markup 규칙을 인용한다 (C16.57-9)
 
 - `tests/fixtures/form-render/cases.json`에 case 두 개가 `packages/react/scripts/scenario-form-render-cases.ts`를 거쳐 React reference로 렌더링되어 추가되었습니다(C16.57-9): `multiple-nested-depth-three`는 collection 세 개가 서로 중첩되는 case이고(CUMK-059), `multiple-max-reached-disables-add`는 `multiple.max` 2에 행 두 개가 있는 case로 add-row와 copy-row control이 `aria-disabled`입니다(CUMK-060). `generate-form-render-cases.mts`의 requirement table은 이제 해당 markup을 보이는 case에 CUMK-005, 031, 058, 059, 060, 062, 063, 064를 둡니다. `config/parity.json`의 form-render unit이 이를 인용합니다. Runner는 case 수를 셉니다: Go, Rust, Python 결과 수는 139이고 Python 전체 수는 190입니다. Owner test는 통과합니다(ts 328, Go 191, Rust 1, Python 5). PHP 라이브러리는 `RenderingConformanceTest`의 190개 case를 모두 통과합니다(phpunit). `make test-php-ext`는 이 test가 extension이 제공하지 않는 라이브러리 내부 class(`Internal\Buttons`, `Value`, `Messages`)를 로드하므로 실행을 거부하며, 그래서 form-render의 php-extension binding은 이 명령으로 검증되지 않습니다. Red: main의 `make parity-declarations-check`는 finding 317개(R13 168, R4 7, R5 141, R6 1)를 보고합니다; green: finding 309개(R13 161, R4 7, R5 140, R6 1)이며 새 finding 줄은 없습니다. 아직 추적되지 않은 CUMK id 25개는 class 이름 규칙 CUMK-001에서 003, outline과 data class CUMK-008과 009(이 case들의 HTML은 TypeScript runner만 비교합니다), CSS 변수 CUMK-039에서 055(case가 CSS를 싣지 않음), 그리고 CUMK-056, 057, 061(polling, expansion view state, undo: markup suite가 시험하지 않음)입니다.
+
+### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
+
+- `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
 
 ### 2026-10-20 — 렌더링과 outline suite를 parity unit으로 선언한다 (C16.83)
 

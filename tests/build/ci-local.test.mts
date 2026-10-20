@@ -153,7 +153,7 @@ test('the native suites run in three jobs, each once, and make crudui-test-nativ
   assert.equal(run.status, 0, run.stderr);
   const commands = run.stdout.split('\n');
   for (const command of [
-    /^\/\S+\/var\/tools\/bin\/node tests\/conformance\/run-suite\.mts node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
+    /^\/\S+\/var\/tools\/bin\/node tests\/conformance\/run-suite\.mts node -- packages\/php-ext\/tests\/engine\/engine\.test\.mjs packages\/php-ext\/tests\/comparison\/comparison\.test\.mjs$/,
     /^\/\S+\/var\/tools\/bin\/node tests\/native-generators\/run\.mts --target javascript,html,go,rust,python --report "[^"]+report\.json" \|\| status=1; \\$/,
     /^\/\S+\/var\/tools\/bin\/node tests\/native-generators\/run\.mts --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
   ]) assert.equal(commands.filter((line) => command.test(line.trim())).length, 1, `${command}\n${run.stdout}`);
