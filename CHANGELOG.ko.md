@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: dee75ab2b11e25ad2f7c1045ed219e31a805850964fbb0cc08a6fd443e239854 -->
+<!-- source-sha256: 46f4ebec233026fd921d652a35614a16784d58bd7f1798afb3c25172b6f5ce2d -->
 
 ## Unreleased
 
@@ -20,6 +20,12 @@
 ### 2026-10-21 — PHP file이 phpcs 줄 길이 규칙을 통과한다 (C16.107)
 
 - `make lint-php`가 보고한 PHP file들을 120자로 줄바꿈했습니다(C16.107). `packages/generator/php/src/Form.php`(`normalizeFields`), `src/Internal/Lists.php`, test `DetailRenderConformanceTest.php`, `ListRenderConformanceTest.php`, `FormCompleteConformanceTest.php`, `LayoutTree.php`, `DetailTest.php`, `DisplayRulesTest.php`, `packages/php-ext/tests/ApiReport.php`, `packages/validator/php/tests/Validate/TextValidityConformanceTest.php`, `UniqueValuesTest.php`의 docblock과 comment를 줄바꿈하고, 코드 줄은 값을 바꾸지 않고 나눴습니다(`TextValidityConformanceTest`의 정규식은 `|`에서 이어 붙입니다). 이 규칙은 kit의 PSR-12 `phpcs.xml.dist`(kit K77, 2026-10-13)이며, 줄은 main이 2026-10-20과 2026-10-21에 합친 file(C16.70, C16.87, C16.89 ~ C16.97)에서 왔습니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` exit 2, 17 file의 Generic.Files.LineLength warning 30개. Green: 같은 명령 exit 0; owner test `DisplayRulesTest`, `DetailTest`, `DetailRenderConformanceTest`, `ListRenderConformanceTest`, `FormCompleteConformanceTest`, `FormTest`는 305 test, `TextValidityConformanceTest`와 `UniqueValuesTest`는 48 test가 통과하고, `packages/php-ext/tests/ApiReport.php`는 exit 0입니다.
+
+### 2026-10-21 — validity unit가 TypeScript engine test에 묶이고 meta-schema test는 internal로 선언한다 (C16.106)
+
+- C16.57-7이 남긴 binding 선택을 대체합니다. list-validity와 detail-validity의 TypeScript binding은 이제 engine test `validate-list.conformance.test.ts`와 `validate-detail.conformance.test.ts`이며, 다른 다섯 구현이 engine test를 binding하는 것과 같습니다. spec-validity의 TypeScript binding은 forbidden-scan engine test에 그대로 둡니다.
+- `list-metaschema.conformance.test.ts`, `detail-metaschema.conformance.test.ts`, `form-metaschema.conformance.test.ts`는 TypeScript에 internal입니다. 이들은 TypeScript CLI의 meta-schema를 Ajv로 `contracts/schema`와 대조하며, 다른 구현은 meta-schema를 검사하지 않습니다.
+- `packages/validator/ts/src/text/json.test.ts`는 C16.99가 Rust test를 선언한 것처럼 TypeScript 명세 parser의 unit test로서 TypeScript에 internal입니다.
 
 ### 2026-10-21 — 공유 suite가 덮는 TypeScript와 Python 테스트 파일은 internal이다 (C16.105)
 
