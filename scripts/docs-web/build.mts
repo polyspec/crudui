@@ -5,9 +5,9 @@ import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node
 import { fileURLToPath } from 'node:url';
 
 import MarkdownIt from 'markdown-it';
-import type { Env, MarkdownIt as MarkdownItInstance, RendererRule, Token } from 'markdown-it';
+import type { Env, MarkdownIt as MarkdownItInstance, Token } from 'markdown-it';
 
-import { repositoryLink } from '../documentation-links.mts';
+import { repositoryLink, rewriteAttribute } from '../documentation-links.mts';
 import { documentationBasePath, documentationUrl } from './paths.mts';
 
 const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
@@ -239,32 +239,12 @@ function markdownRenderer(): MarkdownItInstance {
       headings.push({ level, text, id });
     }
   });
-  const renderLink: RendererRule = markdown.renderer.rules.link_open
-    ?? ((tokens, index, options, environment, renderer) => renderer.renderToken(tokens, index, options));
-  markdown.renderer.rules.link_open = (tokens, index, options, environment, renderer) => {
-    const token = tokens[index];
-    assert.ok(token);
-    const href = token.attrGet('href');
-    if (href) {
-      assert.ok(typeof href === 'string');
-      const { page, context } = renderEnvironment(environment);
-      token.attrSet('href', resolveDocsLink(href, page, context));
-    }
-    return renderLink(tokens, index, options, environment, renderer);
+  const resolveAttribute = (value: string, environment: Env | undefined): string => {
+    const { page, context } = renderEnvironment(environment);
+    return resolveDocsLink(value, page, context);
   };
-  const renderImage: RendererRule = markdown.renderer.rules.image
-    ?? ((tokens, index, options, environment, renderer) => renderer.renderToken(tokens, index, options));
-  markdown.renderer.rules.image = (tokens, index, options, environment, renderer) => {
-    const token = tokens[index];
-    assert.ok(token);
-    const source = token.attrGet('src');
-    if (source) {
-      assert.ok(typeof source === 'string');
-      const { page, context } = renderEnvironment(environment);
-      token.attrSet('src', resolveDocsLink(source, page, context));
-    }
-    return renderImage(tokens, index, options, environment, renderer);
-  };
+  rewriteAttribute(markdown, 'link_open', 'href', resolveAttribute);
+  rewriteAttribute(markdown, 'image', 'src', resolveAttribute);
   return markdown;
 }
 

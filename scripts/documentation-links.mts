@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs';
 import { dirname, relative, resolve, sep } from 'node:path';
 import assert from 'node:assert/strict';
-import type { MarkdownIt } from 'markdown-it';
+import type { Env, MarkdownIt, RendererRule } from 'markdown-it';
 
 /** Resolve repository files outside the documentation web to their source URLs. */
 export function repositoryLink(href: string, sourceFile: string, repositoryRoot: string): string {
@@ -20,19 +20,30 @@ export function repositoryLink(href: string, sourceFile: string, repositoryRoot:
   return `https://github.com/polyspec/crudui/${operation}/main/${path}${href.slice(pathname.length)}`;
 }
 
-/** Apply repository source links before the docs build checks local links. */
-export function configureRepositoryLinks(markdown: MarkdownIt, repositoryRoot: string): void {
-  const renderLink = markdown.renderer.rules.link_open;
-  markdown.renderer.rules.link_open = (tokens, index, options, environment, renderer) => {
+/** Wrap a renderer rule of markdown-it so that an attribute of its token is replaced by `rewrite`. */
+export function rewriteAttribute(
+  markdown: MarkdownIt, rule: 'link_open' | 'image', attribute: 'href' | 'src',
+  rewrite: (value: string, environment: Env | undefined) => string,
+): void {
+  const render: RendererRule = markdown.renderer.rules[rule]
+    ?? ((tokens, index, options, environment, renderer) => renderer.renderToken(tokens, index, options));
+  markdown.renderer.rules[rule] = (tokens, index, options, environment, renderer) => {
     const token = tokens[index];
     assert.ok(token);
-    const href = token.attrGet('href');
-    if (href) {
-      const sourceFile = environment?.path;
-      assert.ok(typeof href === 'string' && typeof sourceFile === 'string');
-      token.attrSet('href', repositoryLink(href, sourceFile, repositoryRoot));
+    const value = token.attrGet(attribute);
+    if (value) {
+      assert.ok(typeof value === 'string');
+      token.attrSet(attribute, rewrite(value, environment));
     }
-    assert.ok(renderLink);
-    return renderLink(tokens, index, options, environment, renderer);
+    return render(tokens, index, options, environment, renderer);
   };
+}
+
+/** Apply repository source links before the docs build checks local links. */
+export function configureRepositoryLinks(markdown: MarkdownIt, repositoryRoot: string): void {
+  rewriteAttribute(markdown, 'link_open', 'href', (href, environment) => {
+    const sourceFile = environment?.path;
+    assert.ok(typeof sourceFile === 'string');
+    return repositoryLink(href, sourceFile, repositoryRoot);
+  });
 }

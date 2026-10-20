@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4cbc559216e63b879ceae7a24097c435d83010a98d22b66ba205cedd54930ef2 -->
+<!-- source-sha256: b4b6b7af82aba8826aee0a7fe97b420e5376879d70a9216f64e4e3ef473c0339 -->
 
 ## Unreleased
+
+### 2026-10-20 — 두 문서 link 재작성기는 markdown-it 속성 재작성기 하나를 공유한다 (C16.58-1)
+
+- `scripts/documentation-links.mts`의 `rewriteAttribute`가 저장소 link, docs link, image source를 위한 markdown-it renderer rule을 감싸며, `scripts/docs-web/build.mts`와 `scripts/documentation-links.mts` 사이의 중복이 사라졌습니다 (C16.58-1). Red: `make duplication-check`는 이전에 중복 55건을 보고했고, green: 이후 54건이며 대상 검사가 통과합니다(18 passed).
 
 ### 2026-10-20 — make link의 go.work file은 무시한다 (C16.63)
 

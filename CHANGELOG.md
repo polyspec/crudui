@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The documentation link rewriters share one markdown-it attribute rewriter (C16.58-1)
+
+- `rewriteAttribute` of `scripts/documentation-links.mts` wraps a markdown-it renderer rule for the repository links, the docs links and the image sources; the clone between `scripts/docs-web/build.mts` and `scripts/documentation-links.mts` is gone (C16.58-1). Red: `make duplication-check` reported 55 clones before; green: 54 clones after, and the targeted check passes (18 passed).
+
 ### 2026-10-20 — The go.work files of make link are ignored (C16.63)
 
 - `.gitignore` ignores `go.work.sum` and the `go.work` beside each Go module of the repository (`benchmarks/validators/go`, `tests/native-generators/programs/go`, `examples/cross-check-console/validators/go`, `examples/form-comparison/servers/go`, `packages/validator/go`, `packages/generator/go`); the `go.work` of the root stays tracked (C16.63). Red: `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` stopped at `benchmarks/validators/go/go.work is not ignored by Git`; green: the Go link of `github.com/polyspec/ordered-json/packages/go` is written to `examples/form-comparison/servers/go/go.work` and `git status` shows no new file.
