@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3226bd46c0396cbc60c41ca6eb349c5c5dd4a23ee34a658ef394aee81835e31d -->
+<!-- source-sha256: dbe9896d3006f833ce669eb8bdf21d87a05909d1523b722656bb2f534cd8cdaf -->
 
 ## Unreleased
 
@@ -79,6 +79,10 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001부터 CURP-005까지 | 1 (native 통합) | 모든 구현이 같은 네 능력을 자기 형태로 가지므로, 구현별 다섯 항목을 중립 항목 하나로 대체한다 |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, R13 줄 다섯 개(CURP-001부터 CURP-005까지 정의되고 어떤 단위도 인용하지 않음), 61 findings; green: exit 0, CURP-001부터 CURP-005까지의 줄이 남지 않음, 56 findings, `check-documents` 통과 (C16.150).
+### 2026-10-21 — 중복은 0이다: make duplication-check가 보고한 마지막 clone 10개가 공유된다 (C16.58)
+
+- `make duplication-check`가 main에서 보고한 clone 10개가 사라졌다(C16.58). Go form-comparison server의 number text는 `validate.CanonicalNumber`를 쓴다(C16.58-25). PHP record store는 NumberValue로 number text를 파싱한다(C16.58-26). TypeScript adapter는 mountView와 hydrateView를 view-entries.ts에서 받는다(C16.58-27). C expression 값들은 parse와 release 단계를 공유한다(C16.58-28). C row view 연산들은 하나의 list 복사를 공유한다(C16.58-29). React collection scenario는 spec을 공유한다(C16.58-30). Red: 기반 커밋 69bd6b3b에서 `make duplication-check`가 exit 2, clone 10개(item-red BEFORE, exit 0). Green: 이 커밋에서 `make duplication-check` exit 0, `make lint-go`, `make lint-php`, `make lint-ts`, `make lint-php-ext`가 통과한다.
+
 ### 2026-10-21 — React form render scenario의 두 collection case가 spec을 공유한다 (C16.58-30)
 
 - packages/react/scripts/scenario-form-render-cases.ts: `collectionShownByVisible`이 `visible` member가 보이거나 숨기는 collection의 spec을 한 번 적고, `collection-shown-by-condition`과 `collection-hidden-by-condition` case가 이를 `spec`으로 받는다(C16.58-30). 생성기는 tests/fixtures/form-render/cases.json을 바꾸지 않는다. Red: `make duplication-check`가 scenario-form-render-cases.ts [394:81 - 402:21] = [407:119 - 415:21]을 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, 생성기가 cases.json을 바꾸지 않는다(`git diff --exit-code` exit 0), `make lint-ts` 0 errors.
