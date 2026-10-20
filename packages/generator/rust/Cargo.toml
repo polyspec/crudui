@@ -17,6 +17,13 @@ ryu-js = "1"
 num-bigint = "0.5"
 num-traits = "0.2"
 
+[dev-dependencies]
+libtest-mimic = "0.8"
+
+[[test]]
+name = "history_functions"
+harness = false
+
 [lints]
 workspace = true
 

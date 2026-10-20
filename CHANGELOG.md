@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust generator has the history functions (C16.52-5)
+
+- `packages/generator/rust/src/history.rs` defines `History<T>` (`entries`, `redo_entries`, `last_path`) and `empty_history`, `record_change`, `can_undo`, `can_redo`, `undo_change` and `redo_change` as CURT-062, CURT-063 and CURT-076 to CURT-080 state them; an undo or a redo with nothing to restore returns a `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. The test target `history_functions` (`harness = false`, with `libtest-mimic` as a dev-dependency, so that a test is named by the case, such as `history_functions::empty-history`) runs the 13 cases of `tests/fixtures/history-functions/cases.json`, and `config/parity.json` binds it to the unit `history-functions`; red: the test did not compile without the functions, green: 13 of 13 pass, and `clippy -D warnings` and `rustfmt` report nothing for the new files. The review record of `config/dependency-review.json` still has to record the new lock of the crate.
+
 ### 2026-10-20 — The Go generator has the history functions (C16.52-4)
 
 - `packages/generator/go/history.go` defines `History[T]` (`Entries`, `RedoEntries`, `LastPath`) and `EmptyHistory`, `RecordChange`, `CanUndo`, `CanRedo`, `UndoChange` and `RedoChange` as CURT-062, CURT-063 and CURT-076 to CURT-080 state them: a value edit on the path of the last edit shares its entry, each direction keeps 100 records, and an undo or a redo with nothing to restore returns the error `Nothing to undo` or `Nothing to redo`. `TestHistoryFunctions` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as subtests named by the case, and `config/parity.json` binds it to the unit `history-functions`; red: the test did not compile without the functions, green: 13 of 13 pass and the other tests of the package pass.

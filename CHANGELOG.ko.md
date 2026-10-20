@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 757d2cc0e6955db02ec2af99dd7120f0bb5e494f2f81cfa35f10ec92a57e2571 -->
+<!-- source-sha256: 04f397ae49b48717eac0b41b79ce0641f44460b8b175d9a8c092495fcf11742b -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust generator에 history 함수가 있다 (C16.52-5)
+
+- `packages/generator/rust/src/history.rs`는 `History<T>`(`entries`, `redo_entries`, `last_path`)와 `empty_history`, `record_change`, `can_undo`, `can_redo`, `undo_change`, `redo_change`를 CURT-062, CURT-063, CURT-076~CURT-080이 정한 대로 정의한다. 복원할 것이 없는 실행취소나 실행복귀는 `INVALID_FORM_INPUT`과 `Nothing to undo` 또는 `Nothing to redo`인 `FormError`를 돌려준다. test target `history_functions`(`harness = false`, dev-dependency `libtest-mimic`이 test를 `history_functions::empty-history`처럼 사례 이름으로 부른다)는 `tests/fixtures/history-functions/cases.json`의 사례 13개를 실행하고, `config/parity.json`은 이를 unit `history-functions`에 묶는다. red: 함수가 없어 test가 compile되지 않았고, green: 13개 중 13개가 통과하며 새 파일에 대해 `clippy -D warnings`와 `rustfmt`는 아무것도 보고하지 않는다. `config/dependency-review.json`의 review 기록은 crate의 새 lock을 아직 기록해야 한다.
 
 ### 2026-10-20 — Go generator에 history 함수가 있다 (C16.52-4)
 
