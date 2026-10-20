@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — View state in the Go generator (C16.51-3)
+
+- The Go generator has `ViewState`, `InitialView`, `ToggleRowView`, `CollapsibleRows`, `SetAllExpandedView`, `RemoveRowView` and `RekeyRowView`, the `BindOptions` member `Collapsed`, `Form.ToggleRow` and `Form.SetAllExpanded`; `RemoveRow`, `RekeyRow` and `SetData` change the view and a view change leaves the revision. `collection` no longer rejects a data-only collection; `editableCollection` does for the row operations. `viewState` is `pass` for Go in `contracts/features.json`. Red: `TestFormView` and `TestViewFunctions` did not compile (`form.ToggleRow undefined`, `undefined: ViewState`). Green: the 16 cases pass.
+
 ### 2026-10-20 — View sessions without history flags (C16.51-2)
 
 - The sessions of `form-view` have no `canUndo` and `canRedo` in their observations, so that an implementation that has view state and no history runs them; `form-history` and `form-actions` keep them. Red: a Go form with view state and no history failed the `rekeyRow` step of `form-view` on `canUndo`. Green: the 40 cases of `src/form-state.test.ts` pass.

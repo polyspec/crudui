@@ -1,0 +1,287 @@
+package generator
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"testing"
+)
+
+// The cases of tests/fixtures/{form-view,form-history,form-actions,view-functions,history-functions} are the
+// observations of the TypeScript reference; see tests/fixtures/form-state/README.md.
+
+var generatedKey = regexp.MustCompile(`__[0-9A-Za-z]{13}__`)
+
+// fixtureCases reads the cases of a fixture family.
+func fixtureCases(t *testing.T, family string) []*Object {
+	t.Helper()
+	bytes, e := os.ReadFile(filepath.Join("..", "..", "..", "tests", "fixtures", family, "cases.json"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	decoded, e := DecodeJSON(bytes)
+	if e != nil {
+		t.Fatal(e)
+	}
+	cases := []*Object{}
+	for _, c := range list(decoded) {
+		cases = append(cases, object(c))
+	}
+	if len(cases) == 0 {
+		t.Fatalf("%s holds no case", family)
+	}
+	return cases
+}
+
+// marshal is the JSON text of a value.
+func marshal(t *testing.T, value any) string {
+	t.Helper()
+	bytes, e := json.Marshal(value)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return string(bytes)
+}
+
+// namer names the row keys that an operation generated `$1`, `$2` in order of first appearance.
+type namer struct {
+	known     map[string]bool
+	generated map[string]string
+}
+
+func newNamer(texts ...string) *namer {
+	n := &namer{known: map[string]bool{}, generated: map[string]string{}}
+	for _, text := range texts {
+		for _, key := range generatedKey.FindAllString(text, -1) {
+			n.known[key] = true
+		}
+	}
+	return n
+}
+
+func (n *namer) rename(text string) string {
+	return generatedKey.ReplaceAllStringFunc(text, func(key string) string {
+		if n.known[key] {
+			return key
+		}
+		name, ok := n.generated[key]
+		if !ok {
+			name = "$" + strconv.Itoa(len(n.generated)+1)
+			n.generated[key] = name
+		}
+		return name
+	})
+}
+
+// walk returns the value with the generated keys of its strings and object keys named.
+func (n *namer) walk(value any) any {
+	switch v := value.(type) {
+	case string:
+		return n.rename(v)
+	case []string:
+		out := make([]any, len(v))
+		for i, s := range v {
+			out[i] = n.rename(s)
+		}
+		return out
+	case []any:
+		out := make([]any, len(v))
+		for i, item := range v {
+			out[i] = n.walk(item)
+		}
+		return out
+	case *Object:
+		out := NewObject()
+		for _, key := range v.Keys() {
+			out.Set(n.rename(key), n.walk(read(v, key)))
+		}
+		return out
+	}
+	return value
+}
+
+// collapsedRows returns the row paths of the collapsed rows of the evaluated nodes, depth first.
+func collapsedRows(nodes []*Object) []string {
+	out := []string{}
+	var visit func(nodes []*Object)
+	visit = func(nodes []*Object) {
+		for _, node := range nodes {
+			children := objectList(read(node, "children"))
+			if stringAt(node, "kind") != "collection" {
+				visit(children)
+				continue
+			}
+			for _, row := range children {
+				if read(row, "collapsible") == true && read(row, "expanded") == false {
+					out = append(out, stringAt(node, "path")+"."+stringAt(row, "key"))
+				}
+				visit(objectList(read(row, "children")))
+			}
+		}
+	}
+	visit(nodes)
+	return out
+}
+
+// addRowOptions reads the options of addRow and copyRow from a step argument.
+func addRowOptions(options any) AddRowOptions {
+	out := AddRowOptions{Key: stringAt(options, "key"), AfterKey: stringAt(options, "afterKey")}
+	if has(options, "value") {
+		out.Value, out.ValueProvided = read(options, "value"), true
+	}
+	return out
+}
+
+// perform runs one step on the form and returns what the step returned.
+func performStep(t *testing.T, form *Form, op string, args []any) (any, error) {
+	t.Helper()
+	text := func(i int) string { s, _ := args[i].(string); return s }
+	switch op {
+	case "addRow":
+		options := any(NewObject())
+		if len(args) > 1 {
+			options = args[1]
+		}
+		return form.AddRow(text(0), addRowOptions(options))
+	case "copyRow":
+		options := any(NewObject())
+		if len(args) > 2 {
+			options = args[2]
+		}
+		return form.CopyRow(text(0), text(1), addRowOptions(options))
+	case "removeRow":
+		return nil, form.RemoveRow(text(0), text(1))
+	case "moveRow":
+		index, _ := strconv.Atoi(marshal(t, args[2]))
+		return nil, form.MoveRow(text(0), text(1), index)
+	case "rekeyRow":
+		return nil, form.RekeyRow(text(0), text(1), text(2))
+	case "setValue":
+		return nil, form.SetValue(text(0), args[1])
+	case "setData":
+		return nil, form.SetData(object(args[0]))
+	case "toggleRow":
+		return nil, form.ToggleRow(text(0), text(1))
+	case "setAllExpanded":
+		return nil, form.SetAllExpanded(args[0] == true)
+	}
+	t.Fatalf("unknown step %s", op)
+	return nil, nil
+}
+
+// observeSessions runs every session of a family and requires the observations of the reference.
+func observeSessions(t *testing.T, family string, history bool) {
+	for _, c := range fixtureCases(t, family) {
+		c := c
+		t.Run(stringAt(c, "name"), func(t *testing.T) {
+			spec, data, steps := read(c, "spec"), read(c, "data"), list(read(c, "steps"))
+			name := newNamer(marshal(t, spec), marshal(t, data), marshal(t, steps))
+			template, e := CompileForm(object(spec), CompileOptions{})
+			if e != nil {
+				t.Fatal(e)
+			}
+			form, e := NewForm(template, object(data), BindOptions{})
+			if e != nil {
+				t.Fatal(e)
+			}
+			expected := list(read(c, "expected"))
+			for i, step := range steps {
+				observed := NewObject()
+				result, e := performStep(t, form, stringAt(step, "op"), list(read(step, "args")))
+				if e != nil {
+					observed.Set("error", NewObject("code", "INVALID_FORM_INPUT", "message", e.Error()))
+				} else if result != nil {
+					observed.Set("result", name.walk(result))
+				}
+				observed.Set("data", name.walk(form.GetData()))
+				observed.Set("revision", form.Revision())
+				if history {
+					observed.Set("canUndo", false)
+					observed.Set("canRedo", false)
+				}
+				observed.Set("collapsed", name.walk(collapsedRows(form.Fields())))
+				if got, want := marshal(t, observed), marshal(t, expected[i]); got != want {
+					t.Fatalf("step %d %s\n got %s\nwant %s", i, marshal(t, step), got, want)
+				}
+			}
+		})
+	}
+}
+
+// TestFormView runs the view state sessions of the fixtures.
+func TestFormView(t *testing.T) { observeSessions(t, "form-view", false) }
+
+// viewObject is the JSON object of a view.
+func viewObject(view ViewState) *Object {
+	collapsed := make([]any, len(view.Collapsed))
+	for i, path := range view.Collapsed {
+		collapsed[i] = path
+	}
+	return NewObject("collapsed", collapsed)
+}
+
+// viewOf reads the view of a function case argument.
+func viewOf(value any) ViewState {
+	view := InitialView()
+	for _, path := range list(read(value, "collapsed")) {
+		view.Collapsed = append(view.Collapsed, path.(string))
+	}
+	return view
+}
+
+// nodesOf binds the form of a function case.
+func nodesOf(t *testing.T, spec, data any, collapsed []string) []*Object {
+	t.Helper()
+	template, e := CompileForm(object(spec), CompileOptions{})
+	if e != nil {
+		t.Fatal(e)
+	}
+	nodes, e := BindForm(template, object(data), BindOptions{Collapsed: collapsed})
+	if e != nil {
+		t.Fatal(e)
+	}
+	return nodes
+}
+
+// callViewFunction calls the view function of a case.
+func callViewFunction(t *testing.T, op string, args []any) any {
+	t.Helper()
+	text := func(i int) string { s, _ := args[i].(string); return s }
+	switch op {
+	case "initialView":
+		return viewObject(InitialView())
+	case "toggleRowView":
+		return viewObject(ToggleRowView(viewOf(args[0]), text(1)))
+	case "collapsibleRows":
+		return CollapsibleRows(nodesOf(t, args[0], args[1], nil))
+	case "setAllExpandedView":
+		return viewObject(SetAllExpandedView(nodesOf(t, args[0], args[1], nil), args[2] == true))
+	case "removeRowView":
+		return viewObject(RemoveRowView(viewOf(args[0]), text(1)))
+	case "rekeyRowView":
+		return viewObject(RekeyRowView(viewOf(args[0]), text(1), text(2)))
+	case "bindCollapsed":
+		collapsed := []string{}
+		for _, path := range list(args[2]) {
+			collapsed = append(collapsed, path.(string))
+		}
+		return collapsedRows(nodesOf(t, args[0], args[1], collapsed))
+	}
+	t.Fatalf("unknown function %s", op)
+	return nil
+}
+
+// TestViewFunctions runs the view function cases of the fixtures.
+func TestViewFunctions(t *testing.T) {
+	for _, c := range fixtureCases(t, "view-functions") {
+		c := c
+		t.Run(stringAt(c, "name"), func(t *testing.T) {
+			got := NewObject("result", callViewFunction(t, stringAt(c, "op"), list(read(c, "args"))))
+			if g, w := marshal(t, got), marshal(t, read(c, "expected")); g != w {
+				t.Fatalf("\n got %s\nwant %s", g, w)
+			}
+		})
+	}
+}

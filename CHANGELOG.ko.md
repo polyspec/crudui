@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b4a3c2854114dbaa5174d790af97b9ff72c0664055e4f5a12cf2561d5ee53dca -->
+<!-- source-sha256: 8dad235f1ac98a8bb3bcd9d2af4b1576cbd58669e436182862db04d62f9603d8 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator의 뷰 상태 (C16.51-3)
+
+- Go generator는 `ViewState`, `InitialView`, `ToggleRowView`, `CollapsibleRows`, `SetAllExpandedView`, `RemoveRowView`, `RekeyRowView`, `BindOptions`의 `Collapsed`, `Form.ToggleRow`, `Form.SetAllExpanded`를 가지며, `RemoveRow`, `RekeyRow`, `SetData`는 뷰를 바꾸고 뷰 변경은 revision을 바꾸지 않습니다. `collection`은 더 이상 데이터 전용 컬렉션을 거부하지 않고 행 작업은 `editableCollection`이 거부합니다. `contracts/features.json`에서 Go의 `viewState`는 `pass`입니다. Red: `TestFormView`와 `TestViewFunctions`가 compile되지 않았습니다(`form.ToggleRow undefined`, `undefined: ViewState`). Green: 16개 case가 통과합니다.
 
 ### 2026-10-20 — 이력 flag 없는 뷰 세션 (C16.51-2)
 

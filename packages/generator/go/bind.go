@@ -9,6 +9,8 @@ import (
 // boundOptions holds the resolved text options of one binding.
 type boundOptions struct {
 	IDPrefix, KeyPrefix, Unsupported string
+	// Collapsed holds the row paths rendered collapsed.
+	Collapsed map[string]bool
 }
 
 type bindState struct {
@@ -94,6 +96,10 @@ func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Obj
 			return nil, fmt.Errorf("unsupported must be throw or marker")
 		}
 		bound.Unsupported = options.Unsupported.(string)
+	}
+	bound.Collapsed = map[string]bool{}
+	for _, row := range options.Collapsed {
+		bound.Collapsed[row] = true
 	}
 	messages, e := messagesFor(language)
 	if e != nil {
@@ -486,8 +492,7 @@ func buildRow(f FieldTemplate, collectionPath, key string, index, count int, ite
 	header.Set("summary", summary)
 	vm.Set("body", nodeBody(nodeClass(rd, "group"), nodeStyle(rd, "group"), controlID(s.options.IDPrefix, rowPath)+":body"))
 	vm.Set("collapsible", true)
-	// Server rendering has no view state, so every row is expanded.
-	vm.Set("expanded", true)
+	vm.Set("expanded", !s.options.Collapsed[rowPath])
 	vm.Set("toggleLabel", msg.toggleRow)
 	vm.Set("children", children)
 	return vm, nil

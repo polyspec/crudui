@@ -55,6 +55,8 @@ type BindOptions struct {
 	KeyPrefix any
 	// Unsupported is throw (default) or marker, which renders unsupported fields as markers.
 	Unsupported any
+	// Collapsed lists the row paths {collection}.{key} rendered collapsed; the other rows are expanded.
+	Collapsed []string
 }
 
 // CompileForm resolves field composition without binding record data.

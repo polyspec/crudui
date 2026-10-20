@@ -73,6 +73,7 @@ type Form struct {
 	fields   []*Object
 	options  BindOptions
 	revision uint64
+	view     ViewState
 }
 
 // NewForm copies the template and record, applies missing defaults and binds fields.
@@ -87,7 +88,7 @@ func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, 
 	if e != nil {
 		return nil, e
 	}
-	f := &Form{template: t, options: options}
+	f := &Form{template: t, options: options, view: InitialView()}
 	var input any = data
 	if data == nil {
 		input = absent
@@ -96,7 +97,7 @@ func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, 
 	if e != nil {
 		return nil, e
 	}
-	fields, e := BindForm(t, d, options)
+	fields, e := BindForm(t, d, f.bindOptions(f.view))
 	if e != nil {
 		return nil, e
 	}
@@ -152,7 +153,7 @@ func (f *Form) SetData(data *Object) error {
 	if e != nil {
 		return e
 	}
-	return f.commit(d)
+	return f.commitView(d, InitialView())
 }
 
 // SetValue replaces one path value and rebinds fields atomically.
@@ -173,12 +174,24 @@ func (f *Form) SetValue(path string, value any) error {
 	}
 	return f.commit(d)
 }
-func (f *Form) commit(data *Object) error {
-	fields, e := BindForm(f.template, data, f.options)
+
+// bindOptions returns the options of the form with the collapsed rows of the view.
+func (f *Form) bindOptions(view ViewState) BindOptions {
+	options := f.options
+	options.Collapsed = view.Collapsed
+	return options
+}
+
+// commit replaces the record and keeps the view; a failure leaves the record and the view unchanged.
+func (f *Form) commit(data *Object) error { return f.commitView(data, f.view) }
+
+// commitView replaces the record and the view together.
+func (f *Form) commitView(data *Object, view ViewState) error {
+	fields, e := BindForm(f.template, data, f.bindOptions(view))
 	if e != nil {
 		return e
 	}
-	f.data, f.fields = data, fields
+	f.data, f.fields, f.view = data, fields, view
 	f.revision++
 	return nil
 }
@@ -304,14 +317,23 @@ func (f *Form) collection(path string) (FieldTemplate, *Object, error) {
 		fields = found.Children
 		found = nil
 	}
-	if found != nil && repeated(*found) && dataOnly(found.Spec) {
-		return FieldTemplate{}, nil, fmt.Errorf("Rows of %s come only from data", path)
-	}
 	rows := object(getPath(f.data, path))
 	if found == nil || !repeated(*found) || rows == nil {
 		return FieldTemplate{}, nil, fmt.Errorf("Not a keyed collection: %s", path)
 	}
 	return *found, rows, nil
+}
+
+// editableCollection returns a collection whose rows the form may add, copy, remove, move or rekey.
+func (f *Form) editableCollection(path string) (FieldTemplate, *Object, error) {
+	field, rows, e := f.collection(path)
+	if e != nil {
+		return field, rows, e
+	}
+	if dataOnly(field.Spec) {
+		return FieldTemplate{}, nil, fmt.Errorf("Rows of %s come only from data", path)
+	}
+	return field, rows, nil
 }
 
 // AddRow inserts a default or supplied row in the selected repeated collection.
@@ -322,7 +344,7 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 	if e := checkOrderedValue(options.Value); e != nil {
 		return "", e
 	}
-	field, rows, e := f.collection(path)
+	field, rows, e := f.editableCollection(path)
 	if e != nil {
 		return "", e
 	}
@@ -375,7 +397,7 @@ func (f *Form) CopyRow(path, key string, options AddRowOptions) (string, error) 
 	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}, text.Input{Name: "options.afterKey", Value: options.AfterKey}, text.Input{Name: "options.key", Value: options.Key}); e != nil {
 		return "", e
 	}
-	field, rows, e := f.collection(path)
+	field, rows, e := f.editableCollection(path)
 	if e != nil {
 		return "", e
 	}
@@ -435,7 +457,7 @@ func (f *Form) RemoveRow(path, key string) error {
 	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}); e != nil {
 		return e
 	}
-	field, rows, e := f.collection(path)
+	field, rows, e := f.editableCollection(path)
 	if e != nil {
 		return e
 	}
@@ -448,7 +470,7 @@ func (f *Form) RemoveRow(path, key string) error {
 	out := rows.Clone()
 	out.Delete(key)
 	segs, _ := checkedSegments(path)
-	return f.commit(putAt(f.data, segs, out))
+	return f.commitView(putAt(f.data, segs, out), RemoveRowView(f.view, strings.Join(append(append([]string{}, segs...), key), ".")))
 }
 
 // MoveRow moves an existing row to a zero-based collection position.
@@ -456,7 +478,7 @@ func (f *Form) MoveRow(path, key string, index int) error {
 	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}); e != nil {
 		return e
 	}
-	_, rows, e := f.collection(path)
+	_, rows, e := f.editableCollection(path)
 	if e != nil {
 		return e
 	}
@@ -493,7 +515,7 @@ func (f *Form) RekeyRow(path, oldKey, newKey string) error {
 	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "oldKey", Value: oldKey}, text.Input{Name: "newKey", Value: newKey}); e != nil {
 		return e
 	}
-	_, rows, e := f.collection(path)
+	_, rows, e := f.editableCollection(path)
 	if e != nil {
 		return e
 	}
@@ -518,5 +540,36 @@ func (f *Form) RekeyRow(path, oldKey, newKey string) error {
 		out.Set(k, v)
 	}
 	segs, _ := checkedSegments(path)
-	return f.commit(putAt(f.data, segs, out))
+	return f.commitView(putAt(f.data, segs, out), RekeyRowView(f.view, strings.Join(append(append([]string{}, segs...), oldKey), "."), strings.Join(append(append([]string{}, segs...), newKey), ".")))
+}
+
+// ToggleRow expands a collapsed row or collapses an expanded one; the record and the revision do not change.
+func (f *Form) ToggleRow(path, key string) error {
+	if e := checkInputText(text.Input{Name: "path", Value: path}, text.Input{Name: "key", Value: key}); e != nil {
+		return e
+	}
+	_, rows, e := f.collection(path)
+	if e != nil {
+		return e
+	}
+	if !rows.Has(key) {
+		return fmt.Errorf("Unknown row: %s", key)
+	}
+	segs, _ := checkedSegments(path)
+	return f.refreshView(ToggleRowView(f.view, strings.Join(append(append([]string{}, segs...), key), ".")))
+}
+
+// SetAllExpanded expands every row, or collapses every collapsible row; the record and the revision do not change.
+func (f *Form) SetAllExpanded(expanded bool) error {
+	return f.refreshView(SetAllExpandedView(f.fields, expanded))
+}
+
+// refreshView rebinds the fields with a new view.
+func (f *Form) refreshView(view ViewState) error {
+	fields, e := BindForm(f.template, f.data, f.bindOptions(view))
+	if e != nil {
+		return e
+	}
+	f.fields, f.view = fields, view
+	return nil
 }
