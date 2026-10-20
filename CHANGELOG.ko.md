@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 79f571351c0b0c9eab66e02905aa8ae61e820df00c1818094109988ffb66b939 -->
+<!-- source-sha256: c729718678c079c8c5cd61690912878d9e2361021ff865f72a5914d771f35c78 -->
 
 ## Unreleased
+
+### 2026-10-20 — parameter를 받는 PHP rule의 base class (C16.30)
+
+- `ParameterRule`은 값을 보기 전에 parameter를 읽고 검사합니다. `FlagRule`(`Digits`, `Number`), `NumericRule`(`Max`, `Min`, `Range`, `Step`), `LengthRule`(`MaxLength`, `MinLength`, `RangeLength`), `CountRule`(`MaxCount`, `MinCount`)은 `MeasuredRule`을 통해 각 종류가 공유하는 부분을 더하므로, 각 rule은 자기 parameter와 비교만 적습니다 (C16.30). Red: `make duplication-check`가 이 rule들 사이의 clone 14건을 나열했고, green: 없음. `ValidateConformanceTest`(318), `RuleParametersTest`(10), `DocCoverageTest`, `make lint-php`, PHP doc coverage가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — layout으로 찾는 rebuild class (C16.7-10)
 

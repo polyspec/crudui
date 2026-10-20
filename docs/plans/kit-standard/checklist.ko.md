@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a6279ab51f726d438377e2b5599529be9e1facbeb819d18f4fae0bf95499402a -->
+<!-- source-sha256: cc4a14b263dc6d3efc076dfd7d26993689bc050c4edbd3cf84e8eea1548a2b0a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -44,3 +44,4 @@
 | C16.27 | React, Vue, Svelte adapter는 raw control markup을 core에서 가져온다 | packages/generator/ts/src/raw-markup.ts, internal.ts, packages/react, packages/vue, packages/svelte (raw.ts, Widget, widget.ts) | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/vue -- tests/form-render.conformance.test.mjs`, `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/svelte -- tests/form-render.conformance.test.mjs`, `make lint-ts` | [o] |
 | C16.28 | form comparison은 step을 kit의 process-group runner로, unit을 node:test test로 실행한다 (examples/form-comparison/src/step-runner.mjs와 unit-pool.mjs를 대체). step runner는 kit export를 기다린다 | examples/form-comparison, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.29 | form comparison의 public server는 http-proxy package로 request를 전달한다 (examples/form-comparison/src/forward.mjs를 대체) | examples/form-comparison, config/rebuild.json | `make rebuild-check` | [ ] |
+| C16.30 | parameter를 받는 PHP validator rule은 검사 종류마다 하나의 base class를 공유한다 | packages/validator/php/src/Rules (ParameterRule, FlagRule, MeasuredRule, NumericRule, LengthRule, CountRule and the eleven rules) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |

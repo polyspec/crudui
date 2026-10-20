@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Base classes for the PHP rules with a parameter (C16.30)
+
+- `ParameterRule` reads and checks the parameter before it looks at the value; `FlagRule` (`Digits`, `Number`), `NumericRule` (`Max`, `Min`, `Range`, `Step`), `LengthRule` (`MaxLength`, `MinLength`, `RangeLength`) and `CountRule` (`MaxCount`, `MinCount`) add what their kind shares through `MeasuredRule`, so each rule states only its parameter and its comparison (C16.30). Red: `make duplication-check` listed 14 clones among these rules; green: none, `ValidateConformanceTest` (318), `RuleParametersTest` (10), `DocCoverageTest`, `make lint-php` and the PHP doc coverage pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — The rebuild classes by layout (C16.7-10)
 
 - `config/rebuild.json` has no `paths` (kit K286 finds the tool sources by the layout of the repository) and classes the 98 sources that the layout adds: the copies of the bootstrap of kit, the benchmark programs, the cross-check console, the form comparison and form structure examples, the CLI entry and the ESLint configuration of the Svelte components; `step-runner.mjs`, `unit-pool.mjs` and `forward.mjs` of the form comparison are `replaced`, with the items C16.28 and C16.29 (C16.7-10). Red: `make rebuild-check` exit 1 (`paths` rejected by the schema, then 98 sources without a class); green: exit 0.

@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Rules;
 
-use Polyspec\Crudui\Validator\Expr\FieldPath;
-use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
 use Polyspec\Crudui\Validator\Values\LengthLimit;
 
 /**
  * Range length validation rule on the code points of the canonical text.
+ *
+ * The length of the canonical text of a scalar is within [minimum, maximum] code points.
+ * An array or object value fails.
+ *
+ * @extends LengthRule<array{int, int}>
  */
-class RangeLength implements RuleInterface
+class RangeLength extends LengthRule
 {
-    /**
-     * Validate that a scalar's canonical text length is within [minimum, maximum].
-     * An array or object value fails.
-     *
-     * @throws InvalidRuleParameter when the limits are not ordered integers from 0 to 9007199254740991
-     */
-    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
+    protected function parameter(mixed $param): array
     {
-        [$minimum, $maximum] = LengthLimit::range($param);
-        $length = LengthLimit::lengthOf($value);
-        return $length !== null && $length >= $minimum && $length <= $maximum;
+        return LengthLimit::range($param);
+    }
+
+    protected function accepts(int|float $measure, mixed $parameter): bool
+    {
+        return self::within($measure, $parameter);
     }
 }

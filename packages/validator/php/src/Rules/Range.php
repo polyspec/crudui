@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Rules;
 
-use Polyspec\Crudui\Validator\Expr\FieldPath;
-use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
 use Polyspec\Crudui\Validator\Values\Numeric;
 
 /**
  * Inclusive numeric range: a numeric value within [minimum, maximum] passes; any other value fails.
+ *
+ * @extends NumericRule<array{float, float}>
  */
-class Range implements RuleInterface
+class Range extends NumericRule
 {
-    /**
-     * @throws InvalidRuleParameter when the parameter is outside the validation rules
-     */
-    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
+    protected function parameter(mixed $param): array
     {
-        [$minimum, $maximum] = Numeric::range($param);
-        $number = Numeric::of($value);
-        return $number !== null && $number >= $minimum && $number <= $maximum;
+        return Numeric::range($param);
+    }
+
+    protected function accepts(int|float $measure, mixed $parameter): bool
+    {
+        return self::within($measure, $parameter);
     }
 }
