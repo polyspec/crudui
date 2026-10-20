@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: bd55a8adcd649bd9b050deac965a4a35178dd43abb6804fb2009072d9333f547 -->
+<!-- source-sha256: 39361727041571d10382c381d6bacba9d5ede73152878f80cd56ac6da36d8346 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -268,3 +268,4 @@
 | C16.148-3 | Python form state runner가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/python/tests/test_form_state.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests/test_form_state.py` | [o] |
 | C16.148-4 | Rust form state runner가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/rust/tests/form_state.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
 | C16.148-5 | PHP form state 테스트(PHP library와 PHP extension이 모두 실행)가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/php/tests/FormStateTest.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- --filter FormStateTest`, `make test-php-ext CASES='FormStateTest'` | [o] |
+| C16.148-6 | form-actions unit이 CURT-054를 전부 인용한다. 새 경로의 검증 오류를 관찰하는 rekey 세션을 통해서다 | config/parity.json | `sh -c 'make -s parity-declarations-check > var/pd-C16.148-6.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURT-054," var/pd-C16.148-6.log'` | [o] |
