@@ -92,3 +92,4 @@ go.work.sum
 /examples/form-comparison/servers/go/go.work
 /packages/validator/go/go.work
 /packages/generator/go/go.work
+/scripts/go/go.work

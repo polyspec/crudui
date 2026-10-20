@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The go.work of scripts/go is ignored by Git (C16.63-1)
+
+- `.gitignore` ignores the `go.work` that `make link` writes beside the Go module `scripts/go`, which C16.58-5 added (C16.63-1). Red: `node node_modules/@polyspec/kit/dist/link.mjs link . ../kit ../ordered-json` exited 1 with `scripts/go/go.work is not ignored by Git in its repository`; green: it exits 0 and links every polyspec package.
+
 ### 2026-10-20 — The copies of kit follow the kit-sync (C16.67)
 
 - `.golangci.yml`, `ruff.toml`, `clippy.toml`, `PRINCIPLES.md` and `scripts/kit/kit-bootstrap.mk` are the copies of kit after K334, K336, K353 and K355 (C16.67). Red: `make kit-check` named the 6 copies that differ; green: it passes. The hidden errors that the new lint configuration reports are the next rows: `make lint-python` fails at `ruff check .`, `make lint-go` at 6 of 14 steps and `make lint-rust` at 6 of 6.

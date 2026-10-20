@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2222d00d4a5d9fe380136e0bbb4200ae61ccfff7654936493e394c18158290b2 -->
+<!-- source-sha256: 349c76ca543ae8c611eae2462f13671e69314b6bde938119691e3866e3a7a019 -->
 
 ## Unreleased
+
+### 2026-10-20 — scripts/go의 go.work는 Git이 무시한다 (C16.63-1)
+
+- `.gitignore`는 C16.58-5가 추가한 Go 모듈 `scripts/go` 옆에 `make link`가 쓰는 `go.work`를 무시합니다(C16.63-1). Red: `node node_modules/@polyspec/kit/dist/link.mjs link . ../kit ../ordered-json`이 `scripts/go/go.work is not ignored by Git in its repository`로 exit 1이었고, green: exit 0으로 모든 polyspec package를 link합니다.
 
 ### 2026-10-20 — kit 사본이 kit-sync를 따른다 (C16.67)
 
