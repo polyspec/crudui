@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CRATE = join(dirname(fileURLToPath(import.meta.url)), '..');
-const contract = JSON.parse(readFileSync(join(CRATE, '../../contracts/interface-messages.json'), 'utf8'));
+const contract = JSON.parse(readFileSync(join(CRATE, '../../../contracts/interface-messages.json'), 'utf8'));
 
 // Convert camelCase to snake_case
 const toSnakeCase = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);

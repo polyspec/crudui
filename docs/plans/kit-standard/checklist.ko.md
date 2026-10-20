@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 81797f3bc9e853ba4c3a6d07ff49540d155b5473af70fda44711742f6bfe297e -->
+<!-- source-sha256: b37c4842c75022994e7ec99a0f608d2b27dbeb22f39611dad647e780dbe2b43a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -52,3 +52,4 @@
 | C16.35 | TypeScript generator core는 action click handler, declaration 검사, path suffix, file widget, choice option, registry probe를 공유한다 | packages/generator/ts/src (dom.ts, form.ts, util.ts, widget.ts) | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src`, `make lint-ts` | [o] |
 | C16.36 | Go generator는 binding 검사, image preload, row suffix, declaration 오류, number 읽기를 공유한다 | packages/generator/go (bind.go, buttons.go, detail.go, list.go, image_preloads.go, value.go, template.go, display_declaration.go) | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test .`, `make lint-go` | [o] |
 | C16.37 | PHP generator는 image preload link와 object 판별을 공유한다 | packages/generator/php/src/Internal (Rendering.php, Value.php, Details.php, Lists.php, DisplayDeclaration.php, Template.php) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |
+| C16.38 | Rust generator는 저장소 root의 contract를 찾는다 | packages/generator/rust/tools/generate-interface-messages.mjs, packages/validator/rust/tools/generate-unicode-properties.mjs, tests/build/rust-generators.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/rust-generators.test.mts` | [o] |

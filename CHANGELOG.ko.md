@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 038821c2a106476f7a9908af6f9cfe301928c9ccfcfbd856bbfba51079b98164 -->
+<!-- source-sha256: e1e42bec98e58f61749a75a7b3a7db4177c85d05090db01e350880976939dabd -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust generator와 contract (C16.38)
+
+- `packages/generator/rust/tools/generate-interface-messages.mjs`와 `packages/validator/rust/tools/generate-unicode-properties.mjs`는 package를 component와 port로 옮긴 뒤 `contracts/`를 두 단계 높은 곳(`packages/contracts/...`)에서 읽어 둘 다 실행할 수 없었습니다. 이제 둘 다 `../../../contracts`를 읽고, `tests/build/rust-generators.test.mts`는 각 generator를 crate 폴더에서 실행하여 출력이 commit된 것과 바이트 단위로 같게 유지되도록 요구합니다 (C16.38). Red: test가 `packages/contracts/interface-messages.json`과 unicode contract의 `ENOENT`로 실패했고, green: 두 test가 통과하며 생성된 source는 바뀌지 않습니다.
 
 ### 2026-10-20 — PHP generator의 공유 preload link와 object 판별 (C16.37)
 

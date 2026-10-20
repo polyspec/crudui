@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust generators and their contracts (C16.38)
+
+- `packages/generator/rust/tools/generate-interface-messages.mjs` and `packages/validator/rust/tools/generate-unicode-properties.mjs` read `contracts/` two folders too high (`packages/contracts/...`) since the packages moved to components and ports, so neither could run; both now read `../../../contracts`, and `tests/build/rust-generators.test.mts` runs each from the folder of its crate and requires its output to stay byte for byte as committed (C16.38). Red: the test failed with `ENOENT` for `packages/contracts/interface-messages.json` and for the unicode contract; green: both tests pass, with the generated sources unchanged.
+
 ### 2026-10-20 — Shared preload link and object test in the PHP generator (C16.37)
 
 - `Rendering::imagePreload` writes the preload link of an image display for `Details` and `Lists`, and `Value::isObject` is the one test of what a declaration takes for an object, which `DisplayDeclaration` and `Template` each held (C16.37). Red: `make duplication-check` listed 2 clones in `packages/generator/php` outside the generator script; green: none; `RenderingConformanceTest` (188), `DetailTest` (10), `DisplayRulesTest` (21), `FormTest` (22), `DocCoverageTest` and `make lint-php` pass. The output is unchanged, so the red is the clone list.
