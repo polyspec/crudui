@@ -1,12 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d221327836ac25bb87e66e1b6754b0a7af60f2a9d72a224090fba952bc9437a3 -->
+<!-- source-sha256: 2677150d1af8ccd79cbb8d50660664ee61f0fc903cc35b21f8ad848b361a3029 -->
 
 ## Unreleased
 
 ### 2026-10-20 — PHP generator에 history 함수가 있다 (C16.52-6)
 
 - `packages/generator/php`의 `Generator::emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange`, `redoChange`(규칙은 `src/Internal/History.php`)는 history 객체 `{entries, redoEntries, lastPath?}`에 대해 CURT-062, CURT-063, CURT-076~CURT-080을 따른다. 복원할 것이 없는 실행취소나 실행복귀는 `INVALID_FORM_INPUT`과 `Nothing to undo` 또는 `Nothing to redo`인 `FormError`를 던진다. `HistoryFunctionsTest`는 `tests/fixtures/history-functions/cases.json`의 사례 13개를 사례 이름의 data set으로 실행하고, `config/parity.json`은 이를 unit `history-functions`에 묶는다. green: 13개 중 13개가 통과한다(main checkout의 vendor 디렉터리가 PHP 8.5를 요구하므로 PHP 8.5로 실행). vendor 디렉터리가 있는 checkout에서 verification 명령이 실행될 때까지 행은 `[~]`이다.
+- main으로 rebase한 뒤 고정 minor인 PHP 8.4.26과 link된 vendor에서 `HistoryFunctionsTest`의 13개 case가 통과합니다(C16.52-6).
 
 ### 2026-10-20 — Rust generator에 history 함수가 있다 (C16.52-5)
 

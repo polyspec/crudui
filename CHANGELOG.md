@@ -6,6 +6,7 @@
 ### 2026-10-20 — The PHP generator has the history functions (C16.52-6)
 
 - `Generator::emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` of `packages/generator/php` (rules in `src/Internal/History.php`) follow CURT-062, CURT-063 and CURT-076 to CURT-080 over a history object `{entries, redoEntries, lastPath?}`; an undo or a redo with nothing to restore throws `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. `HistoryFunctionsTest` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as data sets named by the case, and `config/parity.json` binds it to the unit `history-functions`; green: 13 of 13 pass (run with PHP 8.5, because the vendor directory of the main checkout requires it). The row stays `[~]` until the verification command runs in a checkout with a vendor directory.
+- Under PHP 8.4.26, the pinned minor, with the linked vendor, `HistoryFunctionsTest` passes its 13 cases after the rebase onto main (C16.52-6).
 
 ### 2026-10-20 — The Rust generator has the history functions (C16.52-5)
 
