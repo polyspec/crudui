@@ -40,12 +40,9 @@ final class LengthLimit
      */
     public static function range(mixed $parameter): array
     {
-        if (\is_array($parameter) && array_is_list($parameter) && \count($parameter) === 2) {
-            $minimum = self::integer($parameter[0]);
-            $maximum = self::integer($parameter[1]);
-            if ($minimum !== null && $maximum !== null && $minimum <= $maximum) {
-                return [$minimum, $maximum];
-            }
+        $pair = Numeric::orderedPair($parameter, self::integer(...));
+        if ($pair !== null) {
+            return $pair;
         }
         throw new InvalidRuleParameter(
             InvalidRuleParameter::PARAMETER,

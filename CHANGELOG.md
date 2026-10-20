@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — One reader for the pair of a range parameter (C16.18)
+
+- `Numeric::orderedPair` reads a `[minimum, maximum]` parameter with the reader of its members; `Numeric::range` and `LengthLimit::range` pass `finite` and `integer` (C16.18). Red: `make duplication-check` listed 1 clone between `Values/LengthLimit.php` and `Values/Numeric.php`; green: none, `NumericTest` (31), `ValuesTest` (34), `RuleParametersTest` and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — One composition validation for list and detail (C16.17)
 
 - `Validator::validateComposition` checks the text, composes the root and the named maps and scans for forbidden members once; `validateList` and `validateDetail` name only their maps (C16.17). Red: `make duplication-check` listed 1 clone in `Public/Validator.php`; green: none, the list (20), detail (14) and text validity (46) conformance tests and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.

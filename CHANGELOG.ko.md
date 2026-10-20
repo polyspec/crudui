@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c051fed25ee04b66f9db6b025ea41f98591a42296786ece8f86ee5d578bc4f8f -->
+<!-- source-sha256: b747f03c1997e359106690b2924a2513d2e3df30f8242dbfda8b00619d678b33 -->
 
 ## Unreleased
+
+### 2026-10-20 — range parameter의 pair를 읽는 하나의 reader (C16.18)
+
+- `Numeric::orderedPair`는 `[minimum, maximum]` parameter를 member reader와 함께 읽고, `Numeric::range`와 `LengthLimit::range`는 각각 `finite`와 `integer`를 넘깁니다 (C16.18). Red: `make duplication-check`가 `Values/LengthLimit.php`와 `Values/Numeric.php` 사이의 clone 1건을 나열했고, green: 없음. `NumericTest`(31), `ValuesTest`(34), `RuleParametersTest`, `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — list와 detail이 쓰는 하나의 composition 검증 (C16.17)
 

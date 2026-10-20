@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 4d7498dd4d28a8e72858fdc8c8eb5b41a14b298aed35ac0b6b5fbae409c87af3 -->
+<!-- source-sha256: b25a0c32e8152a6d1d44237d5bbfd1b7fabe793e2c71a4ebf8ed472dfdd3d6d8 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -23,3 +23,4 @@
 | C16.15 | PHP validator는 ef와 atch member를 하나의 module로 조합한다 (Compose clone) | packages/validator/php/src/Compose/Members.php, Compose.php, Ref.php, Patch.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/ComposeConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/PatchTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/RefTest.php`, `make lint-php` | [o] |
 | C16.16 | PHP expression parser는 literal을 하나의 method로 읽는다 | packages/validator/php/src/Expr/Parser.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Expr/ExprConformanceTest.php`, `make lint-php` | [o] |
 | C16.17 | PHP validator는 list와 detail composition을 하나의 method로 검증한다 | packages/validator/php/src/Public/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ListValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/DetailValidateConformanceTest.php`, `make lint-php` | [o] |
+| C16.18 | PHP validator는 range parameter의 pair를 하나의 method로 읽는다 | packages/validator/php/src/Values/Numeric.php, packages/validator/php/src/Values/LengthLimit.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Values/NumericTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |

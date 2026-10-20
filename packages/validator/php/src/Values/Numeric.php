@@ -135,6 +135,24 @@ final class Numeric
     }
 
     /**
+     * The two members of a `[minimum, maximum]` parameter, each read by `$read`, or null when the
+     * parameter is not a list of two readable numbers with the minimum not above the maximum.
+     *
+     * @template T of int|float
+     * @param \Closure(mixed): (T|null) $read
+     * @return array{T, T}|null
+     */
+    public static function orderedPair(mixed $parameter, \Closure $read): ?array
+    {
+        if (!\is_array($parameter) || !array_is_list($parameter) || \count($parameter) !== 2) {
+            return null;
+        }
+        $minimum = $read($parameter[0]);
+        $maximum = $read($parameter[1]);
+        return $minimum !== null && $maximum !== null && $minimum <= $maximum ? [$minimum, $maximum] : null;
+    }
+
+    /**
      * The `[minimum, maximum]` bounds of `range`.
      *
      * @return array{float, float}
@@ -142,12 +160,9 @@ final class Numeric
      */
     public static function range(mixed $parameter): array
     {
-        if (\is_array($parameter) && array_is_list($parameter) && \count($parameter) === 2) {
-            $minimum = self::finite($parameter[0]);
-            $maximum = self::finite($parameter[1]);
-            if ($minimum !== null && $maximum !== null && $minimum <= $maximum) {
-                return [$minimum, $maximum];
-            }
+        $pair = self::orderedPair($parameter, self::finite(...));
+        if ($pair !== null) {
+            return $pair;
         }
         throw self::failure(
             'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'
