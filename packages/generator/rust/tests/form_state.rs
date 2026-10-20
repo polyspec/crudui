@@ -6,8 +6,9 @@
 
 use polyspec_crudui_generator::{
     bind_form, collapsible_rows, compile_form, initial_view, rekey_row_view, remove_row_view,
-    set_all_expanded_view, toggle_row_view, AddRowOptions, BindOptions, CompileOptions, Form,
-    FormResult, ViewState,
+    resolve_action, run_action, set_all_expanded_view, toggle_row_view, ActionInput, ActionName,
+    ActionResult, ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormResult,
+    ViewState,
 };
 use regex::Regex;
 use serde_json::{json, Map, Value};
@@ -121,9 +122,53 @@ fn options(args: &[Value], index: usize) -> AddRowOptions {
         })
 }
 
+/// The target of a `runAction` step: its operation name, collection path and row key.
+fn action_target(value: &Value) -> ActionTarget {
+    ActionTarget {
+        name: ActionName::parse(value["name"].as_str().unwrap()).unwrap(),
+        path: value["path"].as_str().map(str::to_owned),
+        key: value["key"].as_str().map(str::to_owned),
+    }
+}
+
+/// The JSON object of an action target; path and key are absent when empty.
+fn target_json(target: &ActionTarget) -> Value {
+    let mut out = Map::new();
+    out.insert("name".into(), json!(target.name.as_str()));
+    if let Some(path) = target.path.as_deref().filter(|path| !path.is_empty()) {
+        out.insert("path".into(), json!(path));
+    }
+    if let Some(key) = target.key.as_deref().filter(|key| !key.is_empty()) {
+        out.insert("key".into(), json!(key));
+    }
+    Value::Object(out)
+}
+
+/// The JSON object of an action result; the focus is absent when the action focuses nothing.
+fn action_result_json(result: ActionResult) -> Value {
+    let mut out = Map::new();
+    if let Some(focus) = result.focus {
+        let mut target = Map::new();
+        target.insert("path".into(), json!(focus.path));
+        if let Some(key) = focus.key {
+            target.insert("key".into(), json!(key));
+        }
+        out.insert("focus".into(), Value::Object(target));
+    }
+    Value::Object(out)
+}
+
 /// Run one step on the form and return what the step returned.
 fn perform(form: &mut Form, op: &str, args: &[Value]) -> FormResult<Option<Value>> {
     match op {
+        "resolveAction" => Ok(resolve_action(
+            &serde_json::from_value::<ActionInput>(args[0].clone()).unwrap(),
+        )
+        .as_ref()
+        .map(target_json)),
+        "runAction" => {
+            run_action(form, &action_target(&args[0])).map(|result| result.map(action_result_json))
+        }
         "addRow" => form
             .add_row(text(args, 0), options(args, 1))
             .map(|key| Some(json!(key))),
@@ -132,11 +177,7 @@ fn perform(form: &mut Form, op: &str, args: &[Value]) -> FormResult<Option<Value
             .map(|key| Some(json!(key))),
         "removeRow" => form.remove_row(text(args, 0), text(args, 1)).map(|()| None),
         "moveRow" => form
-            .move_row(
-                text(args, 0),
-                text(args, 1),
-                args[2].as_u64().unwrap() as usize,
-            )
+            .move_row(text(args, 0), text(args, 1), args[2].as_i64().unwrap())
             .map(|()| None),
         "rekeyRow" => form
             .rekey_row(text(args, 0), text(args, 1), text(args, 2))
@@ -167,15 +208,15 @@ fn observe_sessions(family: &str, history: bool) {
         let mut form = Form::new(template, &case["data"], BindOptions::default()).unwrap();
         for (index, step) in steps.iter().enumerate() {
             let mut observed = Map::new();
-            match perform(
-                &mut form,
-                step["op"].as_str().unwrap(),
-                step["args"].as_array().unwrap(),
-            ) {
-                Ok(Some(result)) => {
-                    observed.insert("result".into(), namer.walk(&result));
+            let op = step["op"].as_str().unwrap();
+            match perform(&mut form, op, step["args"].as_array().unwrap()) {
+                Ok(result) => {
+                    // An action step reports its result even when it has none (null), as the reference does.
+                    if result.is_some() || op == "runAction" || op == "resolveAction" {
+                        let value = result.unwrap_or(Value::Null);
+                        observed.insert("result".into(), namer.walk(&value));
+                    }
                 }
-                Ok(None) => {}
                 Err(error) => {
                     observed.insert(
                         "error".into(),
@@ -211,6 +252,11 @@ fn form_view_sessions_equal_the_recorded_observations() {
 #[test]
 fn form_history_sessions_equal_the_recorded_observations() {
     observe_sessions("form-history", true);
+}
+
+#[test]
+fn form_actions_sessions_equal_the_recorded_observations() {
+    observe_sessions("form-actions", true);
 }
 
 fn view_of(value: &Value) -> ViewState {

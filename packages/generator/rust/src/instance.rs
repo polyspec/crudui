@@ -529,8 +529,9 @@ impl Form {
         self.commit_view(put_at(&self.data, &segments, rows.into()), view, history)
     }
 
-    /// Move a row without changing its identity or values.
-    pub fn move_row(&mut self, path: &str, key: &str, index: usize) -> FormResult<()> {
+    /// Move a row without changing its identity or values; `index` is the position after the move, and a position
+    /// outside the rows fails.
+    pub fn move_row(&mut self, path: &str, key: &str, index: i64) -> FormResult<()> {
         let (_, rows) = self.editable_collection(path)?;
         let mut entries = rows
             .iter()
@@ -540,14 +541,15 @@ impl Form {
             .iter()
             .position(|(k, _)| k == key)
             .ok_or_else(|| FormError::input(format!("Unknown row: {key}")))?;
-        if index >= entries.len() {
-            return Err(FormError::input(format!("Invalid row position: {index}")));
-        }
-        if from == index {
+        let to = usize::try_from(index)
+            .ok()
+            .filter(|to| *to < entries.len())
+            .ok_or_else(|| FormError::input(format!("Invalid row position: {index}")))?;
+        if from == to {
             return Ok(());
         }
         let row = entries.remove(from);
-        entries.insert(index, row);
+        entries.insert(to, row);
         self.commit(
             put_at(
                 &self.data,

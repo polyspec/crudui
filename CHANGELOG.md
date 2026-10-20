@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust generator has resolveAction and runAction (C16.50-3)
+
+- `packages/generator/rust/src/actions.rs` adds `resolve_action`, `run_action` and the types `ActionName`, `ActionInput`, `ActionTarget`, `ActionResult` and `FocusTarget` over the eleven form actions of CURT-081 to CURT-090, `packages/generator/rust/src/instance.rs` takes a signed position in `move_row` so that a position before the first row fails with the reference message, and `packages/generator/rust/tests/form_state.rs` runs the `form-actions` sessions with the history flags in `form_actions_sessions_equal_the_recorded_observations`, whose `perform` handles `resolveAction` and `runAction` (C16.50-3). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` exit 1, 3 passed and 1 failed; the `form-actions` session `resolve-action-names` fails at step 0 with the API stubbed to zero values; green: exit 0, 4 passed, 0 failed.
+
 ### 2026-10-20 — The Rust benchmark handles the hidden errors that the kit lint reports (C16.67-7)
 
 - `benchmarks/validators/rust/main.rs` handles the clippy findings of `Result::unwrap_or_else` and `Result::ok`: `load_fixture` and `bench_spec` return `Result<_, String>` with the same read and parse messages, `main` stops the bench with that message as before (a bad fixture still exits 101), and `count_argument` parses the digits that its filter has already checked, with an invariant message (C16.67-7). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason` exit 101 with 3 findings (`Result::unwrap_or_else` at main.rs:36 and :38, `Result::ok` at main.rs:109); green: exit 0, and a bad fixture still exits 101 with the same message.

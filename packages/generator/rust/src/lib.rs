@@ -1,6 +1,7 @@
 //! CRUDUI form compilation, instance data, binding and HTML rendering.
 #![deny(missing_docs)]
 
+mod actions;
 mod binding;
 mod buttons;
 mod choice_list;
@@ -24,6 +25,9 @@ mod util;
 mod view;
 mod widget;
 
+pub use actions::{
+    resolve_action, run_action, ActionInput, ActionName, ActionResult, ActionTarget, FocusTarget,
+};
 pub use binding::{bind_buttons, bind_form, form_buttons_html, BindOptions};
 pub use detail::{build_detail, render_detail, DetailOptions};
 pub use error::{FormError, FormResult};

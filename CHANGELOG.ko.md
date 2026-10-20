@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 61483db43e2e77ccd28277a5308b9945276131d7a1db97d30e59fbd52ab93c31 -->
+<!-- source-sha256: c2a63214f451f130b65b678fb6848fa2b28a41ee04b67c36efbdebc39add98fa -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust generator는 resolveAction과 runAction을 가진다 (C16.50-3)
+
+- `packages/generator/rust/src/actions.rs`는 CURT-081부터 CURT-090까지의 form action 11개에 대해 `resolve_action`, `run_action`과 타입 `ActionName`, `ActionInput`, `ActionTarget`, `ActionResult`, `FocusTarget`을 추가합니다. `packages/generator/rust/src/instance.rs`의 `move_row`는 부호 있는 위치를 받아 첫 행보다 앞의 위치를 reference와 같은 메시지로 실패시킵니다. `packages/generator/rust/tests/form_state.rs`는 history flag를 켠 `form-actions` session을 `form_actions_sessions_equal_the_recorded_observations`에서 실행하며, 그 `perform`은 `resolveAction`과 `runAction`을 처리합니다(C16.50-3). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state`가 exit 1, 3 passed와 1 failed였고, API를 0 값으로 stub한 상태에서 `form-actions` session `resolve-action-names`가 step 0에서 실패했습니다. Green: exit 0, 4 passed, 0 failed.
 
 ### 2026-10-20 — Rust benchmark는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-7)
 
