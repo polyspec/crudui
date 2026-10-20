@@ -21,6 +21,9 @@
 | packages/generator/php/tests/Internal/InterfaceMessagesTest.php | internal (php) | the generated PHP source equals the output of its generator script; the message contract is the interface-messages unit |
 
 Red: `make item-red ID=C16.155 BEFORE=69bd6b3b` exit 1 with the six `R5 undeclared-test` lines of the files above; green: the Verification exits 0, the six lines are gone, no line appears, and the findings of `make parity-declarations-check` go from 61 to 55.
+### 2026-10-21 — The form-view and form-history cases equal their generator (C16.154)
+
+- `tests/fixtures/form-state/generate.mts` cites CUMK-057 by the three view sessions and CUMK-061 by the four history sessions, the citations that main had written by hand into `tests/fixtures/form-view/cases.json` and `tests/fixtures/form-history/cases.json`; `session()` writes the `requirements` of each case sorted, as main lists them, so a regeneration reproduces the files of main (C16.154). The requirement order of `set-data-restarts-history-and-view` and of the cases of `tests/fixtures/form-actions/cases.json` changes; their content does not. Red: `sh -c 'node tests/fixtures/form-state/generate.mts && git diff --exit-code -- tests/fixtures/form-view/cases.json tests/fixtures/form-history/cases.json tests/fixtures/form-actions/cases.json'` exit 1, the regeneration drops CUMK-061 from four cases of form-history and reorders the requirements; green: exit 0 on the regenerated files, and `make -s parity-declarations-check` prints the same lines as before the change.
 
 ### 2026-10-21 — make install of a fresh worktree runs to its end (C16.149)
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 731fd934b08a34e8ec879fe17aba7b60b056361b582e43b0ead269c3b5292f6e -->
+<!-- source-sha256: 007422f7ac1596be80df8256c5633c060856c04419cf8973a7f3418340a80b51 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -275,3 +275,4 @@
 | C16.148-6 | form-actions unit이 CURT-054를 전부 인용한다. 새 경로의 검증 오류를 관찰하는 rekey 세션을 통해서다 | config/parity.json | `sh -c 'make -s parity-declarations-check > var/pd-C16.148-6.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURT-054," var/pd-C16.148-6.log'` | [o] |
 | C16.149 | 새 worktree의 make install이 끝까지 실행된다: kit link가 Python과 Composer 설치 뒤, PHP를 처음 실행하는 phpDocumentor 앞에서 실행된다 | Makefile | `sh -c 'make -n crudui-install > var/c149.log 2>&1; awk "/composer install/&&!c{c=NR} /link.mjs link/&&c&&!l{l=NR} /install-phpdocumentor.mts/{p=NR} END{exit !(c&&l&&p&&c<l&&l<p)}" var/c149.log'` | [o] |
 | C16.155 | 어떤 바인딩도 실행하지 않는 generator 테스트는 검증하는 계약의 unit에 바인딩되거나, 이유와 함께 자신의 구현의 internal 테스트가 된다 | config/parity.json, packages/generator/ts/src/display-validity.test.ts, packages/generator/ts/src/dom-sync.test.ts, packages/generator/ts/src/expr.test.ts, packages/generator/ts/src/form.test.ts, packages/generator/ts/src/patch.test.ts, packages/generator/php/tests/Internal/InterfaceMessagesTest.php, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-declarations-check > var/pd-C16.155.log 2>&1; ! grep -E "R5 undeclared-test (ts packages/generator/ts/src/(display-validity\|dom-sync\|expr\|form\|patch)\.test\.ts\|php packages/generator/php/tests/Internal/InterfaceMessagesTest\.php):" var/pd-C16.155.log'` | [o] |
+| C16.154 | form-view와 form-history의 cases가 생성기와 같다: form-state 생성기가 세션의 requirements에 main과 같이 CUMK-057을 인용하여, 재생성이 main의 파일을 그대로 만든다 | tests/fixtures/form-state/generate.mts, tests/fixtures/form-view/cases.json, tests/fixtures/form-history/cases.json | `sh -c 'node tests/fixtures/form-state/generate.mts && git diff --exit-code -- tests/fixtures/form-view/cases.json tests/fixtures/form-history/cases.json tests/fixtures/form-actions/cases.json'` | [o] |

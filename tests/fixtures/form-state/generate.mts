@@ -80,7 +80,8 @@ function session(entry: { name: string; note: string; requirements: string[]; st
   const steps: Json[] = entry.steps.map(({ op, args }) => ({ op, args }));
   const caseSpec = entry.spec ?? spec;
   const caseData = entry.data ?? data;
-  return { name: entry.name, note: entry.note, requirements: [...entry.requirements, ...runtimeRequirements(entry.steps)], spec: caseSpec, data: caseData, steps, expected: observeSession(core, { spec: caseSpec, data: caseData, steps: entry.steps }, history) };
+  // The requirement ids are written in sorted order, as the committed cases list them.
+  return { name: entry.name, note: entry.note, requirements: [...entry.requirements, ...runtimeRequirements(entry.steps)].sort(), spec: caseSpec, data: caseData, steps, expected: observeSession(core, { spec: caseSpec, data: caseData, steps: entry.steps }, history) };
 }
 
 const step = (op: string, ...args: Json[]): Step => ({ op, args });
@@ -90,7 +91,7 @@ const all: Case[] = [
   session({
     name: 'toggle-row-collapses-and-expands',
     note: 'A toggle collapses a row, a second toggle expands it again, a nested row collapses after its parent, and an unknown row fails; the revision does not change.',
-    requirements: ['CURT-009', 'CURT-067', 'CURT-068'],
+    requirements: ['CUMK-057', 'CURT-009', 'CURT-067', 'CURT-068'],
     steps: [
       step('toggleRow', 'teams', A),
       step('toggleRow', `teams.${A}.members`, M1),
@@ -102,13 +103,13 @@ const all: Case[] = [
   session({
     name: 'set-all-expanded-collapses-every-collapsible-row',
     note: 'Collapsing every row lists the collapsible rows depth first; expanding all clears the view.',
-    requirements: ['CURT-010', 'CURT-073'],
+    requirements: ['CUMK-057', 'CURT-010', 'CURT-073'],
     steps: [step('setAllExpanded', false), step('toggleRow', 'teams', B), step('setAllExpanded', true), step('setAllExpanded', false)],
   }, false),
   session({
     name: 'row-removal-drops-and-rekey-moves-view',
     note: 'Removing a row drops the collapsed state of the row and of its rows; rekeying moves it to the new key.',
-    requirements: ['CURT-066', 'CURT-075', 'CURT-074', 'CURT-006', 'CURT-008'],
+    requirements: ['CUMK-057', 'CURT-066', 'CURT-075', 'CURT-074', 'CURT-006', 'CURT-008'],
     steps: [
       step('setAllExpanded', false),
       step('rekeyRow', 'teams', A, k(3)),
@@ -266,7 +267,7 @@ const all: Case[] = [
   session({
     name: 'undo-and-redo-restore-the-record',
     note: 'Undo restores the record before the change and redo reapplies it; each changes the revision; nothing to undo or redo fails.',
-    requirements: ['CURT-011', 'CURT-012', 'CURT-061', 'CURT-067', 'CURT-004'],
+    requirements: ['CUMK-061', 'CURT-011', 'CURT-012', 'CURT-061', 'CURT-067', 'CURT-004'],
     steps: [
       step('undo'),
       step('setValue', 'note', 'one'),
@@ -281,7 +282,7 @@ const all: Case[] = [
   session({
     name: 'same-path-edits-share-one-record',
     note: 'Consecutive edits of one path share a history record; an edit of another path or another change starts a new one.',
-    requirements: ['CURT-063'],
+    requirements: ['CUMK-061', 'CURT-063'],
     steps: [
       step('setValue', 'note', 'a'),
       step('setValue', 'note', 'ab'),
@@ -296,13 +297,13 @@ const all: Case[] = [
   session({
     name: 'a-change-after-undo-clears-redo',
     note: 'A data change after undo clears the redo records.',
-    requirements: ['CURT-064', 'CURT-061'],
+    requirements: ['CUMK-061', 'CURT-064', 'CURT-061'],
     steps: [step('setValue', 'note', 'a'), step('undo'), step('setValue', 'note', 'b'), step('redo')],
   }),
   session({
     name: 'history-keeps-100-records',
     note: 'After 105 edits that alternate between two paths, 100 undos succeed and the next one fails.',
-    requirements: ['CURT-062'],
+    requirements: ['CUMK-061', 'CURT-062'],
     steps: [
       ...Array.from({ length: 105 }, (_, i) => step('setValue', i % 2 === 0 ? 'note' : `teams.${A}.name`, `v${i}`)),
       ...Array.from({ length: 101 }, () => step('undo')),

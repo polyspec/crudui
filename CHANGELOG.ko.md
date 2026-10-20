@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a4e0f0db0be39e24213b2b0cc29cab3b211beecfee6d933e13b13e601bf1a9e0 -->
+<!-- source-sha256: c45d1902c161f6dc633ad1943c5df153aa9761e978ef4157c79b930e9aa25d4a -->
 
 ## Unreleased
 
@@ -22,6 +22,9 @@
 | packages/generator/php/tests/Internal/InterfaceMessagesTest.php | internal (php) | 생성된 PHP 소스가 생성 스크립트의 출력과 같다. 메시지 계약은 interface-messages unit이다 |
 
 Red: `make item-red ID=C16.155 BEFORE=69bd6b3b`가 exit 1로, 위 파일의 `R5 undeclared-test` 줄 여섯 개와 함께 실패한다. green: Verification이 exit 0으로 끝나고, 여섯 줄이 사라지며, 새 줄은 나타나지 않고, `make parity-declarations-check`의 findings가 61에서 55로 줄어든다.
+### 2026-10-21 — form-view와 form-history의 cases가 생성기와 같다 (C16.154)
+
+- `tests/fixtures/form-state/generate.mts`가 세 view 세션에 CUMK-057을, 네 history 세션에 CUMK-061을 인용한다 (C16.154). main이 `tests/fixtures/form-view/cases.json`과 `tests/fixtures/form-history/cases.json`에 손으로 써 넣은 인용이다. `session()`은 각 case의 `requirements`를 main과 같이 정렬하여 쓰므로, 재생성이 main의 파일을 그대로 만든다. `set-data-restarts-history-and-view`의 requirements 순서와 `tests/fixtures/form-actions/cases.json`의 case 순서가 바뀌며, 내용은 바뀌지 않는다. Red: `sh -c 'node tests/fixtures/form-state/generate.mts && git diff --exit-code -- tests/fixtures/form-view/cases.json tests/fixtures/form-history/cases.json tests/fixtures/form-actions/cases.json'` exit 1, 재생성이 form-history의 네 case에서 CUMK-061을 빼고 requirements 순서를 바꾼다. Green: 재생성된 파일에서 exit 0이며, `make -s parity-declarations-check`의 출력 줄은 변경 전과 같다.
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 

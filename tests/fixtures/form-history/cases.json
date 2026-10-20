@@ -3,11 +3,11 @@
     "name": "set-data-restarts-history-and-view",
     "note": "Replacing the record clears the history and expands every row.",
     "requirements": [
-      "CURT-065",
       "CURP-010",
+      "CURP-011",
       "CURP-012",
       "CURP-020",
-      "CURP-011"
+      "CURT-065"
     ],
     "spec": {
       "type": "group",
