@@ -363,6 +363,16 @@ static ps_value *text_control(const char *kind, const widget_context *context)
     return model;
 }
 
+/* Give the source and the options to a model they belong to; each is released only when it was set. */
+static bool attach_source_options(ps_value *model, bool ok, ps_value **source, ps_value **options)
+{
+    if (ok) ok = ps_set(model, "source", *source ? *source : ps_null_value());
+    if (ok) *source = NULL;
+    if (ok) ok = ps_set(model, "options", *options);
+    if (ok) *options = NULL;
+    return ok;
+}
+
 static ps_value *select_control(const widget_context *context)
 {
     ps_value *source = source_model(member(context->spec, "items"));
@@ -380,10 +390,7 @@ static ps_value *select_control(const widget_context *context)
         set_string(model, "layout", "widget") && set_string(model, "tag", "select") &&
         ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
-    if (ok) source = NULL;
-    if (ok) ok = ps_set(model, "options", options);
-    if (ok) options = NULL;
+    ok = attach_source_options(model, ok, &source, &options);
     if (ok) ok = set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
     free(name.bytes); free(class_name.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(source); ps_value_free(options); ps_value_free(model); return NULL; }
@@ -408,10 +415,7 @@ static ps_value *choices(const char *kind, const widget_context *context)
     if (ok) ok = options && label_class.bytes && model && set_string(model, "kind", kind) &&
         set_string(model, "layout", "choices") && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
-    if (ok) source = NULL;
-    if (ok) ok = ps_set(model, "options", options);
-    if (ok) options = NULL;
+    ok = attach_source_options(model, ok, &source, &options);
     if (ok) ok = set_text(model, "itemLabelClass", ps_view(label_class));
     if (ok && !member(model, "source")) ok = false;
     if (ok && ps_get(model, "source")->kind == PS_NULL) {
@@ -615,10 +619,7 @@ static ps_value *search_control(const widget_context *context)
     if (ok) ok = script.bytes && style.bytes && options && model && set_string(model, "kind", "search") &&
         set_string(model, "layout", "search") && set_string(model, "tag", "select") && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
-    if (ok) source = NULL;
-    if (ok) ok = ps_set(model, "options", options);
-    if (ok) options = NULL;
+    ok = attach_source_options(model, ok, &source, &options);
     if (ok) ok = set_text(model, "script", ps_view(script)) && set_text(model, "styleChrome", ps_view(style)) &&
         set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
     free(class_name.bytes); free(name.bytes); free(minimum.bytes); free(delay.bytes); free(server.bytes);

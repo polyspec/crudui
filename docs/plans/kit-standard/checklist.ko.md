@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d9ff0ad0a4fa459e30367df2cbb3b31895bf0d955d5440fdccc4039bf9639874 -->
+<!-- source-sha256: 189b9586257d2719e41d0f569b3960b145e0b81bf41f52c5242414a5ceedd20b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -151,6 +151,7 @@
 | C16.58-17 | C extension이 정확한 decimal 수를 하나의 word helper 집합으로 비교하고 곱한다 | packages/php-ext/src/bignum_internal.h, packages/php-ext/src/canonical.c, packages/php-ext/src/number_text.c | `make test-php-ext CASES='RenderingConformanceTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest\|OutlineTest\|DisplayRulesTest\|FormStateTest\|HistoryFunctionsTest'` | [o] |
 | C16.58-18 | C extension이 공유 PHP method의 인수를 한 번에 파싱하고 operation을 하나의 tail로 실행한다 | packages/php-ext/src/crudui.c | `make test-php-ext CASES='RenderingConformanceTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest\|OutlineTest\|DisplayRulesTest\|FormStateTest\|HistoryFunctionsTest'` | [o] |
 | C16.58-19 | C extension이 row 작업의 collection 열기, unknown row 보고, change commit을 하나의 helper 집합으로 수행한다 | packages/php-ext/src/form.c | `make test-php-ext CASES='RenderingConformanceTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest\|OutlineTest\|DisplayRulesTest\|FormStateTest\|HistoryFunctionsTest'` | [o] |
+| C16.58-20 | C widget builder들이 source와 options를 model에 하나의 helper로 넘긴다 | packages/php-ext/src/widget.c | `make test-php-ext CASES='RenderingConformanceTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest\|OutlineTest\|DisplayRulesTest\|FormStateTest\|HistoryFunctionsTest'` | [o] |
 | C16.59 | docs/spec은 여섯 implementation의 규칙만 담는다: tooling 문서는 docs/operations로 옮기고 runtime-packages와 php-extension은 나눈다 | docs/operations, docs/spec, the links to the moved documents | `make docs-check` link check, `make check-documents`, and no document of docs/spec without a requirement id | [o] |
 | C16.60 | record server 준비는 OrderedJSON extension source의 내용을 복사하므로 phpize가 config.m4를 찾는다 | examples/form-comparison/src/local-servers.mjs, examples/form-comparison/src/local-servers.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C16.61 | 중립 규칙은 각 implementation이 폼 값 모델을 네이티브 타입으로 옮기는 방식을 서술한다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md | `make parity-declarations-check` defines CURP-026 and `check-documents` passes | [o] |
