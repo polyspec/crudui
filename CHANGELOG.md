@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — make crudui-test-php-engine runs the contract tests of the PHP extension (C16.160)
+
+- `crudui-test-php-engine` of the Makefile runs `packages/php-ext/tests/contract/*.test.mjs` with the engine and comparison tests (C16.160). C16.57-3-1 and C16.57-3-2 added `compose.test.mjs` and `expr.test.mjs` there as the php-extension bindings of the units `compose` and `expr`, but no project command ran them, which `tests/build/test-commands.test.mts` ("every node:test file runs in a project command") refuses. Red: that test exit 1 on d68d71c6 naming the two files; green: exit 0.
+
 ### 2026-10-21 — The composition and expression part of CURP-001 is cited (C16.150-1)
 
 - The units `compose` and `expr`, which landed after C16.150 was written, cite CURP-001 (C16.150-1): the case `ref-inherit-base` of `tests/fixtures/compose/cases.json` and the case `path-sibling-truthy` of `tests/fixtures/expr/cases.json` name it, written by their generators (`packages/validator/ts/scripts/generate-compose-cases.mts` and `generate-expr-cases.mts` take the extra `requirements` of a case), and the fixture READMEs say so. CURP-001 is now cited for all four capabilities. Red: the Verification exit 1 on 1fe05704; green: exit 0 (both generators reproduce their fixtures, and both units and one case each name CURP-001).

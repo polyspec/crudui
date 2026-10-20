@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0170bca49d9a6514b7bebfe4e5f4bdb7ca66e67fe8a8b69eb60203624b9bf3f0 -->
+<!-- source-sha256: c2b1cb3b7bf785b4ea2f6c5164d8ef0e2cac205a8478f0438e38dcb5c968023f -->
 
 ## Unreleased
+
+### 2026-10-21 — make crudui-test-php-engine이 PHP 확장의 계약 테스트를 실행한다 (C16.160)
+
+- Makefile의 `crudui-test-php-engine`이 엔진·비교 테스트와 함께 `packages/php-ext/tests/contract/*.test.mjs`를 실행한다 (C16.160). C16.57-3-1과 C16.57-3-2가 unit `compose`와 `expr`의 php-extension binding으로 그곳에 `compose.test.mjs`와 `expr.test.mjs`를 추가했지만 어떤 프로젝트 명령도 이를 실행하지 않아 `tests/build/test-commands.test.mts`("every node:test file runs in a project command")가 거부했다. Red: 그 테스트가 d68d71c6에서 두 파일을 명명하며 exit 1; green: exit 0.
 
 ### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
 

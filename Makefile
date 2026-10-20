@@ -356,15 +356,15 @@ bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 # The native suites in three parts, which CI runs in three jobs (.github/workflows/ci.yml) and crudui-test-native runs in one
-# command. crudui-test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers and needs
-# no PHP; crudui-test-native-generators runs the Go and Rust generator suites, the widget and protocol tests and the shared
+# command. crudui-test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers, with the
+# contract tests of packages/php-ext/tests/contract that the parity units bind for the extension (K422), and needs no PHP; crudui-test-native-generators runs the Go and Rust generator suites, the widget and protocol tests and the shared
 # suite for the JavaScript, HTML, Go and Rust targets and needs no PHP; crudui-test-php-api builds and loads the extension and
 # runs the PHP generator suite, the PHP API tests and the shared suite for the PHP and native PHP targets, once for each
 # PHP release of the CI matrix. Within a part every suite runs even when an earlier one fails, so one run reports every
 # failure; any failure fails the target.
 crudui-test-php-engine:
 	$(NODE) scripts/require-current-build.mts
-	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine/engine.test.mjs packages/php-ext/tests/comparison/comparison.test.mjs
+	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine/engine.test.mjs packages/php-ext/tests/contract/*.test.mjs packages/php-ext/tests/comparison/comparison.test.mjs
 
 crudui-test-native-generators: cargo-downloads-check
 	$(NODE) scripts/require-current-build.mts
