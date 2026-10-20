@@ -64,17 +64,6 @@ static bool count_option(const ps_value *value, int64_t min, bool *present, int6
     return true;
 }
 
-static ps_text string_member(const ps_value *object, const char *key)
-{
-    return ps_string(member(object, key));
-}
-
-static bool bool_member(const ps_value *object, const char *key)
-{
-    const ps_value *value = member(object, key);
-    return value && value->kind == PS_BOOL && value->data.boolean;
-}
-
 static bool write_element_start(ps_html_buffer *out, const char *tag, ps_value *attrs)
 {
     bool ok = ps_html_start_element(out, ps_fixed(tag), attrs, false, false);
@@ -98,7 +87,7 @@ static ps_text format_type(const ps_value *column)
     const ps_value *format = member(column, "format");
     if (format && format->kind == PS_STRING && format->data.string.length) return ps_string(format);
     if (format && format->kind == PS_OBJECT) {
-        ps_text type = string_member(format, "type");
+        ps_text type = text_member(format, "type");
         if (type.length) return type;
     }
     return PS_TEXT("text");
@@ -161,7 +150,7 @@ static bool collect_columns(list_context *context, list_column **result, size_t 
         list_column *resized = realloc(*result, (*count + 1) * sizeof(**result));
         if (!resized) { ps_value_free(design); goto fail; }
         *result = resized;
-        ps_text field = string_member(column, "field");
+        ps_text field = text_member(column, "field");
         (*result)[(*count)++] = (list_column){
             ps_key(context->columns, i), column, field, format_type(column),
             format_options(column), design, sortable_column(column, context->data)
@@ -190,9 +179,9 @@ static ps_chars translated(const ps_value *value, ps_text language)
 static bool append_class_style(ps_value *attrs, ps_text base, const ps_value *design)
 {
     const ps_value *main = member(design, "main");
-    ps_chars class_name = ps_join_classes(base, string_member(main, "class"), PS_TEXT(""));
+    ps_chars class_name = ps_join_classes(base, text_member(main, "class"), PS_TEXT(""));
     bool ok = class_name.bytes && ps_html_attr_text(attrs, "class", ps_view(class_name));
-    ps_text style = string_member(main, "style");
+    ps_text style = text_member(main, "style");
     if (ok && style.length) ok = ps_html_attr_text(attrs, "style", style);
     free(class_name.bytes);
     return ok;
@@ -740,11 +729,6 @@ static bool add_preload(list_context *context, const ps_value *source)
     return true;
 }
 
-static bool set_text(ps_value *object, const char *key, ps_text text)
-{
-    return text.bytes && ps_set(object, key, ps_text_value(text));
-}
-
 static bool set_fixed(ps_value *object, const char *key, const char *text)
 {
     return ps_set(object, key, ps_string_value(text));
@@ -777,7 +761,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
     ps_text type = column->type;
     if (ps_text_is(type, "date")) {
         ps_chars scalar = ps_scalar_string(value);
-        ps_text pattern = string_member(options, "pattern");
+        ps_text pattern = text_member(options, "pattern");
         if (!pattern.length) pattern = PS_TEXT("YYYY-MM-DD");
         ps_chars formatted = scalar.bytes ? ps_format_date_pattern(ps_view(scalar), pattern) : scalar;
         free(scalar.bytes);
@@ -815,7 +799,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         ps_value *display = display_object("link");
         if (ok) ok = display && caption.bytes && set_value(display, "href", &href) &&
             set_text(display, "text", ps_view(caption));
-        ps_text target = string_member(options, "target");
+        ps_text target = text_member(options, "target");
         if (ok && target.length) ok = set_text(display, "target", target);
         ps_value_free(href); free(caption.bytes);
         if (!ok) { ps_value_free(display); return NULL; }
@@ -846,7 +830,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         const ps_value *source = member(options, truth ? "true" : "false");
         ps_chars label = source && source->kind != PS_NULL ? translated(source, language)
             : ps_copy(truth ? PS_TEXT("true") : PS_TEXT("false"));
-        ps_text as = string_member(options, "as");
+        ps_text as = text_member(options, "as");
         if (!as.length) as = PS_TEXT("text");
         ps_value *display = display_object("bool");
         bool ok = display && label.bytes && ps_set(display, "value", ps_bool_value(truth)) &&
@@ -900,7 +884,7 @@ static bool append_display(list_context *context, const ps_value *display)
     ps_html_buffer *out = &context->output;
     if (!display) return false;
     if (display->kind == PS_STRING) return ps_html_escaped(out, ps_string(display), false);
-    ps_text kind = string_member(display, "kind");
+    ps_text kind = text_member(display, "kind");
     if (ps_text_is(kind, "html")) {
         const ps_value *html = member(display, "html");
         return html && html->kind == PS_STRING && ps_html_append(out, ps_string(html));
@@ -910,7 +894,7 @@ static bool append_display(list_context *context, const ps_value *display)
     const char *tag = "span", *text = NULL, *glyph = NULL;
     bool ok = true;
     if (ps_text_is(kind, "badge")) {
-        ps_text variant = string_member(display, "variant");
+        ps_text variant = text_member(display, "variant");
         ok = ps_html_attr_string(attrs, "class", "crudui-badge");
         if (ok && variant.length) ok = ps_html_attr_text(attrs, "data-crudui-variant", variant);
         text = "label";
@@ -929,7 +913,7 @@ static bool append_display(list_context *context, const ps_value *display)
         }
         if (ok) ok = add_preload(context, member(display, "src"));
     } else if (ps_text_is(kind, "bool")) {
-        ps_text as = string_member(display, "as");
+        ps_text as = text_member(display, "as");
         bool truth = bool_member(display, "value");
         if (ps_text_is(as, "check")) {
             ok = ps_html_attr_string(attrs, "class", "crudui-bool crudui-bool--check") &&
@@ -1022,16 +1006,16 @@ static bool append_toolbar(list_context *context, const char *block)
         const ps_value *action = ps_at(actions, i);
         ps_chars label = action_label(action, key, context->language);
         const ps_value *format = action->kind == PS_OBJECT ? member(action, "format") : NULL;
-        ps_text type = format && format->kind == PS_OBJECT ? string_member(format, "type") : PS_TEXT("");
+        ps_text type = format && format->kind == PS_OBJECT ? text_member(format, "type") : PS_TEXT("");
         bool link = ps_text_is(type, "link");
         ps_value *span = ps_object_value();
         ps_value *attrs = ps_object_value();
         bool ok = label.bytes && span && attrs && ps_html_attr_string(span, "class", action_class) &&
             ps_html_attr_text(span, "data-action", key) &&
-            (link ? ps_html_attr_text(attrs, "href", string_member(format, "href"))
+            (link ? ps_html_attr_text(attrs, "href", text_member(format, "href"))
                   : ps_html_attr_string(attrs, "type", "button"));
-        if (ok && link && string_member(format, "target").length)
-            ok = ps_html_attr_text(attrs, "target", string_member(format, "target"));
+        if (ok && link && text_member(format, "target").length)
+            ok = ps_html_attr_text(attrs, "target", text_member(format, "target"));
         const ps_value *behavior = action->kind == PS_STRING ? NULL : member(action, "behavior");
         /* A script string, or an object with a script: a button that runs the script on click; a
            behavior member name is the event attribute name. */
@@ -1063,7 +1047,7 @@ static bool append_header(list_context *context, const list_column *columns, siz
     if (!write_element_start(&context->output, "thead", ps_object_value()) ||
         !write_element_start(&context->output, "tr", ps_object_value())) return false;
     const ps_value *sort = member(context->spec, "sort");
-    ps_text sort_field = string_member(sort, "field");
+    ps_text sort_field = text_member(sort, "field");
     const char *sort_dir = is_string(member(sort, "dir"), "desc") ? "desc" : "asc";
     for (size_t i = 0; i < count; ++i) {
         ps_value *attrs = ps_object_value();
@@ -1345,9 +1329,9 @@ static bool append_container_start(list_context *context, const char *tag, const
 {
     const ps_value *wrapper = member(design, "wrapper");
     ps_value *attrs = design ? ps_object_value() : NULL;
-    ps_chars class_name = ps_join_classes(ps_fixed(base), string_member(wrapper, "class"), PS_TEXT(""));
+    ps_chars class_name = ps_join_classes(ps_fixed(base), text_member(wrapper, "class"), PS_TEXT(""));
     bool ok = attrs && class_name.bytes && ps_html_attr_text(attrs, "class", ps_view(class_name));
-    ps_text style = string_member(wrapper, "style");
+    ps_text style = text_member(wrapper, "style");
     if (ok && style.length) ok = ps_html_attr_text(attrs, "style", style);
     free(class_name.bytes);
     if (!ok) { ps_value_free(attrs); return false; }
@@ -1449,7 +1433,7 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
                            const ps_value *options, const char *layout, const char *own, const char *members)
 {
     *session = (list_session){0};
-    ps_text language = string_member(options, "language");
+    ps_text language = text_member(options, "language");
     if (!language.length) language = PS_TEXT("ko");
     const ps_value *data = member(options, "data");
     /* An absent or null context is empty. */
@@ -1458,7 +1442,7 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
         return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "").error;
     const ps_value *files = member(options, "files");
     if (!files) files = session->empty_files = ps_object_value();
-    ps_text basepath = string_member(options, "basepath");
+    ps_text basepath = text_member(options, "basepath");
     ps_value *error = NULL;
     const ps_value *declared = ps_get(spec, members);
     if (!declared || declared->kind != PS_OBJECT) {
@@ -1595,7 +1579,7 @@ static bool append_actions_model(const list_context *context, ps_value *actions)
         } else if (ok && member(raw, "format")) {
             const ps_value *raw_format = member(raw, "format");
             ps_value *format = ps_object_value();
-            ps_text type = raw_format && raw_format->kind == PS_OBJECT ? string_member(raw_format, "type")
+            ps_text type = raw_format && raw_format->kind == PS_OBJECT ? text_member(raw_format, "type")
                 : raw_format && raw_format->kind == PS_STRING ? ps_string(raw_format) : PS_TEXT("text");
             ok = format && set_text(format, "type", type.length ? type : PS_TEXT("text")) &&
                 ps_set(format, "options", raw_format->kind == PS_OBJECT ? ps_value_clone(raw_format) : ps_object_value()) &&
@@ -1680,7 +1664,7 @@ static ps_value *list_model(list_session *session)
         ok = ok && design && set_value(model, "columns", &columns) && set_value(model, "rows", &row_models) &&
             set_value(model, "pagination", &pagination);
         const ps_value *sort = member(context->spec, "sort");
-        if (ok && sort && sort->kind == PS_OBJECT && string_member(sort, "field").length) {
+        if (ok && sort && sort->kind == PS_OBJECT && text_member(sort, "field").length) {
             ps_value *sort_model = ps_object_value();
             ok = sort_model && ps_set(sort_model, "field", ps_value_clone(member(sort, "field"))) &&
                 set_fixed(sort_model, "dir", is_string(member(sort, "dir"), "desc") ? "desc" : "asc") &&
@@ -1811,7 +1795,7 @@ static ps_result render_detail_view(const ps_value *spec, const ps_value *record
         const ps_value *field = ps_at(fields, i);
         const ps_value *label = member(field, "label");
         ps_chars base = value_class("crudui-detail__value crudui-value crudui-value--",
-                                    string_member(member(field, "format"), "type"));
+                                    text_member(member(field, "format"), "type"));
         ps_value *field_attrs = ps_object_value();
         ps_value *label_attrs = ps_object_value();
         ok = base.bytes && field_attrs && label_attrs && label && label->kind == PS_STRING &&

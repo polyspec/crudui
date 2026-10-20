@@ -594,4 +594,37 @@ static inline ps_text text_of(const ps_value *value)
     return value && value->kind == PS_STRING ? ps_string(value) : PS_TEXT("");
 }
 
+/* The text of a member; empty for a missing or non-string member. */
+static inline ps_text text_member(const ps_value *object, const char *key)
+{
+    return ps_string(member(object, key));
+}
+
+/* A boolean member that is true; false for a missing or non-boolean member. */
+static inline bool bool_member(const ps_value *object, const char *key)
+{
+    const ps_value *value = member(object, key);
+    return value && value->kind == PS_BOOL && value->data.boolean;
+}
+
+/* Set a member to the string of a fixed identifier; NULL is empty. */
+static inline bool set_string(ps_value *object, const char *key, const char *value)
+{
+    return ps_set(object, key, ps_string_value(value ? value : ""));
+}
+
+/* Set a member to a text; empty bytes are refused. */
+static inline bool set_text(ps_value *object, const char *key, ps_text value)
+{
+    return value.bytes && ps_set(object, key, ps_text_value(value));
+}
+
+/* Set a member to an owned value and leave the caller no reference to it. */
+static inline bool set_owned_value(ps_value *object, const char *key, ps_value **value)
+{
+    ps_value *owned = *value;
+    *value = NULL;
+    return ps_set(object, key, owned);
+}
+
 #endif

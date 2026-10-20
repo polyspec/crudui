@@ -14,17 +14,6 @@ typedef ps_html_buffer render_buffer;
 #define attr_clone ps_html_attr_clone
 #define appearance_attrs ps_html_appearance_attrs
 
-static ps_text string_member(const ps_value *object, const char *key)
-{
-    return ps_string(member(object, key));
-}
-
-static bool bool_member(const ps_value *object, const char *key)
-{
-    const ps_value *value = member(object, key);
-    return value && value->kind == PS_BOOL && value->data.boolean;
-}
-
 static bool escaped(render_buffer *out, ps_text value, bool raw)
 {
     return ps_html_escaped(out, value, raw);
@@ -67,11 +56,11 @@ static bool write_escaped(render_buffer *out, ps_text value, bool raw)
 static bool write_affix(render_buffer *out, const ps_value *affix, bool raw)
 {
     if (!affix || affix->kind != PS_OBJECT) return true;
-    ps_value *attrs = appearance_attrs(string_member(affix, "class"),
-                                       string_member(affix, "style"));
+    ps_value *attrs = appearance_attrs(text_member(affix, "class"),
+                                       text_member(affix, "style"));
     if (!attrs) return false;
     bool ok = start_element(out, "span", attrs, raw, false) &&
-        write_escaped(out, string_member(affix, "text"), raw) &&
+        write_escaped(out, text_member(affix, "text"), raw) &&
         end_element(out, "span", raw);
     ps_value_free(attrs);
     return ok;
@@ -79,7 +68,7 @@ static bool write_affix(render_buffer *out, const ps_value *affix, bool raw)
 
 static bool write_control(render_buffer *out, const ps_value *widget, bool search)
 {
-    ps_text tag = string_member(widget, "tag");
+    ps_text tag = text_member(widget, "tag");
     if (!tag.length) tag = PS_TEXT("input");
     const ps_value *attrs = member(widget, "attrs");
     bool raw = search || has_events(attrs);
@@ -114,14 +103,14 @@ static bool write_control(render_buffer *out, const ps_value *widget, bool searc
                 return false;
             }
             bool ok = start_element(out, "option", option_attrs, raw, false) &&
-                write_escaped(out, string_member(option, "label"), raw) &&
+                write_escaped(out, text_member(option, "label"), raw) &&
                 end_element(out, "option", raw);
             ps_value_free(option_attrs);
             if (!ok) return false;
         }
         if (open_group && !end_element(out, "optgroup", raw)) return false;
     } else {
-        ps_text content = string_member(widget, "text");
+        ps_text content = text_member(widget, "text");
         if (!raw && ps_text_is(tag, "textarea") && content.length && content.bytes[0] == '\n' &&
             !character(out, '\n')) return false;
         if (!write_escaped(out, content, raw)) return false;
@@ -171,18 +160,18 @@ static bool write_choice_group(render_buffer *out, const ps_value *model)
         if (!ok) return false;
         /* The label classes, then the class the choice declares, and its style. */
         ps_value *label_attrs = ps_object_value();
-        ps_chars label_class = ps_join_classes(string_member(model, "itemLabelClass"),
-                                               string_member(option, "className"), PS_TEXT(""));
+        ps_chars label_class = ps_join_classes(text_member(model, "itemLabelClass"),
+                                               text_member(option, "className"), PS_TEXT(""));
         if (!label_attrs || !label_class.bytes || !attr_clone(label_attrs, "for", member(option, "id")) ||
             !attr_text(label_attrs, "class", ps_view(label_class)) ||
-            (string_member(option, "style").length && !attr_clone(label_attrs, "style", member(option, "style")))) {
+            (text_member(option, "style").length && !attr_clone(label_attrs, "style", member(option, "style")))) {
             ps_value_free(label_attrs); free(label_class.bytes);
             return false;
         }
         free(label_class.bytes);
         ok = start_element(out, "label", label_attrs, raw, false) &&
             start_element(out, "span", NULL, raw, false) &&
-            write_escaped(out, string_member(option, "label"), raw) &&
+            write_escaped(out, text_member(option, "label"), raw) &&
             end_element(out, "span", raw) && end_element(out, "label", raw);
         ps_value_free(label_attrs);
         if (!ok) return false;
@@ -204,7 +193,7 @@ static bool write_file_group(render_buffer *out, const ps_value *model)
     if (!ok) return false;
     if (display && display->kind == PS_OBJECT) {
         ps_value *attrs = raw ? ps_object_value() : ps_value_clone(display);
-        if (!attrs || (raw && (!attr_text(attrs, "class", string_member(display, "class")) ||
+        if (!attrs || (raw && (!attr_text(attrs, "class", text_member(display, "class")) ||
                               !attr_string(attrs, "readonly", "") ||
                               !attr_string(attrs, "type", "text") ||
                               !attr_string(attrs, "value", "")))) {
@@ -230,7 +219,7 @@ static bool write_file_group(render_buffer *out, const ps_value *model)
 
 static bool write_search(render_buffer *out, const ps_value *model)
 {
-    ps_text chrome = string_member(model, "styleChrome");
+    ps_text chrome = text_member(model, "styleChrome");
     if (chrome.length) {
         ps_value *attrs = ps_object_value();
         if (!attrs || !attr_string(attrs, "nonce", "")) { ps_value_free(attrs); return false; }
@@ -239,7 +228,7 @@ static bool write_search(render_buffer *out, const ps_value *model)
         ps_value_free(attrs);
         if (!ok) return false;
     }
-    if (!write_script(out, string_member(model, "script"))) return false;
+    if (!write_script(out, text_member(model, "script"))) return false;
     ps_value *attrs = ps_object_value();
     if (!attrs || !attr_string(attrs, "class", "crudui-widget crudui-widget--search")) {
         ps_value_free(attrs);
@@ -260,7 +249,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
     if (bool_member(model, "unsupported")) {
         ps_value *attrs = ps_object_value();
         if (!attrs || !attr_string(attrs, "class", "crudui-widget crudui-widget--unsupported") ||
-            !attr_text(attrs, "data-unsupported-type", string_member(model, "type"))) {
+            !attr_text(attrs, "data-unsupported-type", text_member(model, "type"))) {
             ps_value_free(attrs);
             return false;
         }
@@ -269,7 +258,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
         ps_value_free(attrs);
         return ok;
     }
-    ps_text layout = string_member(model, "layout");
+    ps_text layout = text_member(model, "layout");
     if (ps_text_is(layout, "widget")) {
         ps_value *attrs = ps_object_value();
         if (!attrs || !attr_string(attrs, "class", "crudui-widget")) { ps_value_free(attrs); return false; }
@@ -294,7 +283,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
             write_affix(out, member(model, "prepend"), raw) &&
             write_control(out, model, false) &&
             start_element(out, "output", output, raw, false) &&
-            write_escaped(out, string_member(model, "text"), raw) && end_element(out, "output", raw) &&
+            write_escaped(out, text_member(model, "text"), raw) && end_element(out, "output", raw) &&
             write_affix(out, member(model, "append"), raw) &&
             end_element(out, "div", false);
         ps_value_free(attrs); ps_value_free(output);
@@ -302,12 +291,12 @@ static bool write_widget(render_buffer *out, const ps_value *model)
     }
     if (ps_text_is(layout, "bare")) return write_control(out, model, false);
     if (ps_text_is(layout, "host-script"))
-        return write_control(out, model, false) && write_script(out, string_member(model, "script"));
+        return write_control(out, model, false) && write_script(out, text_member(model, "script"));
     if (ps_text_is(layout, "choices")) return write_choice_group(out, model);
     if (ps_text_is(layout, "file")) return write_file_group(out, model);
     if (ps_text_is(layout, "display"))
         return start_element(out, "div", member(model, "attrs"), false, true) &&
-            append(out, string_member(model, "rawHtml")) && end_element(out, "div", false);
+            append(out, text_member(model, "rawHtml")) && end_element(out, "div", false);
     if (ps_text_is(layout, "search")) return write_search(out, model);
     if (ps_text_is(layout, "button")) return write_control(out, model, false);
     return false;
@@ -339,7 +328,7 @@ static bool write_controls(render_buffer *out, const ps_value *controls)
     ps_value *attrs = ps_object_value();
     bool ok = attrs && attr_string(attrs, "class", "crudui-controls") &&
         attr_string(attrs, "role", "group") &&
-        attr_text(attrs, "aria-label", string_member(controls, "label")) &&
+        attr_text(attrs, "aria-label", text_member(controls, "label")) &&
         start_element(out, "div", attrs, false, false);
     ps_value_free(attrs);
     const ps_value *actions = member(controls, "actions");
@@ -348,8 +337,8 @@ static bool write_controls(render_buffer *out, const ps_value *controls)
         ps_value *button = ps_object_value();
         ok = button && attr_string(button, "type", "button") &&
             attr_string(button, "class", "crudui-action") &&
-            attr_text(button, "data-crudui-action", string_member(action, "name")) &&
-            attr_text(button, "aria-label", string_member(action, "label")) &&
+            attr_text(button, "data-crudui-action", text_member(action, "name")) &&
+            attr_text(button, "aria-label", text_member(action, "label")) &&
             (!bool_member(action, "disabled") || attr_string(button, "aria-disabled", "true")) &&
             write_empty_element(out, "button", button);
         ps_value_free(button);
@@ -394,26 +383,26 @@ static bool write_header(render_buffer *out, const ps_value *node)
         const ps_value *target = member(header, "labelFor");
         ps_value *attrs = ps_object_value();
         ok = attrs && attr_string(attrs, "class", "crudui-node__label") &&
-            (!target || !string_member(header, "labelFor").length || attr_clone(attrs, "for", target)) &&
-            write_text_element(&parts, target && string_member(header, "labelFor").length ? "label" : "span",
-                               attrs, string_member(header, "label"));
+            (!target || !text_member(header, "labelFor").length || attr_clone(attrs, "for", target)) &&
+            write_text_element(&parts, target && text_member(header, "labelFor").length ? "label" : "span",
+                               attrs, text_member(header, "label"));
         ps_value_free(attrs);
     }
     if (ok && member(header, "description"))
-        ok = write_class_text(&parts, "p", "crudui-node__description", string_member(header, "description"));
+        ok = write_class_text(&parts, "p", "crudui-node__description", text_member(header, "description"));
     if (ok && member(header, "number"))
-        ok = write_class_text(&parts, "span", "crudui-node__number", string_member(header, "number"));
+        ok = write_class_text(&parts, "span", "crudui-node__number", text_member(header, "number"));
     if (ok && member(header, "title"))
-        ok = write_class_text(&parts, "span", "crudui-node__title", string_member(header, "title"));
+        ok = write_class_text(&parts, "span", "crudui-node__title", text_member(header, "title"));
     if (ok && member(header, "summary")) {
         ps_value *attrs = ps_object_value();
         ok = attrs && attr_string(attrs, "class", "crudui-node__summary") &&
             (!expanded || attr_string(attrs, "hidden", "")) &&
-            write_text_element(&parts, "span", attrs, string_member(header, "summary"));
+            write_text_element(&parts, "span", attrs, text_member(header, "summary"));
         ps_value_free(attrs);
     }
     if (ok && member(header, "count"))
-        ok = write_class_text(&parts, "span", "crudui-node__count", string_member(header, "count"));
+        ok = write_class_text(&parts, "span", "crudui-node__count", text_member(header, "count"));
     if (ok && header_controls) ok = write_controls(&parts, controls);
     if (!ok) parts.failed = true;
     ps_chars content = take(&parts);
@@ -421,9 +410,9 @@ static bool write_header(render_buffer *out, const ps_value *node)
     if (!content.length) { free(content.bytes); return true; }
 
     render_buffer classes = {0};
-    ps_text header_style = string_member(header, "style");
+    ps_text header_style = text_member(header, "style");
     if (!class_part(&classes, PS_TEXT("crudui-node__header")) ||
-        !class_part(&classes, string_member(header, "className"))) classes.failed = true;
+        !class_part(&classes, text_member(header, "className"))) classes.failed = true;
     ps_chars class_name = take(&classes);
     ps_value *attrs = ps_object_value();
     ok = class_name.bytes && attrs && attr_text(attrs, "class", ps_view(class_name)) &&
@@ -439,12 +428,12 @@ static bool write_body(render_buffer *out, const ps_value *node, const ps_form_r
     const ps_value *body = member(node, "body");
     render_buffer classes = {0};
     if (!class_part(&classes, PS_TEXT("crudui-node__body")) ||
-        !class_part(&classes, string_member(body, "className"))) classes.failed = true;
+        !class_part(&classes, text_member(body, "className"))) classes.failed = true;
     ps_chars class_name = take(&classes);
     ps_value *attrs = ps_object_value();
     bool ok = class_name.bytes && attrs && attr_text(attrs, "class", ps_view(class_name)) &&
-        (!string_member(body, "style").length || attr_clone(attrs, "style", member(body, "style"))) &&
-        (!string_member(body, "id").length || attr_clone(attrs, "id", member(body, "id"))) &&
+        (!text_member(body, "style").length || attr_clone(attrs, "style", member(body, "style"))) &&
+        (!text_member(body, "id").length || attr_clone(attrs, "id", member(body, "id"))) &&
         (!bool_member(node, "collapsible") || bool_member(node, "expanded") ||
          attr_string(attrs, "hidden", "")) &&
         start_element(out, "div", attrs, false, false);
@@ -455,19 +444,19 @@ static bool write_body(render_buffer *out, const ps_value *node, const ps_form_r
         ps_value *input = ps_object_value();
         ps_value *label = ps_object_value();
         ok = input && label &&
-            attr_text(input, "class", string_member(checkbox, "className")) &&
-            attr_text(input, "id", string_member(checkbox, "id")) &&
-            attr_text(input, "name", string_member(checkbox, "name")) &&
+            attr_text(input, "class", text_member(checkbox, "className")) &&
+            attr_text(input, "id", text_member(checkbox, "id")) &&
+            attr_text(input, "name", text_member(checkbox, "name")) &&
             attr_string(input, "type", "checkbox") &&
-            (!string_member(checkbox, "role").length || attr_clone(input, "role", member(checkbox, "role"))) &&
+            (!text_member(checkbox, "role").length || attr_clone(input, "role", member(checkbox, "role"))) &&
             attr_string(input, "value", "1") &&
             (!bool_member(checkbox, "checked") || attr_string(input, "checked", "")) &&
             ps_append_attributes(input, member(checkbox, "attributes")) &&
             start_element(out, "input", input, false, false) &&
             /* An inline layout writes the label in the header, and the checkbox has no caption. */
             (!member(checkbox, "caption") ||
-             (attr_text(label, "for", string_member(checkbox, "id")) &&
-              write_text_element(out, "label", label, string_member(checkbox, "caption"))));
+             (attr_text(label, "for", text_member(checkbox, "id")) &&
+              write_text_element(out, "label", label, text_member(checkbox, "caption"))));
         ps_value_free(input); ps_value_free(label);
     } else if (member(node, "widget")) {
         ok = write_widget(out, member(node, "widget"));
@@ -508,18 +497,18 @@ static const ps_value *node_errors(const ps_form_render *render, const ps_value 
 static bool write_node(render_buffer *out, const ps_value *node, const ps_form_render *render)
 {
     if (!node || node->kind != PS_OBJECT) return false;
-    ps_text kind = string_member(node, "kind");
+    ps_text kind = text_member(node, "kind");
     ps_chars modifier = PS_CONCAT(PS_TEXT("crudui-node--"), kind);
     render_buffer classes = {0};
     if (!modifier.bytes || !class_part(&classes, PS_TEXT("crudui-node")) ||
         !class_part(&classes, ps_view(modifier)) ||
         (bool_member(node, "sticky") && !class_part(&classes, PS_TEXT("crudui-node--sticky"))) ||
-        !class_part(&classes, string_member(node, "className"))) classes.failed = true;
+        !class_part(&classes, text_member(node, "className"))) classes.failed = true;
     free(modifier.bytes);
     ps_chars class_name = take(&classes);
     /* A sticky row carries its depth on the root; the stylesheet derives its sticky line from it. */
     render_buffer style = {0};
-    ps_text node_style = string_member(node, "style");
+    ps_text node_style = text_member(node, "style");
     if (node_style.length && !append(&style, node_style)) style.failed = true;
     if (bool_member(node, "sticky")) {
         ps_chars depth = member(node, "stickyDepth") ? ps_scalar_string(member(node, "stickyDepth"))
@@ -587,7 +576,7 @@ static bool write_button_items(render_buffer *out, const ps_value *buttons)
     bool ok = true;
     for (size_t i = 0; ok && i < ps_size(buttons); ++i) {
         const ps_value *button = ps_at(buttons, i);
-        ps_text tag = string_member(button, "tag");
+        ps_text tag = text_member(button, "tag");
         const ps_value *attrs = member(button, "attrs");
         ok = character(out, '<') && append(out, tag);
         for (size_t j = 0; ok && attrs && j < ps_size(attrs); ++j) {
@@ -595,7 +584,7 @@ static bool write_button_items(render_buffer *out, const ps_value *buttons)
                 button_escaped(out, ps_string(ps_at(attrs, j)), true) &&
                 character(out, '"');
         }
-        ok = ok && character(out, '>') && button_escaped(out, string_member(button, "text"), false) &&
+        ok = ok && character(out, '>') && button_escaped(out, text_member(button, "text"), false) &&
             text(out, "</") && append(out, tag) && character(out, '>');
     }
     return ok;

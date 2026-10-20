@@ -77,13 +77,6 @@ static ps_value *design_node(const ps_value *value, const ps_value *data,
     free(class_name.bytes); free(style.bytes); return node;
 }
 
-static bool set_owned(ps_value *object, const char *key, ps_value **value)
-{
-    ps_value *owned = *value;
-    *value = NULL;
-    return ps_set(object, key, owned);
-}
-
 ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path,
                     const size_t *rows, size_t row_count)
 {
@@ -108,12 +101,12 @@ ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path,
     ps_value *show = ps_bool_value(show_value(object ? ps_get(object, "show") : NULL,
                                               data, path_parts, row_keys, path_length, &failed));
     bool ok = !failed && result && main && label && wrapper && group && prepend && show;
-    if (ok) ok = set_owned(result, "show", &show);
-    if (ok) ok = set_owned(result, "main", &main);
-    if (ok) ok = set_owned(result, "label", &label);
-    if (ok) ok = set_owned(result, "wrapper", &wrapper);
-    if (ok) ok = set_owned(result, "group", &group);
-    if (ok) ok = set_owned(result, "prepend", &prepend);
+    if (ok) ok = set_owned_value(result, "show", &show);
+    if (ok) ok = set_owned_value(result, "main", &main);
+    if (ok) ok = set_owned_value(result, "label", &label);
+    if (ok) ok = set_owned_value(result, "wrapper", &wrapper);
+    if (ok) ok = set_owned_value(result, "group", &group);
+    if (ok) ok = set_owned_value(result, "prepend", &prepend);
     if (!ok) {
         ps_value_free(result);
         ps_value_free(show); ps_value_free(main); ps_value_free(label);

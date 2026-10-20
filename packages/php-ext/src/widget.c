@@ -18,16 +18,6 @@ typedef struct {
     size_t row_count;
 } widget_context;
 
-static bool set_string(ps_value *object, const char *key, const char *value)
-{
-    return ps_set(object, key, ps_string_value(value ? value : ""));
-}
-
-static bool set_text(ps_value *object, const char *key, ps_text value)
-{
-    return value.bytes && ps_set(object, key, ps_text_value(value));
-}
-
 /* Set owned text and free it. */
 static bool set_owned(ps_value *object, const char *key, ps_chars value)
 {
@@ -49,11 +39,6 @@ static ps_chars joined(ps_chars first, ps_text second, ps_text third)
     return first.bytes ? PS_CONCAT(ps_view(first), second, third) : (ps_chars){NULL, 0};
 }
 
-static ps_text string_member(const ps_value *object, const char *key)
-{
-    return ps_string(member(object, key));
-}
-
 static const ps_value *design_node(const widget_context *context, const char *name)
 {
     const ps_value *node = *name ? member(context->design, name) : context->design;
@@ -62,12 +47,12 @@ static const ps_value *design_node(const widget_context *context, const char *na
 
 static ps_chars context_class(const widget_context *context, const char *base)
 {
-    return ps_join_classes(ps_fixed(base), string_member(design_node(context, "main"), "class"), PS_TEXT(""));
+    return ps_join_classes(ps_fixed(base), text_member(design_node(context, "main"), "class"), PS_TEXT(""));
 }
 
 static ps_chars context_style(const widget_context *context)
 {
-    return ps_style_string(string_member(design_node(context, "main"), "style"));
+    return ps_style_string(text_member(design_node(context, "main"), "style"));
 }
 
 static ps_chars context_name(const widget_context *context)
@@ -138,10 +123,10 @@ static bool set_affix(const widget_context *context, ps_value *model,
     ps_value *affix = ps_object_value();
     ps_chars class_name = prepend
         ? ps_join_classes(PS_TEXT("crudui-widget__affix"),
-            string_member(design_node(context, "prepend"), "class"), PS_TEXT(""))
+            text_member(design_node(context, "prepend"), "class"), PS_TEXT(""))
         : ps_copy(PS_TEXT("crudui-widget__affix"));
     ps_chars style = prepend
-        ? ps_style_string(string_member(design_node(context, "prepend"), "style")) : ps_copy(PS_TEXT(""));
+        ? ps_style_string(text_member(design_node(context, "prepend"), "style")) : ps_copy(PS_TEXT(""));
     bool result = affix && class_name.bytes && style.bytes && set_text(affix, "text", ps_view(text)) &&
         set_text(affix, "class", ps_view(class_name)) &&
         (!style.length || set_text(affix, "style", ps_view(style))) &&
@@ -412,9 +397,9 @@ static ps_value *choices(const char *kind, const widget_context *context)
     ps_value *attrs = ps_object_value();
     /* The choices element: its classes, then the class and style of design.group. */
     ps_chars choices_class = ps_join_classes(multiple ? PS_TEXT("crudui-choices crudui-choices--multiple")
-        : PS_TEXT("crudui-choices"), string_member(design_node(context, "group"), "class"), PS_TEXT(""));
+        : PS_TEXT("crudui-choices"), text_member(design_node(context, "group"), "class"), PS_TEXT(""));
     bool ok = attrs && choices_class.bytes && set_text(attrs, "class", ps_view(choices_class)) &&
-        set_nonempty(attrs, "style", ps_style_string(string_member(design_node(context, "group"), "style")));
+        set_nonempty(attrs, "style", ps_style_string(text_member(design_node(context, "group"), "style")));
     free(choices_class.bytes);
     if (ok) ok = extend_object(attrs, source);
     ps_value *options = ok ? option_models(context, multiple, !multiple) : NULL;
@@ -561,7 +546,7 @@ static ps_value *display_control(const char *kind, const widget_context *context
 {
     ps_value *attrs = ps_object_value();
     bool ok = attrs != NULL;
-    ps_text main_class = string_member(design_node(context, "main"), "class");
+    ps_text main_class = text_member(design_node(context, "main"), "class");
     if (ok && main_class.length) ok = set_text(attrs, "class", main_class);
     if (ok && strcmp(kind, "image-viewer")) ok = set_nonempty(attrs, "style", context_style(context));
     ps_chars raw = ok ? display_html(context, kind) : (ps_chars){NULL, 0};
@@ -675,7 +660,7 @@ static ps_value *editor_control(const char *kind, const widget_context *context)
         ps_chars height = context_option(context, "height", "300"), upload = context_option(context, "fileserver", "upload");
         ps_chars quoted_upload = upload.bytes ? script_quote(ps_view(upload)) : upload;
         ok = height.bytes && upload.bytes && quoted_upload.bytes &&
-            set_text(attrs, "data-type", string_member(context->spec, "type")) &&
+            set_text(attrs, "data-type", text_member(context->spec, "type")) &&
             set_text(attrs, "data-height", ps_view(height)) && set_text(attrs, "data-upload-server", ps_view(upload));
         ps_html_append(&script, ps_view(height));
         ps_html_text(&script, ", ");
@@ -825,10 +810,10 @@ static bool set_appearance(ps_value *option, const ps_value *items, size_t index
 {
     if (!ps_is_choice_list(items)) return true;
     const ps_value *choice = ps_at(items, index);
-    ps_text class_name = string_member(choice, "class");
+    ps_text class_name = text_member(choice, "class");
     const ps_value *attributes = member(choice, "attributes");
     return (!class_name.length || set_text(option, "className", class_name)) &&
-        set_nonempty(option, "style", ps_style_string(string_member(choice, "style"))) &&
+        set_nonempty(option, "style", ps_style_string(text_member(choice, "style"))) &&
         (!attributes || attributes->kind != PS_OBJECT || !ps_size(attributes) ||
          ps_set(option, "attributes", ps_value_clone(attributes)));
 }
@@ -854,7 +839,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                     ps_text id_prefix, ps_text language,
                     const size_t *row_segments, size_t row_count)
 {
-    const char *kind = canonical_kind(string_member(spec, "type"));
+    const char *kind = canonical_kind(text_member(spec, "type"));
     if (!kind) return NULL;
     ps_chars id = ps_control_id(id_prefix, path);
     if (!id.bytes) return NULL;
@@ -873,7 +858,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
     else if (!strcmp(kind, "range")) model = range_control(&context);
     else model = text_control(kind, &context);
     if (model) {
-        ps_text tag = string_member(model, "tag");
+        ps_text tag = text_member(model, "tag");
         if ((ps_text_is(tag, "input") || ps_text_is(tag, "select") || ps_text_is(tag, "textarea")) &&
             !set_text(ps_get_mut(model, "attrs"), "id", ps_view(id))) { ps_value_free(model); model = NULL; }
         ps_value *file = ps_get_mut(ps_get_mut(model, "extra"), "file");

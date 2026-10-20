@@ -36,28 +36,6 @@ typedef struct {
     const char *controls;
 } multiple_settings;
 
-static ps_text string_member(const ps_value *object, const char *key)
-{
-    return ps_string(member(object, key));
-}
-
-static bool set_string(ps_value *object, const char *key, const char *value)
-{
-    return ps_set(object, key, ps_string_value(value ? value : ""));
-}
-
-static bool set_text(ps_value *object, const char *key, ps_text value)
-{
-    return value.bytes && ps_set(object, key, ps_text_value(value));
-}
-
-static bool set_owned(ps_value *object, const char *key, ps_value **value)
-{
-    ps_value *owned = *value;
-    *value = NULL;
-    return ps_set(object, key, owned);
-}
-
 static bool append_owned(ps_value *array, ps_value **value)
 {
     ps_value *owned = *value;
@@ -224,11 +202,11 @@ static ps_value *node_root(const char *kind, ps_text path, const ps_value *desig
 {
     const ps_value *wrapper = member(design, "wrapper");
     const ps_value *attributes = ps_declared_attributes(spec, true);
-    ps_chars style = ps_style_string(string_member(wrapper, "style"));
+    ps_chars style = ps_style_string(text_member(wrapper, "style"));
     ps_value *node = ps_object_value();
     bool ok = style.bytes && node && set_string(node, "kind", kind) &&
         set_text(node, "path", path) &&
-        set_text(node, "className", string_member(wrapper, "class")) &&
+        set_text(node, "className", text_member(wrapper, "class")) &&
         (!style.length || set_text(node, "style", ps_view(style))) &&
         (!attributes || ps_set(node, "attributes", ps_value_clone(attributes))) &&
         ps_set(node, "hidden", ps_bool_value(!enabled_bool(design, "show")));
@@ -251,13 +229,13 @@ static bool attach_header(ps_value *node, const ps_value *design,
     for (size_t i = 0; i < count; ++i) if (parts[i].text.bytes && parts[i].text.length) present = true;
     if (!present) return true;
     const ps_value *label = member(design, "label");
-    ps_chars style = ps_style_string(string_member(label, "style"));
+    ps_chars style = ps_style_string(text_member(label, "style"));
     ps_value *header = ps_object_value();
-    bool ok = style.bytes && header && set_text(header, "className", string_member(label, "class")) &&
+    bool ok = style.bytes && header && set_text(header, "className", text_member(label, "class")) &&
         (!style.length || set_text(header, "style", ps_view(style)));
     for (size_t i = 0; ok && i < count; ++i)
         if (parts[i].text.bytes && parts[i].text.length) ok = set_text(header, parts[i].key, parts[i].text);
-    if (ok) ok = set_owned(node, "header", &header);
+    if (ok) ok = set_owned_value(node, "header", &header);
     free(style.bytes); ps_value_free(header);
     return ok;
 }
@@ -268,7 +246,7 @@ static bool attach_body(ps_value *node, ps_text class_name, ps_text style_source
     ps_value *body = ps_object_value();
     bool ok = style.bytes && body && set_text(body, "className", class_name) &&
         (!style.length || set_text(body, "style", ps_view(style))) &&
-        (!id.length || set_text(body, "id", id)) && set_owned(node, "body", &body);
+        (!id.length || set_text(body, "id", id)) && set_owned_value(node, "body", &body);
     free(style.bytes); ps_value_free(body);
     return ok;
 }
@@ -287,8 +265,8 @@ static bool attach_controls(ps_value *node, const char *placement, const char *l
 {
     ps_value *controls = ps_object_value();
     bool ok = controls && set_string(controls, "placement", placement) &&
-        set_string(controls, "label", label) && set_owned(controls, "actions", actions) &&
-        set_owned(node, "controls", &controls);
+        set_string(controls, "label", label) && set_owned_value(controls, "actions", actions) &&
+        set_owned_value(node, "controls", &controls);
     ps_value_free(controls); ps_value_free(*actions); *actions = NULL;
     return ok;
 }
@@ -320,7 +298,7 @@ static row_scope layout_scope(const row_scope *scope, ps_text layout)
 /* Prepend layout modifiers to the root class of a node. */
 static bool prepend_class(ps_value *node, ps_text first, ps_text second)
 {
-    ps_chars joined = ps_join_classes(first, second, string_member(node, "className"));
+    ps_chars joined = ps_join_classes(first, second, text_member(node, "className"));
     bool ok = joined.bytes && set_text(node, "className", ps_view(joined));
     free(joined.bytes);
     return ok;
@@ -376,7 +354,7 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
         bool switcher = ps_text_is(type, "switcher");
         ps_chars class_name = ps_join_classes(PS_TEXT("valid-target"),
             switcher ? PS_TEXT("crudui-input crudui-input--switch") : PS_TEXT(""),
-            string_member(member(design, "main"), "class"));
+            text_member(member(design, "main"), "class"));
         ps_value *checkbox = ps_object_value();
         /* An inline layout writes the label in the label column of the header instead of the caption. */
         bool header_label = scope->inline_layout && label.length;
@@ -394,7 +372,7 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
             (header_label || set_text(checkbox, "caption", label.bytes ? label : PS_TEXT(""))) &&
             (!ps_declared_attributes(spec, false) ||
              ps_set(checkbox, "attributes", ps_value_clone(ps_declared_attributes(spec, false)))) &&
-            set_owned(node, "checkbox", &checkbox);
+            set_owned_value(node, "checkbox", &checkbox);
         free(id.bytes); free(name.bytes); free(class_name.bytes); ps_value_free(checkbox);
         if (!ok) { ps_value_free(node); return NULL; }
         return node;
@@ -407,7 +385,7 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
         ok = attach_header(node, design, parts, 3);
     }
     ok = ok && attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
-        set_owned(node, "widget", &widget);
+        set_owned_value(node, "widget", &widget);
     ps_value_free(widget);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
@@ -433,10 +411,10 @@ static ps_value *build_group(const ps_value *field, ps_text path, const ps_value
         (!line || prepend_class(node, scope->inline_layout ? PS_TEXT("crudui-node--inline") : PS_TEXT(""),
                                 PS_TEXT("crudui-node--line"))) &&
         attach_header(node, design, parts, 2) &&
-        attach_body(node, string_member(group, "class"), string_member(group, "style"), (ps_text){NULL, 0});
+        attach_body(node, text_member(group, "class"), text_member(group, "style"), (ps_text){NULL, 0});
     row_scope inner = layout_scope(scope, layout);
     ps_value *children = ok ? build_children(field, path, context, &inner, error) : NULL;
-    ok = children && set_owned(node, "children", &children);
+    ok = children && set_owned_value(node, "children", &children);
     ps_value_free(children);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
@@ -519,9 +497,9 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
     if (ok && !group) {
         const ps_value *value = ps_path(context->data, ps_view(row_path));
         ps_value *widget = build_widget(spec, value, ps_view(row_path), row_design, context, &inner, error);
-        ok = widget && set_owned(row, "header", &header) &&
+        ok = widget && set_owned_value(row, "header", &header) &&
             attach_body(row, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
-            set_owned(row, "widget", &widget);
+            set_owned_value(row, "widget", &widget);
         ps_value_free(widget);
     } else if (ok) {
         const ps_value *value = ps_path(context->data, ps_view(row_path));
@@ -547,13 +525,13 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
         const ps_value *design_group = member(row_design, "group");
         ok = children && summary.bytes && (!settings->title.bytes || title.bytes) && body_id.bytes &&
             (!settings->title.bytes || set_text(header, "title", ps_view(title))) &&
-            set_text(header, "summary", ps_view(summary)) && set_owned(row, "header", &header) &&
-            attach_body(row, string_member(design_group, "class"),
-                        string_member(design_group, "style"), ps_view(body_id)) &&
+            set_text(header, "summary", ps_view(summary)) && set_owned_value(row, "header", &header) &&
+            attach_body(row, text_member(design_group, "class"),
+                        text_member(design_group, "style"), ps_view(body_id)) &&
             ps_set(row, "collapsible", ps_bool_value(true)) &&
             ps_set(row, "expanded", ps_bool_value(!row_collapsed(ps_view(row_path), context))) &&
             set_string(row, "toggleLabel", messages->toggle_row) &&
-            set_owned(row, "children", &children);
+            set_owned_value(row, "children", &children);
         ps_value_free(children); free(summary.bytes); free(title.bytes);
         free(control.bytes); free(body_id.bytes);
     }
@@ -616,7 +594,7 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
                             context->messages->collection_controls, &actions);
         ps_value_free(actions);
     }
-    ok = ok && set_owned(node, "children", &rows);
+    ok = ok && set_owned_value(node, "children", &rows);
     free(count_text.bytes); ps_value_free(rows);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
@@ -636,9 +614,9 @@ static ps_value *build_lang(const ps_value *spec, ps_text path, const ps_value *
     ps_chars title = {NULL, 0};
     bool ok = translated(member(settings, "title"), context->language, &title);
     ps_chars root_class = ok ? ps_join_classes(frame_class,
-        string_member(member(design, "wrapper"), "class"), PS_TEXT("")) : (ps_chars){NULL, 0};
+        text_member(member(design, "wrapper"), "class"), PS_TEXT("")) : (ps_chars){NULL, 0};
     ps_chars group_class = root_class.bytes
-        ? ps_join_classes(string_member(settings, "group_class"), PS_TEXT(""), PS_TEXT("")) : root_class;
+        ? ps_join_classes(text_member(settings, "group_class"), PS_TEXT(""), PS_TEXT("")) : root_class;
     ps_value *node = group_class.bytes ? node_root("lang", path, design, spec) : NULL;
     header_part header[] = {{"label", label}, {"description", description}, {"title", ps_view(title)}};
     if (!title.bytes) header[2].text = (ps_text){NULL, 0};
@@ -669,13 +647,13 @@ static ps_value *build_lang(const ps_value *spec, ps_text path, const ps_value *
             set_string(child, "kind", "lang-item") && set_text(child, "lang", code) &&
             set_string(child, "className", "") && ps_set(child, "hidden", ps_bool_value(false)) &&
             set_string(child_header, "className", "") && set_text(child_header, "label", code) &&
-            set_owned(child, "header", &child_header) &&
+            set_owned_value(child, "header", &child_header) &&
             attach_body(child, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
-            set_owned(child, "widget", &widget) && append_owned(children, &child);
+            set_owned_value(child, "widget", &widget) && append_owned(children, &child);
         free(lang_path.bytes); ps_value_free(lang_design);
         ps_value_free(widget); ps_value_free(child); ps_value_free(child_header);
     }
-    ok = ok && set_owned(node, "children", &children);
+    ok = ok && set_owned_value(node, "children", &children);
     ps_value_free(children);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
@@ -944,14 +922,14 @@ ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, ps_tex
     if (!messages || !buttons) { ps_value_free(buttons); return NULL; }
     for (size_t i = 0; declared && declared->kind == PS_ARRAY && i < ps_size(declared); ++i) {
         const ps_value *spec = ps_at(declared, i);
-        ps_text type = string_member(spec, "type");
+        ps_text type = text_member(spec, "type");
         bool link = ps_text_is(type, "link");
         const char *fallback = ps_text_is(type, "submit") ? messages->submit
             : ps_text_is(type, "reset") ? messages->reset : "";
         ps_value *design = ps_design(member(spec, "design"), data, PS_TEXT(""), NULL, 0);
         const ps_value *main_node = member(design, "main");
-        ps_text extra = string_member(main_node, "class");
-        ps_chars style = ps_style_string(string_member(main_node, "style"));
+        ps_text extra = text_member(main_node, "class");
+        ps_chars style = ps_style_string(text_member(main_node, "style"));
         ps_chars class_name = PS_CONCAT(PS_TEXT("crudui-action crudui-action--text"),
                                         extra.length ? PS_TEXT(" ") : PS_TEXT(""), extra);
         ps_chars text = button_text(member(spec, "text"), language, fallback);
