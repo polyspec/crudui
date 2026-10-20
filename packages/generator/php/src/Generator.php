@@ -13,6 +13,7 @@ use Polyspec\Crudui\Generator\Lists;
 use Polyspec\Crudui\Generator\Outline;
 use Polyspec\Crudui\Generator\Rendering;
 use Polyspec\Crudui\Generator\Template;
+use Polyspec\Crudui\Generator\View;
 use stdClass;
 
 /** Compile form structures, bind values and render forms or lists. */
@@ -26,7 +27,10 @@ final class Generator
         return Template::compile($spec, $options);
     }
 
-    /** Evaluate fields without modifying template or record data. */
+    /**
+     * Evaluate fields without modifying template or record data. The option `collapsed` lists the row paths
+     * `{collection}.{key}` rendered collapsed.
+     */
     public static function bindForm(stdClass $template, array|stdClass $data = [], array $options = []): array
     {
         InputText::inputs([['template', $template], ['data', $data]], $options, InputText::BIND);
@@ -43,6 +47,51 @@ final class Generator
     public static function buildOutline(array $nodes): array
     {
         return Outline::build($nodes);
+    }
+
+    /** The view with no collapsed row; a view is `['collapsed' => list of row paths]`. */
+    public static function initialView(): array
+    {
+        return View::initial();
+    }
+
+    /** Expand a collapsed row or collapse an expanded one. */
+    public static function toggleRowView(array $view, string $rowPath): array
+    {
+        return View::toggle($view, $rowPath);
+    }
+
+    /**
+     * The row paths `{collection}.{key}` of every collapsible row of the evaluated nodes.
+     *
+     * @param list<stdClass> $nodes the evaluated nodes that bindForm returns
+     * @return list<string>
+     */
+    public static function collapsibleRows(array $nodes): array
+    {
+        return View::collapsibleRows($nodes);
+    }
+
+    /**
+     * The view with no collapsed row, or the view that collapses every collapsible row of the nodes.
+     *
+     * @param list<stdClass> $nodes the evaluated nodes that bindForm returns
+     */
+    public static function setAllExpandedView(array $nodes, bool $expanded): array
+    {
+        return View::setAllExpanded($nodes, $expanded);
+    }
+
+    /** Drop the collapsed state of a removed row and of the rows inside it. */
+    public static function removeRowView(array $view, string $rowPath): array
+    {
+        return View::removeRow($view, $rowPath);
+    }
+
+    /** Move the collapsed state of a rekeyed row and of the rows inside it to the new row path. */
+    public static function rekeyRowView(array $view, string $oldPath, string $newPath): array
+    {
+        return View::rekeyRow($view, $oldPath, $newPath);
     }
 
     /** Evaluate the template buttons for a record as objects with type, tag, text and ordered attrs. */

@@ -406,7 +406,7 @@ final class Binding
             'header' => $header,
             'body' => $body,
             'collapsible' => true,
-            'expanded' => true,
+            'expanded' => !in_array($rowPath, $state['collapsed'] ?? [], true),
             'toggleLabel' => $messages['toggleRow'],
             'children' => $children,
         ]);

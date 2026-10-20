@@ -11,6 +11,7 @@ use Polyspec\Crudui\Generator\Messages;
 use Polyspec\Crudui\Generator\Missing;
 use Polyspec\Crudui\Generator\Template;
 use Polyspec\Crudui\Generator\Value;
+use Polyspec\Crudui\Generator\View;
 use stdClass;
 
 /** Editable data and evaluated fields for one compiled structure. */
@@ -26,6 +27,8 @@ final class Form
 
     private int $revision = 0;
 
+    private array $view;
+
     private array $options;
 
     /** Create independent instance data over a copied template. */
@@ -35,7 +38,8 @@ final class Form
         $this->template = Template::checked($template);
         $this->options = $options;
         $this->data = $this->normalizeFields($this->template->fields, Value::object($data));
-        $this->fields = Binding::bind($this->template, $this->data, $options);
+        $this->view = View::initial();
+        $this->fields = Binding::bind($this->template, $this->data, $this->bindOptions($this->view));
         $this->buttons = Buttons::bind($this->template, $this->data, $this->language());
     }
 
@@ -94,7 +98,7 @@ final class Form
     public function setData(array|stdClass $data): void
     {
         InputText::inputs([['data', $data]]);
-        $this->commit($this->normalizeFields($this->template->fields, Value::object($data)));
+        $this->commit($this->normalizeFields($this->template->fields, Value::object($data)), View::initial());
     }
 
     /** Replace one path value and reevaluate fields atomically. */
@@ -170,7 +174,10 @@ final class Form
         }
         $next = clone $rows;
         unset($next->{$key});
-        $this->commit(self::put($this->data, self::checkedPath($path), $next));
+        $this->commit(
+            self::put($this->data, self::checkedPath($path), $next),
+            View::removeRow($this->view, implode('.', [...self::checkedPath($path), $key]))
+        );
     }
 
     /** Change row order without changing row identity. */
@@ -215,13 +222,49 @@ final class Form
         foreach ($rows as $key => $value) {
             $next->{$key === $oldKey ? $newKey : $key} = $value;
         }
-        $this->commit(self::put($this->data, self::checkedPath($path), $next));
+        $segments = self::checkedPath($path);
+        $this->commit(
+            self::put($this->data, $segments, $next),
+            View::rekeyRow($this->view, implode('.', [...$segments, $oldKey]), implode('.', [...$segments, $newKey]))
+        );
     }
 
-    private function commit(stdClass $data): void
+    /** Expand or collapse one row; the record and the revision do not change. */
+    public function toggleRow(string $path, string $key): void
     {
-        $fields = Binding::bind($this->template, $data, $this->options);
+        InputText::inputs([['path', $path], ['key', $key]]);
+        [, $rows] = $this->collection($path);
+        if (!property_exists($rows, $key)) {
+            self::fail('Unknown row: ' . $key);
+        }
+        $this->refreshView(View::toggle($this->view, implode('.', [...self::checkedPath($path), $key])));
+    }
+
+    /** Expand every row, or collapse every collapsible row; the record and the revision do not change. */
+    public function setAllExpanded(bool $expanded): void
+    {
+        $this->refreshView(View::setAllExpanded($this->fields, $expanded));
+    }
+
+    /** The options of the form with the collapsed rows of a view. */
+    private function bindOptions(array $view): array
+    {
+        return [...$this->options, 'collapsed' => $view['collapsed']];
+    }
+
+    private function refreshView(array $view): void
+    {
+        $this->fields = Binding::bind($this->template, $this->data, $this->bindOptions($view));
+        $this->view = $view;
+    }
+
+    /** Replace the record and the view together; a failure leaves both unchanged. */
+    private function commit(stdClass $data, ?array $view = null): void
+    {
+        $view ??= $this->view;
+        $fields = Binding::bind($this->template, $data, $this->bindOptions($view));
         $buttons = Buttons::bind($this->template, $data, $this->language());
+        $this->view = $view;
         $this->data = $data;
         $this->fields = $fields;
         $this->buttons = $buttons;

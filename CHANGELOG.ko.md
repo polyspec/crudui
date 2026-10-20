@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e51225ef34f55733ea2df88d8a358902fb97475a558a62b7863f1e6fc4d0c11a -->
+<!-- source-sha256: 9da126a4e43bab90c81d8cfa7d4f2d6342be8f606070ae98cc9839eae1e85392 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP generator의 뷰 상태 (C16.51-6)
+
+- PHP generator는 `Generator`의 뷰 함수 `initialView`, `toggleRowView`, `collapsibleRows`, `setAllExpandedView`, `removeRowView`, `rekeyRowView`, `bindForm` 옵션 `collapsed`, `Form::toggleRow`, `Form::setAllExpanded`를 가지며, `removeRow`, `rekeyRow`, `setData`는 뷰를 바꾸고 뷰 변경은 revision을 바꾸지 않습니다. `contracts/features.json`에서 PHP의 `viewState`는 `pass`입니다. Red: `FormStateTest`가 `form-view`와 `view-functions`의 모든 case에서 실패했습니다(`Call to undefined method Form::toggleRow()`, `Generator::collapsibleRows()`). Green: 14개 case가 통과하고 `FormTest`, `DocCoverageTest`, `OutlineTest`의 28개 test와 `phpstan`도 통과합니다.
 
 ### 2026-10-20 — Rust generator의 뷰 상태 (C16.51-5)
 
