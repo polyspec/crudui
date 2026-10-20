@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0c471636df4fa6e72e622197de2956bf9812942fd90d3642276f0a1752106477 -->
+<!-- source-sha256: 7321dfc5863c959a30a88dfc25465204e70fc3ffd6d2961e4bce226e01ac76f5 -->
 
 ## Unreleased
 
@@ -80,6 +80,10 @@
 ### 2026-10-20 — 공유 suite를 시험하지 않는 PHP test 파일은 internal로 선언한다 (C16.104)
 
 - `config/parity.json`은 `php` implementation의 PHP test 파일 24개를 `internal`로 선언합니다. 공유 suite가 다루는 규칙이나 렌더링을 시험하는 16개는 이유에 그 suite와 unit(form-render, list-render, validate, form-view, form-history, form-actions)을 밝히고, PHP 내부나 문서 gate만 시험하는 8개는 그 사실을 밝힙니다(C16.104). internal 파일은 requirement id를 명시하지 않으므로 R16은 깨끗합니다. 남긴 파일: Compose/PatchTest.php와 Compose/RefTest.php(공유 suite인 compose에 unit이 아직 없음, C16.81), ComposeConformanceTest.php와 ExprConformanceTest.php(C16.81), Internal/InterfaceMessagesTest.php(C16.100), InputTextTest.php와 Values/UnicodeDataTest.php(gap), packages/php-ext/tests/ApiTest.php(라이브러리와의 API 동등성 검사에 공유 suite가 없어 부분 gap으로 보고). Red: `make parity-declarations-check`가 exit 2이며 finding 303건, 그중 `R5 undeclared-test php` 31건이었습니다. Green: exit 2이며 finding 279건입니다. 선언한 R5 줄 24건이 빠졌고 새 줄은 없습니다. verification cell은 선언한 경로가 R5 php 줄에 나오지 않음을 검사합니다.
+
+### 2026-10-20 — Rust date 규칙은 reference가 거부하는 text를 거부한다 (C16.57-12-1)
+
+- `packages/validator/rust/src/validate/rules.rs`의 `is_valid_date`는 문자열을 Go와 Python validator가 받아들이는 명시적 날짜 layout 중 하나일 때만 받아들입니다(`YYYY-MM-DD`, `YYYY/MM/DD`, `MM/DD/YYYY`, `DD/MM/YYYY`, 그리고 `Z` 또는 offset이 붙은 RFC 3339 timestamp `YYYY-MM-DDTHH:MM:SS`). 각 날짜는 존재하는 calendar 날짜여야 합니다(C16.57-12-1). 그 밖의 비어 있지 않은 문자열을 받아들이던 permissive fallback은 유효성 검사에서만 제거했으며, `enddate`는 자체 parser를 유지합니다. 같은 파일의 unit test `date_rule_accepts_only_the_explicit_layouts`가 layout을 고정하고, conformance case `date-rule-rejects-text-that-is-no-date`(C16.57-12)는 이제 통과합니다. Red: `cargo test --locked --manifest-path packages/validator/rust/Cargo.toml --test validate_conformance`가 exit 101이며 `1/321 validate mismatch(es)`를 보고합니다: `[date-rule-rejects-text-that-is-no-date]`가 reference의 `date` 규칙 실패(`valid: false`) 대신 `valid: true`를 보고함; green: exit 0, `1 passed`; crate 전체 `cargo test`는 exit 0(unit test 108개와 integration target), `make lint-rust`는 exit 0입니다.
 
 ### 2026-10-20 — 시험하지 않던 display, date, session 규칙을 case로 작성한다 (C16.57-12)
 

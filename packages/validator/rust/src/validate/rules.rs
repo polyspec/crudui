@@ -567,16 +567,89 @@ fn rule_date(ctx: &RuleContext) -> Option<String> {
     None
 }
 
-/// JS `isValidDate`: a string parsed by the `Date` constructor. We accept the
-/// common explicit formats the JS code recognizes and otherwise fall back to a
-/// permissive accept (JS returns true for any string `Date` parses). Numbers are
-/// treated as timestamps (always valid). Empty already filtered.
+/// The date rule: a number is a timestamp (always valid); a string is valid when it is one of the explicit layouts
+/// of `is_explicit_date`. The layouts are those the Go and Python validators accept, each with a calendar date that
+/// exists, so text that is no date (such as "not a date") is rejected. Empty already filtered.
 fn is_valid_date(value: &Value) -> bool {
     match value {
         Value::Number(_) => true,
-        Value::String(s) => parse_date(trim(s)).is_some(),
+        Value::String(s) => is_explicit_date(trim(s)),
         _ => false,
     }
+}
+
+/// Whether `s` is `YYYY-MM-DD`, `YYYY/MM/DD`, `MM/DD/YYYY` or `DD/MM/YYYY` with a calendar date that exists, or
+/// `YYYY-MM-DDTHH:MM:SS` followed by `Z` or `+HH:MM`/`-HH:MM` with that date.
+fn is_explicit_date(s: &str) -> bool {
+    match s.split_once('T') {
+        None => is_calendar_date(s),
+        Some((date, time)) => is_iso_calendar(date) && is_rfc3339_time(time),
+    }
+}
+
+/// A calendar date in one of the explicit layouts without a time.
+fn is_calendar_date(s: &str) -> bool {
+    if is_iso_calendar(s) {
+        return true;
+    }
+    let parts: Vec<&str> = s.split('/').collect();
+    let digits = |part: &str| part.bytes().all(|b| b.is_ascii_digit());
+    match parts.as_slice() {
+        [y, m, d] if y.len() == 4 && m.len() == 2 && d.len() == 2 && [y, m, d].iter().all(|p| digits(p)) => {
+            let (year, month, day) = (parse_part(y), parse_part(m), parse_part(d));
+            valid_ymd(year, month, day)
+        }
+        [a, b, y] if a.len() == 2 && b.len() == 2 && y.len() == 4 && [a, b, y].iter().all(|p| digits(p)) => {
+            let year = parse_part(y);
+            // MM/DD/YYYY and DD/MM/YYYY are both accepted layouts.
+            valid_ymd(year, parse_part(a), parse_part(b)) || valid_ymd(year, parse_part(b), parse_part(a))
+        }
+        _ => false,
+    }
+}
+
+/// `YYYY-MM-DD` with a calendar date that exists.
+fn is_iso_calendar(s: &str) -> bool {
+    is_valid_date_iso(&Value::String(s.to_string()))
+}
+
+/// The digits of a part that `is_calendar_date` has checked to be ASCII digits.
+fn parse_part(part: &str) -> i64 {
+    part.parse().expect("the caller checked the part is ASCII digits")
+}
+
+fn valid_ymd(year: i64, month: i64, day: i64) -> bool {
+    (1..=12).contains(&month) && day >= 1 && day <= days_in_month(year, month)
+}
+
+/// `HH:MM:SS` followed by `Z` or a `+HH:MM` / `-HH:MM` offset, as the RFC 3339 layout requires.
+fn is_rfc3339_time(time: &str) -> bool {
+    let bytes = time.as_bytes();
+    if bytes.len() < 9 {
+        return false;
+    }
+    let clock = &bytes[..8];
+    let shape = clock[2] == b':' && clock[5] == b':' && [0, 1, 3, 4, 6, 7].iter().all(|&i| clock[i].is_ascii_digit());
+    if !shape {
+        return false;
+    }
+    let (hour, minute, second) = (parse_bytes(&clock[0..2]), parse_bytes(&clock[3..5]), parse_bytes(&clock[6..8]));
+    if hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+    match &bytes[8..] {
+        b"Z" => true,
+        [sign, rest @ ..] if (*sign == b'+' || *sign == b'-') && rest.len() == 5 && rest[2] == b':' => {
+            let digit = |i: usize| rest[i].is_ascii_digit();
+            digit(0) && digit(1) && digit(3) && digit(4) && parse_bytes(&rest[0..2]) <= 23 && parse_bytes(&rest[3..5]) <= 59
+        }
+        _ => false,
+    }
+}
+
+/// The value of ASCII digits; the callers check the digits first.
+fn parse_bytes(digits: &[u8]) -> i64 {
+    digits.iter().fold(0, |value, &b| value * 10 + i64::from(b - b'0'))
 }
 
 /// Parse a date string to (year, month, day) ordinal for comparison, returning
@@ -1302,6 +1375,16 @@ pub fn resolve_field_reference<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn date_rule_accepts_only_the_explicit_layouts() {
+        for text in ["2026-02-28", "2026/02/28", "28/02/2026", "02/28/2026", "2026-02-28T10:30:00Z", "2026-02-28T10:30:00+01:00"] {
+            assert!(is_valid_date(&serde_json::json!(text)), "{text} is a date");
+        }
+        for text in ["not a date", "2026-02-30", "02/30/2026", "2026-02-28T25:00:00Z", "2026-02-28T10:30:00", "2026-02-28 10:30"] {
+            assert!(!is_valid_date(&serde_json::json!(text)), "{text} is no date");
+        }
+    }
 
     #[test]
     fn test_comparison_key_canonical_json() {
