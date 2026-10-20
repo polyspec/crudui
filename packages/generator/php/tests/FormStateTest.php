@@ -51,6 +51,12 @@ final class FormStateTest extends TestCase
     }
 
     /** @return array<string, array{stdClass}> */
+    public static function actionSessions(): array
+    {
+        return self::cases('form-actions');
+    }
+
+    /** @return array<string, array{stdClass}> */
     public static function viewFunctions(): array
     {
         return self::cases('view-functions');
@@ -79,7 +85,8 @@ final class FormStateTest extends TestCase
             $observed = [];
             try {
                 $result = self::perform($form, $step->op, $step->args);
-                if ($result !== null) {
+                // An action reports its result even when it is none, as the TypeScript reference does (null).
+                if ($result !== null || in_array($step->op, ['runAction', 'resolveAction'], true)) {
                     $observed['result'] = $namer->walk($result);
                 }
             } catch (FormError $error) {
@@ -98,6 +105,12 @@ final class FormStateTest extends TestCase
                 $case->name . ' step ' . $index . ' ' . self::text($step)
             );
         }
+    }
+
+    #[DataProvider('actionSessions')]
+    public function testActionSessionsEqualTheRecordedObservations(stdClass $case): void
+    {
+        $this->assertSession($case, true);
     }
 
     #[DataProvider('viewFunctions')]
@@ -130,6 +143,8 @@ final class FormStateTest extends TestCase
             'setAllExpanded' => $form->setAllExpanded($args[0]),
             'undo' => $form->undo(),
             'redo' => $form->redo(),
+            'runAction' => Generator::runAction($form, $args[0]),
+            'resolveAction' => Generator::resolveAction($args[0]),
             default => throw new \LogicException('unknown step ' . $op),
         };
     }

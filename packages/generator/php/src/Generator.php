@@ -20,6 +20,12 @@ use stdClass;
 /** Compile form structures, bind values and render forms or lists. */
 final class Generator
 {
+    /** The operations that an action button can request (CURT-081). */
+    private const ACTIONS = [
+        'move-up', 'move-down', 'add-row', 'copy-row', 'remove-row', 'toggle-row', 'select-row',
+        'expand-all', 'collapse-all', 'undo', 'redo',
+    ];
+
     /** Compile a JSON-serializable structure without record data. */
     public static function compileForm(array|stdClass $spec, array $options = []): stdClass
     {
@@ -129,6 +135,132 @@ final class Generator
     public static function rekeyRowView(array $view, string $oldPath, string $newPath): array
     {
         return View::rekeyRow($view, $oldPath, $newPath);
+    }
+
+    /**
+     * Resolve the target of an action button from the values it declares (CURT-081): `action`, the collection `path`
+     * and the row `key`. An action that is none of the eleven resolves to null; an empty path or key is left out.
+     *
+     * @param array{action?: mixed, path?: mixed, key?: mixed}|stdClass $input
+     */
+    public static function resolveAction(array|stdClass $input): ?stdClass
+    {
+        $values = (array) $input;
+        $name = $values['action'] ?? null;
+        if (!is_string($name) || !in_array($name, self::ACTIONS, true)) {
+            return null;
+        }
+        $target = new stdClass();
+        $target->name = $name;
+        foreach (['path', 'key'] as $member) {
+            $value = self::actionText($values, $member);
+            if ($value !== null && $value !== '') {
+                $target->{$member} = $value;
+            }
+        }
+        return $target;
+    }
+
+    /**
+     * Run a resolved action on the form (CURT-082 to CURT-090) and return its result: `focus` names the row or the
+     * collection that receives focus, and an action that moves no focus returns an empty result. A target without the
+     * path or the key that the action needs returns null and changes nothing. A failing operation throws its FormError
+     * and leaves the form unchanged.
+     *
+     * @param array{name?: mixed, path?: mixed, key?: mixed}|stdClass $target
+     */
+    public static function runAction(Form $form, array|stdClass $target): ?stdClass
+    {
+        $values = (array) $target;
+        $name = $values['name'] ?? null;
+        if (!is_string($name) || !in_array($name, self::ACTIONS, true)) {
+            throw new FormError('INVALID_FORM_INPUT', 'Unknown action: ' . (is_string($name) ? $name : 'none'));
+        }
+        if ($name === 'expand-all' || $name === 'collapse-all') {
+            $form->setAllExpanded($name === 'expand-all');
+            return new stdClass();
+        }
+        if ($name === 'undo') {
+            $form->undo();
+            return new stdClass();
+        }
+        if ($name === 'redo') {
+            $form->redo();
+            return new stdClass();
+        }
+        $path = self::actionText($values, 'path');
+        $key = self::actionText($values, 'key');
+        if ($path === null || $path === '') {
+            return null;
+        }
+        if ($name === 'add-row') {
+            return self::focus($path, $form->addRow($path, $key === null ? [] : ['afterKey' => $key]));
+        }
+        if ($key === null || $key === '') {
+            return null;
+        }
+        if ($name === 'copy-row') {
+            return self::focus($path, $form->copyRow($path, $key));
+        }
+        if ($name === 'remove-row') {
+            $keys = self::rowKeys($form, $path);
+            $index = array_search($key, $keys, true);
+            if ($index === false) {
+                throw new FormError('INVALID_FORM_INPUT', 'Unknown row: ' . $key);
+            }
+            // The row that receives focus is the previous one, else the next one, else the collection.
+            $neighbour = $keys[$index - 1] ?? $keys[$index + 1] ?? null;
+            $form->removeRow($path, $key);
+            return self::focus($path, $neighbour);
+        }
+        if ($name === 'toggle-row') {
+            $form->toggleRow($path, $key);
+            return new stdClass();
+        }
+        if ($name === 'select-row') {
+            // Selecting changes no state: it only moves focus to the row.
+            return self::focus($path, $key);
+        }
+        $keys = self::rowKeys($form, $path);
+        $index = array_search($key, $keys, true);
+        if ($index === false) {
+            throw new FormError('INVALID_FORM_INPUT', 'Unknown row: ' . $key);
+        }
+        $form->moveRow($path, $key, $index + ($name === 'move-up' ? -1 : 1));
+        return self::focus($path, $key);
+    }
+
+    /** The text of an action value: null when absent; a value that is no string is an invalid input. */
+    private static function actionText(array $values, string $member): ?string
+    {
+        $value = $values[$member] ?? null;
+        if ($value !== null && !is_string($value)) {
+            throw new FormError('INVALID_FORM_INPUT', 'An action ' . $member . ' must be a string');
+        }
+        return $value;
+    }
+
+    /** The result of an action that moves the focus to a row, or to the collection when the key is null. */
+    private static function focus(string $path, ?string $key = null): stdClass
+    {
+        $focus = new stdClass();
+        $focus->path = $path;
+        if ($key !== null) {
+            $focus->key = $key;
+        }
+        $result = new stdClass();
+        $result->focus = $focus;
+        return $result;
+    }
+
+    /** The row keys of the collection at `$path` in order; a value that is no keyed object has none. */
+    private static function rowKeys(Form $form, string $path): array
+    {
+        $rows = $form->getValue($path);
+        if (!$rows instanceof stdClass) {
+            throw new FormError('INVALID_FORM_INPUT', 'Repeated data must be a keyed object: ' . $path);
+        }
+        return array_keys((array) $rows);
     }
 
     /** Evaluate the template buttons for a record as objects with type, tag, text and ordered attrs. */
