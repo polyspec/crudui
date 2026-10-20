@@ -128,15 +128,20 @@ function parseSpec() {
   }
 }
 
-/** Parse the JSON data. Returns { ok, value?, error? }. */
-function parseData() {
-  const text = state.dataText.trim();
+/** Parse JSON text, an empty text being `{}`. Returns { ok, value?, error? }. */
+function parseJsonText(source) {
+  const text = source.trim();
   if (text === '') return { ok: true, value: {} };
   try {
     return { ok: true, value: JSON.parse(text) };
   } catch (e) {
     return { ok: false, error: e.message || String(e) };
   }
+}
+
+/** Parse the JSON data. Returns { ok, value?, error? }. */
+function parseData() {
+  return parseJsonText(state.dataText);
 }
 
 /** Parse the list-spec YAML. Returns { ok, value?, error? }. */
@@ -190,13 +195,7 @@ function parseDetailSpec() {
  * Returns { ok, value?, error? }.
  */
 function parseRecord() {
-  const text = state.recordText.trim();
-  if (text === '') return { ok: true, value: {} };
-  try {
-    return { ok: true, value: JSON.parse(text) };
-  } catch (e) {
-    return { ok: false, error: e.message || String(e) };
-  }
+  return parseJsonText(state.recordText);
 }
 
 /**
@@ -477,17 +476,21 @@ function buildFixtureExport() {
   return out;
 }
 
-function downloadFixture() {
-  const payload = buildFixtureExport();
-  const name = (document.getElementById('export-name')?.value || 'live-case').trim();
+/** Download a payload as a pretty-printed JSON file. */
+function downloadJson(payload, filename) {
   const json = JSON.stringify(payload, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${name}.cases.json`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function downloadFixture() {
+  const name = (document.getElementById('export-name')?.value || 'live-case').trim();
+  downloadJson(buildFixtureExport(), `${name}.cases.json`);
 }
 
 /**
@@ -519,16 +522,8 @@ function buildListFixtureExport() {
 }
 
 function downloadListFixture() {
-  const payload = buildListFixtureExport();
   const name = (document.getElementById('list-export-name')?.value || 'live-list-case').trim();
-  const json = JSON.stringify(payload, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${name}.list.cases.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadJson(buildListFixtureExport(), `${name}.list.cases.json`);
 }
 
 /**
@@ -1101,51 +1096,61 @@ function renderLangMatrix(host, v, title) {
     mismatchPanel;
 }
 
-function validateColumn(lang, entry, divergent) {
-  const color = LANG_COLOR[lang] || '#888';
+/**
+ * One column of a result matrix: the idle, raw and failed-process views are shared; `cooked` renders the rest of the
+ * entry. Raw wins over every cooked view so every entry, including a failed process, is exposed verbatim for the user
+ * to re-judge against the console's verdict.
+ */
+function matrixColumn(name, color, entry, divergent, cooked) {
   const ms = entry && typeof entry.ms === 'number' ? `${entry.ms}ms` : '';
   let inner;
+  if (!entry) inner = `<div class="cc-cell-idle">응답 없음</div>`;
+  else if (state.raw) inner = `<pre class="cc-raw">${esc(JSON.stringify(entry, null, 2))}</pre>`;
+  else inner = cooked(entry);
 
-  if (!entry) {
-    inner = `<div class="cc-cell-idle">응답 없음</div>`;
-  } else if (state.raw) {
-    // raw wins over every cooked view so EVERY entry (incl. a failed validator process) is
-    // exposed verbatim for the user to re-judge against the console's verdict.
-    inner = `<pre class="cc-raw">${esc(JSON.stringify(entry, null, 2))}</pre>`;
-  } else if (entry.ok === false) {
-    inner = `<div class="cc-cell-error">검증기 프로세스 실행 실패<br/><code>${esc(
-      entry.error?.message || entry.error || ''
-    )}</code></div>`;
-  } else if (entry.failure) {
-    inner =
+  return `<div class="cc-col ${divergent ? 'divergent' : ''}" style="--c:${color}">
+    <div class="cc-col-head"><span>${name}</span><span class="cc-ms">${ms}</span></div>
+    <div class="cc-col-body">${inner}</div>
+  </div>`;
+}
+
+/** The view of an entry whose process could not run. */
+function processFailure(label, entry) {
+  return `<div class="cc-cell-error">${label}<br/><code>${esc(entry.error?.message || entry.error || '')}</code></div>`;
+}
+
+/** The cooked view of a validator entry: a failed process, a failure record, or the validity with its errors. */
+function validateCooked(entry) {
+  if (entry.ok === false) return processFailure('검증기 프로세스 실행 실패', entry);
+  if (entry.failure) {
+    return (
       `<div class="cc-badge failure">FAILURE</div>` +
       `<div class="cc-failure-code">${esc(entry.failure.code)}</div>` +
       `<div class="cc-failure-message">${esc(entry.failure.message)}</div>` +
-      (entry.failure.at ? `<div class="cc-failure-message">${esc(entry.failure.at)}</div>` : '');
-  } else {
-    const validBadge = entry.valid
-      ? `<div class="cc-valid valid">${iconOk()} 유효함</div>`
-      : `<div class="cc-valid invalid">${iconBad()} 유효하지 않음</div>`;
-    const errs =
-      Array.isArray(entry.errors) && entry.errors.length
-        ? `<div class="cc-errs">${entry.errors
-            .map(
-              (e) =>
-                `<div class="cc-err"><span class="cc-err-field">${esc(
-                  e.field ?? e.path
-                )}:</span> ${esc(e.message)} <span class="cc-err-rule">(${esc(
-                  e.rule
-                )})</span></div>`
-            )
-            .join('')}</div>`
-        : '';
-    inner = validBadge + errs;
+      (entry.failure.at ? `<div class="cc-failure-message">${esc(entry.failure.at)}</div>` : '')
+    );
   }
+  const validBadge = entry.valid
+    ? `<div class="cc-valid valid">${iconOk()} 유효함</div>`
+    : `<div class="cc-valid invalid">${iconBad()} 유효하지 않음</div>`;
+  const errs =
+    Array.isArray(entry.errors) && entry.errors.length
+      ? `<div class="cc-errs">${entry.errors
+          .map(
+            (e) =>
+              `<div class="cc-err"><span class="cc-err-field">${esc(
+                e.field ?? e.path
+              )}:</span> ${esc(e.message)} <span class="cc-err-rule">(${esc(
+                e.rule
+              )})</span></div>`
+          )
+          .join('')}</div>`
+      : '';
+  return validBadge + errs;
+}
 
-  return `<div class="cc-col ${divergent ? 'divergent' : ''}" style="--c:${color}">
-    <div class="cc-col-head"><span>${lang}</span><span class="cc-ms">${ms}</span></div>
-    <div class="cc-col-body">${inner}</div>
-  </div>`;
+function validateColumn(lang, entry, divergent) {
+  return matrixColumn(lang, LANG_COLOR[lang] || '#888', entry, divergent, validateCooked);
 }
 
 function validateMismatchPanel(results) {
@@ -1292,39 +1297,26 @@ function renderListRenderMatrix() {
   );
 }
 
-function renderColumn(fw, entry, divergent) {
-  const color = FW_COLOR[fw] || '#888';
-  const ms = entry && typeof entry.ms === 'number' ? `${entry.ms}ms` : '';
-  let inner;
-
-  if (!entry) {
-    inner = `<div class="cc-cell-idle">응답 없음</div>`;
-  } else if (state.raw) {
-    // raw wins over every cooked view (same as the validate matrix).
-    inner = `<pre class="cc-raw">${esc(JSON.stringify(entry, null, 2))}</pre>`;
-  } else if (entry.ok === false && !entry.error) {
-    inner = `<div class="cc-cell-error">SSR 실행 실패<br/><code>${esc(
-      entry.error?.message || entry.error || ''
-    )}</code></div>`;
-  } else if (entry.error) {
-    inner =
+/** The cooked view of a render entry: a failed run, a load error, or the preview of the HTML with its source. */
+function renderCooked(fw, entry) {
+  if (entry.ok === false && !entry.error) return processFailure('SSR 실행 실패', entry);
+  if (entry.error) {
+    return (
       `<div class="cc-badge bad">ERROR</div>` +
       `<div class="cc-loadcode">${esc(entry.error.code)}</div>` +
-      `<div class="cc-loadmsg">${esc(entry.error.message)}</div>`;
-  } else {
-    const html = entry.html ?? '';
-    inner =
-      `<div class="cc-render-toolbar"><button class="cc-btn cc-btn-mini" data-toggle-src="${fw}">HTML 소스</button></div>` +
-      `<iframe class="cc-preview" data-preview="${fw}" sandbox="" srcdoc="${esc(
-        html
-      )}"></iframe>` +
-      `<pre class="cc-src" data-src="${fw}" hidden>${esc(html)}</pre>`;
+      `<div class="cc-loadmsg">${esc(entry.error.message)}</div>`
+    );
   }
+  const html = entry.html ?? '';
+  return (
+    `<div class="cc-render-toolbar"><button class="cc-btn cc-btn-mini" data-toggle-src="${fw}">HTML 소스</button></div>` +
+    `<iframe class="cc-preview" data-preview="${fw}" sandbox="" srcdoc="${esc(html)}"></iframe>` +
+    `<pre class="cc-src" data-src="${fw}" hidden>${esc(html)}</pre>`
+  );
+}
 
-  return `<div class="cc-col ${divergent ? 'divergent' : ''}" style="--c:${color}">
-    <div class="cc-col-head"><span>${fw}</span><span class="cc-ms">${ms}</span></div>
-    <div class="cc-col-body">${inner}</div>
-  </div>`;
+function renderColumn(fw, entry, divergent) {
+  return matrixColumn(fw, FW_COLOR[fw] || '#888', entry, divergent, (cooked) => renderCooked(fw, cooked));
 }
 
 function renderMismatchPanel(results) {

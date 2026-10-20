@@ -135,6 +135,26 @@ function serveStatic(res, urlPath) {
 }
 
 /**
+ * Read the JSON body of a request and coerce the specification that `pick` takes from it. A bad body or specification is
+ * answered with 400 here and gives null.
+ */
+async function readBodyAndSpec(req, res, pick) {
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (e) {
+    sendJson(res, 400, { error: e.message });
+    return null;
+  }
+  try {
+    return { body, spec: coerceSpec(pick(body)) };
+  } catch (e) {
+    sendJson(res, 400, { error: e.message });
+    return null;
+  }
+}
+
+/**
  * The bare request handler — same routing the live server uses, but with no
  * `listen` side effect. server.test.mjs mounts it on an ephemeral port so the
  * HTTP boundary (coerceSpec YAML/object, 400/500 vs 200 result-surface, CORS,
@@ -152,18 +172,9 @@ export async function handler(req, res) {
 
   // ---- POST /api/validate -------------------------------------------------
   if (pathname === '/api/validate' && req.method === 'POST') {
-    let body;
-    try {
-      body = await readJsonBody(req);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
-    let spec;
-    try {
-      spec = coerceSpec(body.spec);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
+    const request = await readBodyAndSpec(req, res, (body) => body.spec);
+    if (!request) return;
+    const { body, spec } = request;
     const data = body.data && typeof body.data === 'object' ? body.data : {};
     try {
       const out = await validateAll({
@@ -186,20 +197,11 @@ export async function handler(req, res) {
   // a LOAD failure / valid:false is a result surface (200), only a real fan-out
   // fault is 5xx. The form validate path above is untouched (additive).
   if (pathname === '/api/validate-list' && req.method === 'POST') {
-    let body;
-    try {
-      body = await readJsonBody(req);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
-    let listSpec;
-    try {
-      // The list-spec arrives as a YAML string (the editor) or a parsed object;
-      // `listSpec` is the canonical key, `spec` is accepted as an alias.
-      listSpec = coerceSpec(body.listSpec ?? body.spec);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
+    // The list-spec arrives as a YAML string (the editor) or a parsed object;
+    // `listSpec` is the canonical key, `spec` is accepted as an alias.
+    const request = await readBodyAndSpec(req, res, (body) => body.listSpec ?? body.spec);
+    if (!request) return;
+    const { body, spec: listSpec } = request;
     try {
       const out = await validateAllList({
         spec: listSpec,
@@ -219,18 +221,9 @@ export async function handler(req, res) {
   // /api/validate-list: a load failure or valid:false is a 200 result, and only a
   // fan-out fault is 5xx. `detailSpec` is the canonical key; `spec` is an alias.
   if (pathname === '/api/validate-detail' && req.method === 'POST') {
-    let body;
-    try {
-      body = await readJsonBody(req);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
-    let detailSpec;
-    try {
-      detailSpec = coerceSpec(body.detailSpec ?? body.spec);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
+    const request = await readBodyAndSpec(req, res, (body) => body.detailSpec ?? body.spec);
+    if (!request) return;
+    const { body, spec: detailSpec } = request;
     try {
       const out = await validateAllDetail({
         spec: detailSpec,
@@ -245,18 +238,9 @@ export async function handler(req, res) {
 
   // ---- POST /api/render ---------------------------------------------------
   if (pathname === '/api/render' && req.method === 'POST') {
-    let body;
-    try {
-      body = await readJsonBody(req);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
-    let spec;
-    try {
-      spec = coerceSpec(body.spec);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
+    const request = await readBodyAndSpec(req, res, (body) => body.spec);
+    if (!request) return;
+    const { body, spec } = request;
     const data = body.data && typeof body.data === 'object' ? body.data : {};
     const options = body.options && typeof body.options === 'object' ? body.options : {};
     try {
@@ -275,20 +259,11 @@ export async function handler(req, res) {
   // a render error (REF_FILE_NOT_FOUND) is a result surface (200), only a real
   // fan-out fault is 5xx. The form render path above is untouched (additive).
   if (pathname === '/api/render-list' && req.method === 'POST') {
-    let body;
-    try {
-      body = await readJsonBody(req);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
-    let listSpec;
-    try {
-      // The list-spec arrives as a YAML string (the editor) or a parsed object;
-      // `listSpec` is the canonical key, `spec` is accepted as an alias.
-      listSpec = coerceSpec(body.listSpec ?? body.spec);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
+    // The list-spec arrives as a YAML string (the editor) or a parsed object;
+    // `listSpec` is the canonical key, `spec` is accepted as an alias.
+    const request = await readBodyAndSpec(req, res, (body) => body.listSpec ?? body.spec);
+    if (!request) return;
+    const { body, spec: listSpec } = request;
     const rows = Array.isArray(body.rows) ? body.rows : [];
     const options = body.options && typeof body.options === 'object' ? body.options : {};
     try {
@@ -308,18 +283,9 @@ export async function handler(req, res) {
   // fault is 5xx. `detailSpec` is the canonical key; `spec` is an alias. The record
   // passes unchanged so a non-object record fails in the renderers, not here.
   if (pathname === '/api/render-detail' && req.method === 'POST') {
-    let body;
-    try {
-      body = await readJsonBody(req);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
-    let detailSpec;
-    try {
-      detailSpec = coerceSpec(body.detailSpec ?? body.spec);
-    } catch (e) {
-      return sendJson(res, 400, { error: e.message });
-    }
+    const request = await readBodyAndSpec(req, res, (body) => body.detailSpec ?? body.spec);
+    if (!request) return;
+    const { body, spec: detailSpec } = request;
     const record = body.record === undefined ? {} : body.record;
     const options = body.options && typeof body.options === 'object' ? body.options : {};
     try {

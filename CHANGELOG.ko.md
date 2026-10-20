@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2e55d969bbab23aee97c0542710f380f0cb0e3783496602e3181eeeba1b03a51 -->
+<!-- source-sha256: 2db7348209988e525bfcedf36c8363f9052675c93bc5828974d2a83882e5af1f -->
 
 ## Unreleased
+
+### 2026-10-20 — 교차 검사 콘솔은 JSON parser, download, matrix column, request reader를 공유한다 (C16.58-6)
+
+- `client/app.js`의 `parseJsonText`, `downloadJson`, `matrixColumn`과 `server/server.mjs`의 `readBodyAndSpec`가 data와 record parser, fixture download 두 개, validate와 render column, endpoint 여섯 개의 body와 specification 읽기의 사본을 대신합니다 (C16.58-6). Red: `make duplication-check`는 이전에 중복 40건을 보고했고, green: 이후 37건이며 대상 검사가 통과합니다(24 passed).
 
 ### 2026-10-20 — PHP와 Go table generator는 contract reader와 생성 source writer를 하나씩 공유한다 (C16.58-5)
 

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The cross-check console shares its JSON parser, its download, its matrix column and its request reader (C16.58-6)
+
+- `parseJsonText`, `downloadJson`, `matrixColumn` of `client/app.js` and `readBodyAndSpec` of `server/server.mjs` replace the copies of the data and record parsers, of the two fixture downloads, of the validate and render columns, and of the body and specification reading of six endpoints (C16.58-6). Red: `make duplication-check` reported 40 clones before; green: 37 clones after, and the targeted check passes (24 passed).
+
 ### 2026-10-20 — The PHP and Go table generators share one reader of a contract and one writer of a generated source (C16.58-5)
 
 - `scripts/generator-contract.php` is the reader and writer of the PHP generators and the module `scripts/go` (`tablegen`, `interfacemessages`, `unicodedata`) replaces `interface_messages_generate.go` and `unicode_data_generate.go`, which `go generate` runs through the workspace; the generated interface message tables of PHP and Python are excluded from `duplication-check` as `generated:`; the S9 exceptions, the rebuild classes, the owner rule and the release note of `scripts/go` are in the configuration (C16.58-5). Red: `make duplication-check` reported 44 clones before; green: 40 clones after, and the targeted check passes (generated tables identical).
