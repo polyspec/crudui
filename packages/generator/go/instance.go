@@ -94,7 +94,7 @@ func NewForm(template *FormTemplate, data *Object, options BindOptions) (*Form, 
 	if data == nil {
 		input = absent
 	}
-	d, e := f.normalizeFields(t.Fields, input, "")
+	d, e := f.normalizeFields(t.Fields, input, "", false)
 	if e != nil {
 		return nil, e
 	}
@@ -150,7 +150,7 @@ func (f *Form) SetData(data *Object) error {
 	if data == nil {
 		return fmt.Errorf("Form data must be an object")
 	}
-	d, e := f.normalizeFields(f.template.Fields, data, "")
+	d, e := f.normalizeFields(f.template.Fields, data, "", false)
 	if e != nil {
 		return e
 	}
@@ -174,7 +174,7 @@ func (f *Form) SetValue(path string, value any) error {
 	if e != nil {
 		return e
 	}
-	d, e := f.normalizeFields(f.template.Fields, putAt(f.data, s, copyValue(value)), "")
+	d, e := f.normalizeFields(f.template.Fields, putAt(f.data, s, copyValue(value)), "", false)
 	if e != nil {
 		return e
 	}
@@ -228,8 +228,13 @@ func freshKey(used *Object) (string, error) {
 	return "", fmt.Errorf("Unable to generate an unused row key")
 }
 
-// normalizeFields normalizes record data; path is the full data path, empty at the root.
-func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (*Object, error) {
+// initialRowKey is the key of the row that missing repeated data gets; a row that an operation creates gets a fresh
+// key instead (normalizeFields with fresh), as the Python and TypeScript references do.
+const initialRowKey = "__0000000000000__"
+
+// normalizeFields normalizes record data; path is the full data path, empty at the root. fresh gives the rows that
+// missing repeated data creates fresh keys, and is set only for a row that an operation creates.
+func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string, fresh bool) (*Object, error) {
 	if !isAbsent(value) && object(value) == nil {
 		if path == "" {
 			return nil, fmt.Errorf("Form data must be an object")
@@ -252,11 +257,15 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 			}
 			rows := NewObject()
 			if isAbsent(raw) && !dataOnly(field.Spec) {
-				k, e := freshKey(nil)
-				if e != nil {
-					return nil, e
+				k := initialRowKey
+				if fresh {
+					generated, e := freshKey(nil)
+					if e != nil {
+						return nil, e
+					}
+					k = generated
 				}
-				v, e := f.normalizeRow(field, absent, fieldPath+"."+k)
+				v, e := f.normalizeRow(field, absent, fieldPath+"."+k, fresh)
 				if e != nil {
 					return nil, e
 				}
@@ -266,7 +275,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 					if e := checkKey(k); e != nil {
 						return nil, e
 					}
-					v, e := f.normalizeRow(field, read(raw, k), fieldPath+"."+k)
+					v, e := f.normalizeRow(field, read(raw, k), fieldPath+"."+k, fresh)
 					if e != nil {
 						return nil, e
 					}
@@ -275,7 +284,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 			}
 			data.Set(field.Name, rows)
 		} else if stringAt(field.Spec, "type") == "group" {
-			v, e := f.normalizeFields(field.Children, raw, fieldPath)
+			v, e := f.normalizeFields(field.Children, raw, fieldPath, fresh)
 			if e != nil {
 				return nil, e
 			}
@@ -286,9 +295,9 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string) (
 	}
 	return data, nil
 }
-func (f *Form) normalizeRow(field FieldTemplate, value any, path string) (any, error) {
+func (f *Form) normalizeRow(field FieldTemplate, value any, path string, fresh bool) (any, error) {
 	if stringAt(field.Spec, "type") == "group" {
-		return f.normalizeFields(field.Children, value, path)
+		return f.normalizeFields(field.Children, value, path, fresh)
 	}
 	if isAbsent(value) {
 		value = read(field.Spec, "default")
@@ -383,7 +392,7 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 	if e != nil {
 		return "", e
 	}
-	v, e = f.normalizeRow(field, v, strings.Join(append(append([]string{}, segs...), key), "."))
+	v, e = f.normalizeRow(field, v, strings.Join(append(append([]string{}, segs...), key), "."), true)
 	if e != nil {
 		return "", e
 	}

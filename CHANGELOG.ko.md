@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4181d2ef0fb1f80911b9d7815a0ad1c8d65a5465810b3258a2af2e21402b6c5d -->
+<!-- source-sha256: 483ed981b7469cac3061e0f3a0bc74ebf22651209605c8472bd7eccdec64e27a -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator는 공유 form-render suite를 실행한다 (C16.82)
+
+- `packages/generator/go/form_render_suite_test.go`(신규)는 `tests/fixtures/form-render/cases.json`의 188개 case를 Go generator로 실행합니다. 137개 result case는 compile, bind, render하며 그 HTML은 공유 normalizer `tests/fixtures/form-render/normalize.mts`(tsx로 node가 실행)가 만든 layout과 비교하고, 51개 failure case는 기록된 code를 발생시켜야 합니다(C16.82). `instance.go`는 누락된 repeated data의 초기 row에 key `__0000000000000__`를 주고, `AddRow`가 만드는 row에만 fresh key를 줍니다(`normalizeFields`, `normalizeRow`가 `fresh`를 받음). Python과 TypeScript reference와 같습니다. 이전에는 `NewForm`이 임의 key를 뽑아 새 instance가 다른 form을 그렸습니다(`multiple-leaf-empty-placeholder`). Red: `go test -run TestFormRenderSuite`가 exit 1이며 188 subtest 중 1개가 실패(`multiple-leaf-empty-placeholder`: 새 instance가 다른 form을 그림); green: exit 0이며 188 subtest가 통과하고, `go test -run Test ./...` exit 0, `golangci-lint run` exit 0이며 0 issues.
 
 ### 2026-10-20 — runAction은 모든 implementation에서 성립한다 (C16.50)
 
