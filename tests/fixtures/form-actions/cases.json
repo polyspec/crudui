@@ -1057,6 +1057,7 @@
     "requirements": [
       "CURT-084",
       "CURT-085",
+      "CURT-005",
       "CURP-010",
       "CURP-012",
       "CURP-027"
@@ -1753,6 +1754,7 @@
     "requirements": [
       "CURT-089",
       "CURT-090",
+      "CURT-007",
       "CURP-010",
       "CURP-012",
       "CURP-027"

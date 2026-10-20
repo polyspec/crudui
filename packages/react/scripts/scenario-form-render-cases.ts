@@ -369,4 +369,17 @@ export const SCENARIOS: ScenarioCase[] = [
     data: { rows: { __0000000000001__: 'a', __0000000000002__: 'b' } },
     options: { language: 'en' },
   },
+  {
+    name: 'key-prefix-option-names',
+    note: 'The keyPrefix option is the first segment of every control name, of the text and the repeated rows alike (CURT-025).',
+    spec: {
+      type: 'group',
+      properties: {
+        name: { type: 'text', label: { en: 'Name' } },
+        tags: { type: 'text', label: { en: 'Tag' }, multiple: true },
+      },
+    },
+    data: { name: 'Ada', tags: { __0000000000001__: 'x' } },
+    options: { language: 'en', keyPrefix: 'form' },
+  },
 ];

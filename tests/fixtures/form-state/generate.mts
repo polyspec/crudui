@@ -105,7 +105,7 @@ const all: Case[] = [
   session({
     name: 'row-removal-drops-and-rekey-moves-view',
     note: 'Removing a row drops the collapsed state of the row and of its rows; rekeying moves it to the new key.',
-    requirements: ['CURT-066', 'CURT-075', 'CURT-074'],
+    requirements: ['CURT-066', 'CURT-075', 'CURT-074', 'CURT-006', 'CURT-008'],
     steps: [
       step('setAllExpanded', false),
       step('rekeyRow', 'teams', A, k(3)),
@@ -127,7 +127,7 @@ const all: Case[] = [
   session({
     name: 'undo-and-redo-restore-the-record',
     note: 'Undo restores the record before the change and redo reapplies it; each changes the revision; nothing to undo or redo fails.',
-    requirements: ['CURT-011', 'CURT-012', 'CURT-061', 'CURT-067'],
+    requirements: ['CURT-011', 'CURT-012', 'CURT-061', 'CURT-067', 'CURT-004'],
     steps: [
       step('undo'),
       step('setValue', 'note', 'one'),
@@ -213,7 +213,7 @@ const all: Case[] = [
   session({
     name: 'run-action-add-and-copy-row',
     note: 'Adding focuses the new row after the given row or last, and copying focuses the copy right after the original.',
-    requirements: ['CURT-084', 'CURT-085'],
+    requirements: ['CURT-084', 'CURT-085', 'CURT-005'],
     steps: [
       run({ name: 'add-row', path: 'teams', key: A }),
       run({ name: 'copy-row', path: 'teams', key: B }),
@@ -241,7 +241,7 @@ const all: Case[] = [
   session({
     name: 'run-action-move-row',
     note: 'Moving up or down focuses the moved row; moving past an end fails and changes nothing.',
-    requirements: ['CURT-089', 'CURT-090'],
+    requirements: ['CURT-089', 'CURT-090', 'CURT-007'],
     steps: [
       run({ name: 'move-up', path: 'teams', key: B }),
       run({ name: 'move-up', path: 'teams', key: B }),

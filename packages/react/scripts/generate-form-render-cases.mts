@@ -534,6 +534,7 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "choice-list-choice-default": ["CUMK-012"],
   "choice-list-multichoice-mixed-values": ["CUMK-012"],
   "choice-list-search-order": ["CUMK-010", "CUMK-011"],
+  "key-prefix-option-names": ["CURT-025"],
 };
 
 /** The requirement ids that each case tests (docs/spec); a case that tests none keeps no requirements member. */

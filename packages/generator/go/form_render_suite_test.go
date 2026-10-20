@@ -57,8 +57,8 @@ func TestFormRenderSuite(t *testing.T) {
 			t.Fatalf("form-render case %s records neither a result nor a failure", stringAt(c, "name"))
 		}
 	}
-	if len(results) != 139 || len(failures) != 51 {
-		t.Fatalf("form-render has %d result and %d failure cases, want 139 and 51", len(results), len(failures))
+	if len(results) != 140 || len(failures) != 51 {
+		t.Fatalf("form-render has %d result and %d failure cases, want 140 and 51", len(results), len(failures))
 	}
 
 	actual := make([]string, len(results))

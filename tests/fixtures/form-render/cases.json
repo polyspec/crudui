@@ -803,6 +803,42 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-disabled=\"true\" aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-disabled=\"true\" aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000001__\" name=\"rows[__0000000000001__]\" type=\"text\" value=\"a\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000002__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Row</span><span class=\"crudui-node__number\">2</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-disabled=\"true\" aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-disabled=\"true\" aria-label=\"Copy\" class=\"crudui-action\" data-crudui-action=\"copy-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"rows[]\" data-rule-name=\"rows[]\" id=\"crudui:rows.__0000000000002__\" name=\"rows[__0000000000002__]\" type=\"text\" value=\"b\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
+    "name": "key-prefix-option-names",
+    "note": "The keyPrefix option is the first segment of every control name, of the text and the repeated rows alike (CURT-025).",
+    "requirements": [
+      "CURT-025"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text",
+          "label": {
+            "en": "Name"
+          }
+        },
+        "tags": {
+          "type": "text",
+          "label": {
+            "en": "Tag"
+          },
+          "multiple": true
+        }
+      }
+    },
+    "data": {
+      "name": "Ada",
+      "tags": {
+        "__0000000000001__": "x"
+      }
+    },
+    "options": {
+      "language": "en",
+      "keyPrefix": "form"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"name\" id=\"crudui:name\" name=\"form[name]\" type=\"text\" value=\"Ada\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tag</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__0000000000001__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tag</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__0000000000001__\" name=\"form[tags][__0000000000001__]\" type=\"text\" value=\"x\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
     "name": "password-bare",
     "note": "password → BARE input (no input-group), no behavior, value not default-filled.",
     "spec": {

@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8a785b03cff1a1eedc747955109274a89aa6003bf57313f3eed01a600f236848 -->
+<!-- source-sha256: 759b306d34e2ce0bab89142989c04671edc9f3ade98ef3409f97cae93d68cf9d -->
 
 ## Unreleased
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 
 - `packages/generator/php/tests/RenderingConformanceTest.php`는 `new Form`과 `Generator::renderForm`으로 form을 만들고, trait `LayoutTree.php`로 layout을 비교합니다(자체 style 해석을 쓰므로 내부 class를 load하지 않습니다). `ListRenderConformanceTest.php`와 `DetailRenderConformanceTest.php`는 `LayoutTree::withoutPreloads`로 body를 비교합니다. 다섯 rendering 파일이 `make test-php-ext`로 실행됩니다(C16.97). 누락된 반복 data의 placeholder row는 다시 고정 key `__0000000000000__`를 받고(`Form.php` `normalizeFields`, `form.c` `normalize_fields`), `addRow`가 만든 row 아래의 placeholder만 새 key를 받습니다(`fresh` flag). 형식 suite가 기록한 대로입니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest|OutlineTest|FormCompleteConformanceTest|ListRenderConformanceTest|DetailRenderConformanceTest'` exit 2, 거부됨: 라이브러리 source(`Internal/Buttons.php` 등)가 load되었고, placeholder case `multiple-leaf-empty-placeholder`가 무작위 key로 실패. Green: 같은 명령 exit 0, 443 passed; 같은 파일의 라이브러리 실행 exit 0, 443 OK; form-state 회귀 `FormStateTest|FormTest|HistoryFunctionsTest|DisplayRulesTest`는 extension과 라이브러리 모두 exit 0입니다.
+
+### 2026-10-20 — 런타임의 row 작업과 keyPrefix 옵션을 case가 인용한다 (C16.57-10)
+
+- state case가 시험하는 row 작업 requirement를 이름으로 밝힙니다(C16.57-10): `tests/fixtures/form-history`의 `undo-and-redo-restore-the-record`는 CURT-004(공급된 key로 `addRow`)를, `tests/fixtures/form-actions`의 `run-action-add-and-copy-row`는 CURT-005(`copyRow`가 복사된 row와 중첩 row의 key를 `$1`, `$2`로 새로 만듦)를, `run-action-move-row`는 CURT-007(`moveRow`가 key와 값을 유지함)을, `tests/fixtures/form-view`의 `row-removal-drops-and-rekey-moves-view`는 CURT-006(`removeRow`가 선택된 row만 제거함)과 CURT-008(`rekeyRow`가 하위 path를 다시 만듦)을 인용합니다. 생성기는 `tests/fixtures/form-state/generate.mts`입니다. `tests/fixtures/form-render`에는 `packages/react/scripts/scenario-form-render-cases.ts`를 거친 `key-prefix-option-names`가 추가되며, 그 React 기준 출력은 모든 control을 `form[…]`으로 명명합니다(CURT-025). form-view, form-history, form-actions, form-render unit이 새 id를 가집니다. Owner test: ts `form-state.test.ts` 28, Go `TestFormView|TestFormHistory|TestFormActions` 20, Python `test_form_state` 4, Rust `form_state` 4, PHP `FormStateTest` 28; ts `conformance.test.ts` 330, Go `TestFormRenderSuite` 192, Python `test_form_render` 5, Rust `form_render` 1, PHP `RenderingConformanceTest` 191(라이브러리). Red: `make parity-declarations-check`는 form-runtime.md의 R13 줄 161개(전체, 그중 CURT id 44개)를 보고합니다; green: R13 줄 155개(그중 CURT id 38개)이며 새 finding 줄은 없습니다. 아직 추적되지 않은 CURT id 38개는 이유와 함께 나열합니다: CURT-001에서 003(데이터 오류 message; 이 message로 실패하는 case가 없고 기준 생성기는 구성 오류만 씀); CURT-026에서 049(함수 옵션, DOM form 요소에 대한 bindForm, control 값과 이름, 검증 시점과 submit, hydration: TypeScript 브라우저 런타임 전용); CURT-050(준비 순서), 051(framework view 마운트), 052(예제 store), 056(validate unit이 수행하는 검증 절차; case가 아님); CURT-053에서 055(각 case가 requirement의 일부만 시험하므로 인용하지 않음); CURT-057, 058, 059, 060(포인터, 키보드, 네이티브 입력 이벤트, 재렌더와 브라우저별 script, 브라우저에서 서버 렌더 바인딩: TypeScript 전용).
 
 ### 2026-10-20 — PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 (C16.90)
 
