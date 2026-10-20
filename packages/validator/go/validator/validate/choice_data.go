@@ -22,7 +22,10 @@ func checkSingleChoiceData(value any, path []string, repeated bool) error {
 	if !repeated {
 		return singleValue(value, path)
 	}
-	rows := value.(map[string]any)
+	rows, err := objectValue(value, path, "Repeated data must be a keyed object: ")
+	if err != nil {
+		return err
+	}
 	for _, key := range sortedKeys(rows) {
 		if err := singleValue(rows[key], appendPath(path, key)); err != nil {
 			return err

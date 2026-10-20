@@ -8,6 +8,7 @@ package validate
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,7 +77,8 @@ func TestValidateListMatchesFixture(t *testing.T) {
 			if uerr := json.Unmarshal(c.Engine, &want); uerr != nil || want.Code == nil || want.At == nil {
 				t.Fatalf("%s: engine must be \"pass\" or {code, at}, got %s", c.Name, c.Engine)
 			}
-			le, ok := err.(*compose.ComposeLoadError)
+			var le *compose.ComposeLoadError
+			ok := errors.As(err, &le)
 			if !ok {
 				t.Fatalf("%s: expected *compose.ComposeLoadError, got %T: %v", c.Name, err, err)
 			}
@@ -113,7 +115,8 @@ func TestValidateListCleanListIsValid(t *testing.T) {
 func TestValidateListForbiddenTraceIntoListTree(t *testing.T) {
 	spec := []byte(`{"columns":{"name":{"field":"name"},"display_switch":{"field":"x"}}}`)
 	_, err := ValidateListJSON(spec, nil, "")
-	le, ok := err.(*compose.ComposeLoadError)
+	var le *compose.ComposeLoadError
+	ok := errors.As(err, &le)
 	if !ok {
 		t.Fatalf("expected *compose.ComposeLoadError, got %T: %v", err, err)
 	}

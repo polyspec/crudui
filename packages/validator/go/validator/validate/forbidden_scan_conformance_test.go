@@ -17,6 +17,7 @@ package validate
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,7 +109,8 @@ func TestForbiddenScanMatchesFixture(t *testing.T) {
 			if err == nil {
 				t.Fatalf("expected load error %s at %s, but validated successfully", *want.Code, *want.At)
 			}
-			le, ok := err.(*compose.ComposeLoadError)
+			var le *compose.ComposeLoadError
+			ok := errors.As(err, &le)
 			if !ok {
 				t.Fatalf("expected *compose.ComposeLoadError, got %T: %v", err, err)
 			}

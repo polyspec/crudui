@@ -64,6 +64,5 @@ func (l *MemoryLoader) Load(key string) (*OMap, error) {
 	if !ok {
 		return nil, newLoadError(RefFileNotFound, "$ref file not found: "+key, key)
 	}
-	cloned, _ := OrderMembers(doc).(*OMap)
-	return cloned, nil
+	return orderedOMap(doc), nil
 }

@@ -2,6 +2,7 @@ package compose
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -126,8 +127,8 @@ func TestComposeMatchesFixture(t *testing.T) {
 				if err == nil {
 					t.Fatalf("expected load error %s, but composed successfully", c.ExpectError.Code)
 				}
-				le, ok := err.(*ComposeLoadError)
-				if !ok {
+				var le *ComposeLoadError
+				if !errors.As(err, &le) {
 					t.Fatalf("expected *ComposeLoadError, got %T: %v", err, err)
 				}
 				if string(le.Code) != c.ExpectError.Code {

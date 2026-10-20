@@ -46,13 +46,12 @@ func ComposeSpec(spec *OMap, loader FileLoader, opts ComposeOptions) (*OMap, err
 // returns its result in that order. Merges append new keys, as JavaScript object
 // spread does before it moves array-index names first.
 func ordered(run func(*OMap, FileLoader, ComposeOptions) (*OMap, error), input *OMap, loader FileLoader, opts ComposeOptions) (*OMap, error) {
-	in, _ := OrderMembers(input).(*OMap)
+	in := orderedOMap(input)
 	result, err := run(in, loader, opts)
 	if err != nil {
 		return nil, err
 	}
-	out, _ := OrderMembers(result).(*OMap)
-	return out, nil
+	return orderedOMap(result), nil
 }
 
 // composeProperties is ComposeProperties over an already ordered input.

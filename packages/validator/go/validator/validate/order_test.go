@@ -48,11 +48,18 @@ func TestValidateDoesNotReorderData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := Validate(specValue.(*compose.OMap), data, Options{})
+	specMap, ok := specValue.(*compose.OMap)
+	if !ok {
+		t.Fatalf("spec decoded as %T, want an object", specValue)
+	}
+	result, err := Validate(specMap, data, Options{})
 	if err != nil || !result.Valid {
 		t.Fatalf("got %+v, %v", result, err)
 	}
-	rows := data["rows"].(map[string]any)
+	rows, ok := data["rows"].(map[string]any)
+	if !ok {
+		t.Fatalf("rows are %T, want an object", data["rows"])
+	}
 	if len(rows) != 2 || rows["b"] != "x" || rows["10"] != "y" {
 		t.Fatalf("data changed: %v", data)
 	}

@@ -2,6 +2,7 @@ package validate
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,11 +37,13 @@ type validateCase struct {
 
 // failureOf returns the cross-language failure record of a validation failure.
 func failureOf(err error) *failureRecord {
-	switch e := err.(type) {
-	case *compose.ComposeLoadError:
-		return &failureRecord{Code: string(e.Code), Message: e.Message, At: strings.Join(e.Trace, ".")}
-	case *FormInputError:
-		return &failureRecord{Code: e.Code(), Message: e.Message, At: ""}
+	var load *compose.ComposeLoadError
+	var input *FormInputError
+	switch {
+	case errors.As(err, &load):
+		return &failureRecord{Code: string(load.Code), Message: load.Message, At: strings.Join(load.Trace, ".")}
+	case errors.As(err, &input):
+		return &failureRecord{Code: input.Code(), Message: input.Message, At: ""}
 	default:
 		return nil
 	}
@@ -127,7 +130,12 @@ func TestValidateMatchesFixture(t *testing.T) {
 				if err := json.Unmarshal(raw, &m); err != nil {
 					t.Fatalf("expected error decode: %v", err)
 				}
-				wantErrors[i] = normalizeGeneric(m).(map[string]any)
+				generic := normalizeGeneric(m)
+				normalized, ok := generic.(map[string]any)
+				if !ok {
+					t.Fatalf("expected error normalized as %T, want an object", generic)
+				}
+				wantErrors[i] = normalized
 			}
 
 			gotErrors := make([]map[string]any, len(result.Errors))
@@ -161,7 +169,12 @@ func normalizeError(t *testing.T, e ValidationError) map[string]any {
 	if err := json.Unmarshal(b, &m); err != nil {
 		t.Fatalf("error remarshal: %v", err)
 	}
-	return normalizeGeneric(m).(map[string]any)
+	generic := normalizeGeneric(m)
+	normalized, ok := generic.(map[string]any)
+	if !ok {
+		t.Fatalf("error normalized as %T, want an object", generic)
+	}
+	return normalized
 }
 
 // normalizeGeneric canonicalizes a decoded JSON tree (numbers float64, recurse).

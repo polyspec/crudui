@@ -12,7 +12,10 @@ func TestDecodeOrderedRejectsTrailingInput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := v.(*OMap)
+	o, ok := v.(*OMap)
+	if !ok {
+		t.Fatalf("decoded %T, want *OMap", v)
+	}
 	if keys := o.Keys(); len(keys) != 2 || keys[0] != "b" || keys[1] != "a" {
 		t.Fatal(o.Keys())
 	}

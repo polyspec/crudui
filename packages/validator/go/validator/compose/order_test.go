@@ -2,6 +2,7 @@ package compose
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -11,7 +12,11 @@ func decodeObject(t *testing.T, input string) *OMap {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return v.(*OMap)
+	o, ok := v.(*OMap)
+	if !ok {
+		t.Fatalf("decoded %T, want *OMap", v)
+	}
+	return o
 }
 
 func encode(t *testing.T, v any) string {
@@ -85,7 +90,11 @@ func (l orderLoader) Load(string) (*OMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	return v.(*OMap), nil
+	o, ok := v.(*OMap)
+	if !ok {
+		return nil, fmt.Errorf("orderLoader: document is %T, not an object", v)
+	}
+	return o, nil
 }
 
 func TestComposeOrdersCustomLoaderDocuments(t *testing.T) {

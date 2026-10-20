@@ -2,6 +2,7 @@ package expr
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"slices"
 	"strconv"
@@ -143,7 +144,7 @@ func (e *Evaluator) evaluateBinary(node *BinaryNode) bool {
 	// (CURRENT strategy already collapses to a scalar before this point). An
 	// array that a plain path names is one value.
 	if candidates {
-		for _, lv := range left.([]any) {
+		for _, lv := range candidateValues(left) {
 			if compareOp(lv, right, node.Operator) {
 				return true
 			}
@@ -189,7 +190,7 @@ func (e *Evaluator) evaluateIn(node *InNode) bool {
 
 	// Wildcard value resolved to a list: ANY element passing membership.
 	if candidates {
-		for _, v := range value.([]any) {
+		for _, v := range candidateValues(value) {
 			included := inList(v, list)
 			if node.Negated {
 				included = !included
@@ -479,6 +480,27 @@ func looseEquals(a, b any) bool {
 	return jsToString(a) == jsToString(b)
 }
 
+// candidateValues returns the candidate values of a wildcard operand. resolvePathOperand
+// returns its candidates as a []any with candidates set to true, so the assertion cannot fail.
+func candidateValues(v any) []any {
+	values, ok := v.([]any)
+	if !ok {
+		panic(fmt.Sprintf("expr: wildcard operand is %T, not []any", v))
+	}
+	return values
+}
+
+// sameKindEquals compares two values that jsTypeOf put in the same bucket, whose Go type T
+// both values have, so both assertions cannot fail.
+func sameKindEquals[T comparable](a, b any) bool {
+	x, okA := a.(T)
+	y, okB := b.(T)
+	if !okA || !okB {
+		panic(fmt.Sprintf("expr: values of one JS type are %T and %T", a, b))
+	}
+	return x == y
+}
+
 // sameTypeEquals compares two values of the same JS typeof bucket. Numbers
 // compare numerically (so int 5 and float64 5 are equal); booleans/strings/null
 // compare directly; lists and objects compare as JSON values (jsonEquals).
@@ -487,9 +509,9 @@ func sameTypeEquals(a, b any, t string) bool {
 	case "number":
 		return toFloat(a) == toFloat(b)
 	case "boolean":
-		return a.(bool) == b.(bool)
+		return sameKindEquals[bool](a, b)
 	case "string":
-		return a.(string) == b.(string)
+		return sameKindEquals[string](a, b)
 	case "null":
 		return true
 	default:

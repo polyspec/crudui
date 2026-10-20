@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go validator handles its hidden errors (C16.67-1)
+
+- `packages/validator/go` checks or returns every error that the kit lint reports (C16.67-1): `types.go` returns the decoder error of `rejectForbiddenKeys` and `objectMembers` and checks the object keys of `orderedRawObject` and `objectMembers`; `expr/lexer.go` turns a malformed number into an invalid token; `validate/validator.go` returns the shape error of `collectHidden` and reads the repeated and group data through `objectValue`; `validate/rules.go` encodes unique keys without an unchecked `json.Marshal`; the conformance tests use `errors.As` and fail with `t.Fatal`. Red: `golangci-lint run` exited 1 with `72 issues` (errcheck 63, errorlint 7, nilerr 2); green: exit 0 with `0 issues`, and `go test -run Test ./...` gave `825 passed, 0 failed`.
+
 ### 2026-10-20 — The Go generator has resolveAction and runAction (C16.50-1)
 
 - `packages/generator/go/actions.go` adds `ResolveAction`, `RunAction` and the types `ActionInput`, `ActionTarget`, `ActionResult` and `FocusTarget` over the eleven form actions of CURT-081 to CURT-090, and `packages/generator/go/form_state_test.go` runs the `form-actions` sessions with the history flags in `TestFormActions`, whose `performStep` handles `resolveAction` and `runAction` (C16.50-1). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions|TestFormHistory|TestFormView' .` exit 1, 11 passed and 8 failed, 7 of the 8 `form-actions` sessions fail on the observed result (the API stubbed with zero values); green: exit 0, 19 passed, 0 failed.

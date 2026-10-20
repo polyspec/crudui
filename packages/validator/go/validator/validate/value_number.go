@@ -5,6 +5,7 @@ package validate
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"regexp"
@@ -63,7 +64,11 @@ func numeric(value any) (float64, bool) {
 func decimal(n float64) (*big.Int, int) {
 	mantissa, exponent, _ := strings.Cut(strconv.FormatFloat(math.Abs(n), 'e', -1, 64), "e")
 	whole, fraction, _ := strings.Cut(mantissa, ".")
-	e, _ := strconv.Atoi(exponent)
+	// FormatFloat with 'e' writes a signed decimal exponent, so Atoi cannot fail.
+	e, err := strconv.Atoi(exponent)
+	if err != nil {
+		panic(fmt.Sprintf("validate: exponent %q of FormatFloat: %v", exponent, err))
+	}
 	significand, _ := new(big.Int).SetString(whole+fraction, 10)
 	return significand, e - len(fraction)
 }

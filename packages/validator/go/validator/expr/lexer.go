@@ -1,6 +1,9 @@
 package expr
 
-import "strconv"
+import (
+	"errors"
+	"strconv"
+)
 
 // Lexer turns a condition string into a []Token ending in EOF (GRAMMAR §1, JS
 // Lexer parity). WHITESPACE is consumed but never emitted. The token order,
@@ -212,20 +215,34 @@ func (l *Lexer) readNumber() Token {
 	}
 
 	value := l.input[start:l.position]
-	return Token{Type: TokenNumber, Value: value, Literal: parseNumberLiteral(value)}
+	literal, err := parseNumberLiteral(value)
+	if err != nil {
+		// A malformed literal such as "1e" is an invalid token, so the parser rejects it.
+		return Token{Type: TokenInvalid, Value: value, Literal: nil}
+	}
+	return Token{Type: TokenNumber, Value: value, Literal: literal}
 }
 
 // parseNumberLiteral parses to int or float64. JS uses parseFloat (always
 // float); for JSON byte-parity we keep an int when the source has no fractional
-// or exponent part so the fixture's integer literals stay integers.
-func parseNumberLiteral(value string) any {
+// or exponent part so the fixture's integer literals stay integers. An integer
+// too large for int, or a float out of range, keeps the value strconv returns
+// (the float, as parseFloat does); any other syntax error is returned.
+func parseNumberLiteral(value string) (any, error) {
 	if isIntegerLiteral(value) {
-		if n, err := strconv.Atoi(value); err == nil {
-			return n
+		n, err := strconv.Atoi(value)
+		if err == nil {
+			return n, nil
+		}
+		if !errors.Is(err, strconv.ErrRange) {
+			return nil, err
 		}
 	}
-	f, _ := strconv.ParseFloat(value, 64)
-	return f
+	f, err := strconv.ParseFloat(value, 64)
+	if err != nil && !errors.Is(err, strconv.ErrRange) {
+		return nil, err
+	}
+	return f, nil
 }
 
 func isIntegerLiteral(value string) bool {

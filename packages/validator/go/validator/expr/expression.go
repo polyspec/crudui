@@ -2,6 +2,7 @@ package expr
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 )
 
@@ -47,7 +48,17 @@ func (c *lruCache) get(expression string) (Node, bool) {
 		return nil, false
 	}
 	c.list.MoveToFront(elem)
-	return elem.Value.(cacheEntry).node, true
+	return entryOf(elem).node, true
+}
+
+// entryOf returns the cacheEntry that an LRU list element holds. The list holds only
+// cacheEntry values, so the assertion cannot fail.
+func entryOf(elem *list.Element) cacheEntry {
+	entry, ok := elem.Value.(cacheEntry)
+	if !ok {
+		panic(fmt.Sprintf("expr: LRU element holds %T, not cacheEntry", elem.Value))
+	}
+	return entry
 }
 
 // set stores an AST node in the cache.
@@ -78,8 +89,7 @@ func (c *lruCache) set(expression string, node Node) {
 func (c *lruCache) evictLRU() {
 	if elem := c.list.Back(); elem != nil {
 		c.list.Remove(elem)
-		entry := elem.Value.(cacheEntry)
-		delete(c.cache, entry.expression)
+		delete(c.cache, entryOf(elem).expression)
 	}
 }
 

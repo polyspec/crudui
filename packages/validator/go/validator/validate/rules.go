@@ -17,6 +17,7 @@ package validate
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -209,11 +210,9 @@ func canonicalJSON(value any) string {
 		}
 		return "false"
 	case string:
-		b, _ := json.Marshal(v)
-		return string(b)
+		return strconv.Quote(v)
 	case float64:
-		b, _ := json.Marshal(v)
-		return string(b)
+		return canonicalNumber(v)
 	case []any:
 		var parts []string
 		for _, item := range v {
@@ -224,13 +223,16 @@ func canonicalJSON(value any) string {
 		keys := sortedKeys(v)
 		var parts []string
 		for _, k := range keys {
-			kJSON, _ := json.Marshal(k)
-			parts = append(parts, string(kJSON)+":"+canonicalJSON(v[k]))
+			parts = append(parts, strconv.Quote(k)+":"+canonicalJSON(v[k]))
 		}
 		return "{" + strings.Join(parts, ",") + "}"
 	default:
-		// Fallback for unexpected types
-		b, _ := json.Marshal(value)
+		// Fallback for unexpected types. Data is a decoded JSON document, so a value that
+		// json.Marshal cannot encode (a channel, a function) is a broken invariant.
+		b, err := json.Marshal(value)
+		if err != nil {
+			panic(fmt.Sprintf("validate: canonicalJSON of %T: %v", value, err))
+		}
 		return string(b)
 	}
 }

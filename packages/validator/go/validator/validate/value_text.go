@@ -5,6 +5,7 @@ package validate
 // Number.prototype.toString writes it.
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -52,7 +53,11 @@ func canonicalNumber(v float64) string {
 	// decimal point position n, so that v = 0.s × 10^n.
 	mantissa, exponent, _ := strings.Cut(strconv.FormatFloat(v, 'e', -1, 64), "e")
 	digits := strings.Replace(mantissa, ".", "", 1)
-	e, _ := strconv.Atoi(exponent)
+	// FormatFloat with 'e' writes a signed decimal exponent, so Atoi cannot fail.
+	e, err := strconv.Atoi(exponent)
+	if err != nil {
+		panic(fmt.Sprintf("validate: exponent %q of FormatFloat: %v", exponent, err))
+	}
 	k, n := len(digits), e+1
 	switch {
 	case k <= n && n <= 21:

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8c6a26cd48b63acdebe2b5a2cda7fb11820a40ec82037b0e0a874ca0ec791001 -->
+<!-- source-sha256: 65a168b1337448c5dab1079acdb5472b110a927fb54d40d9a0029ed0cdd101b2 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go validator는 숨은 오류를 처리한다 (C16.67-1)
+
+- `packages/validator/go`는 kit lint가 보고한 오류를 모두 검사하거나 반환한다(C16.67-1). `types.go`의 `rejectForbiddenKeys`와 `objectMembers`는 decoder 오류를 반환하고 `orderedRawObject`와 `objectMembers`는 object key의 타입을 검사하며, `expr/lexer.go`는 잘못된 숫자를 invalid token으로 만든다. `validate/validator.go`의 `collectHidden`은 형태 오류를 반환하고 repeated와 group 데이터는 `objectValue`로 읽으며, `validate/rules.go`는 검사하지 않은 `json.Marshal` 없이 unique key를 인코딩한다. conformance test는 `errors.As`를 쓰고 `t.Fatal`로 실패한다. Red: `golangci-lint run`이 `72 issues`(errcheck 63, errorlint 7, nilerr 2)로 exit 1; green: exit 0이며 `0 issues`, `go test -run Test ./...`는 `825 passed, 0 failed`.
 
 ### 2026-10-20 — Go generator는 resolveAction과 runAction을 가진다 (C16.50-1)
 

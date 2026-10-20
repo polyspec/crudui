@@ -79,8 +79,16 @@ func (c textCase) jsonInputs(t *testing.T) (map[string][]byte, string) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if value, found := options.(*compose.OMap).Get("basepath"); found {
-			basepath = value.(string)
+		optionsMap, ok := options.(*compose.OMap)
+		if !ok {
+			t.Fatalf("options decoded as %T, want an object", options)
+		}
+		if value, found := optionsMap.Get("basepath"); found {
+			text, ok := value.(string)
+			if !ok {
+				t.Fatalf("basepath decoded as %T, want a string", value)
+			}
+			basepath = text
 		}
 	}
 	return files, basepath
@@ -100,13 +108,21 @@ func (c textCase) valueInputs(t *testing.T) (*compose.OMap, Options) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		opts.Files[name] = doc.(*compose.OMap)
+		docMap, ok := doc.(*compose.OMap)
+		if !ok {
+			t.Fatalf("file %s decoded as %T, want an object", name, doc)
+		}
+		opts.Files[name] = docMap
 	}
-	return spec.(*compose.OMap), opts
+	specMap, ok := spec.(*compose.OMap)
+	if !ok {
+		t.Fatalf("spec decoded as %T, want an object", spec)
+	}
+	return specMap, opts
 }
 
 // textOutcome is the failure {code, message, at} or the validation result.
-func textOutcome(result any, err error) any {
+func textOutcome(t *testing.T, result any, err error) any {
 	var load *compose.ComposeLoadError
 	if errors.As(err, &load) {
 		return map[string]any{"code": string(load.Code), "message": load.Message, "at": strings.Join(load.Trace, ".")}
@@ -118,9 +134,14 @@ func textOutcome(result any, err error) any {
 	if err != nil {
 		return err.Error()
 	}
-	encoded, _ := json.Marshal(result)
+	encoded, marshalErr := json.Marshal(result)
+	if marshalErr != nil {
+		t.Fatal(marshalErr)
+	}
 	var out map[string]any
-	_ = json.Unmarshal(encoded, &out)
+	if unmarshalErr := json.Unmarshal(encoded, &out); unmarshalErr != nil {
+		t.Fatal(unmarshalErr)
+	}
 	if out["errors"] == nil {
 		out["errors"] = []any{}
 	}
@@ -189,10 +210,12 @@ func TestInputTextMatchesFixture(t *testing.T) {
 			t.Run(feature+"/"+name, func(t *testing.T) {
 				conformance.Record(t, feature, fixture, name)
 				files, basepath := c.jsonInputs(t)
-				checkTextOutcome(t, c, "JSON text", textOutcome(run.json(c, files, basepath)))
+				jsonResult, jsonErr := run.json(c, files, basepath)
+				checkTextOutcome(t, c, "JSON text", textOutcome(t, jsonResult, jsonErr))
 				spec, opts := c.valueInputs(t)
 				_, data := decodeData(t, c)
-				checkTextOutcome(t, c, "values", textOutcome(run.value(spec, data, opts)))
+				valueResult, valueErr := run.value(spec, data, opts)
+				checkTextOutcome(t, c, "values", textOutcome(t, valueResult, valueErr))
 			})
 		}
 	}
@@ -271,7 +294,10 @@ func TestDecodeOrderedKeepsText(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	encoded, _ := json.Marshal(got)
+	encoded, err := json.Marshal(got)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if string(encoded) != `{"b":0,"a":"x"}` {
 		t.Errorf("got %s", encoded)
 	}
@@ -301,11 +327,22 @@ func buildGraph(t *testing.T, raw json.RawMessage) ([]string, any) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	graph := decoded.(*compose.OMap)
+	graph, ok := decoded.(*compose.OMap)
+	if !ok {
+		t.Fatalf("value graph decoded as %T, want an object", decoded)
+	}
 	at, _ := graph.Get("at")
+	segments, ok := at.([]any)
+	if !ok {
+		t.Fatalf("value graph path decoded as %T, want an array", at)
+	}
 	var path []string
-	for _, segment := range at.([]any) {
-		path = append(path, segment.(string))
+	for _, segment := range segments {
+		name, ok := segment.(string)
+		if !ok {
+			t.Fatalf("value graph path segment decoded as %T, want a string", segment)
+		}
+		path = append(path, name)
 	}
 	shape, _ := graph.Get("shape")
 	if shape == "self-twice" {
@@ -315,7 +352,11 @@ func buildGraph(t *testing.T, raw json.RawMessage) ([]string, any) {
 		return path, loop
 	}
 	sizeValue, _ := graph.Get("size")
-	size := int(sizeValue.(float64))
+	sizeNumber, ok := sizeValue.(float64)
+	if !ok {
+		t.Fatalf("value graph size decoded as %T, want a number", sizeValue)
+	}
+	size := int(sizeNumber)
 	leaf, _ := graph.Get("leaf")
 	if shape == "flat" {
 		items := make([]any, size)
@@ -357,7 +398,11 @@ func TestValueGraphsMatchFixture(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				return value.(*compose.OMap)
+				object, ok := value.(*compose.OMap)
+				if !ok {
+					t.Fatalf("fixture value decoded as %T, want an object", value)
+				}
+				return object
 			}
 			spec := decode(c.Spec)
 			opts := Options{Files: FileSet{}}
@@ -365,10 +410,18 @@ func TestValueGraphsMatchFixture(t *testing.T) {
 				files := decode(c.Files)
 				for _, name := range files.Keys() {
 					file, _ := files.Get(name)
-					opts.Files[name] = file.(*compose.OMap)
+					fileMap, ok := file.(*compose.OMap)
+					if !ok {
+						t.Fatalf("fixture file %s decoded as %T, want an object", name, file)
+					}
+					opts.Files[name] = fileMap
 				}
 			}
-			data := plainValue(decode(c.Data)).(map[string]any)
+			plainData := plainValue(decode(c.Data))
+			data, ok := plainData.(map[string]any)
+			if !ok {
+				t.Fatalf("fixture data decoded as %T, want an object", plainData)
+			}
 			path, graph := buildGraph(t, c.Graph)
 			member := path[len(path)-1]
 			switch path[0] {
@@ -381,7 +434,8 @@ func TestValueGraphsMatchFixture(t *testing.T) {
 			}
 			// Each case is one test within the runner's per-test limit, which a walk that grows
 			// with the tree a value denotes (2^40 nodes) never meets.
-			got := textOutcome(Validate(spec, data, opts))
+			result, validateErr := Validate(spec, data, opts)
+			got := textOutcome(t, result, validateErr)
 			var want any
 			if err := json.Unmarshal(c.Want, &want); err != nil {
 				t.Fatal(err)

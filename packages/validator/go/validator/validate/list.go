@@ -133,7 +133,11 @@ func composeInput(spec *compose.OMap, opts Options) (*compose.OMap, *compose.Mem
 	if spec == nil {
 		spec = compose.NewOMap()
 	}
-	ordered, _ := compose.OrderMembers(spec).(*compose.OMap)
+	ordered, isMap := compose.OrderMembers(spec).(*compose.OMap)
+	if !isMap {
+		// OrderMembers keeps the dynamic type of an *OMap, so this cannot fail.
+		panic("validate: OrderMembers did not return an *OMap for an *OMap input")
+	}
 	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
 	return ordered, loader, compose.ComposeOptions{Basepath: opts.Basepath}
 }

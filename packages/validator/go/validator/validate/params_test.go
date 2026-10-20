@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"errors"
 	"slices"
 	"testing"
 
@@ -127,8 +128,13 @@ func TestNewValidatorChecksDeclarations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = NewValidator(spec.(*compose.OMap))
-	loadErr, ok := err.(*compose.ComposeLoadError)
+	specMap, ok := spec.(*compose.OMap)
+	if !ok {
+		t.Fatalf("spec decoded as %T, want an object", spec)
+	}
+	_, err = NewValidator(specMap)
+	var loadErr *compose.ComposeLoadError
+	ok = errors.As(err, &loadErr)
 	if !ok || loadErr.Code != compose.InvalidRulePattern || loadErr.Message != "Invalid match pattern: invalid quantifier at 2" {
 		t.Fatalf("got %v", err)
 	}

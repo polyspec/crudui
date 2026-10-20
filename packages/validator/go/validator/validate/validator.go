@@ -84,15 +84,17 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 		return ValidationResult{}, err
 	}
 	hidden := []string{}
-	v.collectHidden(v.properties, root, nil, nil, root, &hidden)
+	if err := v.collectHidden(v.properties, root, nil, nil, root, &hidden); err != nil {
+		return ValidationResult{}, err
+	}
 	return ValidationResult{Valid: len(errors) == 0, Errors: errors, Hidden: hidden}, nil
 }
 
 // collectHidden appends the data paths of the fields whose design.show resolves
 // to false, in declaration order, each field of a group row under the row's key
-// and the fields inside a hidden field included. Data of another shape is read
-// as missing.
-func (v *Validator) collectHidden(properties *compose.OMap, data map[string]any, currentPath []string, rowKeys []int, allData map[string]any, hidden *[]string) {
+// and the fields inside a hidden field included. Data of another shape is a
+// *FormInputError, as in validation.
+func (v *Validator) collectHidden(properties *compose.OMap, data map[string]any, currentPath []string, rowKeys []int, allData map[string]any, hidden *[]string) error {
 	for name, field := range fieldDeclarations(properties) {
 		fieldPath := appendPath(currentPath, name)
 		if !v.fieldVisible(field, fieldPath, rowKeys, allData) {
@@ -102,16 +104,32 @@ func (v *Validator) collectHidden(properties *compose.OMap, data map[string]any,
 		if fieldType(field) != "group" || children == nil {
 			continue
 		}
-		value, _ := data[name].(map[string]any)
 		if !fieldIsMultiple(field) {
-			v.collectHidden(children, value, fieldPath, rowKeys, allData, hidden)
+			value, err := objectValue(data[name], fieldPath, "Group data must be an object: ")
+			if err != nil {
+				return err
+			}
+			if err := v.collectHidden(children, value, fieldPath, rowKeys, allData, hidden); err != nil {
+				return err
+			}
 			continue
 		}
-		for _, key := range sortedKeys(value) {
-			row, _ := value[key].(map[string]any)
-			v.collectHidden(children, row, appendPath(fieldPath, key), appendRowKey(rowKeys, len(fieldPath)), allData, hidden)
+		rows, err := objectValue(data[name], fieldPath, "Repeated data must be a keyed object: ")
+		if err != nil {
+			return err
+		}
+		for _, key := range sortedKeys(rows) {
+			rowPath := appendPath(fieldPath, key)
+			row, err := objectValue(rows[key], rowPath, "Group data must be an object: ")
+			if err != nil {
+				return err
+			}
+			if err := v.collectHidden(children, row, rowPath, appendRowKey(rowKeys, len(fieldPath)), allData, hidden); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // fieldRun is one field (or one element of a repeated field) being validated.
@@ -185,7 +203,10 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 				// Keyed rows use sorted-key traversal so the first reported
 				// error is identical in every validation implementation. Missing
 				// data is an empty collection.
-				rows, _ := fieldValue.(map[string]any)
+				rows, err := objectValue(fieldValue, fieldPath, "Repeated data must be a keyed object: ")
+				if err != nil {
+					return err
+				}
 				for _, key := range sortedKeys(rows) {
 					rowPath := appendPath(fieldPath, key)
 					row, ok := rows[key].(map[string]any)
@@ -222,7 +243,11 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 		}
 		var err error
 		if isMultiple && present {
-			err = v.validateMultipleFieldRules(run, fieldValue.(map[string]any), errors)
+			rows, rowsErr := objectValue(fieldValue, fieldPath, "Repeated data must be a keyed object: ")
+			if rowsErr != nil {
+				return rowsErr
+			}
+			err = v.validateMultipleFieldRules(run, rows, errors)
 		} else {
 			err = v.validateFieldRules(run, fieldValue, errors)
 		}
@@ -583,6 +608,19 @@ func asMap(v any) map[string]any {
 		return m
 	}
 	return map[string]any{}
+}
+
+// objectValue returns the object that data holds at path. Missing data (nil) is a nil
+// map; any other value that is not an object is a *FormInputError with message.
+func objectValue(data any, path []string, message string) (map[string]any, error) {
+	if data == nil {
+		return nil, nil
+	}
+	object, ok := data.(map[string]any)
+	if !ok {
+		return nil, &FormInputError{Message: message + pathToString(path)}
+	}
+	return object, nil
 }
 
 // appendRowKey returns the row key positions of a path extended by a row key at position.

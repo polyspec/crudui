@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 6765ca5995da79865db80b432b5e53c1d4344295cc33a2a7b68ea10cfbb423ec -->
+<!-- source-sha256: 68ae5683f0da38cf52c8d5747f343c8be8b39abdfe4c6f086e0a315126fa7ced -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -119,5 +119,6 @@
 | C16.65-1 | repository-writing test는 kit가 자기 검사를 부르는 용어 gate를 허용한다(PRINCIPLES P31, kit-gates) | tests/docs/repository-writing.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [o] |
 | C16.66 | CHANGELOG.ko.md는 CHANGELOG.md의 모든 항목을 같은 순서로 한 번씩 담고 revision marker를 하나만 가진다 | CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/changelog.test.mts` | [o] |
 | C16.67 | kit 사본은 2026-10-20의 kit-sync를 따른다(golangci, ruff, clippy 설정, principles, bootstrap) | .golangci.yml, ruff.toml, clippy.toml, PRINCIPLES.md, PRINCIPLES.ko.md, scripts/kit/kit-bootstrap.mk | `make kit-check` | [o] |
+| C16.67-1 | packages/validator/go은 숨은 오류를 보고하지 않는다: kit lint의 errcheck, errorlint, nilerr finding을 처리한다(K334, P8) | packages/validator/go (the changed files) | `cd packages/validator/go && ../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../.golangci.yml ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run Test ./...` | [o] |
 | C16.67-10 | validator은 숨은 오류를 보고하지 않는다: kit lint의 날짜 파서 ruff S112 finding을 처리한다(K334, P8) | packages/validator/python (validator/rules.py) | `var/tools/bin/mise exec -- ruff check --config ruff.toml packages/validator/python/src/polyspec/crudui/validator/rules.py`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_validate`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_text_validity` | [o] |
 | C16.67-11 | generator은 숨은 오류를 보고하지 않는다: kit lint의 design appearance ruff S110(try-except-pass) finding을 처리한다(K334, P8) | packages/generator/python (generator/design.py, tests/test_form_render.py) | `var/tools/bin/mise exec -- ruff check --config ruff.toml packages/generator/python/src/polyspec/crudui/generator/design.py`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_render`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_render` | [o] |

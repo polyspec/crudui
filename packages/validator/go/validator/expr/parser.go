@@ -253,7 +253,11 @@ func (p *Parser) parsePath() *PathNode {
 
 	if p.match(TokenDotDot) {
 		relative = true
-		dots, _ := p.previous().Literal.(int)
+		dots, ok := p.previous().Literal.(int)
+		if !ok {
+			// The lexer sets an int count on every TokenDotDot, so the assertion cannot fail.
+			panic(fmt.Sprintf("expr: dot-run token holds %T, not int", p.previous().Literal))
+		}
 		levelsUp = dots - 1
 	} else if p.match(TokenDot) {
 		relative = true

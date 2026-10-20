@@ -117,7 +117,7 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 		return nil, err
 	}
 	// Every loaded document, from any loader, is read in specification member order.
-	doc, _ := OrderMembers(loaded).(*OMap)
+	doc := orderedOMap(loaded)
 
 	// Descend detectKeys.
 	var node any = doc

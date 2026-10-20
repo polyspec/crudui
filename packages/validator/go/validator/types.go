@@ -1004,7 +1004,10 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 		if err != nil {
 			return nil, nil, err
 		}
-		key := keyTok.(string)
+		key, ok := keyTok.(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("model: expected an object key, got %T", keyTok)
+		}
 		var rv json.RawMessage
 		if err := dec.Decode(&rv); err != nil {
 			return nil, nil, err
@@ -1263,7 +1266,7 @@ func rejectForbiddenKeys(data []byte, where string) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	tok, err := dec.Token()
 	if err != nil {
-		return nil // not a decodable object here; defer to typed Unmarshal
+		return err
 	}
 	d, ok := tok.(json.Delim)
 	if !ok || d != '{' {
@@ -1318,7 +1321,7 @@ func objectMembers(data []byte) ([]string, []json.RawMessage, error) {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	tok, err := dec.Token()
 	if err != nil {
-		return nil, nil, nil
+		return nil, nil, err
 	}
 	if d, ok := tok.(json.Delim); !ok || d != '{' {
 		return nil, nil, nil
@@ -1334,7 +1337,11 @@ func objectMembers(data []byte) ([]string, []json.RawMessage, error) {
 		if err := dec.Decode(&value); err != nil {
 			return nil, nil, err
 		}
-		keys = append(keys, keyTok.(string))
+		key, ok := keyTok.(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("model: expected an object key, got %T", keyTok)
+		}
+		keys = append(keys, key)
 		values = append(values, value)
 	}
 	return keys, values, nil

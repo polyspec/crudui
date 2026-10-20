@@ -42,6 +42,16 @@ func OrderMembers(value any) any {
 	}
 }
 
+// orderedOMap returns m in specification member order as an *OMap. OrderMembers keeps
+// the dynamic type of an *OMap, so the assertion cannot fail for an *OMap input.
+func orderedOMap(m *OMap) *OMap {
+	out, ok := OrderMembers(m).(*OMap)
+	if !ok {
+		panic("compose: OrderMembers did not return an *OMap for an *OMap input")
+	}
+	return out
+}
+
 // arrayIndex reports whether name is an array index, a canonical decimal integer
 // from 0 to 4294967294 without leading zeros, and returns its numeric value.
 func arrayIndex(name string) (uint64, bool) {

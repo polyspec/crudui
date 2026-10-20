@@ -92,7 +92,11 @@ func TestUniqueManyRows(t *testing.T) {
 	for i := 0; i < 200_000; i++ {
 		rows[fmt.Sprintf("__%013d__", i+1)] = map[string]any{"code": strconv.Itoa(i)}
 	}
-	result, err := Validate(decoded.(*compose.OMap), map[string]any{"rows": rows}, Options{})
+	spec, ok := decoded.(*compose.OMap)
+	if !ok {
+		t.Fatalf("spec decoded as %T, want an object", decoded)
+	}
+	result, err := Validate(spec, map[string]any{"rows": rows}, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +112,10 @@ func TestUniqueRowsBelongToOneValidation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := decoded.(*compose.OMap)
+	spec, ok := decoded.(*compose.OMap)
+	if !ok {
+		t.Fatalf("spec decoded as %T, want an object", decoded)
+	}
 	rows := func(codes ...string) map[string]any {
 		out := map[string]any{}
 		for i, code := range codes {
