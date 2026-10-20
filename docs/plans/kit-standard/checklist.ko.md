@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 68ae5683f0da38cf52c8d5747f343c8be8b39abdfe4c6f086e0a315126fa7ced -->
+<!-- source-sha256: e7511660a215a356a9ef4986d0ce8a052b549ef627a80a3397175e25438bc9ea -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -122,3 +122,4 @@
 | C16.67-1 | packages/validator/go은 숨은 오류를 보고하지 않는다: kit lint의 errcheck, errorlint, nilerr finding을 처리한다(K334, P8) | packages/validator/go (the changed files) | `cd packages/validator/go && ../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../.golangci.yml ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run Test ./...` | [o] |
 | C16.67-10 | validator은 숨은 오류를 보고하지 않는다: kit lint의 날짜 파서 ruff S112 finding을 처리한다(K334, P8) | packages/validator/python (validator/rules.py) | `var/tools/bin/mise exec -- ruff check --config ruff.toml packages/validator/python/src/polyspec/crudui/validator/rules.py`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_validate`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_text_validity` | [o] |
 | C16.67-11 | generator은 숨은 오류를 보고하지 않는다: kit lint의 design appearance ruff S110(try-except-pass) finding을 처리한다(K334, P8) | packages/generator/python (generator/design.py, tests/test_form_render.py) | `var/tools/bin/mise exec -- ruff check --config ruff.toml packages/generator/python/src/polyspec/crudui/generator/design.py`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_render`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_render` | [o] |
+| C16.68 | config/generated.json은 crudui의 생성 경로를 선언하고, kit의 pre-commit hook이 생성 파일 검사를 실행한다(kit K362) | config/generated.json, config/owner-checks.json, .githooks/pre-commit, AGENTS.md, AGENTS.ko.md | `make hooks-check`, `make owner-validate` | [o] |

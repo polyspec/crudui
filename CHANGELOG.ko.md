@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 65a168b1337448c5dab1079acdb5472b110a927fb54d40d9a0029ed0cdd101b2 -->
+<!-- source-sha256: 57c4a91227fba3f8138947f0d5b996f1c249f6845a2ddef960c0590a44d763a8 -->
 
 ## Unreleased
+
+### 2026-10-20 — config/generated.json이 생성 경로를 선언하고, pre-commit hook이 그 검사를 실행한다 (C16.68)
+
+- `config/generated.json`이 crudui의 생성 glob(`var/**`, `dist.next/**`, `**/.phpunit.cache/**`, `make link`가 쓰는 `go.work` 파일 등)을 빈 `exceptions`와 함께 선언하고, `config/owner-checks.json`이 이 파일과 `clippy.toml`에 owner를 주며, `AGENTS.md`와 `AGENTS.ko.md`가 설정 파일 목록에 `generated`를 적고, `make hooks`가 `.githooks/pre-commit`(kit K362)을 쓴다 (C16.68). Red: `make hooks-check` exit 2, `config/generated.json does not exist, and the pre-commit hook needs it`; green: `make hooks-check` exit 0, `make owner-validate` exit 0.
 
 ### 2026-10-20 — Go validator는 숨은 오류를 처리한다 (C16.67-1)
 

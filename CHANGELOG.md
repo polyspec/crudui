@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — config/generated.json declares the generated paths, and the pre-commit hook runs its check (C16.68)
+
+- `config/generated.json` declares the generated globs of crudui (`var/**`, `dist.next/**`, `**/.phpunit.cache/**`, the `go.work` files that `make link` writes, ...) with an empty `exceptions` list; `config/owner-checks.json` gives it and `clippy.toml` an owner; `AGENTS.md` and `AGENTS.ko.md` name `generated` among the configuration files; `make hooks` writes `.githooks/pre-commit` (kit K362) (C16.68). Red: `make hooks-check` exit 2, `config/generated.json does not exist, and the pre-commit hook needs it`; green: `make hooks-check` exit 0 and `make owner-validate` exit 0.
+
 ### 2026-10-20 — The Go validator handles its hidden errors (C16.67-1)
 
 - `packages/validator/go` checks or returns every error that the kit lint reports (C16.67-1): `types.go` returns the decoder error of `rejectForbiddenKeys` and `objectMembers` and checks the object keys of `orderedRawObject` and `objectMembers`; `expr/lexer.go` turns a malformed number into an invalid token; `validate/validator.go` returns the shape error of `collectHidden` and reads the repeated and group data through `objectValue`; `validate/rules.go` encodes unique keys without an unchecked `json.Marshal`; the conformance tests use `errors.As` and fail with `t.Fatal`. Red: `golangci-lint run` exited 1 with `72 issues` (errcheck 63, errorlint 7, nilerr 2); green: exit 0 with `0 issues`, and `go test -run Test ./...` gave `825 passed, 0 failed`.

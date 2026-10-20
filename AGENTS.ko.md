@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: f5455d7cf7af35f22a3b0b3d0e390b1e1351527966b574c57a8f7ed59d9cc405 -->
+<!-- source-sha256: eefde491e3c32e973b2acf64d71a7c539313052d9b249cdbe482a250df875cd2 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -45,7 +45,7 @@
   링크는 커밋하지 않습니다.
   Enforced by: `make toolchain-check`
 - Own: 이 저장소의 설정은 `config/*.json`(`toolchain`, `dependency-policy`, `dependency-review`, `checklist`, `documents`,
-  `owner-checks`, `rebuild`, `release`)과 `config/layout.yml`입니다. `config/layout.yml`은 `config/layout.kit.yml`의 예외를 각각의
+  `generated`, `owner-checks`, `rebuild`, `release`)과 `config/layout.yml`입니다. `config/layout.yml`은 `config/layout.kit.yml`의 예외를 각각의
   이유와 함께 적습니다.
   Enforced by: `make layout-check`
 

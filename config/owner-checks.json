@@ -650,6 +650,7 @@
         "PRINCIPLES.ko.md",
         "config/layout.kit.yml",
         "ruff.toml",
+        "clippy.toml",
         "phpcs.xml.dist",
         "phpstan.dist.neon",
         ".golangci.yml",
@@ -686,6 +687,7 @@
     {
       "paths": [
         "config/checklist.json",
+        "config/generated.json",
         ".githooks/**"
       ],
       "targets": [

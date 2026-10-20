@@ -46,8 +46,8 @@ only the rules of crudui.
   installed polyspec packages to their source as `docs/plans/local-links.md` of kit describes; links are never committed.
   Enforced by: `make toolchain-check`
 - Own: The configuration of this repository is `config/*.json` (`toolchain`, `dependency-policy`, `dependency-review`,
-  `checklist`, `documents`, `owner-checks`, `rebuild`, `release`) and `config/layout.yml`, which name the exceptions of
-  `config/layout.kit.yml`, each with its reason.
+  `checklist`, `documents`, `generated`, `owner-checks`, `rebuild`, `release`) and `config/layout.yml`, which name the
+  exceptions of `config/layout.kit.yml`, each with its reason.
   Enforced by: `make layout-check`
 
 ## Layout, documents and changes
