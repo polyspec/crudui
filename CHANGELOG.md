@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The parity declaration holds with no finding (C16.46-1)
+
+- config/parity.json keeps the TypeScript-only packages and the tooling tests outside the implementation roots, and the C engine test of the extension has its place (the engine tests internal, the contract tests bound with the node runner, K422): `make parity-declarations-check` reports no finding (C16.46-1).
+
 ### 2026-10-21 — The parity declaration holds with no finding (C16.46)
 
 - config/parity.json declares the implementations, the tooling roots and the comparators of crudui with no finding of `make parity-declarations-check`: the units, requirement ids and test moves it waited for are done (C16.46).

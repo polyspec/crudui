@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ee6e39f6e874b1bcb37f2e62175ce6b3e3a0a3a632a701bd8798bdd71cb01192 -->
+<!-- source-sha256: 669d244b58296899960cb209269de0bf78b5cb39a021df3dd3c9603108112ce2 -->
 
 ## Unreleased
+
+### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.46-1)
+
+- config/parity.json이 TypeScript 전용 패키지와 도구 테스트를 구현 root 밖에 두고, 확장의 C 엔진 테스트가 자리를 가진다(엔진 테스트는 internal, 계약 테스트는 node runner로 binding, K422): `make parity-declarations-check`가 발견을 보고하지 않는다 (C16.46-1).
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.46)
 
