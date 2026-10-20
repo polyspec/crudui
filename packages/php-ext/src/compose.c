@@ -331,24 +331,26 @@ static ps_value *compose_spec(const ps_value *spec, compose_context *context, ps
     return out;
 }
 
-ps_value *ps_compose_properties(const ps_value *properties, const ps_value *files,
-                                ps_text basepath, ps_value **error)
+/* The composition of a properties or a spec input with the files of its context, or an empty object when none is given. */
+static ps_value *compose_entry(ps_value *(*compose)(const ps_value *, compose_context *, ps_value **),
+                               const ps_value *input, const ps_value *files, ps_text basepath, ps_value **error)
 {
     compose_context context = {files && files->kind == PS_OBJECT ? files : NULL,
         basepath.bytes ? basepath : PS_TEXT(""), NULL, 0};
     ps_value *empty = NULL;
     if (!context.files) context.files = empty = ps_object_value();
-    ps_value *out = compose_properties(properties, &context, error);
+    ps_value *out = compose(input, &context, error);
     free(context.paths); ps_value_free(empty); return out;
+}
+
+ps_value *ps_compose_properties(const ps_value *properties, const ps_value *files,
+                                ps_text basepath, ps_value **error)
+{
+    return compose_entry(compose_properties, properties, files, basepath, error);
 }
 
 ps_value *ps_compose_spec(const ps_value *spec, const ps_value *files,
                           ps_text basepath, ps_value **error)
 {
-    compose_context context = {files && files->kind == PS_OBJECT ? files : NULL,
-        basepath.bytes ? basepath : PS_TEXT(""), NULL, 0};
-    ps_value *empty = NULL;
-    if (!context.files) context.files = empty = ps_object_value();
-    ps_value *out = compose_spec(spec, &context, error);
-    free(context.paths); ps_value_free(empty); return out;
+    return compose_entry(compose_spec, spec, files, basepath, error);
 }

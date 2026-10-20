@@ -124,12 +124,29 @@ ps_result ps_collapsible_rows(const ps_value *nodes)
     return rows ? ps_ok(rows) : internal_failure();
 }
 
+/* The collapsed list of a view and the row of a row operation; the failure is set when either is not valid. */
+static bool row_input(const ps_value *view, const ps_value *row_path, const ps_value **collapsed, ps_text *row,
+                      ps_result *failure)
+{
+    *collapsed = collapsed_of(view);
+    if (!*collapsed) {
+        *failure = input_failure(view_message);
+        return false;
+    }
+    if (!row_path || row_path->kind != PS_STRING) {
+        *failure = input_failure("Row path must be a string");
+        return false;
+    }
+    *row = ps_string(row_path);
+    return true;
+}
+
 ps_result ps_toggle_row_view(const ps_value *view, const ps_value *row_path)
 {
-    const ps_value *collapsed = collapsed_of(view);
-    if (!collapsed) return input_failure(view_message);
-    if (!row_path || row_path->kind != PS_STRING) return input_failure("Row path must be a string");
-    ps_text row = ps_string(row_path);
+    const ps_value *collapsed = NULL;
+    ps_text row;
+    ps_result failure;
+    if (!row_input(view, row_path, &collapsed, &row, &failure)) return failure;
     ps_value *rows = ps_array_value();
     bool found = false;
     if (!rows) return internal_failure();
@@ -159,10 +176,10 @@ ps_result ps_set_all_expanded_view(const ps_value *nodes, const ps_value *expand
 
 ps_result ps_remove_row_view(const ps_value *view, const ps_value *row_path)
 {
-    const ps_value *collapsed = collapsed_of(view);
-    if (!collapsed) return input_failure(view_message);
-    if (!row_path || row_path->kind != PS_STRING) return input_failure("Row path must be a string");
-    ps_text row = ps_string(row_path);
+    const ps_value *collapsed = NULL;
+    ps_text row;
+    ps_result failure;
+    if (!row_input(view, row_path, &collapsed, &row, &failure)) return failure;
     ps_value *rows = ps_array_value();
     if (!rows) return internal_failure();
     for (size_t i = 0; i < ps_size(collapsed); ++i) {
