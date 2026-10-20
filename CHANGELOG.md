@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The copies of kit follow the kit-sync (C16.67)
+
+- `.golangci.yml`, `ruff.toml`, `clippy.toml`, `PRINCIPLES.md` and `scripts/kit/kit-bootstrap.mk` are the copies of kit after K334, K336, K353 and K355 (C16.67). Red: `make kit-check` named the 6 copies that differ; green: it passes. The hidden errors that the new lint configuration reports are the next rows: `make lint-python` fails at `ruff check .`, `make lint-go` at 6 of 14 steps and `make lint-rust` at 6 of 6.
+
 ### 2026-10-20 — buildOutline is implemented in every implementation (C16.49)
 
 - `buildOutline` is `pass` in php, go, rust, php-native and python in `contracts/features.json`, with the Go, Rust, PHP, PHP extension and Python generators and the declaration of C16.49-1 to C16.49-7 (C16.49). Red: `make divergence-check` reported 5 `unsupported` entries of `buildOutline`; green: it reports none, 17 divergences remain.

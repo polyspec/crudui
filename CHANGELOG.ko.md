@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d257338662b74721b294a58df73d57a40f49df6f5cda22d532db2ba5cd819ffb -->
+<!-- source-sha256: 2222d00d4a5d9fe380136e0bbb4200ae61ccfff7654936493e394c18158290b2 -->
 
 ## Unreleased
+
+### 2026-10-20 — kit 사본이 kit-sync를 따른다 (C16.67)
+
+- `.golangci.yml`, `ruff.toml`, `clippy.toml`, `PRINCIPLES.md`, `scripts/kit/kit-bootstrap.mk`는 K334, K336, K353, K355 이후의 kit 사본입니다(C16.67). Red: `make kit-check`가 다른 사본 6개를 보고했고, green: 통과합니다. 새 lint 설정이 보고하는 숨은 오류는 다음 행입니다: `make lint-python`은 `ruff check .`에서, `make lint-go`는 14단계 중 6단계에서, `make lint-rust`는 6단계 모두에서 실패합니다.
 
 ### 2026-10-20 — buildOutline은 모든 implementation에 구현되었다 (C16.49)
 

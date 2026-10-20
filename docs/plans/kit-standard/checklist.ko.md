@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 200ed27d0c1b9aedc6b76b0ba4a80d48c4b4be42a9a0c4fd9e528e1fcd7eeebe -->
+<!-- source-sha256: f2eff94b780562034d6bd66b67b9655a346779f5961add05eae199d6a59b6206 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -100,3 +100,4 @@
 | C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [ ] |
 | C16.65 | 관리하는 문서와 changelog는 합격 검사를 gate라는 말로 부르지 않는다 (records-check) | CHANGELOG.md, CHANGELOG.ko.md, the documents of docs/ | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [ ] |
 | C16.66 | CHANGELOG.ko.md는 CHANGELOG.md의 모든 항목을 같은 순서로 한 번씩 담고 revision marker를 하나만 가진다 | CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/changelog.test.mts` | [o] |
+| C16.67 | kit 사본은 2026-10-20의 kit-sync를 따른다(golangci, ruff, clippy 설정, principles, bootstrap) | .golangci.yml, ruff.toml, clippy.toml, PRINCIPLES.md, PRINCIPLES.ko.md, scripts/kit/kit-bootstrap.mk | `make kit-check` | [o] |
