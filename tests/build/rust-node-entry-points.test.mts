@@ -128,7 +128,6 @@ test('Rust documentation coverage uses one resolved toolchain', t => {
 test('Rust API generation uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-api-', [
     'scripts/gen-api-docs.mts',
-    'scripts/run-command.mts',
   ], [
     'docs/api',
     'docs/public/api',
@@ -157,7 +156,6 @@ test('Rust benchmark uses one resolved toolchain for execution and version metad
   const root = fixture(t, 'crudui-rust-benchmark-', [
     'benchmarks/validators/run.js',
     'benchmarks/validators/arguments.js',
-    'scripts/run-command.mts',
   ], [
     'benchmarks/validators/fixtures',
     'benchmarks/validators/rust',

@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 6b7eb90ebf2baa70cd62b0004d20b3b014a86021f94474ab8765e95996cad5ad -->
+<!-- source-sha256: 2645a88390d77071772448da1622549e459c8fa3a1d9ebda2848d6f9de29ecb0 -->
 
 [English](testing.md).
 
@@ -226,15 +226,14 @@ type assertion(`expectTypeOf`)은 `*.test-d.ts` 파일에 있고, Vitest의 type
 
 ## 장기 작업의 명령
 
-다른 명령을 실행하는 스크립트는 `scripts/run-command.mts`로 각 명령을 끝까지 실행합니다.
+다른 명령을 실행하는 스크립트는 `@polyspec/kit/run-command`로 각 명령을 끝까지 실행합니다.
 `npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mts`), `scripts/require-current-build.mts`의
 패키지 빌드, `scripts/gen-api-docs.mts`의 각 도구 명령, `benchmarks/validators/run.js`의 각 벤치마크 드라이버,
 `benchmarks/validators/build-drivers.mjs`의 각 드라이버 빌드가 대상입니다. 명령에는 시간 한도가 없습니다. 명령의
 종료가 명령을 끝내고 종료 상태가 결과를 정하며, 스크립트는 명령과 경과 시간을 출력합니다. 명령은 자기
 프로세스 그룹에서 시작하고, 명령이 끝나면 그룹에 남긴 프로세스를 멈추므로 출력 pipe를 열어 둔
 프로세스가 스크립트를 붙잡지 못합니다. 중단된 스크립트는 실행 중인 명령을 멈춥니다.
-`npm run test:build`가 실행하는 `tests/build/run-command.test.mts`는 1.2초 뒤에 끝나는 명령으로 각
-스크립트를 실행하고, 명령이 남긴 자식이 멈췄는지를 스크립트 출력의 close로 확인합니다.
+이 실행기와 그 테스트는 `@polyspec/kit`에 있으며, 이 저장소의 스크립트는 그것을 import만 합니다.
 
 `make conformance`는 적합성 근거를 기록하는 모든 테스트 모음을 실행하고 그 근거를 기능
 계약과 대조합니다. [적합성 근거](conformance.ko.md)를 참고합니다.

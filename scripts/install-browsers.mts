@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js';
 
-import { failureOf, formatSeconds, runCommand } from './run-command.mts';
+import { failureOf, formatSeconds, runCommand } from '@polyspec/kit/run-command';
 import { createProgress } from '@polyspec/kit/test-progress';
 /** The message of a caught value: the message of an Error, or the value as text. */
 const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));

@@ -253,7 +253,7 @@ validator test or a PHP extension engine fixture reads a clock.
 
 ## Commands of long operations
 
-A script that runs other commands runs each of them to its end through `scripts/run-command.mts`:
+A script that runs other commands runs each of them to its end through `@polyspec/kit/run-command`:
 the declared commands of `npm run manifest:test` (`scripts/run-contract-tests.mts`), the package
 build of `scripts/require-current-build.mts`, each tool command of `scripts/gen-api-docs.mts`, each
 benchmark driver of `benchmarks/validators/run.js` and each driver build of `benchmarks/validators/build-drivers.mjs`.
@@ -261,9 +261,7 @@ A command has no time limit: its exit ends it and its exit status decides the re
 script prints the command with its elapsed time. The command starts in its own process group; when
 it exits, the processes it left in the group are stopped, so a process that keeps an output pipe
 open cannot hold the script. An interrupted script stops its running commands.
-`tests/build/run-command.test.mts`, run by `npm run test:build`, runs each script with a command
-that ends after 1.2 seconds, and checks with the close of the script's output that a child the
-command left behind was stopped.
+The runner and its tests belong to `@polyspec/kit`; a script of this repository only imports it.
 
 `make conformance` runs every suite that records conformance evidence and checks that evidence
 against the feature contract; see [conformance evidence](conformance.md).

@@ -14,7 +14,7 @@ import { readJson, type JTDSchemaType } from '../json.mts';
 import type * as javascript from './javascript.mts';
 import type { NodeVM, WidgetModel } from '@polyspec/crudui-generator-core';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mts';
-import { failureOf, runCommand } from '../../scripts/run-command.mts';
+import { failureOf, runCommand } from '@polyspec/kit/run-command';
 import { runRustCommand } from '../../scripts/run-rust-command.mts';
 import { recordConformance } from '../conformance/evidence.mts';
 import { recordSuiteRun } from '../conformance/runs.mts';

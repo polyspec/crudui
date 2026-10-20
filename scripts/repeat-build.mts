@@ -3,7 +3,7 @@
  * The reproducible build check: build the workspace packages twice and compare the path and SHA-256
  * digest of every output file of the published packages. Each build is a long operation: it runs to
  * its end without a time limit, its output streams as it runs, and its result is printed with its
- * elapsed time (scripts/run-command.mts). The check reads only the outputs of its own two builds and
+ * elapsed time (@polyspec/kit/run-command). The check reads only the outputs of its own two builds and
  * keeps no record between runs; it fails with every file whose bytes differ, is missing in one build
  * or appears in one build only.
  */
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 import { buildOutputs, type BuildOutput } from './package-outputs.mts';
-import { failureOf, runCommand } from './run-command.mts';
+import { failureOf, runCommand } from '@polyspec/kit/run-command';
 import { createProgress } from '@polyspec/kit/test-progress';
 
 /** The differences between the outputs of two builds, one line per file, in path order. */

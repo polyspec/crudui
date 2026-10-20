@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Generate public API references; a failed tool or missing output fails the command. Each tool
- * command runs to its end without a time limit (scripts/run-command.mts) and prints its elapsed
+ * command runs to its end without a time limit (@polyspec/kit/run-command) and prints its elapsed
  * time.
  */
 import assert from 'node:assert/strict';
@@ -9,7 +9,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } fr
 import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, relative } from 'node:path';
 
-import { failureOf, runCommand } from './run-command.mts';
+import { failureOf, runCommand } from '@polyspec/kit/run-command';
 import { createProgress } from '@polyspec/kit/test-progress';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');

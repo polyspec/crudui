@@ -23,14 +23,13 @@
  * The counts follow the rule of arguments.js, checked before any driver starts.
  *
  * Each driver runs to its end in its own process group without a time limit
- * (scripts/run-command.mts); its exit status decides the result, and the
+ * (@polyspec/kit/run-command); its exit status decides the result, and the
  * processes it leaves behind, such as the benchmark program under `go run` or
  * cargo, are stopped when it exits.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { pathToFileURL } = require('url');
 const { count } = require('./arguments');
 
 const BENCH_DIR = __dirname;
@@ -38,7 +37,6 @@ const FIXTURES = path.join(BENCH_DIR, 'fixtures');
 const REPO_ROOT = path.resolve(BENCH_DIR, '..', '..');
 const RESULTS_MD = path.join(BENCH_DIR, 'results.md');
 const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mts');
-const RUN_COMMAND = path.join(REPO_ROOT, 'scripts/run-command.mts');
 
 const SPECS = [
   { name: 'contact', label: 'contact (small, ~6 fields)' },
@@ -298,7 +296,7 @@ async function main() {
     process.exit(1);
   }
 
-  const commands = await import(pathToFileURL(RUN_COMMAND).href);
+  const commands = await import('@polyspec/kit/run-command');
   const d = drivers(args.iters, args.warmup);
   const byLangBySpec = {};
   const failures = [];

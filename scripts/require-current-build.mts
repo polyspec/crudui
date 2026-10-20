@@ -8,14 +8,14 @@
  * three times. The rule here replaces that repetition: a command declares that it
  * needs a current build, and the build runs only when the recorded source and output
  * digests no longer match the working tree. The build runs to its end without a time limit, and
- * its output streams as it runs (scripts/run-command.mts).
+ * its output streams as it runs (@polyspec/kit/run-command).
  */
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { failureOf, formatSeconds, runCommand } from './run-command.mts';
+import { failureOf, formatSeconds, runCommand } from '@polyspec/kit/run-command';
 import { createProgress } from '@polyspec/kit/test-progress';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

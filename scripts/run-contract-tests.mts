@@ -2,14 +2,14 @@
 /**
  * Execute the test commands declared by the CRUDUI contract manifest. Each command runs its own
  * tests, each with its own timeout, and runs to its end without a limit over them
- * (scripts/run-command.mts). Every command runs, also after an earlier one failed, and a failed
+ * (@polyspec/kit/run-command). Every command runs, also after an earlier one failed, and a failed
  * command fails the run after the last command.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { failureOf, runCommand } from './run-command.mts';
+import { failureOf, runCommand } from '@polyspec/kit/run-command';
 import { createProgress } from '@polyspec/kit/test-progress';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');

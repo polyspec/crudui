@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fe9f96e56fc5e997a59d8c67c13f0f27f10c5fe8d6acc3d82f93f6a4b61a8c56 -->
+<!-- source-sha256: 91c075dbc20b8ebb8b7eb79a58116700b2ffa1039a6d7fbbd65cfabc9f2d0fab -->
 
 ## Unreleased
 
@@ -39,6 +39,10 @@
 ### 2026-10-21 — 여섯 구현의 유니코드 데이터가 계약에 맞게 검사된다 (C16.113)
 
 - 기능 unit `unicode-data`(CUVR-018)가 ts(`packages/validator/ts/src/unicode/properties.unit.test.ts`), php(`UnicodeDataTest::testEmbeddedDataEqualsTheContract`), go(`TestUnicodeDataMatchesContract`), rust(`embedded_data_matches_the_contract`), python(`test_unicode_data.py`)과 php-extension의 유니코드 테스트를 묶는다. php-extension의 새 node 계약 테스트 `packages/php-ext/tests/contract/unicode-data.test.mjs`는 `unicode_data.c`의 C 표와 `whitespace.c`의 White_Space 검사를 컴파일해 `contracts/unicode-properties.json`과 비교하며, 이 검사는 `packages/php-ext/tests/engine/engine.test.mjs`에서 옮겨 왔다 (C16.113). 값 unit `packages/validator/ts/src/values/values.unit.test.ts`는 내부 테스트로 선언된다. Red: `make -s parity-declarations-check`가 exit 2이며 `R5 undeclared-test` 줄 다섯 개; green: 지적 없이 exit 0이고 node 계약 테스트는 exit 0.
+
+### 2026-10-21 — scripts의 명령은 kit의 runner로 실행한다 (C16.10)
+
+- `scripts/run-command.mts`를 제거한다. 사용처는 `@polyspec/kit/run-command`를 import한다(`scripts/repeat-build.mts`, `scripts/run-contract-tests.mts`, `scripts/gen-api-docs.mts`, `scripts/install-browsers.mts`, `scripts/require-current-build.mts`, `benchmarks/validators/build-drivers.mjs`, `benchmarks/validators/run.js`, `tests/native-generators/run.mts`). 그 테스트 `tests/build/run-command.test.mts`는 `npm run test:build`에서 빠지며, runner와 그 테스트는 kit이 소유한다. `config/rebuild.json`은 `replaced` 항목을 버리고, `config/owner-checks.json`, `tests/build/rust-node-entry-points.test.mts`, `scripts/gen-api-docs.test.mts`는 제거된 파일을 뺀다. 출력 한도 실패는 kit의 메시지 `wrote more than its output limit; stopped its process group`를 쓰며, 더 이상 byte 수를 출력하지 않는다. 호출하는 스크립트 중 byte 수를 출력한 곳은 없었다. Red: HEAD에서 `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` exit 1(파일이 남아 있다); green: 같은 명령 exit 0; `scripts/gen-api-docs.test.mts` 8 passed, `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/offline-checks.test.mts` 2 passed, `tests/build/install-browsers.test.mts` 3 passed.
 
 ### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
 

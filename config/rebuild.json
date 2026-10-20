@@ -16,7 +16,7 @@
     },
     "benchmarks/validators/build-drivers.mjs": {
       "kind": "ecosystem",
-      "tool": "go build and cargo build, run through scripts/run-command.mts"
+      "tool": "go build and cargo build, run through @polyspec/kit/run-command"
     },
     "benchmarks/validators/drivers.mjs": {
       "kind": "policy",
@@ -597,10 +597,6 @@
     "scripts/require-current-build.mts": {
       "kind": "record",
       "record": "docs/rebuild/build-stamp.md"
-    },
-    "scripts/run-command.mts": {
-      "kind": "replaced",
-      "reason": "replaced by the process-group runner of @polyspec/kit once kit exports it (kit item: export process-group.mts and process.mts); item C16.10 registers the replacement"
     },
     "scripts/run-contract-tests.mts": {
       "kind": "policy",

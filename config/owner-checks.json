@@ -35,8 +35,7 @@
         "manifest:docs:check"
       ],
       "tests": [
-        "tests/build/contract-manifest.test.mts",
-        "tests/build/run-command.test.mts"
+        "tests/build/contract-manifest.test.mts"
       ]
     },
     {
@@ -431,11 +430,9 @@
     },
     {
       "paths": [
-        "scripts/require-current-build.mts",
-        "scripts/run-command.mts"
+        "scripts/require-current-build.mts"
       ],
       "tests": [
-        "tests/build/run-command.test.mts",
         "tests/build/atomic-publish.test.mts"
       ]
     },
