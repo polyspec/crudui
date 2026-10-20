@@ -15,6 +15,10 @@
         "packages/html"
       ],
       "internal": [
+    {
+      "glob": "packages/validator/ts/src/text/text-validity.conformance.test.ts",
+      "reason": "test: the unit tests of the input text helpers of the validator (isScalarText, compareCodePoints, valueFailure and the loader check of a custom document); they read no shared suite fixture; the shared cases of tests/fixtures/text-validity are bound to their units by the files text-validity-validate, text-validity-validate-list, text-validity-validate-detail and text-validity-value-graphs"
+    },
         {
           "glob": "packages/html/src/button-control.test.ts",
           "reason": "test: the unit test of the HTML renderer's button fields (Button fields); it reads no shared suite fixture of tests/fixtures"
@@ -994,7 +998,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+          "test": "packages/validator/ts/src/text/text-validity-validate.conformance.test.ts"
         },
         {
           "implementation": "php",
@@ -1051,7 +1055,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+          "test": "packages/validator/ts/src/text/text-validity-validate-list.conformance.test.ts"
         },
         {
           "implementation": "php",
@@ -1106,7 +1110,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+          "test": "packages/validator/ts/src/text/text-validity-validate-detail.conformance.test.ts"
         },
         {
           "implementation": "php",
@@ -1161,7 +1165,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+          "test": "packages/validator/ts/src/text/text-validity-value-graphs.conformance.test.ts"
         },
         {
           "implementation": "php",

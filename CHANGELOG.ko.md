@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 46cafe2ede0642c1f6f4cb69505913207c5d8a5364f80961091628127f791fec -->
+<!-- source-sha256: 4ea9b06af7db20594bc2a2dedb5fb10a22d799dea3d5b2e0c9ed96cf2020e44d -->
 
 ## Unreleased
 
@@ -43,6 +43,10 @@
 ### 2026-10-21 — scripts의 명령은 kit의 runner로 실행한다 (C16.10)
 
 - `scripts/run-command.mts`를 제거한다. 사용처는 `@polyspec/kit/run-command`를 import한다(`scripts/repeat-build.mts`, `scripts/run-contract-tests.mts`, `scripts/gen-api-docs.mts`, `scripts/install-browsers.mts`, `scripts/require-current-build.mts`, `benchmarks/validators/build-drivers.mjs`, `benchmarks/validators/run.js`, `tests/native-generators/run.mts`). 그 테스트 `tests/build/run-command.test.mts`는 `npm run test:build`에서 빠지며, runner와 그 테스트는 kit이 소유한다. `config/rebuild.json`은 `replaced` 항목을 버리고, `config/owner-checks.json`, `tests/build/rust-node-entry-points.test.mts`, `scripts/gen-api-docs.test.mts`는 제거된 파일을 뺀다. 출력 한도 실패는 kit의 메시지 `wrote more than its output limit; stopped its process group`를 쓰며, 더 이상 byte 수를 출력하지 않는다. 호출하는 스크립트 중 byte 수를 출력한 곳은 없었다. Red: HEAD에서 `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` exit 1(파일이 남아 있다); green: 같은 명령 exit 0; `scripts/gen-api-docs.test.mts` 8 passed, `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/offline-checks.test.mts` 2 passed, `tests/build/install-browsers.test.mts` 3 passed.
+
+### 2026-10-21 — text-validity 단위들이 각자 ts 테스트 파일을 가진다 (C16.158-2)
+
+- text-validity-validate, text-validity-validate-list, text-validity-validate-detail, text-validity-value-graphs의 ts 바인딩이 각자 테스트 파일을 가진다 (C16.158-2): `packages/validator/ts/src/text/text-validity-validate.conformance.test.ts`, `text-validity-validate-list.conformance.test.ts`, `text-validity-validate-detail.conformance.test.ts`, `text-validity-value-graphs.conformance.test.ts`. 공유 사례 코드는 `tests/fixtures/text-validity/cases.mts`이며, `text-validity.conformance.test.ts`는 text 도우미의 단위 테스트를 담고 `config/parity.json`에서 internal로 선언된다. Red: `make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-validity-value-graphs"` exit 1, 각 단위의 `R3 not-executed <unit> ts`와 사례 이름; green: exit 0, validate 21 of 21, validate-list 6 of 6, validate-detail 5 of 5, value-graphs 12 of 12 사례 통과.
 
 ### 2026-10-21 — form-state 단위들이 각자 ts 테스트 파일을 가진다 (C16.158-1)
 
