@@ -21,6 +21,15 @@ entry points, load failures and input failures.
 - **CUVR-010** `equalTo`, `notEqual`: Field comparison; the rule receives its reference or literal parameter unchanged.
 - **CUVR-011** `in`: [Membership](#values) in a list, comma-separated string or map.
 - **CUVR-012** `date`, `dateISO`: Boolean enablement of date format checks.
+- **CUVR-058** `date`: A value is a date when it is a string whose trimmed text (CUVR-019) is `YYYY-MM-DD`,
+  `YYYY/MM/DD`, `MM/DD/YYYY` or `DD/MM/YYYY` and names a calendar day that exists (the day fits its month, and
+  February 29 only in a leap year), or an RFC 3339 date-time `YYYY-MM-DDTHH:MM:SS` followed by `Z`, `+HH:MM` or
+  `-HH:MM`, with no fraction, whose date is a calendar day and whose time is valid (hours 00 to 23, minutes and
+  seconds 00 to 59, offset hours 00 to 23 and offset minutes 00 to 59). A slash form is a date when either the
+  month-first or the day-first reading names a calendar day. A number, a date-time without an offset and any other
+  text are not dates; the text of a JavaScript or PHP date parser is not a date unless it has one of these layouts.
+- **CUVR-059** `dateISO`: A value is an ISO date when it is a string whose trimmed text (CUVR-019) is `YYYY-MM-DD`
+  and names a calendar day that exists. Other layouts, numbers and other values are not ISO dates.
 - **CUVR-013** `enddate`: Start-date field path; a parsed end date must not precede the parsed start date.
 - **CUVR-014** `mincount`, `maxcount`: Minimum or maximum collection size.
 - **CUVR-015** `unique`: Uniqueness check, optionally using a reference or filter parameter.

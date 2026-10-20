@@ -477,8 +477,48 @@ def _parse_date(value: Value) -> datetime | None:
     return None
 
 
+_ISO_DAY = re.compile(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})$")
+_SLASH_YEAR_FIRST = re.compile(r"^([0-9]{4})/([0-9]{2})/([0-9]{2})$")
+_SLASH_YEAR_LAST = re.compile(r"^([0-9]{2})/([0-9]{2})/([0-9]{4})$")
+_DATE_TIME = re.compile(
+    r"^([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})$"
+)
+
+
+def _calendar_day(year: int, month: int, day: int) -> bool:
+    if month < 1 or month > 12 or day < 1:
+        return False
+    return day <= calendar.monthrange(year, month)[1]
+
+
+def _is_day_text(text: str) -> bool:
+    """Whether a trimmed text is YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY or DD/MM/YYYY naming a calendar day."""
+    match = _ISO_DAY.match(text) or _SLASH_YEAR_FIRST.match(text)
+    if match is not None:
+        return _calendar_day(int(match[1]), int(match[2]), int(match[3]))
+    match = _SLASH_YEAR_LAST.match(text)
+    if match is not None:
+        year = int(match[3])
+        return _calendar_day(year, int(match[1]), int(match[2])) or _calendar_day(
+            year, int(match[2]), int(match[1])
+        )
+    return False
+
+
 def _valid_date(value: Value) -> bool:
-    return _parse_date(value) is not None
+    """The date rule (CUVR-058): a string, trimmed, in one of the layouts with a calendar day, or an RFC 3339
+    date-time with a valid time and offset. A number is not a date."""
+    if not isinstance(value, str):
+        return False
+    text = trim(value)
+    match = _DATE_TIME.match(text)
+    if match is None:
+        return _is_day_text(text)
+    hour, minute, second = int(match[2]), int(match[3]), int(match[4])
+    if not _is_day_text(match[1]) or hour > 23 or minute > 59 or second > 59:
+        return False
+    offset = match[5]
+    return offset == "Z" or (int(offset[1:3]) <= 23 and int(offset[4:6]) <= 59)
 
 
 def _rule_date(context: RuleContext) -> str | None:

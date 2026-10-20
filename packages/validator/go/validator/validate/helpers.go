@@ -254,13 +254,6 @@ func parseDate(s string) *time.Time {
 	return nil
 }
 
-// parseExactDate parses with a single layout; nil on failure.
-func parseExactDate(layout, s string) *time.Time {
-	if t, err := time.Parse(layout, s); err == nil {
-		return &t
-	}
-	return nil
-}
 
 // isValidURL reports a valid http/https/ftp URL with a host (JS-equivalent URL
 // rule semantics).

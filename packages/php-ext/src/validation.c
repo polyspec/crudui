@@ -122,6 +122,58 @@ static bool iso_date(ps_text text, int *serial)
     return true;
 }
 
+/* The calendar day that year, month and day name (CUVR-058). */
+static bool calendar_day(int year, int month, int day)
+{
+    static const int days[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
+    if (month < 1 || month > 12 || day < 1) return false;
+    int limit = days[month];
+    if (month == 2 && (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0))) limit++;
+    return day <= limit;
+}
+
+static bool digits_at(ps_text text, size_t start, size_t count)
+{
+    if (start + count > text.length) return false;
+    for (size_t i = start; i < start + count; ++i) if (!isdigit((unsigned char)text.bytes[i])) return false;
+    return true;
+}
+
+/* YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY or DD/MM/YYYY naming a calendar day; a slash form is a day in either reading. */
+static bool day_text(ps_text text)
+{
+    if (text.length != 10) return false;
+    if (digits_at(text, 0, 4) && (text.bytes[4] == '-' || text.bytes[4] == '/') && text.bytes[7] == text.bytes[4]
+        && digits_at(text, 5, 2) && digits_at(text, 8, 2))
+        return calendar_day(decimal_at(text, 0, 4), decimal_at(text, 5, 2), decimal_at(text, 8, 2));
+    if (text.bytes[2] == '/' && text.bytes[5] == '/' && digits_at(text, 0, 2) && digits_at(text, 3, 2) && digits_at(text, 6, 4)) {
+        int year = decimal_at(text, 6, 4);
+        return calendar_day(year, decimal_at(text, 0, 2), decimal_at(text, 3, 2))
+            || calendar_day(year, decimal_at(text, 3, 2), decimal_at(text, 0, 2));
+    }
+    return false;
+}
+
+/* YYYY-MM-DDTHH:MM:SS followed by Z or +HH:MM / -HH:MM, with a calendar day and a valid time and offset (CUVR-058). */
+static bool date_time_text(ps_text text)
+{
+    if (text.length != 20 && text.length != 25) return false;
+    if (text.bytes[10] != 'T' || !iso_date(ps_text_slice(text, 0, 10), NULL)) return false;
+    if (!digits_at(text, 11, 2) || text.bytes[13] != ':' || !digits_at(text, 14, 2) || text.bytes[16] != ':' || !digits_at(text, 17, 2))
+        return false;
+    if (decimal_at(text, 11, 2) > 23 || decimal_at(text, 14, 2) > 59 || decimal_at(text, 17, 2) > 59) return false;
+    if (text.length == 20) return text.bytes[19] == 'Z';
+    if (text.bytes[19] != '+' && text.bytes[19] != '-') return false;
+    if (text.bytes[22] != ':' || !digits_at(text, 20, 2) || !digits_at(text, 23, 2)) return false;
+    return decimal_at(text, 20, 2) <= 23 && decimal_at(text, 23, 2) <= 59;
+}
+
+/* The date rule (CUVR-058): trimmed text in one of the listed layouts; a number is no date. */
+static bool valid_date_text(ps_text text)
+{
+    return day_text(text) || date_time_text(text);
+}
+
 static bool same_letters(ps_text left, ps_text right)
 {
     if (left.length != right.length) return false;
@@ -543,7 +595,7 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
         bool equal = ps_equal(value, other); return ps_text_is(rule, "equalTo") ? equal : !equal;
     }
     if (ps_text_is(rule, "dateISO")) { int serial; return value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial); }
-    if (ps_text_is(rule, "date")) { int serial; return value->kind == PS_INT || value->kind == PS_FLOAT || (value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial)); }
+    if (ps_text_is(rule, "date")) return value->kind == PS_STRING && valid_date_text(ps_trim(ps_string(value)));
     if (ps_text_is(rule, "enddate")) {
         if (value->kind != PS_STRING || parameter->kind != PS_STRING) return 1;
         int end, start; const ps_value *other = relative_field(ps_string(parameter), context, path, length);

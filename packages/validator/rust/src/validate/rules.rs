@@ -567,12 +567,10 @@ fn rule_date(ctx: &RuleContext) -> Option<String> {
     None
 }
 
-/// The date rule: a number is a timestamp (always valid); a string is valid when it is one of the explicit layouts
-/// of `is_explicit_date`. The layouts are those the Go and Python validators accept, each with a calendar date that
-/// exists, so text that is no date (such as "not a date") is rejected. Empty already filtered.
+/// The date rule of validation-rules.md: a string, trimmed, in one of the explicit layouts of `is_explicit_date`, each with a
+/// calendar date that exists. A number is not a date, and neither is text in no listed layout. Empty already filtered.
 fn is_valid_date(value: &Value) -> bool {
     match value {
-        Value::Number(_) => true,
         Value::String(s) => is_explicit_date(trim(s)),
         _ => false,
     }
@@ -1384,6 +1382,7 @@ mod tests {
         for text in ["not a date", "2026-02-30", "02/30/2026", "2026-02-28T25:00:00Z", "2026-02-28T10:30:00", "2026-02-28 10:30"] {
             assert!(!is_valid_date(&serde_json::json!(text)), "{text} is no date");
         }
+        assert!(!is_valid_date(&serde_json::json!(1_700_000_000_000_i64)), "a number is no date");
     }
 
     #[test]

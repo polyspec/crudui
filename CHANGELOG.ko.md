@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7321dfc5863c959a30a88dfc25465204e70fc3ffd6d2961e4bce226e01ac76f5 -->
+<!-- source-sha256: e02070de77087df11858df291282cf700847ab581d22401a1869e8fc7586026c -->
 
 ## Unreleased
 
@@ -60,6 +60,14 @@
 ### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
 
 - `packages/generator/ts/styles/crudui.tailwind.css`와 `packages/generator/ts/scripts/write-tailwind-styles.mjs`를 지웠습니다. page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를 `layer(components)`로 import합니다. 이것은 CSS와 Tailwind CSS 4가 제공하는 기능입니다(C16.12). package는 더 이상 `./crudui.tailwind.css`를 export하지 않고, `test:forms`는 script를 실행하지 않습니다. `tests/tailwind-styles.test.mts`는 같은 `crudui.css` import를 layer `components`로 compile합니다. compile된 CSS는 같습니다: test 입력은 변경 전후 모두 21,286 byte로 compile되며 두 출력은 다른 줄이 없습니다. `config/rebuild.json`은 script의 항목을 뺐고, `docs/spec/form-markup.ko.md`, `docs/operations/forms.ko.md`, `docs/features.ko.md`는 그 import를 설명합니다. Red: 생성 file과 import의 compile 결과(package build로 비교)가 같았습니다. Green: `make rebuild-check` exit 0, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/tailwind-styles.test.mts` exit 0, 1363 passed.
+
+### 2026-10-21 — date와 dateISO 규칙은 CUVR-058과 CUVR-059가 나열한 layout을 여섯 구현 모두에서 받아들인다 (C16.57-12-2)
+
+- `docs/spec/validation-rules.md`에 CUVR-058(`date`)과 CUVR-059(`dateISO`)를 추가합니다. `date` 값은 trim한(CUVR-019) 문자열이며, 달력상 유효한 `YYYY-MM-DD`, `YYYY/MM/DD`, `MM/DD/YYYY` 또는 `DD/MM/YYYY`이거나, `Z` 또는 `±HH:MM` offset이 붙은 RFC 3339 `YYYY-MM-DDTHH:MM:SS` 날짜-시간(소수 초 없음, 유효한 범위)입니다. 숫자와 offset이 없는 날짜-시간은 날짜가 아닙니다. `dateISO` 값은 trim한 `YYYY-MM-DD` 달력 날짜만 받아들입니다. `docs/spec/validation-rules.ko.md`에도 같은 내용이 있습니다.
+- TypeScript, Go, Python, PHP, Rust validator와 `packages/php-ext/src/validation.c`의 PHP extension이 위 규칙을 적용합니다. Go의 `dateISO`는 CUVR-019대로 입력을 trim합니다. Go에서 쓰지 않게 된 `parseExactDate`를 제거했습니다.
+- `tests/fixtures/validate/generate.mts`에 layout, 달력 유효성, offset, 숫자, trim을 다루는 case 18개를 추가했습니다. `cases.json`은 339개 case가 되며, 기존 expectation은 바뀌지 않았습니다. 기존 date case 세 개의 `requirements`에 CUVR-058과 CUVR-059가 추가되었습니다.
+- Red 근거: 이 변경 전에는 PHP extension이 새 date case에서 실패했고, Go `dateISO`와 Python, PHP date 규칙이 spec과 달랐습니다. Green: TypeScript conformance 테스트는 340개, Go `TestValidateMatchesFixture`는 340개, Python `test_validate.py`는 3개, Rust `validate_conformance`는 1개, PHP 라이브러리 `ValidateConformanceTest`는 통과, PHP extension은 373개 통과입니다.
+- `config/parity.json`의 `validate` unit이 CUVR-058과 CUVR-059를 인용합니다.
 
 ### 2026-10-20 — 렌더링 case가 시험하는 빈 컬렉션과 action design 규칙을 인용한다 (C16.57-11)
 

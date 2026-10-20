@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 0756acbb70d47006eb322f9925b9618a916caa1a5c923b2fd6c7e8ab47e1fb2d -->
+<!-- source-sha256: e81695e81ba16395d39acad0d82fbae705b70d0f5ace68484ff7a38d1e8fb028 -->
 
 [English](validation-rules.md).
 
@@ -22,6 +22,8 @@
 - **CUVR-010** `equalTo`, `notEqual`: 필드 비교이며 참조 또는 리터럴 매개변수를 그대로 받습니다.
 - **CUVR-011** `in`: 목록, 쉼표 문자열, 맵에 대한 [포함](#값) 여부입니다.
 - **CUVR-012** `date`, `dateISO`: 날짜 형식 검사를 불리언으로 활성화합니다.
+- **CUVR-058** `date`: 값이 trim한 텍스트(CUVR-019)가 `YYYY-MM-DD`, `YYYY/MM/DD`, `MM/DD/YYYY` 또는 `DD/MM/YYYY`이며 존재하는 calendar 날짜를 가리키는 문자열입니다(날짜는 그 달에 맞아야 하고, 2월 29일은 윤년에만). 또는 `Z`, `+HH:MM` 또는 `-HH:MM` offset이 붙고 fraction이 없는 RFC 3339 date-time `YYYY-MM-DDTHH:MM:SS`이며, 날짜는 calendar 날짜이고 시각은 유효합니다(시 00에서 23, 분과 초 00에서 59, offset 시 00에서 23, offset 분 00에서 59). 슬래시 형식은 월-일 또는 일-월 중 어느 읽기로든 calendar 날짜이면 날짜입니다. 숫자, offset이 없는 date-time, 그 밖의 텍스트는 날짜가 아닙니다. JavaScript나 PHP date parser가 읽는 텍스트도 이 layout 중 하나가 아니면 날짜가 아닙니다.
+- **CUVR-059** `dateISO`: 값이 trim한 텍스트(CUVR-019)가 `YYYY-MM-DD`이며 존재하는 calendar 날짜를 가리키는 문자열일 때만 ISO 날짜입니다. 다른 layout, 숫자, 그 밖의 값은 ISO 날짜가 아닙니다.
 - **CUVR-013** `enddate`: 시작일 필드 경로이며 파싱한 종료일은 파싱한 시작일보다 이전일 수 없습니다.
 - **CUVR-014** `mincount`, `maxcount`: 컬렉션 크기의 최소 또는 최대입니다.
 - **CUVR-015** `unique`: 고유성 검사이며 선택적으로 참조 또는 필터 매개변수를 사용합니다.

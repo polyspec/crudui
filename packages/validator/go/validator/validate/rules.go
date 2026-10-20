@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
 )
@@ -539,12 +540,67 @@ var dateFormats = []string{
 	"2006-01-02T15:04:05Z07:00",
 }
 
-// ruleDate: a parseable date. Empty skips.
+// The date layouts of CUVR-058 and CUVR-059: a trimmed string in one of them, naming a calendar day.
+var (
+	isoDayPattern   = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})$`)
+	dateTimePattern = regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(Z|[+-]\d{2}:\d{2})$`)
+	slashYearFirst  = regexp.MustCompile(`^(\d{4})/(\d{2})/(\d{2})$`)
+	slashYearLast   = regexp.MustCompile(`^(\d{2})/(\d{2})/(\d{4})$`)
+)
+
+// isCalendarDay reports whether year, month and day name a calendar day that exists.
+func isCalendarDay(year, month, day int) bool {
+	if month < 1 || month > 12 || day < 1 {
+		return false
+	}
+	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+	return t.Year() == year && int(t.Month()) == month && t.Day() == day
+}
+
+// isDayText reports whether a trimmed text is YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY or DD/MM/YYYY with a calendar day.
+func isDayText(text string) bool {
+	if m := isoDayPattern.FindStringSubmatch(text); m != nil {
+		return isCalendarDay(atoi(m[1]), atoi(m[2]), atoi(m[3]))
+	}
+	if m := slashYearFirst.FindStringSubmatch(text); m != nil {
+		return isCalendarDay(atoi(m[1]), atoi(m[2]), atoi(m[3]))
+	}
+	if m := slashYearLast.FindStringSubmatch(text); m != nil {
+		year := atoi(m[3])
+		return isCalendarDay(year, atoi(m[1]), atoi(m[2])) || isCalendarDay(year, atoi(m[2]), atoi(m[1]))
+	}
+	return false
+}
+
+// isDateText is the date rule (CUVR-058) for a trimmed text: a layout of isDayText, or an RFC 3339 date-time with a
+// valid time and offset.
+func isDateText(text string) bool {
+	m := dateTimePattern.FindStringSubmatch(text)
+	if m == nil {
+		return isDayText(text)
+	}
+	if !isDayText(m[1]) || atoi(m[2]) > 23 || atoi(m[3]) > 59 || atoi(m[4]) > 59 {
+		return false
+	}
+	return m[5] == "Z" || (atoi(m[5][1:3]) <= 23 && atoi(m[5][4:6]) <= 59)
+}
+
+// atoi reads digits the patterns above have matched.
+func atoi(digits string) int {
+	n, err := strconv.Atoi(digits)
+	if err != nil {
+		panic(fmt.Sprintf("validate: %q is not digits matched by a date pattern: %v", digits, err))
+	}
+	return n
+}
+
+// ruleDate: a string that is a date (CUVR-058), trimmed. A number is not a date. Empty skips.
 func ruleDate(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	if isEmpty(value) {
 		return "", false
 	}
-	if parseDate(jsString(value)) == nil {
+	text, isText := value.(string)
+	if !isText || !isDateText(trimText(text)) {
 		return ctx.msg("date", "Please enter a valid date."), true
 	}
 	return "", false
@@ -557,8 +613,8 @@ func ruleDateISO(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	if isEmpty(value) {
 		return "", false
 	}
-	s := jsString(value)
-	if !dateISOPattern.MatchString(s) || parseExactDate("2006-01-02", s) == nil {
+	text, isText := value.(string)
+	if !isText || !dateISOPattern.MatchString(trimText(text)) || !isDayText(trimText(text)) {
 		return ctx.msg("dateISO", "Please enter a valid date in ISO format (YYYY-MM-DD)."), true
 	}
 	return "", false
