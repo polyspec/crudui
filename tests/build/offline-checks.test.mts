@@ -44,9 +44,15 @@ const makefile = read('Makefile');
 const INSTALLS = Object.entries(makeTargets(makefile) as Record<string, MakeRule>)
   .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.length > 0)
   .map(([name]) => name);
-const DOWNLOADS = [...KIT_DOWNLOADS, ...INSTALLS];
 // The targets of the Makefile and of the files that it includes: scripts/kit/kit-bootstrap.mk and the kit.mk of @polyspec/kit.
-const makefiles = [makefile, read('scripts/kit/kit-bootstrap.mk'), read('node_modules/@polyspec/kit/dist/kit.mk')].join('\n');
+const kitMakefile = read('node_modules/@polyspec/kit/dist/kit.mk');
+const makefiles = [makefile, read('scripts/kit/kit-bootstrap.mk'), kitMakefile].join('\n');
+// The online targets that kit.mk defines in the installed kit: a newer kit adds targets (worktree-setup, kit K348), and the
+// list names the ones of the kit that the lock pins as well as those that the installed kit defines.
+const KIT_ONLINE = Object.entries(makeTargets(kitMakefile) as Record<string, MakeRule>)
+  .filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)')))
+  .map(([name]) => name);
+const DOWNLOADS = [...new Set([...KIT_DOWNLOADS, ...KIT_ONLINE, ...INSTALLS])];
 
 /** The value of a Makefile variable defined with `=` or `:=` over continued lines. */
 function variable(name: string): string {

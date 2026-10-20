@@ -6,6 +6,9 @@
 ### 2026-10-20 — The native generator Go program handles its hidden errors (C16.67-5)
 
 - `tests/native-generators/programs/go/main.go` checks the errors that the kit lint reports (C16.67-5): `obj` and `str` read a value of another type as nil or the empty string through an `ok` check, which each caller already reports or reads as absent, `run` reads the method of an action with `str`, and `errorObject` finds the `ComposeLoadError` and `UnsupportedFieldTypeError` with `errors.As`. Behaviour does not change, because the library returns both error types unwrapped. Red: `golangci-lint run --config=../../../../.golangci.yml ./...` exited 1 with `5 issues` (errcheck 3, errorlint 2); green: exit 0 with `0 issues`, and `go build -o /dev/null ./...` exits 0 (the program has no Go test; the conformance suite runs it).
+### 2026-10-20 — The offline-checks test lists the online targets that the installed kit defines (C16.7-8-1)
+
+- `tests/build/offline-checks.test.mts` takes the online targets of kit from the `kit.mk` of the installed `@polyspec/kit` (`KIT_ONLINE`, the targets whose recipe runs `$(ONLINE)`) in addition to its list `KIT_DOWNLOADS`, so the newer kit's `worktree-setup` (K348) is listed as the online target it is (C16.7-8-1). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` with kit linked exit 1, `the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it` with `+ 'worktree-setup'`; green: the same command with kit linked exit 0.
 
 ### 2026-10-20 — PHP sources and examples pass the phpcs line length rule (C16.75)
 

@@ -1,12 +1,15 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6e96a8ff301adbc8c9108b0e64f06e9bf3d6f3f90f4d2f56d7a35469e82572e6 -->
+<!-- source-sha256: b23de236fcf3b77b556326a8ab2f5f8bf86d6becdb66394c2f3fca101e0c9dfe -->
 
 ## Unreleased
 
 ### 2026-10-20 — native generator Go 프로그램은 숨은 오류를 처리한다 (C16.67-5)
 
 - `tests/native-generators/programs/go/main.go`는 kit lint가 보고하는 오류를 검사합니다 (C16.67-5). `obj`와 `str`은 다른 타입의 값을 `ok` 검사로 nil 또는 빈 문자열로 읽으며, 각 호출자는 이를 이미 오류로 보고하거나 부재로 읽습니다. `run`은 action의 method를 `str`로 읽고, `errorObject`는 `errors.As`로 `ComposeLoadError`와 `UnsupportedFieldTypeError`를 찾습니다. 라이브러리가 두 오류 타입을 감싸지 않고 반환하므로 동작은 바뀌지 않습니다. Red: `golangci-lint run --config=../../../../.golangci.yml ./...`가 `5 issues`(errcheck 3, errorlint 2)로 exit 1; green: exit 0이며 `0 issues`, `go build -o /dev/null ./...`는 exit 0입니다(이 프로그램에는 Go test가 없고 conformance suite가 실행합니다).
+### 2026-10-20 — offline-checks test는 설치된 kit가 정의하는 online target을 나열한다 (C16.7-8-1)
+
+- `tests/build/offline-checks.test.mts`는 kit의 online target을 목록 `KIT_DOWNLOADS`와 함께 설치된 `@polyspec/kit`의 `kit.mk`(`KIT_ONLINE`, recipe가 `$(ONLINE)`을 실행하는 target)에서 읽으므로, 새 kit의 `worktree-setup`(K348)이 그 online target으로 나열됩니다(C16.7-8-1). Red: kit를 link한 상태에서 `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts`가 exit 1이며 `the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it`가 `+ 'worktree-setup'`을 보고했습니다. Green: 같은 명령이 kit를 link한 상태에서 exit 0입니다.
 
 ### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
 

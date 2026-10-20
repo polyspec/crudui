@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: fa352a62d70e30b28c9abe9afb66f5a8054262bfacce5c6d386a884709f02a8e -->
+<!-- source-sha256: d68f0229acd577d6d8bf94cc1c3008ffa84080c278517e8d8df46eed454c3bc2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -19,6 +19,7 @@
 | C16.7-6 | ci-local test는 kit의 gates.yml workflow를 trigger와 함께 나열한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="each workflow declares exactly its triggers" tests/build/ci-local.test.mts` | [o] |
 | C16.7-7 | ci-local test는 kit의 release.yml 사본의 trigger를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.7-8 | offline-checks test는 kit 0.0.54가 정의한 대로 online target을 나열한다 | tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` | [o] |
+| C16.7-8-1 | offline-checks test는 설치된 kit가 정의하는 online target을 나열하므로, 새 kit(K348)의 worktree-setup도 포함된다 | tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` | [o] |
 | C16.7-9 | config/rebuild.json은 모든 도구 source를 다룬다. Go와 Rust generator, fixture와 benchmark generator, example의 build script | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-10 | config/rebuild.json은 kit이 layout으로 찾는 모든 도구 source를 paths 없이 분류한다 | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-11 | kit에 local 전체 실행이 없으므로 config/owner-checks.json은 fullSuite target을 적지 않는다 | config/owner-checks.json | `make owner-validate` | [o] |

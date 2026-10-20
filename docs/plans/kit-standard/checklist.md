@@ -18,6 +18,7 @@
 | C16.7-6 | The ci-local test lists the gates.yml workflow of kit with its triggers | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="each workflow declares exactly its triggers" tests/build/ci-local.test.mts` | [o] |
 | C16.7-7 | The ci-local test expects the triggers of the release.yml copy of kit | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.7-8 | The offline-checks test lists the online targets as kit 0.0.54 defines them | tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` | [o] |
+| C16.7-8-1 | The offline-checks test lists the online targets that the installed kit defines, so worktree-setup of a newer kit (K348) is listed too | tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` | [o] |
 | C16.7-9 | config/rebuild.json covers every tool source: the Go and Rust generators, the fixture and benchmark generators and the build scripts of the examples | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-10 | config/rebuild.json classes every tool source that kit finds by layout (K286), without paths | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-11 | config/owner-checks.json names no fullSuite target, since kit has no local full run | config/owner-checks.json | `make owner-validate` | [o] |
