@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a3a54c2b916631744054f8f98407616faba2af68c371e14ffc159f1150ec6e77 -->
+<!-- source-sha256: 741999b8021851bb9d9f8fbe931ac32dd783ae8645d7353ccffb8693e771b6ad -->
 
 ## Unreleased
 
@@ -79,6 +79,10 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001부터 CURP-005까지 | 1 (native 통합) | 모든 구현이 같은 네 능력을 자기 형태로 가지므로, 구현별 다섯 항목을 중립 항목 하나로 대체한다 |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, R13 줄 다섯 개(CURP-001부터 CURP-005까지 정의되고 어떤 단위도 인용하지 않음), 61 findings; green: exit 0, CURP-001부터 CURP-005까지의 줄이 남지 않음, 56 findings, `check-documents` 통과 (C16.150).
+### 2026-10-21 — PHP form-comparison record store가 validator의 NumberValue로 number text를 파싱한다 (C16.58-26)
+
+- examples/form-comparison/servers/php/src/RecordStore.php의 `RecordStore::number`가 자체 복사본 대신 `Polyspec\Crudui\Validator\Support\NumberValue::parseString`을 호출한다(C16.58-26). `Infinity`, `+Infinity`, `-Infinity` 문자열은 복사본과 같은 메시지 `Expected a number`를 유지하고(NumberValue는 이를 무한대 수로 읽는다), 그 밖의 비유한 수는 `Expected a finite number`를 유지한다. 동작은 바뀌지 않았다: var/php-number-compare.php의 입력 9038개가 변경 전후 같은 결과를 낸다. Go와 Rust record server는 이 literal에 `Expected a finite score`를, TypeScript server는 이를 받아들이므로, 이 변경으로 PHP 메시지가 그들과 맞춰진 것은 아니다. Red: `make duplication-check`가 clone RecordStore.php [150-156] = NumberValue.php [28-34]를 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, `make duplication-check`는 clone 8개를 찾는다, phpunit FormShapeTest와 FormJsonTest 2 passed, NumberValueTest 20 passed; `make lint-php` exit 0.
+
 ### 2026-10-21 — Go form-comparison 서버가 validator의 canonical number 함수로 number를 쓴다 (C16.58-25)
 
 - Go validator가 `CanonicalNumber`를 export한다(packages/validator/go/validator/validate). value_text.go의 미공개 `canonicalNumber`를 이름만 바꿔 공개하고, 호출부를 value_number.go, rules.go, rule_length.go에서 함께 바꾸었다. value_test.go는 공개된 이름을 호출하므로 공개 helper의 테스트가 library에 남는다(C16.58-25). Go form-comparison 서버는 같은 알고리즘의 사본(json.go의 `numberText`와 `abs`)을 버리고 json.go, records.go, records_test.go에서 `validate.CanonicalNumber`를 호출한다. Red: `make duplication-check` exit 2, clone 10개(json.go [179-193] = value_text.go [59-73] 포함); 변경 전 example 테스트(11 passed)와 validator의 `TestCanonicalNumber|TestCanonicalText`는 exit 0이었고, 이름을 바꾼 뒤 테스트는 `undefined: CanonicalNumber`로 build되지 않았다. Green: 같은 테스트가 exit 0(validator 2 passed, example 11 passed), `make lint-go` 0 issues, `make duplication-check`에서 go clone이 사라졌다.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\FormComparison;
 
 use InvalidArgumentException;
+use Polyspec\Crudui\Validator\Support\NumberValue;
 use RuntimeException;
 use stdClass;
 use Throwable;
@@ -139,36 +140,11 @@ final class RecordStore
     {
         $whitespace = '\x{0009}-\x{000D}\x{0020}\x{00A0}\x{1680}\x{2000}-\x{200A}'
             . '\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
-        $text = (string) preg_replace('/^[' . $whitespace . ']+|[' . $whitespace . ']+$/u', '', $text);
-        if ($text === '') {
-            $value = 0.0;
-        } elseif (preg_match('/^0([xbo])([0-9a-f]+)$/iD', $text, $match)) {
-            $width = ['x' => 4, 'b' => 1, 'o' => 3][strtolower($match[1])];
-            $alphabet = substr('0123456789abcdef', 0, 1 << $width);
-            $digits = strtolower($match[2]);
-            if (strspn($digits, $alphabet) !== strlen($digits)) {
-                throw new InvalidArgumentException('Expected a number');
-            }
-            $bits = '';
-            foreach (str_split($digits) as $digit) {
-                $bits .= str_pad(decbin(strpos($alphabet, $digit)), $width, '0', STR_PAD_LEFT);
-            }
-            $bits = ltrim($bits, '0');
-            if (strlen($bits) <= 53) {
-                $value = (float) bindec($bits === '' ? '0' : $bits);
-            } else {
-                $significand = bindec(substr($bits, 0, 53));
-                if (
-                    $bits[53] === '1'
-                    && (str_contains(substr($bits, 54), '1') || fmod((float) $significand, 2.0) !== 0.0)
-                ) {
-                    $significand++;
-                }
-                $value = (float) $significand * 2 ** (strlen($bits) - 53);
-            }
-        } elseif (preg_match('/^[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/D', $text)) {
-            $value = (float) $text;
-        } else {
+        $trimmed = (string) preg_replace('/^[' . $whitespace . ']+|[' . $whitespace . ']+$/u', '', $text);
+        $value = NumberValue::parseString($text);
+        // NumberValue reads the Infinity literals as infinite numbers; this parser keeps its message for them.
+        $infinityLiterals = ['Infinity', '+Infinity', '-Infinity'];
+        if ($value === null || (is_infinite($value) && in_array($trimmed, $infinityLiterals, true))) {
             throw new InvalidArgumentException('Expected a number');
         }
         if (!is_finite($value)) {
