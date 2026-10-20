@@ -1,12 +1,17 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 483ed981b7469cac3061e0f3a0bc74ebf22651209605c8472bd7eccdec64e27a -->
+<!-- source-sha256: fbe86c91e74b4cda22c2347511cde4aee431b12027bc8af0b2cad4a81002c7e6 -->
 
 ## Unreleased
 
 ### 2026-10-20 — Go generator는 공유 form-render suite를 실행한다 (C16.82)
 
 - `packages/generator/go/form_render_suite_test.go`(신규)는 `tests/fixtures/form-render/cases.json`의 188개 case를 Go generator로 실행합니다. 137개 result case는 compile, bind, render하며 그 HTML은 공유 normalizer `tests/fixtures/form-render/normalize.mts`(tsx로 node가 실행)가 만든 layout과 비교하고, 51개 failure case는 기록된 code를 발생시켜야 합니다(C16.82). `instance.go`는 누락된 repeated data의 초기 row에 key `__0000000000000__`를 주고, `AddRow`가 만드는 row에만 fresh key를 줍니다(`normalizeFields`, `normalizeRow`가 `fresh`를 받음). Python과 TypeScript reference와 같습니다. 이전에는 `NewForm`이 임의 key를 뽑아 새 instance가 다른 form을 그렸습니다(`multiple-leaf-empty-placeholder`). Red: `go test -run TestFormRenderSuite`가 exit 1이며 188 subtest 중 1개가 실패(`multiple-leaf-empty-placeholder`: 새 instance가 다른 form을 그림); green: exit 0이며 188 subtest가 통과하고, `go test -run Test ./...` exit 0, `golangci-lint run` exit 0이며 0 issues.
+
+### 2026-10-20 — list와 detail validity suite는 test하는 display 요구를 인용한다 (C16.57-8)
+
+- `tests/fixtures/list-validity/cases.json`과 `tests/fixtures/detail-validity/cases.json`은 case의 `requirements`(CUDF id가 있는 case 각각 7개와 4개)를 가지며, `config/parity.json`은 unit `list-validity`와 `detail-validity`를 이 test의 binding 여섯 개와 함께 선언한다(C16.57-8). Red: `make parity-declarations-check`가 `CUDF-001`부터 `CUDF-088`까지 88개의 `R13`과 validity 파일마다 `R4`를 보고했다. Green: CUDF id 53개가 인용되지 않은 채 남으며, 그중 24개는 CUDF-024부터 CUDF-082까지(`CUDF-024`, `025`, `026`, `028`~`031`, `033`, `035`~`039`, `042`, `063`, `065`, `067`, `070`~`076`)이고 29개는 범위 밖(display model과 rendering id)이다. 두 unit의 `R4`는 사라졌다. `make item-test`에서 binding의 owner test가 통과한다: ts 35, php 20과 14, extension 아래 `make test-php-ext` 34, go 35, rust 4. python은 `var/python`이 virtual environment가 아니어서 막혀 있다(C16.57-8).
+- `scripts/check-schema.mts`는 structure-validity case의 `requirements` 멤버를 받아들이며, 이 멤버는 각 id를 한 번씩 적은 비어 있지 않은 배열이다(C16.57-8). Red: `make land`가 docs-check에서 `list-validity:ok-minimal-columns: unknown member requirements`로 branch를 거부했다. Green: `node scripts/check-schema.mts`가 608개 specification check와 함께 exit 0이다.
 
 ### 2026-10-20 — runAction은 모든 implementation에서 성립한다 (C16.50)
 

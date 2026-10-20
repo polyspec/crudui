@@ -1,6 +1,7 @@
 [
   {
     "name": "ok-minimal-columns",
+    "requirements": ["CUDF-027", "CUDF-043", "CUDF-044", "CUDF-046", "CUDF-047"],
     "note": "the smallest valid list-spec — required columns map with one text column.",
     "expect": "ok",
     "engine": "pass",
@@ -12,6 +13,7 @@
   },
   {
     "name": "ok-catalog-formats",
+    "requirements": ["CUDF-048", "CUDF-049", "CUDF-050", "CUDF-051", "CUDF-052", "CUDF-053", "CUDF-054", "CUDF-055"],
     "note": "every §9.2 cell format passes (date/number/badge/link/choice-label/bool/image/html).",
     "expect": "ok",
     "engine": "pass",
@@ -30,6 +32,7 @@
   },
   {
     "name": "ok-shorthand-and-boolean-format",
+    "requirements": ["CUDF-043", "CUDF-048"],
     "note": "CellFormat polymorphism — a bare type string and a boolean both validate.",
     "expect": "ok",
     "engine": "pass",
@@ -43,6 +46,7 @@
   },
   {
     "name": "ok-sortable-sort-pagination-actions-empty-design",
+    "requirements": ["CUDF-040", "CUDF-044", "CUDF-047", "CUDF-056", "CUDF-058", "CUDF-059", "CUDF-060", "CUDF-061", "CUDF-062", "CUDF-064", "CUDF-066", "CUDF-068", "CUDF-069", "CUDF-077", "CUDF-079", "CUDF-080", "CUDF-081", "CUDF-082"],
     "note": "The sort, pagination, actions, empty and design read-structure slots validate together.",
     "expect": "ok",
     "engine": "pass",
@@ -83,6 +87,7 @@
   },
   {
     "name": "ok-search-form-ref",
+    "requirements": ["CUDF-040", "CUDF-057"],
     "note": "search is input → a form-spec reference ($ref base + $patch overlay). files resolve the base form for the engine; ajv ignores files and reads only spec.",
     "expect": "ok",
     "engine": "pass",
@@ -135,6 +140,7 @@
   },
   {
     "name": "red-unknown-column-key",
+    "requirements": ["CUDF-044"],
     "note": "A column with an unregistered key is rejected by additionalProperties:false. The four-language engine also rejects show_if as a forbidden meta-key load failure.",
     "expect": "fail",
     "reason": "additionalProperties",
@@ -237,6 +243,7 @@
   },
   {
     "name": "ok-description",
+    "requirements": ["CUDF-040", "CUDF-078"],
     "note": "a list description is content: a string or a language map.",
     "expect": "ok",
     "engine": "pass",

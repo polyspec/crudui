@@ -1,6 +1,7 @@
 [
   {
     "name": "ok-basic-detail",
+    "requirements": ["CUDF-032", "CUDF-034", "CUDF-041", "CUDF-043", "CUDF-045", "CUDF-046", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-051", "CUDF-052"],
     "note": "the smallest valid detail specification with text and badge fields.",
     "expect": "ok",
     "engine": "pass",
@@ -108,6 +109,7 @@
   },
   {
     "name": "red-show-if-on-field",
+    "requirements": ["CUDF-045"],
     "note": "show_if on a field is a forbidden meta key.",
     "expect": "fail",
     "reason": "additionalProperties",
@@ -177,6 +179,7 @@
   },
   {
     "name": "red-forbidden-root-key",
+    "requirements": ["CUDF-041"],
     "note": "a forbidden meta key at the detail root is a load failure.",
     "expect": "fail",
     "reason": "additionalProperties",
@@ -209,6 +212,7 @@
   },
   {
     "name": "ok-detail-actions",
+    "requirements": ["CUDF-041", "CUDF-062", "CUDF-064", "CUDF-066", "CUDF-068", "CUDF-069"],
     "note": "a detail declares actions as a list does: a script string or an action object.",
     "expect": "ok",
     "engine": "pass",

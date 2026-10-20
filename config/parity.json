@@ -595,6 +595,129 @@
         "CUIT-039",
         "CUIT-040"
       ]
+    },
+    {
+      "id": "list-validity",
+      "kind": "suite",
+      "file": "tests/fixtures/list-validity/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/list-metaschema.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/ListValidateConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\ListValidateConformanceTest::testListEngineMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/ListValidateConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\ListValidateConformanceTest::testListEngineMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/list_conformance_test.go",
+          "symbol": "TestValidateListMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/list_validity_conformance.rs",
+          "symbol": "list_engine_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_structure_validity.py"
+        }
+      ],
+      "requirements": [
+        "CUDF-027",
+        "CUDF-040",
+        "CUDF-043",
+        "CUDF-044",
+        "CUDF-046",
+        "CUDF-047",
+        "CUDF-048",
+        "CUDF-049",
+        "CUDF-050",
+        "CUDF-051",
+        "CUDF-052",
+        "CUDF-053",
+        "CUDF-054",
+        "CUDF-055",
+        "CUDF-056",
+        "CUDF-057",
+        "CUDF-058",
+        "CUDF-059",
+        "CUDF-060",
+        "CUDF-061",
+        "CUDF-062",
+        "CUDF-064",
+        "CUDF-066",
+        "CUDF-068",
+        "CUDF-069",
+        "CUDF-077",
+        "CUDF-078",
+        "CUDF-079",
+        "CUDF-080",
+        "CUDF-081",
+        "CUDF-082"
+      ]
+    },
+    {
+      "id": "detail-validity",
+      "kind": "suite",
+      "file": "tests/fixtures/detail-validity/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/detail-metaschema.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/DetailValidateConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\DetailValidateConformanceTest::testDetailEngineMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/DetailValidateConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\DetailValidateConformanceTest::testDetailEngineMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/detail_conformance_test.go",
+          "symbol": "TestValidateDetailMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/detail_validity_conformance.rs",
+          "symbol": "detail_engine_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_structure_validity.py"
+        }
+      ],
+      "requirements": [
+        "CUDF-032",
+        "CUDF-034",
+        "CUDF-041",
+        "CUDF-043",
+        "CUDF-045",
+        "CUDF-046",
+        "CUDF-047",
+        "CUDF-048",
+        "CUDF-049",
+        "CUDF-051",
+        "CUDF-052",
+        "CUDF-062",
+        "CUDF-064",
+        "CUDF-066",
+        "CUDF-068",
+        "CUDF-069"
+      ]
     }
   ],
   "tools": [
