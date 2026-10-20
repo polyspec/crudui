@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The duplication exclusions (C16.14)
+
+- `config/duplication.json` excludes the Unicode tables that `generate-unicode-data.mjs`, `generate_unicode_data.py` and `generate-unicode-data.php` write from `contracts/unicode-properties.json`, and the tests (`tests/**`, `packages/*/tests/**`, `packages/*/*/tests/**`, `*.test.*`, `*_test.go`), each with its reason; `examples/**` stays under the check (C16.14). Red: `make duplication-check` exit 2 with 428 clones; green for this item: 183 clones remain (c 19, go 28, javascript 10, php 53, python 3, rust 17, typescript 53), which later items remove.
+
 ### 2026-10-20 — The classes of the tools of the repository (C16.7)
 
 - `config/rebuild.json` gives each tool of `scripts/`, `packages/*/scripts` and `packages/php-ext/tools` its class: 13 tools are `ecosystem`, 17 `policy` (single-source table generators, fixture generators and polyspec contract checks), 6 `record` with the rebuild records `docs/rebuild/test-commands.md`, `build-stamp.md`, `install-lock.md` and `install-phpdocumentor.md`, and 14 `replaced`, whose replacement items are C16.8 (VitePress), C16.9 (phpize, held for S10), C16.10 (the process-group runner of kit), C16.11 (ajv schemas), C16.12 (the CSS layer import) and C16.13 (`@unicode/unicode-16.0.0`) (C16.7). Red: `make rebuild-check` exit 2 (`config/rebuild.json does not exist`); green: exit 0.

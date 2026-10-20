@@ -16,3 +16,4 @@
 | C16.11 | The scripts read JSON through ajv schemas, not through scripts/values.mts (21 files call it) | scripts, tests/build, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.12 | The Tailwind stylesheet is the native CSS import of crudui.css into the layer components (replaces write-tailwind-styles.mjs) | packages/generator/ts/styles, packages/generator/ts/scripts, docs, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.13 | contracts/unicode-properties.json is derived from @unicode/unicode-16.0.0 (replaces scripts/generate-unicode-properties.mts and contracts/unicode) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [ ] |
+| C16.14 | config/duplication.json excludes the generated Unicode tables and the tests, each with its reason | config/duplication.json | `make duplication-check` | [o] |

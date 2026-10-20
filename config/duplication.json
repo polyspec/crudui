@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "exclude": [
+    {
+      "glob": "packages/php-ext/src/unicode_data.c",
+      "reason": "generated from contracts/unicode-properties.json by packages/php-ext/tools/generate-unicode-data.mjs; the tables are data"
+    },
+    {
+      "glob": "packages/validator/python/src/polyspec/crudui/validator/unicode_data.py",
+      "reason": "generated from contracts/unicode-properties.json by packages/validator/python/scripts/generate_unicode_data.py; the tables are data"
+    },
+    {
+      "glob": "packages/validator/php/src/Values/UnicodeData.php",
+      "reason": "generated from contracts/unicode-properties.json by packages/validator/php/scripts/generate-unicode-data.php; the tables are data"
+    },
+    {
+      "glob": "tests/**",
+      "reason": "a test states its case in full; the rule separates the concerns of components; tests/fixtures holds data"
+    },
+    {
+      "glob": "packages/*/tests/**",
+      "reason": "a test states its case in full; the rule separates the concerns of components"
+    },
+    {
+      "glob": "packages/*/*/tests/**",
+      "reason": "a test states its case in full; the rule separates the concerns of components"
+    },
+    {
+      "glob": "**/*.test.*",
+      "reason": "a test states its case in full; the rule separates the concerns of components"
+    },
+    {
+      "glob": "**/*_test.go",
+      "reason": "a test states its case in full; the rule separates the concerns of components"
+    }
+  ]
+}

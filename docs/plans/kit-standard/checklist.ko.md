@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d5d0b1e2012598e43883aba4d5443735cee3044a7e06aed6bc4860579ccc2119 -->
+<!-- source-sha256: e95e5b5022d4b8b10f8fc3598227f182bd4db5627ee1294612aa88bd206281a2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -17,3 +17,4 @@
 | C16.11 | scripts는 JSON을 scripts/values.mts가 아니라 ajv schema로 읽는다 (21개 파일이 호출) | scripts, tests/build, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.12 | Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (write-tailwind-styles.mjs를 대체) | packages/generator/ts/styles, packages/generator/ts/scripts, docs, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.13 | contracts/unicode-properties.json은 @unicode/unicode-16.0.0에서 얻는다 (scripts/generate-unicode-properties.mts와 contracts/unicode를 대체) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [ ] |
+| C16.14 | config/duplication.json은 생성된 Unicode table과 test를 각각의 이유와 함께 제외한다 | config/duplication.json | `make duplication-check` | [o] |

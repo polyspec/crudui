@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1dee1bc812a67d316e57ef38253da1c7eb129b11e90f0fbf7120318c5d4b6e0a -->
+<!-- source-sha256: 7a1d23a87af9dcb76386735e6ebde7379c43ed86c16db20078c2b6412f53f9ab -->
 
 ## Unreleased
+
+### 2026-10-20 — duplication 제외 목록 (C16.14)
+
+- `config/duplication.json`은 `generate-unicode-data.mjs`, `generate_unicode_data.py`, `generate-unicode-data.php`가 `contracts/unicode-properties.json`에서 쓰는 Unicode table과 test(`tests/**`, `packages/*/tests/**`, `packages/*/*/tests/**`, `*.test.*`, `*_test.go`)를 각각의 이유와 함께 제외합니다. `examples/**`는 검사 대상으로 남습니다 (C16.14). Red: `make duplication-check` exit 2, clone 428건. 이 item의 결과: clone 183건이 남으며(c 19, go 28, javascript 10, php 53, python 3, rust 17, typescript 53), 이후 item이 제거합니다.
 
 ### 2026-10-20 — 저장소 도구의 class (C16.7)
 
