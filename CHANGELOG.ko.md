@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9a74ec1b87a9e297d7dd7ef8fba03143f7fd1c55e8fae955e28016107ab6f4f5 -->
+<!-- source-sha256: ea6c16e91870a55da873e003ad32c08c171815366aaded8a3713be8f55243ba8 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-20 — Rust 명령 진입점은 PATH가 고정한 toolchain을 쓰고 tool-resolution.mts는 제거한다 (C16.41)
 
 - `scripts/run-rust-command.mts`는 PATH가 가리키는 cargo, rustc, rustdoc을 실행합니다(mise shim이 `rust-toolchain.toml`이 고정한 toolchain을 앞에 둡니다). 각 도구의 버전 출력을 확인하고, `RUSTC`와 `RUSTDOC`에는 절대경로를 설정합니다. `scripts/tool-resolution.mts`는 rustup 발견 로직과 함께 제거되며, 그 `replaced` 항목은 파일과 함께 `config/rebuild.json`에서 빠집니다(C16.41). owner-check의 경로 목록과 doc-coverage, API 문서, run-command, 진입점 test의 목록에서 제거된 파일을 뺐고, `tests/build/make-tool-path.test.mts`와 `tests/build/rust-node-entry-points.test.mts`는 가짜 rustup 대신 PATH의 toolchain을 시험합니다. `docs/operations/package-build.md`와 `.ko.md`는 새 규칙을 설명합니다. Red: `make rebuild-check > var/red.log 2>&1`이 exit 0이었고, `scripts/tool-resolution.mts`는 "item C16.41 registers the replacement" 사유의 `replaced`로 남아 있었습니다. Green: `make rebuild-check` exit 0이며 항목이 사라졌습니다. `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/run-command.test.mts` 9 passed, `scripts/check-doc-coverage.test.mts` 13 passed, `scripts/gen-api-docs.test.mts` 8 passed입니다. `tests/build/make-tool-path.test.mts`는 5개 중 4개가 통과하며, `crudui-test-native runs the Rust tests through the test runner`은 main checkout에서도 실패합니다(Makefile이 `../kit`에서 kit을 실행하는데 test는 `node_modules/@polyspec/kit`을 기대하는 worktree 배치 차이이며, 이 변경과 무관합니다). 변경한 TypeScript 파일은 저장소의 컴파일러로 타입 검사를 통과합니다.
+
+### 2026-10-20 — Rust generator는 공유 form-complete suite를 실행한다 (C16.84)
+
+- `packages/generator/rust/tests/form_complete.rs`는 `tests/fixtures/form-complete/cases.json`의 case 28건을 각각 `compile_form`, `Form::new`, `render_form`으로 case의 options와 render options를 써서 렌더링합니다. `expected_html`을 가진 case는 같은 bytes를 써야 하고, `expectError`를 가진 case는 기록된 code와 message로 실패해야 합니다(C16.84). Red: 이 test는 트리에 없었으므로 red를 기록하지 않았습니다. 변이 검사는 임시 복사본의 fixture 하나의 `expected_html`을 다른 값으로 바꿔 `form_complete`가 실패함(exit 1)을 확인했고, 그 뒤 fixture를 복원했습니다. Green: `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_complete` exit 0, 1 passed이며 case 28건이 모두 비교되었습니다. generator 결함은 없었습니다.
 
 ### 2026-10-20 — Go generator는 공유 form-render suite를 실행한다 (C16.82)
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 74c45a208fce71c01ef2b2bb35775a85fe50390e1e7560b14afd11230d9a3fa3 -->
+<!-- source-sha256: 47e17dd91084a28693af5c8e124a917223fac27d2c6175c1cfb9e9c623926123 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -164,3 +164,4 @@
 | C16.70 | PHP text validity conformance test는 fixture를 읽고 내부 text helper를 검사하되, library source를 읽지 않아 extension 실행이 extension을 검사한다 | packages/validator/php/tests/Validate/TextValidityConformanceTest.php, packages/validator/php/tests/Validate/TextInternalsTest.php, packages/validator/php/tests/Validate/UniqueValuesTest.php, CHANGELOG.md, CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/TextValidityConformanceTest.php tests/Validate/TextInternalsTest.php tests/Validate/UniqueValuesTest.php tests/Validate/ValidateConformanceTest.php tests/Validate/ListValidateConformanceTest.php tests/Validate/DetailValidateConformanceTest.php tests/Validate/ForbiddenScanConformanceTest.php tests/Validate/PublicApiTest.php`; `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='ValidateConformanceTest\|ListValidateConformanceTest\|DetailValidateConformanceTest\|ForbiddenScanConformanceTest\|MessagePlaceholderTest\|UniqueValuesTest\|TextValidityConformanceTest'` | [o] |
 | C16.82 | Go generator는 공유 form-render suite를 실행한다 | packages/generator/go/form_render_suite_test.go, packages/generator/go/instance.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestFormRenderSuite` | [o] |
 | C16.91 | crudui-test-native test는 node_modules를 가리키는 대신 Makefile의 KIT 디렉터리를 도출한다 | tests/build/make-tool-path.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/make-tool-path.test.mts` | [o] |
+| C16.84 | Rust generator는 공유 form-complete suite를 실행한다 | packages/generator/rust/tests/form_complete.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_complete` | [o] |
