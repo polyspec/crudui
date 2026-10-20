@@ -19,7 +19,7 @@ for (const family of ['form-view', 'form-history', 'form-actions']) {
   });
 }
 
-for (const family of ['view-functions', 'history-functions']) {
+for (const family of ['view-functions']) {
   describe(family, () => {
     for (const entry of cases(family).map(functionCase)) {
       it(entry.name, () => {

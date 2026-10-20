@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The TypeScript test of history-functions is a binding (C16.52-3)
+
+- `packages/generator/ts/src/history-functions.test.ts` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as top-level tests named by the case, and `config/parity.json` binds it to the unit `history-functions`; `form-state.test.ts` keeps the other function and session families. Go has no history function yet, so the declaration still lacks the bindings of php, php-extension, go and rust; red: the unit had no TypeScript binding, green: 13 of 13 pass.
+
 ### 2026-10-20 — The Python generator has the history functions (C16.52-2)
 
 - `Generator.emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` of `packages/generator/python` follow CURT-063 and CURT-076 to CURT-080: a history is `{entries, redoEntries, lastPath?}`, a value edit on the path of the last edit shares its entry, each direction keeps 100 records, and an undo or a redo with nothing to restore raises `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. `config/parity.json` declares the unit `history-functions` over `tests/fixtures/history-functions/cases.json` with the binding `packages/generator/python/tests/test_form_history.py`; red: the 13 cases failed with a missing method, green: 13 of 13 pass, and `ruff` and `vulture` report nothing. The other implementations get their binding in the sub-items that implement `formHistory` there (C16.52).

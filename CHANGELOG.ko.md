@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3f2206ee0e23c0c0341ed4df344f7cbf5198bc0276198a7b867cfcd58dc4c65e -->
+<!-- source-sha256: 5bed6cab885a54214ed02041b96b09d376b324bb0f81447106dcedeaa6417120 -->
 
 ## Unreleased
+
+### 2026-10-20 — history-functions의 TypeScript test는 binding이다 (C16.52-3)
+
+- `packages/generator/ts/src/history-functions.test.ts`는 `tests/fixtures/history-functions/cases.json`의 사례 13개를 사례 이름의 최상위 test로 실행하고, `config/parity.json`은 이를 unit `history-functions`에 묶는다. `form-state.test.ts`는 나머지 함수와 session family를 유지한다. Go에는 아직 history 함수가 없어 선언에는 php, php-extension, go, rust의 binding이 아직 없다. red: unit에 TypeScript binding이 없었고, green: 13개 중 13개가 통과한다.
 
 ### 2026-10-20 — Python generator에 history 함수가 있다 (C16.52-2)
 

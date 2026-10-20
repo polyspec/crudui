@@ -96,6 +96,10 @@
       "cases": "$[*].name",
       "bindings": [
         {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/history-functions.test.ts"
+        },
+        {
           "implementation": "python",
           "test": "packages/generator/python/tests/test_form_history.py"
         }
