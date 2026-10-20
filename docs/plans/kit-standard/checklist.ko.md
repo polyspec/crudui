@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 60fc018c052990d886ef1a6ce3c3c6e517f314b59d73a86e3dbd4e110a72fe81 -->
+<!-- source-sha256: 257e1f7f28368aa3eee391ee7b8ae1c1549c0285558dbc3caafdf61dbf357fe4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -132,3 +132,4 @@
 | C16.67-8 | examples/cross-check-console/validators/rust는 숨은 오류를 보고하지 않는다: kit lint의 clippy finding을 처리한다(K334, P8) | examples/cross-check-console/validators/rust (the changed files) | `cd examples/cross-check-console/validators/rust && cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`, `cargo build --locked --manifest-path examples/cross-check-console/validators/rust/Cargo.toml` | [o] |
 | C16.67-12 | generator(Go)는 숨은 오류를 보고하지 않는다: kit lint의 Go generator(errcheck, errorlint) finding을 처리한다(K334, P8) | packages/generator/go (the changed files) | `cd packages/generator/go && ../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../.golangci.yml ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test ./...` | [o] |
 | C16.68 | config/generated.json은 crudui의 생성 경로를 선언하고, kit의 pre-commit hook이 생성 파일 검사를 실행한다(kit K362) | config/generated.json, config/owner-checks.json, .githooks/pre-commit, AGENTS.md, AGENTS.ko.md | `make hooks-check`, `make owner-validate` | [o] |
+| C16.71 | crudui는 f9eb43dd의 kit 사본을 받는다(K348 K385 K384 K360-1 K383 K380 K382 K375) | scripts/kit/kit-bootstrap.mk, config/layout.kit.yml, .githooks/commit-msg and the other copies that make kit-sync writes | `make kit-check` | [o] |

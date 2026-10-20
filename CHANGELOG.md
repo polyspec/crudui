@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The copies of kit follow kit f9eb43dd (C16.71)
+
+- `scripts/kit/kit-bootstrap.mk`, `config/layout.kit.yml` and the new commit-msg hook `.githooks/commit-msg` are the copies of kit at f9eb43dd (K348, K385, K384, K360-1, K383, K380, K382, K375), written by `make kit-sync` and `make hooks` (C16.71). Red: `make kit-check` exited 2 with 2 copies that differ (`scripts/kit/kit-bootstrap.mk`, `config/layout.kit.yml`); green: it passes. `make link-check` still names `@polyspec/ordered-json` (row C16.69) and the Python environment `var/python`, which `make link-check` is not given.
+
 ### 2026-10-20 — The Python generator has resolveAction and runAction (C16.50-2)
 
 - `packages/generator/python/src/polyspec/crudui/generator/actions.py` adds `resolveAction` and `runAction` over the eleven form actions of CURT-081 to CURT-090, exposed as `Generator.resolveAction` and `Generator.runAction`; `form.py` keys the default row of a repeated field that the data omits with `__0000000000000__` at construction, `setData` and `setValue` (CUEC-002) and with a fresh key inside a row that `addRow` creates, as the TypeScript reference and the `form-actions` sessions do; `tests/test_form_state.py` runs the `form-actions` sessions with the history flags in `TestFormActions` (C16.50-2). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` exit 1, 7 of the 8 `form-actions` sessions failing on the observed result (the two functions stubbed to return None); green: exit 0, 4 passed, 0 failed.

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b06c3cdfb60e5ba437a72b715089961ba0cc8c0fe0d448488c3a6c4716d5c5ac -->
+<!-- source-sha256: ee806db0dc16c88e1a051a6b84041ba8c3caa15776e46795b8959f5c4881f8be -->
 
 ## Unreleased
+
+### 2026-10-20 — kit 사본은 kit f9eb43dd를 따른다 (C16.71)
+
+- `scripts/kit/kit-bootstrap.mk`, `config/layout.kit.yml`과 새 commit-msg hook `.githooks/commit-msg`는 `make kit-sync`와 `make hooks`가 쓴 f9eb43dd의 kit 사본입니다(K348, K385, K384, K360-1, K383, K380, K382, K375)(C16.71). Red: `make kit-check`가 다른 사본 2개(`scripts/kit/kit-bootstrap.mk`, `config/layout.kit.yml`)로 exit 2였고, green: 통과합니다. `make link-check`는 아직 `@polyspec/ordered-json`(C16.69 행)과, `make link-check`에 주어지지 않는 Python 환경 `var/python`을 보고합니다.
 
 ### 2026-10-20 — Python generator는 resolveAction과 runAction을 가진다 (C16.50-2)
 
