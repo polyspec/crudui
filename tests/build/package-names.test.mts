@@ -1,4 +1,4 @@
-// The package names of the polyspec repositories (docs/spec/package-build.md, "Package names"): npm packages are
+// The package names of the polyspec repositories (docs/operations/package-build.md, "Package names"): npm packages are
 // `@polyspec/crudui-<name>`, Composer packages `polyspec/crudui-<name>` with PHP namespaces under `Polyspec\Crudui\`,
 // Rust crates `polyspec-crudui-<name>` with the library `polyspec_crudui_<name>`, and Go modules
 // `github.com/polyspec/crudui/<path>`. No maintained file names a package by another form; the changelog, the

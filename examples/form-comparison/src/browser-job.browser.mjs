@@ -12,7 +12,7 @@ const mediaTypes = { '.mjs': 'text/javascript', '.json': 'application/json' };
 
 /**
  * Serve the modules of public/ over HTTP, as the public directory serves them unbundled, so their imports resolve as in
- * a browser. The build bundles every other module that a page loads (docs/spec/form-comparison.md).
+ * a browser. The build bundles every other module that a page loads (docs/operations/form-comparison.md).
  */
 async function publicModules(t) {
   const server = createServer((request, response) => {
@@ -81,7 +81,7 @@ test('reports whether the pointer is over a comparison frame in Chromium', async
 });
 
 test('stops a capture while the pointer is over either comparison frame in Chromium', async t => {
-  // docs/spec/form-comparison.md: a capture requires the pointer outside both frames; over a frame the comparison
+  // docs/operations/form-comparison.md: a capture requires the pointer outside both frames; over a frame the comparison
   // stops without a result and asks to move the pointer outside the frames.
   const page = await browser.newPage();
   teardown('page close', () => page.close(), { context: t });

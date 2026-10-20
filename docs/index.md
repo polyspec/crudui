@@ -5,10 +5,10 @@
 
 - [Specification structure](spec/schema.md)
 - [Display formats](spec/display-formats.md)
-- [Canonical examples](spec/examples.md)
+- [Canonical examples](operations/examples.md)
 - [Form runtime](spec/form-runtime.md)
 - [Feature and deployment status](features.md)
-- [Feature contracts](spec/feature-contracts.md)
+- [Feature contracts](operations/feature-contracts.md)
 - [Form development and verification](operations/forms.md)
 - [List and detail development and verification](operations/displays.md)
 - [Repository settings](operations/repository.md)

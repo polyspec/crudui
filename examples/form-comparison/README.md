@@ -41,6 +41,6 @@ and stops them. Every server names the source identity: the checked-out commit a
 the uncommitted changes.
 
 The [form checks](../../docs/operations/testing.md#forms-and-reports) describe the commands, and
-the [form verification contract](../../docs/spec/form-comparison.md) defines the record resource,
+the [form verification contract](../../docs/operations/form-comparison.md) defines the record resource,
 the canonical page and the canonical flow check. [Feature status](../../docs/features.md) records
 verified code separately from deployment.

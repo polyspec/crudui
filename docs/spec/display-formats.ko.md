@@ -1,6 +1,6 @@
 # 표시 형식
 <!-- doc-id: docs-spec-display-formats -->
-<!-- source-sha256: 36a8d0e4e5efb9b4d81fa05d812b7b311fdee8b1e2346113dff39fb83d0142f8 -->
+<!-- source-sha256: 39f53e55f3506c0ce444e7753c38162a8f92fb3570dbceaabfd6f6f57137a72d -->
 
 [English](display-formats.md).
 
@@ -257,7 +257,7 @@ columns:
 마지막 페이지를 표시합니다. 전체 수가 없으면 현재 페이지는 1이고, 마지막 페이지보다 큰 페이지는 마지막 페이지를
 선택합니다.
 
-PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체인지 정합니다. 루트 객체 인수와 고정 객체
+PHP에서는 [PHP API 계약](../operations/php-extension.ko.md)이 어떤 PHP 값이 객체인지 정합니다. 루트 객체 인수와 고정 객체
 옵션 `data`, `files`에는 빈 PHP 배열을 받고, 중첩 값은 타입을 유지합니다.
 
 ## 마크업

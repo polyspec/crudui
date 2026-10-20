@@ -1,6 +1,6 @@
 # 폼 렌더링 고정 사례
 <!-- doc-id: tests-fixtures-form-render-readme -->
-<!-- source-sha256: 93fd8fa147a8766801a1ac2af613b5c21225f94880f7742a54376f52dd34fda4 -->
+<!-- source-sha256: 8c930e99d21b428a259adef59010a6c387a5457feafc68a96ef6546c161f96cc -->
 
 [English](README.md).
 
@@ -25,7 +25,7 @@ React·Vue·Svelte 레이아웃 일치 검사는 `cases.json`을 공유합니다
 행 키, ID, 값과 숨김 상태는 마스킹하지 않습니다.
 
 정규화한 레이아웃의 일치는 HTML 원문의 일치를 증명하지 않습니다.
-[폼 검사기](../../../tests/form-inspector/form-snapshot.mts)는 초기 데이터와
+[폼 검사기](../../form-inspector/form-snapshot.mts)는 초기 데이터와
 나중 주입의 HTML 원문, DOM, CSS, 입력과 런타임 상태를 별도로 비교합니다.
 
 ## 생성과 검증

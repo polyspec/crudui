@@ -182,5 +182,5 @@ npm run test:build:repeat
 npm run test:packages
 ```
 
-See the [package build contract](../spec/package-build.md) and
+See the [package build contract](package-build.md) and
 [build checks](../../tests/build/README.md) for the verification scope.

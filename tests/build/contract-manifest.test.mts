@@ -275,9 +275,9 @@ test('a named error of an implemented feature is a built-in error or a public CR
 // make docs-check requires the same doc-id in both pages and the sha256 of the English page in the Korean page; the
 // generator of the pages (scripts/generate-feature-contract-docs.mts) writes both.
 test('the generated feature contract pages hold the markers that make docs-check requires', () => {
-  const english = readFileSync(path.join(ROOT, 'docs/spec/feature-contracts.md'));
-  const korean = readFileSync(path.join(ROOT, 'docs/spec/feature-contracts.ko.md'), 'utf8');
-  assert.match(english.toString('utf8'), /^# Feature contracts\n<!-- doc-id: docs-spec-feature-contracts -->\n/);
-  assert.match(korean, /^# 기능 계약\n<!-- doc-id: docs-spec-feature-contracts -->\n/);
+  const english = readFileSync(path.join(ROOT, 'docs/operations/feature-contracts.md'));
+  const korean = readFileSync(path.join(ROOT, 'docs/operations/feature-contracts.ko.md'), 'utf8');
+  assert.match(english.toString('utf8'), /^# Feature contracts\n<!-- doc-id: docs-operations-feature-contracts -->\n/);
+  assert.match(korean, /^# 기능 계약\n<!-- doc-id: docs-operations-feature-contracts -->\n/);
   assert.ok(korean.includes(`<!-- source-sha256: ${createHash('sha256').update(english).digest('hex')} -->\n`));
 });

@@ -123,7 +123,7 @@ complete templates and models, original form and list HTML, injection, row
 operations and retained state after failures across runtimes.
 
 The [form contract](../../../docs/spec/form-runtime.md),
-[PHP API contract](../../../docs/spec/php-extension.md) and
+[PHP API contract](../../../docs/operations/php-extension.md) and
 [runtime requirements](../../../docs/spec/runtime-packages.md) define shared
 behavior. [Feature status](../../../docs/features.md) records verification and
 publication separately.

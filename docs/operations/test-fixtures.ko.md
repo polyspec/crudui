@@ -1,6 +1,6 @@
 # 테스트 사례
-<!-- doc-id: docs-spec-test-fixtures -->
-<!-- source-sha256: e2f71fd219cd22b68091215cd0119feb874ea19754b80ff6216c66e000712147 -->
+<!-- doc-id: docs-operations-test-fixtures -->
+<!-- source-sha256: 77f3caa81d1239159c1702181d10a3b7c0bf90ee3382af1200eaff3df25cb8b9 -->
 
 [English](test-fixtures.md).
 
@@ -14,7 +14,7 @@
 | `tests/fixtures/form-render/` | 기대 폼 렌더링. |
 | `tests/fixtures/form-session/` | 공통 폼 입력과 상호작용 시나리오. |
 | `tests/fixtures/view-session/` | 공통 목록과 상세 다시 그리기 시나리오. |
-| `tests/fixtures/text-validity/` | 모든 연산의 [입력 텍스트](input-text.ko.md) 실패. |
+| `tests/fixtures/text-validity/` | 모든 연산의 [입력 텍스트](../spec/input-text.ko.md) 실패. |
 
 ## 검증
 
@@ -60,5 +60,5 @@
 디렉터리 아래에 임시 검사 데이터를 쓰지 않습니다. 각 검사는 고유 디렉터리를 생성하고
 검사 완료 후 제거합니다.
 
-[폼 검사](../operations/testing.ko.md#폼과-보고서)는 렌더링·DOM·스타일·입력 상태·정본 흐름
+[폼 검사](testing.ko.md#폼과-보고서)는 렌더링·DOM·스타일·입력 상태·정본 흐름
 검사를 별도로 실행합니다.

@@ -1,6 +1,6 @@
 package main
 
-// The customer record resource of the canonical page (docs/spec/form-comparison.md, "Record
+// The customer record resource of the canonical page (docs/operations/form-comparison.md, "Record
 // resource"): one store file in the data directory, seeded from the fixture in the public
 // directory, and list, detail, save, reset and SSR view routes.
 

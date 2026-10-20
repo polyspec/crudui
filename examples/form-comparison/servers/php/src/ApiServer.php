@@ -14,7 +14,7 @@ use TypeError;
 use UnexpectedValueException;
 
 /**
- * The PHP record server of the form comparison (docs/spec/form-comparison.md, "Record servers"): servers/php/api.php
+ * The PHP record server of the form comparison (docs/operations/form-comparison.md, "Record servers"): servers/php/api.php
  * answers each request of PHP-FPM through one instance.
  */
 final class ApiServer
@@ -290,7 +290,7 @@ final class ApiServer
         return RecordStore::submission($this->nativeForm(), true);
     }
 
-    /** Answer one request of the record resource (docs/spec/form-comparison.md, "Record resource"). */
+    /** Answer one request of the record resource (docs/operations/form-comparison.md, "Record resource"). */
     private function recordRoute(string $path): never
     {
         try {

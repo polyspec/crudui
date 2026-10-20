@@ -1,5 +1,5 @@
 # Conformance evidence
-<!-- doc-id: docs-spec-conformance -->
+<!-- doc-id: docs-operations-conformance -->
 
 [한국어](conformance.ko.md).
 

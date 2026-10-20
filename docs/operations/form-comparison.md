@@ -1,5 +1,5 @@
 # Form verification
-<!-- doc-id: docs-spec-form-comparison -->
+<!-- doc-id: docs-operations-form-comparison -->
 
 [한국어](form-comparison.ko.md).
 
@@ -102,7 +102,7 @@ id. A body over 2 MiB is answered with 413 as soon as it passes the limit: the s
 further and closes the connection, so a client cannot hold it by declaring a large body and
 sending it slowly. It then validates the submission with its own validator and the
 `form` specification and answers with the validator's result as `validation`, its members
-`valid`, `errors` and `hidden` unchanged ([validation result](validation-rules.md#evaluation)); an
+`valid`, `errors` and `hidden` unchanged ([validation result](../spec/validation-rules.md#evaluation)); an
 invalid submission answers 422 `{ validation }`. A valid submission answers 200 and stores the previous record with the submitted `name`, `status`,
 `joined`, `relation.name`, `markup` and `companies` (its rows in submitted order with their
 submitted keys; a store's `detail` is kept while it is hidden), and `score` as the JSON number

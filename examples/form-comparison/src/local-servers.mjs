@@ -1,6 +1,6 @@
 // Local server processes for the source-level record checks and the local run of the pipeline
 // check: the five record servers and the public server, started from this checkout with their own
-// ports, data directory and public directory (docs/spec/form-comparison.md, "Record servers").
+// ports, data directory and public directory (docs/operations/form-comparison.md, "Record servers").
 import assert from 'node:assert/strict';
 import { execFile, fork, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';

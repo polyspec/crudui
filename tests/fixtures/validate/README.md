@@ -26,7 +26,7 @@ other rules still read its kept value, and a three-step toggle that validates ke
 once the field is shown. The `multiple: only` cases check per-row validation of data rows and
 missing data that has no row but still fails `required` and `mincount`. Failure cases use `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
 `UNKNOWN_RULE` and `INVALID_FORM_INPUT`. The
-[test fixture contract](../../../docs/spec/test-fixtures.md) describes the format.
+[test fixture contract](../../../docs/operations/test-fixtures.md) describes the format.
 
 ## Comparisons
 

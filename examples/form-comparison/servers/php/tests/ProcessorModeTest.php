@@ -17,7 +17,7 @@ use RuntimeException;
  * The processor modes of the PHP server, each in a child process with the extension modules that
  * FORM_ORDERED_JSON_MODULE and FORM_CRUDUI_MODULE name: a mode refuses the extensions of the other mode, the PHP
  * extension mode requires the hash of its module, and it refuses a CRUDUI class that PHP loaded from source
- * (docs/spec/form-comparison.md, "Implementations and requests").
+ * (docs/operations/form-comparison.md, "Implementations and requests").
  */
 #[Group('modules')]
 final class ProcessorModeTest extends TestCase

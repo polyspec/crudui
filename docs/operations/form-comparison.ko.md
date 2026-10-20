@@ -1,6 +1,6 @@
 # 폼 검증
-<!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: 1476076d0a353e38fdfae0d4930ad3db952f62c13f50e55ad35a7de650ba579a -->
+<!-- doc-id: docs-operations-form-comparison -->
+<!-- source-sha256: cf9b0d34ef5f1e8794ea023ddb7dcb1c7d458eb19fb794d830cbaace38319753 -->
 
 [English](form-comparison.md).
 
@@ -92,7 +92,7 @@ id 순서로 담습니다. 파일이 없으면 첫 읽기에서 고정 데이터
 응답합니다. 2 MiB를 넘는 본문은 제한을 넘는 즉시 413으로 응답하고 더 읽지 않으며 연결을 닫으므로,
 클라이언트가 큰 본문을 선언하고 천천히 보내 서버를 붙잡을 수 없습니다. 그다음 자기 검증기와 `form` 명세로
 제출을 검증하고, 검증기 결과를 member `valid`, `errors`, `hidden`을 바꾸지 않은 채 `validation`으로
-응답합니다([검증 결과](validation-rules.ko.md#평가)). 잘못된 제출에는 422 `{ validation }`으로 응답합니다.
+응답합니다([검증 결과](../spec/validation-rules.ko.md#평가)). 잘못된 제출에는 422 `{ validation }`으로 응답합니다.
 올바른 제출에는 200으로 응답하며, 이전 레코드에 제출한 `name`, `status`, `joined`, `relation.name`, `markup`, `companies`(행은
 제출 순서와 제출한 키를 유지하고, 스토어의 `detail`은 숨겨진 동안에도 유지)와 십진 문자열이
 나타내는 JSON 숫자 `score`를 넣어 저장하며, `id`와 `avatar`는 저장된 값을

@@ -1,12 +1,12 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: b4dea1df1f4ef16e245eebf88cfb620780a9b2bca5c73326b8aa966b34ddb8b8 -->
+<!-- source-sha256: 91ce50963f43ab91b4fe9dd4788e268df9dad5d40a8d720528362c4b3330d451 -->
 
 [English](testing.md).
 
 저장소 루트에서 실행합니다. checkout은 먼저 `make install-tools TOOLS=npm`으로 `scripts/kit/bootstrap`의 copy된 installer가
 `packageManager`의 npm을 설치하게 하고, `make install-packages`로 그 npm이 package `@polyspec/kit`을 포함한 `package-lock.json`을
-설치하게 합니다. 그 전에는 다른 target이 실행되지 않습니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/spec/package-build.ko.md`,
+설치하게 합니다. 그 전에는 다른 target이 실행되지 않습니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/operations/package-build.ko.md`,
 "런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
 모든 Cargo.lock의 crate(`make crudui-install-crates`),
 `scripts/install-phpdocumentor.mts`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
@@ -122,7 +122,7 @@ make docs-check
 ```
 
 검증기 패키지 검사는
-[사례 계약](../spec/test-fixtures.ko.md)의 공통 사례를 실행합니다. 구현 간 일치뿐
+[사례 계약](test-fixtures.ko.md)의 공통 사례를 실행합니다. 구현 간 일치뿐
 아니라 기대 검증 결과 또는 전체 실패 기록을 비교합니다. 패키지 검사는 export 파일,
 선언·설치 컴파일·프로덕션 렌더링을 확인합니다. PHP 검사는 개발 root의 `composer install`이 설치하는 root `vendor/`의 PHPUnit을
 실행합니다. `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit`은 `--cwd`이거나 그 위에 있고 PHPUnit을 가진 가장 가까운 Composer project의
@@ -237,7 +237,7 @@ type assertion(`expectTypeOf`)은 `*.test-d.ts` 파일에 있고, Vitest의 type
 스크립트를 실행하고, 명령이 남긴 자식이 멈췄는지를 스크립트 출력의 close로 확인합니다.
 
 `make conformance`는 적합성 근거를 기록하는 모든 테스트 모음을 실행하고 그 근거를 기능
-계약과 대조합니다. [적합성 근거](../spec/conformance.ko.md)를 참고합니다.
+계약과 대조합니다. [적합성 근거](conformance.ko.md)를 참고합니다.
 
 ## 루트 테스트 명령
 
@@ -262,10 +262,10 @@ refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rus
 `npm run test:form-comparison:checks`(`make crudui-test-form-comparison-checks`)는 같은 로컬 구성을 시작하고, 그
 구성에 PHP 처리 모드, 생성·저장·정본 흐름 검사, 네이티브 서버 네 개의 브라우저 검사와 상호작용 검사,
 브라우저 집계, 입력 검사를 실행하고, 근거를 확인한 뒤 서버를 멈춥니다
-([로컬 검증](../spec/form-comparison.ko.md#로컬-검증)). `make crudui-test-form-comparison-browser`(`FORM_SERVERS`
+([로컬 검증](form-comparison.ko.md#로컬-검증)). `make crudui-test-form-comparison-browser`(`FORM_SERVERS`
 서버의 브라우저 검사, 보고서는 `FORM_BROWSER_REPORTS`)와 `make crudui-test-form-comparison-summary`(그 보고서를 쓰는
 나머지 검사)는 같은 검사를 CI가 실행하는 두 부분으로 실행하며, 앞의 것은 서버마다 CI 작업 하나에서 실행합니다.
-[폼 비교](../spec/form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사들을 정의합니다. JSON 순서와 HTTP
+[폼 비교](form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사들을 정의합니다. JSON 순서와 HTTP
 저장·로드 검사는 검증기 패키지 테스트와 별도입니다.
 
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의

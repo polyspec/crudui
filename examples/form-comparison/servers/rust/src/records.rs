@@ -1,5 +1,5 @@
 //! The customer record resource of the canonical page: the paged list, one record, its save,
-//! the reset and the SSR stage views (docs/spec/form-comparison.md, "Record resource").
+//! the reset and the SSR stage views (docs/operations/form-comparison.md, "Record resource").
 use crate::{
     bad, failure,
     form::{field, required, shaped, Shape, COMPANIES},

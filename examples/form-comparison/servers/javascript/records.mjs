@@ -1,4 +1,4 @@
-// The JavaScript record server (docs/spec/form-comparison.md, "Record resource"): one persistent
+// The JavaScript record server (docs/operations/form-comparison.md, "Record resource"): one persistent
 // store of the customer records, its HTTP contract and the SSR stage views, rendered with the
 // JavaScript generators and checked with the JavaScript validator. The public server answers
 // `/api/js/records…` with this module and `servers/javascript/main.mjs` serves it on its own.
@@ -16,7 +16,7 @@ import {
 
 const bodyLimit = 2 * 1024 * 1024;
 const positiveInteger = /^[1-9][0-9]*$/;
-// The submitted form (docs/spec/form-comparison.md, "Record resource"): `text` and `checkbox`
+// The submitted form (docs/operations/form-comparison.md, "Record resource"): `text` and `checkbox`
 // leaves, `texts`, an object of exactly these text members, `fields`, an object of these fields,
 // and `rows`, keyed rows of one object of fields.
 const text = 'text';
@@ -87,7 +87,7 @@ function shaped(value, shape, path) {
   return result;
 }
 
-// The members of a stored record, in order (docs/spec/form-comparison.md, "Record resource", "Store").
+// The members of a stored record, in order (docs/operations/form-comparison.md, "Record resource", "Store").
 const recordMembers = ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies'];
 
 /**

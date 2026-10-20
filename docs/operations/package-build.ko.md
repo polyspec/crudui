@@ -1,6 +1,6 @@
 # 패키지 빌드
-<!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: d05a77701bc90b780635fffc1f1ed239dbea45ff27790e8f218d329b4f9fed09 -->
+<!-- doc-id: docs-operations-package-build -->
+<!-- source-sha256: 9491ecbc1bb8d8ae1b54643368f0125f645724dd8c7a84dd7e3961934fd435b9 -->
 
 [English](package-build.md).
 

@@ -1,5 +1,5 @@
 # PHP extension
-<!-- doc-id: docs-spec-php-extension -->
+<!-- doc-id: docs-operations-php-extension -->
 
 [한국어](php-extension.ko.md).
 Implementation, verification and publication are recorded in
@@ -52,7 +52,7 @@ reflection; a missing extension fails the native test target.
 
 ## Forms
 
-The extension follows the [form runtime contract](form-runtime.md), including
+The extension follows the [form runtime contract](../spec/form-runtime.md), including
 keyed nested collections, defaults, labels, selection values and display rules.
 
 | API | Operation |
@@ -63,7 +63,7 @@ keyed nested collections, defaults, labels, selection values and display rules.
 | `$form->setData(data)` | Replace instance data and reevaluate fields. |
 | `$form->getData()` | Return detached submission data. |
 | `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | Apply the row operations defined by the form runtime. |
-| `Polyspec\Crudui\Generator::renderForm(form, options)` | Return the instance's [complete form](form-runtime.md#complete-form) HTML. |
+| `Polyspec\Crudui\Generator::renderForm(form, options)` | Return the instance's [complete form](../spec/form-runtime.md#complete-form) HTML. |
 | `Polyspec\Crudui\Generator::sequenceRowKey(seq)` | Format a saved sequence as a row key. |
 
 Compilation accepts the same `files`, `basepath` and `keyPrefix` inputs as the
@@ -91,7 +91,7 @@ specification, display rows and rendering options.
 
 `Polyspec\Crudui\Validator::validate(spec, data, options)` validates submitted data and returns
 `valid`, `errors` and `hidden`, the data paths of the fields that `design.show` hides
-([evaluation](validation-rules.md#evaluation)). Error entries preserve `path`, `field`, `rule`, `message`
+([evaluation](../spec/validation-rules.md#evaluation)). Error entries preserve `path`, `field`, `rule`, `message`
 and `value`. `Polyspec\Crudui\Validator::validateList(spec, options)` checks a list specification and
 `Polyspec\Crudui\Validator::validateDetail(spec, options)` checks a detail specification.
 Composition inputs use an explicit `files` map and `basepath`.
@@ -102,7 +102,7 @@ Composition errors use `Polyspec\Crudui\Validator\Compose\ComposeLoadError`. Sub
 with the wrong shape raises `Polyspec\Crudui\Validator\Validate\FormInputError`, constructed
 with `message`; `getErrorCode()` returns `INVALID_FORM_INPUT`. A non-empty
 sequential root array raises it before composition; the
-[validation procedure](../operations/validation.md) defines the messages. Generator
+[validation procedure](validation.md) defines the messages. Generator
 operation errors use `Polyspec\Crudui\FormError`, constructed with `errorCode`, `message`
 and optional `path`; `getErrorCode()` and `getPath()` return the operation details.
 Unsupported fields use `UNSUPPORTED_FIELD_TYPE`; other invalid form operations
@@ -118,7 +118,7 @@ associative mode cannot preserve empty objects and can make objects with
 sequential numeric keys appear as arrays. Associative arrays remain valid for
 internal API calls when the caller already knows that the value is an object.
 `json_decode` refuses JSON text with an unpaired surrogate escape. To report the
-[input text](input-text.md) failure instead, decode with
+[input text](../spec/input-text.md) failure instead, decode with
 `Polyspec\Crudui\Validator\Support\JsonText::decode`, which returns the same values and keeps
 that text for the check.
 The fixed object options `files` and `data` also accept an empty PHP array.
@@ -128,7 +128,7 @@ Returned templates and form, node, widget and button models keep the library's
 member order.
 Unsupported PHP values and recursive structures fail explicitly. Strings and
 member names that are not valid UTF-8, and values beyond the value limits, fail
-as the [input text](input-text.md) rule defines, before any other check of the
+as the [input text](../spec/input-text.md) rule defines, before any other check of the
 method. A converted value that no check walks and that passes the same limits
 fails with `Recursive or excessively nested PHP value`: an
 `InvalidArgumentException` from validation and a `Polyspec\Crudui\FormError` with code

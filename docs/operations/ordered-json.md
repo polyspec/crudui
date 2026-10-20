@@ -5,7 +5,7 @@
 defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
-The record servers of the [form comparison](../spec/form-comparison.md) read and write JSON with the
+The record servers of the [form comparison](form-comparison.md) read and write JSON with the
 packages of [OrderedJSON](https://github.com/polyspec/ordered-json) 0.0.9: `@polyspec/ordered-json` in JavaScript
 and the `ordered_json` extension of its `packages/php-ext` package from the checkout of the tag `v0.0.9` that
 `make crudui-install-ordered-json` makes, the Go module `github.com/polyspec/ordered-json/packages/go` at `v0.0.9` and the

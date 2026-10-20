@@ -1,12 +1,12 @@
 # JSON 문서 순서 검증
 <!-- doc-id: docs-operations-ordered-json -->
-<!-- source-sha256: e11a7bddbd6cffe27f18f9ca5bb368903eeb7abe5cee5faa455a87536da1c78e -->
+<!-- source-sha256: 0f32b02f2a4591f1d2f53fe59e24f325632c17bf09cedc40c4ed6e72b70017ce -->
 
 [English](ordered-json.md). [폼 런타임 계약](../spec/form-runtime.ko.md)은 필요한
 데이터 형태와 순서를 정의합니다. [기능 상태](../features.ko.md)는 검증과 런타임
 배포를 구분해 기록합니다.
 
-[폼 비교](../spec/form-comparison.ko.md)의 레코드 서버는 [OrderedJSON](https://github.com/polyspec/ordered-json)
+[폼 비교](form-comparison.ko.md)의 레코드 서버는 [OrderedJSON](https://github.com/polyspec/ordered-json)
 0.0.9의 패키지로 JSON을 읽고 씁니다. `make crudui-install-ordered-json`이 만드는 tag `v0.0.9` 체크아웃의 JavaScript
 `@polyspec/ordered-json`과 `packages/php-ext` 패키지의 `ordered_json` 확장, `v0.0.9`의 Go module
 `github.com/polyspec/ordered-json/packages/go`, Git tag `v0.0.9`의 Rust crate `polyspec-ordered-json`입니다. PHP의

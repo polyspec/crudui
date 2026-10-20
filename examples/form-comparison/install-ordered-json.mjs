@@ -3,7 +3,7 @@
 // of the comparison build from (.form-comparison/sources/ordered-json), the download of `make crudui-install-ordered-json`, which `make install` runs. A
 // checkout at the commit of the tag without tracked changes stays; any other one is replaced by a checkout of the tag.
 // The pipeline reads the checkout and fails when it is missing, has tracked changes or is at another commit than the
-// tag, naming that command; it downloads nothing itself (docs/spec/package-build.md, "Offline checks"). It runs before
+// tag, naming that command; it downloads nothing itself (docs/operations/package-build.md, "Offline checks"). It runs before
 // make install-packages, which installs the js package of the checkout, so it imports only Node.js built-ins and the files
 // of examples/form-comparison, and prints each step itself.
 //

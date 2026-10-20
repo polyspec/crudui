@@ -313,7 +313,7 @@ Membership maps are value sets, not condition maps.
 Each error contains the field path, field name, failing rule, message and value
 when available. Custom messages use the declared rule name, including the
 distinction between `match` and `pattern`. Defaults are defined by the rule
-implementations. The [fixture contract](test-fixtures.md) defines expected
+implementations. The [fixture contract](../operations/test-fixtures.md) defines expected
 results and failure records.
 
 Run all four validator package suites using the [testing procedure](../operations/testing.md).

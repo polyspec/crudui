@@ -86,7 +86,7 @@
     "tests/fixtures/**/cases.json"
   ],
   "requirements": {
-    "pattern": "CU(DF|XP|MK|RT|IT|SC|VR)-[0-9]{3}"
+    "pattern": "CU(DF|XP|MK|RT|IT|SC|VR|RP|EC)-[0-9]{3}"
   },
   "units": [],
   "tools": [

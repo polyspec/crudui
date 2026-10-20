@@ -2,7 +2,7 @@
 
 /**
  * The entry of the PHP record server of the form comparison, which PHP-FPM runs for every /api/ request
- * (docs/spec/form-comparison.md, "Record servers"). The classes load through the Composer autoloader of the checkout.
+ * (docs/operations/form-comparison.md, "Record servers"). The classes load through the Composer autoloader of the checkout.
  */
 
 declare(strict_types=1);

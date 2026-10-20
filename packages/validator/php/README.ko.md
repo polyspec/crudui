@@ -1,6 +1,6 @@
 # CRUDUI PHP 검증기
 <!-- doc-id: packages-validator-php-readme -->
-<!-- source-sha256: 6804b6d426c7b83bd236ba7585229ffbe6590e8db1bd547f1723eb0c072e69dc -->
+<!-- source-sha256: 671ba5807a88137138bb5c2801c114a0e80a6403964723d767a985cb1116d17b -->
 
 [English](README.md).
 
@@ -44,7 +44,7 @@ assert($result->valid);
 
 공개 클래스는 `Polyspec\Crudui\Validator`입니다. 네이티브 확장이 클래스를 등록하면
 PHP는 해당 구현을 사용하며, 그렇지 않으면 Composer가 PHP 클래스를 자동으로
-로드합니다. [PHP API 계약](../../../docs/spec/php-extension.ko.md)이 메서드 일치와
+로드합니다. [PHP API 계약](../../../docs/operations/php-extension.ko.md)이 메서드 일치와
 로딩 동작을 정의합니다. 내부 합성과 표현식 모듈은
 [PHP 생성기](../../generator/php/README.ko.md)와 공유합니다.
 

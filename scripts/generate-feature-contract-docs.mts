@@ -13,7 +13,7 @@ const rows = manifest.features.map((feature) => {
 const entries = manifest.packages.flatMap((pkg) => Object.entries(pkg.entries).map(([entry, { visibility, exports }]) =>
   `| \`${pkg.name}\` | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`)).join('\n');
 // The markers of `make docs-check`: both pages hold the same doc-id, and the Korean page holds the sha256 of the English page.
-const DOC_ID = '<!-- doc-id: docs-spec-feature-contracts -->';
+const DOC_ID = '<!-- doc-id: docs-operations-feature-contracts -->';
 const english = `# Feature contracts
 ${DOC_ID}
 
@@ -57,7 +57,7 @@ ${entries}
 
 구조와 연결은 \`npm run manifest:check\`로 검사하고, 선언된 테스트 명령은 \`npm run manifest:test\`로 실행합니다.
 `;
-const outputs: [string, string][] = [['docs/spec/feature-contracts.md', english], ['docs/spec/feature-contracts.ko.md', korean]];
+const outputs: [string, string][] = [['docs/operations/feature-contracts.md', english], ['docs/operations/feature-contracts.ko.md', korean]];
 const check = process.argv.includes('--check');
 for (const [relative, expected] of outputs) {
   const path = resolve(root, relative);

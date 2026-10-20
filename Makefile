@@ -15,12 +15,12 @@ export PATH := $(CURDIR)/var/tools/bin:$(PATH)
 # GNU Make 3.81 looks up the program of a recipe line without shell syntax on the PATH that make started with, not on the
 # exported one, so every recipe starts npm by its path (tests/build/tool-path.test.mts).
 NPM := $(CURDIR)/var/tools/bin/npm
-# The exact toolchains of the checkout (docs/spec/package-build.md): rustup runs the toolchain of rust-toolchain.toml and
+# The exact toolchains of the checkout (docs/operations/package-build.md): rustup runs the toolchain of rust-toolchain.toml and
 # never installs one on the first cargo, which fails with rustup's message naming `rustup toolchain install`; go runs the
 # installed release and never downloads the toolchain of a go.mod. `make install` installs them.
 export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
-# A check reads no network (docs/spec/package-build.md, "Offline checks"): every recipe and the scripts that it starts
+# A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, crudui-install-crates, crudui-install-ordered-json, dependency-review
 # and release-consumer-lock, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
@@ -406,7 +406,7 @@ crudui-test-form-binding:
 	$(NODE) $(KIT)/run-tests.mjs vitest --cwd packages/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
-# contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one
+# contracts/features.json (docs/operations/conformance.md). Every suite runs even when an earlier one
 # fails, so the check reports every gap; any failure fails the target.
 conformance: cargo-downloads-check
 	rm -rf "$(CONFORMANCE_EVIDENCE)"

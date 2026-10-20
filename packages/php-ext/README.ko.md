@@ -1,6 +1,6 @@
 # PHP 네이티브 생성과 검증
 <!-- doc-id: packages-php-ext-readme -->
-<!-- source-sha256: d4cc64217d0b9042208a8c21ee4b028d005da0917fec6c16fea2c6bec4e8f676 -->
+<!-- source-sha256: 53bb055859d9e227ad45f105f4904145b4d8bd36217c313cb9ed272bc7496c36 -->
 
 [English](README.md).
 
@@ -8,7 +8,7 @@
 `Polyspec\Crudui\Form`을 제공합니다. C 모듈은 PHP 클래스를 등록하고 PHP 값을 자체
 순서 보존 값 모델로 직접 변환합니다.
 
-[PHP API 명세](../../docs/spec/php-extension.ko.md)는 메서드, 로딩, 데이터 타입,
+[PHP API 명세](../../docs/operations/php-extension.ko.md)는 메서드, 로딩, 데이터 타입,
 예외를 정의합니다. 확장을 활성화하면 Composer 자동 로딩 전에 확장의
 클래스를 사용할 수 있습니다. 확장을 비활성화하면 Composer가 PHP 패키지를
 로드합니다. 각 프로세스는 한 구현을 사용합니다.

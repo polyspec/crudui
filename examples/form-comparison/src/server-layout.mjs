@@ -1,6 +1,6 @@
 import { formServers, parseFormApiPath } from './runtime-paths.mjs';
 
-// The record resource of a native server (docs/spec/form-comparison.md, "HTTP contract"). The
+// The record resource of a native server (docs/operations/form-comparison.md, "HTTP contract"). The
 // views are listed here instead of imported from the record contract, whose renderers the
 // public server does not load for forwarding.
 const recordPath = new RegExp(`^/api/(${formServers.join('|')})`

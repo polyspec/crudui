@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b64ad6a7fdf5cc1125917b5429bcd16c368e8b7c59333bd6c27190b7451ee86f -->
+<!-- source-sha256: eced06452edfb0b86b8c147efb7c529c59c65a829acaec5d6d52241dc56390c2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -80,3 +80,4 @@
 | C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [o] |
 | C16.57 | docs/spec의 모든 requirement id는 test가 그 id를 이름으로 가진 unit이 인용하고, test가 없는 id는 여섯 implementation 모두에 test를 갖는다 | config/parity.json, tests/fixtures case.json files, the tests of the six implementations | `make parity-declarations-check` reports no R4, R13, R14 or R15 finding | [ ] |
 | C16.58 | 중복은 0이다: generator script, adapter, example, php-ext C code는 각 조각의 사본을 하나만 둔다 | scripts, packages/*/adapters, examples, packages/php-ext/src | `make duplication-check` | [ ] |
+| C16.59 | docs/spec은 여섯 implementation의 규칙만 담는다: tooling 문서는 docs/operations로 옮기고 runtime-packages와 php-extension은 나눈다 | docs/operations, docs/spec, the links to the moved documents | `make docs-check` link check, `make check-documents`, and no document of docs/spec without a requirement id | [o] |

@@ -1,4 +1,4 @@
-// The checks run offline, and only the install targets download (docs/spec/package-build.md, "Offline checks"): the
+// The checks run offline, and only the install targets download (docs/operations/package-build.md, "Offline checks"): the
 // Makefile exports the offline settings of cargo, go, npm and Composer, and `$(ONLINE)` lifts them for the recipe lines
 // of the install targets, dependency-review and the consumer installs of the release archives alone. cargo answers a missing crate offline with "retry
 // without --offline"; every target that runs cargo depends on cargo-downloads-check (check-cargo-downloads of @polyspec/kit),
@@ -39,7 +39,7 @@ const CHECK = 'cargo-downloads-check';
 const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock', 'php-ext-arginfo', 'unlink'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
-// The install targets of the Makefile itself that run a recipe: by the rule of docs/spec/package-build.md only they
+// The install targets of the Makefile itself that run a recipe: by the rule of docs/operations/package-build.md only they
 // download, so they are the targets of this repository that lift the offline settings.
 const INSTALLS = Object.entries(makeTargets(makefile) as Record<string, MakeRule>)
   .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.length > 0)

@@ -1,5 +1,5 @@
 # Test fixtures
-<!-- doc-id: docs-spec-test-fixtures -->
+<!-- doc-id: docs-operations-test-fixtures -->
 
 [한국어](test-fixtures.ko.md).
 
@@ -14,7 +14,7 @@ contract.
 | `tests/fixtures/form-render/` | Expected form rendering. |
 | `tests/fixtures/form-session/` | Shared form controls and interaction scenarios. |
 | `tests/fixtures/view-session/` | Shared list and detail re-render scenarios. |
-| `tests/fixtures/text-validity/` | [Input text](input-text.md) failures of every operation. |
+| `tests/fixtures/text-validity/` | [Input text](../spec/input-text.md) failures of every operation. |
 
 ## Validation
 
@@ -64,5 +64,5 @@ not require Git metadata and do not write scratch fixtures under the extracted
 source directory. Each test creates a unique directory and removes it after the
 test completes.
 
-The [form checks](../operations/testing.md#forms-and-reports) run the separate rendering, DOM,
+The [form checks](testing.md#forms-and-reports) run the separate rendering, DOM,
 style, control-state and canonical flow checks.

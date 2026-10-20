@@ -1,6 +1,6 @@
 # 입력 텍스트
 <!-- doc-id: docs-spec-input-text -->
-<!-- source-sha256: 6d126fefb6bedfd1b50a213071300a4ad2ba28aa28519d2a076c47e0e5dcd782 -->
+<!-- source-sha256: 5594897a03a912ff12161ad4ee66898713f21c189a0f887dd18992f4b2c1334d -->
 
 [English](input-text.md).
 
@@ -75,7 +75,7 @@ Rust 값 진입점은 노드와 단계를 셉니다. 순회 비용은 값을 만
 
 PHP 라이브러리의 값 복사와 확장의 값 변환은 변환하는 모든 값에 같은 한도를 적용합니다. 어떤 검사도
 순회하지 않는 멤버, 예를 들어 마크업이 읽지 않는 버튼 멤버도 포함합니다. 이때 실패는
-[PHP 확장](php-extension.ko.md)의 값 실패 `Recursive or excessively nested PHP value`입니다.
+[PHP 확장](../operations/php-extension.ko.md)의 값 실패 `Recursive or excessively nested PHP value`입니다.
 
 ## 실패
 

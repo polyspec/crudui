@@ -114,7 +114,7 @@ $detailHtml = Generator::renderDetail($detailSpec, $rows[0], ['language' => 'en'
 The `crudui` extension registers the same `Polyspec\Crudui\Generator` and `Polyspec\Crudui\Validator` classes and
 methods. The same code returns the same HTML and models with the extension loaded, for example
 with `php -d "extension=$(pwd)/var/php-ext/polyspec_crudui.so"`. The
-[PHP API contract](../spec/php-extension.md) defines which PHP values are objects.
+[PHP API contract](php-extension.md) defines which PHP values are objects.
 
 ## Go
 

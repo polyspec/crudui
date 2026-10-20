@@ -58,7 +58,7 @@ test('finds the row actions it presses in the rendered comparison form', () => {
 });
 
 test('the benchmark console compares the frames only while the pointer is outside them', () => {
-  // docs/spec/form-comparison.md: a capture requires the pointer outside both frames, and the list shown after
+  // docs/operations/form-comparison.md: a capture requires the pointer outside both frames, and the list shown after
   // loading says to move the pointer instead of comparing.
   const capture = consoleSource.slice(consoleSource.indexOf('async function capture'),
     consoleSource.indexOf('async function compareMounted'));

@@ -1,6 +1,6 @@
 # 네이티브 생성기 검사
 <!-- doc-id: docs-operations-native-generators -->
-<!-- source-sha256: 3fe1735187c0323e0b01ce359a9c74d62f4a9a94064743f1492129436c49fe05 -->
+<!-- source-sha256: f67c5baf4651706519c6505a9614d9ed9c9b588e5c54360265b7b7b0ff033267 -->
 
 [English](native-generators.md).
 
@@ -62,7 +62,7 @@ PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한
 ## HTTP와 브라우저 검증
 
 패키지 예제는 각 언어의 라이브러리 사용을 보여 줍니다.
-[폼 비교](../spec/form-comparison.ko.md)는 JavaScript, PHP, 네이티브 PHP, Go, Rust 레코드 서버와
+[폼 비교](form-comparison.ko.md)는 JavaScript, PHP, 네이티브 PHP, Go, Rust 레코드 서버와
 HTML, React, Vue, Svelte 클라이언트를 정의합니다. 그 레코드 저장소 HTTP 계약은 multipart, URL-encoded,
 JSON 저장과 잘못된 요청을 모든 서버에 보내고, 저장한 레코드를 재시작 뒤에도 다시 읽습니다
 ([폼 검사](testing.ko.md#폼과-보고서)).

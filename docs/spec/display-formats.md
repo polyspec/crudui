@@ -284,7 +284,7 @@ The page-number window holds every page up to seven pages, and otherwise the fir
 current, next and last page. Without a total the current page is 1; a page after the last page
 selects the last page.
 
-In PHP, the [PHP API contract](php-extension.md) decides which PHP values are objects: an empty
+In PHP, the [PHP API contract](../operations/php-extension.md) decides which PHP values are objects: an empty
 PHP array is accepted for a root object argument and for the fixed object options `data` and
 `files`, while nested values keep their type.
 

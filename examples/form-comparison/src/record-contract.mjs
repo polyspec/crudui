@@ -1,5 +1,5 @@
 // The record resource of the canonical page: one customer record specification, one shared
-// fixture and one HTTP contract that every record store implements (docs/spec/form-comparison.md,
+// fixture and one HTTP contract that every record store implements (docs/operations/form-comparison.md,
 // "Record resource"). The JavaScript, PHP, PHP extension, Go and Rust servers are checked by the
 // same cases below; a case that passes for one server and fails for another is a defect.
 import assert from 'node:assert/strict';

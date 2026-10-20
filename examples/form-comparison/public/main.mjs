@@ -1,4 +1,4 @@
-// The canonical page (docs/spec/form-comparison.md, "Canonical page"): the record flow from the
+// The canonical page (docs/operations/form-comparison.md, "Canonical page"): the record flow from the
 // list through detail and form back to the saved list, over the selected server, client,
 // initialization and form mode. The page owns the selection, its links and the saved notice; the
 // selected client's stage module renders or takes over the stage and submits the form.

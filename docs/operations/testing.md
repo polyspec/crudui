@@ -6,7 +6,7 @@
 Run from the repository root. A checkout first runs `make install-tools TOOLS=npm`, which installs the npm of
 `packageManager` with the copied installer of `scripts/kit/bootstrap`, and `make install-packages`, which installs
 `package-lock.json` with that npm, the package `@polyspec/kit` included; until then no other target runs. Every tool runs at
-the release that the checkout records (`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
+the release that the checkout records (`docs/operations/package-build.md`, "Runtime and dependency versions"): `make install` installs the
 recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml`, the
 crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make crudui-install-crates`) and
 the phpDocumentor release that `scripts/install-phpdocumentor.mts` checks by its SHA-256,
@@ -142,7 +142,7 @@ make docs-check
 ```
 
 Validator package suites run the shared fixtures described in the
-[fixture contract](../spec/test-fixtures.md). The PHP suites run the PHPUnit of the root `vendor/`, which
+[fixture contract](test-fixtures.md). The PHP suites run the PHPUnit of the root `vendor/`, which
 `composer install` of the development root installs: `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit` runs the PHPUnit of
 the nearest Composer project at or above `--cwd` that has one, the root for every package of `packages/` (kit K186).
 Compare the expected validation result or complete failure record, not only
@@ -266,7 +266,7 @@ that ends after 1.2 seconds, and checks with the close of the script's output th
 command left behind was stopped.
 
 `make conformance` runs every suite that records conformance evidence and checks that evidence
-against the feature contract; see [conformance evidence](../spec/conformance.md).
+against the feature contract; see [conformance evidence](conformance.md).
 
 ## Root test command
 
@@ -293,11 +293,11 @@ Rust and Chrome. `npm run test:form-comparison:checks` (`make crudui-test-form-c
 the same local stack and runs the PHP processor modes, the generation, persistence and canonical
 flow checks, the browser checks of the four native servers with their interaction checks, the
 browser aggregate and the typing check against it, checks the evidence and stops the servers
-([local verification](../spec/form-comparison.md#local-verification)). `make crudui-test-form-comparison-browser`
+([local verification](form-comparison.md#local-verification)). `make crudui-test-form-comparison-browser`
 (the browser checks of the servers of `FORM_SERVERS`, reports in `FORM_BROWSER_REPORTS`) and
 `make crudui-test-form-comparison-summary` (every other check, with those reports) run the same checks in
 the two parts that CI runs, the first in one CI job per server. The
-[form comparison](../spec/form-comparison.md) defines the record resource, the page and those
+[form comparison](form-comparison.md) defines the record resource, the page and those
 checks. JSON order and HTTP save/load checks are separate from validator package tests.
 
 `npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and

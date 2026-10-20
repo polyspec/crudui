@@ -1,6 +1,6 @@
 # 런타임 패키지
 <!-- doc-id: docs-spec-runtime-packages -->
-<!-- source-sha256: 8ed2fb1383213e563fe55a72cdf1af4d0fb4224f3d279c9c1b84ae9ef019f683 -->
+<!-- source-sha256: 3df0765a0090a4ee7d4dab60209322d7056a518d1869968ea149c6b6444d9429 -->
 
 [English](runtime-packages.md).
 구현과 검증 결과는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -12,68 +12,39 @@ HTML 렌더링, 검증을 제공합니다. PHP 네이티브 실행은 폼 생성
 모두 제공합니다. 서버 언어는 JavaScript 서버를 시작하거나 다른 언어의
 실행 파일을 호출하지 않고 폼·목록·상세를 렌더링할 수 있어야 합니다.
 
-| 런타임 | 조합과 표현식 | 폼 컴파일과 바인딩 | 폼 HTML·목록·상세 렌더링 | 검증 |
-| --- | --- | --- | --- | --- |
-| JavaScript | 필수 | 필수 | 필수 | 필수 |
-| PHP | 필수 | 필수 | 필수 | 필수 |
-| Go | 필수 | 필수 | 필수 | 필수 |
-| Rust | 필수 | 필수 | 필수 | 필수 |
-| PHP 네이티브 확장 | 필수 | 필수 | 필수 | 필수 |
+- **CURP-001** JavaScript — 조합과 표현식: 필수; 폼 컴파일과 바인딩: 필수; 폼 HTML·목록·상세 렌더링: 필수; 검증: 필수
+- **CURP-002** PHP — 조합과 표현식: 필수; 폼 컴파일과 바인딩: 필수; 폼 HTML·목록·상세 렌더링: 필수; 검증: 필수
+- **CURP-003** Go — 조합과 표현식: 필수; 폼 컴파일과 바인딩: 필수; 폼 HTML·목록·상세 렌더링: 필수; 검증: 필수
+- **CURP-004** Rust — 조합과 표현식: 필수; 폼 컴파일과 바인딩: 필수; 폼 HTML·목록·상세 렌더링: 필수; 검증: 필수
+- **CURP-005** PHP 네이티브 확장 — 조합과 표현식: 필수; 폼 컴파일과 바인딩: 필수; 폼 HTML·목록·상세 렌더링: 필수; 검증: 필수
 
 이 표는 완료된 구현이 아니라 요구사항입니다. PHP 확장은 컴파일된
 라이브러리를 공유할 수 있지만 두 작업 모두 PHP 프로세스 안에서 실행합니다.
 PHP 패키지와 확장은 같은 공개 클래스를 구현합니다. 활성화된 확장은
 PHP 코드 실행 전에 해당 클래스를 등록하고, 그렇지 않으면 Composer가
-PHP 구현을 자동 로드합니다. [PHP API 계약](php-extension.ko.md)은 로딩과
+PHP 구현을 자동 로드합니다. [PHP API 계약](../operations/php-extension.ko.md)은 로딩과
 메서드 동일성을 정의합니다. 비교 검사는 PHP와 네이티브 PHP를 별도
 프로세스에서 실행하고 실제 실행된 구현을 확인합니다. 네이티브 모듈이
 없으면 네이티브 대상 검사는 실패합니다.
-
-## 패키지 구성
-
-| 패키지 | 구현 책임 | 재사용 |
-| --- | --- | --- |
-| `packages/generator/ts` | JavaScript 템플릿, 인스턴스, 계산된 모델 | JavaScript 조합과 표현식 모듈 |
-| `packages/react`, `generator-vue`, `generator-svelte` | 프레임워크 통합, 브라우저 동작, 렌더링 | 공용 JavaScript 생성기 |
-| `packages/html` | 프레임워크에 독립적인 JavaScript 폼·목록·상세 HTML 렌더링 | 공용 JavaScript 생성기 |
-| `packages/form-binding` | 서버가 렌더링한 폼의 [브라우저 검증](form-runtime.ko.md#브라우저-검증) | JavaScript 검증기 |
-| `packages/generator/php` | PHP 템플릿 컴파일, 데이터 바인딩, 폼·목록·상세 HTML | PHP 조합과 표현식 모듈 |
-| `packages/generator/go` | Go 템플릿 컴파일, 데이터 바인딩, 폼·목록·상세 HTML | Go 조합과 표현식 모듈 |
-| `packages/generator/rust` | Rust 템플릿 컴파일, 데이터 바인딩, 폼·목록·상세 HTML | Rust 조합과 표현식 모듈 |
-| `packages/php-ext` | PHP 네이티브 생성과 검증 | PHP 패키지와 같은 공개 클래스이며 생성과 검증을 네이티브 코드에서 실행 |
-| `packages/validator/*` | 데이터와 명세 검증 | 기존 언어별 검증 규칙 구현과 공용 사례 |
-
-각 서버 생성기는 해당 언어의 HTTP 프로세스에서 실행할 수 있는
-라이브러리입니다. CLI 어댑터는 검사와 예제의 진입점이며 라이브러리 구현이
-아닙니다. Go 렌더링은 실행 시 Rust, PHP, Node에 의존하지 않습니다.
-PHP 렌더링은 네이티브 확장을 필수로 요구하지 않습니다. Rust 렌더링은
-PHP 호스트를 요구하지 않습니다.
-
-`@polyspec/crudui-generator-react`는 `react-dom/server`를 불러오지 않고 컴포넌트를
-내보냅니다. `@polyspec/crudui-generator-react/server`는 서버 전용 문자열 렌더링 함수
-`renderForm`, `renderList`, `renderDetail`을 내보냅니다. 컴포넌트 진입점은
-이 서버 함수를 내보내지 않습니다.
 
 ## API 동작
 
 이름은 각 언어의 명명 규칙을 따릅니다. 동작과 결과는 같으며 필드 명세에
 런타임 선택자를 추가하지 않습니다.
 
-| 동작 | JavaScript | PHP 라이브러리 | Go | Rust | PHP 네이티브 |
-| --- | --- | --- | --- | --- | --- |
-| 구조 컴파일 | `compileForm` | `Generator::compileForm` | `CompileForm` | `compile_form` | `Generator::compileForm` |
-| 데이터 바인딩 | `bindForm` | `Generator::bindForm` | `BindForm` | `bind_form` | `Generator::bindForm` |
-| 버튼 바인딩 | `bindButtons` | `Generator::bindButtons` | `BindButtons` | `bind_buttons` | `Generator::bindButtons` |
-| 버튼 렌더링 | `formButtonsHtml` | `Generator::formButtonsHtml` | `FormButtonsHTML` | `form_buttons_html` | `Generator::formButtonsHtml` |
-| 인스턴스 생성 | `createForm` | `new Form` | `NewForm` | `Form::new` | `new Form` |
-| 데이터 교체 | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
-| 데이터 조회 | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
-| 폼 렌더링 | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
-| 목록 모델 생성 | `buildList` | `Generator::buildList` | `BuildList` | `build_list` | `Generator::buildList` |
-| 목록 렌더링 | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
-| 상세 모델 생성 | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
-| 상세 렌더링 | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |
-| 검증 | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
+- **CURP-006** 구조 컴파일 — JavaScript: `compileForm`; PHP 라이브러리: `Generator::compileForm`; Go: `CompileForm`; Rust: `compile_form`; PHP 네이티브: `Generator::compileForm`
+- **CURP-007** 데이터 바인딩 — JavaScript: `bindForm`; PHP 라이브러리: `Generator::bindForm`; Go: `BindForm`; Rust: `bind_form`; PHP 네이티브: `Generator::bindForm`
+- **CURP-008** 버튼 바인딩 — JavaScript: `bindButtons`; PHP 라이브러리: `Generator::bindButtons`; Go: `BindButtons`; Rust: `bind_buttons`; PHP 네이티브: `Generator::bindButtons`
+- **CURP-009** 버튼 렌더링 — JavaScript: `formButtonsHtml`; PHP 라이브러리: `Generator::formButtonsHtml`; Go: `FormButtonsHTML`; Rust: `form_buttons_html`; PHP 네이티브: `Generator::formButtonsHtml`
+- **CURP-010** 인스턴스 생성 — JavaScript: `createForm`; PHP 라이브러리: `new Form`; Go: `NewForm`; Rust: `Form::new`; PHP 네이티브: `new Form`
+- **CURP-011** 데이터 교체 — JavaScript: `setData`; PHP 라이브러리: `$form->setData`; Go: `SetData`; Rust: `set_data`; PHP 네이티브: `$form->setData`
+- **CURP-012** 데이터 조회 — JavaScript: `getData`; PHP 라이브러리: `$form->getData`; Go: `GetData`; Rust: `get_data`; PHP 네이티브: `$form->getData`
+- **CURP-013** 폼 렌더링 — JavaScript: `renderForm`; PHP 라이브러리: `Generator::renderForm`; Go: `RenderForm`; Rust: `render_form`; PHP 네이티브: `Generator::renderForm`
+- **CURP-014** 목록 모델 생성 — JavaScript: `buildList`; PHP 라이브러리: `Generator::buildList`; Go: `BuildList`; Rust: `build_list`; PHP 네이티브: `Generator::buildList`
+- **CURP-015** 목록 렌더링 — JavaScript: `renderList`; PHP 라이브러리: `Generator::renderList`; Go: `RenderList`; Rust: `render_list`; PHP 네이티브: `Generator::renderList`
+- **CURP-016** 상세 모델 생성 — JavaScript: `buildDetail`; PHP 라이브러리: `Generator::buildDetail`; Go: `BuildDetail`; Rust: `build_detail`; PHP 네이티브: `Generator::buildDetail`
+- **CURP-017** 상세 렌더링 — JavaScript: `renderDetail`; PHP 라이브러리: `Generator::renderDetail`; Go: `RenderDetail`; Rust: `render_detail`; PHP 네이티브: `Generator::renderDetail`
+- **CURP-018** 검증 — JavaScript: `validate`; PHP 라이브러리: `Validator::validate`; Go: `Validate`; Rust: `validate`; PHP 네이티브: `Validator::validate`
 
 모든 런타임은 같은 상세 모델을 만들고 같은 상세 HTML을 씁니다.
 [공용 상세 고정 데이터](../../tests/fixtures/detail-render/README.ko.md)를 JavaScript, HTML 렌더러,
@@ -82,7 +53,7 @@ PHP 라이브러리, Go, Rust, PHP 확장에서 두 수준으로 비교합니다
 
 두 PHP 구현 모두 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`,
 `Polyspec\Crudui\Form` 클래스를 사용합니다.
-[PHP API 계약](php-extension.ko.md)은 공용 메서드와 로딩 순서를
+[PHP API 계약](../operations/php-extension.ko.md)은 공용 메서드와 로딩 순서를
 정의합니다. 활성화된 확장은 이 클래스를 등록합니다. 확장이 없으면
 Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 같은 호출을
 사용하며 비교 검사는 별도 PHP 프로세스에서 클래스 구현과 메서드
@@ -95,14 +66,14 @@ Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 
 [입력 텍스트](input-text.ko.md) 규칙을 구현합니다. 각 런타임의 생성과 검증은 조합과 표현식 계산을 재사용합니다.
 렌더링에서 필수 입력 여부나 검증 규칙을 다시 정의하지 않습니다.
 
-1. 컴파일은 레코드 데이터 없이 참조를 해석하고 전체 폼 구조를 준비합니다.
+1. **CURP-019** 컴파일은 레코드 데이터 없이 참조를 해석하고 전체 폼 구조를 준비합니다.
    출력은 직렬화하고 캐싱할 수 있습니다.
-2. 인스턴스는 레코드 값, 기본값, 행 식별자, 행 작업을 관리합니다.
+2. **CURP-020** 인스턴스는 레코드 값, 기본값, 행 식별자, 행 작업을 관리합니다.
    인스턴스는 공용 템플릿을 수정하지 않습니다.
-3. 바인딩은 인스턴스 데이터로 필드 값, 번역, 디자인을 계산합니다.
-4. 렌더링은 계산된 필드로 HTML을 생성합니다. 검증은 전송된 레코드 데이터를
+3. **CURP-021** 바인딩은 인스턴스 데이터로 필드 값, 번역, 디자인을 계산합니다.
+4. **CURP-022** 렌더링은 계산된 필드로 HTML을 생성합니다. 검증은 전송된 레코드 데이터를
    받아 검증 오류나 명세 오류를 반환합니다.
-5. 브라우저 바인딩은 사용자 입력과 행 작업을 적용합니다. 서버 런타임은
+5. **CURP-023** 브라우저 바인딩은 사용자 입력과 행 작업을 적용합니다. 서버 런타임은
    브라우저의 포커스, 선택 영역, 스크롤 동작을 구현하지 않습니다.
 
 서버 렌더링과 정적 배포를 모두 지원합니다. 폼은 서버에서
@@ -125,27 +96,3 @@ Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 
 반복 행 키는 부모 컬렉션 안에서 행을 식별합니다. 모든 구현은 저장된
 시퀀스, 신규 키, 순서, 지정된 범위의 행 작업에 폼 런타임 계약을 적용합니다.
 유효하지 않은 작업은 데이터와 계산된 필드를 모두 변경하지 않습니다.
-
-## 검증
-
-런타임마다 생성과 검증을 별도로 검사합니다. 검증 성공은 생성이나 SSR
-지원을 증명하지 않습니다. 비교 결과에는 각 요청을 실제로 컴파일, 바인딩,
-렌더링, 검증한 구현을 기록합니다.
-
-런타임 간 검사는 컴파일된 전체 템플릿, 바인딩한 필드 모델, 레코드 데이터,
-검증 결과를 비교합니다. HTML 검사는 필드 이름, 식별자, 속성, 텍스트,
-클래스, CSS, 표시 상태, 입력 상태를 비교합니다. 차이는 보존하고 보고합니다.
-비교에서 식별자, 값, 숨겨진 필드를 제거하여 동일성을 증명하면 안 됩니다.
-
-템플릿, 레코드, 언어, 지정된 행 키가 같으면 초기 데이터와 이후 주입은
-동일한 HTML과 전송 데이터를 생성해야 합니다. 반복 주입과 레코드 복원에도
-동일성을 유지해야 합니다. 브라우저 검사는 React, Vue, Svelte, HTML 렌더러에서 편집,
-라벨, 복수 선택, 행 작업, 포커스, 선택 영역, 스크롤을 포함해 이 경로들을
-검증합니다. SSR 통합은 별도 검사가 필요합니다. JavaScript가 아닌 검증
-서버와 클라이언트 렌더링을 함께 실행해도 SSR을 검증한 것은 아닙니다.
-
-HTTP 예제는 PHP, PHP 네이티브, Go, Rust 각각을 네 브라우저 렌더러와
-검사합니다. 서버 네 종류와 React, Vue, Svelte, HTML 렌더러의 조합입니다. 각 대상은
-폼 및 순서 보존 JSON 전송, 검증, 저장, 재로드를 검사합니다. JavaScript
-코어의 생성과 검증도 공용 적합성 검사에 포함합니다. 런타임 누락, 프로세스
-실패, 잘못된 응답, 기대 결과 누락은 비교 실패로 처리합니다.

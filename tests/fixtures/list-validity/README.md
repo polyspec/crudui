@@ -4,7 +4,7 @@
 [한국어](README.ko.md).
 
 `cases.json` cases share one shape with the other structure validity families
-([form](../spec-validity/README.md), [list](../list-validity/README.md) and
+([form](../spec-validity/README.md), [list](README.md) and
 [detail](../detail-validity/README.md)): `{ name, note, spec, files?, expect, reason?, engine }`.
 
 - `expect` is the meta-schema result for `#/definitions/List` in the [meta-schema](../../../contracts/schema/crudui.schema.json), `"ok"` or `"fail"`.

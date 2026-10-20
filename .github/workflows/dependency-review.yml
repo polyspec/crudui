@@ -1,4 +1,4 @@
-# The scheduled dependency review (docs/spec/package-build.md, "Dependency review"). It asks the registries for newer
+# The scheduled dependency review (docs/operations/package-build.md, "Dependency review"). It asks the registries for newer
 # stable releases and advisories of the committed manifests and locks, and RustSec for the advisories of the Cargo
 # locks, and fails with one line for each, naming the package, its version, the newer release or the advisory and the
 # fix command. It gates no commit: the checks of the CI workflow read only the files of the tree and the review record
@@ -13,7 +13,7 @@ on:
 permissions:
   contents: read
 
-# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md); this workflow runs no cargo
+# The toolchains of the checkout at their recorded versions (docs/operations/package-build.md); this workflow runs no cargo
 # and no go.
 env:
   RUSTUP_AUTO_INSTALL: '0'

@@ -1,4 +1,4 @@
-// Source-level HTTP contract of the five record stores (docs/spec/form-comparison.md, "Record
+// Source-level HTTP contract of the five record stores (docs/operations/form-comparison.md, "Record
 // resource"). Every server is built and started from this checkout with its own port, data
 // directory and public directory, and runs the same contract cases.
 import assert from 'node:assert/strict';

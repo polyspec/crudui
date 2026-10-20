@@ -1,12 +1,12 @@
 # 예제
-<!-- doc-id: docs-spec-examples -->
-<!-- source-sha256: c86403853218b3a3708741c26e755e79a04cf893b28b0b2d385eb297e94ff3de -->
+<!-- doc-id: docs-operations-examples -->
+<!-- source-sha256: d11445d850cbf4a9d3a028aede9405ec90b9a718a6d89c5183a88ecd54b1a03f -->
 
 [English](examples.md).
 
 현재 예제는 버전 없는 공개 API를 사용합니다. `examples/cross-check-console`은
 구현별 검증·렌더링 결과를 비교합니다. 폼 사용법은
-[폼 작업 절차](../operations/forms.ko.md)에서 정의합니다.
+[폼 작업 절차](forms.ko.md)에서 정의합니다.
 
 정본 로컬 예제 진입점은 공개 서버의 루트 페이지입니다. 고객 레코드
 하나를 다루는 하나의 페이지로 List → Detail → Form → Save → List refresh를 제공합니다. 목록,
@@ -25,7 +25,7 @@
 현재 예제는 폼만이 아니라 세 가지 명세 종류를 모두 다룹니다. Go, PHP, Rust 패키지 예제는 하나의 예제 레코드
 집합으로 폼, 목록, 상세를 렌더링하고, PHP 예제는 PHP 확장에서도 그대로 실행됩니다. 교차 검증 콘솔은 구현별 폼,
 목록, 상세 렌더링과 검증을 비교합니다. 목록과 상세 표시는
-[표시 형식](display-formats.ko.md)을 따릅니다.
+[표시 형식](../spec/display-formats.ko.md)을 따릅니다.
 
 콘솔은 검증기 프로세스가 정해진 종료 상태로 종료하고 응답 계약에 맞는
 JSON 객체를 출력한 경우에만 응답을 인정합니다. 데이터 검증은 종료 상태

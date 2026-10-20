@@ -1,6 +1,6 @@
 # 적합성 증거
-<!-- doc-id: docs-spec-conformance -->
-<!-- source-sha256: 8fbb1df71ee59b95a250b0cf3708a7cc2f02b95684467628e67eac8c22f7ac94 -->
+<!-- doc-id: docs-operations-conformance -->
+<!-- source-sha256: 638a8954a490a4144cfb9f4ae0d1c41973610bc376fd7db6403d271022bcd412 -->
 
 [English](conformance.md).
 

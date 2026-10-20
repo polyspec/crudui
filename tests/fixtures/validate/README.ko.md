@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: 132f44ae290a39d3ad52d4661184c2a8180c70b8d1a93ebcd783e9d665a0e40d -->
+<!-- source-sha256: 1ff1cd38ee32df679addd25dfe2182208232cbf6202f1cd5d30934baf32d21df -->
 
 [English](README.md).
 
@@ -21,7 +21,7 @@
 읽으며, 세 단계 전환에서 필드를 다시 보이면 유지한 값을 다시 검증하는지 확인합니다. `multiple: only`
 사례는 데이터 행의 행별 검증과, 행이 없지만 `required`와 `mincount`에는 실패하는 데이터 없음 상태를
 확인합니다. 실패 사례는 `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
-`UNKNOWN_RULE`, `INVALID_FORM_INPUT`을 사용합니다. [테스트 고정 데이터 계약](../../../docs/spec/test-fixtures.ko.md)이
+`UNKNOWN_RULE`, `INVALID_FORM_INPUT`을 사용합니다. [테스트 고정 데이터 계약](../../../docs/operations/test-fixtures.ko.md)이
 형식을 설명합니다.
 
 ## 비교

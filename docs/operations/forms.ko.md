@@ -1,6 +1,6 @@
 # 폼 개발과 검증
 <!-- doc-id: docs-operations-forms -->
-<!-- source-sha256: e24087b1538035b92607df7afc432e9a13b1d9f2d452e8cbf5e4eff7e3d62518 -->
+<!-- source-sha256: 57ca6b20e042883ba5259e910d99ee107280b7c37f475e0749a833bb7a93c415 -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 
@@ -177,5 +177,5 @@ npm run test:build:repeat
 npm run test:packages
 ```
 
-검증 범위는 [패키지 빌드 계약](../spec/package-build.ko.md)과
+검증 범위는 [패키지 빌드 계약](package-build.ko.md)과
 [빌드 검사](../../tests/build/README.ko.md)에 정의합니다.

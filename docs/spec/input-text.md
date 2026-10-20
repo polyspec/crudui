@@ -78,7 +78,7 @@ Rust's value entries count nodes and levels: the walk costs no more than buildin
 The PHP library's value copies and the extension's value conversion apply the same limits to
 every value they convert, including members that no check walks, such as a member of a button
 that the markup does not read. There the failure is the value failure
-`Recursive or excessively nested PHP value` of the [PHP extension](php-extension.md).
+`Recursive or excessively nested PHP value` of the [PHP extension](../operations/php-extension.md).
 
 ## Failures
 

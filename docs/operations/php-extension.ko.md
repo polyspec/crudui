@@ -1,6 +1,6 @@
 # PHP 확장
-<!-- doc-id: docs-spec-php-extension -->
-<!-- source-sha256: 9b9f58d6f16b7ecb48d282164da023a378cdb4bf4a2c21bd95bc5d06f0bebf0e -->
+<!-- doc-id: docs-operations-php-extension -->
+<!-- source-sha256: 752f07b8af0d26fc1153c4af39eb2adc69a35d9f4a3b365898064174b81b9de1 -->
 
 [English](php-extension.md).
 구현, 검증, 패키지 게시 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -52,7 +52,7 @@ PHP 패키지와 확장은 같은 공개 클래스를 제공합니다.
 ## 폼
 
 확장은 키 기반 중첩 컬렉션, 기본값, 라벨, 선택 값, 표시 규칙을 포함한
-[폼 런타임 계약](form-runtime.ko.md)을 따릅니다.
+[폼 런타임 계약](../spec/form-runtime.ko.md)을 따릅니다.
 
 | API | 동작 |
 | --- | --- |
@@ -62,7 +62,7 @@ PHP 패키지와 확장은 같은 공개 클래스를 제공합니다.
 | `$form->setData(data)` | 인스턴스 데이터를 교체하고 필드를 다시 계산합니다. |
 | `$form->getData()` | 복사된 전송 데이터를 반환합니다. |
 | `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | 폼 런타임에 정의된 행 작업을 수행합니다. |
-| `Polyspec\Crudui\Generator::renderForm(form, options)` | 인스턴스의 [완전한 폼](form-runtime.ko.md#완전한-폼) HTML을 반환합니다. |
+| `Polyspec\Crudui\Generator::renderForm(form, options)` | 인스턴스의 [완전한 폼](../spec/form-runtime.ko.md#완전한-폼) HTML을 반환합니다. |
 | `Polyspec\Crudui\Generator::sequenceRowKey(seq)` | 저장된 시퀀스를 행 키로 변환합니다. |
 
 컴파일은 공용 컴파일러와 같은 `files`, `basepath`, `keyPrefix` 입력을
@@ -89,7 +89,7 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 
 `Polyspec\Crudui\Validator::validate(spec, data, options)`는 전송 데이터를 검증하고
 `valid`, `errors`, 그리고 `design.show`가 숨기는 필드의 데이터 경로인 `hidden`을
-반환합니다([평가](validation-rules.ko.md#평가)). 오류 항목은 `path`, `field`, `rule`,
+반환합니다([평가](../spec/validation-rules.ko.md#평가)). 오류 항목은 `path`, `field`, `rule`,
 `message`, `value`를 유지합니다. `Polyspec\Crudui\Validator::validateList(spec, options)`는
 목록 명세를, `Polyspec\Crudui\Validator::validateDetail(spec, options)`는 상세 명세를 검사합니다. 조합 입력은 명시적인 `files` 맵과 `basepath`를
 사용합니다. 명세, 조합, 데이터 형태 실패는 예외를 발생시키며 검증 결과로
@@ -99,7 +99,7 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 잘못된 제출 데이터는 `message`로 생성하는
 `Polyspec\Crudui\Validator\Validate\FormInputError`를 발생시키며 `getErrorCode()`는
 `INVALID_FORM_INPUT`을 반환합니다. 비어 있지 않은 순차 루트 배열은 합성 전에 이
-예외를 발생시킵니다. 메시지는 [검증 절차](../operations/validation.ko.md)에서
+예외를 발생시킵니다. 메시지는 [검증 절차](validation.ko.md)에서
 정의합니다.
 생성기 동작 오류는 `errorCode`, `message`, 선택적 `path`로 생성하는
 `Polyspec\Crudui\FormError`를 사용하며 `getErrorCode()`와 `getPath()`가 동작의
@@ -117,14 +117,14 @@ JSON 입력 경계에서는 `json_decode($json, false, 512, JSON_THROW_ON_ERROR)
 가진 객체를 배열처럼 만들 수 있습니다. 호출자가 이미 값이 객체임을 알고 있는
 내부 API 호출에서는 연관 배열을 계속 사용할 수 있습니다.
 `json_decode`는 쌍이 없는 서로게이트 이스케이프가 있는 JSON 텍스트를 거부합니다. 대신
-[입력 텍스트](input-text.ko.md) 실패를 보고하려면 같은 값을 반환하고 그 텍스트를 검사용으로
+[입력 텍스트](../spec/input-text.ko.md) 실패를 보고하려면 같은 값을 반환하고 그 텍스트를 검사용으로
 보존하는 `Polyspec\Crudui\Validator\Support\JsonText::decode`로 디코딩합니다.
 객체로 정해진 옵션 `files`, `data`에도 빈 PHP 배열을 허용합니다.
 반환하는 레코드 객체와 캐시 템플릿은 `stdClass`를 사용하고 목록은 배열을
 사용합니다. 양방향 변환에서 객체 항목 순서와 행 키를 유지합니다.
 반환하는 템플릿과 폼, 노드, 위젯, 버튼 모델은 라이브러리와 같은 멤버 순서를 유지합니다.
 지원하지 않는 PHP 값과 순환 구조는 명시적으로 실패합니다. 올바른 UTF-8이 아닌 문자열과
-멤버 이름, 값 한도를 넘은 값은 메서드의 다른 검사보다 먼저 [입력 텍스트](input-text.ko.md)
+멤버 이름, 값 한도를 넘은 값은 메서드의 다른 검사보다 먼저 [입력 텍스트](../spec/input-text.ko.md)
 규칙대로 실패합니다. 어떤 검사도 순회하지 않는 변환 값이 같은 한도를 넘으면
 `Recursive or excessively nested PHP value`로 실패합니다. 검증에서는
 `InvalidArgumentException`, 생성에서는 코드가 `INVALID_FORM_INPUT`인 `Polyspec\Crudui\FormError`입니다.

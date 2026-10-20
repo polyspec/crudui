@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-// The save handler of the canonical page (docs/spec/form-comparison.md, "Canonical page"):
+// The save handler of the canonical page (docs/operations/form-comparison.md, "Canonical page"):
 // 200 navigates, 422 shows the validation result, every other answer shows an alert before the
 // form and leaves the form submittable again.
 const { JSDOM } = await import('jsdom');

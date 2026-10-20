@@ -16,7 +16,7 @@ on:
 permissions:
   contents: read
 
-# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md): rustup installs nothing on the
+# The toolchains of the checkout at their recorded versions (docs/operations/package-build.md): rustup installs nothing on the
 # first cargo, and go never downloads the toolchain of a go.mod.
 env:
   RUSTUP_AUTO_INSTALL: '0'

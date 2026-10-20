@@ -1,6 +1,6 @@
 # CRUDUI PHP 생성기
 <!-- doc-id: packages-generator-php-readme -->
-<!-- source-sha256: 0008e7bc6db16b4d3eaa5e70ed8ba638ec76253339176d0c595ff8aca51915b0 -->
+<!-- source-sha256: b70e01a2601ff66f21acd5e2e70fac68eb77d48b7bf2d97b2703f8b09cbbaa07 -->
 
 [English](README.md).
 
@@ -120,6 +120,6 @@ CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/
 상태를 비교합니다.
 
 [폼 계약](../../../docs/spec/form-runtime.ko.md),
-[PHP API 계약](../../../docs/spec/php-extension.ko.md),
+[PHP API 계약](../../../docs/operations/php-extension.ko.md),
 [런타임 요구사항](../../../docs/spec/runtime-packages.ko.md)이 공통 동작을 정의합니다.
 [기능 상태](../../../docs/features.ko.md)는 검증과 게시 상태를 구분하여 기록합니다.

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: faf51e83b9a57eaa29b41c97c89b03b6a661167b011b8f314d512a8688acf8a8 -->
+<!-- source-sha256: 91634a59555f59493926c8b880c61e691ec521cd3ea39bd840897209204ec07e -->
 
 ## Unreleased
+
+### 2026-10-20 — docs/spec에는 implementation의 규칙만 둔다 (C16.59)
+
+- `conformance`, `examples`, `test-fixtures`, `package-build`, `feature-contracts`, `form-comparison`, `php-extension`은 한국어 짝과 함께 `docs/spec`에서 `docs/operations`로 옮겼고, 그것을 가리키는 모든 link, path, doc id가 따라갑니다. `runtime-packages`는 필수 기능, API 동작, 공용 계약, 데이터 규칙을 `docs/spec`에 두고 id `CURP-n`을 붙였으며, package 구성과 검증은 `docs/operations/runtime-packages.md`입니다. `empty-collections`는 규칙을 id `CUEC-n`으로 서술합니다(C16.59). Red: `docs/spec`에는 requirement id가 없는 문서가 9개 있었고 그중 8개는 tooling이나 extension에 대한 것이었으며, green: `docs/spec`의 모든 문서가 requirement를 정의하고 `make parity-declarations-check`는 R13 finding 422건을 보고하며 `check-documents`가 통과합니다.
 
 ### 2026-10-20 — docs/spec의 requirement id (C16.56)
 
@@ -2256,7 +2260,7 @@
   기록되었습니다. 제출 처리를 `examples/form-comparison/src/save-form.mjs`로 옮기고 jsdom
   테스트를 두었습니다. 요청 실패, JSON이 아닌 응답, 200·422 외의 응답은 폼 앞에 페이지 언어의
   저장 실패 문구와 실패 내용을 담은 `<div id="save-errors" role="alert">`를 보여 주고, 입력 값을
-  그대로 두며, 폼을 다시 제출할 수 있게 둡니다. `docs/spec/form-comparison.md`가 이 동작을
+  그대로 두며, 폼을 다시 제출할 수 있게 둡니다. `docs/operations/form-comparison.md`가 이 동작을
   규정합니다.
 
 ### 2026-09-19 — 화면 문구의 원본을 하나로
@@ -2410,7 +2414,7 @@
   `php-ext`, `go`, `rust` 서버, `html`, `react`, `vue`, `svelte` 클라이언트, CSR과 SSR, `bindForm`과
   `createForm`에서 동작합니다. iframe 단계, `/api/pipeline/*` 경로와 그 경로가 내주던 고정 레코드는
   제거했습니다. 모든 링크는 선택 전체를 가지며, SSR에서는 선택한 서버가 만든 단계를 클라이언트가 넘겨받고
-  CSR에서는 클라이언트가 자기 컴포넌트로 렌더링합니다([정본 페이지](docs/spec/form-comparison.ko.md#정본-페이지)).
+  CSR에서는 클라이언트가 자기 컴포넌트로 렌더링합니다([정본 페이지](docs/operations/form-comparison.ko.md#정본-페이지)).
 - 서버마다 고객 레코드 45개 고정 데이터 하나로 채우는 영속 저장소 `records-{server}.json`을 가지며,
   같은 상태 코드·메시지·항목 순서로 HTTP 계약 하나(`/api/records`, `/api/records/{id}`,
   `/api/records/reset`, `/api/records/view/{view}`)를 구현합니다. 저장은 렌더링된 폼의 필드만 또는 JSON
@@ -2791,7 +2795,7 @@ fixture를 선언하고, 매니페스트는 모든 fixture를 등록합니다. �
 `validator/internal/conformance`, Rust 테스트 모듈 `tests/common`), `scripts/check-conformance.mjs`는
 지원 런타임의 사례 증거가 없거나 실패했을 때, 선언되지 않았거나 지원하지 않는 런타임의 증거가 있을
 때, 등록되지 않은 fixture 가족이 있을 때, 어떤 기능도 증명하지 않는 등록 fixture가 있을 때 실패합니다.
-`make conformance`는 기록하는 모든 테스트와 검사를 실행합니다. [적합성 증거](docs/spec/conformance.ko.md)가
+`make conformance`는 기록하는 모든 테스트와 검사를 실행합니다. [적합성 증거](docs/operations/conformance.ko.md)가
 런타임 키와 규칙을 설명하며, 제거한 `contracts/conformance-matrix.json`과
 `tests/build/conformance-coverage.test.mjs`의 문자열 검사를 대체합니다.
 
@@ -3147,7 +3151,7 @@ README가 없었습니다. 이제 각 종류에 사례 필드, 사례가 검사�
 ### 2026-09-15 — 패키지 예제에서 목록과 상세를 보여 주고 운영 문서 작성
 
 패키지 예제는 폼만 렌더링했고, 목록과 상세를 설명하는 운영 문서가 없었으며, 문서 색인 네 개가 서로 다른 문서를
-나열했습니다. 이제 [예제 계약](docs/spec/examples.ko.md)은 현재 예제가 폼, 목록, 상세를 모두 다루도록 요구합니다. Go
+나열했습니다. 이제 [예제 계약](docs/operations/examples.ko.md)은 현재 예제가 폼, 목록, 상세를 모두 다루도록 요구합니다. Go
 서버 예제는 저장한 레코드로 폼과 함께 `/list`와 `/detail`을 제공하고, PHP 예제는 `?view=list`와 `?view=detail`을
 제공하며, Rust 예제는 레코드 하나로 렌더링한 폼, 목록, 상세를 출력합니다. [목록과 상세 운영](docs/operations/displays.ko.md)
 문서는 JavaScript, 프레임워크, PHP와 PHP 확장, Go, Rust의 생성, 렌더링, 검증 함수와 옵션, 예제, 검사를 설명합니다.

@@ -1,4 +1,4 @@
-// The save of the canonical page's record form (docs/spec/form-comparison.md, "Canonical page"):
+// The save of the canonical page's record form (docs/operations/form-comparison.md, "Canonical page"):
 // the submit sends the form's native fields to the record API, 200 navigates to the saved list,
 // 422 shows the validation result, and a failed request or any other answer shows an alert before
 // the form and leaves it submittable again.

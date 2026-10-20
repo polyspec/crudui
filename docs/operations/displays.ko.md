@@ -1,6 +1,6 @@
 # 목록과 상세 개발과 검증
 <!-- doc-id: docs-operations-displays -->
-<!-- source-sha256: 3419a091c5fd89ea8fb8cf28be7c23d8af768200d746e0f126eaf5d799774b7c -->
+<!-- source-sha256: 4f7d23f00f9d802b5c78e1a4aaeb96d3351010a1510adf36bc8dbf9537a715c8 -->
 
 [English](displays.md). [표시 형식](../spec/display-formats.ko.md)은 각 형식, 허용 입력과
 마크업을 정의합니다. [명세 구조](../spec/schema.ko.md)는 목록과 상세 필드와
@@ -113,7 +113,7 @@ $detailHtml = Generator::renderDetail($detailSpec, $rows[0], ['language' => 'en'
 
 `crudui` 확장은 같은 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` 클래스와 메서드를 등록합니다.
 `php -d "extension=$(pwd)/var/php-ext/polyspec_crudui.so"`처럼 확장을 로드해도 같은 코드가
-같은 HTML과 모델을 반환합니다. [PHP API 계약](../spec/php-extension.ko.md)은 어떤 PHP 값이
+같은 HTML과 모델을 반환합니다. [PHP API 계약](php-extension.ko.md)은 어떤 PHP 값이
 객체인지 정의합니다.
 
 ## Go

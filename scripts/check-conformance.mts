@@ -168,7 +168,7 @@ export function checkConformance(
 
 /*
  * The suites that record evidence, each with the command that runs it and the runtimes it proves
- * (docs/spec/conformance.md, "Suite runs"). A run record matches a suite when its program, its
+ * (docs/operations/conformance.md, "Suite runs"). A run record matches a suite when its program, its
  * tool and its working directory are those declared and its arguments hold the declared argument.
  */
 export const evidenceSuites: EvidenceSuite[] = [

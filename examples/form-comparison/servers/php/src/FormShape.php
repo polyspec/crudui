@@ -9,7 +9,7 @@ use stdClass;
 
 /**
  * The shape rule of submitted form data, shared by the record save and the benchmark save and
- * validation (docs/spec/form-comparison.md, "Record resource"). JSON members arrive as objects
+ * validation (docs/operations/form-comparison.md, "Record resource"). JSON members arrive as objects
  * and native fields as arrays. A shape is a `text` or `checkbox` leaf, `texts`, an object of
  * exactly these text members, `fields`, an object of these fields of which only the `required`
  * ones must be present, or `rows`, keyed rows of one object of fields.

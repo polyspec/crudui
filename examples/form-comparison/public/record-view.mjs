@@ -1,4 +1,4 @@
-// The browser-safe part of the record resource (docs/spec/form-comparison.md, "Record resource"
+// The browser-safe part of the record resource (docs/operations/form-comparison.md, "Record resource"
 // and "Canonical page"): the page selection, the links the list and detail carry and the form data
 // of one record. The canonical page and the record contract read these rules from here.
 

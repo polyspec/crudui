@@ -1,11 +1,11 @@
 # 상세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-detail-validity-readme -->
-<!-- source-sha256: c359148f2e7fca2fa57cf148021a1763a006eeb217fac46acd6752740bc463e1 -->
+<!-- source-sha256: c61970c129969d776371de7d09ea05db07ab539c51070411e84a1cc6c08aa669 -->
 
 [English](README.md).
 
 `cases.json`의 사례는 다른 구조 유효성 고정 데이터([폼](../spec-validity/README.ko.md),
-[목록](../list-validity/README.ko.md), [상세](../detail-validity/README.ko.md))와 같은
+[목록](../list-validity/README.ko.md), [상세](README.ko.md))와 같은
 `{ name, note, spec, files?, expect, reason?, engine }` 형태를 사용합니다.
 
 - `expect`는 [메타 스키마](../../../contracts/schema/crudui.schema.json)의 `#/definitions/Detail`에 대한 메타 스키마 결과인 `"ok"` 또는 `"fail"`입니다.

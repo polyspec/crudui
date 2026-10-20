@@ -34,7 +34,7 @@ and Korean guides, specifications and generated API references.
 
 - [Specification structure](docs/spec/schema.md)
 - [Display formats](docs/spec/display-formats.md)
-- [Canonical examples](docs/spec/examples.md)
+- [Canonical examples](docs/operations/examples.md)
 - [List and detail development](docs/operations/displays.md)
 - [Form runtime contract](docs/spec/form-runtime.md)
 - [Runtime packages and APIs](docs/spec/runtime-packages.md)

@@ -27,7 +27,7 @@ nodes outside preformatted elements. Text within `pre`, `textarea`, `script` and
 not masked.
 
 Normalized layout equality does not establish original HTML equality. The
-[form inspector](../../../tests/form-inspector/form-snapshot.mts)
+[form inspector](../../form-inspector/form-snapshot.mts)
 compares original HTML, DOM, CSS, controls and runtime state separately for
 initial data and later injection.
 

@@ -5,7 +5,7 @@
 
 `cases.json` cases share one shape with the other structure validity families
 ([form](../spec-validity/README.md), [list](../list-validity/README.md) and
-[detail](../detail-validity/README.md)): `{ name, note, spec, files?, expect, reason?, engine }`.
+[detail](README.md)): `{ name, note, spec, files?, expect, reason?, engine }`.
 
 - `expect` is the meta-schema result for `#/definitions/Detail` in the [meta-schema](../../../contracts/schema/crudui.schema.json), `"ok"` or `"fail"`.
 - `reason` is present only on a `"fail"` case and is required there. It names an Ajv keyword that

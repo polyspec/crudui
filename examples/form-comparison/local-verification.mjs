@@ -1,5 +1,5 @@
 // The verification of the form comparison against one local stack built from this checkout
-// (docs/spec/form-comparison.md, "Local verification"): the record servers run as local processes
+// (docs/operations/form-comparison.md, "Local verification"): the record servers run as local processes
 // on ports of 127.0.0.1 that the system assigns, the checks run against them in stages, the
 // evidence is checked, and the servers stop. Usage:
 //   node examples/form-comparison/local-verification.mjs [--results /absolute/results]

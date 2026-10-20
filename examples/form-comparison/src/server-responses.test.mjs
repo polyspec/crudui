@@ -7,7 +7,7 @@ import path from 'node:path';
 import { publicServerDefinition, startProcess } from './local-servers.mjs';
 import { killProcessTree } from './step-runner.mjs';
 
-// The responses of the public server (docs/spec/form-comparison.md, "Responses"): every response
+// The responses of the public server (docs/operations/form-comparison.md, "Responses"): every response
 // carries `X-Content-Type-Options: nosniff`, JSON error bodies escape `<`, `>` and `&`, and a 405
 // answers with `Allow` naming the methods the target accepts.
 const query = 'lang=en&server=js&framework=html&initialization=ssr&mode=bindForm&page=2';

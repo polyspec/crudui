@@ -904,7 +904,7 @@
       ],
       "docs": [
         "docs/spec/schema.md",
-        "docs/spec/php-extension.md",
+        "docs/operations/php-extension.md",
         "docs/operations/validation.md",
         "docs/spec/input-text.md"
       ],

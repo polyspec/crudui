@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Install the browsers of the browser checks at the builds that the locked packages pin
-// (docs/spec/package-build.md, "Runtime and dependency versions"): Chrome and Firefox at the builds of
+// (docs/operations/package-build.md, "Runtime and dependency versions"): Chrome and Firefox at the builds of
 // PUPPETEER_REVISIONS of the locked puppeteer, into the cache of Puppeteer (PUPPETEER_CACHE_DIR when it is set), and
 // WebKit at the build of the locked playwright. No browser of the machine and no stable channel is used, so a run
 // tests the same browser builds on every date and machine. An installed build is kept by both tools.

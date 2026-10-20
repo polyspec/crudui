@@ -67,7 +67,7 @@ do not install or verify the external editor implementations.
 ## HTTP and browser verification
 
 Package examples demonstrate each language's library. The
-[form comparison](../spec/form-comparison.md) defines the JavaScript, PHP, native PHP, Go and Rust
+[form comparison](form-comparison.md) defines the JavaScript, PHP, native PHP, Go and Rust
 record servers with the HTML, React, Vue and Svelte clients. Its record-store HTTP contract sends
 multipart, URL-encoded and JSON saves and invalid requests to every server and reads the saved
 records back, also after a restart ([form checks](testing.md#forms-and-reports)).

@@ -1,4 +1,4 @@
-// The public server (docs/spec/form-comparison.md, "Record servers" and "Canonical page"):
+// The public server (docs/operations/form-comparison.md, "Record servers" and "Canonical page"):
 //   node server.mjs {address} {data directory} {public directory} {native server ports as JSON}
 // It serves the canonical page and the benchmark screens, answers the `js` records itself and
 // forwards the other API requests to the native servers. The build state arrives over IPC.

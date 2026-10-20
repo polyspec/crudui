@@ -220,7 +220,7 @@ final class FormGeneration
     /**
      * Require that every declared class under Polyspec\Crudui\, other than those of the form comparison, is internal
      * to the crudui extension, so the PHP extension process never runs a class of the PHP library
-     * (docs/spec/form-comparison.md, "Implementations and requests").
+     * (docs/operations/form-comparison.md, "Implementations and requests").
      */
     public static function assertNativeClasses(): void
     {

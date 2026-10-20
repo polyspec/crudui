@@ -1,5 +1,5 @@
 // Run the test tool of a suite that records conformance evidence and leave the record of its run
-// (docs/spec/conformance.md, "Suite runs"):
+// (docs/operations/conformance.md, "Suite runs"):
 //
 //   node tests/conformance/run-suite.mts <tool> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
 //

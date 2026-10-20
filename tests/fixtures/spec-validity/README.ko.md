@@ -1,10 +1,10 @@
 # 명세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-spec-validity-readme -->
-<!-- source-sha256: d0aa510fada665ba5b666423db37430fa78aea7dfd6438d3e055decc8d6094c6 -->
+<!-- source-sha256: 79e05c18c8fe55fdbca5533df1cbf06159c9c92773dec1eb72d364544d270bc3 -->
 
 [English](README.md).
 
-`cases.json`의 사례는 다른 구조 유효성 고정 데이터([폼](../spec-validity/README.ko.md),
+`cases.json`의 사례는 다른 구조 유효성 고정 데이터([폼](README.ko.md),
 [목록](../list-validity/README.ko.md), [상세](../detail-validity/README.ko.md))와 같은
 `{ name, note, spec, files?, expect, reason?, engine }` 형태를 사용합니다.
 

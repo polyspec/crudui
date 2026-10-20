@@ -11,7 +11,7 @@ use Throwable;
 
 /**
  * The customer record store of one PHP server: `records-{server}.json` in the data directory,
- * seeded from the published fixture (docs/spec/form-comparison.md, "Record resource").
+ * seeded from the published fixture (docs/operations/form-comparison.md, "Record resource").
  */
 final class RecordStore
 {

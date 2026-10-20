@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — docs/spec holds only the rules of the implementations (C16.59)
+
+- `conformance`, `examples`, `test-fixtures`, `package-build`, `feature-contracts`, `form-comparison` and `php-extension` moved from `docs/spec` to `docs/operations` with their Korean twins, and every link, path and doc id that named them follows; `runtime-packages` keeps in `docs/spec` the required capabilities, the API operations, the shared contracts and the data rules, now with the ids `CURP-n`, and its package map and verification are `docs/operations/runtime-packages.md`; `empty-collections` states its rules as the ids `CUEC-n` (C16.59). Red: `docs/spec` held 9 documents without a requirement id, 8 of them for tooling or the extension; green: every document of `docs/spec` defines requirements, `make parity-declarations-check` reports 422 R13 findings and `check-documents` passes.
+
 ### 2026-10-20 — Requirement ids in docs/spec (C16.56)
 
 - The contract documents `display-formats`, `expressions`, `form-markup`, `form-runtime`, `input-text`, `schema` and `validation-rules` of `docs/spec` define 392 requirements, each a list item that begins with `**CU<document>-<n>**` (`CUDF`, `CUXP`, `CUMK`, `CURT`, `CUIT`, `CUSC`, `CUVR`; the prefix `CU` is used by no other polyspec repository): every top-level rule bullet, every definition paragraph that begins with a bold term in `validation-rules`, and every row of a rule table, which became one bullet; the Korean twins carry the same ids, and `requirements.pattern` of `config/parity.json` is `CU(DF|XP|MK|RT|IT|SC|VR)-[0-9]{3}` (C16.56). The documents that describe the repository tooling or the example servers (`conformance`, `examples`, `test-fixtures`, `package-build`, `feature-contracts`, `form-comparison`, `runtime-packages`, `php-extension`) define no requirement, since no contract behaviour of the six implementations is stated in them. Red: `make parity-declarations-check` reported that the pattern matches no requirement; green: it reports 392 R13 findings, one for each id that no unit cites yet (item C16.57).
@@ -2420,7 +2424,7 @@
   `examples/form-comparison/src/save-form.mjs` with its own jsdom tests: a failed request, a
   non-JSON answer or an answer outside 200 and 422 shows `<div id="save-errors" role="alert">`
   before the form with the page language's save-failed text and the failure, keeps the entered
-  values, and leaves the form submittable again. `docs/spec/form-comparison.md` states the
+  values, and leaves the form submittable again. `docs/operations/form-comparison.md` states the
   behavior.
 
 ### 2026-09-19 — One source for the interface text
@@ -2597,7 +2601,7 @@
   CSR and SSR, and `bindForm` and `createForm`. The iframe stage, the `/api/pipeline/*` routes and
   the constant records they served are removed. Every link carries the whole selection; under SSR
   the stage comes from the selected server and the client takes it over, under CSR the client
-  renders it with its own components ([canonical page](docs/spec/form-comparison.md#canonical-page)).
+  renders it with its own components ([canonical page](docs/operations/form-comparison.md#canonical-page)).
 - Every server owns a persistent store `records-{server}.json` seeded from one fixture of 45
   customer records, and implements one HTTP contract (`/api/records`, `/api/records/{id}`,
   `/api/records/reset`, `/api/records/view/{view}`) with the same status codes, messages and
@@ -3018,7 +3022,7 @@ Go package `validator/internal/conformance` and the Rust test module `tests/comm
 `scripts/check-conformance.mjs` fails on a missing or failing case of a supported runtime, on
 evidence for an undeclared or unsupported runtime, on an unregistered fixture family and on a
 registered fixture no feature proves. `make conformance` runs every recording suite and the check.
-[Conformance evidence](docs/spec/conformance.md) describes the runtime keys and the rules; it
+[Conformance evidence](docs/operations/conformance.md) describes the runtime keys and the rules; it
 replaces the substring checks of `contracts/conformance-matrix.json` and
 `tests/build/conformance-coverage.test.mjs`, which are removed.
 
@@ -3418,7 +3422,7 @@ The example README and writing tests passed.
 ### 2026-09-15 — Show lists and details in the package examples and document their operation
 
 The package examples rendered forms only, no operations document described lists and details, and
-the four documentation indexes listed different documents. The [examples contract](docs/spec/examples.md)
+the four documentation indexes listed different documents. The [examples contract](docs/operations/examples.md)
 now requires current examples to cover forms, lists and details. The Go server example serves `/list`
 and `/detail` beside the form from its stored record, the PHP example serves `?view=list` and
 `?view=detail`, and the Rust example prints a form, a list and details rendered from one record. The

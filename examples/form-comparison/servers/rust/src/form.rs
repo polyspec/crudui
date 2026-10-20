@@ -1,7 +1,7 @@
 use crate::{bad, Result};
 use serde_json::{json, Map, Value};
 
-/// One part of the submitted form (docs/spec/form-comparison.md, "Record resource"): a text or
+/// One part of the submitted form (docs/operations/form-comparison.md, "Record resource"): a text or
 /// checkbox leaf, an object of exactly these text members, an object of fields, or keyed rows of
 /// one object of fields.
 pub enum Shape {

@@ -11,68 +11,39 @@ compilation, data binding, HTML rendering and validation. PHP native execution
 provides both form generation and validation. A server language can render forms
 without starting a JavaScript server or invoking another language's executable.
 
-| Runtime | Composition and expressions | Form compilation and binding | Form HTML, list and detail rendering | Validation |
-| --- | --- | --- | --- | --- |
-| JavaScript | required | required | required | required |
-| PHP | required | required | required | required |
-| Go | required | required | required | required |
-| Rust | required | required | required | required |
-| PHP native extension | required | required | required | required |
+- **CURP-001** JavaScript — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
+- **CURP-002** PHP — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
+- **CURP-003** Go — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
+- **CURP-004** Rust — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
+- **CURP-005** PHP native extension — Composition and expressions: required; Form compilation and binding: required; Form HTML, list and detail rendering: required; Validation: required
 
-The table defines requirements, not completed implementation. The PHP extension
+These items define requirements, not completed implementation. The PHP extension
 may share compiled libraries, but both operations execute inside the PHP process.
 PHP packages and the extension implement the same public classes. An enabled
 extension registers those classes before any script runs; otherwise,
-Composer autoloads the PHP implementation. The [PHP API contract](php-extension.md)
+Composer autoloads the PHP implementation. The [PHP API contract](../operations/php-extension.md)
 defines loading and method equality. Comparison tests run PHP and native PHP in
 separate processes and verify which implementation actually executed. An
 unavailable native module fails the native test target.
-
-## Package map
-
-| Package | Implementation responsibility | Reuse |
-| --- | --- | --- |
-| `packages/generator/ts` | JavaScript templates, instances and evaluated models | JavaScript composition and expression modules |
-| `packages/react`, `generator-vue`, `generator-svelte` | Framework integration, browser operation and rendering | Shared JavaScript generator |
-| `packages/html` | Framework-independent JavaScript form, list and detail HTML rendering | Shared JavaScript generator |
-| `packages/form-binding` | [Browser validation](form-runtime.md#browser-validation) of a server-rendered form | JavaScript validator |
-| `packages/generator/php` | PHP template compilation, data binding, form, list and detail HTML | PHP composition and expression modules |
-| `packages/generator/go` | Go template compilation, data binding, form, list and detail HTML | Go composition and expression modules |
-| `packages/generator/rust` | Rust template compilation, data binding, form, list and detail HTML | Rust composition and expression modules |
-| `packages/php-ext` | PHP native generation and validation | The same public classes as the PHP packages; generation and validation execute in native code |
-| `packages/validator/*` | Data and specification validation | Existing language rule implementations and shared cases |
-
-Each server generator is a library that can run in its own language's HTTP
-process. CLI adapters are test and example entry points; they are not the library
-implementation. Go rendering does not depend on Rust, PHP or Node at runtime.
-PHP rendering does not require its native extension. Rust rendering does not
-require the PHP host.
-
-`@polyspec/crudui-generator-react` exports components without loading `react-dom/server`.
-`@polyspec/crudui-generator-react/server` exports `renderForm`, `renderList` and
-`renderDetail` for server-only string rendering. The component entry does not
-export those server functions.
 
 ## API operations
 
 Names use each language's naming convention. The operations and results remain
 the same; no runtime selector is embedded in a field specification.
 
-| Operation | JavaScript | PHP library | Go | Rust | PHP native |
-| --- | --- | --- | --- | --- | --- |
-| Compile structure | `compileForm` | `Generator::compileForm` | `CompileForm` | `compile_form` | `Generator::compileForm` |
-| Bind data | `bindForm` | `Generator::bindForm` | `BindForm` | `bind_form` | `Generator::bindForm` |
-| Bind buttons | `bindButtons` | `Generator::bindButtons` | `BindButtons` | `bind_buttons` | `Generator::bindButtons` |
-| Render buttons | `formButtonsHtml` | `Generator::formButtonsHtml` | `FormButtonsHTML` | `form_buttons_html` | `Generator::formButtonsHtml` |
-| Create instance | `createForm` | `new Form` | `NewForm` | `Form::new` | `new Form` |
-| Replace data | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
-| Read data | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |
-| Render form | `renderForm` | `Generator::renderForm` | `RenderForm` | `render_form` | `Generator::renderForm` |
-| Build list | `buildList` | `Generator::buildList` | `BuildList` | `build_list` | `Generator::buildList` |
-| Render list | `renderList` | `Generator::renderList` | `RenderList` | `render_list` | `Generator::renderList` |
-| Build detail | `buildDetail` | `Generator::buildDetail` | `BuildDetail` | `build_detail` | `Generator::buildDetail` |
-| Render detail | `renderDetail` | `Generator::renderDetail` | `RenderDetail` | `render_detail` | `Generator::renderDetail` |
-| Validate | `validate` | `Validator::validate` | `Validate` | `validate` | `Validator::validate` |
+- **CURP-006** Compile structure — JavaScript: `compileForm`; PHP library: `Generator::compileForm`; Go: `CompileForm`; Rust: `compile_form`; PHP native: `Generator::compileForm`
+- **CURP-007** Bind data — JavaScript: `bindForm`; PHP library: `Generator::bindForm`; Go: `BindForm`; Rust: `bind_form`; PHP native: `Generator::bindForm`
+- **CURP-008** Bind buttons — JavaScript: `bindButtons`; PHP library: `Generator::bindButtons`; Go: `BindButtons`; Rust: `bind_buttons`; PHP native: `Generator::bindButtons`
+- **CURP-009** Render buttons — JavaScript: `formButtonsHtml`; PHP library: `Generator::formButtonsHtml`; Go: `FormButtonsHTML`; Rust: `form_buttons_html`; PHP native: `Generator::formButtonsHtml`
+- **CURP-010** Create instance — JavaScript: `createForm`; PHP library: `new Form`; Go: `NewForm`; Rust: `Form::new`; PHP native: `new Form`
+- **CURP-011** Replace data — JavaScript: `setData`; PHP library: `$form->setData`; Go: `SetData`; Rust: `set_data`; PHP native: `$form->setData`
+- **CURP-012** Read data — JavaScript: `getData`; PHP library: `$form->getData`; Go: `GetData`; Rust: `get_data`; PHP native: `$form->getData`
+- **CURP-013** Render form — JavaScript: `renderForm`; PHP library: `Generator::renderForm`; Go: `RenderForm`; Rust: `render_form`; PHP native: `Generator::renderForm`
+- **CURP-014** Build list — JavaScript: `buildList`; PHP library: `Generator::buildList`; Go: `BuildList`; Rust: `build_list`; PHP native: `Generator::buildList`
+- **CURP-015** Render list — JavaScript: `renderList`; PHP library: `Generator::renderList`; Go: `RenderList`; Rust: `render_list`; PHP native: `Generator::renderList`
+- **CURP-016** Build detail — JavaScript: `buildDetail`; PHP library: `Generator::buildDetail`; Go: `BuildDetail`; Rust: `build_detail`; PHP native: `Generator::buildDetail`
+- **CURP-017** Render detail — JavaScript: `renderDetail`; PHP library: `Generator::renderDetail`; Go: `RenderDetail`; Rust: `render_detail`; PHP native: `Generator::renderDetail`
+- **CURP-018** Validate — JavaScript: `validate`; PHP library: `Validator::validate`; Go: `Validate`; Rust: `validate`; PHP native: `Validator::validate`
 
 Every runtime builds the same detail model and writes the same detail HTML. The
 [shared detail fixture](../../tests/fixtures/detail-render/README.md) is compared at both
@@ -82,7 +53,7 @@ with React's server rendering.
 
 Both PHP implementations use the classes `Polyspec\Crudui\Generator`,
 `Polyspec\Crudui\Validator` and `Polyspec\Crudui\Form`. The
-[PHP API contract](php-extension.md) defines the common methods and
+[PHP API contract](../operations/php-extension.md) defines the common methods and
 loading order. The extension registers these classes when enabled. Without the
 extension, Composer autoloads the PHP classes. Examples use the same calls in
 both configurations; comparison tests use separate PHP processes and verify
@@ -96,14 +67,14 @@ All runtimes implement the same [schema](schema.md), [expressions](expressions.m
 Within each runtime, generation and validation reuse composition and expression
 evaluation. Rendering does not redefine requiredness or validation rules.
 
-1. Compilation resolves references and prepares the complete form structure
+1. **CURP-019** Compilation resolves references and prepares the complete form structure
    without record data. The output can be serialized and cached.
-2. An instance owns record values, defaults, row identities and row operations.
+2. **CURP-020** An instance owns record values, defaults, row identities and row operations.
    Instances do not modify shared templates.
-3. Binding evaluates field values, localization and design against instance data.
-4. Rendering creates HTML from evaluated fields. Validation receives submitted
+3. **CURP-021** Binding evaluates field values, localization and design against instance data.
+4. **CURP-022** Rendering creates HTML from evaluated fields. Validation receives submitted
    record data and reports validation or specification errors.
-5. Browser binding applies user input and row actions. Server runtimes do not
+5. **CURP-023** Browser binding applies user input and row actions. Server runtimes do not
    implement browser focus, selection or scroll behavior.
 
 Server rendering and static delivery are both supported.
@@ -127,30 +98,3 @@ Repeated row keys identify rows within their parent collection. Saved sequences,
 new keys, ordering and scoped row operations follow the form runtime contract in
 every implementation. Invalid operations leave both data and evaluated fields
 unchanged.
-
-## Verification
-
-Generation and validation have separate checks for every runtime. Successful
-validation does not establish generation or SSR support. A comparison records
-the implementation that actually compiled, bound, rendered and validated each
-request.
-
-Cross-runtime checks compare complete compiled templates, bound field models,
-record data and validation results. HTML checks compare field names, identifiers,
-attributes, text, classes, CSS, visibility and control state. Differences are
-retained and reported; removing identifiers, values or hidden fields from a
-comparison cannot establish equality.
-
-For the same template, record, language and supplied row keys, initial data and
-later injection must produce identical HTML and submitted data. Repeated injection
-and record restoration must preserve that equality. Browser checks verify these
-paths in React, Vue, Svelte and the HTML renderer, including edits, labels, multiple
-selections, row actions, focus, selection and scrolling. SSR integration requires its
-own checks; client rendering with a non-JavaScript validation server does not verify SSR.
-
-HTTP examples cover PHP, PHP native, Go and Rust independently with all four browser
-renderers: four server targets by React, Vue, Svelte and the HTML renderer. Each target tests
-form and ordered JSON submission, validation, persistence and reload. Core
-JavaScript generation and validation remain part of the shared conformance suite.
-An omitted runtime, process failure, malformed response or missing expectation
-fails the comparison.

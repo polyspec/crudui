@@ -1,15 +1,15 @@
 # CRUDUI 문서
 <!-- doc-id: docs-index -->
-<!-- source-sha256: 7949a06c474e993a10853845d0e7626bf2414d693490a69115faaf3fa071c259 -->
+<!-- source-sha256: 391ead7b254287b34786a3cab4443c0b33270ac0086ad1b5acf8853587d1fced -->
 
 [English](index.md).
 
 - [명세 구조](spec/schema.ko.md)
 - [표시 형식](spec/display-formats.ko.md)
-- [정본 예제](spec/examples.ko.md)
+- [정본 예제](operations/examples.ko.md)
 - [폼 런타임](spec/form-runtime.ko.md)
 - [기능과 배포 상태](features.ko.md)
-- [기능 계약](spec/feature-contracts.ko.md)
+- [기능 계약](operations/feature-contracts.ko.md)
 - [폼 개발과 검증](operations/forms.ko.md)
 - [목록과 상세 개발과 검증](operations/displays.ko.md)
 - [저장소 설정](operations/repository.ko.md)

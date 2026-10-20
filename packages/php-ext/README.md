@@ -7,7 +7,7 @@ The `polyspec_crudui` extension provides `Polyspec\Crudui\Generator`, `Polyspec\
 `Polyspec\Crudui\Form` in the PHP process. The C module registers the PHP classes and
 converts PHP values directly to its ordered value model.
 
-The [PHP API specification](../../docs/spec/php-extension.md) defines methods,
+The [PHP API specification](../../docs/operations/php-extension.md) defines methods,
 loading, data types and exceptions. When enabled, the extension's classes are
 available before Composer autoloading. With the extension disabled, Composer
 loads the PHP packages. Each process uses one implementation.

@@ -1,4 +1,4 @@
-// The stage of the canonical page (docs/spec/form-comparison.md, "Canonical page"), built once per
+// The stage of the canonical page (docs/operations/form-comparison.md, "Canonical page"), built once per
 // client with `#stage` resolved to that client's renderer. Under SSR it takes over the stage the
 // selected server rendered, with the stage data of the document; under CSR it requests the JSON of
 // the selected server and renders the view itself. The form submits its native fields to the

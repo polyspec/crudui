@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: bb0ac8149460c3ab1ea63dfbe4376644385b151eeb86d38cfdf45e282a03be99 -->
+<!-- source-sha256: dcc5f44dbdba92ffd52fe2e6ea8a92a970bcc55065ac8a6a2beee29c3b6901fb -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -17,16 +17,16 @@
 | inline-layout | 각 필드의 레이블과 컨트롤을 한 줄에 두는 폼 배치를 여덟 렌더러가 제공한다 | implemented | passed | not-deployed | [명세](spec/schema.ko.md#배치), [폼 마크업](spec/form-markup.ko.md#배치); `@polyspec/crudui-generator-core`([모델과 검사 사례](../packages/generator/ts/src/inline-layout.test.ts)), `@polyspec/crudui-generator-html`([바이트 사례](../packages/html/src/inline-layout.test.ts)), 스타일시트([브라우저 배치 검사](../tests/form-styles.test.mts)), JSON Schema에 구현됨; inline 배치의 헤더에 쓰는 체크박스와 스위처 필드의 레이블은 노드 모델과 React([서버와 컴포넌트 사례](../packages/react/src/tests/inline-layout.test.tsx)), Vue([사례](../packages/vue/tests/inline-layout.test.mjs)), Svelte([사례](../packages/svelte/tests/inline-layout.test.mjs))에 구현됨; [공유 폼 사례](../packages/react/scripts/generate-form-render-cases.mts) `inline-layout-*`와 작성된 레이아웃 사례 여섯 개가 여덟 렌더러를 비교함; PHP, PHP 확장, Go, Rust는 [네이티브 검사](../tests/native-generators/README.ko.md)에서 통과함 |
 | collection-controls | 행 컨트롤의 선언된 글과 속성, 마지막 행 뒤의 추가 컨트롤을 여덟 렌더러가 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md#행) |
 | validator-responses | 검증기 프로세스 상태와 완전한 응답 검사 | implemented | passed | not-deployed | [응답 검사](../examples/cross-check-console/server/validate-response.test.mjs), [검증기 프로세스 사례](../examples/cross-check-console/validators/README.ko.md) |
-| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | implemented | passed | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
+| php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | implemented | passed | not-deployed | [PHP API 계약](operations/php-extension.ko.md) |
 | generator-php | PHP 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-go | Go 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-rust | Rust 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-python | Python 폼 생성, 목록과 상세 렌더링, Python 프로그램의 native generator 검사 | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | validator-python | Python 폼·목록·상세 검증, 공통 fixture의 합성과 표현식 규칙 | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
-| generator-html | 프레임워크 독립 폼·목록 HTML 렌더링 | implemented | passed | not-deployed | [기능 계약](spec/feature-contracts.ko.md) |
-| php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
-| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-browser`): [`check.mjs`](../examples/form-comparison/check.mjs)의 초기화 보고서 |
-| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-browser`와 `form-comparison-checks`): [`check-generation.mjs`](../examples/form-comparison/check-generation.mjs), [`check-servers.mjs`](../examples/form-comparison/check-servers.mjs), [`check-pipeline.mjs`](../examples/form-comparison/check-pipeline.mjs), [`check.mjs`](../examples/form-comparison/check.mjs) |
+| generator-html | 프레임워크 독립 폼·목록 HTML 렌더링 | implemented | passed | not-deployed | [기능 계약](operations/feature-contracts.ko.md) |
+| php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](operations/php-extension.ko.md) |
+| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [로컬 검증](operations/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-browser`): [`check.mjs`](../examples/form-comparison/check.mjs)의 초기화 보고서 |
+| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [로컬 검증](operations/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-browser`와 `form-comparison-checks`): [`check-generation.mjs`](../examples/form-comparison/check-generation.mjs), [`check-servers.mjs`](../examples/form-comparison/check-servers.mjs), [`check-pipeline.mjs`](../examples/form-comparison/check-pipeline.mjs), [`check.mjs`](../examples/form-comparison/check.mjs) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | unique-json-members | 명세 JSON 텍스트에서 반복된 디코딩 객체 멤버 이름 거부 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [파서 테스트](../packages/validator/ts/src/text/json.test.ts) |
@@ -46,7 +46,7 @@
 | declared-form-data | 모든 그룹 단계에서 선언되지 않은 제출 필드 거부 | implemented | passed | not-deployed | [검증 계약](operations/validation.ko.md), [공유 사례](../tests/fixtures/validate/cases.json) |
 | form-controls | 라벨, 복수 선택 배열과 필드 컨테이너 경로 | implemented | passed | not-deployed | [공유 입력 검사](../tests/fixtures/form-session/controls.mts) |
 | package-exports | 패키지 export, 분리된 React 컴포넌트·서버 진입점, 타입 선언과 설치 프로덕션 빌드 | implemented | passed | not-deployed | [설치 검사](../scripts/check-packages.mts), [React 진입점 검사](../packages/react/src/tests/entry-boundary.test.ts) |
-| package-install | 플랫폼 의존성 해석과 정상 설치 스크립트 | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.ko.md) |
+| package-install | 플랫폼 의존성 해석과 정상 설치 스크립트 | implemented | passed | not-deployed | [npm ci / test:packages](operations/package-build.ko.md) |
 | package-build | 독립적인 공개 타입 선언 컴파일 | implemented | passed | not-deployed | [빌드 검사](../tests/build/README.ko.md), [공개 타입 검사](../tests/build/public-packages.test.mts) |
 | package-api | 초기 패키지 API와 버전 메타데이터 | implemented | passed | not-deployed | [API 계약](spec/schema.ko.md) |
 | form-template | 데이터와 독립된 폼 템플릿과 JSON 캐시 | implemented | passed | not-deployed | [코어 테스트](../packages/generator/ts/src/form.test.ts) |
@@ -55,15 +55,15 @@
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator/ts/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator/ts/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mts) |
-| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-checks`): [`check-typing.mjs`](../examples/form-comparison/check-typing.mjs) |
+| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [로컬 검증](operations/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-checks`): [`check-typing.mjs`](../examples/form-comparison/check-typing.mjs) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mts) |
-| form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-browser`): [`check-interaction.mjs`](../examples/form-comparison/check-interaction.mjs)의 상호작용 검사 |
+| form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [로컬 검증](operations/form-comparison.ko.md#로컬-검증)(`make crudui-test-form-comparison-checks`, CI 작업 `form-comparison-browser`): [`check-interaction.mjs`](../examples/form-comparison/check-interaction.mjs)의 상호작용 검사 |
 | form-markup | 다섯 구현의 재귀 폼 노드, 목록·상세 표시 블록, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md), [표시 형식](spec/display-formats.ko.md) |
-| crudui-details | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](spec/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
+| crudui-details | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](operations/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | 레코드 데이터와 분리된 행 접기, 병합 실행취소·실행복귀 이력 | implemented | passed | not-deployed | [노드 테스트](../packages/generator/ts/src/node.test.ts) |
 | display-declarations | JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 렌더링 시 목록·상세 선언 검사 | implemented | passed | not-deployed | [표시 형식 선언](spec/display-formats.ko.md#선언), [공용 목록 고정 데이터](../tests/fixtures/list-render/README.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [렌더 유효성 검사](../packages/generator/ts/src/display-validity.test.ts) |
 | form-outline | 구조 맵과 현재 데이터 보기 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
-| form-initialization-comparison | 데이터와 함께 생성한 폼과 마운트 후 주입한 폼의 단계별 좌우 비교 | implemented | passed | not-deployed | [폼 비교](spec/form-comparison.ko.md) |
+| form-initialization-comparison | 데이터와 함께 생성한 폼과 마운트 후 주입한 폼의 단계별 좌우 비교 | implemented | passed | not-deployed | [폼 비교](operations/form-comparison.ko.md) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 검사와 이벤트 기반 개발 빌드 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
 | docs-pages | 영어·한국어·API 페이지를 제공하는 정적 문서 | implemented | passed | deployed | [페이지 검사](../tests/docs/web-build.test.mts), [게시 절차](operations/documentation.ko.md), [게시 웹](https://polyspec.github.io/crudui/) |
@@ -120,7 +120,7 @@ Rust 1.98.0에서 다음 검사를 통과했습니다.
 적합성은 증거로 검사합니다. 공용 fixture를 실행하는 모든 검사가 통과한 기능·fixture 사례·런타임을
 기록하고, `make conformance`(와 CI의 마지막 작업)가 그 증거를 `contracts/features.json`과 비교합니다.
 지원한다고 선언한 런타임에 선언된 사례마다 통과 기록이 없으면 실패합니다. 기준은
-[적합성](spec/conformance.ko.md)에 정의되어 있습니다. 패키지와 PHP 확장은 배포하지
+[적합성](operations/conformance.ko.md)에 정의되어 있습니다. 패키지와 PHP 확장은 배포하지
 않았습니다.
 
 ## 보존 폼 비교 결과

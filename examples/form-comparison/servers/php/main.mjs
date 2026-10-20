@@ -1,4 +1,4 @@
-// The PHP record server (docs/spec/form-comparison.md, "Record servers"): PHP-FPM runs servers/php/api.php and
+// The PHP record server (docs/operations/form-comparison.md, "Record servers"): PHP-FPM runs servers/php/api.php and
 // nginx in front of it accepts the connections, limits a request body to 2 MiB before PHP reads
 // it and forwards `/api/` requests over FastCGI.
 //   node servers/php/main.mjs {host:port} {run directory} -- {php-fpm arguments}

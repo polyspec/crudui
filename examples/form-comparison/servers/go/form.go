@@ -182,7 +182,7 @@ func fieldsOf(pairs ...any) shape {
 
 func rowsOf(row shape) shape { return shape{rows: &row} }
 
-// companiesShape is the submitted companies of docs/spec/form-comparison.md, "Record resource",
+// companiesShape is the submitted companies of docs/operations/form-comparison.md, "Record resource",
 // and scenarioShape the benchmark form that holds only them.
 var (
 	companiesShape = rowsOf(fieldsOf("name", textLeaf, "stores", rowsOf(fieldsOf(

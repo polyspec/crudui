@@ -1,4 +1,4 @@
-// Run records of the suites that record conformance evidence (docs/spec/conformance.md, "Suite
+// Run records of the suites that record conformance evidence (docs/operations/conformance.md, "Suite
 // runs"). A run writes its record when it starts, with the status null, and again when its process
 // exits, with the exit status, so a stopped run keeps null. scripts/check-conformance.mts reads the
 // records to name the suites behind missing evidence. Nothing is written unless

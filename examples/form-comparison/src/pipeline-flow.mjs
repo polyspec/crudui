@@ -1,4 +1,4 @@
-// The end-to-end check of the canonical page (docs/spec/form-comparison.md, "Canonical flow
+// The end-to-end check of the canonical page (docs/operations/form-comparison.md, "Canonical flow
 // check"): for each of the 40 server, client and initialization combinations, open the list at
 // page 2, open one record's detail, open its form, change the score, uncheck `enabled` of the first
 // store of the first company, add a named department to that store, save, and require the list on

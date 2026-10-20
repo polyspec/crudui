@@ -1,6 +1,6 @@
 # CRUDUI
 <!-- doc-id: readme -->
-<!-- source-sha256: 83070d9c24728c5ce91c1130503994fed75ac98fd6345503559e5117977c060f -->
+<!-- source-sha256: 9814f0c316fb01903146952b61d91ddc1e452ca122daf0edbac9973aff8e7b0d -->
 
 [English](README.md).
 
@@ -35,7 +35,7 @@ npm run test:forms
 
 - [명세 구조](docs/spec/schema.ko.md)
 - [표시 형식](docs/spec/display-formats.ko.md)
-- [정본 예제](docs/spec/examples.ko.md)
+- [정본 예제](docs/operations/examples.ko.md)
 - [목록과 상세 개발](docs/operations/displays.ko.md)
 - [폼 런타임 계약](docs/spec/form-runtime.ko.md)
 - [런타임 패키지와 API](docs/spec/runtime-packages.ko.md)

@@ -43,7 +43,7 @@ distinct, including error values. Invalid UTF-8 strings and object keys raise
 
 The public class is `Polyspec\Crudui\Validator`. If the native extension registers the
 class, PHP uses that implementation; otherwise Composer autoloads the PHP class.
-The [PHP API contract](../../../docs/spec/php-extension.md) defines method equality
+The [PHP API contract](../../../docs/operations/php-extension.md) defines method equality
 and loading behavior. Internal composition and expression modules are shared
 with the [PHP generator](../../generator/php/README.md).
 
