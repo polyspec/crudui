@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d0e96afca22c14a3e1d8c49da7227eb703743d2810da7c742ff10bd136c0a962 -->
+<!-- source-sha256: 83758b33afa2795dd2b09fbb4a3df56c9b44e77a6351d4f7662af9f47b7c919b -->
 
 ## Unreleased
 
@@ -18,6 +18,16 @@
 - case와 unit: validate, validateList, validateDetail, value-graphs fixture와 validator unit 네 개는 CUIT-032, CUIT-033, CUIT-035 대신 CUIT-041을 인용합니다.
 - runner(각각 모든 실패의 native class를 검사하며 통과합니다): TypeScript validator와 generator(`ComposeLoadError`, `FormInputError`); PHP validator, generator, PHP extension(검증에서 `ComposeLoadError`, `FormInputError`, 생성에서 `FormError`); Go validator(`*compose.ComposeLoadError`, `*FormInputError`)와 generator(잘못된 text의 로드 타입); Rust validator(`ValidateError::Load`, `ValidateError::Input`); Python validator(`ComposeLoadError`, `FormInputError`)와 generator(생성의 `FormError`).
 - Rust generator: 바뀌지 않았고 요구사항을 충족하지 않습니다. 생성 operation은 모든 실패에 `FormError`를 돌려주며, `From<ComposeLoadError>` 구현은 로드 종류를 code `INVALID_TEXT`에만 남기므로 Rust generator에서 로드 실패와 입력 실패는 서로 다른 오류 타입이 아닙니다. 중립 요구사항은 로드 실패용 두 번째 오류 타입이나 명시된 예외를 요구하며, 어느 쪽인지는 소유자가 정합니다.
+### 2026-10-21 — 검사할 수 없는 두 스키마 요구사항은 평문입니다 (C16.143)
+
+`docs/spec/schema.md`의 추적되지 않은 CUSC id 결정표입니다(결정은 해당 텍스트가 가는 곳):
+
+| 요구사항 | 결정 | 이유 |
+|---|---|---|
+| CUSC-037 (구조, 콘텐츠, 검증, 외형, 위젯 옵션을 분리) | 평문, id 제거 | 설계 원칙이며 테스트로 확인할 수 없습니다. 스펙에 평문 문장으로 남습니다. |
+| CUSC-040 (4개 언어의 공유 검증 사례와 3개 프레임워크의 SSR 출력 비교, 마운트한 뷰에서 편집 동작 검증) | 평문, id 제거 | 테스트 과정을 서술하며 테스트로 확인할 수 없습니다. 스펙에 평문 문장으로 남습니다. |
+
+인수 기준에는 CUSC-036, 038, 039가 남습니다. 나머지 추적되지 않은 CUSC id(005, 016, 022, 043, 044, 046)는 이 행에서 바꾸지 않고 C16.144에서 다룹니다. 빨강: 8eac4a0a에서 `make item-red ID=C16.143`, 수정 전에는 `defines CUSC-037|CUSC-040` R13 grep이 실패합니다. 초록: 수정 후 같은 grep이 비어 있습니다. `make docs-check`가 통과합니다.
 
 ### 2026-10-21 — kit copy들이 kit에만 있는 check를 이름으로 대지 않는다 (C16.139)
 

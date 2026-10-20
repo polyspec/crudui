@@ -397,11 +397,12 @@ preload links before the definition list.
 ## Acceptance criteria
 
 1. **CUSC-036** Resolve composition before evaluating fields and report missing references.
-2. **CUSC-037** Keep structure, content, validation, appearance and widget options separate.
-3. **CUSC-038** Evaluate conditions with the expression parser, without JavaScript evaluation.
-4. **CUSC-039** Preserve language input values independently of the display language.
-5. **CUSC-040** Compare shared validation cases in four languages and SSR output in three
-   frameworks; verify editable form behavior with mounted views.
+2. **CUSC-038** Evaluate conditions with the expression parser, without JavaScript evaluation.
+3. **CUSC-039** Preserve language input values independently of the display language.
+
+The schema keeps structure, content, validation, appearance and widget options separate.
+Shared validation cases are compared in four languages and SSR output in three frameworks,
+and editable form behavior is verified with mounted views.
 
 Repeated fields accept `multiple.min` and `multiple.max` as numeric row-count
 limits, `multiple.copy` and `multiple.sortable` for row controls, `multiple.title`

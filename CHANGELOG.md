@@ -17,6 +17,16 @@
 - Cases and units: the validate, validateList, validateDetail and value-graphs fixtures and the four validator units cite CUIT-041 in place of CUIT-032, CUIT-033 and CUIT-035.
 - Runners (each asserts the native class of every failure, and passes): the TypeScript validator and generator (`ComposeLoadError`, `FormInputError`); the PHP validator and generator and the PHP extension (`ComposeLoadError`, `FormInputError` in validation and `FormError` in generation); the Go validator (`*compose.ComposeLoadError`, `*FormInputError`) and generator (the load type of invalid text); the Rust validator (`ValidateError::Load`, `ValidateError::Input`); the Python validator (`ComposeLoadError`, `FormInputError`) and generator (`FormError` in generation).
 - Rust generator: unchanged, and not fulfilled. Its generation operations return `FormError` for every failure, and the `From<ComposeLoadError>` impl keeps the load kind only in the code `INVALID_TEXT`, so a load failure and an input failure are not distinct error types of the Rust generator. The neutral rule requires either a second error type for load failures or a documented exception; the owner decides which.
+### 2026-10-21 — The two schema requirements that state no check are prose (C16.143)
+
+Decision table for the untraced CUSC ids of `docs/spec/schema.md` (path = where the text goes):
+
+| Requirement | Decision | Reason |
+|---|---|---|
+| CUSC-037 (keep structure, content, validation, appearance and widget options separate) | prose, id removed | A design principle; no test can check it. It stays in the spec as a plain sentence. |
+| CUSC-040 (compare shared validation cases in four languages and SSR output in three frameworks; verify editable form behavior with mounted views) | prose, id removed | Describes the test process; no test can check it. It stays in the spec as a plain sentence. |
+
+The acceptance criteria keep CUSC-036, 038 and 039. The other untraced CUSC ids (005, 016, 022, 043, 044, 046) are reported in C16.144 rather than changed here. Red: `make item-red ID=C16.143` on 8eac4a0a, the R13 grep for `defines CUSC-037|CUSC-040` fails before the fix. Green: the same grep is empty after the fix. `make docs-check` passes.
 
 ### 2026-10-21 — The copies of kit name no check that only kit has (C16.139)
 
