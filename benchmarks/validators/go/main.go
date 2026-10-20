@@ -52,49 +52,64 @@ func convertInput(isGroup bool, input interface{}) map[string]interface{} {
 	return map[string]interface{}{"value": input}
 }
 
-func loadFixture(dir, name string) (*compose.OMap, map[string]interface{}) {
+// loadFixture reads the spec and the input of a fixture. A file that is not valid JSON, or a spec that is not a JSON
+// object, is a wrong input, so it is returned as an error rather than hidden or panicked on.
+func loadFixture(dir, name string) (*compose.OMap, map[string]interface{}, error) {
 	specBytes, err := os.ReadFile(filepath.Join(dir, name+".spec.json"))
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 	specAny, err := compose.DecodeOrdered(specBytes)
 	if err != nil {
-		panic(err)
+		return nil, nil, fmt.Errorf("%s.spec.json: %w", name, err)
 	}
-	spec := specAny.(*compose.OMap)
+	spec, ok := specAny.(*compose.OMap)
+	if !ok {
+		return nil, nil, fmt.Errorf("%s.spec.json: the spec is not a JSON object", name)
+	}
 
 	inputBytes, err := os.ReadFile(filepath.Join(dir, name+".input.json"))
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 	var rawInput interface{}
 	if err := json.Unmarshal(inputBytes, &rawInput); err != nil {
-		panic(err)
+		return nil, nil, fmt.Errorf("%s.input.json: %w", name, err)
 	}
-	return spec, convertInput(true, rawInput)
+	return spec, convertInput(true, rawInput), nil
 }
 
-func benchSpec(dir, name string, iters, warmup int) report {
-	spec, input := loadFixture(dir, name)
+func benchSpec(dir, name string, iters, warmup int) (report, error) {
+	spec, input, err := loadFixture(dir, name)
+	if err != nil {
+		return report{}, err
+	}
 
 	// Build the validator once; reuse across iterations.
-	properties, _ := spec.Get("properties")
-	v, err := validator.NewValidator(properties.(*compose.OMap))
+	properties, ok := spec.Get("properties")
+	if !ok {
+		return report{}, fmt.Errorf("%s.spec.json: the spec has no properties", name)
+	}
+	propertiesMap, ok := properties.(*compose.OMap)
+	if !ok {
+		return report{}, fmt.Errorf("%s.spec.json: properties is not a JSON object", name)
+	}
+	v, err := validator.NewValidator(propertiesMap)
 	if err != nil {
-		panic(err)
+		return report{}, fmt.Errorf("%s.spec.json: %w", name, err)
 	}
 
 	// Warmup.
 	for i := 0; i < warmup; i++ {
 		if _, err := v.Validate(input); err != nil {
-			panic(err)
+			return report{}, fmt.Errorf("%s: %w", name, err)
 		}
 	}
 
 	start := time.Now()
 	for i := 0; i < iters; i++ {
 		if _, err := v.Validate(input); err != nil {
-			panic(err)
+			return report{}, fmt.Errorf("%s: %w", name, err)
 		}
 	}
 	elapsed := time.Since(start)
@@ -106,7 +121,7 @@ func benchSpec(dir, name string, iters, warmup int) report {
 
 	result, err := v.Validate(input)
 	if err != nil {
-		panic(err)
+		return report{}, fmt.Errorf("%s: %w", name, err)
 	}
 	var errPtr, fieldPtr *string
 	if !result.Valid && len(result.Errors) > 0 {
@@ -126,7 +141,7 @@ func benchSpec(dir, name string, iters, warmup int) report {
 		Valid:  result.Valid,
 		Error:  errPtr,
 		Field:  fieldPtr,
-	}
+	}, nil
 }
 
 func round3(f float64) float64 { return float64(int64(f*1000+0.5)) / 1000 }
@@ -182,8 +197,17 @@ func main() {
 	}
 
 	for _, name := range specs {
-		r := benchSpec(dir, name, iters, warmup)
-		out, _ := json.Marshal(r)
+		r, err := benchSpec(dir, name, iters, warmup)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		// The report holds strings, booleans, integers and finite floats (iters >= 1, elapsed >= 0), which
+		// json.Marshal always encodes, so an error here is a broken invariant.
+		out, err := json.Marshal(r)
+		if err != nil {
+			panic(fmt.Sprintf("marshal report of %s: %v", name, err))
+		}
 		fmt.Println(string(out))
 	}
 }

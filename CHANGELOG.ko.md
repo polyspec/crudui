@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ee806db0dc16c88e1a051a6b84041ba8c3caa15776e46795b8959f5c4881f8be -->
+<!-- source-sha256: cee265e4de251e4a8f563232ec1624c79a90e55bb952b71c6d2212afdadb617b -->
 
 ## Unreleased
+
+### 2026-10-20 — benchmark validator driver는 숨은 오류를 처리한다 (C16.67-3)
+
+- `benchmarks/validators/go`는 `loadFixture`와 `benchSpec`의 오류(JSON이 아닌 fixture, JSON object가 아닌 spec, properties가 없는 spec)를 panic 대신 반환하고, `main`은 이를 출력한 뒤 exit 1로 끝납니다. `main`의 report JSON 인코딩은 메시지와 함께 invariant로 명시합니다. `main_test.go`는 잘못된 입력 경우를 검사합니다(C16.67-3). Red: `golangci-lint run`이 `3 issues`(errcheck 3)로 exit 1이었고, `go test -run Test ./...`는 `assignment mismatch: 3 variables but loadFixture returns 2 values`로 빌드되지 않았습니다; green: exit 0이며 `0 issues`, `go test -run Test ./...`는 `5 passed, 0 failed`입니다.
 
 ### 2026-10-20 — kit 사본은 kit f9eb43dd를 따른다 (C16.71)
 

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The benchmark validator driver handles its hidden errors (C16.67-3)
+
+- `benchmarks/validators/go` returns the errors of `loadFixture` and `benchSpec` (a fixture that is not JSON, a spec that is not a JSON object, a spec without properties) instead of panicking, and `main` prints them and exits 1; the JSON encoding of a report in `main` is an invariant with its message; `main_test.go` checks the wrong-input cases (C16.67-3). Red: `golangci-lint run` exited 1 with `3 issues` (errcheck 3), and `go test -run Test ./...` did not build: `assignment mismatch: 3 variables but loadFixture returns 2 values`; green: exit 0 with `0 issues`, and `go test -run Test ./...` gave `5 passed, 0 failed`.
+
 ### 2026-10-20 — The copies of kit follow kit f9eb43dd (C16.71)
 
 - `scripts/kit/kit-bootstrap.mk`, `config/layout.kit.yml` and the new commit-msg hook `.githooks/commit-msg` are the copies of kit at f9eb43dd (K348, K385, K384, K360-1, K383, K380, K382, K375), written by `make kit-sync` and `make hooks` (C16.71). Red: `make kit-check` exited 2 with 2 copies that differ (`scripts/kit/kit-bootstrap.mk`, `config/layout.kit.yml`); green: it passes. `make link-check` still names `@polyspec/ordered-json` (row C16.69) and the Python environment `var/python`, which `make link-check` is not given.
