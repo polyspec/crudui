@@ -1,12 +1,13 @@
 # 구조 지도와 데이터 보기 고정 데이터
 <!-- doc-id: tests-fixtures-form-outline-readme -->
-<!-- source-sha256: 968f4f4a9ba1eed0976c568312fd1c6d8f609c84a114bf17093a05a5eb3140f2 -->
+<!-- source-sha256: c37db3b3e2aec08cbedf21da0460d55252ce0998894f749a8984f4f4cf703711 -->
 
 [English](README.md).
 
 `cases.json`은 React, HTML 렌더러, Vue, Svelte가 공유하는 구조 지도와 데이터 보기 사례입니다. 각 사례는
 `name`, `note`, `spec`, `data`, `language`를 가진 `options`, `canUndo`, `canRedo`, `expected_outline_html`,
-`expected_data_html`을 제공합니다.
+`expected_data_html`, 그리고 `buildOutline(bindForm(compileForm(spec), data, options))`이 반환하는 행인
+`expected_outline_rows`를 제공합니다.
 
 실행 취소가 가능한 상태의 최상위·중첩 행 지도, `controls: outline`으로 지도에 둔 행 조작 버튼과 폼에 남는
 빈 컬렉션 조작 버튼, 제목 없는 행, 반복 필드가 없는 폼, 감싸는 행은 조작 버튼을 유지하면서 지도에 행
@@ -21,6 +22,8 @@
 정규화하며, 결과는 `expected_outline_html`, `expected_data_html`과 정확히 같아야 합니다. React는
 `OutlineView`와 `DataPanel`, HTML 렌더러는 `renderOutlineView`와 `renderDataPanel`, Vue는 서버 렌더러로
 `outlineVNode`와 `dataVNode`, Svelte는 `svelte/server`로 `OutlineView`와 `DataPanel`을 렌더링합니다.
+Rust 테스트 `native_outline_fixture`는 생성기의 `build_outline`을 자체 `bind_form`의 node에 적용한 결과와
+`expected_outline_rows`를 비교합니다.
 
 [React](../../../packages/react/src/tests/outline.conformance.test.tsx),
 [Vue](../../../packages/vue/tests/outline.conformance.test.mjs),

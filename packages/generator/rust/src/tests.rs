@@ -643,9 +643,19 @@ fn row_keys_are_bounded_and_random_keys_are_hexadecimal() {
 /// expected code; an error in a case that expects none fails the test.
 fn settled(case: &Value, result: FormResult<Value>) -> Value {
     if let Some(expected) = case.get("expectError") {
-        assert_eq!(result.as_ref().unwrap_err().code, expected["code"].as_str().unwrap(), "{}", case["name"]);
+        assert_eq!(
+            result.as_ref().unwrap_err().code,
+            expected["code"].as_str().unwrap(),
+            "{}",
+            case["name"]
+        );
     } else {
-        assert!(result.is_ok(), "{}: {:?}", case["name"], result.as_ref().err());
+        assert!(
+            result.is_ok(),
+            "{}: {:?}",
+            case["name"],
+            result.as_ref().err()
+        );
     }
     result.unwrap_or_else(|error| json!({"name": case["name"], "error": {"code": error.code, "message": error.message, "at": error.at}}))
 }
@@ -660,23 +670,37 @@ fn native_fixture_records() {
         "../../../../tests/fixtures/list-render/cases.json"
     ))
     .unwrap();
-    let form_records=forms.iter().map(|case| {
-        let options=CompileOptions {
-            files:case["options"]["files"].as_object().cloned().unwrap_or_default(),
-            basepath:case["options"]["basepath"].as_str().unwrap_or("").into(),
-            key_prefix:case["options"]["keyPrefix"].as_str().map(str::to_owned),
-            ..Default::default()
-        };
-        let result=compile_form(&case["spec"],&options).and_then(|template| {
-            let bind:BindOptions=serde_json::from_value(case.get("options").cloned().unwrap_or(json!({}))).unwrap();
-            let fields=bind_form(&template,case.get("data").unwrap_or(&json!({})),&bind)?;
-            let data=case.get("data").cloned().unwrap_or(json!({}));
-            let language=case["options"]["language"].as_str().unwrap_or("ko");
-            let html=crate::render::render_form_html(&fields,&template,&data,language,&crate::form_render::RenderModel::default())?;
-            Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":html}))
-        });
-        settled(case, result)
-    }).collect::<Vec<_>>();
+    let form_records = forms
+        .iter()
+        .map(|case| {
+            let options = CompileOptions {
+                files: case["options"]["files"]
+                    .as_object()
+                    .cloned()
+                    .unwrap_or_default(),
+                basepath: case["options"]["basepath"].as_str().unwrap_or("").into(),
+                key_prefix: case["options"]["keyPrefix"].as_str().map(str::to_owned),
+                ..Default::default()
+            };
+            let result = compile_form(&case["spec"], &options).and_then(|template| {
+                let bind: BindOptions =
+                    serde_json::from_value(case.get("options").cloned().unwrap_or(json!({})))
+                        .unwrap();
+                let fields = bind_form(&template, case.get("data").unwrap_or(&json!({})), &bind)?;
+                let data = case.get("data").cloned().unwrap_or(json!({}));
+                let language = case["options"]["language"].as_str().unwrap_or("ko");
+                let html = crate::render::render_form_html(
+                    &fields,
+                    &template,
+                    &data,
+                    language,
+                    &crate::form_render::RenderModel::default(),
+                )?;
+                Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":html}))
+            });
+            settled(case, result)
+        })
+        .collect::<Vec<_>>();
     let list_records=lists.iter().map(|case| {
         let options=ListOptions {
             files:case["options"]["files"].as_object().cloned().unwrap_or_default(),
@@ -1144,7 +1168,11 @@ fn form_buttons_default_declared_and_rejected() {
 
 /// An object with members inserted in exactly the given order.
 fn written(members: &[(&str, Value)]) -> Value {
-    Value::Object(serde_json::Map::from_iter(members.iter().map(|(name, value)| ((*name).to_string(), value.clone()))))
+    Value::Object(serde_json::Map::from_iter(
+        members
+            .iter()
+            .map(|(name, value)| ((*name).to_string(), value.clone())),
+    ))
 }
 
 fn member_names(value: &Value) -> Vec<&str> {
@@ -1697,4 +1725,25 @@ fn descriptions_and_detail_actions() {
         rejected.unwrap_err().message,
         "Invalid actions at detail: expected an object"
     );
+}
+
+/// `buildOutline` reproduces the rows of the shared structure map cases for the nodes that `bind_form` returns.
+#[test]
+fn native_outline_fixture() {
+    let cases: Vec<Value> = serde_json::from_str(include_str!(
+        "../../../../tests/fixtures/form-outline/cases.json"
+    ))
+    .unwrap();
+    assert!(!cases.is_empty(), "form-outline cases are empty");
+    for case in cases {
+        let template = compile_form(&case["spec"], &CompileOptions::default()).unwrap();
+        let bind: BindOptions = serde_json::from_value(case["options"].clone()).unwrap();
+        let fields = bind_form(&template, &case["data"], &bind).unwrap();
+        assert_eq!(
+            Value::Array(crate::build_outline(&fields)),
+            case["expected_outline_rows"],
+            "{}",
+            case["name"]
+        );
+    }
 }

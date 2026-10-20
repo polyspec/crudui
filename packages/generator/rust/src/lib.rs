@@ -15,6 +15,7 @@ mod instance;
 mod list;
 mod messages;
 mod number;
+mod outline;
 mod render;
 mod template;
 pub mod text;
@@ -26,6 +27,7 @@ pub use detail::{build_detail, render_detail, DetailOptions};
 pub use error::{FormError, FormResult};
 pub use instance::{create_row_key, sequence_row_key, AddRowOptions, Form};
 pub use list::{build_list, list_rows, render_list, ListOptions};
+pub use outline::build_outline;
 pub use render::render_form;
 pub use template::{compile_form, CompileOptions, FieldTemplate, FormTemplate};
 

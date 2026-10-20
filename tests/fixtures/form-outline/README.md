@@ -5,7 +5,8 @@
 
 `cases.json` contains the shared structure map and data view cases for React, the HTML renderer,
 Vue and Svelte. Each case provides `name`, `note`, `spec`, `data`, `options` with `language`,
-`canUndo`, `canRedo`, `expected_outline_html` and `expected_data_html`.
+`canUndo`, `canRedo`, `expected_outline_html`, `expected_data_html` and `expected_outline_rows`, the rows
+that `buildOutline(bindForm(compileForm(spec), data, options))` returns.
 
 These cases check the map of top-level and nested rows with undo available, row controls placed in
 the map with `controls: outline` while empty collection controls stay in the form, untitled rows,
@@ -23,7 +24,8 @@ structure map from `{ fields, canUndo, canRedo }` and the data view from `data`,
 HTML renderer `renderOutlineView` and `renderDataPanel`, Vue `outlineVNode` and `dataVNode` through
 its server renderer, and Svelte `OutlineView` and `DataPanel` through `svelte/server`.
 
-The cases are read by the structure map conformance tests in
+The Rust test `native_outline_fixture` compares `build_outline` of the generator with `expected_outline_rows` for the
+nodes of its own `bind_form`. The cases are read by the structure map conformance tests in
 [React](../../../packages/react/src/tests/outline.conformance.test.tsx),
 [Vue](../../../packages/vue/tests/outline.conformance.test.mjs),
 [Svelte](../../../packages/svelte/tests/outline.conformance.test.mjs) and the

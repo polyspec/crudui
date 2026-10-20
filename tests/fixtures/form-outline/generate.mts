@@ -2,11 +2,14 @@
  * Generates shared structure map and data view fixtures.
  *
  * Each case is `{ name, note, spec, data, options, canUndo, canRedo,
- * expected_outline_html, expected_data_html }`. The expected HTML is the
+ * expected_outline_html, expected_data_html, expected_outline_rows }`. The expected HTML is the
  * normalized static markup of the React reference components `OutlineView` and
  * `DataPanel`, never hand-written. The HTML, Vue and Svelte renderers must
  * reproduce it after the shared normalizer (`../form-render/normalize.mts`) for
  * the nodes that `bindForm(compileForm(spec), data, options)` returns.
+ *
+ * `expected_outline_rows` is `buildOutline(bindForm(compileForm(spec), data, options))`, which every implementation
+ * of `buildOutline` reproduces for the nodes of its own `bindForm`.
  *
  * Do not edit `cases.json` by hand. Regenerate:
  *   node tests/fixtures/form-outline/generate.mts
@@ -17,7 +20,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
+import { bindForm, buildOutline, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 import { DataPanel, OutlineView } from '@polyspec/crudui-generator-react';
 import { normalizeHtml } from '../form-render/normalize.mts';
 
@@ -31,6 +34,7 @@ interface OutlineCase {
   canRedo: boolean;
   expected_outline_html?: string;
   expected_data_html?: string;
+  expected_outline_rows?: unknown;
 }
 
 const k1 = '__0000000000001__';
@@ -146,8 +150,9 @@ const CASES: OutlineCase[] = [
 
 for (const item of CASES) {
   const messages = formMessages(item.options.language);
+  const fields = bindForm(compileForm(item.spec), item.data, item.options);
+  item.expected_outline_rows = buildOutline(fields);
   if (item.expected_outline_html === undefined) {
-    const fields = bindForm(compileForm(item.spec), item.data, item.options);
     const state = { fields, canUndo: item.canUndo, canRedo: item.canRedo };
     item.expected_outline_html = normalizeHtml(renderToStaticMarkup(React.createElement(OutlineView, { state, messages })));
   }

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 2d60a36790320767931622dcad2b72cb8fad78615d44a77e0a6505dcea7581f7 -->
+<!-- source-sha256: e7ac9dea38b5a32ae9e681b3961aef8fe03a787216e523315910ddc17cfb5daf -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -71,6 +71,7 @@
 | C16.48 | 저장소는 kit의 divergence-check, link-state-check, bypass-check와 internal test를 채택하고 engine test를 나눈다 | Makefile, config/parity.json, config/duplication.json, packages/php-ext/tests/engine, packages/php-ext/tests/comparison | `make kit-check`, `make parity-declarations-check`, and the two engine test files | [o] |
 | C16.48-1 | C engine test는 자체 implementation 없이 php-extension implementation의 internal test이다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.49 | buildOutline은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of buildOutline | [ ] |
+| C16.49-1 | 공유 구조 지도 사례는 expected_outline_rows를 가지며, Rust 생성기의 build_outline은 bind_form의 node에 대해 이를 재현합니다 | `tests/fixtures/form-outline/`, `packages/generator/rust/src/outline.rs`, `packages/generator/rust/src/lib.rs`, `packages/generator/rust/src/tests.rs`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_outline_fixture` | [o] |
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
