@@ -6,10 +6,7 @@ mod interface_messages;
 pub(crate) use interface_messages::{EN, EN_LIST, JA, JA_LIST, KO, KO_LIST, ZH, ZH_LIST};
 
 /// Interface labels for row, collection and form controls. `{count}` is replaced by a number.
-#[allow(
-    dead_code,
-    reason = "the catalogue of contracts/interface-messages.json is generated whole for every language; the Rust renderer reads the labels of the controls it renders"
-)]
+#[allow(dead_code, reason = "generated whole; the renderer reads its labels")]
 pub(crate) struct Messages {
     /// Move a row up.
     pub move_up: &'static str,
@@ -58,10 +55,7 @@ pub(crate) struct Messages {
 }
 
 /// Interface labels for list pagination. `{page}` is replaced by a page number.
-#[allow(
-    dead_code,
-    reason = "the catalogue of contracts/interface-messages.json is generated whole for every language; the Rust renderer reads the labels of the controls it renders"
-)]
+#[allow(dead_code, reason = "generated whole; the renderer reads its labels")]
 pub(crate) struct ListMessages {
     /// Previous page button label.
     pub previous_page: &'static str,

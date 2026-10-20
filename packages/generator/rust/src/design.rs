@@ -74,10 +74,7 @@ pub(crate) fn appearance(
 }
 
 /// A condition expression that does not evaluate is false, as the TypeScript reference reads it (expr.ts).
-#[allow(
-    clippy::disallowed_methods,
-    reason = "the reference defines an expression that does not evaluate as false"
-)]
+#[allow(clippy::disallowed_methods, reason = "the reference expression is not evaluated as false")]
 fn expression_flag(text: &str, data: &Value, path: &[String], rows: &[usize]) -> bool {
     Expression::evaluate(text, data, path, rows).unwrap_or(false)
 }

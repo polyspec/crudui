@@ -524,10 +524,7 @@ pub fn check_inputs(inputs: &[(&str, Option<&JsonText>)]) -> Result<(), FormInpu
 
 /// The value of a JSON number. A number that `serde_json` does not accept (out of its
 /// range) is invalid input: the callers return `None`, and the text checks report it.
-#[allow(
-    clippy::disallowed_methods,
-    reason = "a number serde_json does not accept is invalid input: the callers return None, and json_text_to_value's caller reports it as invalid text"
-)]
+#[allow(clippy::disallowed_methods, reason = "a number serde_json rejects is invalid")]
 fn number_value(text: &str) -> Option<Value> {
     serde_json::from_str::<Number>(text).ok().map(Value::Number)
 }

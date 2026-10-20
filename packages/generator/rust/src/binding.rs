@@ -581,10 +581,7 @@ impl Binding<'_> {
         Ok(node.into())
     }
 
-    #[allow(
-        clippy::too_many_arguments,
-        reason = "a step of the binding takes the template, value, path and options of the shared binding algorithm, as the engines of the other languages do"
-    )]
+    #[allow(clippy::too_many_arguments, reason = "the binding step takes the shared inputs")]
     fn collection(
         &self,
         field: &FieldTemplate,
@@ -653,10 +650,7 @@ impl Binding<'_> {
         Ok(node.into())
     }
 
-    #[allow(
-        clippy::too_many_arguments,
-        reason = "a step of the binding takes the template, value, path and options of the shared binding algorithm, as the engines of the other languages do"
-    )]
+    #[allow(clippy::too_many_arguments, reason = "the binding step takes the shared inputs")]
     fn row(
         &self,
         field: &FieldTemplate,
@@ -761,10 +755,7 @@ impl Binding<'_> {
         Ok(row.into())
     }
 
-    #[allow(
-        clippy::too_many_arguments,
-        reason = "a step of the binding takes the template, value, path and options of the shared binding algorithm, as the engines of the other languages do"
-    )]
+    #[allow(clippy::too_many_arguments, reason = "the binding step takes the shared inputs")]
     fn lang(
         &self,
         spec: &Value,

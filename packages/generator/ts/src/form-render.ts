@@ -62,7 +62,7 @@ const ACTION_MEMBERS = new Set(['method', 'url', 'enctype']);
 
 // The reference renderer blocks a script URL with this expression, and the control characters
 // it skips are the point: a URL may hide them between the letters of the scheme.
-// eslint-disable-next-line no-control-regex
+// eslint-disable-next-line no-control-regex -- the control characters of a URL are stripped before the test
 const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
 const BLOCKED_URL = "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')";
 

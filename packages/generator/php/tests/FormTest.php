@@ -356,7 +356,10 @@ final class FormTest extends TestCase
         $form = new Form(self::template(), self::record(), ['idPrefix' => 'scope[]']);
         $html = Generator::renderForm($form);
         $dom = new \DOMDocument();
-        @$dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+        $previous = \libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+        \libxml_clear_errors();
+        \libxml_use_internal_errors($previous);
         $xpath = new \DOMXPath($dom);
         foreach ($xpath->query('//label[@for]') as $label) {
             self::assertNotNull($dom->getElementById($label->getAttribute('for')));

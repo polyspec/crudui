@@ -100,7 +100,7 @@ def main():
         emit({"error": str(error), "code": error.code, "at": ""}, 2)
     except SystemExit:
         raise
-    except Exception as error:  # noqa: BLE001 — the contract answers every failure
+    except Exception as error:  # noqa: BLE001 - the contract answers every failure
         emit({"error": str(error)}, 1)
 
 

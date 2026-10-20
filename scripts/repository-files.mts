@@ -41,7 +41,7 @@ function readCopies(root: string): string[] {
     text = readFileSync(manifest, 'utf8');
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      throw new Error(`${manifest} is missing; run make install-tools TOOLS=npm, then make install-packages`);
+      throw new Error(`${manifest} is missing; run make install-tools TOOLS=npm, then make install-packages`, { cause: error });
     }
     throw error;
   }

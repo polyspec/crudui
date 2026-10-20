@@ -652,7 +652,8 @@
         "config/pyproject.schema.json",
         "config/composer.schema.json",
         "config/cargo.schema.json",
-        "config/php-lint/**"
+        "config/php-lint/**",
+        "config/commit-identity.json"
       ],
       "targets": [
         "kit-check"

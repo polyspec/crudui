@@ -93,10 +93,7 @@ fn allow(request: &Request, method: Method) -> Result<()> {
 /// A decimal integer from 1 without sign or leading zero; a value beyond `u64` is beyond every page.
 // The fallback is needed: digits-only text fails to parse only when it exceeds `u64`, and such a
 // page number is beyond every page.
-#[allow(
-    clippy::disallowed_methods,
-    reason = "digits-only text fails to parse only beyond u64, which is beyond every page"
-)]
+#[allow(clippy::disallowed_methods, reason = "digits beyond u64 are beyond every page")]
 fn positive_decimal(text: &str) -> Option<u64> {
     if text.is_empty() || text.starts_with('0') || !text.bytes().all(|b| b.is_ascii_digit()) {
         return None;

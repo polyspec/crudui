@@ -1158,10 +1158,7 @@ fn are_all_unique(values: &[&Value]) -> bool {
 
 /// A condition that does not parse is false: the JS reference `evaluateCondition`
 /// catches the parse error and returns false (packages/validator/ts/src/validate/validator.ts).
-#[allow(
-    clippy::disallowed_methods,
-    reason = "a condition that does not parse is false: the JS reference evaluateCondition catches the parse error and returns false"
-)]
+#[allow(clippy::disallowed_methods, reason = "a condition that does not parse is false")]
 fn item_passes_condition(
     condition: &str,
     item_field_path: &[String],

@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9df27261c9b452ce47715e629abad4b5064d9b8419b3fff9940052e940e66b42 -->
+<!-- source-sha256: e6f7a440a4f15127d351e28596c54e1be45e99fbd8495e59a28cebd42435960f -->
 
 ## Unreleased
+
+### 2026-10-21 — kit copy들이 kit 0.0.54를 따른다 (C16.112)
+
+- kit copy는 `.oxlintrc.json`(preserve-caught-error, K334), `phpcs.xml.dist`(Generic.PHP.NoSilencedErrors, K334), `PRINCIPLES.md`와 `PRINCIPLES.ko.md`(gate `suppression-check`, K334), `scripts/kit/bootstrap/install-mise.mts`(worktree의 공유 install, K387, 전역 설정 root의 신뢰, K397-1), `config/commit-identity.json`(commit identity, K405), 생성된 hook `.githooks/prepare-commit-msg`(K380-2, K380-3)입니다. 이 copy들은 kit 0.0.54(9b8b4444)의 것이며, `make kit-sync`와 `make hooks`가 가져옵니다(C16.112). Makefile은 `CHECK_TARGETS`에 `suppression-check`를 더하고(K334), svelte 도구 install 뒤에 link를 둡니다(K349). gate를 위해 코드를 고쳤습니다. Rust `#[allow]` 16곳은 줄마다 이유를 한 줄에 둡니다(gate는 한 줄을 읽습니다). Python `noqa`와 `eslint-disable` 2곳은 gate의 형식으로 이유를 적습니다. `FormTest.php`는 `@` 대신 libxml 오류 처리로 `loadHTML`을 읽고, `scripts/repository-files.mts`의 새 오류는 cause를 가집니다. 검사: `make kit-check`, `make suppression-check`, `make lint-php`, `make lint-ts`, `make lint-rust`, `make lint-python`과 `repository-files.mts`의 owner test가 exit 0입니다. `make link-state-check`는 다른 worktree에 남은 병합된 branch 17개를 보고하고(`make worktree-prune`), `make layout-check`와 `make rules-check`는 main이 가진 finding을 보고합니다(루트의 link file과 C16.79의 `tests/native-generators/programs/go/main_test.go`, C16.68의 `AGENTS.md:18`).
+- `config/layout.kit.yml`은 link 출력 `composer.link.json`과 `composer.link.lock`을 root 파일로 선언하므로(K423, kit 03c3c405) link된 worktree도 main처럼 `make layout-check`를 통과하며, `config/owner-checks.json`은 `config/commit-identity.json`을 kit의 다른 사본과 함께 소유합니다(C16.112).
 
 ### 2026-10-21 — TypeScript file이 oxlint를 통과한다 (C16.107-1)
 

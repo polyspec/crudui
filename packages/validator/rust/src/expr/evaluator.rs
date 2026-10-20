@@ -487,10 +487,7 @@ fn json_equals(a: &Value, b: &Value) -> bool {
 /// JS `Number(value)` for equality: numbers pass; a string is numeric only when
 /// the WHOLE string parses (JS `Number('12abc')` is NaN; `Number('')` is 0);
 /// booleans → 1/0. Returns `None` for a non-numeric string.
-#[allow(
-    clippy::disallowed_methods,
-    reason = "JS Number of a string that does not parse is NaN, which this function expresses as None"
-)]
+#[allow(clippy::disallowed_methods, reason = "a string that does not parse is NaN")]
 fn js_number(value: &Value) -> Option<f64> {
     match value {
         Value::Number(n) => n.as_f64(),

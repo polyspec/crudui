@@ -185,10 +185,7 @@ fn cell_display(
                 None
             } else if let Some(array) = items.as_array() {
                 // A text that is no position selects no choice, and the label is the text itself.
-                #[allow(
-                    clippy::disallowed_methods,
-                    reason = "a text that is no position is a label, not an error"
-                )]
+                #[allow(clippy::disallowed_methods, reason = "no position: a label, not an error")]
                 let position = text.parse::<usize>().ok();
                 position.and_then(|i| array.get(i))
             } else {

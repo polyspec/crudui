@@ -122,6 +122,7 @@ install-packages: crudui-install-svelte-tools
 # TypeScript 7 of the root (C14.4).
 crudui-install-svelte-tools: ## Install the tools project of packages/svelte from its package-lock.json; ONLINE
 	$(ONLINE) $(NPM) ci --prefix packages/svelte/tools --no-audit --no-fund
+	$(MAKE) --no-print-directory link
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
 # repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload,
@@ -497,6 +498,7 @@ CHECK_TARGETS = \
 	divergence-check \
 	link-state-check \
 	bypass-check \
+	suppression-check \
 	lint-ts \
 	lint-php \
 	lint-python \
