@@ -54,11 +54,12 @@ final class Expression
     }
 
     /**
-     * Evaluate to a truthy boolean (show/display call site).
+     * Evaluate to a truthy boolean (show/display call site): the result of the expression read as a condition,
+     * which `evaluateValue` returns as it is.
      *
-     * @param array<string, mixed> $formData
-     * @param list<string>         $currentPath
-     * @param list<int>            $rowKeys positions of the row keys in $currentPath
+     * @param array<string, mixed>|\stdClass $formData the form data that the paths of the expression read
+     * @param list<string>                   $currentPath the path of the field that carries the expression
+     * @param list<int>                      $rowKeys positions of the row keys in $currentPath
      */
     public static function evaluate(
         string $expression,
@@ -70,11 +71,12 @@ final class Expression
     }
 
     /**
-     * Evaluate to the raw value (class/style/number/null call site).
+     * Evaluate to the raw value (class/style/number/null call site): the value the expression selects, such as the
+     * class of a ternary or the number of a path, where `evaluate` returns only its truth.
      *
-     * @param array<string, mixed> $formData
-     * @param list<string>         $currentPath
-     * @param list<int>            $rowKeys positions of the row keys in $currentPath
+     * @param array<string, mixed>|\stdClass $formData the form data that the paths of the expression read
+     * @param list<string>                   $currentPath the path of the field that carries the expression
+     * @param list<int>                      $rowKeys positions of the row keys in $currentPath
      */
     public static function evaluateValue(
         string $expression,

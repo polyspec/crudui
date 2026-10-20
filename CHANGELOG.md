@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Own docblocks for the twin PHP methods (C16.32)
+
+- `Expression::evaluate` and `evaluateValue`, `Nfa::matches` and `WholeMatchPattern::matches`, `Patch::setDeepPath` and `removeDeepPath`, `Validator::runImplicitNumber` and `applyRules` each had the docblock of the other; every one now says what it returns and throws and how it differs from its twin, and `Public\Validator::validateList` and `validateDetail` pass the names of their maps to `validateComposition` instead of closures with the same head (C16.32). Red: `make duplication-check` listed 5 clones in `packages/validator/php`; green: none; the list (20), detail (14), text validity (46), validate (318), expression (78), patch (17), compose (20) and doc coverage tests and `make lint-php` pass.
+
 ### 2026-10-20 — Shared slot shapes and structure validation in the Go validator (C16.31)
 
 - `shapeLiteral` writes the null, false or true literal of a polymorphic slot for `ValidateSlot`, `DesignSlot`, `BehaviorSlot` and `OptionsSlot` (each reports its shape by a `shape` method), and `validateStructure` composes, expands and forbidden-scans a list or a detail, so `ValidateList` and `ValidateDetail` state only their field map and the members that are specific to a list (C16.31). Red: `make duplication-check` listed 4 clones in `packages/validator/go`; green: none, 748 Go tests and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.

@@ -48,9 +48,9 @@ final class WholeMatchPattern
     }
 
     /**
-     * Whether the whole UTF-8 text matches.
+     * Whether the whole UTF-8 text matches the pattern, which the automaton of the pattern decides.
      *
-     * @throws \InvalidArgumentException when the text is not valid UTF-8
+     * @throws \InvalidArgumentException when the automaton rejects the text as not valid UTF-8
      */
     public function matches(string $text): bool
     {

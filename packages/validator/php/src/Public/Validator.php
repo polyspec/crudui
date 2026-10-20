@@ -61,51 +61,51 @@ final class Validator
         ];
     }
 
-    /** Validate list composition and metadata without validating row data. */
+    /**
+     * Validate list composition and metadata without validating row data: the root, the `columns` map and the
+     * `search` form-spec reference of a list compose, and a forbidden member fails.
+     */
     public static function validateList(array|stdClass $spec, array $options = []): stdClass
     {
-        return self::validateComposition(
-            $spec,
-            $options,
-            static function (array &$composed, MemoryLoader $loader, string $basepath): void {
-                self::composeMap($composed, 'columns', $loader, $basepath);
-                if (JsonValue::isObject($composed['search'] ?? null)) {
-                    $search = (array) $composed['search'];
-                    if (array_key_exists('$ref', $search) || array_key_exists('$patch', $search)) {
-                        self::composeMap($composed, 'search', $loader, $basepath);
-                    }
-                }
-            },
-        );
-    }
-
-    /** Validate detail composition and metadata without validating record data. */
-    public static function validateDetail(array|stdClass $spec, array $options = []): stdClass
-    {
-        return self::validateComposition(
-            $spec,
-            $options,
-            static function (array &$composed, MemoryLoader $loader, string $basepath): void {
-                self::composeMap($composed, 'fields', $loader, $basepath);
-            },
-        );
+        return self::validateComposition($spec, $options, ['columns' => false, 'search' => true]);
     }
 
     /**
-     * Compose the root of a specification and the object maps that `$composeMaps` names, then
-     * scan the result for forbidden members. A composition failure throws.
-     *
-     * @param \Closure(array<string, mixed> &, MemoryLoader, string): void $composeMaps
+     * Validate detail composition and metadata without validating record data: the root and the `fields` map of a
+     * detail compose, and a forbidden member fails.
      */
-    private static function validateComposition(array|stdClass $spec, array $options, \Closure $composeMaps): stdClass
+    public static function validateDetail(array|stdClass $spec, array $options = []): stdClass
+    {
+        return self::validateComposition($spec, $options, ['fields' => false]);
+    }
+
+    /**
+     * Compose the root of a specification and the object maps that `$maps` names, then scan the result for
+     * forbidden members. A composition failure throws.
+     *
+     * @param array<string, bool> $maps the object maps to compose; true composes a map only when it declares `$ref`
+     *                                  or `$patch`
+     */
+    private static function validateComposition(array|stdClass $spec, array $options, array $maps): stdClass
     {
         self::checkText($spec, $options, []);
         $loader = self::loader($options);
         $basepath = $options['basepath'] ?? '';
         $composed = self::composeRoot($spec, $loader, $basepath);
-        $composeMaps($composed, $loader, $basepath);
+        foreach ($maps as $key => $onlyComposed) {
+            if (!$onlyComposed || self::declaresComposition($composed[$key] ?? null)) {
+                self::composeMap($composed, $key, $loader, $basepath);
+            }
+        }
         ForbiddenScan::scan($composed);
         return (object) ['valid' => true, 'errors' => []];
+    }
+
+    /** Whether a member is an object that declares `$ref` or `$patch`. */
+    private static function declaresComposition(mixed $member): bool
+    {
+        return JsonValue::isObject($member)
+            && (array_key_exists('$ref', (array) $member) || array_key_exists('$patch', (array) $member));
     }
 
     /**

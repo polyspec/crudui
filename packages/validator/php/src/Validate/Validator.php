@@ -553,12 +553,12 @@ final class Validator
      * explicit `number` rule is declared (VALIDATION-RULES §2 — reported as rule
      * `number`). Returns true when it pushed an error (caller stops the field).
      *
-     * @param array<string, mixed>|null $rules
-     * @param list<string> $path
-     * @param list<string> $declarationPath
-     * @param array<string, string>|null $messages
-     * @param array<string, mixed> $allData
-     * @param array<int, array<string, mixed>> $errors
+     * @param array<string, mixed>|null $rules the validate slot of the field, which says whether `number` is declared
+     * @param list<string> $path the path of the value that is checked
+     * @param list<string> $declarationPath the path of the declaration of the field in the specification
+     * @param array<string, string>|null $messages the custom messages of the field
+     * @param array<string, mixed> $allData the whole form data, which the conditions of the rule read
+     * @param array<int, array<string, mixed>> $errors the errors found so far, keyed by path; receives the new one
      */
     private function runImplicitNumber(
         array $field,
@@ -629,12 +629,12 @@ final class Validator
      * Run the rules in order until one fails, record that error under the path of the value and
      * return whether one failed.
      *
-     * @param array<string, mixed> $rules
-     * @param list<string> $path
-     * @param list<string> $declarationPath
-     * @param array<string, string>|null $messages
-     * @param array<string, mixed> $allData
-     * @param array<int, array<string, mixed>> $errors
+     * @param array<string, mixed> $rules the rules to run, in declaration order, each with its declared value
+     * @param list<string> $path the path of the value that the rules check and that keys the error
+     * @param list<string> $declarationPath the path of the declaration in the specification, for the load errors
+     * @param array<string, string>|null $messages the custom messages of the field
+     * @param array<string, mixed> $allData the whole form data, which the conditions of a rule read
+     * @param array<int, array<string, mixed>> $errors the errors found so far, keyed by path; receives the first error
      */
     private function applyRules(
         array $rules,

@@ -137,9 +137,10 @@ final class Patch
      * otherwise the new value REPLACES. Returns a new tree
      * (PHP arrays are value types, so the input is never mutated).
      *
-     * @param array<string, mixed> $node
-     * @param list<string>         $segments
-     * @return array<string, mixed>
+     * @param array<string, mixed> $node the tree that receives the value
+     * @param list<string>         $segments the path from the root of the tree to the leaf, one key per segment
+     * @param mixed                $value the value written at the leaf
+     * @return array<string, mixed> the tree with the value set
      */
     private static function setDeepPath(array $node, array $segments, mixed $value): array
     {
@@ -203,9 +204,10 @@ final class Patch
     /**
      * Delete a value at a deep path. Strict: a missing target is a load error.
      *
-     * @param array<string, mixed> $node
-     * @param list<string>         $segments
-     * @return array<string, mixed>
+     * @param array<string, mixed> $node the tree that holds the value
+     * @param list<string>         $segments the path from the root of the tree to the deleted member
+     * @return array<string, mixed> the tree without the member
+     * @throws ComposeLoadError when a segment is missing or descends into a value that is not an object
      */
     private static function removeDeepPath(array $node, array $segments): array
     {

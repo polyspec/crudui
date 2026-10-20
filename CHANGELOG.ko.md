@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 16dd0304387a009839088df59b65ac112e3eb443f000e75287740a8050ac0af7 -->
+<!-- source-sha256: f56bc870013257fa37abd3d19441cea2f4c709900e2ac1043a94a76effe7d578 -->
 
 ## Unreleased
+
+### 2026-10-20 — 쌍을 이루는 PHP method의 고유한 docblock (C16.32)
+
+- `Expression::evaluate`와 `evaluateValue`, `Nfa::matches`와 `WholeMatchPattern::matches`, `Patch::setDeepPath`와 `removeDeepPath`, `Validator::runImplicitNumber`와 `applyRules`는 서로의 docblock을 그대로 쓰고 있었습니다. 이제 각 method는 반환값, 예외, 짝과 다른 점을 적으며, `Public\Validator::validateList`와 `validateDetail`은 같은 머리를 가진 closure 대신 map 이름을 `validateComposition`에 넘깁니다 (C16.32). Red: `make duplication-check`가 `packages/validator/php`의 clone 5건을 나열했고, green: 없음. list(20), detail(14), text validity(46), validate(318), expression(78), patch(17), compose(20), doc coverage test와 `make lint-php`가 통과합니다.
 
 ### 2026-10-20 — Go validator의 공유 slot shape와 structure 검증 (C16.31)
 
