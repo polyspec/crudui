@@ -42,13 +42,7 @@ func ValidateList(spec *compose.OMap, opts Options) (ListValidationResult, error
 	if err := checkText(spec, opts); err != nil {
 		return ListValidationResult{}, err
 	}
-	if spec == nil {
-		spec = compose.NewOMap()
-	}
-	// The specification is read in specification member order.
-	spec, _ = compose.OrderMembers(spec).(*compose.OMap)
-	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
-	composeOpts := compose.ComposeOptions{Basepath: opts.Basepath}
+	spec, loader, composeOpts := composeInput(spec, opts)
 
 	// Pass 1a/1b (G5): compose the list ROOT (a list may be a $ref overlay, SPEC
 	// §9.1) and the columns map — the read sister of properties — with the SAME
@@ -115,6 +109,17 @@ func ValidateListJSON(specJSON []byte, filesJSON map[string][]byte, basepath str
 	}
 
 	return ValidateList(spec, Options{Files: files, Basepath: basepath})
+}
+
+// composeInput returns the specification in specification member order (an absent
+// specification is an empty object), the loader of the files and the compose options.
+func composeInput(spec *compose.OMap, opts Options) (*compose.OMap, *compose.MemoryLoader, compose.ComposeOptions) {
+	if spec == nil {
+		spec = compose.NewOMap()
+	}
+	ordered, _ := compose.OrderMembers(spec).(*compose.OMap)
+	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
+	return ordered, loader, compose.ComposeOptions{Basepath: opts.Basepath}
 }
 
 // composeRootAndFieldMap composes a read-structure root with ComposeSpec, then

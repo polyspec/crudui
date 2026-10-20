@@ -46,13 +46,7 @@ func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, err
 	if _, ok := data.(map[string]any); !ok {
 		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
 	}
-	if spec == nil {
-		spec = compose.NewOMap()
-	}
-	// The specification is read in specification member order.
-	spec, _ = compose.OrderMembers(spec).(*compose.OMap)
-	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
-	composeOpts := compose.ComposeOptions{Basepath: opts.Basepath}
+	spec, loader, composeOpts := composeInput(spec, opts)
 
 	// Two entry shapes (JS index.ts):
 	//   (a) a full root group spec { type:'group', properties:{…} } — compose the

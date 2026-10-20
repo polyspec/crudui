@@ -14,12 +14,14 @@ package validate
 // (".x" = sibling, "..x" = parent's sibling, array indices not counted as levels).
 
 import (
+	"iter"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
 )
 
@@ -272,4 +274,31 @@ func isValidURL(s string) bool {
 		return false
 	}
 	return parsed.Host != ""
+}
+
+// ruleOff reports whether a rule parameter switches the rule off: an absent parameter
+// or false.
+func ruleOff(param any) bool {
+	if param == nil {
+		return true
+	}
+	b, ok := param.(bool)
+	return ok && !b
+}
+
+// fieldDeclarations yields the declarations of a properties map in declaration order;
+// a member that is not a field declaration is skipped.
+func fieldDeclarations(properties *compose.OMap) iter.Seq2[string, *compose.OMap] {
+	return func(yield func(string, *compose.OMap) bool) {
+		for _, name := range properties.Keys() {
+			raw, _ := properties.Get(name)
+			field, ok := raw.(*compose.OMap)
+			if !ok || field == nil {
+				continue
+			}
+			if !yield(name, field) {
+				return
+			}
+		}
+	}
 }

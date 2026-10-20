@@ -275,10 +275,7 @@ func areAllUnique(values []any) bool {
 //	    duplicate the same field of any EARLIER sibling (error lands on the later
 //	    item). A filter condition excludes non-matching items.
 func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	if b, ok := ruleParam.(bool); ok && !b {
+	if ruleOff(ruleParam) {
 		return "", false
 	}
 
@@ -613,10 +610,7 @@ func ruleURL(value any, ruleParam any, ctx ruleContext) (string, bool) {
 // ruleAccept: file MIME/extension validation. The param is a literal preserved
 // verbatim (.jpg is NOT a relative reference). Empty skips (JS acceptRule).
 func ruleAccept(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
-		return "", false
-	}
-	if b, ok := ruleParam.(bool); ok && !b {
+	if ruleOff(ruleParam) {
 		return "", false
 	}
 	if isEmpty(value) {

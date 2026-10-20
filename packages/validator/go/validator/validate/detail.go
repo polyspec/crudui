@@ -30,13 +30,7 @@ func ValidateDetail(spec *compose.OMap, opts Options) (ListValidationResult, err
 	if err := checkText(spec, opts); err != nil {
 		return ListValidationResult{}, err
 	}
-	if spec == nil {
-		spec = compose.NewOMap()
-	}
-	// The specification is read in specification member order.
-	spec, _ = compose.OrderMembers(spec).(*compose.OMap)
-	loader := compose.NewMemoryLoader(map[string]*compose.OMap(opts.Files))
-	composeOpts := compose.ComposeOptions{Basepath: opts.Basepath}
+	spec, loader, composeOpts := composeInput(spec, opts)
 
 	composed, err := composeRootAndFieldMap(spec, "fields", loader, composeOpts)
 	if err != nil {

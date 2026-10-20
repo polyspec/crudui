@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared field walk, rule switch-off and composition input in the Go validate package (C16.24)
+
+- `fieldDeclarations` yields the field declarations of a properties map, `ruleOff` tests the parameter that switches a rule off, and `composeInput` prepares the specification, loader and options for `Validate`, `ValidateList` and `ValidateDetail`, in place of the copies in `params.go`, `validator.go`, `rules.go`, `list.go`, `detail.go` and `index.go` (C16.24). Red: `make duplication-check` listed 6 clones in `validate/`; green: 1 remains (the head of `ValidateList` and `ValidateDetail`), 762 Go tests and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Ordered objects through two helpers in the Go validator (C16.23)
 
 - `marshalOrdered` writes the members of a map in the order of its keys and `decodeOrdered` reads them back with their first-occurrence order, in place of the copies in the `MarshalJSON` and `UnmarshalJSON` of `PropertyMap`, `Content`, `ConditionMap`, `Messages`, `DeclaredAttributes` and `Items`; the error texts for a value that is not an object are unchanged (C16.23). Red: `make duplication-check` listed 11 clones of the ordered-object code in `types.go`; green: 4 other clones of that file remain and these are gone, 759 Go tests and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.

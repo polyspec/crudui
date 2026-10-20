@@ -93,12 +93,7 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 // and the fields inside a hidden field included. Data of another shape is read
 // as missing.
 func (v *Validator) collectHidden(properties *compose.OMap, data map[string]any, currentPath []string, rowKeys []int, allData map[string]any, hidden *[]string) {
-	for _, name := range properties.Keys() {
-		raw, _ := properties.Get(name)
-		field, ok := raw.(*compose.OMap)
-		if !ok || field == nil {
-			continue
-		}
+	for name, field := range fieldDeclarations(properties) {
 		fieldPath := appendPath(currentPath, name)
 		if !v.fieldVisible(field, fieldPath, rowKeys, allData) {
 			*hidden = append(*hidden, pathToString(fieldPath))

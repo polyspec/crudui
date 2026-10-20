@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 63ae55b03a1e749398b4002fa5cae531859c266d2f3ea95c7c3d572abbc29e5a -->
+<!-- source-sha256: 72dcb74f54e8a905d55d73cbebe04fe918f5b1658d1bb45a82ae4b9624691069 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go validate package의 공유 field 순회, rule 해제, composition 입력 (C16.24)
+
+- `fieldDeclarations`는 properties map의 field 선언을 yield하고, `ruleOff`는 rule을 해제하는 parameter를 판별하며, `composeInput`은 `Validate`, `ValidateList`, `ValidateDetail`을 위한 specification, loader, option을 준비합니다. `params.go`, `validator.go`, `rules.go`, `list.go`, `detail.go`, `index.go`의 사본을 대체합니다 (C16.24). Red: `make duplication-check`가 `validate/`의 clone 6건을 나열했고, green: 1건이 남으며(`ValidateList`와 `ValidateDetail`의 머리), Go test 762건과 `make lint-go`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — Go validator의 두 helper로 읽고 쓰는 ordered object (C16.23)
 

@@ -113,12 +113,7 @@ func checkRuleName(rule string, declaration []string) error {
 // literal a condition can select, then the field's messages keys, before the
 // fields it contains. Values a condition takes from the data are left for runRule.
 func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []string) error {
-	for _, name := range properties.Keys() {
-		raw, _ := properties.Get(name)
-		field, ok := raw.(*compose.OMap)
-		if !ok || field == nil {
-			continue
-		}
+	for name, field := range fieldDeclarations(properties) {
 		path := appendPath(declaration, name)
 		if rules := normalizeValidateSlot(field); rules != nil {
 			for _, rule := range rules.Keys() {
