@@ -1264,7 +1264,9 @@ const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISI
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }
-const out = generated.map(c => (REQUIREMENTS[String(c.name)] === undefined ? c : { ...c, requirements: REQUIREMENTS[String(c.name)] }));
+/** Every case is a validate call of the runtime package (CURP-018) that validates record data and reports its errors (CURP-022). */
+const RUNTIME_REQUIREMENTS = ['CURP-018', 'CURP-022'];
+const out = generated.map(c => ({ ...c, requirements: [...(REQUIREMENTS[String(c.name)] ?? []), ...RUNTIME_REQUIREMENTS] }));
 let text = JSON.stringify(out, null, 2);
 for (const c of SPECS) {
   if (c.specText === undefined) continue;

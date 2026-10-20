@@ -3,7 +3,10 @@
     "name": "set-data-restarts-history-and-view",
     "note": "Replacing the record clears the history and expands every row.",
     "requirements": [
-      "CURT-065"
+      "CURT-065",
+      "CURP-010",
+      "CURP-012",
+      "CURP-011"
     ],
     "spec": {
       "type": "group",
@@ -256,7 +259,10 @@
       "CURT-011",
       "CURT-012",
       "CURT-061",
-      "CURT-067"
+      "CURT-067",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",
@@ -634,7 +640,9 @@
     "name": "same-path-edits-share-one-record",
     "note": "Consecutive edits of one path share a history record; an edit of another path or another change starts a new one.",
     "requirements": [
-      "CURT-063"
+      "CURT-063",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -997,7 +1005,9 @@
     "note": "A data change after undo clears the redo records.",
     "requirements": [
       "CURT-064",
-      "CURT-061"
+      "CURT-061",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -1217,7 +1227,9 @@
     "name": "history-keeps-100-records",
     "note": "After 105 edits that alternate between two paths, 100 undos succeed and the next one fails.",
     "requirements": [
-      "CURT-062"
+      "CURT-062",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",

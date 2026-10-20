@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3e26c857488169359187594cd9303818e3443ae146f9059e28cbde9da9d49475 -->
+<!-- source-sha256: 4181d2ef0fb1f80911b9d7815a0ad1c8d65a5465810b3258a2af2e21402b6c5d -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-20 — validator text-validity suite는 입력 텍스트 requirement CUIT-001부터 CUIT-009, CUIT-023부터 CUIT-028, CUIT-037부터 CUIT-040까지를 인용한다 (C16.57-5)
 
 - `tests/fixtures/text-validity/validate`, `validateList`, `validateDetail`의 case는 `requirements` 배열을 가지며, 이 vector 파일은 생성되지 않으므로 손으로 씁니다. 짝이 없는 surrogate escape를 가진 case와 유효한 짝 case는 CUIT-001부터 CUIT-004와 decoder인 CUIT-037부터 CUIT-040을, `INVALID_TEXT`를 기대하는 case는 CUIT-023부터 CUIT-025를, `Text must be Unicode scalar values: {name}` 입력 실패를 기대하는 case는 CUIT-026부터 CUIT-028을 인용합니다. 순서 case는 CUIT-005와 CUIT-006을, `basepath` case는 CUIT-007을 인용하며, `validate`의 모든 case는 CUIT-008, `validateList`와 `validateDetail`의 모든 case는 CUIT-009를 인용합니다(C16.57-5). `config/parity.json`은 suite unit 세 개, `text-validity-validate`, `text-validity-validate-list`, `text-validity-validate-detail`을 여섯 binding과 함께 선언합니다. ts(`text-validity.conformance.test.ts`), php와 php-extension(`TextValidityConformanceTest::testInputTextMatchesFixture`), go(`TestInputTextMatchesFixture`), rust(`input_text_matches_fixture`), python(`test_text_validity.py`)입니다. Red: `make parity-declarations-check`가 exit 2이며 finding 548건, CUIT-001부터 CUIT-040까지의 R13 40건과 세 cases 파일의 R4 3건이었습니다. Green: exit 2이며 finding 521건, CUIT-010부터 CUIT-022, CUIT-029부터 CUIT-036까지의 R13 21건, 세 파일의 R4 0건, 새 unit의 R14, R15, R2 0건입니다. 인용하지 않은 항목: CUIT-010부터 CUIT-020과 생성 연산(`compileForm`, `bindForm`, `createForm`, `buildList`, `buildDetail`)은 TypeScript와 Python generator만 자체 test로 실행하므로 여섯 binding을 선언할 수 없고, CUIT-021, CUIT-022, CUIT-029부터 CUIT-031은 value-graphs.json에 있으며 Rust validator가 설계상 실행하지 않고, CUIT-032부터 CUIT-036은 각 runtime의 error type이라 공유 case가 기록하지 않습니다. 이 row가 아닌 finding은 `packages/generator/python/tests/test_text_validity.py`의 R5와 form-actions의 R2입니다. Owner test는 `make item-test`로 실행했으며, ts vitest 53 passed, rust 1 passed, python 4 passed, PHP 라이브러리 45 passed, PHP extension(`make test-php-ext CASES='TextValidityConformanceTest'`) 45 passed, go `TestInputTextMatchesFixture` subtest 33건 passed입니다.
+
+### 2026-10-20 — 공유 suite가 test하는 runtime package 요구는 그 unit이 인용한다 (C16.57-6)
+
+- `tests/fixtures/validate/generate.mts`는 `tests/fixtures/validate/cases.json`의 모든 case에 `CURP-018`(validate 연산)과 `CURP-022`(record data 검증과 오류 보고)를 인용한다. `tests/fixtures/form-state/generate.mts`는 `form-view`, `form-history`, `form-actions`의 모든 session에 `CURP-010`(instance 생성)과 `CURP-012`(data 읽기)를, `setData` step이 있는 session에 `CURP-011`(data 교체)을, 행 연산이 있는 session에 `CURP-027`(행 key와 행 연산)을 인용한다. `config/parity.json`은 unit `validate`, `form-view`, `form-history`, `form-actions`에 이 id를 인용하고, `form-actions`에 `php-extension` binding을 준다. 이 binding은 extension이 실행하는 `FormStateTest`의 action session이다(C16.57-6). Red: `make parity-declarations-check`가 `CURP-001`부터 `CURP-027`까지 27개의 `R13`과 `form-actions`에 `php-extension` binding이 없는 `R2` 1개를 보고했다. Green: `CURP` id 21개가 여전히 인용되지 않는다(`CURP-001`~`CURP-009`, `CURP-013`~`CURP-017`, `CURP-019`~`CURP-021`, `CURP-023`~`CURP-026`). 인용된 id 6개와 `R2` finding의 제거를 확인했다. 모든 binding의 owner test가 통과한다(`make item-test`: validate는 vitest 319, go 319, cargo 1, python 3, phpunit 318; form-state는 vitest 28, go 20, cargo 4, python 4; extension 아래 `FormStateTest|ValidateConformanceTest`는 352와 28이 통과)(C16.57-6).
 
 ### 2026-10-20 — PHP extension이 form action을 실행한다: resolveAction과 runAction (C16.50-5)
 

@@ -173,6 +173,8 @@
         "CUEC-003",
         "CUEC-005",
         "CUEC-006",
+        "CURP-018",
+        "CURP-022",
         "CUVR-001",
         "CUVR-002",
         "CUVR-003",
@@ -267,6 +269,9 @@
         }
       ],
       "requirements": [
+        "CURP-010",
+        "CURP-012",
+        "CURP-027",
         "CURT-009",
         "CURT-010",
         "CURT-066",
@@ -313,6 +318,10 @@
         }
       ],
       "requirements": [
+        "CURP-010",
+        "CURP-011",
+        "CURP-012",
+        "CURP-027",
         "CURT-011",
         "CURT-012",
         "CURT-061",
@@ -351,9 +360,17 @@
           "implementation": "php",
           "test": "packages/generator/php/tests/FormStateTest.php",
           "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testActionSessionsEqualTheRecordedObservations"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testActionSessionsEqualTheRecordedObservations"
         }
       ],
       "requirements": [
+        "CURP-010",
+        "CURP-012",
+        "CURP-027",
         "CURT-011",
         "CURT-012",
         "CURT-081",

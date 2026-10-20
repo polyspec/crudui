@@ -5,7 +5,9 @@
     "requirements": [
       "CURT-009",
       "CURT-067",
-      "CURT-068"
+      "CURT-068",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -271,7 +273,9 @@
     "note": "Collapsing every row lists the collapsible rows depth first; expanding all clears the view.",
     "requirements": [
       "CURT-010",
-      "CURT-073"
+      "CURT-073",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -501,7 +505,10 @@
     "requirements": [
       "CURT-066",
       "CURT-075",
-      "CURT-074"
+      "CURT-074",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",

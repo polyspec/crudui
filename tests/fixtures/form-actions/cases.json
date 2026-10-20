@@ -3,7 +3,9 @@
     "name": "resolve-action-names",
     "note": "An action resolves to a target with a non-empty path and key; an unknown or empty action resolves to nothing.",
     "requirements": [
-      "CURT-081"
+      "CURT-081",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -325,7 +327,9 @@
       "CURT-082",
       "CURT-087",
       "CURT-011",
-      "CURT-012"
+      "CURT-012",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -735,7 +739,10 @@
     "name": "run-action-without-path-or-key",
     "note": "A path or key that an action needs is missing: no result and no change; add-row needs no key.",
     "requirements": [
-      "CURT-083"
+      "CURT-083",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",
@@ -1049,7 +1056,10 @@
     "note": "Adding focuses the new row after the given row or last, and copying focuses the copy right after the original.",
     "requirements": [
       "CURT-084",
-      "CURT-085"
+      "CURT-085",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",
@@ -1364,7 +1374,10 @@
     "name": "run-action-remove-row-focus",
     "note": "Removing focuses the previous row, then the next row, then the collection.",
     "requirements": [
-      "CURT-086"
+      "CURT-086",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",
@@ -1570,7 +1583,9 @@
     "name": "run-action-select-row",
     "note": "Selecting changes nothing and focuses the row, also a row that does not exist.",
     "requirements": [
-      "CURT-088"
+      "CURT-088",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",
@@ -1737,7 +1752,10 @@
     "note": "Moving up or down focuses the moved row; moving past an end fails and changes nothing.",
     "requirements": [
       "CURT-089",
-      "CURT-090"
+      "CURT-090",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",
@@ -1992,7 +2010,10 @@
     "note": "An operation that fails fails the action: an unknown row, a path that is no keyed collection, an unknown collection, nothing to undo.",
     "requirements": [
       "CURT-090",
-      "CURT-082"
+      "CURT-082",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
     ],
     "spec": {
       "type": "group",
@@ -2324,7 +2345,9 @@
     "name": "run-action-unknown-name",
     "note": "A target whose name is none of the eleven actions fails, with or without a path and key, and changes nothing.",
     "requirements": [
-      "CURT-091"
+      "CURT-091",
+      "CURP-010",
+      "CURP-012"
     ],
     "spec": {
       "type": "group",

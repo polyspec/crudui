@@ -60,9 +60,24 @@ const data: Json = {
 };
 
 
+/** The runtime requirements (runtime-packages.md) that a session tests: each session creates an instance and reads its data; a replace, a row operation and a failing operation are tested where a step performs them. */
+const ROW_OPERATIONS = ['addRow', 'copyRow', 'removeRow', 'moveRow', 'rekeyRow'];
+const ROW_ACTIONS = ['add-row', 'copy-row', 'remove-row', 'move-up', 'move-down'];
+function runtimeRequirements(steps: Step[]): string[] {
+  const ids = ['CURP-010', 'CURP-012'];
+  if (steps.some(({ op }) => op === 'setData')) ids.push('CURP-011');
+  const rowStep = steps.some(({ op, args }) => {
+    if (ROW_OPERATIONS.includes(op)) return true;
+    const target = args[0] as { name?: string } | undefined;
+    return op === 'runAction' && ROW_ACTIONS.includes(String(target?.name));
+  });
+  if (rowStep) ids.push('CURP-027');
+  return ids;
+}
+
 function session(entry: { name: string; note: string; requirements: string[]; steps: Step[] }, history = true): Case {
   const steps: Json[] = entry.steps.map(({ op, args }) => ({ op, args }));
-  return { name: entry.name, note: entry.note, requirements: entry.requirements, spec, data, steps, expected: observeSession(core, { spec, data, steps: entry.steps }, history) };
+  return { name: entry.name, note: entry.note, requirements: [...entry.requirements, ...runtimeRequirements(entry.steps)], spec, data, steps, expected: observeSession(core, { spec, data, steps: entry.steps }, history) };
 }
 
 const step = (op: string, ...args: Json[]): Step => ({ op, args });
