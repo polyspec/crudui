@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The testing guide stamp (C16.7-4)
+
+- `docs/operations/testing.ko.md` carries the sha256 of `testing.md` after C16.7-2 changed both together and its twin was compared with the English text (C16.7-4). Red: `check-documents.mjs` reported 1 revision finding; green: 81 document pairs pass.
+
 ### 2026-10-20 — The CI-only rule in AGENTS and the testing guide (C16.7-2)
 
 - `AGENTS.md` and `docs/operations/testing.md` (and their Korean twins) state that the full suite runs only in CI, as PRINCIPLES.md says: the rule about `make ci`, `make crudui-check`, the full-run guard and `make rerun-failed` is removed, and `CI_TARGETS` is described as the list of the workflow (C16.7-2). Red: both documents described a local full run of kit's `full-run.mjs`, which kit 0.0.54 does not have (`make rules-check` and `check-documents` passed, so the check is the removed text: `git grep` for `rerun-failed` and `full-run` in the two files counted 16 lines); green: no line. The Makefile targets that still call `full-run.mjs` are item C16.7-3.

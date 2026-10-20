@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 47377cd5e2d10c20fbc83df77bf9c3053a84e732fbc2c9ad6921f3a337be35b6 -->
+<!-- source-sha256: 29138a99d4f21a37ac6ea3b968f8c77bc6dd807507cae1edee533b765e1a6a68 -->
 
 ## Unreleased
+
+### 2026-10-20 — testing guide stamp (C16.7-4)
+
+- C16.7-2가 두 문서를 함께 바꾼 뒤 한국어 문서를 영어 문서와 대조했고, `docs/operations/testing.ko.md`가 `testing.md`의 sha256을 담습니다 (C16.7-4). Red: `check-documents.mjs`가 revision finding 1건을 보고했고, green: 문서 쌍 81개가 통과합니다.
 
 ### 2026-10-20 — AGENTS와 testing guide의 CI 전용 규칙 (C16.7-2)
 
