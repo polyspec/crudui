@@ -174,6 +174,14 @@
         {
           "glob": "packages/generator/ts/src/decode-template.test.ts",
           "reason": "test: the TypeScript decodeFormTemplate of a template across the JSON boundary and its JSON Pointers; the decoder is a TypeScript API (form-runtime.md, Decoding a template), so no other implementation checks the pointers"
+        },
+        {
+          "glob": "packages/validator/ts/src/compose/patch.test.ts",
+          "reason": "test: the deep-merge, remove and shape rules of applyPatch, the function of the TypeScript compose module that applies a $patch, which only TypeScript has; the shared compose suite checks the contract through its patch cases"
+        },
+        {
+          "glob": "packages/validator/ts/src/compose/ref.test.ts",
+          "reason": "test: the cycle, format and declaration-order rules of resolveRef, the function of the TypeScript compose module that resolves a $ref, which only TypeScript has; the shared compose suite checks the contract through its ref cases"
         }
       ]
     },
@@ -283,6 +291,14 @@
         {
           "glob": "packages/validator/php/tests/DocCoverageTest.php",
           "reason": "test: unit tests of the PHP documentation gate of the validator package; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/Compose/PatchTest.php",
+          "reason": "test: the deep-merge, remove and shape rules of the Patch class of the PHP compose module, which only PHP has; the shared compose suite checks the contract through its patch cases"
+        },
+        {
+          "glob": "packages/validator/php/tests/Compose/RefTest.php",
+          "reason": "test: the cycle, format and declaration-order rules of the Ref class of the PHP compose module, which only PHP has; the shared compose suite checks the contract through its ref cases"
         }
       ]
     },
@@ -412,6 +428,18 @@
         {
           "glob": "packages/validator/go/validator/types_test.go",
           "reason": "test: unit tests of the Go FieldSpec round trip; the Go internals of it are not part of any shared contract (Go-only type or tooling gate)"
+        },
+        {
+          "glob": "packages/validator/go/validator/compose/order_test.go",
+          "reason": "test: the member order of the ordered decoding and of composition in the Go compose module, which only Go has as its ordered map; the shared compose suite compares members by name"
+        },
+        {
+          "glob": "packages/validator/go/validator/expr/engine_test.go",
+          "reason": "test: targeted checks of the condition map, value semantics, ternary value and bounded parse cache of the Go expression engine, which only Go has as its cache; the shared expr suite checks the expressions themselves"
+        },
+        {
+          "glob": "packages/validator/go/validator/expr/recognize_test.go",
+          "reason": "test: the recognition of condition expressions among literal strings, with the Unicode whitespace of IsConditionExpression, which only Go has as its own recognizer"
         }
       ]
     },

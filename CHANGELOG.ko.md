@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e3bb6409a6d858f4147b428ae44e36f904e9c878dd21356bdd973a026ad4d2c9 -->
+<!-- source-sha256: e1947b706d3c61293155f0aa755cd3a33e28fe93ed0343f27bc539ee95efd324 -->
 
 ## Unreleased
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 
 - Makefile의 `crudui-install`이 `crudui-install-python`과 `crudui-install-composer` 뒤, `crudui-install-phpdocumentor` 앞에서 `install-link`를 실행한다 (C16.149). composer install은 추적되는 `composer.lock`에서 `vendor/composer/platform_check.php`를 쓰는데, 배포된 polyspec/ordered-json 0.0.9 때문에 PHP 8.5를 요구한다. `.php-version`의 PHP 8.4.1로 검사를 다시 쓰는 link는 `make install`의 끝에서만 실행되어, `make worktree-setup`이 phpDocumentor에서 "Composer detected issues in your platform"으로 멈췄다. Red: `make -n crudui-install`의 순서 검사가 379832f3에서 exit 1; green: exit 0, worktree에서 `make install-link` 뒤 `make crudui-install-phpdocumentor`가 phpDocumentor 3.10.0을 설치한다.
+
+### 2026-10-21 — validator의 남은 compose와 expression test에 자리를 준다 (C16.57-3-3)
+
+- parity 검사가 binding도 internal 항목도 없다고 보고한 test 파일 여섯 개에 자리를 줍니다(`config/parity.json`). TypeScript `packages/validator/ts/src/compose/patch.test.ts`와 `ref.test.ts`, PHP `packages/validator/php/tests/Compose/PatchTest.php`와 `RefTest.php`, Go `packages/validator/go/validator/compose/order_test.go`, `expr/engine_test.go`, `expr/recognize_test.go`는 한 implementation의 고유 함수(applyPatch, Patch와 Ref class, 순서가 있는 map, condition map, recognizer)의 규칙을 시험하며, 공유 compose와 expr suite는 그것을 case로만 검사합니다. 각 파일은 이유를 적은 `internal` 항목이 됩니다 (C16.57-3-3). Red: `make -s parity-declarations-check`가 이 여섯 파일을 R5 undeclared-test로 보고했습니다(red 기록은 R5 줄을 모두 18개 가지며, 그중 여섯이 이 파일들이다); green: 이 파일들의 R5 줄이 없고, owner test가 통과합니다 (vitest 23, phpunit 24, 두 package의 go -run).
 
 ### 2026-10-21 — 합성 suite를 선언하고 여섯 implementation에 binding한다 (C16.57-3-2)
 
