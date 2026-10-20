@@ -12,7 +12,6 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { makeTargets } from '../../scripts/test-commands.mts';
-import { makeDryRun } from './make-dry-run.mts';
 import { parseJson, manifestSchema } from '../json.mts';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 

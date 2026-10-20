@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b23de236fcf3b77b556326a8ab2f5f8bf86d6becdb66394c2f3fca101e0c9dfe -->
+<!-- source-sha256: 8f8b07dadb9e82417e9228e9341f49cf401124f7cee0c2a057026329935865df -->
 
 ## Unreleased
 
@@ -10,6 +10,9 @@
 ### 2026-10-20 — offline-checks test는 설치된 kit가 정의하는 online target을 나열한다 (C16.7-8-1)
 
 - `tests/build/offline-checks.test.mts`는 kit의 online target을 목록 `KIT_DOWNLOADS`와 함께 설치된 `@polyspec/kit`의 `kit.mk`(`KIT_ONLINE`, recipe가 `$(ONLINE)`을 실행하는 target)에서 읽으므로, 새 kit의 `worktree-setup`(K348)이 그 online target으로 나열됩니다(C16.7-8-1). Red: kit를 link한 상태에서 `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts`가 exit 1이며 `the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it`가 `+ 'worktree-setup'`을 보고했습니다. Green: 같은 명령이 kit를 link한 상태에서 exit 0입니다.
+### 2026-10-20 — make lint-ts가 다시 통과한다 (C16.73)
+
+- `tests/build/offline-checks.test.mts`는 미사용 import `makeDryRun`을, `packages/php-ext/tests/engine/support.mjs`는 미사용 import `test`를 뺍니다(oxlint). `examples/form-comparison/src/local-servers.mjs`는 상수 `orderedJsonExtensionDirectory`를 모듈 안에만 둡니다(knip, C16.69가 남긴 미사용 export). `config/knip-entries.json`은 `packages/react`의 entry `src/index.ts`와 `src/server.ts`를 선언합니다. `./server` export가 knip이 미사용으로 보고한 타입 `RenderListOptions`를 이름으로 가지며, 이 타입은 공개 `renderList`의 option 타입이고 svelte와 vue entry도 같이 re-export합니다(C16.73). Red: `make lint-ts`가 exit 2이며, `oxlint: failed`는 finding 2건(`tests/build/offline-checks.test.mts:15`와 `packages/php-ext/tests/engine/support.mjs:7`의 `no-unused-vars`), `knip: failed`는 finding 2건(`examples/form-comparison/src/local-servers.mjs:23`의 `orderedJsonExtensionDirectory`, `packages/react/src/server.ts:12`의 `RenderListOptions`)을 보고했습니다. Green: `make lint-ts` exit 0, `packages/php-ext/tests/engine/engine.test.mjs` 27 passed, `examples/form-comparison/src/local-servers.test.mjs` 6 passed, `packages/react` vitest의 `entry-boundary`와 `list-render.conformance` 262 passed.
 
 ### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
 

@@ -66,6 +66,13 @@
         "tsup": "the build script runs `tsup src/index.ts --format esm` through scripts/package-dist.mts"
       }
     },
+    "packages/react": {
+      "reason": "an npm workspace whose package.json exports \".\" and \"./server\" are dist files that tsup builds from src/index.ts and src/server.ts; the type RenderListOptions that src/server.ts re-exports is the option type of the public renderList of ./server, as the svelte and vue entries re-export it",
+      "entries": {
+        "src/index.ts": "the package entry: package.json exports \".\" is dist/index.mjs and dist/index.js, which tsup builds from src/index.ts",
+        "src/server.ts": "the server entry: package.json exports \"./server\" is dist/server.mjs and dist/server.js, which tsup builds from src/server.ts"
+      }
+    },
     "packages/generator/ts": {
       "reason": "an npm workspace whose tsconfig.json checks the sources and the tests and emits nothing: it has no rootDir or outDir, as its tests import the shared scenario of tests/fixtures/form-session from outside the package (C14.40), so knip cannot map the dist files of package.json exports to src; tsconfig.build.json emits the declarations from src. Its entries replace the default entries of knip",
       "entries": {

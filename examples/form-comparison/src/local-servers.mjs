@@ -20,7 +20,7 @@ export const repositoryRoot = path.resolve(exampleDirectory, '../..');
  * The PHP extension source of OrderedJSON, unpacked from the release zip that config/release-assets.json
  * pins (make release-assets-fetch), relative to the repository root.
  */
-export const orderedJsonExtensionDirectory = 'var/ordered-json-php-ext';
+const orderedJsonExtensionDirectory = 'var/ordered-json-php-ext';
 
 /** Print one progress line of the local server harness. */
 function progress(write, text) {
