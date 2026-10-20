@@ -824,7 +824,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/form-state.test.ts"
+          "test": "packages/generator/ts/src/form-history.test.ts"
         },
         {
           "implementation": "go",
@@ -878,7 +878,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/form-state.test.ts"
+          "test": "packages/generator/ts/src/form-actions.test.ts"
         },
         {
           "implementation": "go",
@@ -947,7 +947,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/form-state.test.ts"
+          "test": "packages/generator/ts/src/view-functions.test.ts"
         },
         {
           "implementation": "go",

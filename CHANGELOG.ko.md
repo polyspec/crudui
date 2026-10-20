@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 927cf7bddb83c65e5258fa6f4a1ab4dc8dd44d0ea90c280d6e6d6e338aa1cac6 -->
+<!-- source-sha256: 46cafe2ede0642c1f6f4cb69505913207c5d8a5364f80961091628127f791fec -->
 
 ## Unreleased
 
@@ -43,6 +43,10 @@
 ### 2026-10-21 — scripts의 명령은 kit의 runner로 실행한다 (C16.10)
 
 - `scripts/run-command.mts`를 제거한다. 사용처는 `@polyspec/kit/run-command`를 import한다(`scripts/repeat-build.mts`, `scripts/run-contract-tests.mts`, `scripts/gen-api-docs.mts`, `scripts/install-browsers.mts`, `scripts/require-current-build.mts`, `benchmarks/validators/build-drivers.mjs`, `benchmarks/validators/run.js`, `tests/native-generators/run.mts`). 그 테스트 `tests/build/run-command.test.mts`는 `npm run test:build`에서 빠지며, runner와 그 테스트는 kit이 소유한다. `config/rebuild.json`은 `replaced` 항목을 버리고, `config/owner-checks.json`, `tests/build/rust-node-entry-points.test.mts`, `scripts/gen-api-docs.test.mts`는 제거된 파일을 뺀다. 출력 한도 실패는 kit의 메시지 `wrote more than its output limit; stopped its process group`를 쓰며, 더 이상 byte 수를 출력하지 않는다. 호출하는 스크립트 중 byte 수를 출력한 곳은 없었다. Red: HEAD에서 `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` exit 1(파일이 남아 있다); green: 같은 명령 exit 0; `scripts/gen-api-docs.test.mts` 8 passed, `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/offline-checks.test.mts` 2 passed, `tests/build/install-browsers.test.mts` 3 passed.
+
+### 2026-10-21 — form-state 단위들이 각자 ts 테스트 파일을 가진다 (C16.158-1)
+
+- form-view, form-history, form-actions, view-functions의 ts 바인딩이 각자 테스트 파일을 가진다 (C16.158-1): `packages/generator/ts/src/form-history.test.ts`, `packages/generator/ts/src/form-actions.test.ts`, `packages/generator/ts/src/view-functions.test.ts`가 새로 생겼고, `packages/generator/ts/src/form-state.test.ts`는 form-view 사례만 담으며, `tests/fixtures/form-state/units.mts`가 각 family의 사례를 그 이름의 최상위 테스트로 등록한다. `config/parity.json`의 세 새 바인딩이 각자의 파일을 가리킨다. Red: `make -s parity-check UNITS="form-view form-history form-actions view-functions"` exit 1, form-history, form-actions, view-functions 각각의 `R3 not-executed <unit> ts`와 사례 이름; green: exit 0, form-view 3 of 3, form-history 5 of 5, form-actions 20 of 20, view-functions 11 of 11 사례 통과.
 
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 

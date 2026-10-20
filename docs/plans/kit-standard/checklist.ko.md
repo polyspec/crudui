@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a35224b122d33c54a0128590bc8295aa890c134c61461da47a280dd5d7af1864 -->
+<!-- source-sha256: 127f9a58c56dc4482eaae7b6478b2e78a4efc1349fe10e1b7d797f842afa041a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -295,3 +295,4 @@
 | C16.163 | config/rebuild.json이 C16.58-27이 추가한 examples/form-comparison/src/adapters/view-entries.ts를 form comparison 예제의 policy 모듈로 분류한다 | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.164 | 사본 PRINCIPLES.md와 PRINCIPLES.ko.md가 K431 뒤 링크된 kit의 것과 같아(make kit-sync) make kit-check가 통과한다 | PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.158 | buttons, validate, form-render, form-view, expr 단위의 ts 바인딩이 각 케이스를 이름으로 make parity-check (R3)에 보고한다: 케이스마다 이름이 붙은 최상위 vitest 테스트 하나 | packages/generator/ts/src/buttons.conformance.test.ts, packages/validator/ts/src/validate.conformance.test.ts, packages/html/src/conformance.test.ts, packages/generator/ts/src/form-state.test.ts, packages/validator/ts/src/expr.conformance.test.ts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="buttons validate form-render form-view expr" > var/pc-C16.158.log 2>&1; ! grep -E "R3 not-executed [^ ]+ ts " var/pc-C16.158.log'` | [o] |
+| C16.158-1 | form-view, form-history, form-actions, view-functions 단위의 ts 바인딩이 각자 테스트 파일을 가지며, 최상위 테스트는 그 단위의 사례 이름이다. 공유 등록은 tests/fixtures/form-state의 헬퍼 모듈 하나다 | packages/generator/ts/src/form-state.test.ts, packages/generator/ts/src/form-history.test.ts, packages/generator/ts/src/form-actions.test.ts, packages/generator/ts/src/view-functions.test.ts, tests/fixtures/form-state/units.mts, config/parity.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="form-view form-history form-actions view-functions" > var/pc-C16.158-1.log 2>&1; ! grep -E "R3 not-executed [^ ]+ ts " var/pc-C16.158-1.log'` | [o] |
