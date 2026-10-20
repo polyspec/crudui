@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9082aecc1d6b6b4d37a901ca28465c7d7097cd1b822c7e2ccc917b72e59ccb9d -->
+<!-- source-sha256: 929760e80954959dace539110e965bc51933d6197d2bd404fdc375bb59fe4af2 -->
 
 ## Unreleased
+
+### 2026-10-20 — cross-check validator process는 검사하지 않던 오류를 검사한다 (C16.67-4)
+
+- `examples/cross-check-console/validators/go/main.go`는 `parseRequest`의 basepath assertion을 검사하고 실패하면 요청 메시지 `Request basepath must be a string`을 반환하며, `fatal`과 `failure`의 `json.Marshal` 호출이 지키는 invariant는 메시지와 함께 panic으로 명시합니다(C16.67-4). 동작은 바뀌지 않습니다. 각 assertion은 그 지점에 도달하는 모든 요청에 대해 성립합니다. Red: `golangci-lint run --config=../../../../.golangci.yml ./...`가 `3 issues`(errcheck 3)로 exit 1이었고; green: exit 0이며 `0 issues`, `go build -o /dev/null ./...`는 exit 0입니다(모듈에 test가 없습니다).
 
 ### 2026-10-20 — ruff format이 보고하는 Python 파일을 포맷한다 (C16.74)
 

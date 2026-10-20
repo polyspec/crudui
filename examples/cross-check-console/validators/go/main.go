@@ -192,7 +192,11 @@ func parseRequest(input []byte) (request, string) {
 		if err != nil {
 			return req, msgBasepath
 		}
-		req.Basepath = basepath.(string)
+		text, ok := basepath.(string)
+		if !ok {
+			return req, msgBasepath
+		}
+		req.Basepath = text
 	}
 
 	req.Data = members["data"]
@@ -201,18 +205,26 @@ func parseRequest(input []byte) (request, string) {
 
 // fatal emits a malformed-request response {"error": msg} and exits 1.
 func fatal(msg string) {
-	out, _ := json.Marshal(map[string]any{"error": msg})
+	// The map holds one string, which json.Marshal always encodes, so an error here is a broken invariant.
+	out, err := json.Marshal(map[string]any{"error": msg})
+	if err != nil {
+		panic(fmt.Sprintf("marshal error response: %v", err))
+	}
 	fmt.Println(string(out))
 	os.Exit(1)
 }
 
 // failure emits a load or input failure without a validation result and exits 2.
 func failure(message, code, at string) {
-	out, _ := json.Marshal(map[string]any{
+	// The map holds only strings, which json.Marshal always encodes, so an error here is a broken invariant.
+	out, err := json.Marshal(map[string]any{
 		"error": message,
 		"code":  code,
 		"at":    at,
 	})
+	if err != nil {
+		panic(fmt.Sprintf("marshal failure response: %v", err))
+	}
 	fmt.Println(string(out))
 	os.Exit(2)
 }

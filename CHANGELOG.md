@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The cross-check validator process checks the errors it does not check (C16.67-4)
+
+- `examples/cross-check-console/validators/go/main.go` checks the basepath assertion of `parseRequest` and returns the request message `Request basepath must be a string` when it fails, and it states the invariant of the `json.Marshal` calls of `fatal` and `failure` in a panic with its message (C16.67-4). Behaviour does not change: each assertion holds for every request that reaches it. Red: `golangci-lint run --config=../../../../.golangci.yml ./...` exited 1 with `3 issues` (errcheck 3); green: exit 0 with `0 issues`, and `go build -o /dev/null ./...` exits 0 (the module has no test).
+
 ### 2026-10-20 — The Python files that ruff format reports are formatted (C16.74)
 
 - `packages/generator/python` is formatted as `ruff format` requires (C16.74): `src/polyspec/crudui/generator/form.py` wraps the `_normalize_row` signature and one dictionary key expression, and `tests/test_form_state.py` joins one `assertEqual` call onto a line. Only the layout changed. Red: `ruff format --check --config ruff.toml .` exit 1 with `2 files would be reformatted`; green: exit 0 with `250 files already formatted`, `make lint-python` exit 0, and `tests.test_form_state` gives `4 passed, 0 failed`.
