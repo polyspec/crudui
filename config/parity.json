@@ -34,20 +34,6 @@
       "roots": [
         "packages/php-ext"
       ],
-      "args": [
-        "-d",
-        "extension=var/php-ext/polyspec_crudui.so"
-      ]
-    },
-    {
-      "name": "php-extension-engine",
-      "runner": "node",
-      "prose": [
-        "PHP extension engine"
-      ],
-      "roots": [
-        "packages/php-ext/tests/engine"
-      ],
       "tests": [
         "packages/php-ext/tests/engine/*.test.mjs"
       ],
@@ -56,6 +42,10 @@
           "glob": "packages/php-ext/tests/engine/*.test.mjs",
           "reason": "test: the tests of the C engine of the extension, which compile and run C programs of its own parts (text, values, numbers, locale, sanitizers, allocation failure, build); the comparison against the TypeScript reference is in packages/php-ext/tests/comparison"
         }
+      ],
+      "args": [
+        "-d",
+        "extension=var/php-ext/polyspec_crudui.so"
       ]
     },
     {

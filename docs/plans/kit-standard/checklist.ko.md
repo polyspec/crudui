@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e09194fa63b940870f1b9bf669561ab16a297f15c7b312aba2e92b9d8234a77e -->
+<!-- source-sha256: a23ac3138d0513ca17eabe75cb1d01fdeca123f947354b21dcf804bf89240348 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -69,3 +69,4 @@
 | C16.47 | C engine test는 php-ext test folder에 있고 config/parity.json에 선언된다 | packages/php-ext/tests/engine/engine.test.mjs, config/parity.json, config/owner-checks.json | `make parity-declarations-check` | [o] |
 | C16.47-1 | 옮겨진 C engine test는 새 folder에서 green으로 실행된다 | CHANGELOG.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C16.48 | 저장소는 kit의 divergence-check, link-state-check, bypass-check와 internal test를 채택하고 engine test를 나눈다 | Makefile, config/parity.json, config/duplication.json, packages/php-ext/tests/engine, packages/php-ext/tests/comparison | `make kit-check`, `make parity-declarations-check`, and the two engine test files | [o] |
+| C16.48-1 | C engine test는 자체 implementation 없이 php-extension implementation의 internal test이다 | config/parity.json | `make parity-declarations-check` | [o] |

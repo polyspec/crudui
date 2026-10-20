@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 87927013f1cd93e8c140025a48ba06ef90fc31fb3333a07665e3175d390b6edd -->
+<!-- source-sha256: f067f8a081bbd910bfbe8d0b799d70de6f67dbcbd04351c4d433df431c59d804 -->
 
 ## Unreleased
+
+### 2026-10-20 — engine test는 php-extension의 internal test이다 (C16.48-1)
+
+- C engine test의 `tests`와 `internal` glob은 implementation `php-extension`에 속하며, 그것을 담기 위해서만 있던 C16.48의 implementation `php-extension-engine`은 없앴습니다 (C16.48-1). Red: `php-extension-engine`은 unit이 없는 implementation이었고, green: `make parity-declarations-check`는 internal glob을 가진 `php-extension`의 declaration을 보고합니다. kit의 R6 file 검사(`scripts/kit/parity-units.mts`, `patterns` filter)가 `internal` glob이 고른 file을 제외하지 않아 `packages/php-ext/tests/engine/engine.test.mjs`의 R6는 계속 보고되며, 이는 우회하지 않고 보고하는 kit 결함입니다.
 
 ### 2026-10-20 — divergence, link-state, bypass gate와 internal test를 채택한다 (C16.48)
 

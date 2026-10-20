@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The engine tests are internal tests of php-extension (C16.48-1)
+
+- The `tests` and `internal` globs of the C engine tests belong to the implementation `php-extension`; the implementation `php-extension-engine` that C16.48 declared is removed, since it existed only to hold them (C16.48-1). Red: `php-extension-engine` was an implementation with no unit; green: `make parity-declarations-check` reports the declaration of `php-extension` with the internal glob. It still reports R6 for `packages/php-ext/tests/engine/engine.test.mjs`, because kit's R6 file check (`scripts/kit/parity-units.mts`, the `patterns` filter) does not leave out the files that an `internal` glob selects; it is a kit defect that is reported, not worked around.
+
 ### 2026-10-20 — Adopt the divergence, link-state and bypass gates and the internal tests (C16.48)
 
 - `CHECK_TARGETS` lists `divergence-check`, `link-state-check` and `bypass-check`; the reasons of `config/duplication.json` and of the `tools` roots of `config/parity.json` begin with a kind that kit defines; `packages/php-ext/tests/engine/engine.test.mjs` is split into `packages/php-ext/tests/comparison/comparison.test.mjs`, which holds only the checks of the native engine against the TypeScript reference and is the comparator, and the C engine tests, which are the `internal` tests of the implementation `php-extension-engine` with a reason; the shared helpers are `packages/php-ext/tests/engine/support.mjs`, and the comma locale is chosen by the locale list instead of the platform (C16.48). Red: `make kit-check` reported 2 findings, `make divergence-check` named the unkinded reasons and `process.platform` in the engine test; green: `make kit-check` passes, the two engine test files pass (27 and 11 tests), `make parity-declarations-check` reports 0 R6. `make divergence-check` still reports the `partial` and `unsupported` entries of `contracts/features.json` and `--exclude-group` in two example scripts, which are the next items.
