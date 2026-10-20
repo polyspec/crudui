@@ -1896,8 +1896,10 @@
         },
         {
           "implementation": "php-extension",
-          "test": "packages/generator/php/tests/InterfaceMessagesConformanceTest.php",
-          "id": "testEmbeddedMessagesEqualsTheContract"
+          "test": "packages/php-ext/tests/contract/interface-messages.test.mjs",
+          "runner": "node",
+          "reason": "the extension embeds the form and the list messages in its C tables (interface_messages.c), which no PHP accessor returns; node compiles the tables and compares every field with the contract",
+          "id": "PHP extension form and list messages equal contracts/interface-messages.json"
         },
         {
           "implementation": "go",

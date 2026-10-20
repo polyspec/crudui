@@ -65,10 +65,10 @@ function cStringLiteral(value) {
 /** The C field of a contract key: moveUp → move_up. */
 /** Code unit order of two strings, the order of `Array.prototype.sort` without a comparator. */
 const codeUnitOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-const fieldName = key => key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+export const fieldName = key => key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
 /** Each contract table, its C struct and the generated array of {language, messages}. */
-const TABLES = [
+export const TABLES = [
   { table: 'form', struct: 'ps_form_messages', entry: 'ps_language_messages', array: 'ps_interface_messages' },
   { table: 'list', struct: 'ps_list_messages', entry: 'ps_list_language_messages', array: 'ps_interface_list_messages' },
 ];
