@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 499f7c64701e8268b5c46d6e45e3be80d3ca789afac4161e19437fac9635ce99 -->
+<!-- source-sha256: b7d725a5e98f26d6b8910b85226dd8cc473084b7dfa00fb316fcee31fcf72446 -->
 
 ## Unreleased
 
@@ -91,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — Rust interface-messages test가 native id로 이름 붙는다 (C16.156-1-5)
+
+- config/parity.json의 interface-messages Rust 바인딩이 cargo가 보고하는 native 이름 `messages::tests::embedded_messages_match_the_contract`(`packages/generator/rust/src/messages/mod.rs`의 `tests` module 안 test)으로 test를 가리켜, feature id가 실행되는 test와 맞는다. test 자체는 바뀌지 않는다. `packages/generator/rust/src/tests.rs`는 config/parity.json에서 Rust 생성기의 internal test 파일로 선언된다. 남은 unit test가 제거된 fixture 바인딩에만 덮여 있었기 때문이다 (C16.156-1-5). Red: `make -s parity-check UNITS="interface-messages"` b79bf13d에서 종료 코드 1, rust 바인딩이 not executed; green: rust 바인딩 종료 코드 0, 1/1 id 통과, rust R3 줄 없음, `make -s parity-declarations-check`에 rust 항목 없음.
 
 ### 2026-10-21 — Rust outline fixture가 사례마다 trial 하나로 통합 test에서 실행된다 (C16.156-1-4)
 

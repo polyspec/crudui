@@ -585,6 +585,10 @@
         {
           "glob": "packages/validator/rust/src/text.rs",
           "reason": "test: unit tests of the Rust JsonText parser (input-text.md, JSON text); the repeated-member rule binds only the TypeScript specification parser and the Rust JsonText parser, so no shared suite runs it"
+        },
+        {
+          "glob": "packages/generator/rust/src/tests.rs",
+          "reason": "test: unit tests of the Rust generator's form model, operations, list and detail designs and error order (internal behaviour of the Rust port); the shared suites of the generator (form-state, form-render, list-render, detail-render, buttons) test the contracts they touch"
         }
       ]
     },
@@ -1917,7 +1921,7 @@
         {
           "implementation": "rust",
           "test": "packages/generator/rust/src/messages/mod.rs",
-          "id": "embedded_messages_match_the_contract"
+          "id": "messages::tests::embedded_messages_match_the_contract"
         },
         {
           "implementation": "python",
