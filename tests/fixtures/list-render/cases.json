@@ -4497,7 +4497,8 @@
     "note": "an action design follows the design rules.",
     "requirements": [
       "CUDF-065",
-      "CUDF-066"
+      "CUDF-066",
+      "CUDF-076"
     ],
     "spec": {
       "columns": {

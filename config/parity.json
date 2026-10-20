@@ -1041,6 +1041,9 @@
         }
       ],
       "requirements": [
+        "CUEC-001",
+        "CUEC-002",
+        "CUEC-004",
         "CUMK-004",
         "CUMK-005",
         "CUMK-006",
@@ -1239,6 +1242,7 @@
         "CUDF-073",
         "CUDF-074",
         "CUDF-075",
+        "CUDF-076",
         "CUDF-077",
         "CUDF-078",
         "CUDF-079",
@@ -1336,6 +1340,7 @@
         "CUDF-073",
         "CUDF-074",
         "CUDF-075",
+        "CUDF-076",
         "CUDF-083",
         "CUDF-084",
         "CUDF-085",

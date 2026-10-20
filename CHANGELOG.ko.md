@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9a5a67229c0657fd02e1764464f85cb218831c721fec7acb332f5734dc2c7e9a -->
+<!-- source-sha256: 9143f81c04f281360d6ba969451f4a4777e1edab2723e6cde4b976593d1cca13 -->
 
 ## Unreleased
 
@@ -40,6 +40,10 @@
 ### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
 
 - `packages/generator/ts/styles/crudui.tailwind.css`와 `packages/generator/ts/scripts/write-tailwind-styles.mjs`를 지웠습니다. page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를 `layer(components)`로 import합니다. 이것은 CSS와 Tailwind CSS 4가 제공하는 기능입니다(C16.12). package는 더 이상 `./crudui.tailwind.css`를 export하지 않고, `test:forms`는 script를 실행하지 않습니다. `tests/tailwind-styles.test.mts`는 같은 `crudui.css` import를 layer `components`로 compile합니다. compile된 CSS는 같습니다: test 입력은 변경 전후 모두 21,286 byte로 compile되며 두 출력은 다른 줄이 없습니다. `config/rebuild.json`은 script의 항목을 뺐고, `docs/spec/form-markup.ko.md`, `docs/operations/forms.ko.md`, `docs/features.ko.md`는 그 import를 설명합니다. Red: 생성 file과 import의 compile 결과(package build로 비교)가 같았습니다. Green: `make rebuild-check` exit 0, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/tailwind-styles.test.mts` exit 0, 1363 passed.
+
+### 2026-10-20 — 렌더링 case가 시험하는 빈 컬렉션과 action design 규칙을 인용한다 (C16.57-11)
+
+- 렌더링 case가 시험하는 빈 컬렉션과 display requirement를 이름으로 밝힙니다(C16.57-11): `tests/fixtures/form-render`의 `multiple-only-empty-data`는 CUEC-001(명시된 빈 객체는 행 0개)을, `multiple-leaf-empty-placeholder`는 CUEC-002(데이터가 없으면 초기 행)와 CUEC-004(빈 컬렉션은 add-row control을 그림)를 인용하며, 이는 `packages/react/scripts/generate-form-render-cases.mts`로 생성됩니다. `tests/fixtures/list-render`와 `tests/fixtures/detail-render`의 `reject-action-design`은 CUDF-076(action design 실패)을 인용하며, 이는 각 `generate.mts`로 생성됩니다. form-render, list-render, detail-render unit이 새 id를 가집니다. 바뀐 것은 `requirements` member뿐입니다. Owner test: ts `conformance.test.ts`, `list-conformance.test.ts`, `detail-conformance.test.ts` 549 passed; Go `TestFormRenderSuite|TestListRenderSuite|TestDetailRenderSuite` 413 passed; Python `test_form_render`과 `test_render` 8 passed; Rust `form_render`, `list_render`, `detail_render` 통과; PHP 라이브러리 `RenderingConformanceTest`, `ListRenderConformanceTest`, `DetailRenderConformanceTest` 통과. Red: `make parity-declarations-check`는 R13 줄 155개를 보고합니다; green: R13 줄 151개이며 새 finding 줄은 없습니다. 네 명세에서 아직 추적되지 않은 id와 이유는 다음과 같습니다. CUIT-010에서 020(compileForm, bindForm, createForm, buildList, buildDetail 연산과 form 연산): `tests/fixtures/text-validity`의 수작업 case는 식별되었으나, 이 다섯 연산에는 unit이 없고 어떤 구현 test도 이를 읽지 않으므로 인용해도 check가 통과하지 않습니다. CUIT-021과 022(노드와 중첩 한계), CUIT-030과 031(재귀 값 message)은 case가 없습니다. CUIT-029와 CUIT-032에서 036(오류 code와 언어별 오류 타입)은 case가 시험하지 않습니다. CUDF-001에서 005, 020, 023, 036에서 039는 점 경로 필드, 불리언과 문자열 format, 조건 map 링크, javascript URL, 처리 순서를 담은 list 또는 detail case가 필요하며, 이 생성기들은 아직 선언하지 않습니다. CUEC-007(키가 있는 편집 세션)은 state suite에 속합니다. CUVR-012(date와 dateISO 활성화)는 date 규칙을 가진 validate case가 없습니다.
 
 ### 2026-10-20 — docs-check는 DOCS_CHECKS hook을 통해 doc-coverage gate를 실행한다 (C16.94)
 

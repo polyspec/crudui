@@ -479,7 +479,7 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "reject-action-label": ["CUDF-047", "CUDF-068"],
   "reject-action-format": ["CUDF-053"],
   "reject-action-behavior-entry": ["CUDF-072"],
-  "reject-action-design": ["CUDF-065", "CUDF-066"],
+  "reject-action-design": ["CUDF-065", "CUDF-066", "CUDF-076"],
   "reject-fields-before-actions": ["CUDF-043"],
   "reject-design-before-actions": ["CUDF-041"],
   "reject-list-description": ["CUDF-041"],

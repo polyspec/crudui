@@ -1046,7 +1046,7 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "reject-action-behavior-entry-key": ["CUDF-065", "CUDF-066", "CUDF-071", "CUDF-073"],
   "reject-action-behavior-label": ["CUDF-074"],
   "reject-action-behavior-script": ["CUDF-075"],
-  "reject-action-design": ["CUDF-065", "CUDF-066"],
+  "reject-action-design": ["CUDF-065", "CUDF-066", "CUDF-076"],
   "reject-empty": ["CUDF-077"],
   "reject-empty-before-pagination": ["CUDF-077"],
   "reject-description": ["CUDF-078"],

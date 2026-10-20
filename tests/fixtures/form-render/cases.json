@@ -346,6 +346,8 @@
     "name": "multiple-leaf-empty-placeholder",
     "note": "multiple:true + empty data → a single placeholder row.",
     "requirements": [
+      "CUEC-002",
+      "CUEC-004",
       "CUMK-005",
       "CUMK-006",
       "CUMK-007",
@@ -5413,6 +5415,7 @@
     "name": "multiple-only-empty-data",
     "note": "An empty multiple: only collection renders its header and an empty body, with no add-row control.",
     "requirements": [
+      "CUEC-001",
       "CUMK-005",
       "CUMK-022",
       "CUMK-034"
