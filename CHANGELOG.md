@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The parity declaration holds with no finding (C16.3)
+
+- Every unit of config/parity.json holds in every implementation and cites the spec requirements its tests name: no profile, native-only symbol or exclusion is left, and `make parity-declarations-check` reports no finding with kit 0.0.54 linked to its checkout (C16.3).
+
 ### 2026-10-21 — The parity declaration holds with no finding (C16.46-1)
 
 - config/parity.json keeps the TypeScript-only packages and the tooling tests outside the implementation roots, and the C engine test of the extension has its place (the engine tests internal, the contract tests bound with the node runner, K422): `make parity-declarations-check` reports no finding (C16.46-1).

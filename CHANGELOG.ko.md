@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 669d244b58296899960cb209269de0bf78b5cb39a021df3dd3c9603108112ce2 -->
+<!-- source-sha256: f2741f3370b73fd2335454ffee8b8aa0ac072f4f7cf963bee0a9e920366556da -->
 
 ## Unreleased
+
+### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.3)
+
+- config/parity.json의 모든 unit이 모든 구현에서 성립하고 그 테스트가 명명하는 명세 요구사항을 인용한다: profile, native 전용 symbol, 제외가 남지 않았고, 링크된 kit 0.0.54로 `make parity-declarations-check`가 발견을 보고하지 않는다 (C16.3).
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.46-1)
 
