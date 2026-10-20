@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 629646e4596f652f4762487aa920ab108df78d941702779c4f20a4e40c788bfa -->
+<!-- source-sha256: da3eff3f1e06b5761c694ccf83376dd1c288c8bc5a78bc7e72e0fde61b86dfd0 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -73,6 +73,7 @@
 | C16.49 | buildOutline은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of buildOutline | [ ] |
 | C16.49-1 | 공유 구조 지도 사례는 expected_outline_rows를 가지며, Rust 생성기의 build_outline은 bind_form의 node에 대해 이를 재현합니다 | `tests/fixtures/form-outline/`, `packages/generator/rust/src/outline.rs`, `packages/generator/rust/src/lib.rs`, `packages/generator/rust/src/tests.rs`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_outline_fixture` | [o] |
 | C16.49-2 | native generator protocol은 form-outline 사례를 쓰는 buildOutline operation을 가지며, Go 생성기는 BuildOutline을 가집니다 | `tests/native-generators/`, `packages/generator/go/outline.go`, `packages/generator/go/outline_test.go`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target go --check outline` and `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestOutlineFixture` | [o] |
+| C16.49-3 | native generator protocol의 Rust program은 buildOutline에 답합니다 | `tests/native-generators/programs/rust/src/main.rs`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target rust --check outline` | [o] |
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |

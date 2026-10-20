@@ -6,6 +6,10 @@
 ### 2026-10-20 — The cross-check console shares its JSON parser, its download, its matrix column and its request reader (C16.58-6)
 
 - `parseJsonText`, `downloadJson`, `matrixColumn` of `client/app.js` and `readBodyAndSpec` of `server/server.mjs` replace the copies of the data and record parsers, of the two fixture downloads, of the validate and render columns, and of the body and specification reading of six endpoints (C16.58-6). Red: `make duplication-check` reported 40 clones before; green: 37 clones after, and the targeted check passes (24 passed).
+### 2026-10-20 — The Rust program answers buildOutline (C16.49-3)
+
+- The Rust program of the native generator protocol answers `buildOutline` with `build_outline` of the generator (C16.49-3). Red: it answered `Unknown generator operation` for the 5 cases of the group `outline`; green: 5 of 5 pass and `make lint-rust` passes.
+
 ### 2026-10-20 — The native generator protocol has buildOutline, and the Go generator has BuildOutline (C16.49-2)
 
 - The protocol of `tests/native-generators` has the operation `buildOutline` (request `nodes`, response the rows of `OutlineRow`), the JavaScript dispatcher answers it with `buildOutline`, and the group `outline` sends the nodes of `bindForm` for each case of `tests/fixtures/form-outline/cases.json` to every program and compares the rows with the reference in member order and with `expected_outline_rows`; the Go generator provides `BuildOutline(nodes)` and the Go program answers the operation (C16.49-2). Red: the Go program answered `Unknown generator operation` for the 5 cases; green: 5 of 5 pass, `TestOutlineFixture` passes, `make lint-go` passes.

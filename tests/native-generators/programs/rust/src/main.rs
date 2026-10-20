@@ -8,9 +8,10 @@ use polyspec_crudui_generator::text::{
     check_bind, check_compile_form, check_display, check_form_method, JsonText,
 };
 use polyspec_crudui_generator::{
-    bind_buttons, bind_form, build_detail, build_list, compile_form, form_buttons_html, list_rows,
-    render_detail, render_form, render_list, AddRowOptions, BindOptions, CompileOptions,
-    DetailOptions, Form, FormError, FormResult, FormTemplate, ListOptions,
+    bind_buttons, bind_form, build_detail, build_list, build_outline, compile_form,
+    form_buttons_html, list_rows, render_detail, render_form, render_list, AddRowOptions,
+    BindOptions, CompileOptions, DetailOptions, Form, FormError, FormResult, FormTemplate,
+    ListOptions,
 };
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
@@ -266,6 +267,15 @@ fn generate(request: &Value, text: Option<&JsonText>) -> FormResult<Value> {
             };
             let record = request.get("record").unwrap_or(&empty);
             build_detail(&request["spec"], record, &options)
+        }
+        Some("buildOutline") => {
+            let Some(nodes) = request["nodes"].as_array() else {
+                return Err(input("Outline nodes must be a list"));
+            };
+            if nodes.iter().any(|node| !node.is_object()) {
+                return Err(input("Outline nodes must be evaluated node objects"));
+            }
+            Ok(Value::Array(build_outline(nodes)))
         }
         Some("renderForm") => {
             check_template_text(request, text)?;
