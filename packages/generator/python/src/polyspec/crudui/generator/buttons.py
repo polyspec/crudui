@@ -36,7 +36,9 @@ def bind(
     for declared in template["buttons"]:
         button = object_value(declared)
         button_type = button["type"]
-        assert isinstance(button_type, str)  # compile checks the type of every button
+        if button_type not in ("submit", "reset", "button", "link"):
+            # A template given without compiling is checked here as the reference checks it (CURP-008).
+            raise FormError("INVALID_FORM_INPUT", f"Invalid button type: {button_type}")
         design = design_resolve(button.get("design"), data, [], [])
         attrs: dict[str, str] = {}
         if button_type != "link":

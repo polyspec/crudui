@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f227a2e12a9a39ba0df29956e2de50a93b5ea80151f88741bae10b55841ae820 -->
+<!-- source-sha256: e752e6788c043f2f4648f8c34e0a66354cdbfc44c54b266d628a7047cb6bec5b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -219,3 +219,4 @@
 | C16.118 | form 버튼 case를 TypeScript reference가 쓴다. bindButtons는 선언된, 기본, 지역화된, 잘못된 버튼을, formButtonsHtml은 마크업과 그 거부를 시험한다 | tests/fixtures/buttons/generate.mts, tests/fixtures/buttons/cases.json, tests/fixtures/buttons/README.md, tests/fixtures/buttons/README.ko.md, config/rebuild.json, config/knip-entries.json | `sh -c 'node tests/fixtures/buttons/generate.mts && git diff --exit-code -- tests/fixtures/buttons/cases.json'` | [o] |
 | C16.119 | TypeScript generator가 모든 form 버튼 case를 실행한다. bindButtons와 formButtonsHtml의 관찰은 속성 순서를 포함해 case가 기록한 값과 같다 | packages/generator/ts/src/buttons.conformance.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/buttons.conformance.test.ts` | [o] |
 | C16.120 | Go generator가 모든 form 버튼 case를 실행한다. BindButtons와 FormButtonsHTML의 관찰은 case가 기록한 값과 같고, FormButtonsHTML은 목록이 아닌 값을 case가 기록한 거부로 처리한다 | packages/generator/go/buttons_conformance_test.go, packages/generator/go/buttons.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestButtonsSuite ./...` | [o] |
+| C16.121 | Python generator가 모든 form 버튼 case를 실행한다. bindButtons와 formButtonsHtml의 관찰은 case가 기록한 값과 같고, bindButtons는 알 수 없는 타입의 버튼을 reference처럼 거부한다 | packages/generator/python/tests/test_buttons.py, packages/generator/python/src/polyspec/crudui/generator/buttons.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests/test_buttons.py` | [o] |
