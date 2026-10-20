@@ -38,12 +38,6 @@ static ps_result invalid_input(ps_chars message)
     return failure;
 }
 
-/* A member of an object; NULL for any other value. */
-static const ps_value *member(const ps_value *value, const char *key)
-{
-    return value && value->kind == PS_OBJECT ? ps_get(value, key) : NULL;
-}
-
 static bool known_action(ps_text name)
 {
     for (size_t i = 0; i < sizeof(action_names) / sizeof(*action_names); ++i)

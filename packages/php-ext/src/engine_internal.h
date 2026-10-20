@@ -575,4 +575,23 @@ ps_value *ps_compose_properties(const ps_value *properties, const ps_value *file
 ps_value *ps_compose_spec(const ps_value *spec, const ps_value *files,
                           ps_text basepath, ps_value **error);
 
+/* A member of an object; NULL for any other value. */
+static inline const ps_value *member(const ps_value *value, const char *key)
+{
+    return value && value->kind == PS_OBJECT ? ps_get(value, key) : NULL;
+}
+
+/* The children of a node, NULL when it has no children list. */
+static inline const ps_value *children_of(const ps_value *node)
+{
+    const ps_value *children = member(node, "children");
+    return children && children->kind == PS_ARRAY ? children : NULL;
+}
+
+/* The text of a string value, empty for any other value. */
+static inline ps_text text_of(const ps_value *value)
+{
+    return value && value->kind == PS_STRING ? ps_string(value) : PS_TEXT("");
+}
+
 #endif

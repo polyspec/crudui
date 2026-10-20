@@ -36,11 +36,6 @@ typedef struct {
     const char *controls;
 } multiple_settings;
 
-static const ps_value *member(const ps_value *object, const char *key)
-{
-    return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
-}
-
 static ps_text string_member(const ps_value *object, const char *key)
 {
     return ps_string(member(object, key));

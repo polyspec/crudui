@@ -49,11 +49,6 @@ static ps_chars joined(ps_chars first, ps_text second, ps_text third)
     return first.bytes ? PS_CONCAT(ps_view(first), second, third) : (ps_chars){NULL, 0};
 }
 
-static const ps_value *member(const ps_value *object, const char *key)
-{
-    return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
-}
-
 static ps_text string_member(const ps_value *object, const char *key)
 {
     return ps_string(member(object, key));

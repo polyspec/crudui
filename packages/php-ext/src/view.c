@@ -16,25 +16,6 @@ static ps_result internal_failure(void)
     return ps_fail("internal", "INTERNAL_ERROR", "C view operation failed", "");
 }
 
-/* A member of an object; NULL for any other value. */
-static const ps_value *member(const ps_value *value, const char *key)
-{
-    return value && value->kind == PS_OBJECT ? ps_get(value, key) : NULL;
-}
-
-/* The children of a node, NULL when it has no children list. */
-static const ps_value *children_of(const ps_value *node)
-{
-    const ps_value *children = member(node, "children");
-    return children && children->kind == PS_ARRAY ? children : NULL;
-}
-
-/* The text of a string value, empty for any other value. */
-static ps_text text_of(const ps_value *value)
-{
-    return value && value->kind == PS_STRING ? ps_string(value) : PS_TEXT("");
-}
-
 /* The collapsed list of a view, NULL unless it is a list of strings. */
 static const ps_value *collapsed_of(const ps_value *view)
 {

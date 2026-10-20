@@ -3,25 +3,6 @@
 
 static bool outline_rows(const ps_value *nodes, ps_value *out);
 
-/* A member of an object; NULL for any other value. */
-static const ps_value *member(const ps_value *value, const char *key)
-{
-    return value && value->kind == PS_OBJECT ? ps_get(value, key) : NULL;
-}
-
-/* The child nodes of a node, NULL when it has no children list. */
-static const ps_value *children_of(const ps_value *node)
-{
-    const ps_value *children = member(node, "children");
-    return children && children->kind == PS_ARRAY ? children : NULL;
-}
-
-/* The text of a string member, empty for any other value. */
-static ps_text text_of(const ps_value *value)
-{
-    return value && value->kind == PS_STRING ? ps_string(value) : PS_TEXT("");
-}
-
 /* The entry of one row of the collection at path, with the rows nested in it; NULL on allocation failure. */
 static ps_value *outline_entry(ps_text path, const ps_value *row)
 {

@@ -23,11 +23,6 @@ typedef struct {
     size_t length;
 } form_path;
 
-static const ps_value *member(const ps_value *object, const char *key)
-{
-    return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
-}
-
 static ps_value *internal_error(void)
 {
     return ps_error("internal", "INTERNAL_ERROR", "C form operation failed", "", NULL);

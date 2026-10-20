@@ -39,11 +39,6 @@ typedef struct {
     bool sortable;
 } list_column;
 
-static const ps_value *member(const ps_value *object, const char *key)
-{
-    return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
-}
-
 /*
  * A page or total option. Absent or null is none: returns true with *present false. Any other
  * value must be a number whose value is an integer from min to 2^53 - 1; an integral float such
