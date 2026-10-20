@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 60a577f1e41a05cdead9f33b1353ba9aec6c9aacee94bc6d998bbe3812db7c67 -->
+<!-- source-sha256: 9a5a67229c0657fd02e1764464f85cb218831c721fec7acb332f5734dc2c7e9a -->
 
 ## Unreleased
 
@@ -40,6 +40,10 @@
 ### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
 
 - `packages/generator/ts/styles/crudui.tailwind.css`와 `packages/generator/ts/scripts/write-tailwind-styles.mjs`를 지웠습니다. page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를 `layer(components)`로 import합니다. 이것은 CSS와 Tailwind CSS 4가 제공하는 기능입니다(C16.12). package는 더 이상 `./crudui.tailwind.css`를 export하지 않고, `test:forms`는 script를 실행하지 않습니다. `tests/tailwind-styles.test.mts`는 같은 `crudui.css` import를 layer `components`로 compile합니다. compile된 CSS는 같습니다: test 입력은 변경 전후 모두 21,286 byte로 compile되며 두 출력은 다른 줄이 없습니다. `config/rebuild.json`은 script의 항목을 뺐고, `docs/spec/form-markup.ko.md`, `docs/operations/forms.ko.md`, `docs/features.ko.md`는 그 import를 설명합니다. Red: 생성 file과 import의 compile 결과(package build로 비교)가 같았습니다. Green: `make rebuild-check` exit 0, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/tailwind-styles.test.mts` exit 0, 1363 passed.
+
+### 2026-10-20 — docs-check는 DOCS_CHECKS hook을 통해 doc-coverage gate를 실행한다 (C16.94)
+
+- crudui의 Makefile은 doc-coverage gate를 prerequisite `docs-check: crudui-docs-check` 대신 `DOCS_CHECKS += crudui-docs-check`로 추가하여(C16.94), kit의 docs-check가 check-documents와 hook의 모든 target을 각각 독립적으로 실행하게 합니다. `scripts/test-commands.mts`는 hook을 따라가므로(`makeHooks`, `ProjectDeclarations.hooks`) `make docs-check`가 hook된 target을 통해 여전히 test runner에 닿고, `tests/build/test-commands.test.mts`에는 그 fixture(test를 실행하는 hook target과 실행하지 않는 것)가 추가됩니다. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts`가 "no Makefile target takes a target that runs tests as a prerequisite"에서 exit 1; green: exit 0, 16 passed. `make -n docs-check`는 check-documents와 crudui-docs-check를 명명하며 overriding 경고를 출력하지 않습니다.
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 

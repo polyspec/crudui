@@ -268,10 +268,9 @@ docs-dev: cargo-downloads-check ## 문서 개발 서버
 docs-preview: cargo-downloads-check ## 문서 빌드 결과 미리보기 서버
 	$(NPM) run docs:preview
 
-# docs-check gates the documents AND the library packages.
-# Either arm RED → non-zero exit.
-# Both arms run even when the first fails.
-docs-check: crudui-docs-check ## kit: the documents; the doc-coverage gate of the repository is crudui-docs-check
+# crudui-docs-check is the repository's doc-coverage gate (documents AND library packages; either arm RED → non-zero exit).
+# kit's docs-check runs it through the DOCS_CHECKS hook, with check-documents and every other DOCS_CHECKS target, each regardless of the others.
+DOCS_CHECKS += crudui-docs-check
 crudui-docs-check: ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 → 비0 exit)
 	@status=0; \
 	$(MAKE) --no-print-directory docs-check-documents || status=1; \

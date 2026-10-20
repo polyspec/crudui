@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e765d85ae8613f9ef54f7395555ca34ed4d0b14defdeacad83b44bef5fadc60c -->
+<!-- source-sha256: 5ebe36b73d71339fa8f45ba2ced8d9f9a4d8f0122b06a035c288880852d47df4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -190,3 +190,4 @@
 | C16.99 | Rust JsonText 단위 test는 internal이다: 반복 member 규칙은 TypeScript 명세 parser와 Rust JsonText parser에만 묶인다 | config/parity.json | `test "$(make parity-declarations-check > var/parity-gate.log 2>&1; grep -c "R5 undeclared-test rust" var/parity-gate.log)" -eq 3`, `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/text/json.test.ts` | [o] |
 | C16.107 | repository의 PHP file은 phpcs 줄 길이 규칙을 통과한다 | the PHP files that phpcs reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` | [o] |
 | C16.107-1 | repository의 TypeScript file은 oxlint를 통과한다 | the TypeScript files that oxlint reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-ts` | [o] |
+| C16.94 | docs-check는 prerequisite가 아니라 kit K419의 DOCS_CHECKS hook을 통해 저장소의 doc-coverage gate를 실행한다 | Makefile | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts` | [o] |

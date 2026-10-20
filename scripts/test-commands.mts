@@ -32,6 +32,8 @@ export interface ProjectDeclarations {
   composer: Record<string, Scripts>;
   workspaces: Record<string, string>;
   make: Record<string, MakeRule>;
+  /** The targets that the Makefile hooks into a kit target, as `DOCS_CHECKS += target`, by the kit target's name. */
+  hooks?: Record<string, string[]>;
 }
 
 /** A step of a workflow job. */
@@ -287,6 +289,8 @@ export function runsTests(
     } else if (tokens[0] === 'make' || tokens[0] === '$(MAKE)') {
       for (const target of tokens.slice(1).filter(token => !token.startsWith('-') && !token.includes('='))) {
         if (isTestCommand('Makefile', target)) return true;
+        // kit's docs-check runs check-documents and every target of the hook, each regardless of the others.
+        for (const hooked of project.hooks?.[target] ?? []) reached.push([`make ${hooked}`, directory, `make ${hooked}`]);
         const rule = project.make[target];
         if (!rule) continue;
         reached.push(...rule.prerequisites.map((prerequisite): [string, string, string] => [`make ${prerequisite}`, directory, `make ${prerequisite}`]));
@@ -301,6 +305,20 @@ export function runsTests(
     }
   }
   return false;
+}
+
+/** The targets that the Makefile hooks into a kit target: `DOCS_CHECKS += target` gives the target of kit's docs-check. */
+export function makeHooks(text: string): Record<string, string[]> {
+  const hooks: Record<string, string[]> = {};
+  for (const line of text.split('\n')) {
+    const hook = /^DOCS_CHECKS\s*\+=\s*(.+?)\s*$/.exec(line);
+    if (hook) {
+      const [, names] = hook;
+      assert.ok(names !== undefined);
+      hooks['docs-check'] = [...(hooks['docs-check'] ?? []), ...names.split(/\s+/)];
+    }
+  }
+  return hooks;
 }
 
 /** The prerequisites and recipe lines of every Makefile target. */

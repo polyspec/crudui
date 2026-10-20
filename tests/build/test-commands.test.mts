@@ -14,7 +14,8 @@ import { parse } from 'yaml';
 import { isVendored } from '../../scripts/repository-files.mts';
 import { checked, parseJson, manifestSchema, script, type JTDSchemaType, type Manifest } from '../json.mts';
 import {
-  directTestTools, isTestCommand, makeTargets, matchesArgument, nodeScripts, nodeTestArguments, projectCommands, runsTests, workflowJobs,
+  directTestTools, isTestCommand, makeHooks, makeTargets, matchesArgument, nodeScripts, nodeTestArguments, projectCommands, runsTests,
+  workflowJobs,
 } from '../../scripts/test-commands.mts';
 
 /** The prerequisites and recipe lines of a Makefile target. */
@@ -29,6 +30,7 @@ interface Project {
   composer: Record<string, Record<string, string>>;
   workspaces: Record<string, string>;
   make: Record<string, MakeRule>;
+  hooks?: Record<string, string[]>;
 }
 
 /** A command of a project file, by the name of its script, target or step. */
@@ -150,6 +152,7 @@ function declaredCommands(): Project {
       project.composer[directory] = manifestOf(file).scripts ?? {};
     } else if (file === 'Makefile') {
       project.make = targetsOf(read(file));
+      project.hooks = makeHooks(read(file));
     }
   }
   return project;
@@ -218,6 +221,14 @@ function stoppingRecipes(project: Project): string[] {
   }
   return violations;
 }
+
+test('a target that DOCS_CHECKS hooks into kit docs-check reaches the test runner only when it runs tests', () => {
+  const runs = 'DOCS_CHECKS += crudui-tests\ncrudui-tests:\n\tnode node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/x -- src/a.test.ts\n';
+  const quiet = 'DOCS_CHECKS += crudui-lint\ncrudui-lint:\n\tnode scripts/lint.mts\n';
+  const project = (text: string): Project => ({ npm: {}, composer: {}, workspaces: {}, make: makeTargets(text), hooks: makeHooks(text) });
+  assert.equal(runsTests('make docs-check', project(runs)), true);
+  assert.equal(runsTests('make docs-check', project(quiet)), false);
+});
 
 test('a Makefile target runs every check after an earlier check failed', () => {
   const fixture = targetsOf([
