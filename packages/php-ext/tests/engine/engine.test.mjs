@@ -1424,7 +1424,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
-        'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c', 'choice_list.c', 'canonical.c',
+        'messages.c', 'interface_messages.c', 'binding.c', 'history.c', 'view.c', 'html.c', 'render.c', 'key.c', 'form.c', 'choice_list.c', 'canonical.c',
         'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c',
       ],
     });

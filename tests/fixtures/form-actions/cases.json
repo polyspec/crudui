@@ -1,5 +1,576 @@
 [
   {
+    "name": "set-data-rejects-a-root-that-is-not-an-object",
+    "note": "Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.",
+    "requirements": [
+      "CURT-001",
+      "CURP-010",
+      "CURP-012",
+      "CURP-011"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "setData",
+        "args": [
+          "text"
+        ]
+      },
+      {
+        "op": "setData",
+        "args": [
+          null
+        ]
+      },
+      {
+        "op": "setData",
+        "args": [
+          [
+            "a"
+          ]
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "note",
+          "after"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Form data must be an object"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Form data must be an object"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Form data must be an object"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": "after"
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "set-data-rejects-a-group-row-that-is-not-an-object",
+    "note": "A row of a repeated group that holds a text instead of an object fails with the path of the row.",
+    "requirements": [
+      "CURT-002",
+      "CURP-010",
+      "CURP-012",
+      "CURP-011"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "setData",
+        "args": [
+          {
+            "teams": {
+              "__0000000000001__": "x"
+            },
+            "note": ""
+          }
+        ]
+      },
+      {
+        "op": "setData",
+        "args": [
+          {
+            "teams": {
+              "__0000000000009__": {
+                "name": "Gamma"
+              },
+              "__0000000000010__": 5
+            },
+            "note": ""
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Group data must be an object: teams.__0000000000001__"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Group data must be an object: teams.__0000000000010__"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "set-data-rejects-a-repeated-value-that-is-not-a-keyed-object",
+    "note": "A repeated value that is a list or a text instead of a keyed object fails with the path of the value.",
+    "requirements": [
+      "CURT-003",
+      "CURP-010",
+      "CURP-012",
+      "CURP-011"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "setData",
+        "args": [
+          {
+            "teams": [
+              "a"
+            ],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "op": "setData",
+        "args": [
+          {
+            "teams": "x",
+            "note": ""
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Repeated data must be a keyed object: teams"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Repeated data must be a keyed object: teams"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
     "name": "resolve-action-names",
     "note": "An action resolves to a target with a non-empty path and key; an unknown or empty action resolves to nothing.",
     "requirements": [

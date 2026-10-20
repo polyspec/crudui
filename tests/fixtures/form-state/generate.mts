@@ -128,6 +128,30 @@ const all: Case[] = [
     ],
   }),
   session({
+    name: 'set-data-rejects-a-root-that-is-not-an-object',
+    note: 'Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.',
+    requirements: ['CURT-001'],
+    steps: [step('setData', 'text'), step('setData', null), step('setData', ['a']), step('setValue', 'note', 'after')],
+  }),
+  session({
+    name: 'set-data-rejects-a-group-row-that-is-not-an-object',
+    note: 'A row of a repeated group that holds a text instead of an object fails with the path of the row.',
+    requirements: ['CURT-002'],
+    steps: [
+      step('setData', { teams: { [k(1)]: 'x' }, note: '' }),
+      step('setData', { teams: { [k(9)]: { name: 'Gamma' }, [k(10)]: 5 }, note: '' }),
+    ],
+  }),
+  session({
+    name: 'set-data-rejects-a-repeated-value-that-is-not-a-keyed-object',
+    note: 'A repeated value that is a list or a text instead of a keyed object fails with the path of the value.',
+    requirements: ['CURT-003'],
+    steps: [
+      step('setData', { teams: ['a'], note: '' }),
+      step('setData', { teams: 'x', note: '' }),
+    ],
+  }),
+  session({
     name: 'undo-and-redo-restore-the-record',
     note: 'Undo restores the record before the change and redo reapplies it; each changes the revision; nothing to undo or redo fails.',
     requirements: ['CURT-011', 'CURT-012', 'CURT-061', 'CURT-067', 'CURT-004'],

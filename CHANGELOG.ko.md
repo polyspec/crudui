@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e02070de77087df11858df291282cf700847ab581d22401a1869e8fc7586026c -->
+<!-- source-sha256: 808cfc589114f466988ba76fb0e57be2ac1f1bca149f628a89e6f4ced0104c68 -->
 
 ## Unreleased
 
@@ -12,6 +12,12 @@
 
 - kit copy는 `.oxlintrc.json`(preserve-caught-error, K334), `phpcs.xml.dist`(Generic.PHP.NoSilencedErrors, K334), `PRINCIPLES.md`와 `PRINCIPLES.ko.md`(gate `suppression-check`, K334), `scripts/kit/bootstrap/install-mise.mts`(worktree의 공유 install, K387, 전역 설정 root의 신뢰, K397-1), `config/commit-identity.json`(commit identity, K405), 생성된 hook `.githooks/prepare-commit-msg`(K380-2, K380-3)입니다. 이 copy들은 kit 0.0.54(9b8b4444)의 것이며, `make kit-sync`와 `make hooks`가 가져옵니다(C16.112). Makefile은 `CHECK_TARGETS`에 `suppression-check`를 더하고(K334), svelte 도구 install 뒤에 link를 둡니다(K349). gate를 위해 코드를 고쳤습니다. Rust `#[allow]` 16곳은 줄마다 이유를 한 줄에 둡니다(gate는 한 줄을 읽습니다). Python `noqa`와 `eslint-disable` 2곳은 gate의 형식으로 이유를 적습니다. `FormTest.php`는 `@` 대신 libxml 오류 처리로 `loadHTML`을 읽고, `scripts/repository-files.mts`의 새 오류는 cause를 가집니다. 검사: `make kit-check`, `make suppression-check`, `make lint-php`, `make lint-ts`, `make lint-rust`, `make lint-python`과 `repository-files.mts`의 owner test가 exit 0입니다. `make link-state-check`는 다른 worktree에 남은 병합된 branch 17개를 보고하고(`make worktree-prune`), `make layout-check`와 `make rules-check`는 main이 가진 finding을 보고합니다(루트의 link file과 C16.79의 `tests/native-generators/programs/go/main_test.go`, C16.68의 `AGENTS.md:18`).
 - `config/layout.kit.yml`은 link 출력 `composer.link.json`과 `composer.link.lock`을 root 파일로 선언하므로(K423, kit 03c3c405) link된 worktree도 main처럼 `make layout-check`를 통과하며, `config/owner-checks.json`은 `config/commit-identity.json`을 kit의 다른 사본과 함께 소유합니다(C16.112).
+
+### 2026-10-21 — form state 세션이 setData의 바인딩 데이터 오류를 시험한다 (C16.57-13)
+
+- `tests/fixtures/form-state/generate.mts`에 바인딩이 거부하는 데이터로 record를 바꾸는 세션 세 개를 추가합니다. root가 text, `null` 또는 list인 경우(CURT-001, `Form data must be an object`), group row가 text인 경우(CURT-002, `Group data must be an object: teams.{key}`), 반복 값이 list 또는 text인 경우(CURT-003, `Repeated data must be a keyed object: teams`)입니다. reference는 코드 `INVALID_FORM_INPUT`과 메시지를 기록하며, record와 history는 그대로 남습니다. `tests/fixtures/form-actions/cases.json`에 이 case 세 개가 추가되며(9개에서 12개), `config/parity.json`의 `form-actions` unit이 CURT-001, CURT-002, CURT-003을 인용합니다.
+- PHP extension의 form state engine 테스트는 form 함수가 링크하는 `history.c`와 `view.c`를 소스 목록에 포함합니다.
+- Red: PHP library의 `Form::setData`는 매개변수 타입이 `array|stdClass`이므로 text나 `null`에 대해 PHP TypeError를 던집니다. 이 결함은 C16.57-13-1로 등록되었습니다.
 
 ### 2026-10-21 — TypeScript file이 oxlint를 통과한다 (C16.107-1)
 
