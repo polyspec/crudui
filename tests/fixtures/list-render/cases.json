@@ -136,6 +136,7 @@
     "name": "format-number",
     "note": "number format → decimals + thousands + i18n prefix affix (§9.2).",
     "requirements": [
+      "CUDF-003",
       "CUDF-006",
       "CUDF-009",
       "CUDF-016",

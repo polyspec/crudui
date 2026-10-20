@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c3986cbb4d269b3fc5171397a8e28dfec014696c8e7cb874c2851a2dbcc713bc -->
+<!-- source-sha256: e8c74c8672b1876333e55a57f5b7d645ded33a029382f3bdc15bb8572e586774 -->
 
 ## Unreleased
 
@@ -22,6 +22,10 @@
 | packages/generator/php/tests/Internal/InterfaceMessagesTest.php | internal (php) | 생성된 PHP 소스가 생성 스크립트의 출력과 같다. 메시지 계약은 interface-messages unit이다 |
 
 Red: `make item-red ID=C16.155 BEFORE=69bd6b3b`가 exit 1로, 위 파일의 `R5 undeclared-test` 줄 여섯 개와 함께 실패한다. green: Verification이 exit 0으로 끝나고, 여섯 줄이 사라지며, 새 줄은 나타나지 않고, `make parity-declarations-check`의 findings가 61에서 55로 줄어든다.
+### 2026-10-21 — CUDF-003은 display를 보이는 마크업을 가진 list-render case가 전부 인용한다 (C16.153)
+
+- `tests/fixtures/list-render/generate.mts`가 case `format-number`에 CUDF-003을 인용한다 (C16.153). 그 열은 서식이 적용되어 원시 값 `1234567.5`가 `$1,234,567.50`으로 쓰이므로, 마크업이 레코드가 아니라 렌더러가 display를 썼음을 보인다. `tests/fixtures/list-render/cases.json`에 그 requirement가 하나 더해지며, `config/parity.json`의 list-render unit이 CUDF-003을 인용한다. Red: `make item-red ID=C16.153` exit 0, Verification이 aee613a9에서 실패하며 R13 줄 `untraced-requirement: docs/spec/display-formats.md defines CUDF-003`이 나온다. Green: 여섯 list-render runner가 fixture를 통과한다(TypeScript `list-conformance.test.ts`, Go `TestListRenderSuite` 166 passed, Python `test_render.py` 3 passed, Rust `list_render` 1 passed, PHP와 PHP 확장 `ListRenderConformanceTest` 166 tests OK). `make -s parity-declarations-check`는 CUDF-003 줄만 사라진다(변경 전 60 findings, 후 59 findings).
+
 ### 2026-10-21 — CURP-025는 여섯 runner가 통과하는 form-actions case가 전부 인용한다 (C16.152)
 
 - `tests/fixtures/form-state/generate.mts`에 세션 `record-keeps-member-order-and-distinct-empty-values`를 추가한다 (CURP-025, C16.152). 명세의 순서와 다른 멤버와 행 순서, 없는 `members`, 빈 객체, 빈 배열(거부됨), null 값, 그 뒤의 편집을 가진 `setData`다. case는 CURP-025의 각 절을 보인다. 멤버 순서가 유지된다(runner가 데이터의 JSON 텍스트를 비교한다), 배열은 배열로 남는다(목록은 거부됨), 없음, null, `{}`, `[]`가 구분된다, 데이터에 identity나 순서 필드가 나타나지 않는다. `tests/fixtures/form-actions/cases.json`을 재생성하고, `config/parity.json`의 form-actions unit이 CURP-025를 인용한다. Red: `make item-red ID=C16.152` exit 0, Verification이 907530ff에서 실패하며 R13 줄 `untraced-requirement: docs/spec/runtime-packages.md defines CURP-025`이 나온다. Green: TypeScript(`src/form-state.test.ts`, 39 passed), Go(`TestFormActions`, ok), Python(`tests/test_form_state.py`, 4 passed), Rust(`--test form_state`, 4 passed), PHP(`FormStateTest`, 39 tests OK), PHP 확장(`make test-php-ext CASES="FormStateTest"`, 39 tests OK) runner가 모두 통과한다. `make -s parity-declarations-check`는 CURP-025 줄만 사라지고 다른 줄은 그대로다(변경 전 61 findings, 후 60 findings).
