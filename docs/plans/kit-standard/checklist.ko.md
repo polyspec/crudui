@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ac9e9048bec1d033e27fb7590379acaba2551e558c1ef3cb0072ff10d42554b8 -->
+<!-- source-sha256: c67dcb33abd7418eba384231aa6cd28d68bb38461f71dc1325c4a0f1271a3780 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -247,3 +247,4 @@
 | C16.133 | form template shape CURT-092는 tests/fixtures/template-shape를 읽는 suite unit이며 TypeScript, Go, Rust, PHP, PHP extension, Python generator에 binding한다. TypeScript decodeFormTemplate test는 TypeScript의 internal이다 | config/parity.json (suite unit template-shape, decode-template.test.ts internal of ts, go internal entry removed) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16133-pd.log 2>&1; grep -q 'check the units against the tree' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16133-pd.log && ! grep -E 'R13 untraced-requirement: docs/spec/form-runtime.md defines CURT-092\|R5 undeclared-test ts packages/generator/ts/src/decode-template\\.test\\.ts:\|R16 internal-contract go packages/generator/go/template_shape_test\\.go' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16133-pd.log` | [o] |
 | C16.126 | Go validator의 benchmark driver는 구현이 아닌 harness이므로, parity 검사의 tools root에 선언한다 | config/parity.json (tools root benchmarks) | `sh -c 'make -s parity-declarations-check > var/c16126-pd.log 2>&1; ! grep -E "R6 misplaced-test benchmarks/validators/go/main_test\.go:" var/c16126-pd.log'` | [o] |
 | C16.126-1 | PHP extension의 API test는 php-extension의 internal이다. API와 value-limit test는 PHP만 가진 것을 검사하고, fixture 비교는 validate와 text-validity unit이 덮는다 | config/parity.json (php-extension internal entry) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16126-1-pd.log 2>&1; ! grep -E 'R5 undeclared-test php-extension packages/php-ext/tests/ApiTest\.php:' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16126-1-pd.log` | [o] |
+| C16.136 | interface message와 Unicode data의 생성된 Go table을 Go module이 배포하므로 생성 파일 예외로 선언한다 | config/generated.json | `make layout-check` | [o] |

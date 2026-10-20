@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 67ed5258600c62ac5784455d9214cefb81f228011e297a614c5c57e7dc831955 -->
+<!-- source-sha256: e6293ba741b490696016bf0616b114e11bb1f1dcf31d0f078c36cc962c026c6f -->
 
 ## Unreleased
+
+### 2026-10-21 — 생성된 Go table은 생성 파일 예외로 선언한다 (C16.136)
+
+- `config/generated.json`: 예외 `packages/generator/go/interface_messages.go`와 `packages/validator/go/validator/validate/unicode_data.go`는 `go generate`가 `contracts/interface-messages.json`과 `contracts/unicode-properties.json`에서 쓰는 두 Go table을 선언합니다(C16.136). `go get`은 generator를 실행하지 않으므로(S6) Go module이 이 파일들을 배포하며, 그래서 추적합니다. 다른 언어의 생성 table에는 생성 파일 header가 없어 표시되지 않습니다. schema는 glob만 허용하므로 이유는 여기에 기록합니다. Red: 2bf1b1b5에서 `make layout-check` exit 2, 두 파일 모두 `has a generated-file header (Code generated ... DO NOT EDIT)`. Green: `make layout-check` exit 0, `no tracked file is generated`.
 
 ### 2026-10-21 — Go validator의 benchmark driver는 tools root이다 (C16.126)
 

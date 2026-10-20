@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The generated Go tables are declared generated-file exceptions (C16.136)
+
+- `config/generated.json`: the exceptions `packages/generator/go/interface_messages.go` and `packages/validator/go/validator/validate/unicode_data.go` declare the two Go tables that `go generate` writes from `contracts/interface-messages.json` and `contracts/unicode-properties.json` (C16.136). A Go module ships them, because `go get` runs no generator (S6), so they are tracked on purpose. The other languages' generated tables carry no generated-file header, and so are not flagged. The schema allows globs only, so the reason is recorded here. Red: `make layout-check` exit 2 on 2bf1b1b5, `has a generated-file header (Code generated ... DO NOT EDIT)` for both files. Green: `make layout-check` exit 0, `no tracked file is generated`.
+
 ### 2026-10-21 — The benchmark driver of the Go validator is a tools root (C16.126)
 
 - `config/parity.json` declares `benchmarks` a tools root, the harness of the validator benchmarks, which times the validators and tests no contract. The Go test of its driver, `benchmarks/validators/go/main_test.go`, is no longer reported as a misplaced test (R6).

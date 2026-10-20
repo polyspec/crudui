@@ -35,5 +35,8 @@
     ".form-comparison/**",
     "*.plist"
   ],
-  "exceptions": []
+  "exceptions": [
+    "packages/generator/go/interface_messages.go",
+    "packages/validator/go/validator/validate/unicode_data.go"
+  ]
 }
