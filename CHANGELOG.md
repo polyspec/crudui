@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The install targets in the ci-local test (C16.7-5)
+
+- The preparation pattern of `tests/build/ci-local.test.mts` accepts a `make` line of `install-` and `crudui-install-` targets, the names that K246 gave the install targets of the Makefile and the workflow (C16.7-5). Red: 4 tests failed because every `make crudui-install-*` step counted as a checking command (`make ci runs every checking command`, `every job runs its checks through make ci-targets`, `every checking step of the CI workflow runs after an earlier failure`, `a workflow command missing from make ci is reported`); green: the same 4 tests pass.
+
 ### 2026-10-20 — The testing guide stamp (C16.7-4)
 
 - `docs/operations/testing.ko.md` carries the sha256 of `testing.md` after C16.7-2 changed both together and its twin was compared with the English text (C16.7-4). Red: `check-documents.mjs` reported 1 revision finding; green: 81 document pairs pass.

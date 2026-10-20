@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 29138a99d4f21a37ac6ea3b968f8c77bc6dd807507cae1edee533b765e1a6a68 -->
+<!-- source-sha256: 0d843cbca54032a795a794daf55ff416c388f76f03f8a4d2ee9be158b1cbaa6a -->
 
 ## Unreleased
+
+### 2026-10-20 — ci-local test의 install target (C16.7-5)
+
+- `tests/build/ci-local.test.mts`의 준비 pattern은 `install-`과 `crudui-install-` target의 `make` 줄을 받아들입니다. K246이 Makefile과 workflow의 install target에 붙인 이름입니다 (C16.7-5). Red: 모든 `make crudui-install-*` step이 검사 명령으로 세어져 test 4건이 실패했고(`make ci runs every checking command`, `every job runs its checks through make ci-targets`, `every checking step of the CI workflow runs after an earlier failure`, `a workflow command missing from make ci is reported`), green: 같은 4건이 통과합니다.
 
 ### 2026-10-20 — testing guide stamp (C16.7-4)
 

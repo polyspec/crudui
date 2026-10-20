@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 807451b9f07160134024f807f2c909d6b0e764b69528a32f59545a1a188a09ad -->
+<!-- source-sha256: 1a8481082f722819c0b9b358d9c95eefed2f8a56b68e4a1db1b96527a66043dd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -15,6 +15,7 @@
 | C16.7-2 | AGENTS.md는 전체 suite가 CI에서만 실행된다는 kit 규칙을 적는다 (make ci, full-run guard, rerun-failed 없음) | AGENTS.md, AGENTS.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md | `make rules-check`, `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
 | C16.7-3 | Makefile에 kit의 제거된 full-run 도구가 필요한 target(ci, check, crudui-check, rerun-failed)이 없다 | Makefile, tests/build/ci-local.test.mts, CHECK_TARGETS | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [ ] |
 | C16.7-4 | 한국어 testing guide는 검토한 영어 원문의 hash를 담는다 | docs/operations/testing.ko.md | `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
+| C16.7-5 | ci-local test는 crudui-install target을 준비 step으로 인식한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="make ci runs every checking command\|every job runs its checks through\|every checking step of the CI\|a workflow command missing" tests/build/ci-local.test.mts` | [o] |
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |

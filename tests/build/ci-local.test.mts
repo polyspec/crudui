@@ -74,7 +74,7 @@ function field(value: unknown, key: string): unknown {
 
 // Steps that prepare a runner rather than check the repository.
 const preparation = [
-  /^make (?:install-[\w-]+(?: |$))+(?:[A-Z]+="[^"]*")?$/,
+  /^make(?: (?:crudui-)?install-[\w-]+)+(?: [A-Z]+="[^"]*")?$/,
   /^make check-ci-browser$/,
   /^make toolchain-check TOOLS=(?:"[^"]*"|\S+)$/,
   /^sudo apt-get install -y --no-install-recommends nginx$/,
