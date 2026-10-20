@@ -42,15 +42,13 @@ numeric member names there.
 A form root is a `group` with a `properties` field map. Property names define
 data paths. A field separates structure, content and behavior as follows:
 
-| Category | Keys | Contract |
-| --- | --- | --- |
-| Structure | `type`, `name`, `default`, `properties`, `items`, `multiple`, `lang` | Define values, nested groups, choices and repetition. |
-| Content | `label`, `description`, `placeholder`, `prepend`, `append`, `help`, `content` | Accept text or a language map. `content` is the control text of a button or action field. |
-| Validation | `validate`, `messages` | `validate` defines rules; `messages` overrides a rule's error message by rule name. |
-| Appearance | `design` | Define visibility and styles for specific DOM nodes. |
-| Behavior | `behavior` | Preserve event scripts without expression evaluation. |
-| Type options | `options` | Store settings that apply to one widget type. |
-| Composition | `$ref`, `$patch` | Load, merge and modify field definitions before binding data. |
+- **CUSC-001** Structure — Keys: `type`, `name`, `default`, `properties`, `items`, `multiple`, `lang`; Contract: Define values, nested groups, choices and repetition.
+- **CUSC-002** Content — Keys: `label`, `description`, `placeholder`, `prepend`, `append`, `help`, `content`; Contract: Accept text or a language map. `content` is the control text of a button or action field.
+- **CUSC-003** Validation — Keys: `validate`, `messages`; Contract: `validate` defines rules; `messages` overrides a rule's error message by rule name.
+- **CUSC-004** Appearance — Keys: `design`; Contract: Define visibility and styles for specific DOM nodes.
+- **CUSC-005** Behavior — Keys: `behavior`; Contract: Preserve event scripts without expression evaluation.
+- **CUSC-006** Type options — Keys: `options`; Contract: Store settings that apply to one widget type.
+- **CUSC-007** Composition — Keys: `$ref`, `$patch`; Contract: Load, merge and modify field definitions before binding data.
 
 Content is resolved to text for the display language in the same way in every runtime, for form
 fields and for list and detail display settings alike. A string is itself. A language map yields
@@ -103,11 +101,9 @@ volume:
 Compilation checks a range field after its `behavior` and fails with `INVALID_FORM_INPUT` and an
 empty location. Multiples are decided exactly, as the `step` rule decides them.
 
-| Declaration | Message |
-| --- | --- |
-| `validate.range` absent, or not two finite numbers with the minimum not above the maximum | `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum` |
-| `validate.step` absent, or not a finite number above 0 | `Invalid validate.step at {path}: expected a finite number above 0` |
-| A minimum that is not a multiple of the step | `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step` |
+- **CUSC-008** `validate.range` absent, or not two finite numbers with the minimum not above the maximum: `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum`
+- **CUSC-009** `validate.step` absent, or not a finite number above 0: `Invalid validate.step at {path}: expected a finite number above 0`
+- **CUSC-010** A minimum that is not a multiple of the step: `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step`
 
 ## Conditions and appearance
 
@@ -146,11 +142,9 @@ Only form fields accept attributes. A form button, list or detail design and the
 `design.wrapper.attributes` after the wrapper's `class` and `style`. It checks every name in
 declaration order and then every value, and fails with `INVALID_FORM_INPUT` and an empty location:
 
-| Declaration | Message |
-| --- | --- |
-| Not an object | `Invalid design.attributes at {path}: expected an object` |
-| A name outside the rule or a refused name | `Invalid design.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
-| A value that is not a string | `Invalid design.attributes.{name} at {path}: expected a string` |
+- **CUSC-011** Not an object: `Invalid design.attributes at {path}: expected an object`
+- **CUSC-012** A name outside the rule or a refused name: `Invalid design.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write`
+- **CUSC-013** A value that is not a string: `Invalid design.attributes.{name} at {path}: expected a string`
 
 Under the wrapper the key is `design.wrapper.attributes`.
 
@@ -159,16 +153,16 @@ Under the wrapper the key is `design.wrapper.attributes`.
 A `group` field declares the layout of the fields inside it with `design.layout`, a literal string,
 not an expression or a condition map:
 
-- `inline`: every field node inside the group, at any depth, is one row. The label column, whose
+- **CUSC-014** `inline`: every field node inside the group, at any depth, is one row. The label column, whose
   width is `--crudui-label-width`, holds the label; the control column holds the control, the
   description below it and the errors. A field without a label leaves the label column empty, so
   the controls of all rows align. Group, collection and language nodes keep the stacked layout and
   pass the inline layout to the field nodes inside them. The rows of a repeated scalar field and
   the items of a language field are not field nodes and stay stacked.
-- `line`: the child nodes of the group sit side by side on one line, for example a select followed
+- **CUSC-015** `line`: the child nodes of the group sit side by side on one line, for example a select followed
   by small buttons. In an inline layout the group is one row: its label is in the label column and
   the line in the control column. The child nodes of a line take no inline layout.
-- `stacked`: the label above the control, the layout of a form without a declaration. A group
+- **CUSC-016** `stacked`: the label above the control, the layout of a form without a declaration. A group
   declares it to end an inline layout it would inherit.
 
 A group without `design.layout` inherits the layout of the enclosing group. A repeated group accepts
@@ -196,11 +190,9 @@ fails with `INVALID_FORM_INPUT` and an empty location. The form root takes no la
 checks its `design.layout` after its `buttons`. The JSON Schema describes a field declaration, so it
 checks the root as a group and leaves the root's layout to compilation.
 
-| Declaration | Message |
-| --- | --- |
-| `design.layout` of a field that is not a group, of a form button or of the form root | `Invalid design.layout at {path}: unknown key`, where `{path}` is `form` for the root |
-| A value other than `stacked`, `inline` or `line` | `Invalid design.layout at {path}: expected stacked, inline or line` |
-| `line` on a repeated group | `Invalid design.layout at {path}: expected stacked or inline` |
+- **CUSC-017** `design.layout` of a field that is not a group, of a form button or of the form root: `Invalid design.layout at {path}: unknown key`, where `{path}` is `form` for the root
+- **CUSC-018** A value other than `stacked`, `inline` or `line`: `Invalid design.layout at {path}: expected stacked, inline or line`
+- **CUSC-019** `line` on a repeated group: `Invalid design.layout at {path}: expected stacked or inline`
 
 The [expression grammar](expressions.md) defines the tokenizer, parser
 and evaluator. Supported expressions include relative paths, wildcards, lists,
@@ -242,13 +234,13 @@ accept the same choice list.
 
 Choose the form by the required order:
 
-- A value-to-label map lists its values in [member order](#member-order), so integer-like values
+- **CUSC-020** A value-to-label map lists its values in [member order](#member-order), so integer-like values
   come first in ascending numeric order: `{ "1": "Yes", "0": "No" }` displays No before Yes. Use a
   map when that order is the required order, for example for values that are not integer-like.
-- A choice list keeps the written order for any values: `[{ "value": 1, "label": "Yes" },
+- **CUSC-021** A choice list keeps the written order for any values: `[{ "value": 1, "label": "Yes" },
   { "value": 0, "label": "No" }]` displays Yes before No. Use it when the values are integer-like or
   mixed and the written order is required.
-- An array of labels keeps the written order with the indexes `0`, `1`, … as the values.
+- **CUSC-022** An array of labels keeps the written order with the indexes `0`, `1`, … as the values.
 
 ### Choice groups
 
@@ -317,12 +309,10 @@ Binding checks the appearance after the choice list rules, choice by choice in l
 each choice `class`, `style` and then `attributes`, every name before every value. It fails with
 `INVALID_FORM_INPUT` and an empty location; `{index}` is the zero-based position of the choice:
 
-| Declaration | Message |
-| --- | --- |
-| A `class` or `style` that is not a string | `Invalid items.{index}.{member} at {path}: expected a string` |
-| `attributes` that is not an object | `Invalid items.{index}.attributes at {path}: expected an object` |
-| A name outside the rule or a refused name | `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
-| A value that is not a string | `Invalid items.{index}.attributes.{name} at {path}: expected a string` |
+- **CUSC-023** A `class` or `style` that is not a string: `Invalid items.{index}.{member} at {path}: expected a string`
+- **CUSC-024** `attributes` that is not an object: `Invalid items.{index}.attributes at {path}: expected an object`
+- **CUSC-025** A name outside the rule or a refused name: `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write`
+- **CUSC-026** A value that is not a string: `Invalid items.{index}.attributes.{name} at {path}: expected a string`
 
 ## Composition and validation
 
@@ -356,17 +346,15 @@ A list without `columns` fails with `List specification must declare columns`, a
 [display format declarations](display-formats.md#declarations) define the checks of every list and
 detail declaration.
 
-| Format | Settings |
-| --- | --- |
-| `text` | `truncate` |
-| `date` | `pattern` |
-| `number` | `decimals`, `thousands`, `prefix`, `suffix` |
-| `badge` | Value-to-variant `map` and translated labels |
-| `link` | `href`, `target`, `text` |
-| `choice-label` | `items` |
-| `bool` | `true` and `false` labels, `as` |
-| `image` | `width`, `height`, `alt` |
-| `html` | Unescaped display HTML |
+- **CUSC-027** `text`: `truncate`
+- **CUSC-028** `date`: `pattern`
+- **CUSC-029** `number`: `decimals`, `thousands`, `prefix`, `suffix`
+- **CUSC-030** `badge`: Value-to-variant `map` and translated labels
+- **CUSC-031** `link`: `href`, `target`, `text`
+- **CUSC-032** `choice-label`: `items`
+- **CUSC-033** `bool`: `true` and `false` labels, `as`
+- **CUSC-034** `image`: `width`, `height`, `alt`
+- **CUSC-035** `html`: Unescaped display HTML
 
 `format` accepts a type string or an object; absent, `false` and `true` select
 text. Format-specific settings stay in that object. [Display formats](display-formats.md)
@@ -408,11 +396,11 @@ preload links before the definition list.
 
 ## Acceptance criteria
 
-1. Resolve composition before evaluating fields and report missing references.
-2. Keep structure, content, validation, appearance and widget options separate.
-3. Evaluate conditions with the expression parser, without JavaScript evaluation.
-4. Preserve language input values independently of the display language.
-5. Compare shared validation cases in four languages and SSR output in three
+1. **CUSC-036** Resolve composition before evaluating fields and report missing references.
+2. **CUSC-037** Keep structure, content, validation, appearance and widget options separate.
+3. **CUSC-038** Evaluate conditions with the expression parser, without JavaScript evaluation.
+4. **CUSC-039** Preserve language input values independently of the display language.
+5. **CUSC-040** Compare shared validation cases in four languages and SSR output in three
    frameworks; verify editable form behavior with mounted views.
 
 Repeated fields accept `multiple.min` and `multiple.max` as numeric row-count
@@ -438,28 +426,26 @@ text only from `content`; `text` is not a field compatibility key. A form withou
 button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 [form markup](form-markup.md)).
 
-| Key | Accepted value |
-| --- | --- |
-| `multiple` | Boolean, `only` or object |
-| `multiple.only` | Boolean |
-| `multiple.min`, `multiple.max` | Number |
-| `multiple.copy`, `multiple.sortable` | Boolean |
-| `multiple.title` | Name of a direct child of a repeated group that is not repeated, not a group and has no `lang` |
-| `multiple.controls` | `header`, `footer` or `outline` |
-| `multiple.header` | `static` or `sticky` |
-| `lang` | Boolean or object |
-| `lang.only` | List of language-code strings or object |
-| `design` | Boolean or object |
-| `content` | Text or a language map; the control text of a button or action field |
-| `messages` | Object of registered rule name to message string |
-| `buttons` | List of buttons (`type`: `submit`, `reset`, `button` or `link`); the form root only |
-| `action` | Object with string `method`, `url` and `enctype`; the form root only |
-| `design.show` | Expression, boolean or condition map |
-| `design.class`, `design.style` | String or condition map |
-| `design.label`, `design.wrapper`, `design.group`, `design.prepend` | Object |
-| `class` and `style` of those nodes | String or condition map |
-| `design.attributes`, `design.wrapper.attributes` | Object of a `data-*` or `aria-*` name to a string; form fields only ([declared attributes](#declared-attributes)) |
-| `design.layout` | `stacked`, `inline` or `line`; group fields only ([layout](#layout)) |
+- **CUSC-041** `multiple`: Boolean, `only` or object
+- **CUSC-042** `multiple.only`: Boolean
+- **CUSC-043** `multiple.min`, `multiple.max`: Number
+- **CUSC-044** `multiple.copy`, `multiple.sortable`: Boolean
+- **CUSC-045** `multiple.title`: Name of a direct child of a repeated group that is not repeated, not a group and has no `lang`
+- **CUSC-046** `multiple.controls`: `header`, `footer` or `outline`
+- **CUSC-047** `multiple.header`: `static` or `sticky`
+- **CUSC-048** `lang`: Boolean or object
+- **CUSC-049** `lang.only`: List of language-code strings or object
+- **CUSC-050** `design`: Boolean or object
+- **CUSC-051** `content`: Text or a language map; the control text of a button or action field
+- **CUSC-052** `messages`: Object of registered rule name to message string
+- **CUSC-053** `buttons`: List of buttons (`type`: `submit`, `reset`, `button` or `link`); the form root only
+- **CUSC-054** `action`: Object with string `method`, `url` and `enctype`; the form root only
+- **CUSC-055** `design.show`: Expression, boolean or condition map
+- **CUSC-056** `design.class`, `design.style`: String or condition map
+- **CUSC-057** `design.label`, `design.wrapper`, `design.group`, `design.prepend`: Object
+- **CUSC-058** `class` and `style` of those nodes: String or condition map
+- **CUSC-059** `design.attributes`, `design.wrapper.attributes`: Object of a `data-*` or `aria-*` name to a string; form fields only ([declared attributes](#declared-attributes))
+- **CUSC-060** `design.layout`: `stacked`, `inline` or `line`; group fields only ([layout](#layout))
 
 Compilation checks fields in declaration order, each field before its children.
 The schema closes `multiple`, `lang`, `design`, the design nodes and `behavior`: a key they do

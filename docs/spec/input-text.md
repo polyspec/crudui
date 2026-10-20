@@ -10,12 +10,10 @@ never replaced, for example with U+FFFD, and never passed on to a result.
 
 ## Invalid text
 
-| Runtime value | Invalid text |
-| --- | --- |
-| JavaScript string | A surrogate code unit that is not part of a high and low pair |
-| PHP, Go and C string | Bytes that are not UTF-8, including an encoded surrogate, an overlong form and a value above U+10FFFF |
-| Rust `String` | None; the type holds only Unicode scalar values |
-| JSON text | A `\u` escape of a surrogate that is not part of a high and low pair, such as `"\ud800"` or the reversed pair `"\udc00\ud800"` |
+- **CUIT-001** JavaScript string: A surrogate code unit that is not part of a high and low pair
+- **CUIT-002** PHP, Go and C string: Bytes that are not UTF-8, including an encoded surrogate, an overlong form and a value above U+10FFFF
+- **CUIT-003** Rust `String`: None; the type holds only Unicode scalar values
+- **CUIT-004** JSON text: A `\u` escape of a surrogate that is not part of a high and low pair, such as `"\ud800"` or the reversed pair `"\udc00\ud800"`
 
 The rule covers every string value and every object member name at any depth. Numbers,
 booleans and `null` hold no text.
@@ -25,25 +23,23 @@ booleans and `null` hold no text.
 Each operation checks its text before any other check, including the argument shape checks.
 It checks, in this order:
 
-1. The specification, then the composition files it reads.
-2. Its other arguments, in the order of the table.
-3. Its options, in code point order of their names.
+1. **CUIT-005** The specification, then the composition files it reads.
+2. **CUIT-006** Its other arguments, in the order of the table.
+3. **CUIT-007** Its options, in code point order of their names.
 
-| Operation | Specification | Other arguments | Options |
-| --- | --- | --- | --- |
-| `validate` | `spec`, `files` | `data` | `basepath` |
-| `validateList`, `validateDetail` | `spec`, `files` | | `basepath` |
-| `compileForm` | `spec`, `files` | | `basepath`, `keyPrefix` |
-| `bindForm`, `bindButtons`, `createForm` | | `template`, `data` | `idPrefix`, `keyPrefix`, `language`, `unsupported` |
-| `buildList`, `renderList` | `spec`, `files` | `rows` | `basepath`, `data`, `language`, `layout` |
-| `buildDetail`, `renderDetail` | `spec`, `files` | `record` | `basepath`, `data`, `language`, `layout` |
-| Form `setData` | | `data` | |
-| Form `setValue` | | `path`, `value` | |
-| Form `getValue` | | `path` | |
-| Form `addRow` | | `path` | `afterKey`, `key`, `value` |
-| Form `copyRow` | | `path`, `key` | `afterKey`, `key` |
-| Form `removeRow`, `moveRow` | | `path`, `key` | |
-| Form `rekeyRow` | | `path`, `oldKey`, `newKey` | |
+- **CUIT-008** `validate` — Specification: `spec`, `files`; Other arguments: `data`; Options: `basepath`
+- **CUIT-009** `validateList`, `validateDetail` — Specification: `spec`, `files`; Options: `basepath`
+- **CUIT-010** `compileForm` — Specification: `spec`, `files`; Options: `basepath`, `keyPrefix`
+- **CUIT-011** `bindForm`, `bindButtons`, `createForm` — Other arguments: `template`, `data`; Options: `idPrefix`, `keyPrefix`, `language`, `unsupported`
+- **CUIT-012** `buildList`, `renderList` — Specification: `spec`, `files`; Other arguments: `rows`; Options: `basepath`, `data`, `language`, `layout`
+- **CUIT-013** `buildDetail`, `renderDetail` — Specification: `spec`, `files`; Other arguments: `record`; Options: `basepath`, `data`, `language`, `layout`
+- **CUIT-014** Form `setData` — Other arguments: `data`
+- **CUIT-015** Form `setValue` — Other arguments: `path`, `value`
+- **CUIT-016** Form `getValue` — Other arguments: `path`
+- **CUIT-017** Form `addRow` — Other arguments: `path`; Options: `afterKey`, `key`, `value`
+- **CUIT-018** Form `copyRow` — Other arguments: `path`, `key`; Options: `afterKey`, `key`
+- **CUIT-019** Form `removeRow`, `moveRow` — Other arguments: `path`, `key`
+- **CUIT-020** Form `rekeyRow` — Other arguments: `path`, `oldKey`, `newKey`
 
 The names are the documented argument and option names; each runtime's own spelling, such as
 `KeyPrefix` in Go or `key_prefix` in Rust, reports the same name. An option that the caller does
@@ -62,9 +58,9 @@ than one place of one value: through sharing, through a PHP reference, or becaus
 itself. The walk visits such a container at every place, as the tree holds it there. A value is
 beyond its limits when:
 
-- it holds more than 1,000,000 nodes, where each array, object, string, number, boolean and
+- **CUIT-021** it holds more than 1,000,000 nodes, where each array, object, string, number, boolean and
   `null` of the tree is a node, the value itself included; or
-- it nests more than 512 levels of arrays and objects, the value itself being the first level.
+- **CUIT-022** it nests more than 512 levels of arrays and objects, the value itself being the first level.
 
 A value that contains itself nests without end, so it is always beyond them. The walk stops at
 the first failure in its order, so it visits at most 1,000,001 nodes whatever tree a value
@@ -88,35 +84,33 @@ that the markup does not read. There the failure is the value failure
 
 A failure in the specification or a composition file is a composition load failure:
 
-- code `INVALID_TEXT`;
-- message `Text must be Unicode scalar values`;
-- location: the path of the string joined with `.`, where an array item is its index. An invalid
+- **CUIT-023** code `INVALID_TEXT`;
+- **CUIT-024** message `Text must be Unicode scalar values`;
+- **CUIT-025** location: the path of the string joined with `.`, where an array item is its index. An invalid
   member name is located at the object that holds it. In a file, the path starts with the file
   name. An invalid file name, and an invalid member name of the specification root, are located
   at the empty path.
 
 A failure in any other argument or option is an input failure:
 
-- code `INVALID_FORM_INPUT`;
-- message `Text must be Unicode scalar values: {name}`, where `{name}` is the argument name, or
+- **CUIT-026** code `INVALID_FORM_INPUT`;
+- **CUIT-027** message `Text must be Unicode scalar values: {name}`, where `{name}` is the argument name, or
   `options.` and the option name, followed by the path inside the value, for example
   `data.rows.k1.name` or `options.data.admin`;
-- an empty location.
+- **CUIT-028** an empty location.
 
 A value beyond the value limits is an input failure in every argument and option:
 
-- code `INVALID_FORM_INPUT`;
-- message `Recursive or excessively nested value: {name}`, where `{name}` is `spec`, `files`, the
+- **CUIT-029** code `INVALID_FORM_INPUT`;
+- **CUIT-030** message `Recursive or excessively nested value: {name}`, where `{name}` is `spec`, `files`, the
   argument name, or `options.` and the option name, with no path;
-- an empty location.
+- **CUIT-031** an empty location.
 
-| Runtime | Load failure | Input failure |
-| --- | --- | --- |
-| JavaScript | `ComposeLoadError` | `FormInputError` |
-| PHP and PHP extension, validation | `ComposeLoadError` | `FormInputError` |
-| PHP and PHP extension, generation | `ComposeLoadError` | `FormError` |
-| Go | `*compose.ComposeLoadError` | validation `*validate.FormInputError`; generation an error with the message |
-| Rust | `ComposeLoadError` in `ValidateError::Load` or `FormError` | `FormInputError` in `ValidateError::Input` or `FormError` |
+- **CUIT-032** JavaScript — Load failure: `ComposeLoadError`; Input failure: `FormInputError`
+- **CUIT-033** PHP and PHP extension, validation — Load failure: `ComposeLoadError`; Input failure: `FormInputError`
+- **CUIT-034** PHP and PHP extension, generation — Load failure: `ComposeLoadError`; Input failure: `FormError`
+- **CUIT-035** Go — Load failure: `*compose.ComposeLoadError`; Input failure: validation `*validate.FormInputError`; generation an error with the message
+- **CUIT-036** Rust — Load failure: `ComposeLoadError` in `ValidateError::Load` or `FormError`; Input failure: `FormInputError` in `ValidateError::Input` or `FormError`
 
 ## JSON text
 
@@ -132,17 +126,17 @@ associated value and declaration order at every depth. Validation uses those sam
 A JSON decoder that replaces or refuses an unpaired surrogate escape cannot hand the text to the
 rule, so each runtime reads JSON text with a decoder that keeps it:
 
-- JavaScript: `JSON.parse` keeps each escape as a code unit.
-- Go: `compose.DecodeOrdered`, `generator.DecodeJSON` and the `ValidateJSON`,
+- **CUIT-037** JavaScript: `JSON.parse` keeps each escape as a code unit.
+- **CUIT-038** Go: `compose.DecodeOrdered`, `generator.DecodeJSON` and the `ValidateJSON`,
   `ValidateListJSON` and `ValidateDetailJSON` entries keep an escaped surrogate as its three
   bytes and keep bytes that are not UTF-8, so the check reports both. `encoding/json` alone
   replaces them. `compose.DecodeRawMembers` splits an object without decoding its values.
   `generator.CheckBindText` checks a decoded template before `FormTemplate` decoding, whose JSON
   encoding would replace invalid text.
-- PHP: `Polyspec\Crudui\Validator\Support\JsonText::decode` returns what
+- **CUIT-039** PHP: `Polyspec\Crudui\Validator\Support\JsonText::decode` returns what
   `json_decode($json, false, 512, JSON_THROW_ON_ERROR)` returns and keeps an escaped surrogate as
   its three bytes. The class has no dependencies.
-- Rust: `polyspec_crudui_validator::text::JsonText` reads the text without replacing anything.
+- **CUIT-040** Rust: `polyspec_crudui_validator::text::JsonText` reads the text without replacing anything.
   `validate_text`, `validate_list_text` and `validate_detail_text` run the validation entries
   over it, and `polyspec_crudui_generator::text` holds the checks of the generation entries.
 

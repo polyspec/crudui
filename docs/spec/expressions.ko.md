@@ -1,6 +1,6 @@
 # 표현식 문법
 <!-- doc-id: docs-spec-expressions -->
-<!-- source-sha256: a613e6c8ec03b5c2933e14b9f6c09a53d45ec181d3a24f235b4d0f519d8016d5 -->
+<!-- source-sha256: 8ef42d2caa388a444576f5026f94e1948b58291c35c0deb6585ba6b6a0448008 -->
 
 [English](expressions.md).
 
@@ -16,25 +16,23 @@ PHP·Go·Rust도 이 단계를 구현합니다. 평가는 `eval`을 사용하지
 
 ## 1. 토큰
 
-| 토큰 | 패턴 | 예 |
-| --- | --- | --- |
-| `DOT` | `.` | `.field` |
-| `DOT_DOT` | 점 두 개 이상 | `..field` |
-| `ASTERISK` | `*` | `items.*.name` |
-| `IDENTIFIER` | `[A-Za-z_][A-Za-z0-9_]*` | `status` |
-| `STRING` | 작은따옴표 또는 큰따옴표 문자열 | `'active'` |
-| `NUMBER` | 정수 또는 소수 | `42` |
-| `BOOLEAN` | `true` 또는 `false` | `true` |
-| `NULL` | `null` | `null` |
-| `EQ NE` | `==` `!=` | `.status == active` |
-| `GT GE LT LE` | `>` `>=` `<` `<=` | `.count > 0` |
-| `AND OR NOT` | `&&` `\|\|` `!` | `!.enabled` |
-| `IN NOT_IN` | `in` `not in` | `.country in [US, CA]` |
-| `QUESTION COLON` | `?` `:` | `.enabled ? 'yes' : 'no'` |
-| `LPAREN RPAREN` | `(` `)` | `(.a \|\| .b)` |
-| `LBRACKET RBRACKET COMMA` | `[` `]` `,` | `[US, CA]` |
-| `WHITESPACE` | 출력에서 제외하는 공백 | 공백 |
-| `EOF` | 입력 종료 | 입력 종료 |
+- **CUXP-001** `DOT` — 패턴: `.`; 예: `.field`
+- **CUXP-002** `DOT_DOT` — 패턴: 점 두 개 이상; 예: `..field`
+- **CUXP-003** `ASTERISK` — 패턴: `*`; 예: `items.*.name`
+- **CUXP-004** `IDENTIFIER` — 패턴: `[A-Za-z_][A-Za-z0-9_]*`; 예: `status`
+- **CUXP-005** `STRING` — 패턴: 작은따옴표 또는 큰따옴표 문자열; 예: `'active'`
+- **CUXP-006** `NUMBER` — 패턴: 정수 또는 소수; 예: `42`
+- **CUXP-007** `BOOLEAN` — 패턴: `true` 또는 `false`; 예: `true`
+- **CUXP-008** `NULL` — 패턴: `null`; 예: `null`
+- **CUXP-009** `EQ NE` — 패턴: `==` `!=`; 예: `.status == active`
+- **CUXP-010** `GT GE LT LE` — 패턴: `>` `>=` `<` `<=`; 예: `.count > 0`
+- **CUXP-011** `AND OR NOT` — 패턴: `&&` `||` `!`; 예: `!.enabled`
+- **CUXP-012** `IN NOT_IN` — 패턴: `in` `not in`; 예: `.country in [US, CA]`
+- **CUXP-013** `QUESTION COLON` — 패턴: `?` `:`; 예: `.enabled ? 'yes' : 'no'`
+- **CUXP-014** `LPAREN RPAREN` — 패턴: `(` `)`; 예: `(.a || .b)`
+- **CUXP-015** `LBRACKET RBRACKET COMMA` — 패턴: `[` `]` `,`; 예: `[US, CA]`
+- **CUXP-016** `WHITESPACE` — 패턴: 출력에서 제외하는 공백; 예: 공백
+- **CUXP-017** `EOF` — 패턴: 입력 종료; 예: 입력 종료
 
 ## 2. 문법
 
@@ -76,12 +74,12 @@ literal = STRING | NUMBER | BOOLEAN | NULL ;
 
 낮은 순서부터 높은 순서입니다.
 
-1. `?:`, 오른쪽 결합
-2. `||`
-3. `&&`
-4. `!`, 다음 비교식 또는 부정식에 적용
-5. `== != > >= < <= in not in`, 비교 연산 하나
-6. 경로, 리터럴, 괄호로 구분한 논리식
+1. **CUXP-018** `?:`, 오른쪽 결합
+2. **CUXP-019** `||`
+3. **CUXP-020** `&&`
+4. **CUXP-021** `!`, 다음 비교식 또는 부정식에 적용
+5. **CUXP-022** `== != > >= < <= in not in`, 비교 연산 하나
+6. **CUXP-023** 경로, 리터럴, 괄호로 구분한 논리식
 
 예를 들어 `!.a == .b`는 `!(.a == .b)`를 의미합니다.
 

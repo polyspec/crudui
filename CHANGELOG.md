@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Requirement ids in docs/spec (C16.56)
+
+- The contract documents `display-formats`, `expressions`, `form-markup`, `form-runtime`, `input-text`, `schema` and `validation-rules` of `docs/spec` define 392 requirements, each a list item that begins with `**CU<document>-<n>**` (`CUDF`, `CUXP`, `CUMK`, `CURT`, `CUIT`, `CUSC`, `CUVR`; the prefix `CU` is used by no other polyspec repository): every top-level rule bullet, every definition paragraph that begins with a bold term in `validation-rules`, and every row of a rule table, which became one bullet; the Korean twins carry the same ids, and `requirements.pattern` of `config/parity.json` is `CU(DF|XP|MK|RT|IT|SC|VR)-[0-9]{3}` (C16.56). The documents that describe the repository tooling or the example servers (`conformance`, `examples`, `test-fixtures`, `package-build`, `feature-contracts`, `form-comparison`, `runtime-packages`, `php-extension`) define no requirement, since no contract behaviour of the six implementations is stated in them. Red: `make parity-declarations-check` reported that the pattern matches no requirement; green: it reports 392 R13 findings, one for each id that no unit cites yet (item C16.57).
+
 ### 2026-10-20 — The engine tests are internal tests of php-extension (C16.48-1)
 
 - The `tests` and `internal` globs of the C engine tests belong to the implementation `php-extension`; the implementation `php-extension-engine` that C16.48 declared is removed, since it existed only to hold them (C16.48-1). Red: `php-extension-engine` was an implementation with no unit; green: `make parity-declarations-check` reports the declaration of `php-extension` with the internal glob. It still reports R6 for `packages/php-ext/tests/engine/engine.test.mjs`, because kit's R6 file check (`scripts/kit/parity-units.mts`, the `patterns` filter) does not leave out the files that an `internal` glob selects; it is a kit defect that is reported, not worked around.

@@ -1,6 +1,6 @@
 # 표시 형식
 <!-- doc-id: docs-spec-display-formats -->
-<!-- source-sha256: d3250d007237c194de904c6b0d8236a36a6c00b65042b8e0a77b88ecbd30ae82 -->
+<!-- source-sha256: 36a8d0e4e5efb9b4d81fa05d812b7b311fdee8b1e2346113dff39fb83d0142f8 -->
 
 [English](display-formats.md).
 
@@ -12,11 +12,11 @@
 
 ## 값을 표시하는 과정
 
-1. 열이나 필드의 `field` 경로(예: `name`, `company.name`)로 행이나 레코드에서 값을 읽습니다. 모델은 이 값을
+1. **CUDF-001** 열이나 필드의 `field` 경로(예: `name`, `company.name`)로 행이나 레코드에서 값을 읽습니다. 모델은 이 값을
    `value`로 유지하며, 레코드에 없는 경로는 `null`입니다.
-2. `format`이 값을 `display` 모델로 바꿉니다. 문자열이거나, `badge`, `link`, `bool`, `image`, `html`은 구조화된
+2. **CUDF-002** `format`이 값을 `display` 모델로 바꿉니다. 문자열이거나, `badge`, `link`, `bool`, `image`, `html`은 구조화된
    값입니다.
-3. 렌더러는 `display`만으로 마크업을 씁니다. 레코드를 다시 읽지 않습니다.
+3. **CUDF-003** 렌더러는 `display`만으로 마크업을 씁니다. 레코드를 다시 읽지 않습니다.
 
 형식은 선언형 데이터입니다. 한 언어로 작성한 함수는 다른 언어에서 똑같이 실행할 수 없으므로 가공 함수(콜백)는
 없습니다. 별도 로직이 필요한 값은 미리 계산해 레코드에 담아 전달하고, 이미
@@ -36,11 +36,9 @@ columns:
 
 ## 형식 선언
 
-| 선언 | 결과 |
-| --- | --- |
-| 생략, `true`, `false` | `text` |
-| `date` 같은 문자열 | 설정 없는 해당 형식 |
-| 객체 | 객체의 `type`(없거나 비어 있으면 `text`)과 객체의 설정 |
+- **CUDF-004** 생략, `true`, `false`: `text`
+- **CUDF-005** `date` 같은 문자열: 설정 없는 해당 형식
+- **CUDF-006** 객체: 객체의 `type`(없거나 비어 있으면 `text`)과 객체의 설정
 
 `null`을 포함한 그 밖의 값은 [선언](#선언)에서 정한 대로 실패합니다.
 
@@ -56,17 +54,15 @@ columns:
 
 ## 형식
 
-| 형식 | 설정 | 표시 |
-| --- | --- | --- |
-| `text` | `truncate` | 값을 텍스트로 표시합니다. |
-| `date` | `pattern` | 값을 UTC 날짜로 표시합니다. |
-| `number` | `decimals`, `thousands`, `prefix`, `suffix` | 값을 숫자로 표시합니다. |
-| `badge` | `map` | 변형과 라벨을 가진 뱃지입니다. |
-| `link` | `href`, `target`, `text` | 링크입니다. |
-| `choice-label` | `items` | 값의 라벨입니다. |
-| `bool` | `true`, `false`, `as` | 참이나 거짓 라벨입니다. |
-| `image` | `width`, `height`, `alt` | 값을 원본으로 하는 이미지입니다. |
-| `html` | 없음 | 이스케이프하지 않은 마크업입니다. |
+- **CUDF-007** `text` — 설정: `truncate`; 표시: 값을 텍스트로 표시합니다.
+- **CUDF-008** `date` — 설정: `pattern`; 표시: 값을 UTC 날짜로 표시합니다.
+- **CUDF-009** `number` — 설정: `decimals`, `thousands`, `prefix`, `suffix`; 표시: 값을 숫자로 표시합니다.
+- **CUDF-010** `badge` — 설정: `map`; 표시: 변형과 라벨을 가진 뱃지입니다.
+- **CUDF-011** `link` — 설정: `href`, `target`, `text`; 표시: 링크입니다.
+- **CUDF-012** `choice-label` — 설정: `items`; 표시: 값의 라벨입니다.
+- **CUDF-013** `bool` — 설정: `true`, `false`, `as`; 표시: 참이나 거짓 라벨입니다.
+- **CUDF-014** `image` — 설정: `width`, `height`, `alt`; 표시: 값을 원본으로 하는 이미지입니다.
+- **CUDF-015** `html` — 설정: 없음; 표시: 이스케이프하지 않은 마크업입니다.
 
 ### text
 
@@ -85,14 +81,14 @@ columns:
 숫자 값은 그대로 사용하고, 문자열은 JavaScript `Number` 규칙으로 변환합니다. 앞뒤 공백은 무시하며 `0x`, `0b`,
 `0o` 접두사를 읽습니다. 유한한 숫자로 변환되지 않는 값은 그대로 표시합니다.
 
-- `decimals`는 소수 자릿수를 정합니다. 숫자여야 하며, 소수인 자릿수는 0 방향으로 버린 결과가 0 이상 100
+- **CUDF-016** `decimals`는 소수 자릿수를 정합니다. 숫자여야 하며, 소수인 자릿수는 0 방향으로 버린 결과가 0 이상 100
   이하여야 하고, 그렇지 않으면 목록이나 상세가 `Number decimals must be between 0 and 100`로 실패합니다.
   정확한 이진 값을 가장 가까운 표현으로 반올림하며 중간값은 0에서 먼 쪽으로 올리므로, `2.5`는 `3`, `-2.5`는
   `-3`, 소수 둘째 자리의 `1.005`는 `1.00`입니다. 숫자가 아닌 `decimals`는 무시합니다.
-- `decimals`가 없으면 가장 짧은 십진 표현을 사용하며, 아주 크거나 작은 값은 `1e+21`, `1e-7`처럼 지수 표기를
+- **CUDF-017** `decimals`가 없으면 가장 짧은 십진 표현을 사용하며, 아주 크거나 작은 값은 `1e+21`, `1e-7`처럼 지수 표기를
   사용합니다.
-- `thousands: true`는 정수 부분을 `,`로 묶습니다.
-- `prefix`와 `suffix`는 숫자 앞뒤에 씁니다.
+- **CUDF-018** `thousands: true`는 정수 부분을 `,`로 묶습니다.
+- **CUDF-019** `prefix`와 `suffix`는 숫자 앞뒤에 씁니다.
 
 ### badge
 
@@ -101,12 +97,12 @@ columns:
 
 ### link
 
-- `href`는 문자열이거나 [표현식 규칙](expressions.ko.md)으로 결정하는 조건 맵입니다. `href`의 명시적
+- **CUDF-020** `href`는 문자열이거나 [표현식 규칙](expressions.ko.md)으로 결정하는 조건 맵입니다. `href`의 명시적
   `{=path}` 토큰만 레코드의 해당 경로 값으로 바꿉니다. `{=field}`는 셀 값이며, 레코드에 없는 경로는 셀 값으로 바꿉니다.
   중괄호 밖의 텍스트는 리터럴입니다.
-- `text`는 링크 문구입니다. `text`가 없거나 `null`이거나 비어 있으면 셀 값이 문구입니다.
-- `target`은 비어 있지 않은 문자열일 때 씁니다.
-- `javascript:` 주소는 React 서버 렌더링과 같이 오류를 던지는 주소로 바꿉니다.
+- **CUDF-021** `text`는 링크 문구입니다. `text`가 없거나 `null`이거나 비어 있으면 셀 값이 문구입니다.
+- **CUDF-022** `target`은 비어 있지 않은 문자열일 때 씁니다.
+- **CUDF-023** `javascript:` 주소는 React 서버 렌더링과 같이 오류를 던지는 주소로 바꿉니다.
 
 ### choice-label
 
@@ -135,20 +131,18 @@ columns:
 목록은 명세, 행, 옵션을 받고, 상세는 명세, 레코드 하나, 옵션을 받습니다. 잘못된 입력은 코드
 `INVALID_FORM_INPUT`, 아래 메시지, 빈 위치로 실패합니다.
 
-| 입력 | 규칙 | 메시지 |
-| --- | --- | --- |
-| 목록 명세 | 객체 | `List specification must be an object` |
-| 목록 행 | 배열 | `List rows must be an array` |
-| 각 목록 행 | 객체 | `List rows must be objects` |
-| 목록 명세 | `columns` 선언 | `List specification must declare columns` |
-| 목록 `data` 옵션 | 객체 | `List context must be an object` |
-| 목록 `page` 옵션 | 1부터 9007199254740991까지의 정수 | `List page must be a positive integer` |
-| 목록 `total` 옵션 | 0부터 9007199254740991까지의 정수 | `List total must be a nonnegative integer` |
-| 목록 `layout` 옵션 | `table` 또는 `card` | `List layout must be table or card` |
-| 상세 명세 | 객체 | `Detail specification must be an object` |
-| 상세 레코드 | 객체 | `Detail record must be an object` |
-| 상세 명세 | `fields` 선언 | `Detail specification must declare fields` |
-| 상세 `data` 옵션 | 객체 | `Detail context must be an object` |
+- **CUDF-024** 목록 명세 — 규칙: 객체; 메시지: `List specification must be an object`
+- **CUDF-025** 목록 행 — 규칙: 배열; 메시지: `List rows must be an array`
+- **CUDF-026** 각 목록 행 — 규칙: 객체; 메시지: `List rows must be objects`
+- **CUDF-027** 목록 명세 — 규칙: `columns` 선언; 메시지: `List specification must declare columns`
+- **CUDF-028** 목록 `data` 옵션 — 규칙: 객체; 메시지: `List context must be an object`
+- **CUDF-029** 목록 `page` 옵션 — 규칙: 1부터 9007199254740991까지의 정수; 메시지: `List page must be a positive integer`
+- **CUDF-030** 목록 `total` 옵션 — 규칙: 0부터 9007199254740991까지의 정수; 메시지: `List total must be a nonnegative integer`
+- **CUDF-031** 목록 `layout` 옵션 — 규칙: `table` 또는 `card`; 메시지: `List layout must be table or card`
+- **CUDF-032** 상세 명세 — 규칙: 객체; 메시지: `Detail specification must be an object`
+- **CUDF-033** 상세 레코드 — 규칙: 객체; 메시지: `Detail record must be an object`
+- **CUDF-034** 상세 명세 — 규칙: `fields` 선언; 메시지: `Detail specification must declare fields`
+- **CUDF-035** 상세 `data` 옵션 — 규칙: 객체; 메시지: `Detail context must be an object`
 
 상세는 `data`, `language`, `files`, `basepath` 옵션을 받습니다. 목록 전용 옵션 `page`, `total`, `layout`은
 검사하지도 사용하지도 않습니다.
@@ -184,59 +178,57 @@ columns:
 알 수 없는 키는 `Invalid {key} at {path}: unknown key`로, 형식이 틀린 값은
 `Invalid {key} at {path}: expected {expected}`로 실패합니다. 검사 순서는 다음과 같습니다.
 
-1. 루트 멤버를 멤버 순서대로 검사합니다.
-2. 자체 `design`을 경로 `list` 또는 `detail`로 검사합니다.
-3. 각 열이나 필드를 [멤버 순서](schema.ko.md)대로 검사합니다. 타입, 멤버 순서대로 알 수 없는 키, 그다음
+1. **CUDF-036** 루트 멤버를 멤버 순서대로 검사합니다.
+2. **CUDF-037** 자체 `design`을 경로 `list` 또는 `detail`로 검사합니다.
+3. **CUDF-038** 각 열이나 필드를 [멤버 순서](schema.ko.md)대로 검사합니다. 타입, 멤버 순서대로 알 수 없는 키, 그다음
    `field`, `label`, `format`, `design`, `sortable`을 경로 `columns.{이름}` 또는 `fields.{이름}`으로
    검사합니다.
-4. 목록은 `search`, `sort`, `actions`(각 동작을 멤버 순서대로, 경로 `actions.{이름}`), `empty`,
+4. **CUDF-039** 목록은 `search`, `sort`, `actions`(각 동작을 멤버 순서대로, 경로 `actions.{이름}`), `empty`,
    `description`, `pagination`을 경로 `list`로 검사합니다. 상세는 `actions`(각 동작을 멤버
    순서대로, 경로 `actions.{이름}`)를 경로 `detail`로 검사합니다.
 
 `design`은 [폼 선언 규칙](schema.ko.md)을 그대로 따릅니다. 콘텐츠는 문자열, 언어 맵(멤버가 하나 이상이고 각
 멤버가 문자열이나 `null`인 객체), `null` 중 하나입니다. 조건 맵은 멤버가 하나 이상인 객체입니다.
 
-| 선언 | 허용 값 | 실패 메시지 |
-| --- | --- | --- |
-| 목록 루트 멤버 | `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `description`, `design` | `Invalid {key} at list: unknown key` |
-| 상세 루트 멤버 | `fields`, `actions`, `design` | `Invalid {key} at detail: unknown key` |
-| 루트 `$ref`, `$patch` | 없음: 조합은 `columns`나 `fields`에 둡니다 | `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields` |
-| 열이나 필드 | 객체 | `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object` |
-| 열 멤버 | `field`, `label`, `format`, `design`, `sortable` | `Invalid {key} at columns.{name}: unknown key` |
-| 필드 멤버 | `field`, `label`, `format`, `design` | `Invalid {key} at fields.{name}: unknown key` |
-| `field` | 문자열 | `Invalid field at {path}: expected a string` |
-| `label` | 콘텐츠 | `Invalid label at {path}: expected a string, a language map or null` |
-| `format` | 불리언, 문자열, 객체 | `Invalid format at {path}: expected a boolean, a string or an object` |
-| `format.type`, `format.pattern`, `format.target`, `format.as` | 문자열 | `Invalid format.{key} at {path}: expected a string` |
-| `format.prefix`, `format.suffix`, `format.text`, `format.true`, `format.false`, `format.alt` | 콘텐츠 | `Invalid format.{key} at {path}: expected a string, a language map or null` |
-| `format.map` | 객체 | `Invalid format.map at {path}: expected an object` |
-| 각 `format.map` 라벨 | 콘텐츠 | `Invalid format.map.{value} at {path}: expected a string, a language map or null` |
-| `format.href` | 문자열 또는 조건 맵 | `Invalid format.href at {path}: expected a string or a condition map` |
-| `format.items` | 배열 또는 객체 | `Invalid format.items at {path}: expected an array or an object` |
-| `format.items` 선택 목록 | [선택 목록](schema.ko.md#선택-목록)의 쌍 | `Invalid format.items at {path}: expected value and label pairs with distinct string or number values` |
-| `sortable` | 불리언, 식, 조건 맵 | `Invalid sortable at {path}: expected a boolean, an expression or a condition map` |
-| `search` | 불리언 또는 객체 | `Invalid search at list: expected a boolean or an object` |
-| `sort` | 객체 | `Invalid sort at list: expected an object` |
-| `sort` 멤버 | `field`, `dir` | `Invalid sort.{key} at list: unknown key` |
-| `sort.field` | 문자열 | `Invalid sort.field at list: expected a string` |
-| `sort.dir` | `asc` 또는 `desc` | `Invalid sort.dir at list: expected asc or desc` |
-| `actions` | 객체 | `Invalid actions at list: expected an object`, `Invalid actions at detail: expected an object` |
-| 이름이 `$ref`나 `$patch`인 동작 | 없음: 동작은 조합하지 않습니다 | `Invalid $ref at actions: unknown key` |
-| 동작 | 스크립트 문자열 또는 객체 | `Invalid {name} at actions: expected a script or an object` |
-| `script`가 있는 동작의 멤버 | `label`, `script` | `Invalid {key} at actions.{name}: unknown key` |
-| 그 밖의 동작 객체의 멤버 | `label`, `format`, `behavior`, `design` | `Invalid {key} at actions.{name}: unknown key` |
-| 동작 `script` | 문자열 | `Invalid script at actions.{name}: expected a string` |
-| 동작 `label` | 콘텐츠 | `Invalid label at actions.{name}: expected a string, a language map or null` |
-| 동작 `format` | 위의 `format` 규칙 | `Invalid format at actions.{name}: …` |
-| 동작 `behavior` | 불리언 또는 객체 | `Invalid behavior at actions.{name}: expected a boolean or an object` |
-| `behavior` 멤버 | `onchange`, `onclick`, `onload` | `Invalid behavior.{key} at actions.{name}: unknown key` |
-| `behavior` 항목 | 스크립트 문자열 또는 객체 | `Invalid behavior.{event} at actions.{name}: expected a script or an object` |
-| `behavior` 항목 멤버 | `label`, `script` | `Invalid behavior.{event}.{key} at actions.{name}: unknown key` |
-| `behavior` 항목 `label` | 콘텐츠 | `Invalid behavior.{event}.label at actions.{name}: expected a string, a language map or null` |
-| `behavior` 항목 `script` | 문자열 | `Invalid behavior.{event}.script at actions.{name}: expected a string` |
-| 동작 `design` | `design` 규칙 | `Invalid design… at actions.{name}: …` |
-| `empty` | 콘텐츠 | `Invalid empty at list: expected a string, a language map or null` |
-| `description` | 콘텐츠 | `Invalid description at list: expected a string, a language map or null` |
+- **CUDF-040** 목록 루트 멤버 — 허용 값: `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `description`, `design`; 실패 메시지: `Invalid {key} at list: unknown key`
+- **CUDF-041** 상세 루트 멤버 — 허용 값: `fields`, `actions`, `design`; 실패 메시지: `Invalid {key} at detail: unknown key`
+- **CUDF-042** 루트 `$ref`, `$patch` — 허용 값: 없음: 조합은 `columns`나 `fields`에 둡니다; 실패 메시지: `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields`
+- **CUDF-043** 열이나 필드 — 허용 값: 객체; 실패 메시지: `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object`
+- **CUDF-044** 열 멤버 — 허용 값: `field`, `label`, `format`, `design`, `sortable`; 실패 메시지: `Invalid {key} at columns.{name}: unknown key`
+- **CUDF-045** 필드 멤버 — 허용 값: `field`, `label`, `format`, `design`; 실패 메시지: `Invalid {key} at fields.{name}: unknown key`
+- **CUDF-046** `field` — 허용 값: 문자열; 실패 메시지: `Invalid field at {path}: expected a string`
+- **CUDF-047** `label` — 허용 값: 콘텐츠; 실패 메시지: `Invalid label at {path}: expected a string, a language map or null`
+- **CUDF-048** `format` — 허용 값: 불리언, 문자열, 객체; 실패 메시지: `Invalid format at {path}: expected a boolean, a string or an object`
+- **CUDF-049** `format.type`, `format.pattern`, `format.target`, `format.as` — 허용 값: 문자열; 실패 메시지: `Invalid format.{key} at {path}: expected a string`
+- **CUDF-050** `format.prefix`, `format.suffix`, `format.text`, `format.true`, `format.false`, `format.alt` — 허용 값: 콘텐츠; 실패 메시지: `Invalid format.{key} at {path}: expected a string, a language map or null`
+- **CUDF-051** `format.map` — 허용 값: 객체; 실패 메시지: `Invalid format.map at {path}: expected an object`
+- **CUDF-052** 각 `format.map` 라벨 — 허용 값: 콘텐츠; 실패 메시지: `Invalid format.map.{value} at {path}: expected a string, a language map or null`
+- **CUDF-053** `format.href` — 허용 값: 문자열 또는 조건 맵; 실패 메시지: `Invalid format.href at {path}: expected a string or a condition map`
+- **CUDF-054** `format.items` — 허용 값: 배열 또는 객체; 실패 메시지: `Invalid format.items at {path}: expected an array or an object`
+- **CUDF-055** `format.items` 선택 목록 — 허용 값: [선택 목록](schema.ko.md#선택-목록)의 쌍; 실패 메시지: `Invalid format.items at {path}: expected value and label pairs with distinct string or number values`
+- **CUDF-056** `sortable` — 허용 값: 불리언, 식, 조건 맵; 실패 메시지: `Invalid sortable at {path}: expected a boolean, an expression or a condition map`
+- **CUDF-057** `search` — 허용 값: 불리언 또는 객체; 실패 메시지: `Invalid search at list: expected a boolean or an object`
+- **CUDF-058** `sort` — 허용 값: 객체; 실패 메시지: `Invalid sort at list: expected an object`
+- **CUDF-059** `sort` 멤버 — 허용 값: `field`, `dir`; 실패 메시지: `Invalid sort.{key} at list: unknown key`
+- **CUDF-060** `sort.field` — 허용 값: 문자열; 실패 메시지: `Invalid sort.field at list: expected a string`
+- **CUDF-061** `sort.dir` — 허용 값: `asc` 또는 `desc`; 실패 메시지: `Invalid sort.dir at list: expected asc or desc`
+- **CUDF-062** `actions` — 허용 값: 객체; 실패 메시지: `Invalid actions at list: expected an object`, `Invalid actions at detail: expected an object`
+- **CUDF-063** 이름이 `$ref`나 `$patch`인 동작 — 허용 값: 없음: 동작은 조합하지 않습니다; 실패 메시지: `Invalid $ref at actions: unknown key`
+- **CUDF-064** 동작 — 허용 값: 스크립트 문자열 또는 객체; 실패 메시지: `Invalid {name} at actions: expected a script or an object`
+- **CUDF-065** `script`가 있는 동작의 멤버 — 허용 값: `label`, `script`; 실패 메시지: `Invalid {key} at actions.{name}: unknown key`
+- **CUDF-066** 그 밖의 동작 객체의 멤버 — 허용 값: `label`, `format`, `behavior`, `design`; 실패 메시지: `Invalid {key} at actions.{name}: unknown key`
+- **CUDF-067** 동작 `script` — 허용 값: 문자열; 실패 메시지: `Invalid script at actions.{name}: expected a string`
+- **CUDF-068** 동작 `label` — 허용 값: 콘텐츠; 실패 메시지: `Invalid label at actions.{name}: expected a string, a language map or null`
+- **CUDF-069** 동작 `format` — 허용 값: 위의 `format` 규칙; 실패 메시지: `Invalid format at actions.{name}: …`
+- **CUDF-070** 동작 `behavior` — 허용 값: 불리언 또는 객체; 실패 메시지: `Invalid behavior at actions.{name}: expected a boolean or an object`
+- **CUDF-071** `behavior` 멤버 — 허용 값: `onchange`, `onclick`, `onload`; 실패 메시지: `Invalid behavior.{key} at actions.{name}: unknown key`
+- **CUDF-072** `behavior` 항목 — 허용 값: 스크립트 문자열 또는 객체; 실패 메시지: `Invalid behavior.{event} at actions.{name}: expected a script or an object`
+- **CUDF-073** `behavior` 항목 멤버 — 허용 값: `label`, `script`; 실패 메시지: `Invalid behavior.{event}.{key} at actions.{name}: unknown key`
+- **CUDF-074** `behavior` 항목 `label` — 허용 값: 콘텐츠; 실패 메시지: `Invalid behavior.{event}.label at actions.{name}: expected a string, a language map or null`
+- **CUDF-075** `behavior` 항목 `script` — 허용 값: 문자열; 실패 메시지: `Invalid behavior.{event}.script at actions.{name}: expected a string`
+- **CUDF-076** 동작 `design` — 허용 값: `design` 규칙; 실패 메시지: `Invalid design… at actions.{name}: …`
+- **CUDF-077** `empty` — 허용 값: 콘텐츠; 실패 메시지: `Invalid empty at list: expected a string, a language map or null`
+- **CUDF-078** `description` — 허용 값: 콘텐츠; 실패 메시지: `Invalid description at list: expected a string, a language map or null`
 
 그 밖의 `format` 설정(`truncate`, `decimals`, `thousands`, `width`, `height`, 표에 없는 설정)은 어떤
 값이든 받습니다. 이 설정의 키에도 금지 키 스캔은 적용됩니다. `search` 객체의 멤버는 폼 선언입니다. 목록 모델은
@@ -254,12 +246,10 @@ columns:
 
 `pagination`은 마지막에 경로 `list`로 검사합니다.
 
-| 선언 | 허용 값 | 실패 메시지 |
-| --- | --- | --- |
-| `pagination` | 불리언 또는 객체 | `Invalid pagination at list: expected a boolean or an object` |
-| 객체의 멤버 | `per_page` 또는 `mode` | `Invalid pagination.{key} at list: unknown key` |
-| `per_page` | 1부터 9007199254740991까지의 정수 | `Invalid pagination.per_page at list: expected a positive integer` |
-| `mode` | `pages`, `offset`, `cursor`, `none` | `Invalid pagination.mode at list: expected pages, offset, cursor or none` |
+- **CUDF-079** `pagination` — 허용 값: 불리언 또는 객체; 실패 메시지: `Invalid pagination at list: expected a boolean or an object`
+- **CUDF-080** 객체의 멤버 — 허용 값: `per_page` 또는 `mode`; 실패 메시지: `Invalid pagination.{key} at list: unknown key`
+- **CUDF-081** `per_page` — 허용 값: 1부터 9007199254740991까지의 정수; 실패 메시지: `Invalid pagination.per_page at list: expected a positive integer`
+- **CUDF-082** `mode` — 허용 값: `pages`, `offset`, `cursor`, `none`; 실패 메시지: `Invalid pagination.mode at list: expected pages, offset, cursor or none`
 
 해석된 페이지네이션 모델의 멤버 순서는 `enabled`, 페이지네이션이 켜진 경우의 `perPage`(기본 20)·
 `mode`(기본 `pages`)·`page`(기본 1), 제공된 `total`, 켜진 경우의 `pageCount`입니다. 꺼진 경우에는
@@ -272,14 +262,12 @@ PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체�
 
 ## 마크업
 
-| 표시 | 목록 표 셀 | 상세 값 |
-| --- | --- | --- |
-| text, date, number, choice-label | `crudui-list__cell crudui-value crudui-value--TYPE` 안의 이스케이프한 텍스트 | `crudui-detail__value crudui-value crudui-value--TYPE` 안의 이스케이프한 텍스트 |
-| badge | 선택적인 `data-crudui-variant`를 가진 `span.crudui-badge` | `dd` 안에 같은 마크업 |
-| link | `href`와 선택적인 `target`을 가진 `a` | `dd` 안에 같은 마크업 |
-| bool | `data-crudui-state`와 필요한 `aria-label`을 가진 `span.crudui-bool crudui-bool--text`, `--icon` 또는 `--check` | `dd` 안에 같은 마크업 |
-| image | `src`, `alt`, 선언한 `width`와 `height`를 가진 `img` | `dd` 안에 같은 마크업 |
-| html | 이스케이프하지 않은 마크업 | `dd` 안에 같은 마크업 |
+- **CUDF-083** text, date, number, choice-label — 목록 표 셀: `crudui-list__cell crudui-value crudui-value--TYPE` 안의 이스케이프한 텍스트; 상세 값: `crudui-detail__value crudui-value crudui-value--TYPE` 안의 이스케이프한 텍스트
+- **CUDF-084** badge — 목록 표 셀: 선택적인 `data-crudui-variant`를 가진 `span.crudui-badge`; 상세 값: `dd` 안에 같은 마크업
+- **CUDF-085** link — 목록 표 셀: `href`와 선택적인 `target`을 가진 `a`; 상세 값: `dd` 안에 같은 마크업
+- **CUDF-086** bool — 목록 표 셀: `data-crudui-state`와 필요한 `aria-label`을 가진 `span.crudui-bool crudui-bool--text`, `--icon` 또는 `--check`; 상세 값: `dd` 안에 같은 마크업
+- **CUDF-087** image — 목록 표 셀: `src`, `alt`, 선언한 `width`와 `height`를 가진 `img`; 상세 값: `dd` 안에 같은 마크업
+- **CUDF-088** html — 목록 표 셀: 이스케이프하지 않은 마크업; 상세 값: `dd` 안에 같은 마크업
 
 상세는 `dl.crudui-detail`이며 필드마다 `dt.crudui-detail__label`과 값을 담은
 `div.crudui-detail__field`를 둡니다. 목록 루트는 `crudui-list`이며 설명, 표, 제목, 셀, 카드,

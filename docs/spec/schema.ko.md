@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 39b6bb609c1a8ecc35c4819aa4d8479ecf5e2f1ebbe1f90d32a9563325a7f79a -->
+<!-- source-sha256: 62de7f6c444bae6f279461f06c345e9f3581d94c50252a25164de2407cf53a25 -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -38,15 +38,13 @@ CRUDUI의 초기 패키지 버전은 `0.0.1`입니다. 파일명·공개 API·�
 폼 루트는 `properties` 필드 맵이 있는 `group`입니다. 속성명이 데이터 경로를
 정의합니다. 필드는 구조, 콘텐츠, 동작을 다음과 같이 분리합니다.
 
-| 분류 | 키 | 계약 |
-| --- | --- | --- |
-| 구조 | `type`, `name`, `default`, `properties`, `items`, `multiple`, `lang` | 값, 중첩 그룹, 선택지, 반복을 정의합니다. |
-| 콘텐츠 | `label`, `description`, `placeholder`, `prepend`, `append`, `help`, `content` | 문자열 또는 언어 맵을 사용합니다. `content`는 버튼·액션 필드의 컨트롤 텍스트입니다. |
-| 검증 | `validate`, `messages` | `validate`는 규칙을 정의하고 `messages`는 규칙 이름별로 오류 메시지를 재정의합니다. |
-| 외형 | `design` | 특정 DOM 노드의 표시와 스타일을 정의합니다. |
-| 동작 | `behavior` | 이벤트 스크립트를 표현식 평가 없이 보존합니다. |
-| 타입 옵션 | `options` | 특정 위젯 타입의 설정을 저장합니다. |
-| 합성 | `$ref`, `$patch` | 데이터를 바인딩하기 전에 필드 정의를 로드, 병합, 수정합니다. |
+- **CUSC-001** 구조 — 키: `type`, `name`, `default`, `properties`, `items`, `multiple`, `lang`; 계약: 값, 중첩 그룹, 선택지, 반복을 정의합니다.
+- **CUSC-002** 콘텐츠 — 키: `label`, `description`, `placeholder`, `prepend`, `append`, `help`, `content`; 계약: 문자열 또는 언어 맵을 사용합니다. `content`는 버튼·액션 필드의 컨트롤 텍스트입니다.
+- **CUSC-003** 검증 — 키: `validate`, `messages`; 계약: `validate`는 규칙을 정의하고 `messages`는 규칙 이름별로 오류 메시지를 재정의합니다.
+- **CUSC-004** 외형 — 키: `design`; 계약: 특정 DOM 노드의 표시와 스타일을 정의합니다.
+- **CUSC-005** 동작 — 키: `behavior`; 계약: 이벤트 스크립트를 표현식 평가 없이 보존합니다.
+- **CUSC-006** 타입 옵션 — 키: `options`; 계약: 특정 위젯 타입의 설정을 저장합니다.
+- **CUSC-007** 합성 — 키: `$ref`, `$patch`; 계약: 데이터를 바인딩하기 전에 필드 정의를 로드, 병합, 수정합니다.
 
 콘텐츠는 폼 필드와 목록·상세 표시 설정 모두 모든 런타임에서 같은 방식으로 표시 언어의 텍스트가 됩니다.
 문자열은 그대로입니다. 언어 맵은 표시 언어 항목, `en`, `ko`, 첫 키 순서에서 처음으로 비어 있지 않은 문자열
@@ -95,11 +93,9 @@ volume:
 컴파일은 범위 필드를 `behavior` 다음에 검사하며 `INVALID_FORM_INPUT`와 빈 위치로 실패합니다. 배수 여부는
 `step` 규칙과 같이 정확하게 판정합니다.
 
-| 선언 | 메시지 |
-| --- | --- |
-| `validate.range`가 없거나, 최솟값이 최댓값보다 크지 않은 유한한 숫자 두 개가 아님 | `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum` |
-| `validate.step`이 없거나 0보다 큰 유한한 숫자가 아님 | `Invalid validate.step at {path}: expected a finite number above 0` |
-| 최솟값이 단계의 배수가 아님 | `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step` |
+- **CUSC-008** `validate.range`가 없거나, 최솟값이 최댓값보다 크지 않은 유한한 숫자 두 개가 아님: `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum`
+- **CUSC-009** `validate.step`이 없거나 0보다 큰 유한한 숫자가 아님: `Invalid validate.step at {path}: expected a finite number above 0`
+- **CUSC-010** 최솟값이 단계의 배수가 아님: `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step`
 
 ## 조건과 외형
 
@@ -134,11 +130,9 @@ CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 
 `style` 다음에 검사합니다. 선언 순서로 모든 이름을 검사한 뒤 모든 값을 검사하며,
 `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
 
-| 선언 | 메시지 |
-| --- | --- |
-| 객체가 아님 | `Invalid design.attributes at {path}: expected an object` |
-| 규칙 밖의 이름 또는 거부된 이름 | `Invalid design.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
-| 문자열이 아닌 값 | `Invalid design.attributes.{name} at {path}: expected a string` |
+- **CUSC-011** 객체가 아님: `Invalid design.attributes at {path}: expected an object`
+- **CUSC-012** 규칙 밖의 이름 또는 거부된 이름: `Invalid design.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write`
+- **CUSC-013** 문자열이 아닌 값: `Invalid design.attributes.{name} at {path}: expected a string`
 
 wrapper 아래에서 키는 `design.wrapper.attributes`입니다.
 
@@ -147,15 +141,15 @@ wrapper 아래에서 키는 `design.wrapper.attributes`입니다.
 `group` 필드는 `design.layout`으로 안에 있는 필드의 배치를 선언합니다. 값은 표현식이나 조건 맵이 아닌
 리터럴 문자열입니다.
 
-- `inline`: group 안의 모든 field 노드는 깊이에 관계없이 한 행입니다. 너비가 `--crudui-label-width`인
+- **CUSC-014** `inline`: group 안의 모든 field 노드는 깊이에 관계없이 한 행입니다. 너비가 `--crudui-label-width`인
   레이블 열은 레이블을 담고, 컨트롤 열은 컨트롤, 그 아래의 설명, 오류를 담습니다. 레이블이 없는 필드는
   레이블 열을 비워 두므로 모든 행의 컨트롤이 정렬됩니다. group, collection, lang 노드는 쌓인 배치를
   유지하며 안에 있는 field 노드에 inline 배치를 전달합니다. 반복 스칼라 필드의 행과 언어 필드의 항목은
   field 노드가 아니므로 쌓인 배치를 유지합니다.
-- `line`: group의 자식 노드를 한 줄에 나란히 둡니다. 예를 들어 select 뒤에 작은 버튼을 둡니다. inline
+- **CUSC-015** `line`: group의 자식 노드를 한 줄에 나란히 둡니다. 예를 들어 select 뒤에 작은 버튼을 둡니다. inline
   배치 안에서 group은 한 행이며, 레이블은 레이블 열에, 줄은 컨트롤 열에 둡니다. line의 자식 노드는 inline
   배치를 받지 않습니다.
-- `stacked`: 레이블을 컨트롤 위에 두며, 선언이 없는 폼의 배치입니다. group은 상속받을 inline 배치를
+- **CUSC-016** `stacked`: 레이블을 컨트롤 위에 두며, 선언이 없는 폼의 배치입니다. group은 상속받을 inline 배치를
   끝내기 위해 이 값을 선언합니다.
 
 `design.layout`이 없는 group은 둘러싼 group의 배치를 상속합니다. 반복 group은 `stacked`와 `inline`을
@@ -182,11 +176,9 @@ appearance:
 검사합니다. JSON Schema는 필드 선언을 기술하므로 루트를 group으로 검사하고, 루트의 배치는 컴파일이
 검사합니다.
 
-| 선언 | 메시지 |
-| --- | --- |
-| group이 아닌 필드, 폼 버튼, 폼 루트의 `design.layout` | `Invalid design.layout at {path}: unknown key`, 루트의 `{path}`는 `form` |
-| `stacked`, `inline`, `line`이 아닌 값 | `Invalid design.layout at {path}: expected stacked, inline or line` |
-| 반복 group의 `line` | `Invalid design.layout at {path}: expected stacked or inline` |
+- **CUSC-017** group이 아닌 필드, 폼 버튼, 폼 루트의 `design.layout`: `Invalid design.layout at {path}: unknown key`, 루트의 `{path}`는 `form`
+- **CUSC-018** `stacked`, `inline`, `line`이 아닌 값: `Invalid design.layout at {path}: expected stacked, inline or line`
+- **CUSC-019** 반복 group의 `line`: `Invalid design.layout at {path}: expected stacked or inline`
 
 [표현식 문법](expressions.ko.md)은 토크나이저, 파서, 평가기를 정의합니다.
 상대 경로, 와일드카드, 목록, 비교, 논리, 포함 여부, 조건부 값을 지원합니다.
@@ -223,13 +215,13 @@ choice, multichoice, search 필드는 값과 라벨의 맵처럼 쌍을 목록 �
 
 필요한 순서로 형식을 고릅니다.
 
-- 값과 라벨의 맵은 값을 [멤버 순서](#멤버-순서)로 나열하므로 정수 형태의 값이 숫자 오름차순으로 먼저
+- **CUSC-020** 값과 라벨의 맵은 값을 [멤버 순서](#멤버-순서)로 나열하므로 정수 형태의 값이 숫자 오름차순으로 먼저
   옵니다. `{ "1": "Yes", "0": "No" }`는 No를 Yes보다 먼저 표시합니다. 정수 형태가 아닌 값처럼 그 순서가
   필요한 순서일 때 맵을 사용합니다.
-- 선택 목록은 값에 관계없이 작성한 순서를 유지합니다. `[{ "value": 1, "label": "Yes" },
+- **CUSC-021** 선택 목록은 값에 관계없이 작성한 순서를 유지합니다. `[{ "value": 1, "label": "Yes" },
   { "value": 0, "label": "No" }]`는 Yes를 No보다 먼저 표시합니다. 값이 정수 형태이거나 섞여 있고 작성한
   순서가 필요할 때 사용합니다.
-- 라벨의 배열은 인덱스 `0`, `1`, …을 값으로 하여 작성한 순서를 유지합니다.
+- **CUSC-022** 라벨의 배열은 인덱스 `0`, `1`, …을 값으로 하여 작성한 순서를 유지합니다.
 
 ### 선택지 그룹
 
@@ -293,12 +285,10 @@ accent:
 `attributes` 순서로 검사하며 모든 이름을 모든 값보다 먼저 검사합니다. `INVALID_FORM_INPUT`와 빈 위치로
 실패하며, `{index}`는 선택지의 0부터 시작하는 위치입니다.
 
-| 선언 | 메시지 |
-| --- | --- |
-| 문자열이 아닌 `class` 또는 `style` | `Invalid items.{index}.{member} at {path}: expected a string` |
-| 객체가 아닌 `attributes` | `Invalid items.{index}.attributes at {path}: expected an object` |
-| 규칙 밖의 이름 또는 거부된 이름 | `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
-| 문자열이 아닌 값 | `Invalid items.{index}.attributes.{name} at {path}: expected a string` |
+- **CUSC-023** 문자열이 아닌 `class` 또는 `style`: `Invalid items.{index}.{member} at {path}: expected a string`
+- **CUSC-024** 객체가 아닌 `attributes`: `Invalid items.{index}.attributes at {path}: expected an object`
+- **CUSC-025** 규칙 밖의 이름 또는 거부된 이름: `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write`
+- **CUSC-026** 문자열이 아닌 값: `Invalid items.{index}.attributes.{name} at {path}: expected a string`
 
 ## 합성과 검증
 
@@ -329,17 +319,15 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 `columns`가 없는 목록은 `List specification must declare columns`로 실패하며,
 [표시 형식 선언](display-formats.ko.md#선언)이 모든 목록과 상세 선언의 검사를 정의합니다.
 
-| 형식 | 설정 |
-| --- | --- |
-| `text` | `truncate` |
-| `date` | `pattern` |
-| `number` | `decimals`, `thousands`, `prefix`, `suffix` |
-| `badge` | 값과 스타일의 `map`, 번역된 라벨 |
-| `link` | `href`, `target`, `text` |
-| `choice-label` | `items` |
-| `bool` | `true`, `false` 라벨과 `as` |
-| `image` | `width`, `height`, `alt` |
-| `html` | 이스케이프하지 않은 표시 HTML |
+- **CUSC-027** `text`: `truncate`
+- **CUSC-028** `date`: `pattern`
+- **CUSC-029** `number`: `decimals`, `thousands`, `prefix`, `suffix`
+- **CUSC-030** `badge`: 값과 스타일의 `map`, 번역된 라벨
+- **CUSC-031** `link`: `href`, `target`, `text`
+- **CUSC-032** `choice-label`: `items`
+- **CUSC-033** `bool`: `true`, `false` 라벨과 `as`
+- **CUSC-034** `image`: `width`, `height`, `alt`
+- **CUSC-035** `html`: 이스케이프하지 않은 표시 HTML
 
 `format`은 타입 문자열 또는 객체를 사용합니다. 생략, `false`, `true`는 텍스트를
 선택합니다. 형식별 설정은 해당 객체에 작성합니다. [표시 형식](display-formats.ko.md)은 각 형식,
@@ -379,11 +367,11 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 
 ## 인수 기준
 
-1. 필드 평가 전에 합성을 처리하고 누락된 참조를 오류로 반환합니다.
-2. 구조, 콘텐츠, 검증, 외형, 위젯 옵션을 분리합니다.
-3. JavaScript 평가 없이 표현식 파서로 조건을 평가합니다.
-4. 표시 언어와 별도로 언어별 입력값을 보존합니다.
-5. 4개 언어의 공유 검증 사례와 3개 프레임워크의 SSR 출력을 비교하고 마운트한
+1. **CUSC-036** 필드 평가 전에 합성을 처리하고 누락된 참조를 오류로 반환합니다.
+2. **CUSC-037** 구조, 콘텐츠, 검증, 외형, 위젯 옵션을 분리합니다.
+3. **CUSC-038** JavaScript 평가 없이 표현식 파서로 조건을 평가합니다.
+4. **CUSC-039** 표시 언어와 별도로 언어별 입력값을 보존합니다.
+5. **CUSC-040** 4개 언어의 공유 검증 사례와 3개 프레임워크의 SSR 출력을 비교하고 마운트한
    뷰에서 폼 편집 동작을 검증합니다.
 
 반복 필드는 행 개수 제한으로 숫자형 `multiple.min`과 `multiple.max`를,
@@ -405,28 +393,26 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 `companies.name`처럼 필드의 구조 경로입니다. 조건 맵은 비어 있지 않은 객체입니다. `buttons`가 없는 폼은 제출 버튼 하나를 가지며, `button`과 `link`는 `text`가,
 `link`는 `href`가 필요합니다([폼 마크업](form-markup.ko.md) 참고).
 
-| 키 | 허용 값 |
-| --- | --- |
-| `multiple` | 불리언, `only` 또는 객체 |
-| `multiple.only` | 불리언 |
-| `multiple.min`, `multiple.max` | 숫자 |
-| `multiple.copy`, `multiple.sortable` | 불리언 |
-| `multiple.title` | 반복 그룹의 직속 자식 중 반복·그룹·`lang`이 아닌 필드 이름 |
-| `multiple.controls` | `header`, `footer` 또는 `outline` |
-| `multiple.header` | `static` 또는 `sticky` |
-| `lang` | 불리언 또는 객체 |
-| `lang.only` | 언어 코드 문자열 목록 또는 객체 |
-| `design` | 불리언 또는 객체 |
-| `content` | 문자열 또는 언어 맵; 버튼·액션 필드의 컨트롤 텍스트 |
-| `messages` | 등록된 규칙 이름과 메시지 문자열의 객체 |
-| `buttons` | 버튼 목록(`type`: `submit`, `reset`, `button`, `link`); 폼 루트에서만 |
-| `action` | 문자열 `method`, `url`, `enctype`을 가진 객체; 폼 루트에서만 |
-| `design.show` | 표현식, 불리언 또는 조건 맵 |
-| `design.class`, `design.style` | 문자열 또는 조건 맵 |
-| `design.label`, `design.wrapper`, `design.group`, `design.prepend` | 객체 |
-| 해당 노드의 `class`와 `style` | 문자열 또는 조건 맵 |
-| `design.attributes`, `design.wrapper.attributes` | `data-*` 또는 `aria-*` 이름에서 문자열로의 객체; 폼 필드에서만([선언한 속성](#선언한-속성)) |
-| `design.layout` | `stacked`, `inline`, `line`; group 필드에서만([배치](#배치)) |
+- **CUSC-041** `multiple`: 불리언, `only` 또는 객체
+- **CUSC-042** `multiple.only`: 불리언
+- **CUSC-043** `multiple.min`, `multiple.max`: 숫자
+- **CUSC-044** `multiple.copy`, `multiple.sortable`: 불리언
+- **CUSC-045** `multiple.title`: 반복 그룹의 직속 자식 중 반복·그룹·`lang`이 아닌 필드 이름
+- **CUSC-046** `multiple.controls`: `header`, `footer` 또는 `outline`
+- **CUSC-047** `multiple.header`: `static` 또는 `sticky`
+- **CUSC-048** `lang`: 불리언 또는 객체
+- **CUSC-049** `lang.only`: 언어 코드 문자열 목록 또는 객체
+- **CUSC-050** `design`: 불리언 또는 객체
+- **CUSC-051** `content`: 문자열 또는 언어 맵; 버튼·액션 필드의 컨트롤 텍스트
+- **CUSC-052** `messages`: 등록된 규칙 이름과 메시지 문자열의 객체
+- **CUSC-053** `buttons`: 버튼 목록(`type`: `submit`, `reset`, `button`, `link`); 폼 루트에서만
+- **CUSC-054** `action`: 문자열 `method`, `url`, `enctype`을 가진 객체; 폼 루트에서만
+- **CUSC-055** `design.show`: 표현식, 불리언 또는 조건 맵
+- **CUSC-056** `design.class`, `design.style`: 문자열 또는 조건 맵
+- **CUSC-057** `design.label`, `design.wrapper`, `design.group`, `design.prepend`: 객체
+- **CUSC-058** 해당 노드의 `class`와 `style`: 문자열 또는 조건 맵
+- **CUSC-059** `design.attributes`, `design.wrapper.attributes`: `data-*` 또는 `aria-*` 이름에서 문자열로의 객체; 폼 필드에서만([선언한 속성](#선언한-속성))
+- **CUSC-060** `design.layout`: `stacked`, `inline`, `line`; group 필드에서만([배치](#배치))
 
 컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 스키마는
 `multiple`, `lang`, `design`, 디자인 노드, `behavior`를 닫습니다. 이들이 나열하지 않은 키는

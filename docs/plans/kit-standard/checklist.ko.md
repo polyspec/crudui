@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 4ff98b16546294cf40db56bbdd30a25b0b686ff94beb97bfb5352b0bfb9db395 -->
+<!-- source-sha256: 649b528e962ca252f3f198f0dc74597d991b3444dc7390904d2ddbbadfb7c310 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -77,4 +77,4 @@
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [ ] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
 | C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [ ] |
-| C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [ ] |
+| C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [o] |

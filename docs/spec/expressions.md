@@ -16,25 +16,23 @@ Rust provide these stages as well as TypeScript. Evaluation does not use `eval`.
 
 ## 1. Tokens
 
-| Token | Pattern | Example |
-| --- | --- | --- |
-| `DOT` | `.` | `.field` |
-| `DOT_DOT` | two or more dots | `..field` |
-| `ASTERISK` | `*` | `items.*.name` |
-| `IDENTIFIER` | `[A-Za-z_][A-Za-z0-9_]*` | `status` |
-| `STRING` | single or double quoted text | `'active'` |
-| `NUMBER` | integer or decimal | `42` |
-| `BOOLEAN` | `true` or `false` | `true` |
-| `NULL` | `null` | `null` |
-| `EQ NE` | `==` `!=` | `.status == active` |
-| `GT GE LT LE` | `>` `>=` `<` `<=` | `.count > 0` |
-| `AND OR NOT` | `&&` `\|\|` `!` | `!.enabled` |
-| `IN NOT_IN` | `in` `not in` | `.country in [US, CA]` |
-| `QUESTION COLON` | `?` `:` | `.enabled ? 'yes' : 'no'` |
-| `LPAREN RPAREN` | `(` `)` | `(.a \|\| .b)` |
-| `LBRACKET RBRACKET COMMA` | `[` `]` `,` | `[US, CA]` |
-| `WHITESPACE` | whitespace, omitted from output | space |
-| `EOF` | end of input | end of input |
+- **CUXP-001** `DOT` — Pattern: `.`; Example: `.field`
+- **CUXP-002** `DOT_DOT` — Pattern: two or more dots; Example: `..field`
+- **CUXP-003** `ASTERISK` — Pattern: `*`; Example: `items.*.name`
+- **CUXP-004** `IDENTIFIER` — Pattern: `[A-Za-z_][A-Za-z0-9_]*`; Example: `status`
+- **CUXP-005** `STRING` — Pattern: single or double quoted text; Example: `'active'`
+- **CUXP-006** `NUMBER` — Pattern: integer or decimal; Example: `42`
+- **CUXP-007** `BOOLEAN` — Pattern: `true` or `false`; Example: `true`
+- **CUXP-008** `NULL` — Pattern: `null`; Example: `null`
+- **CUXP-009** `EQ NE` — Pattern: `==` `!=`; Example: `.status == active`
+- **CUXP-010** `GT GE LT LE` — Pattern: `>` `>=` `<` `<=`; Example: `.count > 0`
+- **CUXP-011** `AND OR NOT` — Pattern: `&&` `||` `!`; Example: `!.enabled`
+- **CUXP-012** `IN NOT_IN` — Pattern: `in` `not in`; Example: `.country in [US, CA]`
+- **CUXP-013** `QUESTION COLON` — Pattern: `?` `:`; Example: `.enabled ? 'yes' : 'no'`
+- **CUXP-014** `LPAREN RPAREN` — Pattern: `(` `)`; Example: `(.a || .b)`
+- **CUXP-015** `LBRACKET RBRACKET COMMA` — Pattern: `[` `]` `,`; Example: `[US, CA]`
+- **CUXP-016** `WHITESPACE` — Pattern: whitespace, omitted from output; Example: space
+- **CUXP-017** `EOF` — Pattern: end of input; Example: end of input
 
 ## 2. Grammar
 
@@ -76,12 +74,12 @@ the limit, so no input can exhaust its stack or the evaluator's.
 
 From lowest to highest:
 
-1. `?:`, right associative
-2. `||`
-3. `&&`
-4. `!`, applied to the following comparison or negation
-5. `== != > >= < <= in not in`, one comparison
-6. Paths, literals and parenthesized logical expressions
+1. **CUXP-018** `?:`, right associative
+2. **CUXP-019** `||`
+3. **CUXP-020** `&&`
+4. **CUXP-021** `!`, applied to the following comparison or negation
+5. **CUXP-022** `== != > >= < <= in not in`, one comparison
+6. **CUXP-023** Paths, literals and parenthesized logical expressions
 
 For example, `!.a == .b` means `!(.a == .b)`.
 

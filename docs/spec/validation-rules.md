@@ -9,24 +9,22 @@ entry points, load failures and input failures.
 
 ## Registered rules
 
-| Rules | Parameter and operation |
-| --- | --- |
-| `required` | `true` requires a supplied, nonempty value. |
-| `email`, `url` | Boolean enablement of the corresponding format check. |
-| `minlength`, `maxlength` | Integer minimum or maximum length; see [values](#values). |
-| `rangelength` | `[minimum, maximum]` length; see [values](#values). |
-| `number`, `digits` | Boolean enablement of the [numeric](#values) or digit-only check. |
-| `min`, `max` | Inclusive numeric lower or upper bound. |
-| `range` | Inclusive `[minimum, maximum]` numeric bounds. |
-| `step` | Numeric increment counted from 0. |
-| `match`, `pattern` | Whole-value [pattern](#patterns); both names use the same rule implementation. |
-| `equalTo`, `notEqual` | Field comparison; the rule receives its reference or literal parameter unchanged. |
-| `in` | [Membership](#values) in a list, comma-separated string or map. |
-| `date`, `dateISO` | Boolean enablement of date format checks. |
-| `enddate` | Start-date field path; a parsed end date must not precede the parsed start date. |
-| `mincount`, `maxcount` | Minimum or maximum collection size. |
-| `unique` | Uniqueness check, optionally using a reference or filter parameter. |
-| `accept` | File extension or MIME-type parameter. |
+- **CUVR-001** `required`: `true` requires a supplied, nonempty value.
+- **CUVR-002** `email`, `url`: Boolean enablement of the corresponding format check.
+- **CUVR-003** `minlength`, `maxlength`: Integer minimum or maximum length; see [values](#values).
+- **CUVR-004** `rangelength`: `[minimum, maximum]` length; see [values](#values).
+- **CUVR-005** `number`, `digits`: Boolean enablement of the [numeric](#values) or digit-only check.
+- **CUVR-006** `min`, `max`: Inclusive numeric lower or upper bound.
+- **CUVR-007** `range`: Inclusive `[minimum, maximum]` numeric bounds.
+- **CUVR-008** `step`: Numeric increment counted from 0.
+- **CUVR-009** `match`, `pattern`: Whole-value [pattern](#patterns); both names use the same rule implementation.
+- **CUVR-010** `equalTo`, `notEqual`: Field comparison; the rule receives its reference or literal parameter unchanged.
+- **CUVR-011** `in`: [Membership](#values) in a list, comma-separated string or map.
+- **CUVR-012** `date`, `dateISO`: Boolean enablement of date format checks.
+- **CUVR-013** `enddate`: Start-date field path; a parsed end date must not precede the parsed start date.
+- **CUVR-014** `mincount`, `maxcount`: Minimum or maximum collection size.
+- **CUVR-015** `unique`: Uniqueness check, optionally using a reference or filter parameter.
+- **CUVR-016** `accept`: File extension or MIME-type parameter.
 
 The [TypeScript registry](../../packages/validator/ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
@@ -45,17 +43,17 @@ disables validation silently; the meta-schema rejects the same names.
 A `number` field runs the implicit `number` check before other rules unless it
 declares that rule explicitly. Nonfinite numeric inputs fail numeric validation.
 
-**Visibility.** A field whose `design.show` resolves to `false` against the data being
-validated is hidden. The rules of a hidden field and of every field it contains are not
-evaluated — `required`, collection counts and all others — and it reports no error. Its value
-is neither changed nor removed: the data keeps it, and conditions and references elsewhere read
-it as it is, so a value kept while its field is hidden is validated again once the data shows the
-field. `design.show` resolves like a conditional parameter (a boolean, an expression or a
-condition map, in the field's row context); only a resolved `false` hides, so a field without
-`design.show`, with a condition map that selects nothing, or with a string that is not a valid
-expression (a literal) is visible. The shape of the data is an
-input contract and is checked for hidden fields too. Visibility
-depends on the data alone, so a server reaches the same result as the form that showed it.
+- **CUVR-017** **Visibility.** A field whose `design.show` resolves to `false` against the data being
+  validated is hidden. The rules of a hidden field and of every field it contains are not
+  evaluated — `required`, collection counts and all others — and it reports no error. Its value
+  is neither changed nor removed: the data keeps it, and conditions and references elsewhere read
+  it as it is, so a value kept while its field is hidden is validated again once the data shows the
+  field. `design.show` resolves like a conditional parameter (a boolean, an expression or a
+  condition map, in the field's row context); only a resolved `false` hides, so a field without
+  `design.show`, with a condition map that selects nothing, or with a string that is not a valid
+  expression (a literal) is visible. The shape of the data is an
+  input contract and is checked for hidden fields too. Visibility
+  depends on the data alone, so a server reaches the same result as the form that showed it.
 
 The validation result holds, besides `valid` and `errors`, the member `hidden`: the data paths of
 the fields whose `design.show` resolves to `false` against the data, in declaration order, each
@@ -93,79 +91,79 @@ sorted key order.
 Every runtime applies these definitions; the rules below use no other notion of
 whitespace, emptiness or text.
 
-**Unicode data** is Unicode 16.0.0 as recorded in
-[`contracts/unicode-properties.json`](../../contracts/unicode-properties.json), which
-`scripts/generate-unicode-properties.mts` derives from the Unicode Character Database files in
-`contracts/unicode/`. Every runtime embeds that table and uses no other Unicode data, so every
-runtime classifies every code point the same way.
+- **CUVR-018** **Unicode data** is Unicode 16.0.0 as recorded in
+  [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json), which
+  `scripts/generate-unicode-properties.mts` derives from the Unicode Character Database files in
+  `contracts/unicode/`. Every runtime embeds that table and uses no other Unicode data, so every
+  runtime classifies every code point the same way.
 
-**Whitespace** is exactly the code points with the Unicode `White_Space` property:
-U+0009–U+000D, U+0020, U+0085, U+00A0, U+1680, U+2000–U+200A, U+2028, U+2029,
-U+202F, U+205F and U+3000. U+0000, U+180E, U+200B and U+FEFF are not whitespace.
-**Trimming** removes leading and trailing whitespace and nothing else.
+- **CUVR-019** **Whitespace** is exactly the code points with the Unicode `White_Space` property:
+  U+0009–U+000D, U+0020, U+0085, U+00A0, U+1680, U+2000–U+200A, U+2028, U+2029,
+  U+202F, U+205F and U+3000. U+0000, U+180E, U+200B and U+FEFF are not whitespace.
+  **Trimming** removes leading and trailing whitespace and nothing else.
 
-**Empty values** are a missing value, `null`, a string that is empty after
-trimming, an empty array and an empty object. `0` and `false` are supplied values.
-`required` fails on an empty value. Every other rule except `mincount` and
-`maxcount` passes an empty value without evaluating it; collection-count rules
-evaluate empty collections. A repeated field or group whose data is missing is an empty
-collection. Requiredness and collection limits are separate; see
-[empty collections](empty-collections.md).
+- **CUVR-020** **Empty values** are a missing value, `null`, a string that is empty after
+  trimming, an empty array and an empty object. `0` and `false` are supplied values.
+  `required` fails on an empty value. Every other rule except `mincount` and
+  `maxcount` passes an empty value without evaluating it; collection-count rules
+  evaluate empty collections. A repeated field or group whose data is missing is an empty
+  collection. Requiredness and collection limits are separate; see
+  [empty collections](empty-collections.md).
 
-**Canonical text** of a scalar is: a string itself; `true` as `1` and `false` as
-`0`; a finite number as ECMAScript `Number.prototype.toString` writes its double value (the
-shortest text that reads back as the same double, with an exponent when the
-magnitude is at least 10^21 or below 10^-6, and `0` for negative zero). An integer is first
-converted to the nearest double, so `9007199254740993` is written `9007199254740992`.
+- **CUVR-021** **Canonical text** of a scalar is: a string itself; `true` as `1` and `false` as
+  `0`; a finite number as ECMAScript `Number.prototype.toString` writes its double value (the
+  shortest text that reads back as the same double, with an exponent when the
+  magnitude is at least 10^21 or below 10^-6, and `0` for negative zero). An integer is first
+  converted to the nearest double, so `9007199254740993` is written `9007199254740992`.
 
-**Length** rules (`minlength`, `maxlength`, `rangelength`) count the Unicode code
-points of a scalar's canonical text, untrimmed. Their limits are integers from 0
-to 9007199254740991; `rangelength` requires minimum ≤ maximum. An array or object
-value has no canonical text and fails a length rule, `pattern` and `match`.
+- **CUVR-022** **Length** rules (`minlength`, `maxlength`, `rangelength`) count the Unicode code
+  points of a scalar's canonical text, untrimmed. Their limits are integers from 0
+  to 9007199254740991; `rangelength` requires minimum ≤ maximum. An array or object
+  value has no canonical text and fails a length rule, `pattern` and `match`.
 
-**Numbers.** A value is numeric when it is a finite number, or a string that after trimming is
-*numeric text* whose value is finite. Numeric text is the HTML valid floating-point number: an
-optional `-`, then digits, digits followed by `.` and digits, or `.` and digits, then optionally
-`e` or `E`, an optional `-` or `+` and digits (`^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$`);
-its value is the nearest double. `+1`, `1.`, hexadecimal, `Infinity`, `NaN`, separators and
-non-ASCII digits are not numeric text, and text whose value overflows is not numeric. Booleans,
-`null`, arrays and objects are not numeric.
+- **CUVR-023** **Numbers.** A value is numeric when it is a finite number, or a string that after trimming is
+  *numeric text* whose value is finite. Numeric text is the HTML valid floating-point number: an
+  optional `-`, then digits, digits followed by `.` and digits, or `.` and digits, then optionally
+  `e` or `E`, an optional `-` or `+` and digits (`^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$`);
+  its value is the nearest double. `+1`, `1.`, hexadecimal, `Infinity`, `NaN`, separators and
+  non-ASCII digits are not numeric text, and text whose value overflows is not numeric. Booleans,
+  `null`, arrays and objects are not numeric.
 
-- `number` passes a numeric value.
-- `min`, `max` and `range` pass a numeric value that is not below the minimum and not above the
+- **CUVR-024** `number` passes a numeric value.
+- **CUVR-025** `min`, `max` and `range` pass a numeric value that is not below the minimum and not above the
   maximum; `step` passes a numeric value that is an integer multiple of the step, counted from 0.
   A value that is not numeric fails these rules. Multiples are decided exactly: the value and the
   step are read as the decimal numbers their canonical texts write, without a tolerance, so
   `0.3` is a multiple of `0.1` and `0.30000000000000004` is not.
-- `digits` passes a string or a number whose canonical text (a string trimmed) consists only of
+- **CUVR-026** `digits` passes a string or a number whose canonical text (a string trimmed) consists only of
   ASCII digits; booleans and other values fail.
-- `mincount` and `maxcount` count the elements of an array or the keys of an object; a missing
+- **CUVR-027** `mincount` and `maxcount` count the elements of an array or the keys of an object; a missing
   value, `null` and a string that is empty after trimming count 0, and any other scalar counts 1.
-- A message shows a numeric parameter as its canonical text. Every `{0}` and `{1}` of a default or
+- **CUVR-028** A message shows a numeric parameter as its canonical text. Every `{0}` and `{1}` of a default or
   declared message is replaced when the rule has that parameter; a placeholder for a parameter the
   rule does not have stays as written.
 
-**Membership** (`in`) takes its members from a list (each element as is), a
-[choice list](schema.md#choice-lists) (the `value` of each choice, inside
-[groups](schema.md#choice-groups) included), a comma-separated string
-(split at U+002C, each item trimmed) or a map (its keys). A list is a choice list when one of its
-elements is an object that has a `value` member or a `choices` member; it is checked first by the
-choice list rules (each element a choice with only `value` and `label` members or a group with only
-`label` and a non-empty `choices` list of such choices, a string or finite number `value`, no two
-values in the list with the same canonical text) and then its values are checked as members in
-written order, so a field can declare the same choice list as `items` and `in`.
-Members are strings, numbers or booleans; a member of another type and a member whose
-canonical text is empty after trimming are declaration errors; members are checked in order,
-each for its type before its emptiness. An empty list and an empty map declare an empty member
-set, which is valid and matches no value: a field with no choices passes an empty
-value and fails every other value. A string always has at least one item, so a blank string is
-an empty member. A
-string value is trimmed; an array value passes when every element passes, an empty element
-(including an empty array or object) passes as an empty value does, and a non-empty array or
-object element fails. A value matches a member
-when their canonical texts are the same code points, or when both are numeric with equal
-values. List elements and map keys are read as they are, so a member with surrounding whitespace
-is not numeric text. Case, Unicode normalization and text that is not numeric never match.
+- **CUVR-029** **Membership** (`in`) takes its members from a list (each element as is), a
+  [choice list](schema.md#choice-lists) (the `value` of each choice, inside
+  [groups](schema.md#choice-groups) included), a comma-separated string
+  (split at U+002C, each item trimmed) or a map (its keys). A list is a choice list when one of its
+  elements is an object that has a `value` member or a `choices` member; it is checked first by the
+  choice list rules (each element a choice with only `value` and `label` members or a group with only
+  `label` and a non-empty `choices` list of such choices, a string or finite number `value`, no two
+  values in the list with the same canonical text) and then its values are checked as members in
+  written order, so a field can declare the same choice list as `items` and `in`.
+  Members are strings, numbers or booleans; a member of another type and a member whose
+  canonical text is empty after trimming are declaration errors; members are checked in order,
+  each for its type before its emptiness. An empty list and an empty map declare an empty member
+  set, which is valid and matches no value: a field with no choices passes an empty
+  value and fails every other value. A string always has at least one item, so a blank string is
+  an empty member. A
+  string value is trimmed; an array value passes when every element passes, an empty element
+  (including an empty array or object) passes as an empty value does, and a non-empty array or
+  object element fails. A value matches a member
+  when their canonical texts are the same code points, or when both are numeric with equal
+  values. List elements and map keys are read as they are, so a member with surrounding whitespace
+  is not numeric text. Case, Unicode normalization and text that is not numeric never match.
 
 ## Patterns
 
@@ -174,28 +172,26 @@ as an HTML `pattern` attribute does. A pattern uses the CRUDUI pattern language,
 a regular language that every runtime recognizes and matches itself, with the same
 result and a matching time proportional to the value's length times the pattern's size:
 
-| Construct | Accepted form |
-| --- | --- |
-| Literal | Any Unicode scalar value except `\ ^ $ . \| ? * + ( ) [ ] { }` |
-| Escape | `\` followed by one of `^ $ \ . * + ? ( ) [ ] { } \| / -`; `\t \n \r \f \v`; `\xHH`; `\u{H…}` (1–6 hexadecimal digits, a scalar value) |
-| Class shorthand | `\d` = `[0-9]`, `\w` = `[0-9A-Za-z_]`, `\s` = whitespace, and `\D \W \S` as their complements |
-| Any character | `.` = any code point except U+000A |
-| Bracket class | `[…]` or `[^…]` with at least one member; members are literals, escapes, `\d`, `\w`, `\s`, properties and ranges `a-z` whose endpoints are single code points in non-descending order; inside a class only `[`, `]`, `\` and a `-` that is neither first nor last are escaped |
-| Unicode property | `\p{X}` or `\P{X}` with a general category (`L Lu Ll Lt Lm Lo M Mn Mc Me N Nd Nl No P Pc Pd Ps Pe Pi Pf Po S Sm Sc Sk So Z Zs Zl Zp C Cc Cf Co`), or `\p{Script=Name}` / `\P{Script=Name}` with a script (the Unicode `Script` property) named in the Unicode data |
-| Group | `(…)`, `(?:…)`, `(?<name>…)` with a unique name matching `[A-Za-z_][A-Za-z0-9_]*`; groups nest at most 100 deep |
-| Quantifier | `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}` (decimal digits, n ≤ m ≤ 1000) after an atom or group, optionally followed by `?` |
-| Alternation | `\|` |
-| Anchor | `^` as the first character and `$` as the last; they add nothing to a whole match |
+- **CUVR-030** Literal: Any Unicode scalar value except `\ ^ $ . | ? * + ( ) [ ] { }`
+- **CUVR-031** Escape: `\` followed by one of `^ $ \ . * + ? ( ) [ ] { } | / -`; `\t \n \r \f \v`; `\xHH`; `\u{H…}` (1–6 hexadecimal digits, a scalar value)
+- **CUVR-032** Class shorthand: `\d` = `[0-9]`, `\w` = `[0-9A-Za-z_]`, `\s` = whitespace, and `\D \W \S` as their complements
+- **CUVR-033** Any character: `.` = any code point except U+000A
+- **CUVR-034** Bracket class: `[…]` or `[^…]` with at least one member; members are literals, escapes, `\d`, `\w`, `\s`, properties and ranges `a-z` whose endpoints are single code points in non-descending order; inside a class only `[`, `]`, `\` and a `-` that is neither first nor last are escaped
+- **CUVR-035** Unicode property: `\p{X}` or `\P{X}` with a general category (`L Lu Ll Lt Lm Lo M Mn Mc Me N Nd Nl No P Pc Pd Ps Pe Pi Pf Po S Sm Sc Sk So Z Zs Zl Zp C Cc Cf Co`), or `\p{Script=Name}` / `\P{Script=Name}` with a script (the Unicode `Script` property) named in the Unicode data
+- **CUVR-036** Group: `(…)`, `(?:…)`, `(?<name>…)` with a unique name matching `[A-Za-z_][A-Za-z0-9_]*`; groups nest at most 100 deep
+- **CUVR-037** Quantifier: `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}` (decimal digits, n ≤ m ≤ 1000) after an atom or group, optionally followed by `?`
+- **CUVR-038** Alternation: `|`
+- **CUVR-039** Anchor: `^` as the first character and `$` as the last; they add nothing to a whole match
 
 An alternative or a group may be empty, and a pattern may consist of anchors alone; only the
 empty pattern is rejected. A lazy quantifier matches the same values as its greedy form, because
 only the whole value is matched. `C` is `Cc`, `Cf`, `Co`, the surrogates and the unassigned code
 points; a property's complement contains every code point outside it.
 
-**Size.** The size of a pattern is at most 1000. An atom (a literal, an escape, a shorthand, `.`,
-a class or a property) has size 1; a sequence or an alternation has the sum of its parts' sizes;
-a quantified item has its item's size times its maximum, or times its minimum plus one when it is
-unbounded (`*` and `+` count 1 and 2 times).
+- **CUVR-040** **Size.** The size of a pattern is at most 1000. An atom (a literal, an escape, a shorthand, `.`,
+  a class or a property) has size 1; a sequence or an alternation has the sum of its parts' sizes;
+  a quantified item has its item's size times its maximum, or times its minimum plus one when it is
+  unbounded (`*` and `+` count 1 and 2 times).
 
 Anything else is outside the language, including backreferences, lookaround,
 inline flags, case-insensitive matching, word boundaries, POSIX classes, possessive
@@ -215,25 +211,23 @@ implicit `number` check. Names are checked for hidden fields and fields without 
 is the field's declaration path: the property names from the root joined with `.`,
 without row keys. Every runtime reports the same code and message:
 
-| Parameter | Code | Message |
-| --- | --- | --- |
-| `validate` or `messages` key that is not a registered rule | `UNKNOWN_RULE` | `Unknown rule: {name}` |
-| `minlength`, `maxlength` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
-| `rangelength` limits | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
-| `number`, `digits` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected true or false` |
-| `min`, `max` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a finite number` |
-| `range` limits | `INVALID_RULE_PARAMETER` | `Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum` |
-| `step` | `INVALID_RULE_PARAMETER` | `Invalid step parameter: expected a finite number above 0` |
-| `mincount`, `maxcount` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
-| `in` members of another type | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
-| `in` choice list with another member, a group without choices, a `value` that is not a string or finite number, or two values with the same canonical text | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected value and label pairs with distinct string or number values` |
-| `in` member that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
-| `in` with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
-| `pattern`, `match` of another type | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
-| `equalTo`, `enddate` that is not a string | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a field reference string` |
-| `notEqual` that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid notEqual parameter: expected a string, number or boolean` |
-| `unique` that is not a boolean or a string | `INVALID_RULE_PARAMETER` | `Invalid unique parameter: expected true, false or a string` |
-| `pattern`, `match` outside the language | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
+- **CUVR-041** `validate` or `messages` key that is not a registered rule — Code: `UNKNOWN_RULE`; Message: `Unknown rule: {name}`
+- **CUVR-042** `minlength`, `maxlength` limit — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991`
+- **CUVR-043** `rangelength` limits — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum`
+- **CUVR-044** `number`, `digits` limit — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected true or false`
+- **CUVR-045** `min`, `max` limit — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a finite number`
+- **CUVR-046** `range` limits — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum`
+- **CUVR-047** `step` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid step parameter: expected a finite number above 0`
+- **CUVR-048** `mincount`, `maxcount` limit — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991`
+- **CUVR-049** `in` members of another type — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid in parameter: expected a list, a comma-separated string or a map`
+- **CUVR-050** `in` choice list with another member, a group without choices, a `value` that is not a string or finite number, or two values with the same canonical text — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid in parameter: expected value and label pairs with distinct string or number values`
+- **CUVR-051** `in` member that is not a string, number or boolean — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid in parameter: members must be strings, numbers or booleans`
+- **CUVR-052** `in` with an empty member — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid in parameter: members must not be empty`
+- **CUVR-053** `pattern`, `match` of another type — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a pattern string`
+- **CUVR-054** `equalTo`, `enddate` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a field reference string`
+- **CUVR-055** `notEqual` that is not a string, number or boolean — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid notEqual parameter: expected a string, number or boolean`
+- **CUVR-056** `unique` that is not a boolean or a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid unique parameter: expected true, false or a string`
+- **CUVR-057** `pattern`, `match` outside the language — Code: `INVALID_RULE_PATTERN`; Message: `Invalid {rule} pattern: {reason} at {offset}`
 
 The pattern `{reason}` is one of `empty pattern`, `unexpected character`,
 `unsupported construct`, `invalid escape`, `invalid class`, `invalid range`,

@@ -10,11 +10,9 @@ the same markup. Data, row operations and view state are defined in the
 
 A class name has one of three forms. Each separator has one meaning.
 
-| Form | Meaning | Example |
-| --- | --- | --- |
-| `crudui-{block}` | Block: an independent component | `crudui-node`, `crudui-controls` |
-| `crudui-{block}__{element}` | Element (`__`): a part that exists only inside its block | `crudui-node__header`, `crudui-node__label` |
-| `crudui-{block}--{modifier}` | Modifier (`--`): a kind or variant of the block | `crudui-node--row`, `crudui-node--sticky` |
+- **CUMK-001** `crudui-{block}` — Meaning: Block: an independent component; Example: `crudui-node`, `crudui-controls`
+- **CUMK-002** `crudui-{block}__{element}` — Meaning: Element (`__`): a part that exists only inside its block; Example: `crudui-node__header`, `crudui-node__label`
+- **CUMK-003** `crudui-{block}--{modifier}` — Meaning: Modifier (`--`): a kind or variant of the block; Example: `crudui-node--row`, `crudui-node--sticky`
 
 Words inside a name are joined by one hyphen (`lang-item`). A modifier is always
 used together with its block class (`class="crudui-node crudui-node--row"`).
@@ -34,27 +32,23 @@ spec declares in `design`.
 
 ## Blocks and attributes
 
-| Block | Structure |
-| --- | --- |
-| `crudui-form` | Form root with the `crudui-form__description` paragraph of a non-empty root description, `crudui-form__errors` holding a `crudui-form__error` paragraph per form error, `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
-| `crudui-node` | One data node; see the kinds below. |
-| `crudui-controls` | A button group with `role="group"` and an accessible name. |
-| `crudui-action` | A button: an action with `data-crudui-action`, a form button or the button of a [button field](#button-fields); `crudui-action--text` shows its label as text. |
-| `crudui-outline` | Structure map with `__header` form controls and `__body` nodes. |
-| `crudui-data` | Current data view with `__header` and a `pre` `__body`. |
-| `crudui-widget` | A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget. |
-| `crudui-input` | A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input and `--switch` for the checkbox input of a [switch](#switches). |
-| `crudui-choices` | Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)). |
+- **CUMK-004** `crudui-form`: Form root with the `crudui-form__description` paragraph of a non-empty root description, `crudui-form__errors` holding a `crudui-form__error` paragraph per form error, `crudui-form__body` and `crudui-form__footer` holding the form buttons.
+- **CUMK-005** `crudui-node`: One data node; see the kinds below.
+- **CUMK-006** `crudui-controls`: A button group with `role="group"` and an accessible name.
+- **CUMK-007** `crudui-action`: A button: an action with `data-crudui-action`, a form button or the button of a [button field](#button-fields); `crudui-action--text` shows its label as text.
+- **CUMK-008** `crudui-outline`: Structure map with `__header` form controls and `__body` nodes.
+- **CUMK-009** `crudui-data`: Current data view with `__header` and a `pre` `__body`.
+- **CUMK-010** `crudui-widget`: A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget.
+- **CUMK-011** `crudui-input`: A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input and `--switch` for the checkbox input of a [switch](#switches).
+- **CUMK-012** `crudui-choices`: Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)).
 
-| Attribute | Meaning |
-| --- | --- |
-| `data-field-path` | Data path of field, group, collection and lang nodes, and of structure-map rows |
-| `data-crudui-row-key` | Row key of a row node |
-| `data-lang` | Language code of a lang-item node |
-| `data-crudui-action` | Operation of a button |
-| `hidden` | `design.show` is false; a collapsed row body; the summary of an expanded row |
-| `aria-expanded`, `aria-controls` | Row toggle state and the controlled body |
-| `step="any"` | Every number control (`number`, `integer`, `float`, `decimal`); see below |
+- **CUMK-013** `data-field-path`: Data path of field, group, collection and lang nodes, and of structure-map rows
+- **CUMK-014** `data-crudui-row-key`: Row key of a row node
+- **CUMK-015** `data-lang`: Language code of a lang-item node
+- **CUMK-016** `data-crudui-action`: Operation of a button
+- **CUMK-017** `hidden`: `design.show` is false; a collapsed row body; the summary of an expanded row
+- **CUMK-018** `aria-expanded`, `aria-controls`: Row toggle state and the controlled body
+- **CUMK-019** `step="any"`: Every number control (`number`, `integer`, `float`, `decimal`); see below
 
 A button's collection path is the nearest `[data-field-path]` at or above it. Its
 row key is the nearest `[data-crudui-row-key]` inside that element; without one
@@ -80,14 +74,12 @@ to the header, `design.group` to the body of a group or group row and to the `cr
 element of a choice or multichoice field, `design.class`
 to the control and `design.prepend` to the widget prepend.
 
-| Kind | Header | Body |
-| --- | --- | --- |
-| `field` | `__label` and `__description` | Widget; the node has `crudui-node--inline` in an inline [layout](#layout) |
-| `group` | `__label` and `__description` | Child nodes; the node has `crudui-node--line` when it declares the line layout, and also `crudui-node--inline` in an inline layout |
-| `collection` | `__label`, `__description` and `__count` | Row nodes; the footer holds the `add-row` control when there are no rows |
-| `row` | Toggle, `__label`, `__number`, `__title`, `__summary`, controls | Widget of a scalar row, or child nodes of a group row |
-| `lang` | `__label`, `__description` and `__title` (`lang.title`) | lang-item nodes; the node has `crudui-node--framed` when `lang.frame` is true (the default) |
-| `lang-item` | `__label` with the language code | Widget |
+- **CUMK-020** `field` — Header: `__label` and `__description`; Body: Widget; the node has `crudui-node--inline` in an inline [layout](#layout)
+- **CUMK-021** `group` — Header: `__label` and `__description`; Body: Child nodes; the node has `crudui-node--line` when it declares the line layout, and also `crudui-node--inline` in an inline layout
+- **CUMK-022** `collection` — Header: `__label`, `__description` and `__count`; Body: Row nodes; the footer holds the `add-row` control when there are no rows
+- **CUMK-023** `row` — Header: Toggle, `__label`, `__number`, `__title`, `__summary`, controls; Body: Widget of a scalar row, or child nodes of a group row
+- **CUMK-024** `lang` — Header: `__label`, `__description` and `__title` (`lang.title`); Body: lang-item nodes; the node has `crudui-node--framed` when `lang.frame` is true (the default)
+- **CUMK-025** `lang-item` — Header: `__label` with the language code; Body: Widget
 
 A label is a `label` element targeting the control when the body has exactly one
 label target; otherwise it is a `span`. A checkbox or switcher caption is the
@@ -125,9 +117,9 @@ option input and therefore no control attributes.
 
 The models carry the declared attributes in declaration order:
 
-- A node model has them as `attributes` after `style` and before `hidden`.
-- A checkbox model has them as `attributes` after `caption`.
-- A widget model appends them to the attribute list of its control: `attrs`, or `extra.file` for a
+- **CUMK-026** A node model has them as `attributes` after `style` and before `hidden`.
+- **CUMK-027** A checkbox model has them as `attributes` after `caption`.
+- **CUMK-028** A widget model appends them to the attribute list of its control: `attrs`, or `extra.file` for a
   `file` layout. A `choices` layout keeps them in `extra.option` after `extra.input`.
 
 Each member is present only when the declaration has at least one attribute. Every renderer writes
@@ -151,8 +143,8 @@ A group declares the layout of its fields with `design.layout` ([schema](schema.
 node model writes the layout as modifiers at the start of the root class (`className`), before the
 `design.wrapper` class, as it writes `crudui-node--framed`:
 
-- A field node in an inline layout has `crudui-node--inline`.
-- A group that declares `line` has `crudui-node--line`, preceded by `crudui-node--inline` when the
+- **CUMK-029** A field node in an inline layout has `crudui-node--inline`.
+- **CUMK-030** A group that declares `line` has `crudui-node--line`, preceded by `crudui-node--inline` when the
   group is in an inline layout.
 
 The stylesheet lays an inline node out as a grid of the label column (`--crudui-label-width`) and the
@@ -315,30 +307,30 @@ and as high as the other controls (`--crudui-control-height`). A field `run` wit
 
 ## Rows
 
-- The number joins the one-based positions of the enclosing rows with `.`.
-- `multiple.title` names a direct child whose value becomes the row title. An
+- **CUMK-031** The number joins the one-based positions of the enclosing rows with `.`.
+- **CUMK-032** `multiple.title` names a direct child whose value becomes the row title. An
   empty value shows the untitled message.
-- Group rows are collapsible. The summary counts the rows of the collections
+- **CUMK-033** Group rows are collapsible. The summary counts the rows of the collections
   directly in the row body, or shows the collapsed message when there are none.
   Scalar rows have no toggle, title or summary.
-- Rows of a `multiple: only` collection have no row controls, and the structure map shows none
+- **CUMK-034** Rows of a `multiple: only` collection have no row controls, and the structure map shows none
   for them.
-- Controls follow this order: `move-up` and `move-down` (`multiple.sortable`),
+- **CUMK-035** Controls follow this order: `move-up` and `move-down` (`multiple.sortable`),
   `add-row`, `copy-row` (`multiple.copy`) and `remove-row`. `move-up` is unavailable
   on the first row and `move-down` on the last. `add-row` and `copy-row` are
   unavailable when the row count reaches `multiple.max`; `remove-row` when it is at
   or below `multiple.min`.
-- Every action button (`data-crudui-action`), in the form and in the structure map,
+- **CUMK-036** Every action button (`data-crudui-action`), in the form and in the structure map,
   marks an unavailable action with `aria-disabled="true"`, never `disabled`. It stays
   focusable and a click on it does nothing. A focused control that becomes disabled
   keeps focus in Chromium and loses it in WebKit, so `disabled` would make focus
   depend on the browser and on rendering timing. Field controls keep `disabled`,
   which is declared data state and excludes the field from submission.
-- `multiple.controls` places row controls in the row `header` (default) or
+- **CUMK-037** `multiple.controls` places row controls in the row `header` (default) or
   `footer`. With `outline` the row controls move to the structure map lines; an
   empty collection's Add control is not a row control and stays in the collection
   footer.
-- `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
+- **CUMK-038** `multiple.header: sticky` adds `crudui-node--sticky`, and the row root style sets
   `--crudui-sticky-depth` to the number of enclosing sticky rows. The row's sticky
   line is that depth times `--crudui-node-header-height` less one row border
   (`--crudui-row-border`). Sticky rows are CSS only, so they behave the same wherever
@@ -435,25 +427,23 @@ other rule writes a color. A page themes the blocks with a rule that selects the
 sets the properties, for example `.crudui-form, .crudui-list { --crudui-accent: … }`;
 the rule overrides the defaults in any stylesheet order.
 
-| Property | Default | Use |
-| --- | --- | --- |
-| `--crudui-text` | `#111827` | text color of every block |
-| `--crudui-muted` | `#6b7280` | descriptions, counts, affixes, detail labels |
-| `--crudui-border` | `#e5e7eb` | borders of rows, lists, details and actions |
-| `--crudui-surface` | `#ffffff` | background of controls, rows and actions |
-| `--crudui-subtle` | `#f9fafb` | background of row headers, list headings, affixes and read-only controls |
-| `--crudui-accent` | `#1d4ed8` | focus outlines, the selected choice and the track of an on switch |
-| `--crudui-error` | `#b91c1c` | text of form and node errors |
-| `--crudui-on-accent` | `#ffffff` | text of the selected choice |
-| `--crudui-action-text` | `#374151` | text and icon color of actions |
-| `--crudui-action-size` | `1.75rem` | width and height of an icon action, height of a text action |
-| `--crudui-control-border` | `var(--crudui-border)` | borders of controls, affixes, widget buttons and choices |
-| `--crudui-control-height` | `2.25rem` | minimum height of controls and choices |
-| `--crudui-radius` | `0.375rem` | corner radius of controls, affixes, choices and actions |
-| `--crudui-submit-background` | `var(--crudui-surface)` | background of the submit button of the form footer |
-| `--crudui-submit-border` | `var(--crudui-border)` | border color of the submit button of the form footer |
-| `--crudui-submit-text` | `var(--crudui-action-text)` | text color of the submit button of the form footer |
-| `--crudui-label-width` | `10rem` | width of the label column of an inline layout |
+- **CUMK-039** `--crudui-text` — Default: `#111827`; Use: text color of every block
+- **CUMK-040** `--crudui-muted` — Default: `#6b7280`; Use: descriptions, counts, affixes, detail labels
+- **CUMK-041** `--crudui-border` — Default: `#e5e7eb`; Use: borders of rows, lists, details and actions
+- **CUMK-042** `--crudui-surface` — Default: `#ffffff`; Use: background of controls, rows and actions
+- **CUMK-043** `--crudui-subtle` — Default: `#f9fafb`; Use: background of row headers, list headings, affixes and read-only controls
+- **CUMK-044** `--crudui-accent` — Default: `#1d4ed8`; Use: focus outlines, the selected choice and the track of an on switch
+- **CUMK-045** `--crudui-error` — Default: `#b91c1c`; Use: text of form and node errors
+- **CUMK-046** `--crudui-on-accent` — Default: `#ffffff`; Use: text of the selected choice
+- **CUMK-047** `--crudui-action-text` — Default: `#374151`; Use: text and icon color of actions
+- **CUMK-048** `--crudui-action-size` — Default: `1.75rem`; Use: width and height of an icon action, height of a text action
+- **CUMK-049** `--crudui-control-border` — Default: `var(--crudui-border)`; Use: borders of controls, affixes, widget buttons and choices
+- **CUMK-050** `--crudui-control-height` — Default: `2.25rem`; Use: minimum height of controls and choices
+- **CUMK-051** `--crudui-radius` — Default: `0.375rem`; Use: corner radius of controls, affixes, choices and actions
+- **CUMK-052** `--crudui-submit-background` — Default: `var(--crudui-surface)`; Use: background of the submit button of the form footer
+- **CUMK-053** `--crudui-submit-border` — Default: `var(--crudui-border)`; Use: border color of the submit button of the form footer
+- **CUMK-054** `--crudui-submit-text` — Default: `var(--crudui-action-text)`; Use: text color of the submit button of the form footer
+- **CUMK-055** `--crudui-label-width` — Default: `10rem`; Use: width of the label column of an inline layout
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border` and
 `--crudui-form-footer-height` size the sticky rows and the form footer (see above).
@@ -520,15 +510,15 @@ presentation classes.
 
 The reference form that motivated this grammar differs in these deliberate ways:
 
-1. Readiness polling and time-based scroll locks are replaced by synchronization
+1. **CUMK-056** Readiness polling and time-based scroll locks are replaced by synchronization
    after rendering. Sticky headers are marked stuck on scroll and resize events,
    measured at most once per animation frame, for rows of any height.
-2. Expansion is view state, not record data.
-3. Rows are identified by keys, not array positions.
-4. Depth is unlimited; one recursive node replaces per-depth components.
-5. `multiple.max` is enforced.
-6. Undo records every data change and merges consecutive edits of one path.
-7. Sticky headers and their labels are CSS only; no script follows the scroll
+2. **CUMK-057** Expansion is view state, not record data.
+3. **CUMK-058** Rows are identified by keys, not array positions.
+4. **CUMK-059** Depth is unlimited; one recursive node replaces per-depth components.
+5. **CUMK-060** `multiple.max` is enforced.
+6. **CUMK-061** Undo records every data change and merges consecutive edits of one path.
+7. **CUMK-062** Sticky headers and their labels are CSS only; no script follows the scroll
    position, so nothing runs or renders while scrolling.
-8. A row shows one number; there is no separate position counter.
-9. Layout options are declared in the specification, not chosen in a panel.
+8. **CUMK-063** A row shows one number; there is no separate position counter.
+9. **CUMK-064** Layout options are declared in the specification, not chosen in a panel.

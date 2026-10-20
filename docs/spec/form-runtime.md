@@ -124,11 +124,9 @@ convert arrays or infer hidden identity fields. Each rejection has code
 `INVALID_FORM_INPUT` and an empty location. `{path}` is the full data path,
 including row keys:
 
-| Data | Message |
-| --- | --- |
-| Root data that is not an object | `Form data must be an object` |
-| A present group value or group row that is not an object | `Group data must be an object: {path}` |
-| A present repeated value that is not a keyed object | `Repeated data must be a keyed object: {path}` |
+- **CURT-001** Root data that is not an object: `Form data must be an object`
+- **CURT-002** A present group value or group row that is not an object: `Group data must be an object: {path}`
+- **CURT-003** A present repeated value that is not a keyed object: `Repeated data must be a keyed object: {path}`
 
 Missing group or repeated data is not a failure. Checks follow template field order,
 depth first; a collection is checked before its rows, and rows follow data order.
@@ -138,13 +136,11 @@ depth first; a collection is checked before its rows, and rows follow data order
 
 All operations receive the collection path relative to the form data root.
 
-| Operation | Result |
-| --- | --- |
-| `addRow(path, { afterKey?, value?, key? })` | Insert one row with a new or supplied key. |
-| `copyRow(path, key)` | Copy current values and generate new keys for the copied row and all nested repeated rows. |
-| `removeRow(path, key)` | Remove only the selected row. |
-| `moveRow(path, key, index)` | Change order without changing row keys or values. |
-| `rekeyRow(path, oldKey, newKey)` | Change one row key after saving; regenerate descendant field paths. |
+- **CURT-004** `addRow(path, { afterKey?, value?, key? })`: Insert one row with a new or supplied key.
+- **CURT-005** `copyRow(path, key)`: Copy current values and generate new keys for the copied row and all nested repeated rows.
+- **CURT-006** `removeRow(path, key)`: Remove only the selected row.
+- **CURT-007** `moveRow(path, key, index)`: Change order without changing row keys or values.
+- **CURT-008** `rekeyRow(path, oldKey, newKey)`: Change one row key after saving; regenerate descendant field paths.
 
 Copying preserves ordinary field values. Database identity is represented by row
 keys; the runtime does not infer identity from fields named `id` or `*_seq`.
@@ -168,12 +164,10 @@ Rendering rules are defined in [empty collections](empty-collections.md).
 An editable instance also owns view state and an undo history, separate from the
 record. View state is never submitted or serialized with the data.
 
-| Operation | Result |
-| --- | --- |
-| `toggleRow(path, key)` | Expand or collapse one row. |
-| `setAllExpanded(expanded)` | Expand or collapse every collapsible row. |
-| `undo()` | Restore the record before the last data change and make the reverted record redoable; fails when nothing can be undone. |
-| `redo()` | Reapply the most recently undone data change; fails when nothing can be redone. |
+- **CURT-009** `toggleRow(path, key)`: Expand or collapse one row.
+- **CURT-010** `setAllExpanded(expanded)`: Expand or collapse every collapsible row.
+- **CURT-011** `undo()`: Restore the record before the last data change and make the reverted record redoable; fails when nothing can be undone.
+- **CURT-012** `redo()`: Reapply the most recently undone data change; fails when nothing can be redone.
 
 The snapshot reports `canUndo` and `canRedo`. History keeps up to 100 records in each
 direction. Consecutive `setValue` calls on the same path share one entry. A new data
@@ -261,12 +255,10 @@ language. When that text is not empty, it is the first child of `crudui-form`:
 `crudui-form__body`. An absent description or an empty translated text writes nothing. A form
 instance returns that text as `description` in JavaScript and `getDescription()` in PHP.
 
-| Member | Value | Markup |
-| --- | --- | --- |
-| `action` | Object with string `method`, `url` and `enctype`, each optional | A `form` element around the hidden fields and the `crudui-form` block, with the attributes `action`, `encType` and `method` in that order, as React's serialization writes them. Each attribute takes this object's member (`url` for `action`, `enctype` for `encType`), or the member of the template's `action` when this object has none, and is omitted when neither has it. The `action` attribute follows the URL rule of [markup and styles](#markup-and-styles). |
-| `hidden` | Object of string values | One `<input type="hidden" name="{name}" value="{value}"/>` per member, in member order, inside the `form` element before the `crudui-form` block. It requires `action`. |
-| `formErrors` | List of strings | A `crudui-form__errors` element in `crudui-form` after the description and before `crudui-form__body`, with one `crudui-form__error` paragraph per text in list order. An empty list writes nothing. |
-| `errors` | List of objects with string `path` and `message` | Each message as a `crudui-node__error` paragraph in the `crudui-node__errors` slot of the node whose data path is `path`, in list order. |
+- **CURT-013** `action` — Value: Object with string `method`, `url` and `enctype`, each optional; Markup: A `form` element around the hidden fields and the `crudui-form` block, with the attributes `action`, `encType` and `method` in that order, as React's serialization writes them. Each attribute takes this object's member (`url` for `action`, `enctype` for `encType`), or the member of the template's `action` when this object has none, and is omitted when neither has it. The `action` attribute follows the URL rule of [markup and styles](#markup-and-styles).
+- **CURT-014** `hidden` — Value: Object of string values; Markup: One `<input type="hidden" name="{name}" value="{value}"/>` per member, in member order, inside the `form` element before the `crudui-form` block. It requires `action`.
+- **CURT-015** `formErrors` — Value: List of strings; Markup: A `crudui-form__errors` element in `crudui-form` after the description and before `crudui-form__body`, with one `crudui-form__error` paragraph per text in list order. An empty list writes nothing.
+- **CURT-016** `errors` — Value: List of objects with string `path` and `message`; Markup: Each message as a `crudui-node__error` paragraph in the `crudui-node__errors` slot of the node whose data path is `path`, in list order.
 
 The data path of a field, group, collection or lang node is its `data-field-path`; the data path
 of a row is its collection's path, `.` and its row key. A lang-item node has no data path of its
@@ -279,16 +271,14 @@ synchronizes every named control inside that element with the instance data.
 Options fail with `INVALID_FORM_INPUT`, an empty location and the first of these messages, in
 this order:
 
-| Options | Message |
-| --- | --- |
-| A value that is not an object | `Render options must be an object` |
-| A member other than `action`, `hidden`, `formErrors` and `errors`, the first in member order | `Unknown render option: {name}` |
-| `action` that is not an object whose members are among `method`, `url` and `enctype` and are strings | `action must be an object with string method, url and enctype` |
-| `hidden` that is not an object of strings | `hidden must be an object of strings` |
-| `hidden` without `action` | `hidden requires action` |
-| `formErrors` that is not a list of strings | `formErrors must be a list of strings` |
-| `errors` that is not a list of objects with string `path` and `message` | `errors must be a list of objects with string path and message` |
-| The first error in list order whose path names no node | `Unknown error path: {path}` |
+- **CURT-017** A value that is not an object: `Render options must be an object`
+- **CURT-018** A member other than `action`, `hidden`, `formErrors` and `errors`, the first in member order: `Unknown render option: {name}`
+- **CURT-019** `action` that is not an object whose members are among `method`, `url` and `enctype` and are strings: `action must be an object with string method, url and enctype`
+- **CURT-020** `hidden` that is not an object of strings: `hidden must be an object of strings`
+- **CURT-021** `hidden` without `action`: `hidden requires action`
+- **CURT-022** `formErrors` that is not a list of strings: `formErrors must be a list of strings`
+- **CURT-023** `errors` that is not a list of objects with string `path` and `message`: `errors must be a list of objects with string path and message`
+- **CURT-024** The first error in list order whose path names no node: `Unknown error path: {path}`
 
 PHP reads an options array as an object, an empty array as an empty object or an empty list, and
 a list array as a list. Go and Rust take the options as an ordered JSON object.
@@ -320,23 +310,19 @@ validity. `dispose()` removes every listener of the binding and the `novalidate`
 form did not have it, and leaves the error markup as it is. Every member of `options` is
 optional:
 
-| Member | Value | Use |
-| --- | --- | --- |
-| `keyPrefix` | String | The `keyPrefix` the form was compiled with; it is the first segment of every control name. Absent means no prefix. |
-| `message` | Function from a validation error to a string | The text shown for that error. Absent uses the error's `message`. |
-| `formErrors` | Function from the validation result to a list of strings | The form errors written at each validation of the whole form. Absent writes none. |
+- **CURT-025** `keyPrefix` — Value: String; Use: The `keyPrefix` the form was compiled with; it is the first segment of every control name. Absent means no prefix.
+- **CURT-026** `message` — Value: Function from a validation error to a string; Use: The text shown for that error. Absent uses the error's `message`.
+- **CURT-027** `formErrors` — Value: Function from the validation result to a list of strings; Use: The form errors written at each validation of the whole form. Absent writes none.
 
 `bindForm` fails with a `TypeError` and the first of these messages, in this order:
 
-| Input | Message |
-| --- | --- |
-| `form` that is not a `form` element | `bindForm requires a form element` |
-| `options` that is not an object | `Binding options must be an object` |
-| A member of `options` other than `keyPrefix`, `message` and `formErrors`, the first in member order | `Unknown binding option: {name}` |
-| `keyPrefix` that is not a string | `keyPrefix must be a string` |
-| `message` that is not a function | `message must be a function` |
-| `formErrors` that is not a function | `formErrors must be a function` |
-| A form that does not contain exactly one `crudui-form__body` | `The form must contain one CRUDUI form` |
+- **CURT-028** `form` that is not a `form` element: `bindForm requires a form element`
+- **CURT-029** `options` that is not an object: `Binding options must be an object`
+- **CURT-030** A member of `options` other than `keyPrefix`, `message` and `formErrors`, the first in member order: `Unknown binding option: {name}`
+- **CURT-031** `keyPrefix` that is not a string: `keyPrefix must be a string`
+- **CURT-032** `message` that is not a function: `message must be a function`
+- **CURT-033** `formErrors` that is not a function: `formErrors must be a function`
+- **CURT-034** A form that does not contain exactly one `crudui-form__body`: `The form must contain one CRUDUI form`
 
 A validation fails with a `TypeError` when `message` returns a value that is not a string
 (`message must return a string`) or `formErrors` returns a value that is not a list of strings
@@ -353,12 +339,10 @@ prefix). A control takes part when it is an `input`, `select` or `textarea` with
 such as the `hidden` inputs of `renderForm` and the form buttons, take no part. A control of a
 node that `design.show` hides takes part, as it does in a submission.
 
-| Control | Entry |
-| --- | --- |
-| `input` of type `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden` or another type not named below, and `textarea` | Its current value, a string. A number is the text the control holds, a range is the value the browser holds (the midpoint of its bounds while the rendered value is empty), and a date or datetime is the text the browser submits. |
-| `input` of type `checkbox`, including a switch, or `radio` | Its `value` when it is checked; nothing when it is not. |
-| `select`, single or `multiple` | The value of each selected option, inside an `optgroup` or not; nothing when no option is selected. |
-| `input` of type `file` | Nothing. The browser cannot build the value a server receives for a file. |
+- **CURT-035** `input` of type `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden` or another type not named below, and `textarea`: Its current value, a string. A number is the text the control holds, a range is the value the browser holds (the midpoint of its bounds while the rendered value is empty), and a date or datetime is the text the browser submits.
+- **CURT-036** `input` of type `checkbox`, including a switch, or `radio`: Its `value` when it is checked; nothing when it is not.
+- **CURT-037** `select`, single or `multiple`: The value of each selected option, inside an `optgroup` or not; nothing when no option is selected.
+- **CURT-038** `input` of type `file`: Nothing. The browser cannot build the value a server receives for a file.
 
 Each entry is placed at the path its name denotes. The name is `{first}[{segment}]…`, optionally
 ending in `[]`; with a key prefix the first segment must equal it and is removed. Each segment
@@ -373,12 +357,10 @@ collection without rows. An empty text control is the empty string `""`.
 Collection fails with `FormInputError` (code `INVALID_FORM_INPUT`) and the first of these
 messages, in control order:
 
-| Control name | Message |
-| --- | --- |
-| Not of the form above | `Malformed control name: {name}` |
-| First segment other than the key prefix | `Control name outside the key prefix: {name}` |
-| A path that would hold more than one of a value, a list and members | `Control name is both a value and a group: {name}` |
-| A name without `[]` that has a second entry | `Repeated control name: {name}` |
+- **CURT-039** Not of the form above: `Malformed control name: {name}`
+- **CURT-040** First segment other than the key prefix: `Control name outside the key prefix: {name}`
+- **CURT-041** A path that would hold more than one of a value, a list and members: `Control name is both a value and a group: {name}`
+- **CURT-042** A name without `[]` that has a second entry: `Repeated control name: {name}`
 
 The validator receives this data unchanged. Errors whose path is the data path of a node that
 contains a file control are removed from the result: the server validates those nodes with the
@@ -404,13 +386,13 @@ from them.
 
 ### Timing
 
-- A node is validated when one of its controls loses focus after the user changed a control of
+- **CURT-043** A node is validated when one of its controls loses focus after the user changed a control of
   that node (`input` or `change` event), and on every later `input` or `change` event of that
   node. Each of these validations validates the whole data and writes every node validated
   since binding, so a node keeps its server-rendered errors until its first validation.
-- The whole form is validated on each `submit` event of the form and on each `validate()` call.
+- **CURT-044** The whole form is validated on each `submit` event of the form and on each `validate()` call.
   This writes every node and the form errors, and every node counts as validated afterwards.
-- The binding listens for `submit` on the window in the capture phase, before any listener of the
+- **CURT-045** The binding listens for `submit` on the window in the capture phase, before any listener of the
   document or the form. When the form is invalid it calls `preventDefault()` and
   `stopImmediatePropagation()`, so neither the browser nor a library that listens for `submit`,
   such as htmx, sends the request. Focus then moves to the first enabled control, in document
@@ -419,7 +401,7 @@ from them.
   form submits normally. `form.submit()` fires no `submit` event and is not validated. A
   validation that fails with an error does not cancel the submission, and the server validates
   it.
-- A renderer that writes the form again replaces the binding's markup; the next validation writes
+- **CURT-046** A renderer that writes the form again replaces the binding's markup; the next validation writes
   it again.
 
 `valid-target` marks the controls whose values the rules check, and `valid-target-async` marks a
@@ -459,11 +441,11 @@ native data binding.
 A script in rendered markup runs once, when its markup first appears, in every renderer
 (HTML, React, Vue and Svelte) and for forms, lists and details:
 
-- Server-rendered markup: the browser runs the script while it parses the page. Hydration keeps
+- **CURT-047** Server-rendered markup: the browser runs the script while it parses the page. Hydration keeps
   the parsed nodes and never runs the script again.
-- Client-rendered markup, a new row and a new list row: the script runs when its markup is
+- **CURT-048** Client-rendered markup, a new row and a new list row: the script runs when its markup is
   inserted, after the rest of that markup is in place, so it finds the controls that follow it.
-- A re-render, a data load with the same values, a moved row and a changed script text never run
+- **CURT-049** A re-render, a data load with the same values, a moved row and a changed script text never run
   a kept script again.
 
 Browsers never run a script that was parsed as a fragment (`innerHTML`, a `<template>`) or
@@ -486,25 +468,25 @@ installation.
 
 ## Acceptance criteria
 
-1. Prepare all nested fields before record data exists, serialize the template,
+1. **CURT-050** Prepare all nested fields before record data exists, serialize the template,
    and bind independent records without reloading composition files.
-2. Mount each framework view before loading data, then inject and replace data.
-3. Copy a store when its key equals its company key; preserve the original
+2. **CURT-051** Mount each framework view before loading data, then inject and replace data.
+3. **CURT-052** Copy a store when its key equals its company key; preserve the original
    company, store and sibling values and regenerate descendant row keys.
-4. Edit, reorder, remove and add rows without restoring stale values.
-5. Apply a saved sequence key and update field names and rule paths correctly.
-6. Reject invalid operations atomically and permit adding after deleting all rows.
-7. Verify every shared validation fixture case through JavaScript, PHP, Go and Rust and
+4. **CURT-053** Edit, reorder, remove and add rows without restoring stale values.
+5. **CURT-054** Apply a saved sequence key and update field names and rule paths correctly.
+6. **CURT-055** Reject invalid operations atomically and permit adding after deleting all rows.
+7. **CURT-056** Verify every shared validation fixture case through JavaScript, PHP, Go and Rust and
    require one idempotent result signature from all four languages. Object member order
    inside an error value is not semantic; array order remains semantic.
-8. Run row operations with pointer and keyboard input and verify the focused row
+8. **CURT-057** Run row operations with pointer and keyboard input and verify the focused row
    in React, Vue and Svelte.
-9. Send consecutive native input events across framework renders; retain every
+9. **CURT-058** Send consecutive native input events across framework renders; retain every
    accepted edit and finish with matching control and instance values.
-10. Keep every control, button, script, style and raw content node of forms, lists and details
+10. **CURT-059** Keep every control, button, script, style and raw content node of forms, lists and details
     across re-renders, and run each script once, when its markup first appears, in Chromium,
     Firefox and WebKit.
-11. Bind a server-rendered form in the browser: write the error markup that `renderForm` writes
+11. **CURT-060** Bind a server-rendered form in the browser: write the error markup that `renderForm` writes
     for the same errors, and in Chromium, Firefox and WebKit show an error when a changed field
     loses focus, send no request for an invalid submission and submit the corrected form.
 

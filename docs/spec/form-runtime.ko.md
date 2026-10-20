@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 2c1f6553e1180738c6da4b09603649d5c7258ee9d8d584b10f03be2a28cc116a -->
+<!-- source-sha256: e55ccbcbb22b144dab74d848f6bdeefd1a1eac8ff2baef2e9f43514cd7c04be6 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -115,11 +115,9 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 숨긴 식별자 필드를 추론하지 않습니다. 모든 거부는 코드 `INVALID_FORM_INPUT`와 빈
 위치를 사용합니다. `{path}`는 행 키를 포함한 전체 데이터 경로입니다.
 
-| 데이터 | 메시지 |
-| --- | --- |
-| 객체가 아닌 루트 데이터 | `Form data must be an object` |
-| 값이 있지만 객체가 아닌 그룹 값 또는 그룹 행 | `Group data must be an object: {path}` |
-| 값이 있지만 키 기반 객체가 아닌 반복 값 | `Repeated data must be a keyed object: {path}` |
+- **CURT-001** 객체가 아닌 루트 데이터: `Form data must be an object`
+- **CURT-002** 값이 있지만 객체가 아닌 그룹 값 또는 그룹 행: `Group data must be an object: {path}`
+- **CURT-003** 값이 있지만 키 기반 객체가 아닌 반복 값: `Repeated data must be a keyed object: {path}`
 
 그룹 또는 반복 데이터가 없는 것은 실패가 아닙니다. 검사는 템플릿 필드 순서를 깊이
 우선으로 따르며, 컬렉션을 행보다 먼저 검사하고 행은 데이터 순서를 따릅니다.
@@ -129,13 +127,11 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 
 모든 작업은 폼 데이터 루트 기준의 컬렉션 경로를 받습니다.
 
-| 작업 | 결과 |
-| --- | --- |
-| `addRow(path, { afterKey?, value?, key? })` | 새 키 또는 지정한 키로 행 하나를 추가합니다. |
-| `copyRow(path, key)` | 현재 값을 복사하고 복사한 행과 모든 중첩 반복 행의 키를 새로 생성합니다. |
-| `removeRow(path, key)` | 지정한 행만 제거합니다. |
-| `moveRow(path, key, index)` | 행 키와 값을 유지하며 순서를 변경합니다. |
-| `rekeyRow(path, oldKey, newKey)` | 저장 후 행 키 하나를 변경하고 하위 필드 경로를 다시 생성합니다. |
+- **CURT-004** `addRow(path, { afterKey?, value?, key? })`: 새 키 또는 지정한 키로 행 하나를 추가합니다.
+- **CURT-005** `copyRow(path, key)`: 현재 값을 복사하고 복사한 행과 모든 중첩 반복 행의 키를 새로 생성합니다.
+- **CURT-006** `removeRow(path, key)`: 지정한 행만 제거합니다.
+- **CURT-007** `moveRow(path, key, index)`: 행 키와 값을 유지하며 순서를 변경합니다.
+- **CURT-008** `rekeyRow(path, oldKey, newKey)`: 저장 후 행 키 하나를 변경하고 하위 필드 경로를 다시 생성합니다.
 
 복사는 일반 필드 값을 유지합니다. DB 식별자는 행 키로 표현합니다. 런타임은
 `id`나 `*_seq`라는 필드명으로 식별자를 추론하지 않습니다. 서로 다른 회사 아래에
@@ -157,12 +153,10 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 편집 인스턴스는 레코드와 별도로 뷰 상태와 되돌리기 이력을 가집니다. 뷰 상태는
 제출하거나 데이터와 함께 직렬화하지 않습니다.
 
-| 작업 | 결과 |
-| --- | --- |
-| `toggleRow(path, key)` | 행 하나를 펼치거나 접습니다. |
-| `setAllExpanded(expanded)` | 접을 수 있는 모든 행을 펼치거나 접습니다. |
-| `undo()` | 마지막 데이터 변경 이전 레코드로 복원하고 되돌린 레코드를 실행복귀 대상으로 만들며, 되돌릴 이력이 없으면 실패합니다. |
-| `redo()` | 가장 최근에 실행취소한 데이터 변경을 다시 적용하며, 실행복귀할 이력이 없으면 실패합니다. |
+- **CURT-009** `toggleRow(path, key)`: 행 하나를 펼치거나 접습니다.
+- **CURT-010** `setAllExpanded(expanded)`: 접을 수 있는 모든 행을 펼치거나 접습니다.
+- **CURT-011** `undo()`: 마지막 데이터 변경 이전 레코드로 복원하고 되돌린 레코드를 실행복귀 대상으로 만들며, 되돌릴 이력이 없으면 실패합니다.
+- **CURT-012** `redo()`: 가장 최근에 실행취소한 데이터 변경을 다시 적용하며, 실행복귀할 이력이 없으면 실패합니다.
 
 스냅샷은 `canUndo`와 `canRedo`를 제공합니다. 이력은 양방향에 각각 최대 100개
 레코드를 보관합니다. 같은 경로에 연속한 `setValue` 호출은 한 항목을 공유합니다.
@@ -240,12 +234,10 @@ WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 아무것도 쓰지 않습니다. 폼 인스턴스는 그 텍스트를 JavaScript에서는 `description`으로, PHP에서는
 `getDescription()`으로 반환합니다.
 
-| 멤버 | 값 | 마크업 |
-| --- | --- | --- |
-| `action` | 각각 선택인 문자열 `method`, `url`, `enctype`을 가진 객체 | 숨은 필드와 `crudui-form` 블록을 감싸는 `form` 요소이며 React 직렬화와 같이 속성 순서는 `action`, `encType`, `method`입니다. 각 속성은 이 객체의 멤버(`action`에는 `url`, `encType`에는 `enctype`)를, 이 객체에 없으면 템플릿 `action`의 멤버를 사용하고 둘 다 없으면 생략합니다. `action` 속성은 [마크업과 스타일](#마크업과-스타일)의 URL 규칙을 따릅니다. |
-| `hidden` | 문자열 값을 가진 객체 | 멤버마다 `<input type="hidden" name="{name}" value="{value}"/>` 하나를 멤버 순서로 `form` 요소 안의 `crudui-form` 블록 앞에 씁니다. `action`이 필요합니다. |
-| `formErrors` | 문자열 목록 | `crudui-form` 안에서 설명 뒤, `crudui-form__body` 앞에 두는 `crudui-form__errors` 요소이며 문구마다 `crudui-form__error` 문단 하나를 목록 순서로 담습니다. 빈 목록은 아무것도 쓰지 않습니다. |
-| `errors` | 문자열 `path`와 `message`를 가진 객체 목록 | 각 메시지를 데이터 경로가 `path`인 노드의 `crudui-node__errors` 슬롯에 `crudui-node__error` 문단으로 목록 순서대로 씁니다. |
+- **CURT-013** `action` — 값: 각각 선택인 문자열 `method`, `url`, `enctype`을 가진 객체; 마크업: 숨은 필드와 `crudui-form` 블록을 감싸는 `form` 요소이며 React 직렬화와 같이 속성 순서는 `action`, `encType`, `method`입니다. 각 속성은 이 객체의 멤버(`action`에는 `url`, `encType`에는 `enctype`)를, 이 객체에 없으면 템플릿 `action`의 멤버를 사용하고 둘 다 없으면 생략합니다. `action` 속성은 [마크업과 스타일](#마크업과-스타일)의 URL 규칙을 따릅니다.
+- **CURT-014** `hidden` — 값: 문자열 값을 가진 객체; 마크업: 멤버마다 `<input type="hidden" name="{name}" value="{value}"/>` 하나를 멤버 순서로 `form` 요소 안의 `crudui-form` 블록 앞에 씁니다. `action`이 필요합니다.
+- **CURT-015** `formErrors` — 값: 문자열 목록; 마크업: `crudui-form` 안에서 설명 뒤, `crudui-form__body` 앞에 두는 `crudui-form__errors` 요소이며 문구마다 `crudui-form__error` 문단 하나를 목록 순서로 담습니다. 빈 목록은 아무것도 쓰지 않습니다.
+- **CURT-016** `errors` — 값: 문자열 `path`와 `message`를 가진 객체 목록; 마크업: 각 메시지를 데이터 경로가 `path`인 노드의 `crudui-node__errors` 슬롯에 `crudui-node__error` 문단으로 목록 순서대로 씁니다.
 
 필드, 그룹, 컬렉션, lang 노드의 데이터 경로는 그 `data-field-path`이고 행의 데이터 경로는 컬렉션
 경로, `.`, 행 키를 이은 값입니다. lang-item 노드는 자기 데이터 경로가 없습니다. 검증 결과의 오류
@@ -256,16 +248,14 @@ WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 
 옵션은 `INVALID_FORM_INPUT`, 빈 위치, 다음 메시지 중 첫 번째로 이 순서에 따라 실패합니다.
 
-| 옵션 | 메시지 |
-| --- | --- |
-| 객체가 아닌 값 | `Render options must be an object` |
-| `action`, `hidden`, `formErrors`, `errors` 이외의 멤버 중 멤버 순서로 첫 번째 | `Unknown render option: {name}` |
-| 멤버가 `method`, `url`, `enctype` 중 하나이고 문자열인 객체가 아닌 `action` | `action must be an object with string method, url and enctype` |
-| 문자열 객체가 아닌 `hidden` | `hidden must be an object of strings` |
-| `action` 없는 `hidden` | `hidden requires action` |
-| 문자열 목록이 아닌 `formErrors` | `formErrors must be a list of strings` |
-| 문자열 `path`와 `message`를 가진 객체 목록이 아닌 `errors` | `errors must be a list of objects with string path and message` |
-| 목록 순서로 첫 번째인, 경로가 어떤 노드도 가리키지 않는 오류 | `Unknown error path: {path}` |
+- **CURT-017** 객체가 아닌 값: `Render options must be an object`
+- **CURT-018** `action`, `hidden`, `formErrors`, `errors` 이외의 멤버 중 멤버 순서로 첫 번째: `Unknown render option: {name}`
+- **CURT-019** 멤버가 `method`, `url`, `enctype` 중 하나이고 문자열인 객체가 아닌 `action`: `action must be an object with string method, url and enctype`
+- **CURT-020** 문자열 객체가 아닌 `hidden`: `hidden must be an object of strings`
+- **CURT-021** `action` 없는 `hidden`: `hidden requires action`
+- **CURT-022** 문자열 목록이 아닌 `formErrors`: `formErrors must be a list of strings`
+- **CURT-023** 문자열 `path`와 `message`를 가진 객체 목록이 아닌 `errors`: `errors must be a list of objects with string path and message`
+- **CURT-024** 목록 순서로 첫 번째인, 경로가 어떤 노드도 가리키지 않는 오류: `Unknown error path: {path}`
 
 PHP는 옵션 배열을 객체로, 빈 배열을 빈 객체나 빈 목록으로, list 배열을 목록으로 읽습니다. Go와
 Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
@@ -294,23 +284,19 @@ client가 `JSON.parse`로 다시 읽는 페이지 state의 `render` 멤버처럼
 제거하고, 폼에 원래 없던 `novalidate` 속성을 제거하며, 오류 마크업은 그대로 둡니다. `options`의 모든
 멤버는 선택입니다.
 
-| 멤버 | 값 | 용도 |
-| --- | --- | --- |
-| `keyPrefix` | 문자열 | 폼을 컴파일할 때 쓴 `keyPrefix`이며 모든 컨트롤 이름의 첫 세그먼트입니다. 없으면 접두사가 없습니다. |
-| `message` | 검증 오류에서 문자열로 가는 함수 | 그 오류에 보여 줄 문구입니다. 없으면 오류의 `message`를 씁니다. |
-| `formErrors` | 검증 결과에서 문자열 목록으로 가는 함수 | 폼 전체를 검증할 때마다 쓰는 폼 오류입니다. 없으면 쓰지 않습니다. |
+- **CURT-025** `keyPrefix` — 값: 문자열; 용도: 폼을 컴파일할 때 쓴 `keyPrefix`이며 모든 컨트롤 이름의 첫 세그먼트입니다. 없으면 접두사가 없습니다.
+- **CURT-026** `message` — 값: 검증 오류에서 문자열로 가는 함수; 용도: 그 오류에 보여 줄 문구입니다. 없으면 오류의 `message`를 씁니다.
+- **CURT-027** `formErrors` — 값: 검증 결과에서 문자열 목록으로 가는 함수; 용도: 폼 전체를 검증할 때마다 쓰는 폼 오류입니다. 없으면 쓰지 않습니다.
 
 `bindForm`은 `TypeError`와 다음 메시지 중 첫 번째로 이 순서에 따라 실패합니다.
 
-| 입력 | 메시지 |
-| --- | --- |
-| `form` 요소가 아닌 `form` | `bindForm requires a form element` |
-| 객체가 아닌 `options` | `Binding options must be an object` |
-| `keyPrefix`, `message`, `formErrors` 이외의 `options` 멤버 중 멤버 순서로 첫 번째 | `Unknown binding option: {name}` |
-| 문자열이 아닌 `keyPrefix` | `keyPrefix must be a string` |
-| 함수가 아닌 `message` | `message must be a function` |
-| 함수가 아닌 `formErrors` | `formErrors must be a function` |
-| `crudui-form__body`를 정확히 하나 담지 않은 폼 | `The form must contain one CRUDUI form` |
+- **CURT-028** `form` 요소가 아닌 `form`: `bindForm requires a form element`
+- **CURT-029** 객체가 아닌 `options`: `Binding options must be an object`
+- **CURT-030** `keyPrefix`, `message`, `formErrors` 이외의 `options` 멤버 중 멤버 순서로 첫 번째: `Unknown binding option: {name}`
+- **CURT-031** 문자열이 아닌 `keyPrefix`: `keyPrefix must be a string`
+- **CURT-032** 함수가 아닌 `message`: `message must be a function`
+- **CURT-033** 함수가 아닌 `formErrors`: `formErrors must be a function`
+- **CURT-034** `crudui-form__body`를 정확히 하나 담지 않은 폼: `The form must contain one CRUDUI form`
 
 `message`가 문자열이 아닌 값을 반환하면(`message must return a string`), `formErrors`가 문자열
 목록이 아닌 값을 반환하면(`formErrors must return a list of strings`) 검증은 `TypeError`로 실패합니다.
@@ -325,12 +311,10 @@ client가 `JSON.parse`로 다시 읽는 페이지 state의 `render` 멤버처럼
 `hidden` input과 폼 버튼처럼 노드 밖에 있는 컨트롤은 참여하지 않습니다. `design.show`가 숨긴
 노드의 컨트롤은 제출과 같이 참여합니다.
 
-| 컨트롤 | 항목 |
-| --- | --- |
-| 유형이 `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden`이거나 아래에 없는 다른 유형인 `input`, 그리고 `textarea` | 현재 값인 문자열입니다. 숫자는 컨트롤이 담은 텍스트이고, range는 브라우저가 담은 값(렌더링한 값이 비어 있으면 범위의 중간값)이며, 날짜와 날짜시간은 브라우저가 제출하는 텍스트입니다. |
-| 유형이 `checkbox`(스위치 포함)나 `radio`인 `input` | 선택되었으면 그 `value`이고 선택되지 않았으면 없습니다. |
-| 단일 또는 `multiple` `select` | `optgroup` 안에 있든 없든 선택된 옵션마다 그 값이며 선택된 옵션이 없으면 없습니다. |
-| 유형이 `file`인 `input` | 없습니다. 브라우저는 서버가 파일에 대해 받는 값을 만들 수 없습니다. |
+- **CURT-035** 유형이 `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden`이거나 아래에 없는 다른 유형인 `input`, 그리고 `textarea`: 현재 값인 문자열입니다. 숫자는 컨트롤이 담은 텍스트이고, range는 브라우저가 담은 값(렌더링한 값이 비어 있으면 범위의 중간값)이며, 날짜와 날짜시간은 브라우저가 제출하는 텍스트입니다.
+- **CURT-036** 유형이 `checkbox`(스위치 포함)나 `radio`인 `input`: 선택되었으면 그 `value`이고 선택되지 않았으면 없습니다.
+- **CURT-037** 단일 또는 `multiple` `select`: `optgroup` 안에 있든 없든 선택된 옵션마다 그 값이며 선택된 옵션이 없으면 없습니다.
+- **CURT-038** 유형이 `file`인 `input`: 없습니다. 브라우저는 서버가 파일에 대해 받는 값을 만들 수 없습니다.
 
 각 항목은 이름이 가리키는 경로에 놓입니다. 이름은 `{first}[{segment}]…`이고 `[]`로 끝날 수 있습니다.
 키 접두사가 있으면 첫 세그먼트가 그 접두사와 같아야 하며 제거됩니다. 각 세그먼트는 객체 멤버를
@@ -344,12 +328,10 @@ client가 `JSON.parse`로 다시 읽는 페이지 state의 `render` 멤버처럼
 수집은 `FormInputError`(코드 `INVALID_FORM_INPUT`)와 다음 메시지 중 첫 번째로 컨트롤 순서에 따라
 실패합니다.
 
-| 컨트롤 이름 | 메시지 |
-| --- | --- |
-| 위 형태가 아님 | `Malformed control name: {name}` |
-| 첫 세그먼트가 키 접두사가 아님 | `Control name outside the key prefix: {name}` |
-| 한 경로가 값, 목록, 멤버 중 둘 이상을 가지게 됨 | `Control name is both a value and a group: {name}` |
-| `[]` 없는 이름에 두 번째 항목이 있음 | `Repeated control name: {name}` |
+- **CURT-039** 위 형태가 아님: `Malformed control name: {name}`
+- **CURT-040** 첫 세그먼트가 키 접두사가 아님: `Control name outside the key prefix: {name}`
+- **CURT-041** 한 경로가 값, 목록, 멤버 중 둘 이상을 가지게 됨: `Control name is both a value and a group: {name}`
+- **CURT-042** `[]` 없는 이름에 두 번째 항목이 있음: `Repeated control name: {name}`
 
 검증기는 이 데이터를 그대로 받습니다. 경로가 파일 컨트롤을 담은 노드의 데이터 경로인 오류는
 결과에서 제거합니다. 서버가 받은 파일로 그 노드를 검증합니다. 남은 오류가 없으면 결과의
@@ -371,20 +353,20 @@ client가 `JSON.parse`로 다시 읽는 페이지 state의 `render` 멤버처럼
 
 ### 시점
 
-- 사용자가 노드의 컨트롤을 바꾼 뒤(`input` 또는 `change` 이벤트) 그 노드의 컨트롤이 포커스를 잃을 때
+- **CURT-043** 사용자가 노드의 컨트롤을 바꾼 뒤(`input` 또는 `change` 이벤트) 그 노드의 컨트롤이 포커스를 잃을 때
   노드를 검증하고, 그 뒤로는 그 노드의 `input`이나 `change` 이벤트마다 검증합니다. 이 검증은 매번 전체
   데이터를 검증하고 바인딩 이후 검증된 모든 노드를 씁니다. 따라서 노드는 처음 검증될 때까지 서버가
   렌더링한 오류를 유지합니다.
-- 폼의 `submit` 이벤트마다, 그리고 `validate()` 호출마다 폼 전체를 검증합니다. 이 검증은 모든 노드와
+- **CURT-044** 폼의 `submit` 이벤트마다, 그리고 `validate()` 호출마다 폼 전체를 검증합니다. 이 검증은 모든 노드와
   폼 오류를 쓰며, 그 뒤로 모든 노드는 검증된 노드입니다.
-- 바인딩은 캡처 단계에서 window의 `submit`을 들으므로 문서나 폼의 어떤 리스너보다 먼저 실행됩니다.
+- **CURT-045** 바인딩은 캡처 단계에서 window의 `submit`을 들으므로 문서나 폼의 어떤 리스너보다 먼저 실행됩니다.
   폼이 유효하지 않으면 `preventDefault()`와 `stopImmediatePropagation()`을 호출하므로 브라우저도,
   htmx처럼 `submit`을 듣는 라이브러리도 요청을 보내지 않습니다. 그다음 문서 순서로 오류가 있는 노드
   안에 있고 `hidden` 조상이 없는 첫 번째 활성 컨트롤로 포커스를 옮깁니다. 바인딩은 스크롤 없이
   포커스를 주고 필요한 만큼만 스크롤해 보이게 하며, 포커스는 보이게 표시합니다. 유효한 폼은 정상적으로
   제출됩니다. `form.submit()`은 `submit` 이벤트를 발생시키지 않으므로 검증되지 않습니다. 오류로
   실패한 검증은 제출을 취소하지 않으며 서버가 그 제출을 검증합니다.
-- 렌더러가 폼을 다시 쓰면 바인딩의 마크업이 바뀌며, 다음 검증이 다시 씁니다.
+- **CURT-046** 렌더러가 폼을 다시 쓰면 바인딩의 마크업이 바뀌며, 다음 검증이 다시 씁니다.
 
 `valid-target`은 규칙이 값을 검사하는 컨트롤을 표시하고, `valid-target-async`는 실행 중에
 동적 소스(`model`을 가진 `items`)에서 옵션을 불러오는 select를 표시합니다. 바인딩은 두 클래스를 읽지
@@ -418,11 +400,11 @@ client가 `JSON.parse`로 다시 읽는 페이지 state의 `render` 멤버처럼
 렌더링한 마크업의 스크립트는 모든 렌더러(HTML, React, Vue, Svelte)의 폼, 목록, 상세에서 그
 마크업이 처음 나타날 때 한 번 실행됩니다.
 
-- 서버에서 렌더링한 마크업: 브라우저가 페이지를 파싱하면서 스크립트를 실행합니다. 하이드레이션은
+- **CURT-047** 서버에서 렌더링한 마크업: 브라우저가 페이지를 파싱하면서 스크립트를 실행합니다. 하이드레이션은
   파싱한 노드를 유지하고 스크립트를 다시 실행하지 않습니다.
-- 클라이언트에서 렌더링한 마크업, 새 행, 새 목록 행: 마크업을 삽입할 때, 그 마크업의 나머지가 자리를
+- **CURT-048** 클라이언트에서 렌더링한 마크업, 새 행, 새 목록 행: 마크업을 삽입할 때, 그 마크업의 나머지가 자리를
   잡은 뒤 스크립트가 실행되므로 스크립트는 뒤따르는 컨트롤을 찾습니다.
-- 다시 그리기, 같은 값의 데이터 로드, 행 이동, 스크립트 텍스트 변경은 유지한 스크립트를 다시
+- **CURT-049** 다시 그리기, 같은 값의 데이터 로드, 행 이동, 스크립트 텍스트 변경은 유지한 스크립트를 다시
   실행하지 않습니다.
 
 브라우저는 조각으로 파싱했거나(`innerHTML`, `<template>`) 복제한 스크립트를 실행하지 않으므로 모든
@@ -442,24 +424,24 @@ DB seq 발급이나 배포를 수행하지 않습니다.
 
 ## 인수 기준
 
-1. 레코드 데이터가 없을 때 모든 중첩 필드를 준비하고 템플릿을 직렬화한 후,
+1. **CURT-050** 레코드 데이터가 없을 때 모든 중첩 필드를 준비하고 템플릿을 직렬화한 후,
    합성 파일을 다시 로드하지 않고 독립된 레코드를 바인딩합니다.
-2. 각 프레임워크 화면을 데이터 로드 전에 마운트하고 데이터를 주입·교체합니다.
-3. 스토어 키와 회사 키가 같을 때 스토어를 복사합니다. 원본 회사·스토어·다른
+2. **CURT-051** 각 프레임워크 화면을 데이터 로드 전에 마운트하고 데이터를 주입·교체합니다.
+3. **CURT-052** 스토어 키와 회사 키가 같을 때 스토어를 복사합니다. 원본 회사·스토어·다른
    스토어 값을 유지하고 복사한 하위 행의 키를 새로 생성합니다.
-4. 편집·정렬·제거·추가 작업에서 이전 값을 복원하지 않습니다.
-5. 저장한 seq 키를 적용하고 입력 이름과 규칙 경로를 올바르게 갱신합니다.
-6. 잘못된 작업은 상태를 변경하지 않고 실패하며, 모든 행을 제거한 뒤에도 추가할 수 있습니다.
-7. 공용 검증 fixture의 모든 사례를 JavaScript, PHP, Go, Rust로 실행하고 네 언어가
+4. **CURT-053** 편집·정렬·제거·추가 작업에서 이전 값을 복원하지 않습니다.
+5. **CURT-054** 저장한 seq 키를 적용하고 입력 이름과 규칙 경로를 올바르게 갱신합니다.
+6. **CURT-055** 잘못된 작업은 상태를 변경하지 않고 실패하며, 모든 행을 제거한 뒤에도 추가할 수 있습니다.
+7. **CURT-056** 공용 검증 fixture의 모든 사례를 JavaScript, PHP, Go, Rust로 실행하고 네 언어가
    하나의 멱등 결과 서명을 내는지 확인합니다. 오류 값 내부의 객체 멤버 순서는 의미가
    없으며 배열 순서는 의미가 있습니다.
-8. 포인터와 키보드로 행 작업을 실행하고 React, Vue, Svelte에서 포커스를 받은 행을
+8. **CURT-057** 포인터와 키보드로 행 작업을 실행하고 React, Vue, Svelte에서 포커스를 받은 행을
    확인합니다.
-9. 프레임워크 렌더링 사이에 연속 기본 입력 이벤트를 전송하고, 각 편집값을 유지하며
+9. **CURT-058** 프레임워크 렌더링 사이에 연속 기본 입력 이벤트를 전송하고, 각 편집값을 유지하며
    마지막 입력값과 인스턴스 값이 일치하는지 확인합니다.
-10. 다시 그려도 폼, 목록, 상세의 컨트롤, 버튼, 스크립트, 스타일, 원시 내용 노드를 모두 유지하고,
+10. **CURT-059** 다시 그려도 폼, 목록, 상세의 컨트롤, 버튼, 스크립트, 스타일, 원시 내용 노드를 모두 유지하고,
     Chromium, Firefox, WebKit에서 각 스크립트가 마크업이 처음 나타날 때 한 번 실행되는지 확인합니다.
-11. 서버가 렌더링한 폼을 브라우저에서 연결해 같은 오류에 대해 `renderForm`이 쓰는 오류 마크업을 쓰고,
+11. **CURT-060** 서버가 렌더링한 폼을 브라우저에서 연결해 같은 오류에 대해 `renderForm`이 쓰는 오류 마크업을 쓰고,
     Chromium, Firefox, WebKit에서 바뀐 필드가 포커스를 잃으면 오류를 보이며, 유효하지 않은 제출은 요청을 보내지 않고,
     고친 폼은 제출되는지 확인합니다.
 

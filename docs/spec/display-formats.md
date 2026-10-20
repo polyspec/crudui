@@ -13,11 +13,11 @@ A display format that is not defined here is not part of the contract.
 
 ## How a value is displayed
 
-1. The column or field `field` path (for example `name` or `company.name`) reads the value from
+1. **CUDF-001** The column or field `field` path (for example `name` or `company.name`) reads the value from
    the row or record. The model keeps it as `value`; a path the record does not have is `null`.
-2. `format` turns the value into the `display` model: a string, or a structured value for
+2. **CUDF-002** `format` turns the value into the `display` model: a string, or a structured value for
    `badge`, `link`, `bool`, `image` and `html`.
-3. A renderer writes markup from `display` only. It does not read the record again.
+3. **CUDF-003** A renderer writes markup from `display` only. It does not read the record again.
 
 A format is declarative data. There is no formatting callback, because a function written in one
 language cannot run identically in the others. A value that needs other logic is computed
@@ -39,11 +39,9 @@ extensions from being interpreted as paths.
 
 ## Declaring a format
 
-| Declaration | Result |
-| --- | --- |
-| absent, `true` or `false` | `text` |
-| a string, such as `date` | that type with no settings |
-| an object | its `type` (`text` when absent or empty) with the object's settings |
+- **CUDF-004** absent, `true` or `false`: `text`
+- **CUDF-005** a string, such as `date`: that type with no settings
+- **CUDF-006** an object: its `type` (`text` when absent or empty) with the object's settings
 
 Any other value, `null` included, fails as the [declarations](#declarations) define.
 
@@ -61,17 +59,15 @@ included, is empty text.
 
 ## Formats
 
-| Type | Settings | Display |
-| --- | --- | --- |
-| `text` | `truncate` | The value as text. |
-| `date` | `pattern` | The value formatted as a UTC date. |
-| `number` | `decimals`, `thousands`, `prefix`, `suffix` | The value formatted as a number. |
-| `badge` | `map` | A badge with a variant and a label. |
-| `link` | `href`, `target`, `text` | A link. |
-| `choice-label` | `items` | The label of the value. |
-| `bool` | `true`, `false`, `as` | A true or false label. |
-| `image` | `width`, `height`, `alt` | An image of the value. |
-| `html` | none | The value as unescaped markup. |
+- **CUDF-007** `text` — Settings: `truncate`; Display: The value as text.
+- **CUDF-008** `date` — Settings: `pattern`; Display: The value formatted as a UTC date.
+- **CUDF-009** `number` — Settings: `decimals`, `thousands`, `prefix`, `suffix`; Display: The value formatted as a number.
+- **CUDF-010** `badge` — Settings: `map`; Display: A badge with a variant and a label.
+- **CUDF-011** `link` — Settings: `href`, `target`, `text`; Display: A link.
+- **CUDF-012** `choice-label` — Settings: `items`; Display: The label of the value.
+- **CUDF-013** `bool` — Settings: `true`, `false`, `as`; Display: A true or false label.
+- **CUDF-014** `image` — Settings: `width`, `height`, `alt`; Display: An image of the value.
+- **CUDF-015** `html` — Settings: none; Display: The value as unescaped markup.
 
 ### text
 
@@ -94,15 +90,15 @@ A number value is used as is; a string is converted with the JavaScript `Number`
 surrounding whitespace is ignored and `0x`, `0b` and `0o` prefixes are read. A value that does not
 convert to a finite number is displayed unchanged.
 
-- `decimals` fixes the number of decimal places. It must be a number; a fractional count is
+- **CUDF-016** `decimals` fixes the number of decimal places. It must be a number; a fractional count is
   truncated toward zero, and the result must be between 0 and 100, otherwise the list or detail
   fails with `Number decimals must be between 0 and 100`. The exact binary value is rounded to the
   nearest representation with ties away from zero, so `2.5` is `3`, `-2.5` is `-3` and `1.005`
   with two decimals is `1.00`. A `decimals` value that is not a number is ignored.
-- Without `decimals`, the shortest decimal representation is used; very large or very small
+- **CUDF-017** Without `decimals`, the shortest decimal representation is used; very large or very small
   values use exponent notation, such as `1e+21` and `1e-7`.
-- `thousands: true` groups the integer digits with `,`.
-- `prefix` and `suffix` are written before and after the number.
+- **CUDF-018** `thousands: true` groups the integer digits with `,`.
+- **CUDF-019** `prefix` and `suffix` are written before and after the number.
 
 ### badge
 
@@ -112,12 +108,12 @@ that `map` does not contain produces a badge without a variant, labelled with th
 
 ### link
 
-- `href` is a string or a condition map resolved with the [expression rules](expressions.md).
+- **CUDF-020** `href` is a string or a condition map resolved with the [expression rules](expressions.md).
   Each explicit `{=path}` token in `href` is replaced with the record value at that path; `{=field}` is the
   cell value, and a path the record does not have is replaced with the cell value. Text outside braces is literal.
-- `text` is the link text. When `text` is absent, `null` or empty, the cell value is the text.
-- `target` is written when it is a non-empty string.
-- A `javascript:` URL is replaced with a URL that throws, as React's server rendering does.
+- **CUDF-021** `text` is the link text. When `text` is absent, `null` or empty, the cell value is the text.
+- **CUDF-022** `target` is written when it is a non-empty string.
+- **CUDF-023** A `javascript:` URL is replaced with a URL that throws, as React's server rendering does.
 
 ### choice-label
 
@@ -150,20 +146,18 @@ A list receives a specification, rows and options; a detail receives a specifica
 and options. Invalid input fails with code `INVALID_FORM_INPUT`, the message below and an empty
 location.
 
-| Input | Rule | Message |
-| --- | --- | --- |
-| list specification | an object | `List specification must be an object` |
-| list rows | an array | `List rows must be an array` |
-| each list row | an object | `List rows must be objects` |
-| list specification | declares `columns` | `List specification must declare columns` |
-| list `data` option | an object | `List context must be an object` |
-| list `page` option | an integer from 1 to 9007199254740991 | `List page must be a positive integer` |
-| list `total` option | an integer from 0 to 9007199254740991 | `List total must be a nonnegative integer` |
-| list `layout` option | `table` or `card` | `List layout must be table or card` |
-| detail specification | an object | `Detail specification must be an object` |
-| detail record | an object | `Detail record must be an object` |
-| detail specification | declares `fields` | `Detail specification must declare fields` |
-| detail `data` option | an object | `Detail context must be an object` |
+- **CUDF-024** list specification — Rule: an object; Message: `List specification must be an object`
+- **CUDF-025** list rows — Rule: an array; Message: `List rows must be an array`
+- **CUDF-026** each list row — Rule: an object; Message: `List rows must be objects`
+- **CUDF-027** list specification — Rule: declares `columns`; Message: `List specification must declare columns`
+- **CUDF-028** list `data` option — Rule: an object; Message: `List context must be an object`
+- **CUDF-029** list `page` option — Rule: an integer from 1 to 9007199254740991; Message: `List page must be a positive integer`
+- **CUDF-030** list `total` option — Rule: an integer from 0 to 9007199254740991; Message: `List total must be a nonnegative integer`
+- **CUDF-031** list `layout` option — Rule: `table` or `card`; Message: `List layout must be table or card`
+- **CUDF-032** detail specification — Rule: an object; Message: `Detail specification must be an object`
+- **CUDF-033** detail record — Rule: an object; Message: `Detail record must be an object`
+- **CUDF-034** detail specification — Rule: declares `fields`; Message: `Detail specification must declare fields`
+- **CUDF-035** detail `data` option — Rule: an object; Message: `Detail context must be an object`
 
 A detail takes the `data`, `language`, `files` and `basepath` options. It neither checks nor uses
 the list-only `page`, `total` and `layout` options.
@@ -206,12 +200,12 @@ message below and an empty location. An unknown key fails with `Invalid {key} at
 and a value of the wrong type with `Invalid {key} at {path}: expected {expected}`. The checks run in
 this order:
 
-1. The root members in member order.
-2. The own `design`, at path `list` or `detail`.
-3. Each column or field in [member order](schema.md#member-order): its type, its unknown keys in
+1. **CUDF-036** The root members in member order.
+2. **CUDF-037** The own `design`, at path `list` or `detail`.
+3. **CUDF-038** Each column or field in [member order](schema.md#member-order): its type, its unknown keys in
    member order, then `field`, `label`, `format`, `design` and `sortable`, at path
    `columns.{name}` or `fields.{name}`.
-4. For a list: `search`, `sort`, `actions` (each action in member order, at path
+4. **CUDF-039** For a list: `search`, `sort`, `actions` (each action in member order, at path
    `actions.{name}`), `empty`, `description` and `pagination`, at path `list`. For a detail:
    `actions` (each action in member order, at path `actions.{name}`), at path `detail`.
 
@@ -219,47 +213,45 @@ this order:
 language map (an object with at least one member, each a string or `null`) or `null`. A condition
 map is an object with at least one member.
 
-| Declaration | Accepted value | Failure message |
-| --- | --- | --- |
-| a list root member | `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `description` or `design` | `Invalid {key} at list: unknown key` |
-| a detail root member | `fields`, `actions` or `design` | `Invalid {key} at detail: unknown key` |
-| a root `$ref` or `$patch` | none: composition belongs in `columns` or `fields` | `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields` |
-| a column or field | an object | `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object` |
-| a column member | `field`, `label`, `format`, `design` or `sortable` | `Invalid {key} at columns.{name}: unknown key` |
-| a field member | `field`, `label`, `format` or `design` | `Invalid {key} at fields.{name}: unknown key` |
-| `field` | a string | `Invalid field at {path}: expected a string` |
-| `label` | content | `Invalid label at {path}: expected a string, a language map or null` |
-| `format` | a boolean, a string or an object | `Invalid format at {path}: expected a boolean, a string or an object` |
-| `format.type`, `format.pattern`, `format.target`, `format.as` | a string | `Invalid format.{key} at {path}: expected a string` |
-| `format.prefix`, `format.suffix`, `format.text`, `format.true`, `format.false`, `format.alt` | content | `Invalid format.{key} at {path}: expected a string, a language map or null` |
-| `format.map` | an object | `Invalid format.map at {path}: expected an object` |
-| each `format.map` label | content | `Invalid format.map.{value} at {path}: expected a string, a language map or null` |
-| `format.href` | a string or a condition map | `Invalid format.href at {path}: expected a string or a condition map` |
-| `format.items` | an array or an object | `Invalid format.items at {path}: expected an array or an object` |
-| a `format.items` choice list | pairs as in [choice lists](schema.md#choice-lists) | `Invalid format.items at {path}: expected value and label pairs with distinct string or number values` |
-| `sortable` | a boolean, an expression or a condition map | `Invalid sortable at {path}: expected a boolean, an expression or a condition map` |
-| `search` | a boolean or an object | `Invalid search at list: expected a boolean or an object` |
-| `sort` | an object | `Invalid sort at list: expected an object` |
-| a `sort` member | `field` or `dir` | `Invalid sort.{key} at list: unknown key` |
-| `sort.field` | a string | `Invalid sort.field at list: expected a string` |
-| `sort.dir` | `asc` or `desc` | `Invalid sort.dir at list: expected asc or desc` |
-| `actions` | an object | `Invalid actions at list: expected an object`, `Invalid actions at detail: expected an object` |
-| an action named `$ref` or `$patch` | none: actions are not composed | `Invalid $ref at actions: unknown key` |
-| an action | a script string or an object | `Invalid {name} at actions: expected a script or an object` |
-| a member of an action with `script` | `label` or `script` | `Invalid {key} at actions.{name}: unknown key` |
-| a member of another action object | `label`, `format`, `behavior` or `design` | `Invalid {key} at actions.{name}: unknown key` |
-| action `script` | a string | `Invalid script at actions.{name}: expected a string` |
-| action `label` | content | `Invalid label at actions.{name}: expected a string, a language map or null` |
-| action `format` | the `format` rules above | `Invalid format at actions.{name}: …` |
-| action `behavior` | a boolean or an object | `Invalid behavior at actions.{name}: expected a boolean or an object` |
-| a `behavior` member | `onchange`, `onclick` or `onload` | `Invalid behavior.{key} at actions.{name}: unknown key` |
-| a `behavior` entry | a script string or an object | `Invalid behavior.{event} at actions.{name}: expected a script or an object` |
-| a `behavior` entry member | `label` or `script` | `Invalid behavior.{event}.{key} at actions.{name}: unknown key` |
-| a `behavior` entry `label` | content | `Invalid behavior.{event}.label at actions.{name}: expected a string, a language map or null` |
-| a `behavior` entry `script` | a string | `Invalid behavior.{event}.script at actions.{name}: expected a string` |
-| action `design` | the `design` rules | `Invalid design… at actions.{name}: …` |
-| `empty` | content | `Invalid empty at list: expected a string, a language map or null` |
-| `description` | content | `Invalid description at list: expected a string, a language map or null` |
+- **CUDF-040** a list root member — Accepted value: `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `description` or `design`; Failure message: `Invalid {key} at list: unknown key`
+- **CUDF-041** a detail root member — Accepted value: `fields`, `actions` or `design`; Failure message: `Invalid {key} at detail: unknown key`
+- **CUDF-042** a root `$ref` or `$patch` — Accepted value: none: composition belongs in `columns` or `fields`; Failure message: `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields`
+- **CUDF-043** a column or field — Accepted value: an object; Failure message: `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object`
+- **CUDF-044** a column member — Accepted value: `field`, `label`, `format`, `design` or `sortable`; Failure message: `Invalid {key} at columns.{name}: unknown key`
+- **CUDF-045** a field member — Accepted value: `field`, `label`, `format` or `design`; Failure message: `Invalid {key} at fields.{name}: unknown key`
+- **CUDF-046** `field` — Accepted value: a string; Failure message: `Invalid field at {path}: expected a string`
+- **CUDF-047** `label` — Accepted value: content; Failure message: `Invalid label at {path}: expected a string, a language map or null`
+- **CUDF-048** `format` — Accepted value: a boolean, a string or an object; Failure message: `Invalid format at {path}: expected a boolean, a string or an object`
+- **CUDF-049** `format.type`, `format.pattern`, `format.target`, `format.as` — Accepted value: a string; Failure message: `Invalid format.{key} at {path}: expected a string`
+- **CUDF-050** `format.prefix`, `format.suffix`, `format.text`, `format.true`, `format.false`, `format.alt` — Accepted value: content; Failure message: `Invalid format.{key} at {path}: expected a string, a language map or null`
+- **CUDF-051** `format.map` — Accepted value: an object; Failure message: `Invalid format.map at {path}: expected an object`
+- **CUDF-052** each `format.map` label — Accepted value: content; Failure message: `Invalid format.map.{value} at {path}: expected a string, a language map or null`
+- **CUDF-053** `format.href` — Accepted value: a string or a condition map; Failure message: `Invalid format.href at {path}: expected a string or a condition map`
+- **CUDF-054** `format.items` — Accepted value: an array or an object; Failure message: `Invalid format.items at {path}: expected an array or an object`
+- **CUDF-055** a `format.items` choice list — Accepted value: pairs as in [choice lists](schema.md#choice-lists); Failure message: `Invalid format.items at {path}: expected value and label pairs with distinct string or number values`
+- **CUDF-056** `sortable` — Accepted value: a boolean, an expression or a condition map; Failure message: `Invalid sortable at {path}: expected a boolean, an expression or a condition map`
+- **CUDF-057** `search` — Accepted value: a boolean or an object; Failure message: `Invalid search at list: expected a boolean or an object`
+- **CUDF-058** `sort` — Accepted value: an object; Failure message: `Invalid sort at list: expected an object`
+- **CUDF-059** a `sort` member — Accepted value: `field` or `dir`; Failure message: `Invalid sort.{key} at list: unknown key`
+- **CUDF-060** `sort.field` — Accepted value: a string; Failure message: `Invalid sort.field at list: expected a string`
+- **CUDF-061** `sort.dir` — Accepted value: `asc` or `desc`; Failure message: `Invalid sort.dir at list: expected asc or desc`
+- **CUDF-062** `actions` — Accepted value: an object; Failure message: `Invalid actions at list: expected an object`, `Invalid actions at detail: expected an object`
+- **CUDF-063** an action named `$ref` or `$patch` — Accepted value: none: actions are not composed; Failure message: `Invalid $ref at actions: unknown key`
+- **CUDF-064** an action — Accepted value: a script string or an object; Failure message: `Invalid {name} at actions: expected a script or an object`
+- **CUDF-065** a member of an action with `script` — Accepted value: `label` or `script`; Failure message: `Invalid {key} at actions.{name}: unknown key`
+- **CUDF-066** a member of another action object — Accepted value: `label`, `format`, `behavior` or `design`; Failure message: `Invalid {key} at actions.{name}: unknown key`
+- **CUDF-067** action `script` — Accepted value: a string; Failure message: `Invalid script at actions.{name}: expected a string`
+- **CUDF-068** action `label` — Accepted value: content; Failure message: `Invalid label at actions.{name}: expected a string, a language map or null`
+- **CUDF-069** action `format` — Accepted value: the `format` rules above; Failure message: `Invalid format at actions.{name}: …`
+- **CUDF-070** action `behavior` — Accepted value: a boolean or an object; Failure message: `Invalid behavior at actions.{name}: expected a boolean or an object`
+- **CUDF-071** a `behavior` member — Accepted value: `onchange`, `onclick` or `onload`; Failure message: `Invalid behavior.{key} at actions.{name}: unknown key`
+- **CUDF-072** a `behavior` entry — Accepted value: a script string or an object; Failure message: `Invalid behavior.{event} at actions.{name}: expected a script or an object`
+- **CUDF-073** a `behavior` entry member — Accepted value: `label` or `script`; Failure message: `Invalid behavior.{event}.{key} at actions.{name}: unknown key`
+- **CUDF-074** a `behavior` entry `label` — Accepted value: content; Failure message: `Invalid behavior.{event}.label at actions.{name}: expected a string, a language map or null`
+- **CUDF-075** a `behavior` entry `script` — Accepted value: a string; Failure message: `Invalid behavior.{event}.script at actions.{name}: expected a string`
+- **CUDF-076** action `design` — Accepted value: the `design` rules; Failure message: `Invalid design… at actions.{name}: …`
+- **CUDF-077** `empty` — Accepted value: content; Failure message: `Invalid empty at list: expected a string, a language map or null`
+- **CUDF-078** `description` — Accepted value: content; Failure message: `Invalid description at list: expected a string, a language map or null`
 
 Other `format` settings (`truncate`, `decimals`, `thousands`, `width`, `height` and settings that
 the table does not name) accept any value; the forbidden-key scan still applies to their keys.
@@ -280,12 +272,10 @@ each action to the same model.
 
 `pagination` is checked last, at path `list`:
 
-| Declaration | Accepted value | Failure message |
-| --- | --- | --- |
-| `pagination` | a boolean or an object | `Invalid pagination at list: expected a boolean or an object` |
-| a member of the object | `per_page` or `mode` | `Invalid pagination.{key} at list: unknown key` |
-| `per_page` | an integer from 1 to 9007199254740991 | `Invalid pagination.per_page at list: expected a positive integer` |
-| `mode` | `pages`, `offset`, `cursor` or `none` | `Invalid pagination.mode at list: expected pages, offset, cursor or none` |
+- **CUDF-079** `pagination` — Accepted value: a boolean or an object; Failure message: `Invalid pagination at list: expected a boolean or an object`
+- **CUDF-080** a member of the object — Accepted value: `per_page` or `mode`; Failure message: `Invalid pagination.{key} at list: unknown key`
+- **CUDF-081** `per_page` — Accepted value: an integer from 1 to 9007199254740991; Failure message: `Invalid pagination.per_page at list: expected a positive integer`
+- **CUDF-082** `mode` — Accepted value: `pages`, `offset`, `cursor` or `none`; Failure message: `Invalid pagination.mode at list: expected pages, offset, cursor or none`
 
 The resolved pagination model has its members in this order: `enabled`; for enabled paging
 `perPage` (default 20), `mode` (default `pages`) and `page` (default 1); the supplied `total`;
@@ -300,14 +290,12 @@ PHP array is accepted for a root object argument and for the fixed object option
 
 ## Markup
 
-| Display | List table cell | Detail value |
-| --- | --- | --- |
-| text, date, number, choice-label | escaped text in `crudui-list__cell crudui-value crudui-value--TYPE` | escaped text in `crudui-detail__value crudui-value crudui-value--TYPE` |
-| badge | `span.crudui-badge` with optional `data-crudui-variant` | the same inside the `dd` |
-| link | `a` with `href` and optional `target` | the same inside the `dd` |
-| bool | `span.crudui-bool crudui-bool--text`, `--icon` or `--check`, with `data-crudui-state` and the applicable `aria-label` | the same inside the `dd` |
-| image | `img` with `src`, `alt`, and declared `width` and `height` | the same inside the `dd` |
-| html | the markup, unescaped | the same inside the `dd` |
+- **CUDF-083** text, date, number, choice-label — List table cell: escaped text in `crudui-list__cell crudui-value crudui-value--TYPE`; Detail value: escaped text in `crudui-detail__value crudui-value crudui-value--TYPE`
+- **CUDF-084** badge — List table cell: `span.crudui-badge` with optional `data-crudui-variant`; Detail value: the same inside the `dd`
+- **CUDF-085** link — List table cell: `a` with `href` and optional `target`; Detail value: the same inside the `dd`
+- **CUDF-086** bool — List table cell: `span.crudui-bool crudui-bool--text`, `--icon` or `--check`, with `data-crudui-state` and the applicable `aria-label`; Detail value: the same inside the `dd`
+- **CUDF-087** image — List table cell: `img` with `src`, `alt`, and declared `width` and `height`; Detail value: the same inside the `dd`
+- **CUDF-088** html — List table cell: the markup, unescaped; Detail value: the same inside the `dd`
 
 A detail is a `dl.crudui-detail` with one `div.crudui-detail__field` per field, each holding
 `dt.crudui-detail__label` and the value. A list root is `crudui-list`; its description, table,

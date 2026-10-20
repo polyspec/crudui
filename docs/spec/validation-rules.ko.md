@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: f5b18cdc09252dda46846bd853f0da02be6c2257f85094e2c19cf0989fba65f5 -->
+<!-- source-sha256: c571a2cbd01824b6e97041355a0753e6218579c2e953ddaf07df8ff78ae0be3c -->
 
 [English](validation-rules.md).
 
@@ -10,24 +10,22 @@
 
 ## 등록 규칙
 
-| 규칙 | 매개변수와 동작 |
-| --- | --- |
-| `required` | `true`는 비어 있지 않은 입력값을 요구합니다. |
-| `email`, `url` | 해당 형식 검사를 불리언으로 활성화합니다. |
-| `minlength`, `maxlength` | 길이의 정수 최소 또는 최대입니다. [값](#값)을 참고합니다. |
-| `rangelength` | 길이의 `[최소, 최대]`입니다. [값](#값)을 참고합니다. |
-| `number`, `digits` | [숫자](#값) 검사 또는 숫자 문자만 허용하는 검사를 불리언으로 활성화합니다. |
-| `min`, `max` | 경계를 포함하는 숫자 하한 또는 상한입니다. |
-| `range` | 경계를 포함하는 숫자 범위 `[최소, 최대]`입니다. |
-| `step` | 0부터 세는 숫자 증분입니다. |
-| `match`, `pattern` | 값 전체에 대한 [패턴](#패턴)이며 두 이름은 같은 규칙 구현을 사용합니다. |
-| `equalTo`, `notEqual` | 필드 비교이며 참조 또는 리터럴 매개변수를 그대로 받습니다. |
-| `in` | 목록, 쉼표 문자열, 맵에 대한 [포함](#값) 여부입니다. |
-| `date`, `dateISO` | 날짜 형식 검사를 불리언으로 활성화합니다. |
-| `enddate` | 시작일 필드 경로이며 파싱한 종료일은 파싱한 시작일보다 이전일 수 없습니다. |
-| `mincount`, `maxcount` | 컬렉션 크기의 최소 또는 최대입니다. |
-| `unique` | 고유성 검사이며 선택적으로 참조 또는 필터 매개변수를 사용합니다. |
-| `accept` | 파일 확장자 또는 MIME 타입 매개변수입니다. |
+- **CUVR-001** `required`: `true`는 비어 있지 않은 입력값을 요구합니다.
+- **CUVR-002** `email`, `url`: 해당 형식 검사를 불리언으로 활성화합니다.
+- **CUVR-003** `minlength`, `maxlength`: 길이의 정수 최소 또는 최대입니다. [값](#값)을 참고합니다.
+- **CUVR-004** `rangelength`: 길이의 `[최소, 최대]`입니다. [값](#값)을 참고합니다.
+- **CUVR-005** `number`, `digits`: [숫자](#값) 검사 또는 숫자 문자만 허용하는 검사를 불리언으로 활성화합니다.
+- **CUVR-006** `min`, `max`: 경계를 포함하는 숫자 하한 또는 상한입니다.
+- **CUVR-007** `range`: 경계를 포함하는 숫자 범위 `[최소, 최대]`입니다.
+- **CUVR-008** `step`: 0부터 세는 숫자 증분입니다.
+- **CUVR-009** `match`, `pattern`: 값 전체에 대한 [패턴](#패턴)이며 두 이름은 같은 규칙 구현을 사용합니다.
+- **CUVR-010** `equalTo`, `notEqual`: 필드 비교이며 참조 또는 리터럴 매개변수를 그대로 받습니다.
+- **CUVR-011** `in`: 목록, 쉼표 문자열, 맵에 대한 [포함](#값) 여부입니다.
+- **CUVR-012** `date`, `dateISO`: 날짜 형식 검사를 불리언으로 활성화합니다.
+- **CUVR-013** `enddate`: 시작일 필드 경로이며 파싱한 종료일은 파싱한 시작일보다 이전일 수 없습니다.
+- **CUVR-014** `mincount`, `maxcount`: 컬렉션 크기의 최소 또는 최대입니다.
+- **CUVR-015** `unique`: 고유성 검사이며 선택적으로 참조 또는 필터 매개변수를 사용합니다.
+- **CUVR-016** `accept`: 파일 확장자 또는 MIME 타입 매개변수입니다.
 
 [TypeScript 등록부](../../packages/validator/ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
@@ -44,14 +42,14 @@
 `number` 필드는 해당 규칙을 명시적으로 선언하지 않았으면 다른 규칙보다 먼저
 암묵적인 `number` 검사를 실행합니다. 비유한 숫자 입력은 숫자 검증에 실패합니다.
 
-**표시 여부.** 검증하는 데이터에 대해 `design.show`가 `false`로 해석되는 필드는 숨겨진 필드입니다.
-숨겨진 필드와 그 필드에 포함된 모든 필드의 규칙은 `required`와 컬렉션 개수 규칙을 포함해 평가하지 않으며
-오류를 보고하지 않습니다. 값은 바꾸거나 제거하지 않습니다. 데이터는 값을 유지하고 다른 조건과 참조도 그
-값을 그대로 읽으므로, 필드가 숨겨진 동안 유지한 값은 데이터가 필드를 다시 보이게 하면 다시 검증합니다.
-`design.show`는 조건부 매개변수처럼(불리언, 표현식, 조건 맵을 필드의 행 문맥에서) 해석하며,
-`false`로 해석될 때만 숨기므로 `design.show`가 없거나, 조건 맵이 아무것도 선택하지 않거나, 유효한 표현식이
-아닌 문자열(리터럴)인 필드는 보이는 필드입니다. 데이터 모양은 입력 계약이므로 숨겨진 필드에도 검사합니다. 표시 여부는 데이터만으로 결정하므로 서버는 폼을 표시한
-화면과 같은 결론을 냅니다.
+- **CUVR-017** **표시 여부.** 검증하는 데이터에 대해 `design.show`가 `false`로 해석되는 필드는 숨겨진 필드입니다.
+  숨겨진 필드와 그 필드에 포함된 모든 필드의 규칙은 `required`와 컬렉션 개수 규칙을 포함해 평가하지 않으며
+  오류를 보고하지 않습니다. 값은 바꾸거나 제거하지 않습니다. 데이터는 값을 유지하고 다른 조건과 참조도 그
+  값을 그대로 읽으므로, 필드가 숨겨진 동안 유지한 값은 데이터가 필드를 다시 보이게 하면 다시 검증합니다.
+  `design.show`는 조건부 매개변수처럼(불리언, 표현식, 조건 맵을 필드의 행 문맥에서) 해석하며,
+  `false`로 해석될 때만 숨기므로 `design.show`가 없거나, 조건 맵이 아무것도 선택하지 않거나, 유효한 표현식이
+  아닌 문자열(리터럴)인 필드는 보이는 필드입니다. 데이터 모양은 입력 계약이므로 숨겨진 필드에도 검사합니다. 표시 여부는 데이터만으로 결정하므로 서버는 폼을 표시한
+  화면과 같은 결론을 냅니다.
 
 검증 결과는 `valid`와 `errors` 외에 `hidden` 멤버를 가집니다. 이 멤버는 `design.show`가 데이터에 대해
 `false`로 결정되는 필드의 데이터 경로를 선언 순서로 담으며, 그룹 행의 필드는 행 키 아래 경로를 가지고, 숨은
@@ -85,64 +83,64 @@ display:
 
 모든 런타임은 다음 정의를 적용하며, 아래 규칙은 이 밖의 공백·빈 값·텍스트 개념을 쓰지 않습니다.
 
-**Unicode 데이터**는 [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json)에 기록된
-Unicode 16.0.0입니다. `scripts/generate-unicode-properties.mts`가 `contracts/unicode/`의 Unicode Character
-Database 파일에서 이 표를 만듭니다. 모든 런타임은 이 표를 내장하고 다른 Unicode 데이터를 쓰지 않으므로 모든
-코드 포인트를 똑같이 분류합니다.
+- **CUVR-018** **Unicode 데이터**는 [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json)에 기록된
+  Unicode 16.0.0입니다. `scripts/generate-unicode-properties.mts`가 `contracts/unicode/`의 Unicode Character
+  Database 파일에서 이 표를 만듭니다. 모든 런타임은 이 표를 내장하고 다른 Unicode 데이터를 쓰지 않으므로 모든
+  코드 포인트를 똑같이 분류합니다.
 
-**공백**은 Unicode `White_Space` 속성을 가진 코드 포인트뿐입니다. U+0009–U+000D, U+0020,
-U+0085, U+00A0, U+1680, U+2000–U+200A, U+2028, U+2029, U+202F, U+205F, U+3000입니다.
-U+0000, U+180E, U+200B, U+FEFF는 공백이 아닙니다. **다듬기**는 앞뒤 공백만 제거합니다.
+- **CUVR-019** **공백**은 Unicode `White_Space` 속성을 가진 코드 포인트뿐입니다. U+0009–U+000D, U+0020,
+  U+0085, U+00A0, U+1680, U+2000–U+200A, U+2028, U+2029, U+202F, U+205F, U+3000입니다.
+  U+0000, U+180E, U+200B, U+FEFF는 공백이 아닙니다. **다듬기**는 앞뒤 공백만 제거합니다.
 
-**빈 값**은 값 없음, `null`, 다듬은 뒤 비는 문자열, 빈 배열, 빈 객체입니다. `0`과 `false`는
-입력된 값입니다. `required`는 빈 값에서 실패합니다. `mincount`와 `maxcount`를 제외한 다른
-규칙은 빈 값을 평가하지 않고 통과시키며, 컬렉션 개수 규칙은 빈 컬렉션도 평가합니다. 데이터가 없는 반복 필드나 그룹은 빈 컬렉션입니다. 필수 입력과
-컬렉션 제한은 별도입니다. [빈 컬렉션](empty-collections.ko.md)을 참고합니다.
+- **CUVR-020** **빈 값**은 값 없음, `null`, 다듬은 뒤 비는 문자열, 빈 배열, 빈 객체입니다. `0`과 `false`는
+  입력된 값입니다. `required`는 빈 값에서 실패합니다. `mincount`와 `maxcount`를 제외한 다른
+  규칙은 빈 값을 평가하지 않고 통과시키며, 컬렉션 개수 규칙은 빈 컬렉션도 평가합니다. 데이터가 없는 반복 필드나 그룹은 빈 컬렉션입니다. 필수 입력과
+  컬렉션 제한은 별도입니다. [빈 컬렉션](empty-collections.ko.md)을 참고합니다.
 
-스칼라의 **정규 텍스트**는 문자열이면 그 문자열, `true`는 `1`, `false`는 `0`, 유한한 숫자는
-그 double 값을 ECMAScript `Number.prototype.toString`이 쓰는 텍스트입니다. 즉 같은 double로 다시 읽히는 가장
-짧은 텍스트이며, 크기가 10^21 이상이거나 10^-6 미만이면 지수를 쓰고 음수 0은 `0`입니다. 정수는 먼저 가장
-가까운 double로 바꾸므로 `9007199254740993`은 `9007199254740992`로 씁니다.
+- **CUVR-021** **스칼라의 정규 텍스트**는 문자열이면 그 문자열, `true`는 `1`, `false`는 `0`, 유한한 숫자는
+  그 double 값을 ECMAScript `Number.prototype.toString`이 쓰는 텍스트입니다. 즉 같은 double로 다시 읽히는 가장
+  짧은 텍스트이며, 크기가 10^21 이상이거나 10^-6 미만이면 지수를 쓰고 음수 0은 `0`입니다. 정수는 먼저 가장
+  가까운 double로 바꾸므로 `9007199254740993`은 `9007199254740992`로 씁니다.
 
-**길이** 규칙(`minlength`, `maxlength`, `rangelength`)은 스칼라의 정규 텍스트를 다듬지 않고
-Unicode 코드 포인트 수로 셉니다. 제한값은 0부터 9007199254740991까지의 정수이며
-`rangelength`는 최소 ≤ 최대여야 합니다. 배열이나 객체 값은 정규 텍스트가 없으므로 길이 규칙, `pattern`, `match`에 실패합니다.
+- **CUVR-022** **길이** 규칙(`minlength`, `maxlength`, `rangelength`)은 스칼라의 정규 텍스트를 다듬지 않고
+  Unicode 코드 포인트 수로 셉니다. 제한값은 0부터 9007199254740991까지의 정수이며
+  `rangelength`는 최소 ≤ 최대여야 합니다. 배열이나 객체 값은 정규 텍스트가 없으므로 길이 규칙, `pattern`, `match`에 실패합니다.
 
-**숫자.** 유한한 수이거나, 다듬은 뒤 값이 유한한 *숫자 텍스트*인 문자열은 숫자 값입니다. 숫자 텍스트는
-HTML의 유효한 부동소수점 수입니다. 선택적인 `-` 다음에 숫자, 숫자와 `.`과 숫자, 또는 `.`과 숫자가 오고,
-선택적으로 `e`나 `E`, 선택적인 `-`나 `+`, 숫자가 옵니다
-(`^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$`). 그 값은 가장 가까운 double입니다. `+1`,
-`1.`, 16진수, `Infinity`, `NaN`, 구분 기호, ASCII가 아닌 숫자는 숫자 텍스트가 아니며, 값이 넘치는 텍스트는
-숫자가 아닙니다. 불리언, `null`, 배열, 객체는 숫자가 아닙니다.
+- **CUVR-023** **숫자.** 유한한 수이거나, 다듬은 뒤 값이 유한한 *숫자 텍스트*인 문자열은 숫자 값입니다. 숫자 텍스트는
+  HTML의 유효한 부동소수점 수입니다. 선택적인 `-` 다음에 숫자, 숫자와 `.`과 숫자, 또는 `.`과 숫자가 오고,
+  선택적으로 `e`나 `E`, 선택적인 `-`나 `+`, 숫자가 옵니다
+  (`^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$`). 그 값은 가장 가까운 double입니다. `+1`,
+  `1.`, 16진수, `Infinity`, `NaN`, 구분 기호, ASCII가 아닌 숫자는 숫자 텍스트가 아니며, 값이 넘치는 텍스트는
+  숫자가 아닙니다. 불리언, `null`, 배열, 객체는 숫자가 아닙니다.
 
-- `number`는 숫자 값을 통과시킵니다.
-- `min`, `max`, `range`는 최솟값보다 작지 않고 최댓값보다 크지 않은 숫자 값을 통과시키며, `step`은 0부터
+- **CUVR-024** `number`는 숫자 값을 통과시킵니다.
+- **CUVR-025** `min`, `max`, `range`는 최솟값보다 작지 않고 최댓값보다 크지 않은 숫자 값을 통과시키며, `step`은 0부터
   센 간격의 정수배인 숫자 값을 통과시킵니다. 숫자가 아닌 값은 이 규칙들에 실패합니다. 배수 여부는 값과
   간격을 정규 텍스트가 쓰는 10진수로 읽어 허용 오차 없이 정확히 판정하므로 `0.3`은 `0.1`의 배수이고
   `0.30000000000000004`는 아닙니다.
-- `digits`는 정규 텍스트(문자열은 다듬은 뒤)가 ASCII 숫자로만 이루어진 문자열이나 수를 통과시키며, 불리언과
+- **CUVR-026** `digits`는 정규 텍스트(문자열은 다듬은 뒤)가 ASCII 숫자로만 이루어진 문자열이나 수를 통과시키며, 불리언과
   그 밖의 값은 실패합니다.
-- `mincount`와 `maxcount`는 배열의 원소나 객체의 키를 셉니다. 값 없음, `null`, 다듬으면 비는 문자열은 0개,
+- **CUVR-027** `mincount`와 `maxcount`는 배열의 원소나 객체의 키를 셉니다. 값 없음, `null`, 다듬으면 비는 문자열은 0개,
   그 밖의 스칼라는 1개입니다.
-- 메시지는 숫자 매개변수를 정규 텍스트로 표시합니다. 기본 메시지와 선언한 메시지의 `{0}`과 `{1}`은 규칙에
+- **CUVR-028** 메시지는 숫자 매개변수를 정규 텍스트로 표시합니다. 기본 메시지와 선언한 메시지의 `{0}`과 `{1}`은 규칙에
   해당 매개변수가 있으면 모두 치환하고, 규칙에 없는 매개변수의 자리 표시자는 쓴 그대로 둡니다.
 
-**포함**(`in`)은 목록(각 원소 그대로), [선택 목록](schema.ko.md#선택-목록)([그룹](schema.ko.md#선택지-그룹)
-안을 포함한 각 선택지의 `value`), 쉼표
-문자열(U+002C로 나누고 각 항목을 다듬음), 맵(키)에서 멤버를 얻습니다. 원소 중 하나가 `value` 멤버나 `choices`
-멤버가 있는 객체인 목록은 선택 목록입니다. 선택 목록은 먼저 선택 목록 규칙(각 원소는 `value`와 `label` 멤버만
-있는 선택지이거나 `label`과 그런 선택지가 하나 이상인 `choices` 목록만 있는 그룹, 문자열이나 유한한
-숫자인 `value`, 목록 안에서 정규 텍스트가 같은 값이 둘 없음)으로 검사하고 그다음 그 값을 작성한 순서대로
-멤버로 검사하므로, 필드는 같은
-선택 목록을 `items`와 `in`에 선언할 수 있습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버와 정규 텍스트를 다듬으면 비는 멤버는
-선언 오류이며, 멤버는 순서대로 각각 형식을 먼저, 빈 값 여부를 다음에 검사합니다. 빈 목록과 빈 맵은 빈 멤버
-집합을 선언합니다. 빈 멤버 집합은 유효하며 어떤 값과도 일치하지 않으므로 선택지가 없는 필드는 빈 값을 통과시키고
-그 밖의 모든 값을 실패시킵니다. 문자열에는 항목이 항상 하나 이상 있으므로 공백뿐인 문자열은 빈 멤버입니다. 문자열 값은 다듬고, 배열
-값은 모든 원소가 통과해야 통과합니다. 빈 원소(빈 배열·빈 객체 포함)는 빈 값처럼 통과하고 비어 있지 않은 배열이나 객체
-원소는 실패합니다. 값과 멤버의 정규 텍스트가
-같은 코드 포인트이거나, 둘 다 숫자이고 값이 같으면 일치합니다. 목록 원소와 맵 키는 그대로 읽으므로 앞뒤에
-공백이 있는 멤버는 숫자 텍스트가 아닙니다. 대소문자, Unicode 정규화, 숫자가 아닌
-텍스트는 일치하지 않습니다.
+- **CUVR-029** **포함**(`in`)은 목록(각 원소 그대로), [선택 목록](schema.ko.md#선택-목록)([그룹](schema.ko.md#선택지-그룹)
+  안을 포함한 각 선택지의 `value`), 쉼표
+  문자열(U+002C로 나누고 각 항목을 다듬음), 맵(키)에서 멤버를 얻습니다. 원소 중 하나가 `value` 멤버나 `choices`
+  멤버가 있는 객체인 목록은 선택 목록입니다. 선택 목록은 먼저 선택 목록 규칙(각 원소는 `value`와 `label` 멤버만
+  있는 선택지이거나 `label`과 그런 선택지가 하나 이상인 `choices` 목록만 있는 그룹, 문자열이나 유한한
+  숫자인 `value`, 목록 안에서 정규 텍스트가 같은 값이 둘 없음)으로 검사하고 그다음 그 값을 작성한 순서대로
+  멤버로 검사하므로, 필드는 같은
+  선택 목록을 `items`와 `in`에 선언할 수 있습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버와 정규 텍스트를 다듬으면 비는 멤버는
+  선언 오류이며, 멤버는 순서대로 각각 형식을 먼저, 빈 값 여부를 다음에 검사합니다. 빈 목록과 빈 맵은 빈 멤버
+  집합을 선언합니다. 빈 멤버 집합은 유효하며 어떤 값과도 일치하지 않으므로 선택지가 없는 필드는 빈 값을 통과시키고
+  그 밖의 모든 값을 실패시킵니다. 문자열에는 항목이 항상 하나 이상 있으므로 공백뿐인 문자열은 빈 멤버입니다. 문자열 값은 다듬고, 배열
+  값은 모든 원소가 통과해야 통과합니다. 빈 원소(빈 배열·빈 객체 포함)는 빈 값처럼 통과하고 비어 있지 않은 배열이나 객체
+  원소는 실패합니다. 값과 멤버의 정규 텍스트가
+  같은 코드 포인트이거나, 둘 다 숫자이고 값이 같으면 일치합니다. 목록 원소와 맵 키는 그대로 읽으므로 앞뒤에
+  공백이 있는 멤버는 숫자 텍스트가 아닙니다. 대소문자, Unicode 정규화, 숫자가 아닌
+  텍스트는 일치하지 않습니다.
 
 ## 패턴
 
@@ -150,26 +148,24 @@ HTML의 유효한 부동소수점 수입니다. 선택적인 `-` 다음에 숫�
 패턴 언어를 사용합니다. 이 언어는 모든 런타임이 직접 인식하고 매칭하는 정규 언어이며, 결과가 같고 매칭 시간은
 값 길이와 패턴 크기의 곱에 비례합니다.
 
-| 구성 | 허용 형식 |
-| --- | --- |
-| 리터럴 | `\ ^ $ . \| ? * + ( ) [ ] { }`를 제외한 모든 Unicode 스칼라 값 |
-| 이스케이프 | `\` 뒤의 `^ $ \ . * + ? ( ) [ ] { } \| / -` 중 하나, `\t \n \r \f \v`, `\xHH`, `\u{H…}`(16진수 1–6자리, 스칼라 값) |
-| 클래스 약칭 | `\d` = `[0-9]`, `\w` = `[0-9A-Za-z_]`, `\s` = 공백, `\D \W \S`는 각각의 여집합 |
-| 임의 문자 | `.` = U+000A를 제외한 모든 코드 포인트 |
-| 대괄호 클래스 | 멤버가 하나 이상인 `[…]` 또는 `[^…]`. 멤버는 리터럴, 이스케이프, `\d`, `\w`, `\s`, 속성, 끝점이 단일 코드 포인트이고 내림차순이 아닌 범위 `a-z`입니다. 클래스 안에서는 `[`, `]`, `\`, 처음이나 끝이 아닌 `-`만 이스케이프합니다 |
-| Unicode 속성 | 일반 분류(`L Lu Ll Lt Lm Lo M Mn Mc Me N Nd Nl No P Pc Pd Ps Pe Pi Pf Po S Sm Sc Sk So Z Zs Zl Zp C Cc Cf Co`)의 `\p{X}` 또는 `\P{X}`, Unicode 데이터에 있는 스크립트(Unicode `Script` 속성)의 `\p{Script=Name}` 또는 `\P{Script=Name}` |
-| 그룹 | `(…)`, `(?:…)`, 고유하고 `[A-Za-z_][A-Za-z0-9_]*`에 맞는 이름의 `(?<name>…)`. 그룹은 최대 100단계까지 중첩합니다 |
-| 수량자 | 원자나 그룹 뒤의 `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}`(10진 숫자, n ≤ m ≤ 1000), 뒤에 `?`를 붙일 수 있음 |
-| 선택 | `\|` |
-| 앵커 | 첫 문자의 `^`와 마지막 문자의 `$`. 전체 일치에서는 의미를 더하지 않습니다 |
+- **CUVR-030** 리터럴: `\ ^ $ . | ? * + ( ) [ ] { }`를 제외한 모든 Unicode 스칼라 값
+- **CUVR-031** 이스케이프: `\` 뒤의 `^ $ \ . * + ? ( ) [ ] { } | / -` 중 하나, `\t \n \r \f \v`, `\xHH`, `\u{H…}`(16진수 1–6자리, 스칼라 값)
+- **CUVR-032** 클래스 약칭: `\d` = `[0-9]`, `\w` = `[0-9A-Za-z_]`, `\s` = 공백, `\D \W \S`는 각각의 여집합
+- **CUVR-033** 임의 문자: `.` = U+000A를 제외한 모든 코드 포인트
+- **CUVR-034** 대괄호 클래스: 멤버가 하나 이상인 `[…]` 또는 `[^…]`. 멤버는 리터럴, 이스케이프, `\d`, `\w`, `\s`, 속성, 끝점이 단일 코드 포인트이고 내림차순이 아닌 범위 `a-z`입니다. 클래스 안에서는 `[`, `]`, `\`, 처음이나 끝이 아닌 `-`만 이스케이프합니다
+- **CUVR-035** Unicode 속성: 일반 분류(`L Lu Ll Lt Lm Lo M Mn Mc Me N Nd Nl No P Pc Pd Ps Pe Pi Pf Po S Sm Sc Sk So Z Zs Zl Zp C Cc Cf Co`)의 `\p{X}` 또는 `\P{X}`, Unicode 데이터에 있는 스크립트(Unicode `Script` 속성)의 `\p{Script=Name}` 또는 `\P{Script=Name}`
+- **CUVR-036** 그룹: `(…)`, `(?:…)`, 고유하고 `[A-Za-z_][A-Za-z0-9_]*`에 맞는 이름의 `(?<name>…)`. 그룹은 최대 100단계까지 중첩합니다
+- **CUVR-037** 수량자: 원자나 그룹 뒤의 `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}`(10진 숫자, n ≤ m ≤ 1000), 뒤에 `?`를 붙일 수 있음
+- **CUVR-038** 선택: `|`
+- **CUVR-039** 앵커: 첫 문자의 `^`와 마지막 문자의 `$`. 전체 일치에서는 의미를 더하지 않습니다
 
 선택지와 그룹은 비어 있을 수 있고 패턴이 앵커만으로 이루어질 수도 있습니다. 거부하는 것은 빈 패턴뿐입니다.
 값 전체만 매칭하므로 게으른 수량자는 탐욕적 수량자와 같은 값에 일치합니다. `C`는 `Cc`, `Cf`, `Co`,
 서로게이트, 미배정 코드 포인트이며, 속성의 여집합은 그 속성 밖의 모든 코드 포인트입니다.
 
-**크기.** 패턴의 크기는 1000 이하입니다. 원자(리터럴, 이스케이프, 약칭, `.`, 클래스, 속성)의 크기는 1이고,
-연속과 선택은 구성 요소 크기의 합이며, 수량자가 붙은 항목은 항목 크기에 최댓값을, 상한이 없으면 최솟값 더하기
-1을 곱합니다(`*`는 1배, `+`는 2배).
+- **CUVR-040** **크기.** 패턴의 크기는 1000 이하입니다. 원자(리터럴, 이스케이프, 약칭, `.`, 클래스, 속성)의 크기는 1이고,
+  연속과 선택은 구성 요소 크기의 합이며, 수량자가 붙은 항목은 항목 크기에 최댓값을, 상한이 없으면 최솟값 더하기
+  1을 곱합니다(`*`는 1배, `+`는 2배).
 
 그 밖의 구성은 언어에 속하지 않습니다. 역참조, 전후방 탐색, 인라인 플래그, 대소문자 무시, 단어 경계,
 POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이스케이프, 빈 패턴이 해당합니다.
@@ -185,25 +181,23 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 이름도 검사합니다. 위치는 필드의 선언 경로, 즉 루트부터의 속성 이름을
 `.`로 이은 값이며 행 키를 포함하지 않습니다. 모든 런타임은 같은 코드와 메시지를 보고합니다.
 
-| 매개변수 | 코드 | 메시지 |
-| --- | --- | --- |
-| 등록된 규칙이 아닌 `validate` 또는 `messages` 키 | `UNKNOWN_RULE` | `Unknown rule: {name}` |
-| `minlength`, `maxlength` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
-| `rangelength` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
-| `number`, `digits` 매개변수 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected true or false` |
-| `min`, `max` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a finite number` |
-| `range` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum` |
-| `step` | `INVALID_RULE_PARAMETER` | `Invalid step parameter: expected a finite number above 0` |
-| `mincount`, `maxcount` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
-| 다른 형식의 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
-| 다른 멤버, 선택지가 없는 그룹, 문자열이나 유한한 숫자가 아닌 `value`, 정규 텍스트가 같은 두 값이 있는 `in` 선택 목록 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected value and label pairs with distinct string or number values` |
-| 문자열·숫자·불리언이 아닌 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
-| 빈 멤버가 있는 `in` | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
-| 다른 형식의 `pattern`, `match` | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
-| 문자열이 아닌 `equalTo`, `enddate` | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a field reference string` |
-| 문자열·숫자·불리언이 아닌 `notEqual` | `INVALID_RULE_PARAMETER` | `Invalid notEqual parameter: expected a string, number or boolean` |
-| 불리언이나 문자열이 아닌 `unique` | `INVALID_RULE_PARAMETER` | `Invalid unique parameter: expected true, false or a string` |
-| 언어에 속하지 않는 `pattern`, `match` | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
+- **CUVR-041** 등록된 규칙이 아닌 `validate` 또는 `messages` 키 — 코드: `UNKNOWN_RULE`; 메시지: `Unknown rule: {name}`
+- **CUVR-042** `minlength`, `maxlength` 제한값 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991`
+- **CUVR-043** `rangelength` 제한값 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum`
+- **CUVR-044** `number`, `digits` 매개변수 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected true or false`
+- **CUVR-045** `min`, `max` 제한값 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a finite number`
+- **CUVR-046** `range` 제한값 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum`
+- **CUVR-047** `step` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid step parameter: expected a finite number above 0`
+- **CUVR-048** `mincount`, `maxcount` 제한값 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991`
+- **CUVR-049** 다른 형식의 `in` 멤버 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid in parameter: expected a list, a comma-separated string or a map`
+- **CUVR-050** 다른 멤버, 선택지가 없는 그룹, 문자열이나 유한한 숫자가 아닌 `value`, 정규 텍스트가 같은 두 값이 있는 `in` 선택 목록 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid in parameter: expected value and label pairs with distinct string or number values`
+- **CUVR-051** 문자열·숫자·불리언이 아닌 `in` 멤버 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid in parameter: members must be strings, numbers or booleans`
+- **CUVR-052** 빈 멤버가 있는 `in` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid in parameter: members must not be empty`
+- **CUVR-053** 다른 형식의 `pattern`, `match` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a pattern string`
+- **CUVR-054** 문자열이 아닌 `equalTo`, `enddate` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a field reference string`
+- **CUVR-055** 문자열·숫자·불리언이 아닌 `notEqual` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid notEqual parameter: expected a string, number or boolean`
+- **CUVR-056** 불리언이나 문자열이 아닌 `unique` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid unique parameter: expected true, false or a string`
+- **CUVR-057** 언어에 속하지 않는 `pattern`, `match` — 코드: `INVALID_RULE_PATTERN`; 메시지: `Invalid {rule} pattern: {reason} at {offset}`
 
 패턴의 `{reason}`은 `empty pattern`, `unexpected character`, `unsupported construct`,
 `invalid escape`, `invalid class`, `invalid range`, `invalid property`, `invalid quantifier`,

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f067f8a081bbd910bfbe8d0b799d70de6f67dbcbd04351c4d433df431c59d804 -->
+<!-- source-sha256: faf51e83b9a57eaa29b41c97c89b03b6a661167b011b8f314d512a8688acf8a8 -->
 
 ## Unreleased
+
+### 2026-10-20 — docs/spec의 requirement id (C16.56)
+
+- `docs/spec`의 contract 문서 `display-formats`, `expressions`, `form-markup`, `form-runtime`, `input-text`, `schema`, `validation-rules`는 `**CU<문서>-<n>**`으로 시작하는 list item인 requirement 392건을 정의합니다(`CUDF`, `CUXP`, `CUMK`, `CURT`, `CUIT`, `CUSC`, `CUVR`; 접두사 `CU`는 polyspec의 다른 repository가 쓰지 않습니다). 모든 최상위 규칙 bullet, `validation-rules`에서 굵은 용어로 시작하는 모든 정의 문단, 규칙 표의 모든 행이 대상이며 표는 행마다 bullet 하나가 되었고, 한국어 짝은 같은 id를 가지며, `config/parity.json`의 `requirements.pattern`은 `CU(DF|XP|MK|RT|IT|SC|VR)-[0-9]{3}`입니다(C16.56). repository tooling이나 example server를 설명하는 문서(`conformance`, `examples`, `test-fixtures`, `package-build`, `feature-contracts`, `form-comparison`, `runtime-packages`, `php-extension`)는 여섯 implementation의 contract 동작을 말하지 않으므로 requirement를 정의하지 않습니다. Red: `make parity-declarations-check`가 pattern이 requirement와 맞지 않는다고 보고했고, green: unit이 아직 인용하지 않는 id마다 R13 finding 392건을 보고합니다(다음 item C16.57).
 
 ### 2026-10-20 — engine test는 php-extension의 internal test이다 (C16.48-1)
 

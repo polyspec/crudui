@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: cf24a3eef50bfe4303d2a0e4a55788eaadedc52cd835f1954d5709cea7e577cb -->
+<!-- source-sha256: d5256b4412b96adf72f8190fa99750040d251c0c8812093f610989e4ac94d67f -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -10,11 +10,9 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 클래스 이름은 세 형태 중 하나이며 구분자마다 의미가 하나입니다.
 
-| 형태 | 의미 | 예 |
-| --- | --- | --- |
-| `crudui-{block}` | 블록: 독립 구성 요소 | `crudui-node`, `crudui-controls` |
-| `crudui-{block}__{element}` | 요소(`__`): 해당 블록 안에만 존재하는 부분 | `crudui-node__header`, `crudui-node__label` |
-| `crudui-{block}--{modifier}` | 수식자(`--`): 블록의 종류 또는 변형 | `crudui-node--row`, `crudui-node--sticky` |
+- **CUMK-001** `crudui-{block}` — 의미: 블록: 독립 구성 요소; 예: `crudui-node`, `crudui-controls`
+- **CUMK-002** `crudui-{block}__{element}` — 의미: 요소(`__`): 해당 블록 안에만 존재하는 부분; 예: `crudui-node__header`, `crudui-node__label`
+- **CUMK-003** `crudui-{block}--{modifier}` — 의미: 수식자(`--`): 블록의 종류 또는 변형; 예: `crudui-node--row`, `crudui-node--sticky`
 
 이름 안의 단어는 하이픈 하나로 잇습니다(`lang-item`). 수식자는 항상 기반 블록
 클래스와 함께 씁니다(`class="crudui-node crudui-node--row"`). 요소 이름은 한
@@ -32,27 +30,23 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 ## 블록과 속성
 
-| 블록 | 구조 |
-| --- | --- |
-| `crudui-form` | 비어 있지 않은 루트 설명의 `crudui-form__description` 문단, 폼 오류마다 `crudui-form__error` 문단을 담은 `crudui-form__errors`, `crudui-form__body`, 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
-| `crudui-node` | 데이터 노드 하나입니다. 종류는 아래와 같습니다. |
-| `crudui-controls` | `role="group"`과 접근성 이름을 가진 버튼 묶음입니다. |
-| `crudui-action` | 버튼입니다. `data-crudui-action`을 가진 조작, 폼 버튼, [버튼 필드](#버튼-필드)의 버튼이 이에 해당합니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
-| `crudui-outline` | `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다. |
-| `crudui-data` | `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다. |
-| `crudui-widget` | 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
-| `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다. |
-| `crudui-choices` | 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)). |
+- **CUMK-004** `crudui-form`: 비어 있지 않은 루트 설명의 `crudui-form__description` 문단, 폼 오류마다 `crudui-form__error` 문단을 담은 `crudui-form__errors`, `crudui-form__body`, 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다.
+- **CUMK-005** `crudui-node`: 데이터 노드 하나입니다. 종류는 아래와 같습니다.
+- **CUMK-006** `crudui-controls`: `role="group"`과 접근성 이름을 가진 버튼 묶음입니다.
+- **CUMK-007** `crudui-action`: 버튼입니다. `data-crudui-action`을 가진 조작, 폼 버튼, [버튼 필드](#버튼-필드)의 버튼이 이에 해당합니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다.
+- **CUMK-008** `crudui-outline`: `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다.
+- **CUMK-009** `crudui-data`: `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다.
+- **CUMK-010** `crudui-widget`: 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다.
+- **CUMK-011** `crudui-input`: 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다.
+- **CUMK-012** `crudui-choices`: 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)).
 
-| 속성 | 의미 |
-| --- | --- |
-| `data-field-path` | field·group·collection·lang 노드와 구조 맵 행의 데이터 경로 |
-| `data-crudui-row-key` | row 노드의 행 키 |
-| `data-lang` | lang-item 노드의 언어 코드 |
-| `data-crudui-action` | 버튼의 작업 |
-| `hidden` | `design.show`가 false인 노드, 접힌 행 본문, 펼친 행의 요약 |
-| `aria-expanded`, `aria-controls` | 행 토글 상태와 제어하는 본문 |
-| `step="any"` | 모든 숫자 컨트롤(`number`, `integer`, `float`, `decimal`), 아래 참조 |
+- **CUMK-013** `data-field-path`: field·group·collection·lang 노드와 구조 맵 행의 데이터 경로
+- **CUMK-014** `data-crudui-row-key`: row 노드의 행 키
+- **CUMK-015** `data-lang`: lang-item 노드의 언어 코드
+- **CUMK-016** `data-crudui-action`: 버튼의 작업
+- **CUMK-017** `hidden`: `design.show`가 false인 노드, 접힌 행 본문, 펼친 행의 요약
+- **CUMK-018** `aria-expanded`, `aria-controls`: 행 토글 상태와 제어하는 본문
+- **CUMK-019** `step="any"`: 모든 숫자 컨트롤(`number`, `integer`, `float`, `decimal`), 아래 참조
 
 버튼의 컬렉션 경로는 버튼 자신 또는 가장 가까운 상위 `[data-field-path]`입니다.
 행 키는 그 요소 안에서 가장 가까운 `[data-crudui-row-key]`이며, 없으면 작업은
@@ -75,14 +69,12 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 `design.class`는 컨트롤,
 `design.prepend`는 위젯 prepend에 적용합니다.
 
-| 종류 | 헤더 | 본문 |
-| --- | --- | --- |
-| `field` | `__label`, `__description` | 위젯. inline [배치](#배치)에서 노드에 `crudui-node--inline`이 붙습니다 |
-| `group` | `__label`, `__description` | 자식 노드. line 배치를 선언하면 노드에 `crudui-node--line`이, inline 배치 안에서는 `crudui-node--inline`도 붙습니다 |
-| `collection` | `__label`, `__description`, `__count` | row 노드. 행이 없으면 푸터에 `add-row` 컨트롤 |
-| `row` | 토글, `__label`, `__number`, `__title`, `__summary`, 컨트롤 | 스칼라 행의 위젯 또는 group 행의 자식 노드 |
-| `lang` | `__label`, `__description`, `__title`(`lang.title`) | lang-item 노드. `lang.frame`이 true(기본값)이면 노드에 `crudui-node--framed`가 붙습니다 |
-| `lang-item` | 언어 코드를 담은 `__label` | 위젯 |
+- **CUMK-020** `field` — 헤더: `__label`, `__description`; 본문: 위젯. inline [배치](#배치)에서 노드에 `crudui-node--inline`이 붙습니다
+- **CUMK-021** `group` — 헤더: `__label`, `__description`; 본문: 자식 노드. line 배치를 선언하면 노드에 `crudui-node--line`이, inline 배치 안에서는 `crudui-node--inline`도 붙습니다
+- **CUMK-022** `collection` — 헤더: `__label`, `__description`, `__count`; 본문: row 노드. 행이 없으면 푸터에 `add-row` 컨트롤
+- **CUMK-023** `row` — 헤더: 토글, `__label`, `__number`, `__title`, `__summary`, 컨트롤; 본문: 스칼라 행의 위젯 또는 group 행의 자식 노드
+- **CUMK-024** `lang` — 헤더: `__label`, `__description`, `__title`(`lang.title`); 본문: lang-item 노드. `lang.frame`이 true(기본값)이면 노드에 `crudui-node--framed`가 붙습니다
+- **CUMK-025** `lang-item` — 헤더: 언어 코드를 담은 `__label`; 본문: 위젯
 
 본문에 레이블 대상 컨트롤이 정확히 하나이면 레이블은 그 컨트롤을 가리키는 `label`
 요소이고, 아니면 `span`입니다. 체크박스와 스위처 캡션은 본문 안 입력 자신의
@@ -116,9 +108,9 @@ input, select, textarea, image·file·cover 필드의 파일 input, 표시 필�
 
 모델은 선언한 속성을 선언 순서로 가집니다.
 
-- 노드 모델은 `style` 다음, `hidden` 앞의 `attributes`로 가집니다.
-- 체크박스 모델은 `caption` 다음의 `attributes`로 가집니다.
-- 위젯 모델은 컨트롤의 속성 목록인 `attrs`에, `file` 배치에서는 `extra.file`에 덧붙입니다. `choices`
+- **CUMK-026** 노드 모델은 `style` 다음, `hidden` 앞의 `attributes`로 가집니다.
+- **CUMK-027** 체크박스 모델은 `caption` 다음의 `attributes`로 가집니다.
+- **CUMK-028** 위젯 모델은 컨트롤의 속성 목록인 `attrs`에, `file` 배치에서는 `extra.file`에 덧붙입니다. `choices`
   배치는 `extra.input` 다음의 `extra.option`에 둡니다.
 
 각 멤버는 선언에 속성이 하나 이상 있을 때만 존재합니다. 모든 렌더러는 CRUDUI가 그 요소에 쓰는 속성 다음에
@@ -141,8 +133,8 @@ group은 `design.layout`으로 필드의 배치를 선언합니다([스키마](s
 `crudui-node--framed`를 쓰는 것과 같이 배치를 루트 클래스(`className`)의 앞, `design.wrapper` 클래스 앞에
 modifier로 씁니다.
 
-- inline 배치의 field 노드는 `crudui-node--inline`을 가집니다.
-- `line`을 선언한 group은 `crudui-node--line`을 가지며, group이 inline 배치 안에 있으면 그 앞에
+- **CUMK-029** inline 배치의 field 노드는 `crudui-node--inline`을 가집니다.
+- **CUMK-030** `line`을 선언한 group은 `crudui-node--line`을 가지며, group이 inline 배치 안에 있으면 그 앞에
   `crudui-node--inline`을 가집니다.
 
 스타일시트는 inline 노드를 레이블 열(`--crudui-label-width`)과 컨트롤 열의 grid로 배치합니다. 헤더는 상자를
@@ -292,27 +284,27 @@ select 필드의 선택 목록은 그룹을 가질 수 있습니다([스키마](
 
 ## 행
 
-- 번호는 상위 행들의 1부터 시작하는 위치를 `.`으로 연결합니다.
-- `multiple.title`은 값이 행 제목이 되는 직속 자식을 지정합니다. 값이 비어 있으면
+- **CUMK-031** 번호는 상위 행들의 1부터 시작하는 위치를 `.`으로 연결합니다.
+- **CUMK-032** `multiple.title`은 값이 행 제목이 되는 직속 자식을 지정합니다. 값이 비어 있으면
   이름 없음 문구를 표시합니다.
-- group 행은 접을 수 있습니다. 요약은 행 본문에 직접 있는 컬렉션들의 행 수 합계를
+- **CUMK-033** group 행은 접을 수 있습니다. 요약은 행 본문에 직접 있는 컬렉션들의 행 수 합계를
   표시하고, 컬렉션이 없으면 접힘 문구를 표시합니다. 스칼라 행에는 토글, 제목, 요약이
   없습니다.
-- `multiple: only` 컬렉션의 행에는 행 컨트롤이 없으며 구조 맵에도 표시하지 않습니다.
-- 컨트롤 순서는 `move-up`·`move-down`(`multiple.sortable`), `add-row`,
+- **CUMK-034** `multiple: only` 컬렉션의 행에는 행 컨트롤이 없으며 구조 맵에도 표시하지 않습니다.
+- **CUMK-035** 컨트롤 순서는 `move-up`·`move-down`(`multiple.sortable`), `add-row`,
   `copy-row`(`multiple.copy`), `remove-row`입니다. 첫 행의 `move-up`과 마지막 행의
   `move-down`은 사용할 수 없습니다. 행 수가 `multiple.max`에 도달하면 `add-row`와
   `copy-row`를, `multiple.min` 이하이면 `remove-row`를 사용할 수 없습니다.
-- 폼과 구조 맵의 모든 조작 버튼(`data-crudui-action`)은 사용할 수 없는 조작을
+- **CUMK-036** 폼과 구조 맵의 모든 조작 버튼(`data-crudui-action`)은 사용할 수 없는 조작을
   `disabled`가 아니라 `aria-disabled="true"`로 표시합니다. 버튼은 포커스를 받을 수 있고
   클릭해도 아무 일도 하지 않습니다. 포커스된 컨트롤이 비활성화되면 Chromium은 포커스를
   유지하고 WebKit은 해제하므로, `disabled`를 쓰면 포커스가 브라우저와 렌더링 시점에 따라
   달라집니다. 필드 컨트롤의 `disabled`는 선언된 데이터 상태이며 제출에서 제외되므로 그대로
   씁니다.
-- `multiple.controls`는 행 컨트롤을 행 `header`(기본) 또는 `footer`에 둡니다.
+- **CUMK-037** `multiple.controls`는 행 컨트롤을 행 `header`(기본) 또는 `footer`에 둡니다.
   `outline`이면 행 컨트롤은 구조 맵 줄로 옮겨집니다. 빈 컬렉션의 추가 컨트롤은 행
   컨트롤이 아니므로 컬렉션 푸터에 남습니다.
-- `multiple.header: sticky`는 `crudui-node--sticky`를 추가하고, 행 루트 스타일이
+- **CUMK-038** `multiple.header: sticky`는 `crudui-node--sticky`를 추가하고, 행 루트 스타일이
   `--crudui-sticky-depth`를 상위 고정 행의 수로 설정합니다. 행의 고정선은 그 수에
   `--crudui-node-header-height`에서 행 테두리 한 겹(`--crudui-row-border`)을 뺀 값을 곱한
   값입니다. 고정 행은 CSS만으로 동작하므로 폼이 스크롤되는 곳이 페이지, 프레임, 스크롤 박스
@@ -399,25 +391,23 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 정하는 규칙으로 블록의 테마를 정합니다. 예: `.crudui-form, .crudui-list { --crudui-accent: … }`.
 이 규칙은 스타일시트 순서와 관계없이 기본값보다 우선합니다.
 
-| 속성 | 기본값 | 쓰임 |
-| --- | --- | --- |
-| `--crudui-text` | `#111827` | 모든 블록의 글자색 |
-| `--crudui-muted` | `#6b7280` | 설명, 개수, 접사, 상세 레이블 |
-| `--crudui-border` | `#e5e7eb` | 행, 목록, 상세, 동작의 테두리 |
-| `--crudui-surface` | `#ffffff` | 컨트롤, 행, 동작의 배경 |
-| `--crudui-subtle` | `#f9fafb` | 행 헤더, 목록 제목 칸, 접사, 읽기 전용 컨트롤의 배경 |
-| `--crudui-accent` | `#1d4ed8` | 포커스 윤곽선, 선택된 선택지, 켜진 스위치의 트랙 |
-| `--crudui-error` | `#b91c1c` | 폼 오류와 노드 오류의 텍스트 |
-| `--crudui-on-accent` | `#ffffff` | 선택된 선택지의 글자색 |
-| `--crudui-action-text` | `#374151` | 동작의 글자와 아이콘 색 |
-| `--crudui-action-size` | `1.75rem` | 아이콘 동작의 너비와 높이, 글자 동작의 높이 |
-| `--crudui-control-border` | `var(--crudui-border)` | 컨트롤, 접사, 위젯 버튼, 선택지의 테두리 |
-| `--crudui-control-height` | `2.25rem` | 컨트롤과 선택지의 최소 높이 |
-| `--crudui-radius` | `0.375rem` | 컨트롤, 접사, 선택지, 동작의 모서리 반지름 |
-| `--crudui-submit-background` | `var(--crudui-surface)` | 폼 바닥글 제출 버튼의 배경 |
-| `--crudui-submit-border` | `var(--crudui-border)` | 폼 바닥글 제출 버튼의 테두리 색 |
-| `--crudui-submit-text` | `var(--crudui-action-text)` | 폼 바닥글 제출 버튼의 글자색 |
-| `--crudui-label-width` | `10rem` | inline 배치의 레이블 열 너비 |
+- **CUMK-039** `--crudui-text` — 기본값: `#111827`; 쓰임: 모든 블록의 글자색
+- **CUMK-040** `--crudui-muted` — 기본값: `#6b7280`; 쓰임: 설명, 개수, 접사, 상세 레이블
+- **CUMK-041** `--crudui-border` — 기본값: `#e5e7eb`; 쓰임: 행, 목록, 상세, 동작의 테두리
+- **CUMK-042** `--crudui-surface` — 기본값: `#ffffff`; 쓰임: 컨트롤, 행, 동작의 배경
+- **CUMK-043** `--crudui-subtle` — 기본값: `#f9fafb`; 쓰임: 행 헤더, 목록 제목 칸, 접사, 읽기 전용 컨트롤의 배경
+- **CUMK-044** `--crudui-accent` — 기본값: `#1d4ed8`; 쓰임: 포커스 윤곽선, 선택된 선택지, 켜진 스위치의 트랙
+- **CUMK-045** `--crudui-error` — 기본값: `#b91c1c`; 쓰임: 폼 오류와 노드 오류의 텍스트
+- **CUMK-046** `--crudui-on-accent` — 기본값: `#ffffff`; 쓰임: 선택된 선택지의 글자색
+- **CUMK-047** `--crudui-action-text` — 기본값: `#374151`; 쓰임: 동작의 글자와 아이콘 색
+- **CUMK-048** `--crudui-action-size` — 기본값: `1.75rem`; 쓰임: 아이콘 동작의 너비와 높이, 글자 동작의 높이
+- **CUMK-049** `--crudui-control-border` — 기본값: `var(--crudui-border)`; 쓰임: 컨트롤, 접사, 위젯 버튼, 선택지의 테두리
+- **CUMK-050** `--crudui-control-height` — 기본값: `2.25rem`; 쓰임: 컨트롤과 선택지의 최소 높이
+- **CUMK-051** `--crudui-radius` — 기본값: `0.375rem`; 쓰임: 컨트롤, 접사, 선택지, 동작의 모서리 반지름
+- **CUMK-052** `--crudui-submit-background` — 기본값: `var(--crudui-surface)`; 쓰임: 폼 바닥글 제출 버튼의 배경
+- **CUMK-053** `--crudui-submit-border` — 기본값: `var(--crudui-border)`; 쓰임: 폼 바닥글 제출 버튼의 테두리 색
+- **CUMK-054** `--crudui-submit-text` — 기본값: `var(--crudui-action-text)`; 쓰임: 폼 바닥글 제출 버튼의 글자색
+- **CUMK-055** `--crudui-label-width` — 기본값: `10rem`; 쓰임: inline 배치의 레이블 열 너비
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border`,
 `--crudui-form-footer-height`는 고정 행과 폼 바닥글의 크기를 정합니다(위 참조).
@@ -483,15 +473,15 @@ element에 `crudui.css`와 같은 computed style(custom property 제외)을 줍�
 
 이 문법의 기준이 된 폼과 다음을 의도적으로 다르게 정했습니다.
 
-1. 준비 폴링과 시간 기반 스크롤 잠금 대신 렌더링 후 동기화를 사용합니다. 고정 헤더의
+1. **CUMK-056** 준비 폴링과 시간 기반 스크롤 잠금 대신 렌더링 후 동기화를 사용합니다. 고정 헤더의
    고정 상태는 scroll과 resize 이벤트에서 애니메이션 프레임당 최대 한 번 측정하며, 행
    높이와 관계없이 동작합니다.
-2. 펼침 상태는 레코드 데이터가 아닌 뷰 상태입니다.
-3. 행은 배열 위치가 아닌 키로 식별합니다.
-4. 깊이에 제한이 없으며 깊이별 컴포넌트 대신 재귀 노드 하나를 사용합니다.
-5. `multiple.max`를 적용합니다.
-6. 되돌리기는 모든 데이터 변경을 기록하며 같은 경로의 연속 입력을 병합합니다.
-7. 고정 헤더와 레이블은 CSS만으로 동작합니다. 스크롤 위치를 따르는 스크립트가 없으므로
+2. **CUMK-057** 펼침 상태는 레코드 데이터가 아닌 뷰 상태입니다.
+3. **CUMK-058** 행은 배열 위치가 아닌 키로 식별합니다.
+4. **CUMK-059** 깊이에 제한이 없으며 깊이별 컴포넌트 대신 재귀 노드 하나를 사용합니다.
+5. **CUMK-060** `multiple.max`를 적용합니다.
+6. **CUMK-061** 되돌리기는 모든 데이터 변경을 기록하며 같은 경로의 연속 입력을 병합합니다.
+7. **CUMK-062** 고정 헤더와 레이블은 CSS만으로 동작합니다. 스크롤 위치를 따르는 스크립트가 없으므로
    스크롤하는 동안 아무것도 실행하거나 렌더링하지 않습니다.
-8. 행에는 번호 하나만 표시하며 별도 위치 표기는 없습니다.
-9. 배치 옵션은 설정 패널이 아닌 명세에 선언합니다.
+8. **CUMK-063** 행에는 번호 하나만 표시하며 별도 위치 표기는 없습니다.
+9. **CUMK-064** 배치 옵션은 설정 패널이 아닌 명세에 선언합니다.
