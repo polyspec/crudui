@@ -26,6 +26,10 @@
 - `tests/fixtures/form-render/cases.json` gains two cases through `packages/react/scripts/scenario-form-render-cases.ts`, rendered by the React reference: `nested-empty-collections-keep-sibling-order` (explicit empty nested collections, sibling rows keep their keys and data order; CUEC-001, CURP-027) and `scalar-multiple-empty-object-has-no-rows` (an explicit empty object for a repeated scalar gives zero rows; CUEC-001, CUEC-004). The Go, Python and Rust runners count the new result cases; `config/parity.json` cites CURP-027 in the form-render unit.
 - `packages/generator/ts/src/empty-collections.test.ts` stays undeclared: its non-keyed `bindForm` rejection (CUEC-003) and the visibility assertion that keeps the data unchanged (CUEC-006) have no cited case, so the file is not yet declared internal.
 
+### 2026-10-21 — The Python generator runs every case of the template shape fixture (C16.132)
+
+- `packages/generator/python/tests/test_template_shape.py` runs each case of `tests/fixtures/template-shape` through `Generator.bindForm`, `Generator.bindButtons` or `Generator.createForm`, one subtest per case; it asserts the 42 cases. A refusal must be the `FormError` with the code, the message and the empty location that the case records.
+
 ### 2026-10-21 — The PHP generator and its extension run every case of the template shape fixture (C16.131)
 
 - `packages/generator/php/tests/TemplateShapeTest.php` runs each case of `tests/fixtures/template-shape` through `Generator::bindForm`, `Generator::bindButtons` or `Form`, one PHPUnit case per fixture case; it asserts the 42 cases. It passes under the PHP extension (`make test-php-ext CASES=TemplateShapeTest`).
