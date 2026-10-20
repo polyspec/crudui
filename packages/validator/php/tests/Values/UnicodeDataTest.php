@@ -36,6 +36,7 @@ final class UnicodeDataTest extends TestCase
         return array_merge(...array_map(static fn (array $range) => [$range[0], $range[1]], $ranges));
     }
 
+    /** CUVR-018: the embedded data equals contracts/unicode-properties.json. */
     public function testEmbeddedDataEqualsTheContract(): void
     {
         $contract = self::contract();

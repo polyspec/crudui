@@ -148,6 +148,10 @@
           "reason": "test: the unit test of the unknown form data fields; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
         },
         {
+          "glob": "packages/validator/ts/src/values/values.unit.test.ts",
+          "reason": "test: the unit test of the value definitions (trim, emptiness, canonical text, membership); it reads no contract of contracts/ and no fixture of tests/fixtures, and the Unicode data contract is tested by the feature unit unicode-data"
+        },
+        {
           "glob": "packages/validator/ts/src/list-metaschema.conformance.test.ts",
           "reason": "test: the meta-schema check of the TypeScript CLI against contracts/schema (Ajv); no other implementation checks the meta-schema"
         },
@@ -565,10 +569,6 @@
         {
           "glob": "packages/validator/rust/src/validate/pattern/tree.rs",
           "reason": "test: unit tests of the Rust pattern tree and its size (a Rust-only representation of the parsed pattern)"
-        },
-        {
-          "glob": "packages/validator/rust/src/validate/unicode/mod.rs",
-          "reason": "test: unit tests of the embedded Unicode data tables of the Rust validator (a Rust-only data layout of the shared Unicode data)"
         },
         {
           "glob": "packages/generator/rust/src/date.rs",
@@ -2268,6 +2268,47 @@
       "requirements": [
         "CUSC-007",
         "CURP-001"
+      ]
+    },
+    {
+      "id": "unicode-data",
+      "kind": "feature",
+      "requirements": [
+        "CUVR-018"
+      ],
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/unicode/properties.unit.test.ts",
+          "id": "src/unicode/properties.ts equals contracts/unicode-properties.json"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Values/UnicodeDataTest.php",
+          "id": "testEmbeddedDataEqualsTheContract"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/unicode_data_test.go",
+          "id": "TestUnicodeDataMatchesContract"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/src/validate/unicode/mod.rs",
+          "id": "embedded_data_matches_the_contract"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_unicode_data.py",
+          "id": "test_the_module_holds_the_contract"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/php-ext/tests/contract/unicode-data.test.mjs",
+          "runner": "node",
+          "reason": "the C Unicode tables of the extension (unicode_data.c and the White_Space table of whitespace.c) are compiled and compared with the contract by node, since the extension exposes no PHP accessor of them",
+          "id": "PHP extension Unicode data equals contracts/unicode-properties.json"
+        }
       ]
     }
   ],

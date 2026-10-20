@@ -68,6 +68,7 @@ mod tests {
             .collect()
     }
 
+    /// CUVR-018: the embedded tables equal contracts/unicode-properties.json.
     #[test]
     fn embedded_data_matches_the_contract() {
         let contract: Value = match serde_json::from_str(include_str!(

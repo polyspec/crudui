@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// TestUnicodeDataMatchesContract fails when unicode_data.go differs from
+// TestUnicodeDataMatchesContract checks the Unicode data of CUVR-018: it fails when unicode_data.go differs from
 // contracts/unicode-properties.json; run `go generate` to rewrite it.
 func TestUnicodeDataMatchesContract(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "..", "contracts", "unicode-properties.json"))

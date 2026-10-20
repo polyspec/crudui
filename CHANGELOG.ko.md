@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: dbe9896d3006f833ce669eb8bdf21d87a05909d1523b722656bb2f534cd8cdaf -->
+<!-- source-sha256: 84f0a409c0aca3c1659162d0895c1e6c11cd73c04d82e2bbd58b64382a8432e9 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-21 — python 바인딩이 각 단위의 케이스를 이름으로 보고한다 (C16.157)
 
 - buttons, validate, form-render, form-view, form-history, form-actions, view-functions, expr 단위의 python 바인딩이 각 케이스를 이름으로 보고한다 (C16.157): `packages/generator/python/tests/conformance.py`와 `packages/validator/python/tests/conformance.py`의 `add_case_tests`가 클래스마다 케이스당 테스트 메서드 `test_<case>` 하나를 만들고, `test_buttons.py`, `test_form_render.py`, `test_form_state.py`, `test_expr.py`, `test_validate.py`가 케이스마다 같은 검증을 실행하며 픽스처 개수는 별도 테스트 클래스에 둔다. `config/parity.json`은 python 구현을 `var/python/bin/python`(패키지의 venv)으로 실행하고 각 바인딩의 테스트 클래스를 지정한다 (C16.157). Red: d68d71c6에서 `make -s parity-check UNITS="buttons validate form-render form-view expr form-history form-actions view-functions"`가 exit 1로 끝나며 각 단위의 python R3 `not executed` 줄이 남는다 (예: `R3 not-executed validate python ... exited with 1`); green: exit 0, 모든 python 단위가 자기 케이스를 전부 통과로 보고하고 (validate 341 of 341, form-render 201 of 201, buttons 22 of 22, expr 74 of 74, form-view 3 of 3, form-history 5 of 5, form-actions 20 of 20, view-functions 11 of 11) `R3 not-executed <단위> python` 줄이 없다.
+
+### 2026-10-21 — 여섯 구현의 유니코드 데이터가 계약에 맞게 검사된다 (C16.113)
+
+- 기능 unit `unicode-data`(CUVR-018)가 ts(`packages/validator/ts/src/unicode/properties.unit.test.ts`), php(`UnicodeDataTest::testEmbeddedDataEqualsTheContract`), go(`TestUnicodeDataMatchesContract`), rust(`embedded_data_matches_the_contract`), python(`test_unicode_data.py`)과 php-extension의 유니코드 테스트를 묶는다. php-extension의 새 node 계약 테스트 `packages/php-ext/tests/contract/unicode-data.test.mjs`는 `unicode_data.c`의 C 표와 `whitespace.c`의 White_Space 검사를 컴파일해 `contracts/unicode-properties.json`과 비교하며, 이 검사는 `packages/php-ext/tests/engine/engine.test.mjs`에서 옮겨 왔다 (C16.113). 값 unit `packages/validator/ts/src/values/values.unit.test.ts`는 내부 테스트로 선언된다. Red: `make -s parity-declarations-check`가 exit 2이며 `R5 undeclared-test` 줄 다섯 개; green: 지적 없이 exit 0이고 node 계약 테스트는 exit 0.
 
 ### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
 

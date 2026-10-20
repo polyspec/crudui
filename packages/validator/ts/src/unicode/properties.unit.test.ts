@@ -54,6 +54,7 @@ const pairs = (flat: readonly number[]) => Array.from({ length: flat.length / 2 
 const table = (map: Readonly<Record<string, readonly number[]>>) =>
   Object.fromEntries(Object.entries(map).map(([name, flat]) => [name, pairs(flat)]));
 
+// CUVR-018: the embedded data equals contracts/unicode-properties.json.
 test('src/unicode/properties.ts equals contracts/unicode-properties.json', () => {
   expect(UNICODE_VERSION).toBe(contract.unicodeVersion);
   expect(pairs(WHITE_SPACE)).toStrictEqual(contract.whiteSpace);

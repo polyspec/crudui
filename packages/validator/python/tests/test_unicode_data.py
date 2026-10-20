@@ -13,6 +13,7 @@ class TestUnicodeData(unittest.TestCase):
     """The generated module holds the data of contracts/unicode-properties.json."""
 
     def test_the_module_holds_the_contract(self):
+        """CUVR-018: the module holds the data of contracts/unicode-properties.json."""
         contract = json.loads(
             (ROOT / "contracts" / "unicode-properties.json").read_text(encoding="utf-8")
         )
