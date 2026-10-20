@@ -4,14 +4,12 @@
 import assert from 'node:assert/strict';
 import { execFile, fork, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 import { recordFixtureFile, recordServers, recordSpecsFile } from './record-contract.mjs';
-import { orderedJsonPresent } from '../install-ordered-json.mjs';
-import { orderedJsonTag } from './ordered-json-source.mjs';
 import { sourceIdentity } from './source-tree.mjs';
 import { formatDuration, killProcessTree, runStages, stepHeartbeatMs } from './step-runner.mjs';
 
@@ -19,10 +17,10 @@ const execFileAsync = promisify(execFile);
 export const exampleDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const repositoryRoot = path.resolve(exampleDirectory, '../..');
 /**
- * The host checkout of the OrderedJSON monorepo. The Go and Rust server manifests name this
- * path relative to the repository root, as the build tree does.
+ * The PHP extension source of OrderedJSON, unpacked from the release zip that config/release-assets.json
+ * pins (make release-assets-fetch), relative to the repository root.
  */
-const localOrderedJsonDirectory = path.join(repositoryRoot, '.form-comparison/sources/ordered-json');
+export const orderedJsonExtensionDirectory = 'var/ordered-json-php-ext';
 
 /** Print one progress line of the local server harness. */
 function progress(write, text) {
@@ -38,39 +36,40 @@ const readyLine = server => new RegExp(`^CRUDUI_READY ${server} (127\\.0\\.0\\.1
 export const anyLoopbackPort = '127.0.0.1:0';
 
 /**
- * The arguments of cp that copy the contents of the PHP extension source of an OrderedJSON checkout into `destination`.
- * The source ends with a dot so that cp copies its contents; `path.join` drops that segment, so the string is made here.
+ * The arguments of cp that copy the contents of the src directory of an unpacked OrderedJSON PHP extension
+ * into `destination`. The source ends with a dot so that cp copies its contents; `path.join` drops that segment,
+ * so the string is made here.
  */
-export function orderedJsonCopyArguments(checkout, destination) {
-  return ['-R', `${path.join(checkout, 'packages/php-ext/src')}${path.sep}.`, destination];
+export function orderedJsonCopyArguments(extension, destination) {
+  return ['-R', `${path.join(extension, 'src')}${path.sep}.`, destination];
 }
 
-async function orderedJsonCheckout(write) {
-  // The checkout is a download of make install; a check reads it and downloads nothing.
-  if (!await orderedJsonPresent(localOrderedJsonDirectory)) {
-    throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing, has tracked changes or is not at the tag ${orderedJsonTag}; `
-      + 'run make crudui-install-ordered-json (make install runs it), which downloads it');
+async function orderedJsonExtension(write) {
+  // The zip is a download of make release-assets-fetch; a check reads the unpacked source and downloads nothing.
+  const config = path.join(repositoryRoot, orderedJsonExtensionDirectory, 'src/config.m4');
+  if (!await stat(config).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; })) {
+    throw new Error(`the OrderedJSON PHP extension source ${config} is missing; run make release-assets-fetch, which unpacks it`);
   }
-  progress(write, 'ordered-json checkout: present');
+  progress(write, 'ordered-json PHP extension source: present');
 }
 
 /**
- * Build what the five record servers run: the OrderedJSON checkout, both PHP extensions and the
+ * Build what the five record servers run: the OrderedJSON PHP extension source, both PHP extensions and the
  * Go and Rust server binaries. Every build is one step that
  * runs to its end without a time limit and prints its output and progress.
  */
 export async function prepareRecordServers({ buildDirectory, write = text => process.stdout.write(text) }) {
-  await orderedJsonCheckout(write);
+  await orderedJsonExtension(write);
   const goBinary = path.join(buildDirectory, 'go-server');
   const step = (id, command, args, cwd = repositoryRoot, environment = {}) =>
     ({ id, command, args, cwd, environment });
-  // The OrderedJSON module builds with phpize in a copy of the source of the checkout, which stays as it was installed.
+  // The OrderedJSON module builds with phpize in a copy of the unpacked source, which stays as it was unpacked.
   const copied = path.join(buildDirectory, 'ordered-json-php-ext');
   const results = await runStages([[
     step('ordered-json-php-directory', 'mkdir', ['-p', copied]),
   ], [
     step('crudui-php-extension', 'make', ['build-php-ext']),
-    step('ordered-json-php-copy', 'cp', orderedJsonCopyArguments(localOrderedJsonDirectory, copied)),
+    step('ordered-json-php-copy', 'cp', orderedJsonCopyArguments(path.join(repositoryRoot, orderedJsonExtensionDirectory), copied)),
     step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
     step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mts'),

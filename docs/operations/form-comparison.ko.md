@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-operations-form-comparison -->
-<!-- source-sha256: cf9b0d34ef5f1e8794ea023ddb7dcb1c7d458eb19fb794d830cbaace38319753 -->
+<!-- source-sha256: d52152de915f060933ad4670a899b964828ba89c5f0e59b2f2fe6998ec359c39 -->
 
 [English](form-comparison.md).
 
@@ -212,8 +212,8 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 `record-stores.test.mjs`는
 체크아웃에서 시작한 다섯 서버 모두에 `src/record-contract.mjs`의 HTTP 계약 사례를 사례마다 자기
 제한 시간으로 실행합니다. 두 로컬 검사는 먼저 서버 프로그램을 빌드하며 각각 시간 한도 없이
-진행을 출력하는 단계입니다. `.form-comparison/sources/ordered-json`의 OrderedJSON 체크아웃(Go·Rust
-매니페스트가 지정한 경로), 두 PHP 확장, Go 바이너리, Rust 디버그
+진행을 출력하는 단계입니다. `make release-assets-fetch`가 `var/ordered-json-php-ext`에 풀어 놓은 OrderedJSON PHP 확장 소스
+(release zip `polyspec-ordered-json-extension-php-0.0.9.zip`), 두 PHP 확장, Go 바이너리, Rust 디버그
 바이너리입니다. 그다음 로컬 구성은 다섯 프로세스를 동시에 시작하고 브라우저를 시작합니다.
 프로세스 시작과 브라우저 시작은 제한 시간이 없는 장기 작업입니다. 각각 준비 이벤트나 launch에서
 끝나고, 기다리는 동안 15초마다 경과 시간 줄을 출력합니다. 이 작업들을 실행하는 테스트 훅은

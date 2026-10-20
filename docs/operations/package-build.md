@@ -299,10 +299,7 @@ advisory at its review, `package-lock.json` does not record a manifest, a packag
 of this repository is not required at its own version, or `composer validate
 --strict` without a network finds a Composer lock that is not current, or a Composer manifest whose
 `config.platform.php` or lock `platform-overrides` differs from the `php` of its entry in `composerPlatforms` (`8.4.1`,
-the lowest PHP release that the locked PHPUnit supports). `taggedNpmPackages` of
-`config/dependency-policy.json` records the OrderedJSON tag that the root manifest links with `file:`; the test
-`tests/build/dependency-health.test.mts` requires it to equal the tag of
-`examples/form-comparison/src/ordered-json-source.mjs`. An
+the lowest PHP release that the locked PHPUnit supports). An
 exception of `config/dependency-policy.json` names its ecosystem, manifest and
 package and declares a reproduced reason, a removal condition and verification
 commands.
@@ -312,22 +309,18 @@ commands.
 A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
 `GOPROXY=off`, `npm_config_offline=true` and `COMPOSER_DISABLE_NETWORK=1` for every
 recipe and the commands that it starts; only the download targets `install`, `install-tools`,
-`crudui-install-crates`, `crudui-install-ordered-json` and
+`crudui-install-crates` and
 `dependency-review`, and the lock of the consumer projects of the release archives
 `release-consumer-lock`, which downloads the
 third-party packages that their locks pin, lift them with `$(ONLINE)`; `release-consumer` lifts the settings itself. `make crudui-install-crates` downloads the
-crates of every Cargo.lock after the OrderedJSON checkout
-(`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
-reads, and `make install` runs it. Every target that runs cargo depends on
+crates of every Cargo.lock, and `make install` runs it. Every target that runs cargo depends on
 `make cargo-downloads-check` (`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`), which runs
 `cargo fetch --locked --offline` for each lock and fails with each lock, the first
 error line of cargo and `run make install, which downloads them`, instead of cargo's
-advice to retry without `--offline`. The comparison pipeline reads the OrderedJSON
-checkout and fails when it is missing, has tracked changes or is at another commit than the tag
-`v0.0.9`, naming
-`make crudui-install-ordered-json`; it downloads nothing. The Go modules of the checkout
-require only modules of the checkout through `replace`, so Go reads no module
-proxy.
+advice to retry without `--offline`. The comparison pipeline reads the PHP extension source of
+OrderedJSON that `make release-assets-fetch` unpacks into `var/ordered-json-php-ext` and fails when it is missing;
+it downloads nothing. The Go module of the comparison servers requires the OrderedJSON module at `v0.0.9`, which `GOPROXY=off`
+reads from the module cache.
 
 ## Documentation web
 

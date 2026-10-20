@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 91ce50963f43ab91b4fe9dd4788e268df9dad5d40a8d720528362c4b3330d451 -->
+<!-- source-sha256: 6b7eb90ebf2baa70cd62b0004d20b3b014a86021f94474ab8765e95996cad5ad -->
 
 [English](testing.md).
 
@@ -254,8 +254,8 @@ npm test
 
 `npm run test:inspector`는 폼 스냅샷과 브라우저 검사기 테스트를 실행하며, 검사하는 폼을 바꾸지 않고
 HTML 원문, 파싱한 DOM, 계산된 스타일, 실제 입력 상태를 비교합니다.
-`npm run test:form-comparison:pipeline`은 이 트리에서 다섯 레코드 서버(`.form-comparison/sources/ordered-json`의
-OrderedJSON 체크아웃, 두 PHP 확장, Go 바이너리, Rust 바이너리)를 빌드하고, 각 서버를 127.0.0.1의 빈 포트에서
+`npm run test:form-comparison:pipeline`은 이 트리에서 다섯 레코드 서버(`var/ordered-json-php-ext`에 풀린
+OrderedJSON PHP 확장 소스, 두 PHP 확장, Go 바이너리, Rust 바이너리)를 빌드하고, 각 서버를 127.0.0.1의 빈 포트에서
 로컬 프로세스로 시작하고, 다섯 서버 모두에 레코드 저장소 HTTP 계약을 실행하고, Go·Rust 서버 테스트를 실행한
 뒤, 그 로컬 구성에서 서버·클라이언트·초기화 방식 40개 조합의 정본 List → Detail → Form → Save → List
 refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rust, Chrome이 필요합니다.

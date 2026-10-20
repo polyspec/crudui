@@ -118,10 +118,6 @@
       "kind": "ecosystem",
       "tool": "puppeteer drives the browser of the form comparison (check.mjs reads the markup with parse5)"
     },
-    "examples/form-comparison/install-ordered-json.mjs": {
-      "kind": "ecosystem",
-      "tool": "git clones and checks out the tag of the OrderedJSON checkout"
-    },
     "examples/form-comparison/local-verification.mjs": {
       "kind": "policy",
       "reason": "the module (local-verification.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
@@ -281,10 +277,6 @@
     "examples/form-comparison/src/main-page-readiness.mjs": {
       "kind": "policy",
       "reason": "the module (src/main-page-readiness.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
-    },
-    "examples/form-comparison/src/ordered-json-source.mjs": {
-      "kind": "policy",
-      "reason": "the module (src/ordered-json-source.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
     },
     "examples/form-comparison/src/pages/stage-html.ts": {
       "kind": "ecosystem",

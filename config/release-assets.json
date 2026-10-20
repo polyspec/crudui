@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "comment": "The release zip of the PHP package of OrderedJSON, which publishes to no registry: make crudui-install-composer runs make release-assets-fetch, which downloads it into var/composer-artifacts, the Composer artifact repository of the root composer.json, whose form comparison server reads JSON with it.",
+  "comment": "The release zips of OrderedJSON, which publishes to no registry for PHP: make crudui-install-composer runs make release-assets-fetch of kit, which downloads the PHP package zip into var/composer-artifacts, the Composer artifact repository of the root composer.json, whose form comparison server reads JSON with it. The extension zip is extracted into var/ordered-json-php-ext, whose src/ the record servers build the ordered_json PHP extension from.",
   "assets": [
     {
       "name": "ordered-json",
@@ -8,6 +8,14 @@
       "url": "https://github.com/polyspec/ordered-json/releases/download/v{version}/polyspec-ordered-json-php-{version}.zip",
       "sha256": "b094115eaa864b8be01f02074ab3d6e5cac0d7f4d1206c774ab4a608abbb4f5c",
       "directory": "var/composer-artifacts"
+    },
+    {
+      "name": "ordered-json-extension-php",
+      "version": "0.0.9",
+      "url": "https://github.com/polyspec/ordered-json/releases/download/v{version}/polyspec-ordered-json-extension-php-{version}.zip",
+      "sha256": "fcd6c4a3dca18cee11178876f5e57542aae15021a895a0e0c503e26ab008940f",
+      "directory": "var/release-assets",
+      "unpack": "var/ordered-json-php-ext"
     }
   ]
 }

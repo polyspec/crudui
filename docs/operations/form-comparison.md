@@ -236,9 +236,9 @@ The combinations run against a local stack built from the checkout
 `check-pipeline.mjs`. `record-stores.test.mjs` runs the HTTP contract cases
 of `src/record-contract.mjs` against all five servers started from the checkout, each case with
 its own timeout. Both local checks first build the server programs, each as a step without a time
-limit that prints its progress: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
-Rust manifests name), both PHP extensions, the Go binary and the Rust
-debug binary. The local stack then starts its five processes at the same time and its browser.
+limit that prints its progress: the PHP extension source of OrderedJSON, unpacked from the release zip
+`polyspec-ordered-json-extension-php-0.0.9.zip` into `var/ordered-json-php-ext` by `make release-assets-fetch`, both PHP
+extensions, the Go binary and the Rust debug binary. The local stack then starts its five processes at the same time and its browser.
 A process start and the browser start are long operations without a limit: each ends at its
 readiness event or its launch and prints a line with its elapsed time every 15 seconds while it
 waits. The test hooks that run these operations are setups without a limit. A test process that

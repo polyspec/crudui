@@ -286,7 +286,7 @@
         "examples/form-comparison/servers/**",
         "examples/form-comparison/record-stores.test.mjs",
         "examples/form-comparison/pipeline.browser.mjs",
-        "examples/form-comparison/src/{local-servers,record-contract,pipeline-flow,step-runner,ordered-json-source}.mjs"
+        "examples/form-comparison/src/{local-servers,record-contract,pipeline-flow,step-runner}.mjs"
       ],
       "scripts": [
         "test:form-comparison:pipeline"
@@ -595,14 +595,6 @@
       "tests": [
         "tests/build/runtime-version-policy.test.mts",
         "tests/build/tool-path.test.mts"
-      ]
-    },
-    {
-      "paths": [
-        "examples/form-comparison/install-ordered-json.mjs"
-      ],
-      "tests": [
-        "tests/build/offline-checks.test.mts"
       ]
     },
     {

@@ -121,16 +121,16 @@ test('the local pipeline stack has no summed hook limit and starts and stops in 
   assert.match(stack, /teardown\('browser close'/);
 });
 
-test('the copy of the OrderedJSON extension source puts config.m4 at the top of the destination', async t => {
+test('the copy of the unpacked OrderedJSON extension source puts config.m4 at the top of the destination', async t => {
   const directory = await mkdtemp(path.join(tmpdir(), 'crudui-ordered-json-copy-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const checkout = path.join(directory, 'checkout');
+  const extension = path.join(directory, 'extension');
   const destination = path.join(directory, 'copied');
-  await mkdir(path.join(checkout, 'packages/php-ext/src'), { recursive: true });
+  await mkdir(path.join(extension, 'src'), { recursive: true });
   await mkdir(destination);
-  await writeFile(path.join(checkout, 'packages/php-ext/src/config.m4'), 'PHP_ARG_ENABLE([ordered-json])\n');
+  await writeFile(path.join(extension, 'src/config.m4'), 'PHP_ARG_ENABLE([ordered-json])\n');
   await new Promise((resolve, reject) => {
-    spawn('cp', orderedJsonCopyArguments(checkout, destination), { stdio: 'inherit' })
+    spawn('cp', orderedJsonCopyArguments(extension, destination), { stdio: 'inherit' })
       .once('error', reject)
       .once('close', status => (status === 0 ? resolve() : reject(new Error(`cp ended with status ${status}`))));
   });

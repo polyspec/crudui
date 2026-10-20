@@ -34,15 +34,6 @@
     "package-lock.json",
     "packages/svelte/tools/package-lock.json"
   ],
-  "taggedNpmPackages": [
-    {
-      "directory": ".form-comparison/sources/ordered-json/packages/js",
-      "repository": "https://github.com/polyspec/ordered-json",
-      "tag": "v0.0.9",
-      "version": "0.0.9",
-      "fix": "make crudui-install-ordered-json"
-    }
-  ],
   "exceptions": [
     {
       "ecosystem": "npm",

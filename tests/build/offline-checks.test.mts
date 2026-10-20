@@ -126,7 +126,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|crudui-install-ordered-json\.mjs|dependency-review\.\$\(KIT_EXT\)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
+  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|dependency-review\.\$\(KIT_EXT\)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
   const offline = Object.entries(targets).flatMap(([name, rule]) => rule.commands
     .filter(command => downloading.test(command) && !command.includes('$(ONLINE)'))
     .map(command => `${name}: ${command}`));
@@ -156,29 +156,3 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
   assert.deepEqual(missing, [], `targets that run cargo without ${CHECK}; a missing crate fails them with "retry without --offline"`);
 });
 
-// make install-packages installs package-lock.json after crudui-install-ordered-json, since the root package.json links the js
-// package of the OrderedJSON checkout. The installer therefore runs before any package exists: it imports only Node.js
-// built-ins and the files of examples/form-comparison.
-// make install-packages runs before the package of kit is installed, when kit-bootstrap.mk defines NODE and NPM (kit K185);
-// its prerequisites start node by the absolute path of the node that make install-tools TOOLS=npm installed.
-test('make install-packages starts the node of the checkout before kit is installed', () => {
-  const run = makeDryRun(ROOT, 'install-packages', { variables: ['KIT=var/no-kit'] });
-  assert.equal(run.status, 0, run.stderr);
-  assert.match(run.stdout, /\/var\/tools\/bin\/node examples\/form-comparison\/install-ordered-json\.mjs$/m);
-});
-
-test('the OrderedJSON installer imports no package, since it runs before make install-packages', () => {
-  const file = 'examples/form-comparison/install-ordered-json.mjs';
-  const imports = new Set([file]);
-  const packages: string[] = [];
-  for (const current of imports) {
-    for (const [, specifier] of read(current).matchAll(/^import\s[^;]*?from\s+'([^']+)'/gms)) {
-      assert.ok(specifier !== undefined);
-      if (specifier.startsWith('node:')) continue;
-      const target = path.posix.normalize(path.posix.join(path.posix.dirname(current), specifier));
-      if (specifier.startsWith('.') && target.startsWith('examples/form-comparison/')) imports.add(target);
-      else packages.push(`${current}: ${specifier}`);
-    }
-  }
-  assert.deepEqual(packages, []);
-});

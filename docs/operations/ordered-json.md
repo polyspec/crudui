@@ -7,8 +7,9 @@ records verification separately from runtime deployment.
 
 The record servers of the [form comparison](form-comparison.md) read and write JSON with the
 packages of [OrderedJSON](https://github.com/polyspec/ordered-json) 0.0.9: `@polyspec/ordered-json` in JavaScript
-and the `ordered_json` extension of its `packages/php-ext` package from the checkout of the tag `v0.0.9` that
-`make crudui-install-ordered-json` makes, the Go module `github.com/polyspec/ordered-json/packages/go` at `v0.0.9` and the
+the `@polyspec/ordered-json` tarball of the release asset of the tag `v0.0.9` in JavaScript, and the `ordered_json`
+extension from the PHP extension zip `polyspec-ordered-json-extension-php-0.0.9.zip` of the same release, which
+`make release-assets-fetch` unpacks into `var/ordered-json-php-ext`; the Go module `github.com/polyspec/ordered-json/packages/go` at `v0.0.9` and the
 Rust crate `polyspec-ordered-json` of the Git tag `v0.0.9`. `Polyspec\OrderedJson` in PHP is the Composer package
 `polyspec/ordered-json` of the release zip that `config/release-assets.json` pins, which `make crudui-install-composer`
 downloads into the artifact repository `var/composer-artifacts` of the root `composer.json`. OrderedJSON's own

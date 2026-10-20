@@ -5,7 +5,6 @@ import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
-import { orderedJsonCheckout, orderedJsonRepository, orderedJsonTag, orderedJsonVersion } from '../../examples/form-comparison/src/ordered-json-source.mjs';
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mts';
 import { checked, readJson, type JTDSchemaType } from '../json.mts';
 
@@ -302,14 +301,16 @@ test('root example imports are declared by the root package', () => {
   assert.deepEqual(failures, []);
 });
 
-// The shared tools are the release asset of a tag of polyspec/kit, which the root package.json names by its URL and
-// package-lock.json pins with its integrity; make install-packages allows the URLs of the root package.json alone.
+// The shared tools are the release asset of a tag of polyspec/kit, and the OrderedJSON package is the release asset of a
+// tag of polyspec/ordered-json; the root package.json names each by its URL and package-lock.json pins it with its integrity.
+// make install-packages allows the URLs of the root package.json alone.
 const KIT_ASSET = /^https:\/\/github\.com\/polyspec\/kit\/releases\/download\/v(\d+\.\d+\.\d+)\/polyspec-kit-npm-\1\.tgz$/;
+const ORDERED_JSON_ASSET = /^https:\/\/github\.com\/polyspec\/ordered-json\/releases\/download\/v(\d+\.\d+\.\d+)\/polyspec-ordered-json-npm-\1\.tgz$/;
 
-test('npm installs only registry packages, linked directories and the kit release asset, and fetches no other URL or Git source', () => {
-  // A package comes from the npm registry, from a workspace or from a checkout that a make target installed, such
-  // as the OrderedJSON tag checkout that the root package.json links with file:; npm fetches no URL or Git source other
-  // than the release asset of @polyspec/kit that the root package.json names.
+test('npm installs only registry packages, linked directories and the kit and OrderedJSON release assets, and fetches no other URL or Git source', () => {
+  // A package comes from the npm registry, from a workspace or from a checkout that a make target installed; npm fetches
+  // no URL or Git source other than the release assets of @polyspec/kit and @polyspec/ordered-json that the root
+  // package.json names.
   const lock = readJson(path.join(root, 'package-lock.json'), lockSchema);
   const remote = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|git(?:\+[a-z]+)?:|github:|gitlab:|bitbucket:|gist:|[^@./][^/:]*\/[^/])/;
   const manifests = ['.', ...workspacePackageDirectories()].map((directory): [string, PackageManifest] => [directory, packageManifest(directory)]);
@@ -318,7 +319,8 @@ test('npm installs only registry packages, linked directories and the kit releas
     ...Object.entries(manifest.devDependencies ?? {}),
     ...Object.entries(manifest.optionalDependencies ?? {}),
   ].filter(([packageName, specifier]) => remote.test(specifier) && !specifier.startsWith('npm:')
-    && !(directory === '.' && packageName === '@polyspec/kit' && KIT_ASSET.test(specifier)))
+    && !(directory === '.' && packageName === '@polyspec/kit' && KIT_ASSET.test(specifier))
+    && !(directory === '.' && packageName === '@polyspec/ordered-json' && ORDERED_JSON_ASSET.test(specifier)))
     .map(([packageName, specifier]) => `${directory}: ${packageName} ${specifier}`));
   assert.deepEqual(remoteDependencies, []);
 
@@ -329,7 +331,8 @@ test('npm installs only registry packages, linked directories and the kit releas
       const target = path.resolve(root, entry.resolved ?? '');
       return target.startsWith(root + path.sep) ? [] : [`${location}: links ${entry.resolved}`];
     }
-    const asset = location === 'node_modules/@polyspec/kit' && KIT_ASSET.test(entry.resolved ?? '');
+    const asset = (location === 'node_modules/@polyspec/kit' && KIT_ASSET.test(entry.resolved ?? ''))
+      || (location === 'node_modules/@polyspec/ordered-json' && ORDERED_JSON_ASSET.test(entry.resolved ?? ''));
     if (!entry.resolved?.startsWith(registry) && !asset) return [`${location}: resolves ${entry.resolved ?? 'nothing'}`];
     return /^sha512-[A-Za-z0-9+/]+={0,2}$/.test(entry.integrity ?? '') ? [] : [`${location}: no SHA-512 integrity`];
   });
@@ -406,13 +409,6 @@ test('a published Composer package declares its version, and the development roo
     }
   }
   assert.deepEqual(failures, []);
-});
-
-test('config/dependency-policy.json records the OrderedJSON tag that the comparison installs', () => {
-  const policy = readJson<Record<string, unknown>>(path.join(root, 'config/dependency-policy.json'), { values: {} });
-  assert.deepEqual(policy['taggedNpmPackages'], [{
-    directory: `${orderedJsonCheckout}/packages/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make crudui-install-ordered-json',
-  }]);
 });
 
 test('tracked npm dependency graphs approve every install script by exact version', () => {

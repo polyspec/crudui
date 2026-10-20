@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 3160f9df79c25ee8919615dd451a38164455dd485bdebed51a6b6b79343816bc -->
+<!-- source-sha256: 4492dfd2312db3a5bacb8a157397f74f9f807eec8b58c92605b6da5777a170fc -->
 
 [English](repository.md).
 
@@ -115,9 +115,9 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
 
 - root `package.json`(`@polyspec/crudui-workspace`, private)은 `workspaces`에 `packages/*`를 적습니다. npm은 다른
   package가 요구하는 정확한 version을 만족하는 workspace package를 link하고, `package-lock.json`이 link를 기록합니다.
-  다른 polyspec 저장소의 package는 이 root에서만 공급합니다. `@polyspec/ordered-json`은 root 의존성
-  `file:.form-comparison/sources/ordered-json/packages/js`이며, `examples/form-comparison/src/ordered-json-source.mjs`의
-  `orderedJsonVersion`이 기록하는 tag의 checkout입니다.
+  다른 polyspec 저장소의 package는 이 root에서만 공급합니다. `@polyspec/ordered-json`은 tag `v0.0.9`의 release asset
+  `polyspec-ordered-json-npm-0.0.9.tgz`를 root devDependency로 두며, `@polyspec/kit`처럼 URL과 integrity로 고정하고,
+  `kit link`가 sibling checkout에 연결합니다.
 - root `composer.json`(`polyspec/crudui-workspace`, type `project`)은 Composer 기본 link를 쓰는
   `packages/validator/php`와 `packages/generator/php`의 `path` repository를 두고 `polyspec/crudui-validator`와
   `polyspec/crudui-generator`를 정확한 version으로 요구합니다. 따라서 `vendor/`는 각 package를 source 디렉터리에

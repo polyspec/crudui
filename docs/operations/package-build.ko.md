@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-operations-package-build -->
-<!-- source-sha256: 9491ecbc1bb8d8ae1b54643368f0125f645724dd8c7a84dd7e3961934fd435b9 -->
+<!-- source-sha256: 99d9bd16346b4e4637c4cdc49ae3ac7eafadf69abdc54359a4a37af871f3f75a -->
 
 [English](package-build.md).
 
@@ -261,8 +261,6 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 기록하지 않거나, 이 저장소의 package를 그 자신의 version으로 요구하지 않거나, network 없는
 `composer validate --strict`가 최신이 아닌 Composer lock을 찾거나, Composer manifest의 `config.platform.php` 또는 lock의
 `platform-overrides`가 `composerPlatforms` 항목의 `php`(`8.4.1`, 잠긴 PHPUnit이 지원하는 가장 낮은 PHP release)와 다르면 실패합니다.
-`config/dependency-policy.json`의 `taggedNpmPackages`는 루트 manifest가 `file:`로 연결하는 OrderedJSON tag를 기록하며,
-`tests/build/dependency-health.test.mts` test는 이것이 `examples/form-comparison/src/ordered-json-source.mjs`의 tag와 같을 것을 요구합니다.
 `config/dependency-policy.json`의 예외는 ecosystem, manifest, package를 지정하고 재현된 이유,
 제거 조건, 검증 명령을 선언합니다.
 
@@ -271,17 +269,16 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 검사는 network를 읽지 않습니다. Makefile은 모든 recipe와 그것이 시작하는 명령에
 `CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
 `COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `crudui-install-crates`,
-`crudui-install-ordered-json`, `install-tools`, `dependency-review`와, lock이 고정한 제3자
+`install-tools`, `dependency-review`와, lock이 고정한 제3자
 package를 내려받는 release archive의 사용자 project lock `release-consumer-lock`만 `$(ONLINE)`으로 이를 풉니다.
-`release-consumer`는 script가 스스로 풉니다. `make crudui-install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
-checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
+`release-consumer`는 script가 스스로 풉니다. `make crudui-install-crates`는 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
 `make cargo-downloads-check`(`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
 lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
 안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
-실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 tracked change가 있거나 tag `v0.0.9`와 다른 commit이면
-`make crudui-install-ordered-json`을 밝히며 실패하고, 아무것도 download하지 않습니다. checkout의 Go
-module은 `replace`로 checkout의 module만 요구하므로 Go는 module proxy를 읽지 않습니다.
+실패합니다. comparison pipeline은 `make release-assets-fetch`가 `var/ordered-json-php-ext`에 풀어 놓은 OrderedJSON PHP 확장 소스를 읽고,
+없으면 실패하며, 아무것도 download하지 않습니다. comparison의 Go module은 OrderedJSON module `v0.0.9`를 요구하고,
+`GOPROXY=off`가 module cache에서 이를 읽습니다.
 
 ## 문서 웹
 

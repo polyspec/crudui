@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 74d5c459a1671dd8d3943588dba29f578f16bb633c650bbe453d3413d42dcccb -->
+<!-- source-sha256: fae2cf18cc79f31574e8071defe841e91d25fc87c52496cabd4ac3f28198ac1e -->
 
 ## Unreleased
+
+### 2026-10-20 — ordered-json을 버전 0.0.9로 소비한다 (C16.69)
+
+- 루트 `package.json`은 `@polyspec/ordered-json`을 tag `v0.0.9`의 release asset `polyspec-ordered-json-npm-0.0.9.tgz`로 URL에 적어 선언하고, `package-lock.json`이 `@polyspec/kit`처럼 SHA-512 integrity로 고정합니다. 이전에는 `.form-comparison/sources`의 clone으로 `file:` 연결했습니다. `config/release-assets.json`은 PHP 확장 zip `polyspec-ordered-json-extension-php-0.0.9.zip`을 sha256으로 고정하고 `unpack`으로 `var/ordered-json-php-ext`에 풀며, `examples/form-comparison/src/local-servers.mjs`는 풀린 `src/`에서 `ordered_json` PHP 확장을 빌드합니다(`orderedJsonExtensionDirectory`, `orderedJsonCopyArguments`, `orderedJsonExtension`). 자체 clone은 제거합니다. 삭제: `examples/form-comparison/src/ordered-json-source.mjs`, `examples/form-comparison/src/ordered-json-source.test.mjs`, `examples/form-comparison/install-ordered-json.mjs`. make target `crudui-install-ordered-json`과 `install-packages`, `crudui-install-crates`의 선행 조건, `config/dependency-policy.json`의 `taggedNpmPackages`, `config/rebuild.json`과 `config/owner-checks.json`의 경로를 제거합니다(C16.69). 제거한 test: `tests/build/dependency-health.test.mts`의 "config/dependency-policy.json records the OrderedJSON tag that the comparison installs", `tests/build/atomic-publish.test.mts`의 "the OrderedJSON checkout" 항목, `tests/build/offline-checks.test.mts`의 "make install-packages starts the node of the checkout before kit is installed"와 "the OrderedJSON installer imports no package, since it runs before make install-packages". 변경한 test: `tests/build/dependency-health.test.mts`의 "npm installs only registry packages, linked directories and the kit release asset..."은 `@polyspec/ordered-json`의 release asset도 허용하고, `examples/form-comparison/src/local-servers.test.mjs`의 "the copy of the unpacked OrderedJSON extension source..."는 checkout 대신 `<extension>/src`를 읽습니다. Red: `node ../kit/dist/link.mjs check ../crudui ../kit ../ordered-json`이 exit 1이며 `NOT linked npm @polyspec/ordered-json (not recorded by npm query: .../node_modules/@polyspec/ordered-json)`를 보고했습니다. Green: exit 0이며 `linked npm @polyspec/ordered-json -> .../ordered-json/packages/js`, `examples/form-comparison/servers/go`의 `go -run Test ./...` exit 0, `examples/form-comparison/src/local-servers.test.mjs` exit 0, `make rebuild-check`와 `make owner-validate` exit 0, kit 연결을 끈 상태에서 build test(`dependency-health`, `atomic-publish`, `offline-checks`) 통과.
 
 ### 2026-10-20 — Rust generator는 kit lint의 숨은 오류를 처리한다 (C16.67-13)
 

@@ -16,7 +16,6 @@ const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8
 const publications = [
   { output: 'the build stamp', file: 'scripts/require-current-build.mts', staging: /writeFile\(`\$\{STAMP\}\.\$\{process\.pid\}`/, publish: /rename\(`\$\{STAMP\}\.\$\{process\.pid\}`, STAMP\)/ },
   { output: 'a package dist', file: 'scripts/package-dist.mts', staging: /process\.env\.CRUDUI_DIST = 'dist\.next'/, publish: /fs\.renameSync\(next, dist\);/ },
-  { output: 'the OrderedJSON checkout', file: 'examples/form-comparison/src/ordered-json-source.mjs', staging: /const next = `\$\{directory\}\.next-\$\{process\.pid\}`;/, publish: /await rename\(next, directory\);/ },
 ];
 
 test('every shared output is written to a path of its run and renamed into place', () => {

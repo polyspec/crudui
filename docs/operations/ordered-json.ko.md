@@ -1,14 +1,14 @@
 # JSON 문서 순서 검증
 <!-- doc-id: docs-operations-ordered-json -->
-<!-- source-sha256: 0f32b02f2a4591f1d2f53fe59e24f325632c17bf09cedc40c4ed6e72b70017ce -->
+<!-- source-sha256: e86ce738437e050b4439bb0b66ad1665d96744aa72cfc0a18279cebf576c01de -->
 
 [English](ordered-json.md). [폼 런타임 계약](../spec/form-runtime.ko.md)은 필요한
 데이터 형태와 순서를 정의합니다. [기능 상태](../features.ko.md)는 검증과 런타임
 배포를 구분해 기록합니다.
 
 [폼 비교](form-comparison.ko.md)의 레코드 서버는 [OrderedJSON](https://github.com/polyspec/ordered-json)
-0.0.9의 패키지로 JSON을 읽고 씁니다. `make crudui-install-ordered-json`이 만드는 tag `v0.0.9` 체크아웃의 JavaScript
-`@polyspec/ordered-json`과 `packages/php-ext` 패키지의 `ordered_json` 확장, `v0.0.9`의 Go module
+0.0.9의 패키지로 JSON을 읽고 씁니다. tag `v0.0.9`의 release asset인 JavaScript `@polyspec/ordered-json` tarball과, 같은 release의 PHP 확장 zip
+`polyspec-ordered-json-extension-php-0.0.9.zip`에서 `make release-assets-fetch`가 `var/ordered-json-php-ext`에 풀어 놓은 `ordered_json` 확장, `v0.0.9`의 Go module
 `github.com/polyspec/ordered-json/packages/go`, Git tag `v0.0.9`의 Rust crate `polyspec-ordered-json`입니다. PHP의
 `Polyspec\OrderedJson`은 `config/release-assets.json`이 고정하는 release zip의 Composer 패키지 `polyspec/ordered-json`이며,
 `make crudui-install-composer`가 이를 root `composer.json`의 artifact 저장소 `var/composer-artifacts`에 내려받습니다. 처리기 자체는 OrderedJSON의 parity 검사와 테스트가 다섯 구현에서 검증하며 crudui는 이를

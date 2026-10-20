@@ -128,8 +128,9 @@ Development resolution is in the two root manifests, which are never published:
 - the root `package.json` (`@polyspec/crudui-workspace`, private) lists `packages/*` under `workspaces`; npm links a
   workspace package whose version satisfies the exact version that another package requires, and
   `package-lock.json` records the links. A package of another polyspec repository is supplied only at this root:
-  `@polyspec/ordered-json` is the root dependency `file:.form-comparison/sources/ordered-json/packages/js`, the checkout of the
-  tag that `orderedJsonVersion` of `examples/form-comparison/src/ordered-json-source.mjs` records;
+  `@polyspec/ordered-json` is the root dev dependency of the release asset `polyspec-ordered-json-npm-0.0.9.tgz` of the tag
+  `v0.0.9` of `polyspec/ordered-json`, pinned by its URL and integrity like `@polyspec/kit`, and `kit link` links it to a
+  sibling checkout;
 - the root `composer.json` (`polyspec/crudui-workspace`, type `project`) has a `path` repository of
   `packages/validator/php` and one of `packages/generator/php`, with Composer's default link, and requires
   `polyspec/crudui-validator` and `polyspec/crudui-generator` at their exact versions, so `vendor/` links each package

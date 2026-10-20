@@ -22,7 +22,7 @@ export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
 # A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
-# and not in another. The targets that download, install-tools, crudui-install-crates, crudui-install-ordered-json, dependency-review
+# and not in another. The targets that download, install-tools, crudui-install-crates, dependency-review
 # and release-consumer-lock, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
 # (the kit.mk of @polyspec/kit) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-ordered-json crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
+.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -113,10 +113,9 @@ crudui-install: install-kit crudui-install-composer crudui-install-python crudui
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of
-# kit-bootstrap.mk installs package-lock.json with the npm of var/tools (make install-tools TOOLS=npm); the root
-# package.json links the js package of the OrderedJSON checkout, so that checkout comes first. .npmrc sets
-# strict-allow-scripts, so an install script that allowScripts of package.json does not approve fails the install.
-install-packages: crudui-install-ordered-json crudui-install-svelte-tools
+# kit-bootstrap.mk installs package-lock.json with the npm of var/tools (make install-tools TOOLS=npm).
+# .npmrc sets strict-allow-scripts, so an install script that allowScripts of package.json does not approve fails the install.
+install-packages: crudui-install-svelte-tools
 
 # The tools of packages/svelte that need the TypeScript 6 API (svelte-check, @sveltejs/package and the Svelte lint)
 # are a project of their own outside the npm workspaces, so that no package that npm hoists to the root reaches the
@@ -147,22 +146,14 @@ crudui-install-browsers: ## Install the pinned browsers of BROWSERS (chrome fire
 check-ci-browser: ## Check that the pinned Chrome runs sandboxed
 	$(NODE) scripts/check-ci-browser.mts
 
-# The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
-# that runs a target with cargo-downloads-check runs it.
-crudui-install-crates: crudui-install-ordered-json cargo-downloads-fetch ## Download the crates of every Cargo.lock
+# The crates of every Cargo.lock; a CI job that runs a target with cargo-downloads-check runs it.
+crudui-install-crates: cargo-downloads-fetch ## Download the crates of every Cargo.lock
 
 # The modules that the Go workspace of go.work requires, downloaded into the module cache with go mod download at its
 # root: the Go checks run with GOPROXY=off and read only that cache (C14.18). A CI job that runs Go runs it after make
 # install-tools.
 crudui-install-go-modules: ## Download the modules that the Go workspace requires; ONLINE
 	$(ONLINE) $(GO) mod download
-
-# The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
-# the Cargo lock of the Rust record server reads it.
-# make install-packages runs it before the package of kit is installed; kit-bootstrap.mk defines $(NODE) then too (kit
-# K185).
-crudui-install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
-	$(ONLINE) $(NODE) examples/form-comparison/install-ordered-json.mjs
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 crudui-test-runtimes: ## Exact runtime versions and test standards
