@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b7942777eccd8958ec27f1f7691813cd8294d7201df5cdb1b9b65ca9249b0a19 -->
+<!-- source-sha256: 3204218e5f63f4029ae518e73f5eaea5496ef0cf8e27f98545d7ef898d30c5dd -->
 
 ## Unreleased
+
+### 2026-10-20 — contracts/features.json에는 partial과 unsupported support 값이 없다 (C16.54)
+
+- `contracts/features.json`은 `supportValues`를 `pass`만으로 선언하고, `contracts/features.schema.json`은 `supportValues` 항목과 feature `support` 값으로 `pass`만 받습니다(C16.54). `scripts/features-manifest.mts`는 `SupportValue`를 `pass`로 정의하고, `scripts/check-conformance.mts`는 `pass` runtime의 case만 요구하며 partial 분기와 unsupported 사유를 두지 않습니다. `tests/build/conformance-evidence.test.mts`는 partial runtime test를 빼고 unsupported runtime 대신 선언되지 않은 runtime을 읽으며, `tests/build/contract-manifest.test.mts`는 새 manifest 값을 씁니다. feature `status`의 `partial`은 다른 필드이므로 남깁니다. Red: `make divergence-check`가 exit 2이며 `contracts/features.json`이 supportValues의 `partial`과 `unsupported`(408-409행)를 명명; green: exit 0이며 supportValues entry를 명명하지 않고, 두 build test와 `make manifest-docs-check`가 exit 0(각각 14, 9 passed).
 
 ### 2026-10-20 — runAction을 php, go, rust, php-native, python에 선언한다 (C16.50)
 

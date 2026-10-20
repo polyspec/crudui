@@ -7,7 +7,7 @@
   "properties": {
     "format": { "const": "crudui/features-manifest" },
     "version": { "type": "string" },
-    "supportValues": { "type": "array", "items": { "enum": ["pass", "partial", "unsupported"] }, "minItems": 1, "uniqueItems": true },
+    "supportValues": { "type": "array", "items": { "enum": ["pass"] }, "minItems": 1, "uniqueItems": true },
     "packages": { "type": "array", "items": { "$ref": "#/definitions/package" }, "minItems": 1 },
     "features": { "type": "array", "items": { "$ref": "#/definitions/feature" }, "minItems": 1 },
     "examples": { "type": "array", "items": { "$ref": "#/definitions/example" } },
@@ -63,7 +63,7 @@
         "fixtures": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*" }, "minItems": 1 },
         "tests": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*" }, "minItems": 1 },
         "docs": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*" }, "minItems": 1 },
-        "support": { "type": "object", "additionalProperties": { "enum": ["pass", "partial", "unsupported"] }, "minProperties": 1 },
+        "support": { "type": "object", "additionalProperties": { "enum": ["pass"] }, "minProperties": 1 },
         "verification": { "type": "array", "items": { "$ref": "#/definitions/verification" } }
       },
       "additionalProperties": false

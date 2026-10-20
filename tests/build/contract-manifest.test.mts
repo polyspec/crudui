@@ -51,7 +51,7 @@ function repository(): Repository {
     manifest: {
       format: 'crudui/features-manifest',
       version: '0.0.7',
-      supportValues: ['pass', 'partial', 'unsupported'],
+      supportValues: ['pass'],
       packages: [
         {
           name: '@polyspec/crudui-core', path: 'packages/core', layer: 'model',

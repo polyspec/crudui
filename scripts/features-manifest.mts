@@ -22,7 +22,7 @@ export interface ManifestPackage {
 }
 
 /** A support value of a feature for a runtime. */
-export type SupportValue = 'pass' | 'partial' | 'unsupported';
+export type SupportValue = 'pass';
 
 /** A feature of the manifest. */
 export interface ManifestFeature {

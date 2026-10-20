@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — contracts/features.json has no partial and unsupported support values (C16.54)
+
+- `contracts/features.json` declares `supportValues` as `pass` only, and `contracts/features.schema.json` accepts only `pass` for a `supportValues` entry and for a feature `support` value (C16.54). `scripts/features-manifest.mts` types `SupportValue` as `pass`; `scripts/check-conformance.mts` requires the cases of each `pass` runtime and no longer has the partial branch or the unsupported reason; `tests/build/conformance-evidence.test.mts` drops the partial-runtime test and reads an undeclared runtime in place of an unsupported one; `tests/build/contract-manifest.test.mts` uses the new manifest values. The feature `status` enum keeps `partial`, which is a different field. Red: `make divergence-check` exit 2, with `contracts/features.json` naming the `partial` and `unsupported` supportValues (lines 408-409); green: exit 0, with no supportValues entry named, and the two build tests and `make manifest-docs-check` exit 0 (14 and 9 tests passed).
+
 ### 2026-10-20 — runAction is declared in php, go, rust, php-native and python (C16.50)
 
 - `contracts/features.json` sets the support of `runAction` to `pass` for `php`, `go`, `rust`, `php-native` and `python` (C16.50), adds their form-actions tests to its tests list and the go, python, rust and php verification commands; the Verification cell of the row now names the manifest test, the manifest docs check and the divergence check. The generated feature contract pages follow. Red: `make divergence-check` exit 2, with `contracts/features.json` naming `runAction` unsupported in those five implementations; green: the check names no entry of `runAction`. The python, rust and php commands pass here; the go command passes when run as `go test -run TestFormActions` in the module, but the runner's mise call reports the worktree's `mise.toml` as untrusted. The php-native support is declared without a php-ext run, as for C16.51 and C16.52.

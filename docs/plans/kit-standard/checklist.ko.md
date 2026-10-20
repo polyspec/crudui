@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 7be1f07789e87aa41f992d1e2eca4ae784524c38048953796b547712d82c182b -->
+<!-- source-sha256: 618a26cd1da75c39d4fd36e86fc88a84d180f20a7a669d07214ab1103c6a3cdc -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -107,7 +107,7 @@
 | C16.52-10 | PHP form instance는 undo 이력을 가진다: undo, redo, canUndo, canRedo와 공유 form-history session | packages/generator/php/src/Form.php packages/generator/php/tests/FormStateTest.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DocCoverageTest.php` | [o] |
 | C16.52-11 | PHP extension Form은 undo history를 가진다: undo, redo, canUndo, canRedo | packages/php-ext/src (form.c, crudui.c, polyspec_crudui.stub.php, polyspec_crudui_arginfo.h) | `make lint-php-ext`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='FormStateTest\|HistoryFunctionsTest'` | [o] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
-| C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
+| C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/contract-manifest.test.mts`; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/conformance-evidence.test.mts` | [o] |
 | C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [o] |
 | C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [o] |
 | C16.57 | docs/spec의 모든 requirement id는 test가 그 id를 이름으로 가진 unit이 인용하고, test가 없는 id는 여섯 implementation 모두에 test를 갖는다 | config/parity.json, tests/fixtures case.json files, the tests of the six implementations | `make parity-declarations-check` reports no R4, R13, R14 or R15 finding | [ ] |

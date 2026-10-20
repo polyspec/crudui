@@ -404,9 +404,7 @@
     }
   ],
   "supportValues": [
-    "pass",
-    "partial",
-    "unsupported"
+    "pass"
   ],
   "features": [
     {
