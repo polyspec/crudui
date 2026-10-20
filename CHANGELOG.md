@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared helpers in the Rust generator (C16.39)
+
+- `bindable_language` checks the record and the template and reads the language for `bind_buttons` and `bind_ordered`; the fixture test calls `settled` for the form and the list cases; `generateTable` writes both message tables of the Rust generator tool; and the `written` helper of the tests builds the ordered object with `Map::from_iter` (C16.39). Red: `make duplication-check` listed 5 clones in the Rust generator and the validator's compose tests; green: the generator clones are gone, 1 remains between `tests.rs` and `compose.rs` of the validator (the one-line `written` helper of two crates, which share no test crate); `native_fixture_records`, `bind`, the two generator tool tests and `make lint-rust` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — The Rust generators and their contracts (C16.38)
 
 - `packages/generator/rust/tools/generate-interface-messages.mjs` and `packages/validator/rust/tools/generate-unicode-properties.mjs` read `contracts/` two folders too high (`packages/contracts/...`) since the packages moved to components and ports, so neither could run; both now read `../../../contracts`, and `tests/build/rust-generators.test.mts` runs each from the folder of its crate and requires its output to stay byte for byte as committed (C16.38). Red: the test failed with `ENOENT` for `packages/contracts/interface-messages.json` and for the unicode contract; green: both tests pass, with the generated sources unchanged.

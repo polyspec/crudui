@@ -639,6 +639,17 @@ fn row_keys_are_bounded_and_random_keys_are_hexadecimal() {
     }
 }
 
+/// The record of a fixture case: the result, or the error of a case that expects one, whose code must be the
+/// expected code; an error in a case that expects none fails the test.
+fn settled(case: &Value, result: FormResult<Value>) -> Value {
+    if let Some(expected) = case.get("expectError") {
+        assert_eq!(result.as_ref().unwrap_err().code, expected["code"].as_str().unwrap(), "{}", case["name"]);
+    } else {
+        assert!(result.is_ok(), "{}: {:?}", case["name"], result.as_ref().err());
+    }
+    result.unwrap_or_else(|error| json!({"name": case["name"], "error": {"code": error.code, "message": error.message, "at": error.at}}))
+}
+
 #[test]
 fn native_fixture_records() {
     let forms: Vec<Value> = serde_json::from_str(include_str!(
@@ -664,10 +675,7 @@ fn native_fixture_records() {
             let html=crate::render::render_form_html(&fields,&template,&data,language,&crate::form_render::RenderModel::default())?;
             Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":html}))
         });
-        if let Some(expected)=case.get("expectError") {
-            assert_eq!(result.as_ref().unwrap_err().code,expected["code"].as_str().unwrap(),"{}",case["name"]);
-        } else {assert!(result.is_ok(),"{}: {:?}",case["name"],result.as_ref().err());}
-        result.unwrap_or_else(|error|json!({"name":case["name"],"error":{"code":error.code,"message":error.message,"at":error.at}}))
+        settled(case, result)
     }).collect::<Vec<_>>();
     let list_records=lists.iter().map(|case| {
         let options=ListOptions {
@@ -688,9 +696,7 @@ fn native_fixture_records() {
             let html=render_list(&case["spec"],rows,&options)?;
             Ok(json!({"name":case["name"],"model":build_list(&case["spec"],rows,&options)?,"html":html}))
         });
-        if let Some(expected)=case.get("expectError") {assert_eq!(result.as_ref().unwrap_err().code,expected["code"].as_str().unwrap(),"{}",case["name"]);}
-        else {assert!(result.is_ok(),"{}: {:?}",case["name"],result.as_ref().err());}
-        result.unwrap_or_else(|error|json!({"name":case["name"],"error":{"code":error.code,"message":error.message,"at":error.at}}))
+        settled(case, result)
     }).collect::<Vec<_>>();
     if let Ok(path) = std::env::var("CRUDUI_GENERATOR_FIXTURE_OUTPUT") {
         assert!(
@@ -1138,11 +1144,7 @@ fn form_buttons_default_declared_and_rejected() {
 
 /// An object with members inserted in exactly the given order.
 fn written(members: &[(&str, Value)]) -> Value {
-    let mut map = serde_json::Map::new();
-    for (name, value) in members {
-        map.insert((*name).to_string(), value.clone());
-    }
-    Value::Object(map)
+    Value::Object(serde_json::Map::from_iter(members.iter().map(|(name, value)| ((*name).to_string(), value.clone()))))
 }
 
 fn member_names(value: &Value) -> Vec<&str> {

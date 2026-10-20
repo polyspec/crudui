@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e1e42bec98e58f61749a75a7b3a7db4177c85d05090db01e350880976939dabd -->
+<!-- source-sha256: 0081d021dfab147ab374a6a64996c6028b5120be0b5baef3a7c5c21baeffbebb -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust generator의 공유 helper (C16.39)
+
+- `bindable_language`는 `bind_buttons`와 `bind_ordered`를 위해 record와 template을 검사하고 language를 읽으며, fixture test는 form과 list case에 `settled`를 호출하고, `generateTable`은 Rust generator tool의 두 message table을 쓰며, test의 `written` helper는 `Map::from_iter`로 순서 있는 object를 만듭니다 (C16.39). Red: `make duplication-check`가 Rust generator와 validator의 compose test에서 clone 5건을 나열했고, green: generator의 clone은 없어지고 1건이 남으며(test crate를 공유하지 않는 두 crate의 한 줄짜리 `written` helper, `tests.rs`와 validator의 `compose.rs`), `native_fixture_records`, `bind`, generator tool test 2건, `make lint-rust`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — Rust generator와 contract (C16.38)
 

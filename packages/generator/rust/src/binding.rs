@@ -104,13 +104,7 @@ pub fn bind_buttons(
     data: &Value,
     options: &BindOptions,
 ) -> FormResult<Vec<Value>> {
-    if !data.is_object() {
-        return Err(FormError::input("Form data must be an object"));
-    }
-    if template.kind != "crudui/form-template" {
-        return Err(FormError::input("Unsupported form template"));
-    }
-    let language = string_option(&options.language, "Language must be a string")?.unwrap_or("ko");
+    let language = bindable_language(template, data, options)?;
     let messages = form_messages(language)?;
     Ok(crate::buttons::button_models(
         &member_ordered_template(template).buttons,
@@ -129,19 +123,28 @@ pub fn form_buttons_html(buttons: &[Value]) -> FormResult<String> {
     crate::buttons::buttons_markup(buttons)
 }
 
-/// `bind_form` over a template already in specification member order.
-pub(crate) fn bind_ordered(
+/// The language of a binding, once the record is an object and the template a form template.
+fn bindable_language<'a>(
     template: &FormTemplate,
     data: &Value,
-    options: &BindOptions,
-) -> FormResult<Vec<Value>> {
+    options: &'a BindOptions,
+) -> FormResult<&'a str> {
     if !data.is_object() {
         return Err(FormError::input("Form data must be an object"));
     }
     if template.kind != "crudui/form-template" {
         return Err(FormError::input("Unsupported form template"));
     }
-    let language = string_option(&options.language, "Language must be a string")?.unwrap_or("ko");
+    Ok(string_option(&options.language, "Language must be a string")?.unwrap_or("ko"))
+}
+
+/// `bind_form` over a template already in specification member order.
+pub(crate) fn bind_ordered(
+    template: &FormTemplate,
+    data: &Value,
+    options: &BindOptions,
+) -> FormResult<Vec<Value>> {
+    let language = bindable_language(template, data, options)?;
     let key_prefix = string_option(&options.key_prefix, "keyPrefix must be a string")?;
     let id_prefix = string_option(&options.id_prefix, "idPrefix must be a string")?;
     let unsupported = match &options.unsupported {

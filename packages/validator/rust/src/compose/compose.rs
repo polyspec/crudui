@@ -216,11 +216,7 @@ mod order_tests {
 
     /// An object with members inserted in exactly the given order.
     fn written(members: &[(&str, Value)]) -> Value {
-        let mut map = serde_json::Map::new();
-        for (name, value) in members {
-            map.insert((*name).to_string(), value.clone());
-        }
-        Value::Object(map)
+        Value::Object(members.iter().map(|(name, value)| ((*name).to_string(), value.clone())).collect())
     }
 
     #[test]

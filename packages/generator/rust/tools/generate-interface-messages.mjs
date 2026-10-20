@@ -13,31 +13,20 @@ const contract = JSON.parse(readFileSync(join(CRATE, '../../../contracts/interfa
 // Convert camelCase to snake_case
 const toSnakeCase = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
-// Generate a Messages constant for a language
-const generateConstant = (lang, langCode) => {
-    const messages = contract.form[lang];
-    const fields = Object.entries(messages)
-        .map(([key, value]) => {
-            const rustKey = toSnakeCase(key);
-            return `    ${rustKey}: ${JSON.stringify(value)},`;
-        })
+// Generate the constant of one table of the contract for a language: `name` is the constant, `type` its struct
+const generateTable = (table, lang, name, type) => {
+    const fields = Object.entries(contract[table][lang])
+        .map(([key, value]) => `    ${toSnakeCase(key)}: ${JSON.stringify(value)},`)
         .join('\n');
 
-    return `pub const ${langCode}: Messages = Messages {\n${fields}\n};`;
+    return `pub const ${name}: ${type} = ${type} {\n${fields}\n};`;
 };
+
+// Generate a Messages constant for a language
+const generateConstant = (lang, langCode) => generateTable('form', lang, langCode, 'Messages');
 
 // Generate a ListMessages constant for a language
-const generateListConstant = (lang, langCode) => {
-    const messages = contract.list[lang];
-    const fields = Object.entries(messages)
-        .map(([key, value]) => {
-            const rustKey = toSnakeCase(key);
-            return `    ${rustKey}: ${JSON.stringify(value)},`;
-        })
-        .join('\n');
-
-    return `pub const ${langCode}_LIST: ListMessages = ListMessages {\n${fields}\n};`;
-};
+const generateListConstant = (lang, langCode) => generateTable('list', lang, `${langCode}_LIST`, 'ListMessages');
 
 // Generate Rust source
 const output = `//! Interface messages for CRUDUI as string constants.
