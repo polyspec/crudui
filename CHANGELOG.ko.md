@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a9a790642c3885c6b8d69c65a39b9995eefcbc16ced010cd025b5bd2c28f7544 -->
+<!-- source-sha256: eae10e9f0e78f78f459c5e113d71376d666832572d93e9a6f168cba6ab96b875 -->
 
 ## Unreleased
 
@@ -12,6 +12,10 @@
 
 - kit copy는 `.oxlintrc.json`(preserve-caught-error, K334), `phpcs.xml.dist`(Generic.PHP.NoSilencedErrors, K334), `PRINCIPLES.md`와 `PRINCIPLES.ko.md`(gate `suppression-check`, K334), `scripts/kit/bootstrap/install-mise.mts`(worktree의 공유 install, K387, 전역 설정 root의 신뢰, K397-1), `config/commit-identity.json`(commit identity, K405), 생성된 hook `.githooks/prepare-commit-msg`(K380-2, K380-3)입니다. 이 copy들은 kit 0.0.54(9b8b4444)의 것이며, `make kit-sync`와 `make hooks`가 가져옵니다(C16.112). Makefile은 `CHECK_TARGETS`에 `suppression-check`를 더하고(K334), svelte 도구 install 뒤에 link를 둡니다(K349). gate를 위해 코드를 고쳤습니다. Rust `#[allow]` 16곳은 줄마다 이유를 한 줄에 둡니다(gate는 한 줄을 읽습니다). Python `noqa`와 `eslint-disable` 2곳은 gate의 형식으로 이유를 적습니다. `FormTest.php`는 `@` 대신 libxml 오류 처리로 `loadHTML`을 읽고, `scripts/repository-files.mts`의 새 오류는 cause를 가집니다. 검사: `make kit-check`, `make suppression-check`, `make lint-php`, `make lint-ts`, `make lint-rust`, `make lint-python`과 `repository-files.mts`의 owner test가 exit 0입니다. `make link-state-check`는 다른 worktree에 남은 병합된 branch 17개를 보고하고(`make worktree-prune`), `make layout-check`와 `make rules-check`는 main이 가진 finding을 보고합니다(루트의 link file과 C16.79의 `tests/native-generators/programs/go/main_test.go`, C16.68의 `AGENTS.md:18`).
 - `config/layout.kit.yml`은 link 출력 `composer.link.json`과 `composer.link.lock`을 root 파일로 선언하므로(K423, kit 03c3c405) link된 worktree도 main처럼 `make layout-check`를 통과하며, `config/owner-checks.json`은 `config/commit-identity.json`을 kit의 다른 사본과 함께 소유합니다(C16.112).
+
+### 2026-10-21 — form state suite가 바인딩 데이터 오류 CURT-001부터 CURT-003까지를 인용한다 (C16.57-13)
+
+- `tests/fixtures/form-state/generate.mts`의 form state 세션이 `tests/fixtures/form-actions/cases.json`에 `setData`의 root, group row, 반복 값 메시지에 대한 case 세 개를 추가하며, PHP library와 extension은 수정 C16.57-13-1(TypeError 대신 `Form data must be an object`)을 통해 이를 통과합니다.
 
 ### 2026-10-21 — 객체가 아닌 PHP 폼 데이터는 TypeError가 아니라 바인딩 메시지로 실패한다 (C16.57-13-1)
 
