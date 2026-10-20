@@ -5,7 +5,9 @@ import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 
 import { createProgress } from '@polyspec/kit/test-progress';
-import { errorReport } from './values.mts';
+/** The stack of a caught Error, or its message when it has no stack, or the caught value as text. */
+const errorReport = (error: unknown): string => (error instanceof Error ? error.stack ?? error.message : String(error));
+
 
 const forbiddenArguments = new Set(['--no-sandbox', '--disable-setuid-sandbox']);
 const adequateEvaluation = 'You are adequately sandboxed.';

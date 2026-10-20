@@ -720,7 +720,8 @@
     },
     {
       "paths": [
-        "scripts/values.mts",
+        "scripts/json-schema.mts",
+        "scripts/json-schema.test.mts",
         "tests/json.mts"
       ],
       "tests": [
@@ -728,7 +729,9 @@
         "tests/build/public-packages.test.mts",
         "tests/build/dependency-health.test.mts",
         "tests/build/package-install-pack.test.mts",
-        "tests/build/contract-manifest.test.mts"
+        "tests/build/contract-manifest.test.mts",
+        "scripts/json-schema.test.mts",
+        "tests/build/install-lock.test.mts"
       ]
     },
     {

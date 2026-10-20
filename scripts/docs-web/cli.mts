@@ -7,7 +7,9 @@ import { buildDocumentationWeb } from './build.mts';
 import { documentationBasePath } from './paths.mts';
 import { createDocumentationServer } from './server.mts';
 import { watchDocumentation, type DocumentationWatch } from './watch.mts';
-import { errorReport } from '../values.mts';
+/** The stack of a caught Error, or its message when it has no stack, or the caught value as text. */
+const errorReport = (error: unknown): string => (error instanceof Error ? error.stack ?? error.message : String(error));
+
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DOCS = join(ROOT, 'docs');

@@ -10,7 +10,9 @@ import { tmpdir } from 'node:os';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 import { createElement, type FunctionComponent } from 'react';
 import { renderToString } from 'react-dom/server';
-import { isRecord } from '../../scripts/values.mts';
+import { shapeOf } from '../../scripts/json-schema.mts';
+
+const isRecord = shapeOf<Record<string, unknown>>({ type: 'object' });
 import { parseJson, readJson, type JTDSchemaType } from '../json.mts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');

@@ -5,7 +5,11 @@ import { createServer, type Server } from 'node:http';
 import { extname, join, relative, resolve, sep } from 'node:path';
 
 import { documentationBasePath } from './paths.mts';
-import { errorCode, errorMessage } from '../values.mts';
+/** The message of a caught value: the message of an Error, or the value as text. */
+const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+/** The `code` of a caught error, such as ENOENT of a Node.js system error; undefined when it has none. */
+const errorCode = (error: unknown): string | undefined => (error instanceof Error && 'code' in error && typeof error.code === 'string' ? error.code : undefined);
+
 
 const MIME = new Map([
   ['.css', 'text/css; charset=utf-8'], ['.html', 'text/html; charset=utf-8'],

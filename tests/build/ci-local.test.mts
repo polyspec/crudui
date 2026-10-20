@@ -8,7 +8,11 @@ import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
 
-import { isRecord, strings } from '../../scripts/values.mts';
+import { checkedShape, shapeOf } from '../../scripts/json-schema.mts';
+
+const isRecord = shapeOf<Record<string, unknown>>({ type: 'object' });
+const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
+const strings = (value: unknown, what: string): string[] => checkedShape(STRINGS, value, what);
 import { checked, parseJson, type JTDSchemaType } from '../json.mts';
 import { makeDryRun } from './make-dry-run.mts';
 

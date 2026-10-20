@@ -614,10 +614,6 @@
       "kind": "record",
       "record": "docs/rebuild/test-commands.md"
     },
-    "scripts/values.mts": {
-      "kind": "replaced",
-      "reason": "replaced by JSON schemas read with ajv (kit K157, K158); item C16.11 registers the replacement for its 21 callers"
-    },
     "tests/fixtures/detail-render/generate.mts": {
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"

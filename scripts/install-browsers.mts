@@ -18,7 +18,9 @@ import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js';
 
 import { failureOf, formatSeconds, runCommand } from './run-command.mts';
 import { createProgress } from '@polyspec/kit/test-progress';
-import { errorMessage } from './values.mts';
+/** The message of a caught value: the message of an Error, or the value as text. */
+const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
 
 export const SANDBOX_HELPER = '/usr/local/sbin/chrome-devel-sandbox';
 const BROWSERS = ['chrome', 'firefox', 'webkit'];

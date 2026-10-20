@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c08de5945db305f1efa61b2c815b1a7ebec23c94f11f78c10f07929432543f6c -->
+<!-- source-sha256: 6ce3605a9723b9372ec2fc011fbfaa5f443f2c8ed5fc95d20a6c3d6c6e4d8adb -->
 
 ## Unreleased
 
@@ -8,6 +8,11 @@
 
 - `config/parity.json`은 form-render, form-complete, list-render, detail-render, form-outline unit을 선언합니다. 각 unit은 존재하는 ts, go, python, php, php-extension, rust binding과 그 case가 시험하는 requirement id를 가집니다(C16.83). `packages/html`은 ts implementation의 root이며, markup 규칙 test 8개와 browser session test 2개는 internal로 선언합니다. `docs/spec/runtime-packages.md`는 TypeScript 구현에 requirement CURP-028을 부여합니다. 다섯 suite의 case는 `requirements` member에 id를 가지며, tests/fixtures/*/generate.mts와 packages/react/scripts/generate-form-render-cases.mts가 생성합니다. 바뀐 것은 그 member뿐입니다. Red: main의 `make parity-declarations-check`는 420 finding(R13 259, R4 12, R5 148, R6 1)을 보고합니다; green: 317 finding(R13 168, R4 7, R5 141, R6 1). Rust form-render runner(tests/form_render.rs, C16.88에서 옴)는 하나의 test `form_render_cases_reproduce_the_normalized_layout_or_the_failure`가 188개 case를 모두 실행하도록 바뀌었으므로, binding 하나가 모든 case를 실행합니다. Owner test: 다섯 html conformance file의 `vitest`, 587 passed, 0 failed.
 - `config/parity.json`의 rust implementation은 `packages/generator/rust/tests/support/**`를 support 파일로 선언합니다. rendering runner들이 함께 쓰는 module은 test가 아닙니다(C16.83).
+
+### 2026-10-20 — 남은 script는 scripts/values.mts 없이 JSON을 읽고 values.mts는 제거한다 (C16.11-4, C16.11)
+
+- `scripts/check-ci-browser.mts`, `scripts/docs-web/cli.mts`, `scripts/docs-web/server.mts`, `scripts/install-browsers.mts`는 오류 문자열을 제자리에서 만들고, `tests/build/ci-local.test.mts`와 `tests/build/public-packages.test.mts`는 객체와 문자열 배열을 `scripts/json-schema.mts`의 ajv 형태로 검사합니다(C16.11-4). `scripts/values.mts`는 `config/rebuild.json`의 `replaced` 항목과 `config/owner-checks.json`의 경로와 함께 제거되므로, script는 JSON을 ajv schema로만 읽습니다(C16.11). Red: `make rebuild-check`가 exit 0이었고 `scripts/values.mts`는 호출자 21곳과 함께 남아 있었습니다. Green: `make rebuild-check` exit 0이며, 나머지 family의 node test는 각 family에서 확인했습니다. `tests/build/public-packages.test.mts`는 checkout의 빌드 산출물이 필요합니다. 새 worktree에서는 빌드되지 않은 `dist` 때문에 5개 검사가 실패하고, main에서는 모두 통과합니다. `tests/build/ci-local.test.mts`의 `the native suites run in three jobs` 검사는 main에서도 실패합니다.
+- `config/owner-checks.json`은 `scripts/values.mts`를 소유하던 규칙으로 `scripts/json-schema.mts`와 `scripts/json-schema.test.mts`를 소유하며, 그 test에 `scripts/json-schema.test.mts`와 `tests/build/install-lock.test.mts`를 더합니다(C16.11-4).
 
 ### 2026-10-20 — schema, conformance, test-command, doc-coverage script는 JSON을 ajv 형태로 읽는다 (C16.11-3)
 
