@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a0984873fc01b7d7ac8e29bd08a7ad39b919dfe763ea7b6fb9374e83c1568e7b -->
+<!-- source-sha256: 8c6a26cd48b63acdebe2b5a2cda7fb11820a40ec82037b0e0a874ca0ec791001 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator는 resolveAction과 runAction을 가진다 (C16.50-1)
+
+- `packages/generator/go/actions.go`는 `ResolveAction`, `RunAction`과 타입 `ActionInput`, `ActionTarget`, `ActionResult`, `FocusTarget`을 CURT-081부터 CURT-090까지의 열한 action 위에 추가하고, `packages/generator/go/form_state_test.go`의 `TestFormActions`가 `form-actions` session을 history 플래그와 함께 실행합니다. 이 test의 `performStep`은 `resolveAction`과 `runAction`을 처리합니다(C16.50-1). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions|TestFormHistory|TestFormView' .` exit 1, 11 passed and 8 failed, 8 중 7개의 `form-actions` session이 관찰된 result에서 실패(API는 0값을 반환하는 stub); green: exit 0, 19 passed, 0 failed.
 
 ### 2026-10-20 — Appearance 삼항식은 평가 오류를 전파한다 (C16.67-11)
 

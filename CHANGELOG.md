@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go generator has resolveAction and runAction (C16.50-1)
+
+- `packages/generator/go/actions.go` adds `ResolveAction`, `RunAction` and the types `ActionInput`, `ActionTarget`, `ActionResult` and `FocusTarget` over the eleven form actions of CURT-081 to CURT-090, and `packages/generator/go/form_state_test.go` runs the `form-actions` sessions with the history flags in `TestFormActions`, whose `performStep` handles `resolveAction` and `runAction` (C16.50-1). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions|TestFormHistory|TestFormView' .` exit 1, 11 passed and 8 failed, 7 of the 8 `form-actions` sessions fail on the observed result (the API stubbed with zero values); green: exit 0, 19 passed, 0 failed.
+
 ### 2026-10-20 — Appearance ternaries propagate evaluation errors (C16.67-11)
 
 - `appearance` in `packages/generator/python/src/polyspec/crudui/generator/design.py` checks that a string parses with `_parses` instead of catching the errors of a ternary evaluation in an `except` that passes, so an evaluation error of a ternary propagates and is no longer swallowed; `TestAppearanceErrorsAreNotHidden` in `packages/generator/python/tests/test_form_render.py` injects the error and checks that it propagates, and checks that a string outside the grammar stays literal text (C16.67-11). Red: `ruff check` of `design.py` exit 1 with the S110 finding, and `run-tests.mjs python ... -- tests.test_form_render` exit 1, 4 passed and 1 failed (`ZeroDivisionError not raised`); green: ruff exit 0, and `tests.test_render` and `tests.test_form_render` exit 0, 8 passed.

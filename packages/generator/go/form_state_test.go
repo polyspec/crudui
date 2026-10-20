@@ -139,6 +139,18 @@ func performStep(t *testing.T, form *Form, op string, args []any) (any, error) {
 	t.Helper()
 	text := func(i int) string { s, _ := args[i].(string); return s }
 	switch op {
+	case "resolveAction":
+		target, ok := ResolveAction(ActionInput{Action: stringAt(args[0], "action"), Path: stringAt(args[0], "path"), Key: stringAt(args[0], "key")})
+		if !ok {
+			return nil, nil
+		}
+		return actionTargetObject(target), nil
+	case "runAction":
+		result, e := RunAction(form, ActionTarget{Name: stringAt(args[0], "name"), Path: stringAt(args[0], "path"), Key: stringAt(args[0], "key")})
+		if e != nil {
+			return nil, e
+		}
+		return actionResultObject(result), nil
 	case "addRow":
 		options := any(NewObject())
 		if len(args) > 1 {
@@ -193,10 +205,11 @@ func observeSessions(t *testing.T, family string, history bool) {
 			expected := list(read(c, "expected"))
 			for i, step := range steps {
 				observed := NewObject()
-				result, e := performStep(t, form, stringAt(step, "op"), list(read(step, "args")))
+				op := stringAt(step, "op")
+				result, e := performStep(t, form, op, list(read(step, "args")))
 				if e != nil {
 					observed.Set("error", NewObject("code", "INVALID_FORM_INPUT", "message", e.Error()))
-				} else if result != nil {
+				} else if result != nil || op == "runAction" || op == "resolveAction" {
 					observed.Set("result", name.walk(result))
 				}
 				observed.Set("data", name.walk(form.GetData()))
@@ -219,6 +232,37 @@ func TestFormView(t *testing.T) { observeSessions(t, "form-view", false) }
 
 // TestFormHistory runs the undo history sessions of the fixtures.
 func TestFormHistory(t *testing.T) { observeSessions(t, "form-history", true) }
+
+// TestFormActions runs the action sessions of the fixtures, with the history flags.
+func TestFormActions(t *testing.T) { observeSessions(t, "form-actions", true) }
+
+// actionTargetObject is the JSON object of an action target; path and key are absent when empty.
+func actionTargetObject(target ActionTarget) *Object {
+	out := NewObject("name", target.Name)
+	if target.Path != "" {
+		out.Set("path", target.Path)
+	}
+	if target.Key != "" {
+		out.Set("key", target.Key)
+	}
+	return out
+}
+
+// actionResultObject is the JSON value of an action result; nil when the action had no result.
+func actionResultObject(result *ActionResult) any {
+	if result == nil {
+		return nil
+	}
+	out := NewObject()
+	if result.Focus != nil {
+		focus := NewObject("path", result.Focus.Path)
+		if result.Focus.Key != "" {
+			focus.Set("key", result.Focus.Key)
+		}
+		out.Set("focus", focus)
+	}
+	return out
+}
 
 // viewObject is the JSON object of a view.
 func viewObject(view ViewState) *Object {
