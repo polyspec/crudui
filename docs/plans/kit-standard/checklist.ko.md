@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ea21ce68784a6cf4c33359c725923faec4f0ca66dad1faeea74b47f932ba56f1 -->
+<!-- source-sha256: 31d6010331db0e1400249dae6b946b1f063bd78461364fcc58e6c37632ea30d2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -13,7 +13,7 @@
 | C16.7 | repository의 모든 도구가 config/rebuild.json에 class를 가진다 | config/rebuild.json, docs/rebuild | `make rebuild-check` | [o] |
 | C16.7-1 | config/rebuild.json과 config/duplication.json은 config/owner-checks.json에 owner를 가진다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C16.7-2 | AGENTS.md는 전체 suite가 CI에서만 실행된다는 kit 규칙을 적는다 (make ci, full-run guard, rerun-failed 없음) | AGENTS.md, AGENTS.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md | `make rules-check`, `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
-| C16.7-3 | Makefile에 kit의 제거된 full-run 도구가 필요한 target(ci, check, crudui-check, rerun-failed)이 없다 | Makefile, tests/build/ci-local.test.mts, CHECK_TARGETS | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [ ] |
+| C16.7-3 | Makefile에 kit의 제거된 full-run 도구가 필요한 target(ci, check, crudui-check, rerun-failed)이 없다 | Makefile, tests/build/ci-local.test.mts, CHECK_TARGETS | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="every tool of kit\|CI_TARGETS lists\|a CI job runs every lint target\|a workflow command missing from CI_TARGETS\|a dry run under a parent make" tests/build/ci-local.test.mts tests/build/make-dry-run.test.mts` | [o] |
 | C16.7-4 | 한국어 testing guide는 검토한 영어 원문의 hash를 담는다 | docs/operations/testing.ko.md | `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
 | C16.7-5 | ci-local test는 crudui-install target을 준비 step으로 인식한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="make ci runs every checking command\|every job runs its checks through\|every checking step of the CI\|a workflow command missing" tests/build/ci-local.test.mts` | [o] |
 | C16.7-6 | ci-local test는 kit의 gates.yml workflow를 trigger와 함께 나열한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="each workflow declares exactly its triggers" tests/build/ci-local.test.mts` | [o] |

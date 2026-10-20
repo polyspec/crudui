@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -103,7 +104,7 @@ export function workflowCommands(workflow: Workflow): string[] {
   return commands;
 }
 
-/** The commands `make ci` runs: a make target for each word of CI_TARGETS. */
+/** The commands of CI_TARGETS: a make target for each word. */
 export function makeCommands(makefile: string): string[] {
   const block = makefile.match(/^CI_TARGETS = \\\n((?:\t[\w-]+(?: \\)?\n)+)/m);
   assert.ok(block?.[1] !== undefined, 'the Makefile declares CI_TARGETS');
@@ -224,30 +225,33 @@ test('a job that installs the npm packages caches ~/.npm by package-lock.json, a
   assert.deepEqual(violations, []);
 });
 
-test('make ci runs every checking command of the CI workflow, in the same order', async () => {
+test('CI_TARGETS lists every checking command of the CI workflow, in the same order', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const local = makeCommands(await read('Makefile'));
   assert.ok(workflow.length > 10, 'the workflow has checking commands');
   assert.deepEqual(local, workflow);
 });
 
-/** The lint targets of CHECK_TARGETS, the checks of kit that make crudui-check runs. */
-export function checkLintTargets(makefile: string): string[] {
-  const block = makefile.match(/^CHECK_TARGETS = \\\n((?:\t[\w-]+(?: \\)?\n)+)/m);
-  assert.ok(block?.[1] !== undefined, 'the Makefile declares CHECK_TARGETS');
-  return block[1].trim().split('\n').map((line) => line.trim().replace(/ \\$/, '')).filter((target) => target.startsWith('lint-'));
-}
+// A recipe of the Makefile starts a tool of kit as $(KIT)/<tool>.mjs; the installed package has to ship it, or the target
+// fails with a missing module instead of its own error.
+test('every tool of kit that the Makefile starts is in the installed @polyspec/kit', async () => {
+  const makefile = await read('Makefile');
+  const tools = [...new Set([...makefile.matchAll(/\$\(KIT\)\/([\w-]+\.mjs)/g)].map((match) => match[1] ?? ''))].sort();
+  assert.ok(tools.length > 0, 'the Makefile starts tools of kit');
+  const dist = new URL('../../node_modules/@polyspec/kit/dist/', import.meta.url);
+  assert.deepEqual(tools.filter((tool) => !existsSync(new URL(tool, dist))), []);
+});
 
-// make crudui-check runs every lint target of kit; CI runs each of them too, so a finding fails CI and not only a local run.
-// make lint runs lint-ts, the lint-ts.mjs of kit, with the ESLint of the Svelte components.
-test('a CI job runs every lint target of CHECK_TARGETS', async () => {
+// CI runs every lint target of kit, so a finding fails CI. make lint runs crudui-lint: lint-ts, the lint-ts.mjs of kit, with
+// the ESLint of the Svelte components.
+const LINT_TARGETS = ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts'];
+
+test('a CI job runs every lint target of kit', async () => {
   const makefile = await read('Makefile');
   const workflow = workflowCommands(await workflowFile('ci.yml'));
-  const targets = checkLintTargets(makefile);
-  assert.deepEqual(targets, ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts']);
-  assert.match(makefile, /^lint:.*\n(?:\t.*\n)*?\t\$\(NODE\) \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
+  assert.match(makefile, /^crudui-lint:.*\n(?:\t.*\n)*?\t\$\(NODE\) \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
   const run = (target: string): boolean => workflow.includes(`make ${target}`) || (target === 'lint-ts' && workflow.includes('make lint'));
-  assert.deepEqual(targets.filter((target) => !run(target)), []);
+  assert.deepEqual(LINT_TARGETS.filter((target) => !run(target)), []);
 });
 
 /** The steps that run a checking command without `if: ${{ !cancelled() }}`, as `job: step`. */
@@ -440,7 +444,7 @@ test('a checking step that a failure skips is reported by job and step', () => {
   assert.deepEqual(violations, ['build: Test', 'build: make typecheck']);
 });
 
-test('a workflow command missing from make ci is reported', () => {
+test('a workflow command missing from CI_TARGETS is reported', () => {
   const workflow = workflowCommands({
     jobs: {
       a: { steps: [{ run: 'make install-packages crudui-install-composer' }, { run: 'make lint' }] },

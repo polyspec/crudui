@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-ordered-json crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-build-php-extension crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check ci check conformance-reset
+.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-ordered-json crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-build-php-extension crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -87,9 +87,6 @@ help: ## 타겟 설명
 	@echo "  make crudui-test-form-binding     Test the browser validation binding, its markup parity and three browsers"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
-	@echo "  make ci                    Run every target of the CI workflow in order, once per tree (full-run of @polyspec/kit)"
-	@echo "  make check                 Run the checks of kit over the checkout once per tree (full-run of @polyspec/kit)"
-	@echo "  make rerun-failed          Rerun the targets of make ci or make check that did not pass on the current tree"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
@@ -457,9 +454,8 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
 release-assets: build
 
-# Every target the CI workflow runs after installing tools and dependencies, in workflow order, with the conformance
-# evidence collected and checked like the final CI job (tests/build/ci-local.test.mts keeps this list equal to
-# .github/workflows/ci.yml).
+# Every target the CI workflow runs after installing tools and dependencies, in workflow order
+# (tests/build/ci-local.test.mts keeps this list equal to .github/workflows/ci.yml).
 CI_TARGETS = \
 	crudui-test-runtimes \
 	crudui-test-dependencies \
@@ -498,40 +494,3 @@ CI_TARGETS = \
 	crudui-test-bench \
 	crudui-test-php-api \
 	check-conformance
-
-# `make ci` runs conformance-reset and CI_TARGETS through the guard full-run of @polyspec/kit, which refuses while a
-# checklist task is [~], while tracked changes are uncommitted or when var/full-run.json records a run of the current tree,
-# runs each target as make -k to its end and records its result; `make rerun-failed` (the kit.mk of @polyspec/kit) reruns the
-# targets of the current tree that did not pass and keeps the evidence of those that passed.
-ci: ## Run every target of the CI workflow in order through the guard: once per tree, when no checklist task is [~]
-	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" $(NODE) $(KIT)/full-run.mjs run conformance-reset $(CI_TARGETS)
-
-# The checks of kit over the checkout, which make check runs through the guard full-run of @polyspec/kit: once per committed
-# tree, while no checklist task is [~], and with its result recorded in var/full-run.json.
-CHECK_TARGETS = \
-	kit-check \
-	toolchain-check \
-	layout-check \
-	docs-check \
-	owner-validate \
-	commits-check \
-	hooks-check \
-	dependency-policy-check \
-	dependency-policy-mutation-check \
-	cargo-downloads-check \
-	lint-python \
-	lint-php \
-	lint-rust \
-	lint-go \
-	lint-ts \
-	records-check
-
-check: ## Run the checks of kit (CHECK_TARGETS) through the guard: once per tree, when no checklist task is [~]
-	$(NODE) $(KIT)/full-run.mjs run $(CHECK_TARGETS)
-
-# The conformance evidence of earlier runs; the first target of a full run, which a rerun repeats only when it failed.
-conformance-reset: ## Remove the conformance evidence of earlier runs
-	rm -rf "$(CONFORMANCE_EVIDENCE)"
-
-rerun-failed: export CRUDUI_CONFORMANCE_EVIDENCE := $(CONFORMANCE_EVIDENCE)
-

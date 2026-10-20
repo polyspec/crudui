@@ -33,9 +33,9 @@ test('the environment sets MAKEFLAGS=w and removes the variables of a parent mak
 });
 
 test('a dry run under a parent make prints only the commands of the target', () => {
-  const run = makeDryRun(ROOT, 'rerun-failed', { env: { ...process.env, MAKELEVEL: '1', MAKEFLAGS: 'w' } });
+  const run = makeDryRun(ROOT, 'require-build', { env: { ...process.env, MAKELEVEL: '1', MAKEFLAGS: 'w' } });
   assert.equal(run.status, 0, run.stderr);
   const lines = run.stdout.split('\n').filter(Boolean);
   assert.equal(lines.length, 1, run.stdout);
-  assert.match(lines[0] ?? '', /node node_modules\/@polyspec\/kit\/dist\/full-run\.mjs rerun-failed$/);
+  assert.match(lines[0] ?? '', /node scripts\/require-current-build\.mts$/);
 });

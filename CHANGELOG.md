@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Makefile without the local full run (C16.7-3)
+
+- The targets `ci`, `check` and `conformance-reset`, `CHECK_TARGETS` and their help lines are removed: they started `full-run.mjs`, which kit 0.0.54 does not ship (kit K240). `CI_TARGETS` stays as the list that `tests/build/ci-local.test.mts` keeps equal to the workflow, and a new test of that file requires every `$(KIT)/<tool>.mjs` of the Makefile to exist in the installed package; the lint test, the dry-run test and the cargo-offline test no longer name the removed targets (C16.7-3). Red: the new test failed with `full-run.mjs` missing and `make check` ended with Error 1 (`Cannot find module full-run.mjs`); green: the new test, `CI_TARGETS lists every checking command`, `a CI job runs every lint target of kit`, `a workflow command missing from CI_TARGETS` and `a dry run under a parent make` pass (5 tests).
+
 ### 2026-10-20 — The gates workflow in the ci-local test (C16.7-6)
 
 - `tests/build/ci-local.test.mts` expects `.github/workflows/gates.yml`, the workflow that `make kit-sync` copies from `@polyspec/kit`, with its triggers (pull requests, pushes to `main`, a manual run) (C16.7-6). Red: `each workflow declares exactly its triggers` failed because `gates.yml` was an unexpected file; green: it passes.

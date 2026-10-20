@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9ea56f5fb2522aec681b25b6a70996ebb043a09fb0773bf93378bf9417e658c8 -->
+<!-- source-sha256: 38cf91db7deb60fdd5f3226c3a97bc85f39b391f43d9efaf430e856ea8ca07ed -->
 
 ## Unreleased
+
+### 2026-10-20 — local 전체 실행이 없는 Makefile (C16.7-3)
+
+- target `ci`, `check`, `conformance-reset`, `CHECK_TARGETS`와 그 help 줄을 제거합니다. 이들은 kit 0.0.54가 제공하지 않는 `full-run.mjs`를 시작했습니다(kit K240). `CI_TARGETS`는 `tests/build/ci-local.test.mts`가 workflow와 같게 유지하는 목록으로 남고, 이 file의 새 test는 Makefile의 모든 `$(KIT)/<tool>.mjs`가 설치된 package에 있어야 한다고 요구합니다. lint test, dry-run test, cargo-offline test는 제거된 target을 더는 이름으로 부르지 않습니다 (C16.7-3). Red: 새 test가 `full-run.mjs` 없음으로 실패했고 `make check`는 Error 1(`Cannot find module full-run.mjs`)로 끝났으며, green: 새 test, `CI_TARGETS lists every checking command`, `a CI job runs every lint target of kit`, `a workflow command missing from CI_TARGETS`, `a dry run under a parent make`가 통과합니다(5건).
 
 ### 2026-10-20 — ci-local test의 gates workflow (C16.7-6)
 

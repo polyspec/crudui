@@ -146,10 +146,9 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
     seen.add(name);
     return rule.prerequisites.some(prerequisite => prerequisite === CHECK || depends(prerequisite, seen));
   };
-  // make ci, make crudui-check and make rerun-failed start the guard full-run of @polyspec/kit before any step;
-  // the targets of make that their commands run depend on the check.
+  // The targets of make that run cargo depend on the check.
   const missing = Object.entries(targets)
-    .filter(([name]) => ![...DOWNLOADS, 'install', CHECK, 'ci', 'check', 'rerun-failed'].includes(name))
+    .filter(([name]) => ![...DOWNLOADS, 'install', CHECK].includes(name))
     .filter(([, rule]) => rule.commands.some(command => runsCargo(command)))
     .map(([name]) => name)
     .filter(name => !depends(name))
