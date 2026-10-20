@@ -49,7 +49,7 @@ or `card` layout selected by `options.layout`.
 `Generator::buildList($spec, $rows, $options)` returns the same evaluated list model used by rendering.
 `Generator::renderDetail($spec, $record, $options)` renders one supplied record as a
 read-only detail, and `Generator::buildDetail($spec, $record, $options)` returns the
-markup-free detail model the renderer uses. Neither rendering method reads other
+markup-free detail model the renderer uses. `Generator::buildOutline($nodes)` returns the structure map rows of evaluated nodes. Neither rendering method reads other
 data. The host provides submission handling, styles and browser integrations declared by
 fields.
 

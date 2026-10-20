@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c7c9456f3cf3f92cabf40db09a9d2f24ae48d9dc2ebff3a051bd7f78ac53c2b7 -->
+<!-- source-sha256: 60387933e159ecef58b1f62db7ef39a0bd8e9d7baa3f69fa7b70b7f5ce3d78e3 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -77,6 +77,7 @@
 | C16.49-4 | PHP 생성기는 Generator::buildOutline을 가지며, native generator protocol의 PHP program은 buildOutline에 답합니다 | `packages/generator/php/src/Generator.php`, `packages/generator/php/src/Internal/Outline.php`, `packages/generator/php/tests/OutlineTest.php`, `tests/native-generators/programs/php/generate.php`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/OutlineTest.php` and `node tests/native-generators/run.mts --extension "WD/var/php-ext/polyspec_crudui.so" --target php --check outline` | [o] |
 | C16.49-5 | php-native 확장은 C 엔진이 만드는 Polyspec\Crudui\Generator::buildOutline을 가집니다 | `packages/php-ext/src/outline.c`, `packages/php-ext/src/crudui.c`, `packages/php-ext/src/crudui_engine.h`, `packages/php-ext/src/config.m4`, `packages/php-ext/src/polyspec_crudui.stub.php`, `packages/php-ext/src/polyspec_crudui_arginfo.h`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "$PWD/var/php-ext/polyspec_crudui.so" --target php-native --check outline` | [o] |
 | C16.49-6 | Python 생성기는 Generator.buildOutline과 공유 form-outline fixture 테스트를 가집니다 | `packages/generator/python/src/polyspec/crudui/generator/`, `packages/generator/python/tests/`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_outline` | [o] |
+| C16.49-7 | 기능 계약은 buildOutline이 모든 구현에서 통과한다고 선언하고, divergence-check는 buildOutline 차이를 찾지 않습니다 | `contracts/features.json`, `docs/operations/feature-contracts.md`(.ko), `tests/fixtures/form-outline/README.md`(.ko), `packages/generator/php/README.md`(.ko), `packages/generator/python/README.md`(.ko), `CHANGELOG.md`(.ko) | `make manifest-docs-check` | [o] |
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |

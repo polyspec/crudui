@@ -24,8 +24,9 @@ structure map from `{ fields, canUndo, canRedo }` and the data view from `data`,
 HTML renderer `renderOutlineView` and `renderDataPanel`, Vue `outlineVNode` and `dataVNode` through
 its server renderer, and Svelte `OutlineView` and `DataPanel` through `svelte/server`.
 
-The Rust test `native_outline_fixture` compares `build_outline` of the generator with `expected_outline_rows` for the
-nodes of its own `bind_form`. The cases are read by the structure map conformance tests in
+The Rust test `native_outline_fixture`, the Go test `TestOutlineFixture`, the PHP `OutlineTest`, the Python
+`tests/test_outline.py` and the outline checks of the native generator conformance run compare the `buildOutline` of
+each implementation with `expected_outline_rows` for the nodes of its own `bindForm`. The cases are read by the structure map conformance tests in
 [React](../../../packages/react/src/tests/outline.conformance.test.tsx),
 [Vue](../../../packages/vue/tests/outline.conformance.test.mjs),
 [Svelte](../../../packages/svelte/tests/outline.conformance.test.mjs) and the

@@ -1,6 +1,6 @@
 # CRUDUI Python generator
 <!-- doc-id: packages-generator-python-readme -->
-<!-- source-sha256: 165328d6eb1be8e6d321510eb068bfa9e937d17632ac7014f51d9b30177bb923 -->
+<!-- source-sha256: 455d60ec4a9396c296f2a69c988610103b0b2c65866e4a38ecfc7352047737e7 -->
 
 [English](README.md).
 
@@ -30,7 +30,7 @@ JSON 직렬화 가능한 template으로 compile한다. `bindForm`은 데이터�
 `getValue`·`setValue`·`setData`, getter가 `renderForm`에 들어간다.
 `renderList`는 주어진 행을 table·card layout으로 그리고 `buildList`는 읽기 전용
 list model을 만든다. `renderDetail`와 `buildDetail`은 하나의 record에 대해 같은
-일을 한다. `sequenceRowKey`는 음이 아닌 순번을 13자리 10진수로 만들고
+일을 한다. `buildOutline`은 평가된 node의 구조 지도 행을 만든다. `sequenceRowKey`는 음이 아닌 순번을 13자리 10진수로 만들고
 `createRowKey`는 13자 16진수 row key를 만든다.
 
 생성 실패는 code `INVALID_FORM_INPUT` 또는 `UNSUPPORTED_FIELD_TYPE`의

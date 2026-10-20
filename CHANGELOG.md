@@ -6,6 +6,10 @@
 ### 2026-10-20 — The cross-check console shares its JSON parser, its download, its matrix column and its request reader (C16.58-6)
 
 - `parseJsonText`, `downloadJson`, `matrixColumn` of `client/app.js` and `readBodyAndSpec` of `server/server.mjs` replace the copies of the data and record parsers, of the two fixture downloads, of the validate and render columns, and of the body and specification reading of six endpoints (C16.58-6). Red: `make duplication-check` reported 40 clones before; green: 37 clones after, and the targeted check passes (24 passed).
+### 2026-10-20 — buildOutline in every implementation (C16.49-7)
+
+- The feature contract declares buildOutline passing in the PHP, Go, Rust, php-native and Python implementations, with their tests. (C16.49-7)
+
 ### 2026-10-20 — Python generator buildOutline (C16.49-6)
 
 - The Python generator has Generator.buildOutline, tested against the shared form-outline fixture. (C16.49-6)

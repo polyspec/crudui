@@ -29,7 +29,7 @@ over a copied template — whose row operations `addRow`, `copyRow`, `removeRow`
 `moveRow` and `rekeyRow`, value operations `getValue`, `setValue` and `setData`
 and getters feed `renderForm`. `renderList` renders supplied rows with the
 table or card layout and `buildList` builds the read-only list model; `renderDetail`
-and `buildDetail` do the same for one record. `sequenceRowKey` formats a
+and `buildDetail` do the same for one record. `buildOutline` builds the structure map rows of evaluated nodes. `sequenceRowKey` formats a
 nonnegative sequence as thirteen decimal digits and `createRowKey` makes a
 thirteen-character hexadecimal row key.
 

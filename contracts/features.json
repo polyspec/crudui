@@ -1064,16 +1064,21 @@
         "react": "pass",
         "vue": "pass",
         "svelte": "pass",
-        "php": "unsupported",
-        "go": "unsupported",
-        "rust": "unsupported",
-        "php-native": "unsupported",
-        "python": "unsupported"
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator/ts/src/node.test.ts"
+        "packages/generator/ts/src/node.test.ts",
+        "packages/generator/php/tests/OutlineTest.php",
+        "packages/generator/go/outline_test.go",
+        "packages/generator/rust/src/tests.rs",
+        "packages/generator/python/tests/test_outline.py",
+        "tests/native-generators/run.mts"
       ],
       "docs": [
         "docs/spec/form-markup.md"
@@ -1082,6 +1087,14 @@
         {
           "id": "test-1",
           "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_outline"
+        },
+        {
+          "id": "test-3",
+          "command": "node tests/native-generators/run.mts --extension \"$PWD/var/php-ext/polyspec_crudui.so\" --check outline"
         }
       ]
     },

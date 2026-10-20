@@ -1,6 +1,6 @@
 # CRUDUI PHP 생성기
 <!-- doc-id: packages-generator-php-readme -->
-<!-- source-sha256: b70e01a2601ff66f21acd5e2e70fac68eb77d48b7bf2d97b2703f8b09cbbaa07 -->
+<!-- source-sha256: d8d93f7d18c73a8877ebcd6f722fcecf8c4eacd6a9c335fb0998706be8cac12d -->
 
 [English](README.md).
 
@@ -50,7 +50,7 @@ echo Generator::renderForm($initial);
 `Generator::buildList($spec, $rows, $options)`는 렌더링에 사용하는 평가한 목록 모델을 반환합니다.
 `Generator::renderDetail($spec, $record, $options)`은 전달한 레코드 하나를 읽기 전용 상세로
 렌더링하고, `Generator::buildDetail($spec, $record, $options)`은 렌더러가 사용하는 마크업 없는
-상세 모델을 반환합니다. 어느 렌더링 메서드도 다른 데이터를 읽지 않습니다. 호스트가 전송
+상세 모델을 반환합니다. `Generator::buildOutline($nodes)`는 평가된 node의 구조 지도 행을 반환합니다. 어느 렌더링 메서드도 다른 데이터를 읽지 않습니다. 호스트가 전송
 처리, 스타일과 필드에 선언한 브라우저 통합을 제공합니다.
 
 날짜와 날짜·시간 입력, 목록 날짜 표시는 UTC를 사용합니다. 명시적인 오프셋은

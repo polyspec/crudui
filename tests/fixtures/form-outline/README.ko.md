@@ -1,6 +1,6 @@
 # 구조 지도와 데이터 보기 고정 데이터
 <!-- doc-id: tests-fixtures-form-outline-readme -->
-<!-- source-sha256: c37db3b3e2aec08cbedf21da0460d55252ce0998894f749a8984f4f4cf703711 -->
+<!-- source-sha256: a48062fc6cb95c9235a5d1947569c662c10c615912e9779507035d9053fe93bd -->
 
 [English](README.md).
 
@@ -22,8 +22,9 @@
 정규화하며, 결과는 `expected_outline_html`, `expected_data_html`과 정확히 같아야 합니다. React는
 `OutlineView`와 `DataPanel`, HTML 렌더러는 `renderOutlineView`와 `renderDataPanel`, Vue는 서버 렌더러로
 `outlineVNode`와 `dataVNode`, Svelte는 `svelte/server`로 `OutlineView`와 `DataPanel`을 렌더링합니다.
-Rust 테스트 `native_outline_fixture`는 생성기의 `build_outline`을 자체 `bind_form`의 node에 적용한 결과와
-`expected_outline_rows`를 비교합니다.
+Rust 테스트 `native_outline_fixture`, Go 테스트 `TestOutlineFixture`, PHP `OutlineTest`, Python
+`tests/test_outline.py`와 native generator conformance의 outline 검사는 각 구현의 `buildOutline`을 자체 `bindForm`의
+node에 적용한 결과와 `expected_outline_rows`를 비교합니다.
 
 [React](../../../packages/react/src/tests/outline.conformance.test.tsx),
 [Vue](../../../packages/vue/tests/outline.conformance.test.mjs),
