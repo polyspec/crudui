@@ -8,12 +8,15 @@ use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Support\JsonText;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 /**
  * Byte strings that are not UTF-8 are invalid text in every generator input
- * (docs/spec/input-text.md); the shared JSON cases run through the native generator suite.
+ * (docs/spec/input-text.md). The shared cases of tests/fixtures/text-validity run in
+ * testGeneratorCase, one PHPUnit case each.
  */
 final class InputTextTest extends TestCase
 {
@@ -105,5 +108,117 @@ final class InputTextTest extends TestCase
             ['none', ''],
             self::failure(static fn () => Generator::buildDetail(['fields' => new stdClass()], ['v' => "\u{1F600}"]))
         );
+    }
+
+    /**
+     * Every case of the five generator fixtures, decoded with the reader that keeps unpaired surrogates.
+     *
+     * @return iterable<string, array{string, stdClass}>
+     */
+    public static function textCases(): iterable
+    {
+        $root = \dirname(__DIR__, 4);
+        foreach (['compileForm', 'bindForm', 'createForm', 'buildList', 'buildDetail'] as $feature) {
+            $cases = JsonText::decode(
+                (string) \file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')
+            );
+            foreach ($cases as $case) {
+                yield $feature . '/' . $case->name => [$feature, $case];
+            }
+        }
+    }
+
+    #[DataProvider('textCases')]
+    public function testGeneratorCase(string $feature, stdClass $case): void
+    {
+        $expected = \is_string($case->expect) ? $case->expect : (array) $case->expect;
+        self::assertSame($expected, self::outcome(static fn () => self::runOperation($feature, $case)));
+    }
+
+    /** @return array<string, mixed>|string The case outcome in the fixture's expect shape. */
+    private static function outcome(callable $run): array|string
+    {
+        try {
+            $run();
+        } catch (ComposeLoadError $error) {
+            return [
+                'code' => $error->getErrorCode(),
+                'message' => $error->getMessage(),
+                'at' => \implode('.', $error->getCompositionTrace()),
+            ];
+        } catch (FormError $error) {
+            return ['code' => $error->getErrorCode(), 'message' => $error->getMessage(), 'at' => ''];
+        }
+        return 'pass';
+    }
+
+    /** The options of a case as the array the public API takes, with its files as arrays. */
+    private static function optionsOf(stdClass $case): array
+    {
+        $options = (array) ($case->options ?? []);
+        if (isset($options['files']) && $options['files'] instanceof stdClass) {
+            $options['files'] = (array) $options['files'];
+        }
+        return $options;
+    }
+
+    private static function runOperation(string $feature, stdClass $case): void
+    {
+        $spec = $case->spec ?? new stdClass();
+        $template = static fn () => \property_exists($case, 'template')
+            ? $case->template
+            : Generator::compileForm($spec);
+        switch ($feature) {
+            case 'compileForm':
+                Generator::compileForm($spec, self::optionsOf($case));
+                return;
+            case 'bindForm':
+                Generator::bindForm($template(), $case->data ?? [], self::optionsOf($case));
+                return;
+            case 'createForm':
+                $form = new Form($template(), $case->data ?? [], self::optionsOf($case));
+                if (\property_exists($case, 'action')) {
+                    self::runAction($form, $case->action);
+                }
+                return;
+            case 'buildList':
+                Generator::buildList($spec, $case->rows ?? [], self::optionsOf($case));
+                return;
+            default:
+                Generator::buildDetail($spec, $case->record ?? new stdClass(), self::optionsOf($case));
+        }
+    }
+
+    /** Calls the form method that a case's action names, with its args. */
+    private static function runAction(Form $form, stdClass $action): void
+    {
+        $args = $action->args;
+        switch ($action->method) {
+            case 'setData':
+                $form->setData($args[0]);
+                return;
+            case 'setValue':
+                $form->setValue($args[0], $args[1]);
+                return;
+            case 'getValue':
+                $form->getValue($args[0]);
+                return;
+            case 'addRow':
+                $form->addRow($args[0], isset($args[1]) ? (array) $args[1] : []);
+                return;
+            case 'copyRow':
+                $form->copyRow($args[0], $args[1]);
+                return;
+            case 'removeRow':
+                $form->removeRow($args[0], $args[1]);
+                return;
+            case 'moveRow':
+                $form->moveRow($args[0], $args[1], $args[2]);
+                return;
+            case 'rekeyRow':
+                $form->rekeyRow($args[0], $args[1], $args[2]);
+                return;
+        }
+        throw new \LogicException('unknown form action ' . $action->method);
     }
 }

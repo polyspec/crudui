@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 5042707901c6318e48baa8033495dd7882c5489edf9184ebfe1efbcef1847df2 -->
+<!-- source-sha256: 976118fd6ec03fe38bf83b5d58781e26781aaea4a9de5c3fc3c335df9c1efe95 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -209,3 +209,4 @@
 | C16.116 | 확장 API 테스트가 make build-php-ext가 모듈을 쓰는 위치(var/php-ext)에서 모듈을 찾고, API 보고서는 renderDetail과 renderList가 타입을 지정한 옵션에 배열을 전달하며, 빈 상세 specification은 객체가 아니고 목록의 빈 data 옵션은 실패해야 한다고 기대한다 | packages/php-ext/tests/ApiTest.php, packages/php-ext/tests/ApiReport.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext -- --filter ApiTest` | [o] |
 | C16.117 | fresh make install-packages는 설치만 하고, svelte 도구는 설치 뒤에 link한다 | Makefile, .github/workflows/ci.yml, .github/workflows/dependency-review.yml, .github/workflows/pages.yml, .github/workflows/push-gate.yml, .github/workflows/release.yml, tests/build/ci-local.test.mts | `make link-state-check`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.108 | Go generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 실행하며, unpaired surrogate를 보존하는 order 유지 reader로 case를 읽는다 | packages/generator/go/input_text_test.go | `cd packages/generator/go && go test -count=1 -run TestInputTextCases .` | [o] |
+| C16.109 | PHP generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 실행하며, unpaired surrogate를 보존하는 reader로 case를 읽고 PHP extension 아래에서도 통과한다 | packages/generator/php/tests/InputTextTest.php | `make test-php-ext CASES=InputTextTest` | [o] |

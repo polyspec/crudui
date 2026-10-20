@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f6881d271e9521f98e4e43d54a402b510c86f29cbfeb4f6a26eb35004b29a079 -->
+<!-- source-sha256: a5db223ad8b77a143f0b49bb2032526f6a5b48a02904eccc3eeeca1cbc515539 -->
 
 ## Unreleased
 
@@ -56,6 +56,10 @@
 
 - `config/parity.json`은 테스트 파일 23개를 internal로 선언합니다. TypeScript 22개와 Python 1개이며, 각 이유는 행동을 덮는 공유 suite와 unit의 이름을 적습니다. generator TypeScript 파일 14개는 form-render, list-render, detail-render, form-complete 아래에 있고, 다만 `css.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. validator TypeScript 파일 8개는 validate 아래에 있고, 다만 `types.roundtrip.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. `packages/validator/python/tests/test_pattern_states.py`는 validate 아래에 있습니다.
 - 검사는 이 23개 파일을 R5 undeclared-test로 더 이상 보고하지 않습니다. 남은 TypeScript와 Python 파일 26개는 compose, expr, interface-messages, unicode-data 파일이거나 분류 기록의 gap이며, 뒤의 행에서 다룹니다.
+
+### 2026-10-21 — PHP generator가 text-validity fixture의 모든 case를 실행한다 (C16.109)
+
+- `packages/generator/php/tests/InputTextTest.php`는 `tests/fixtures/text-validity`의 generator fixture 다섯 개의 case 48개를 public `Generator`와 `Form` class로 실행하며, fixture case마다 PHPUnit case 하나를 둡니다(`testGeneratorCase`). case는 `JsonText`로 읽으며, 이는 unpaired surrogate를 유효하지 않은 UTF-8 text로 보존합니다. test는 PHP extension 아래에서도 통과합니다(`make test-php-ext CASES=InputTextTest`).
 
 ### 2026-10-21 — Go generator가 text-validity fixture의 모든 case를 실행한다 (C16.108)
 

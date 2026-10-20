@@ -56,6 +56,10 @@
 - `config/parity.json` declares 23 test files internal, 22 TypeScript and 1 Python, each with a reason that names the shared suite and the unit that cover its behaviour. The 14 generator files are internal under form-render, list-render, detail-render and form-complete, except `css.test.ts`, which is internal to its implementation alone; the 8 validator files are internal under validate, except `types.roundtrip.test.ts`, which is internal to its implementation alone; `packages/validator/python/tests/test_pattern_states.py` is internal under validate.
 - The check no longer reports these 23 files as R5 undeclared-test. The 26 TypeScript and Python files that remain are compose, expr, interface-messages and unicode-data files, or gaps of the classification in the scratchpad, and stay for later rows.
 
+### 2026-10-21 — The PHP generator runs every case of the text-validity fixtures (C16.109)
+
+- `packages/generator/php/tests/InputTextTest.php` runs the 48 cases of the five generator fixtures of `tests/fixtures/text-validity` through the public `Generator` and `Form` classes, one PHPUnit case per fixture case (`testGeneratorCase`). The cases are read with `JsonText`, which keeps unpaired surrogates as text that is not valid UTF-8. The test passes under the PHP extension (`make test-php-ext CASES=InputTextTest`).
+
 ### 2026-10-21 — The Go generator runs every case of the text-validity fixtures (C16.108)
 
 - `packages/generator/go/input_text_test.go` runs the 48 cases of the five generator fixtures of `tests/fixtures/text-validity` (`compileForm`, `bindForm`, `createForm` with its action, `buildList` and `buildDetail`) through the public generator API, one subtest per case. The cases are read with `compose.DecodeOrdered` and `compose.DecodeRawMembers`, which keep unpaired surrogates as text that is not valid UTF-8.
