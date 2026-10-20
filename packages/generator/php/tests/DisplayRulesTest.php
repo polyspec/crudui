@@ -164,6 +164,21 @@ final class DisplayRulesTest extends TestCase
         }
     }
 
+    /** A signed radix literal is no number: a number cell keeps its text, as the string rule of the values says. */
+    public function testSignedRadixTextIsNoNumber(): void
+    {
+        $spec = ['columns' => ['v' => ['field' => 'v', 'format' => ['type' => 'number', 'decimals' => 2]]]];
+        $html = Generator::renderList($spec, [['v' => '-0x10'], ['v' => '0x10']]);
+        self::assertStringContainsString(
+            '<td class="crudui-list__cell crudui-value crudui-value--number">-0x10</td>',
+            $html
+        );
+        self::assertStringContainsString(
+            '<td class="crudui-list__cell crudui-value crudui-value--number">16.00</td>',
+            $html
+        );
+    }
+
     public function testListInputIsCheckedInOrder(): void
     {
         $all = ['data' => 1, 'page' => 0, 'total' => -1, 'layout' => 'grid'];

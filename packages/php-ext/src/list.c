@@ -556,10 +556,13 @@ static bool parse_number(const ps_value *value, double *number)
     ps_chars source = {NULL, 0};
     if (!numeric_text(value, &source)) return false;
     if (!source.length) { free(source.bytes); *number = 0; return true; }
-    char marker = source.length > 1 ? source.bytes[1] : 0;
-    bool radix_number = source.bytes[0] == '0' && (marker == 'x' || marker == 'X' ||
+    /* A radix literal is read only unsigned: -0x10 is no number, as the library reads its string values. */
+    size_t sign = source.bytes[0] == '-' || source.bytes[0] == '+' ? 1 : 0;
+    char marker = source.length > sign + 1 ? source.bytes[sign + 1] : 0;
+    bool radix_number = source.length > sign + 1 && source.bytes[sign] == '0' && (marker == 'x' || marker == 'X' ||
         marker == 'o' || marker == 'O' || marker == 'b' || marker == 'B');
     if (radix_number) {
+        if (sign) { free(source.bytes); return false; }
         unsigned radix = marker == 'x' || marker == 'X' ? 16
             : marker == 'o' || marker == 'O' ? 8 : 2;
         bool ok = source.length > 2 && parse_radix_number(ps_view(source), radix, number);

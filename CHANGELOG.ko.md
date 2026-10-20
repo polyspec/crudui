@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 09e04a084f782e0fb19d77a8c6d8d06c3e549147b5d1a13ab24c2688914e16f4 -->
+<!-- source-sha256: b8959612ac358705dd2f71e91fe8091601152239abf90d1bae84380e8c40577f -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 (C16.90)
+
+- `packages/php-ext/src/list.c`(`parse_number`): `-0x10`처럼 radix 접두사 앞에 부호가 붙은 text는 숫자가 아니므로, 숫자 셀은 라이브러리와 같이 그 text를 유지합니다. 부호 없는 `0x10`과 `0b101`은 여전히 숫자로 읽습니다. `DisplayRulesTest::testSignedRadixTextIsNoNumber`(C16.90)는 `Generator::renderList`만 씁니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` exit 2, 새 test가 실패(extension은 `-16.00`을 렌더링); 라이브러리 실행 exit 0, 23 OK. Green: extension 실행 exit 0, 23 passed; 라이브러리 실행 exit 0, 23 OK입니다.
 
 ### 2026-10-20 — PHP extension은 유한하지 않은 page 또는 total 옵션을 라이브러리와 같이 읽는다 (C16.89)
 

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The PHP extension reads a signed radix number text as the library does (C16.90)
+
+- `packages/php-ext/src/list.c` (`parse_number`): a text with a sign before a radix prefix, such as `-0x10`, is no number, so a number cell keeps its text as the library does; the unsigned forms `0x10` and `0b101` still read as numbers. `DisplayRulesTest::testSignedRadixTextIsNoNumber` (C16.90) uses only `Generator::renderList`. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` exit 2, the new test fails (the extension renders `-16.00`); the library run exit 0, 23 OK. Green: the extension run exit 0, 23 passed; the library run exit 0, 23 OK.
+
 ### 2026-10-20 — The PHP extension reads a non-finite page or total option as the library does (C16.89)
 
 - `packages/php-ext/src/crudui.c` (`counts_for_conversion`, `call_display`): a display option `page` or `total` that is INF or NAN is given the rule of the option, as the library does (CUDF-029, CUDF-030), instead of failing in the value converter with `Unsupported PHP value: float`; the caller's array is not changed, and rows or data keep their message. `DisplayRulesTest::testNonFiniteCountsFailWithTheirRules` (C16.89) covers `buildList` and `renderList`. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` exit 2, 2 failed (`testPageAndTotalAreSafeIntegers` with `Unsupported PHP value: float`, and the new test); the library run of `DisplayRulesTest` exit 0, 22 OK. Green: the extension run exit 0, 22 passed, and the library run exit 0, 22 OK.
