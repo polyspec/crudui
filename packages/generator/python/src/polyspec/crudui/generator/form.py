@@ -401,7 +401,9 @@ class Form:
                         {}
                         if self._data_only(field)
                         else {
-                            (self._fresh_key([]) if fresh else _INITIAL_ROW_KEY): MISSING
+                            (
+                                self._fresh_key([]) if fresh else _INITIAL_ROW_KEY
+                            ): MISSING
                         }
                     )
                 )
@@ -419,7 +421,9 @@ class Form:
                 data[field["name"]] = _copy(field["spec"]["default"])
         return data
 
-    def _normalize_row(self, field: Any, value: Any, path: str, fresh: bool = False) -> Any:
+    def _normalize_row(
+        self, field: Any, value: Any, path: str, fresh: bool = False
+    ) -> Any:
         if field["spec"].get("type") == "group":
             return self._normalize_fields(field["children"], value, path, fresh)
         if value is MISSING:

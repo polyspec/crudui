@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 1b702e98831df9c3077a60acf903012d7d483ba5216d29f1f6d075a433210608 -->
+<!-- source-sha256: 7c0311e688c6a577adfc6782df32c829401243789ee8e262173c257cf21da5f2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -138,3 +138,4 @@
 | C16.71 | crudui는 f9eb43dd의 kit 사본을 받는다(K348 K385 K384 K360-1 K383 K380 K382 K375) | scripts/kit/kit-bootstrap.mk, config/layout.kit.yml, .githooks/commit-msg and the other copies that make kit-sync writes | `make kit-check` | [o] |
 | C16.69 | ordered-json은 npm, Go, Rust에서 버전 0.0.9로 소비되고 kit link로 checkout에 연결된다; .form-comparison/sources의 자체 clone은 제거된다 | package.json, package-lock.json, the Go and Rust manifests that named the clone, examples/form-comparison, Makefile, config, docs/operations | `node ../kit/dist/link.mjs check ../crudui ../kit ../ordered-json`; `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd examples/form-comparison/servers/go -- -run Test ./...`; `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path examples/form-comparison/servers/rust/Cargo.toml ordered_json`; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs`; `make rebuild-check`; `make owner-validate` | [o] |
 | C16.72 | Go generator는 appearance ternary의 평가 오류를 버리지 않고 반환한다(P8) | packages/generator/go (design.go, the callers, display_design_test.go) | `cd packages/generator/go && ../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../.golangci.yml ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestAppearanceErrorsAreNotHidden ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test ./...` | [o] |
+| C16.74 | ruff format이 보고하는 Python 파일을 포맷한다 | packages/generator/python/src/polyspec/crudui/generator/form.py, packages/generator/python/tests/test_form_state.py | `make lint-python`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` | [o] |

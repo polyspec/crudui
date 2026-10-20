@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fae2cf18cc79f31574e8071defe841e91d25fc87c52496cabd4ac3f28198ac1e -->
+<!-- source-sha256: 9082aecc1d6b6b4d37a901ca28465c7d7097cd1b822c7e2ccc917b72e59ccb9d -->
 
 ## Unreleased
+
+### 2026-10-20 — ruff format이 보고하는 Python 파일을 포맷한다 (C16.74)
+
+- `packages/generator/python`을 `ruff format`이 요구하는 형식으로 맞춥니다(C16.74). `src/polyspec/crudui/generator/form.py`는 `_normalize_row` signature와 dictionary key 식을 줄바꿈하고, `tests/test_form_state.py`는 `assertEqual` 호출 한 개를 한 줄로 합칩니다. 바뀐 것은 layout뿐입니다. Red: `ruff format --check --config ruff.toml .`이 `2 files would be reformatted`로 exit 1; green: exit 0이며 `250 files already formatted`, `make lint-python` exit 0, `tests.test_form_state`는 `4 passed, 0 failed`.
 
 ### 2026-10-20 — ordered-json을 버전 0.0.9로 소비한다 (C16.69)
 

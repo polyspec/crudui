@@ -111,9 +111,7 @@ def _assert_sessions(test, family, history):
                     observed["canUndo"] = form.canUndo()
                     observed["canRedo"] = form.canRedo()
                 observed["collapsed"] = name.walk(_collapsed_rows(form.getFields()))
-                test.assertEqual(
-                    _text(observed), _text(case["expected"][index]), step
-                )
+                test.assertEqual(_text(observed), _text(case["expected"][index]), step)
 
 
 class TestFormView(unittest.TestCase):
