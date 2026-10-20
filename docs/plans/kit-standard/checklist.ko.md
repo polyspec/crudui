@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: bb924a54b863143a2ac44bf02d7d60fa8aeb196da9b7252b4c4993b16f8f25c2 -->
+<!-- source-sha256: 74d317e7e5ba202773762a42f0072704c1b27050b5a95cbfb2116a043aa54b56 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -193,3 +193,4 @@
 | C16.107-1 | repository의 TypeScript file은 oxlint를 통과한다 | the TypeScript files that oxlint reports | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-ts` | [o] |
 | C16.94 | docs-check는 prerequisite가 아니라 kit K419의 DOCS_CHECKS hook을 통해 저장소의 doc-coverage gate를 실행한다 | Makefile | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts` | [o] |
 | C16.100 | 모든 implementation이 담은 interface message는 contracts/interface-messages.json과 같다: CUMK-065를 인용하는 여섯 binding의 feature unit | config/parity.json docs/spec/form-markup.md docs/spec/form-markup.ko.md packages/generator/php/tests/InterfaceMessagesConformanceTest.php packages/generator/python/tests/test_interface_messages.py | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/InterfaceMessagesConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_interface_messages` | [o] |
+| C16.100-2 | PHP test는 extension이 담은 list 메시지를 검사한다: list 메시지의 공개 접근자가 필요하다 | packages/generator/php/tests/InterfaceMessagesConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/InterfaceMessagesConformanceTest.php` | [!] 원인: 공개 PHP API(packages/php-ext/src/polyspec_crudui.stub.php)는 Form::getMessages()로 form 메시지만 돌려주며, extension이 담은 list 메시지를 돌려주는 공개 메서드가 없어 어떤 PHP test도 이를 검사하지 않습니다; 재시도: list 메시지의 공개 접근자에 대한 결정 후 |
