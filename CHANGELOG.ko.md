@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e2550f40242f233d9da345082f62cb9def1c5905c62a018c18f274e152e26e8e -->
+<!-- source-sha256: 0045e5a2e4136747ad3fcc6ae870a0904cc0da2d5d605c91d9e22157f5dc6197 -->
 
 ## Unreleased
 
@@ -25,6 +25,11 @@
 ### 2026-10-21 — input-text case가 시험하는 limit와 오류 타입 요구를 인용한다 (C16.57-15)
 
 - `tests/fixtures/text-validity/value-graphs.json`의 case는 `requirements` 배열을 가집니다. 노드와 중첩 limit CUIT-021과 CUIT-022, limit을 넘는 value의 실패 CUIT-029 ~ CUIT-031, 그리고 TypeScript, PHP, Go runner가 각 실패를 class로 대조하는 검증 오류 class CUIT-032, CUIT-033, CUIT-035입니다(C16.57-15). `validate`, `validateList`, `validateDetail`의 실패 case도 같은 이유로 CUIT-032, CUIT-033, CUIT-035를 인용합니다(C16.57-15). Red: CUIT-021, CUIT-022, CUIT-029 ~ CUIT-033, CUIT-035를 인용한 case가 없었습니다. Green: `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/text/text-validity.conformance.test.ts` 53 passed; PHP validator `TextValidityConformanceTest.php` 45 passed; `make test-php-ext CASES=TextValidityConformanceTest` exit 0, 45 passed; Python `tests.test_text_validity` 4 OK; Go `validator/validate`의 text fixture 48 passed; Rust `text_validity_conformance` 5 passed. 인용하지 않았고 보고합니다: CUIT-034(PHP 생성 오류)와 CUIT-035, CUIT-036의 생성 부분(native generator runner는 생성 실패의 code, message, location을 검사하며 class는 검사하지 않음). CUIT-036은 검증 부분도 인용하지 않았습니다(Rust runner는 실패를 code로 대조하고, load class는 한 case에서만 검사함). CUIT-029 ~ CUIT-031은 options와 rows 인수에 대해 인용하지 않았습니다(value-graph case는 `spec`, `files`, `data` 아래에만 graph를 둘 수 있음).
+
+### 2026-10-21 — Go generator가 form 버튼 case를 실행하고, 알 수 없는 타입의 버튼과 목록이 아닌 값을 거부한다 (C16.120)
+
+- `packages/generator/go/buttons_conformance_test.go`는 `tests/fixtures/buttons`의 case 22개를 실행합니다. `BindButtons`와 `FormButtonsHTML`의 관찰은 JSON 텍스트로 기대값과 같아야 하므로 속성 순서도 검사합니다.
+- `FormButtonsHTML`은 버튼을 `any`로 받고, 목록이 아닌 값을 `Form buttons must be a list`로 거부합니다(TypeScript reference와 같음). `BindButtons`는 link, submit, button, reset 중 어느 것도 아닌 타입의 버튼을 reference 메시지 `Invalid button type: <type>`으로 거부합니다.
 
 ### 2026-10-21 — TypeScript generator가 form 버튼 case를 실행한다 (C16.119)
 

@@ -80,6 +80,9 @@ func bindButtons(buttons []*Object, data *Object, language string, m formMessage
 	out := make([]*Object, 0, len(buttons))
 	for _, button := range buttons {
 		kind := stringAt(button, "type")
+		if !formButtonTypes[kind] {
+			return nil, fmt.Errorf("Invalid button type: %s", kind)
+		}
 		design, e := resolveDesign(read(button, "design"), lookup, []string{}, nil)
 		if e != nil {
 			return nil, e
@@ -118,16 +121,29 @@ func bindButtons(buttons []*Object, data *Object, language string, m formMessage
 // buttonAttributes lists the attribute names an evaluated button may carry.
 var buttonAttributes = map[string]bool{"type": true, "class": true, "style": true, "name": true, "value": true, "href": true, "onclick": true}
 
-// FormButtonsHTML renders evaluated buttons as the markup every renderer inserts into the form footer.
-// Each button must be an object whose tag is a or button, whose text is a string and whose attrs
-// object has only the named button attributes with string values; other members are ignored.
-func FormButtonsHTML(buttons []*Object) (string, error) {
+// FormButtonsHTML renders evaluated buttons as the markup every renderer inserts into the form footer. The buttons
+// are a list: a Go slice of button objects, or the list of a decoded JSON value, and nil is the empty list. Each button
+// must be an object whose tag is a or button, whose text is a string and whose attrs object has only the named button
+// attributes with string values; other members are ignored.
+func FormButtonsHTML(buttons any) (string, error) {
+	var items []any
+	switch list := buttons.(type) {
+	case nil:
+	case []*Object:
+		for _, button := range list {
+			items = append(items, button)
+		}
+	case []any:
+		items = list
+	default:
+		return "", errNotButtonList
+	}
 	var out strings.Builder
-	for _, button := range buttons {
+	for _, button := range items {
 		tag, tagOK := read(button, "tag").(string)
 		text, textOK := read(button, "text").(string)
 		attrs := object(read(button, "attrs"))
-		if button == nil || !tagOK || (tag != "a" && tag != "button") || !textOK || attrs == nil {
+		if !tagOK || (tag != "a" && tag != "button") || !textOK || attrs == nil {
 			return "", errNotEvaluatedButtons
 		}
 		out.WriteString("<" + tag)
@@ -142,6 +158,9 @@ func FormButtonsHTML(buttons []*Object) (string, error) {
 	}
 	return out.String(), nil
 }
+
+// errNotButtonList rejects form button input that is no list.
+var errNotButtonList = fmt.Errorf("Form buttons must be a list")
 
 // errNotEvaluatedButtons rejects form button input that bindButtons did not produce.
 var errNotEvaluatedButtons = fmt.Errorf("Form buttons must be evaluated button objects")
