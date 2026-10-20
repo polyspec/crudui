@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Appearance ternaries propagate evaluation errors (C16.67-11)
+
+- `appearance` in `packages/generator/python/src/polyspec/crudui/generator/design.py` checks that a string parses with `_parses` instead of catching the errors of a ternary evaluation in an `except` that passes, so an evaluation error of a ternary propagates and is no longer swallowed; `TestAppearanceErrorsAreNotHidden` in `packages/generator/python/tests/test_form_render.py` injects the error and checks that it propagates, and checks that a string outside the grammar stays literal text (C16.67-11). Red: `ruff check` of `design.py` exit 1 with the S110 finding, and `run-tests.mjs python ... -- tests.test_form_render` exit 1, 4 passed and 1 failed (`ZeroDivisionError not raised`); green: ruff exit 0, and `tests.test_render` and `tests.test_form_render` exit 0, 8 passed.
+
 ### 2026-10-20 — The Rust form instance keeps its undo history (C16.52-9)
 
 - `Form` in `packages/generator/rust/src/instance.rs` keeps the undo history of its record with the pure functions of `history.rs`: `undo` and `redo` (CURT-011, CURT-012), `can_undo` and `can_redo` (CURT-061). `set_value` records a change with its path, `add_row`, `copy_row`, `move_row`, `remove_row` and `rekey_row` record one without a path, and `set_data` restarts the history (C16.52-9). `packages/generator/rust/tests/form_state.rs` runs the `form-history` sessions with the history flags (C16.52-9). Red: `cargo test --test form_state` did not compile, `no method named undo` (four E0599 errors: undo, redo, can_undo, can_redo), exit 1; green: `form_state` and `history_functions` pass 16 tests, `form_history_sessions_equal_the_recorded_observations` among them, exit 0.

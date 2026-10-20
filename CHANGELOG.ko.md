@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 924c2e1ef2358794d76ee990f8a9bda454c01736ee10bb13e4f9369f15c242f3 -->
+<!-- source-sha256: a0984873fc01b7d7ac8e29bd08a7ad39b919dfe763ea7b6fb9374e83c1568e7b -->
 
 ## Unreleased
+
+### 2026-10-20 — Appearance 삼항식은 평가 오류를 전파한다 (C16.67-11)
+
+- `packages/generator/python/src/polyspec/crudui/generator/design.py`의 `appearance`는 삼항식 평가의 오류를 `except`에서 pass로 삼키는 대신 `_parses`로 문자열이 파싱되는지만 확인하므로, 삼항식의 평가 오류가 전파되며 더 이상 삼켜지지 않습니다. `packages/generator/python/tests/test_form_render.py`의 `TestAppearanceErrorsAreNotHidden`은 오류를 주입해 전파되는지 확인하고, 문법 밖의 문자열이 literal text로 남는지 확인합니다(C16.67-11). Red: `design.py`의 `ruff check`는 S110 finding과 함께 exit 1, `run-tests.mjs python ... -- tests.test_form_render`는 exit 1, 4 passed와 1 failed(`ZeroDivisionError not raised`); green: ruff exit 0, `tests.test_render`와 `tests.test_form_render`는 exit 0, 8 passed.
 
 ### 2026-10-20 — Rust form instance는 undo 이력을 가진다 (C16.52-9)
 

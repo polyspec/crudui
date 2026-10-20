@@ -7,6 +7,7 @@ Binding the same template twice writes the same fields.
 """
 
 import unittest
+import unittest.mock
 
 from .conformance import cases_of, failure_record, html_tree
 from polyspec.crudui.conformance import Proving
@@ -82,6 +83,29 @@ class TestFormRenderConformance(unittest.TestCase):
             exclusive = ("expected_html" in case) != ("expectError" in case)
             self.assertTrue(exclusive, f"{case['name']} must declare one expectation")
         self.assertEqual(len(self.cases), 188)
+
+
+class TestAppearanceErrorsAreNotHidden(unittest.TestCase):
+    """An evaluation error of an appearance ternary propagates, never as its text."""
+
+    def test_evaluation_error_of_a_ternary_propagates(self):
+        from polyspec.crudui.generator.design import appearance
+
+        # The grammar of condition expressions has no division, so the failure is
+        # injected at the evaluator: the error must reach the caller.
+        with unittest.mock.patch(
+            "polyspec.crudui.generator.design.evaluate_expression_value",
+            side_effect=ZeroDivisionError("division by zero"),
+        ):
+            with self.assertRaises(ZeroDivisionError):
+                appearance("1 > 0 ? 'btn-a' : 'btn-b'", {}, ["tier"], [])
+
+    def test_a_string_that_is_not_an_expression_stays_literal(self):
+        from polyspec.crudui.generator.design import appearance
+
+        # "/" is not a token of the grammar, so the string is literal text.
+        text = "(1 / 0) > 0 ? 'btn-a' : 'btn-b'"
+        self.assertEqual(appearance(text, {}, ["tier"], []), text)
 
 
 if __name__ == "__main__":

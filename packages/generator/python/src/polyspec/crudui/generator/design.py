@@ -98,14 +98,13 @@ def appearance(value: Value, data: JsonValue, path: list[str], rows: list[int]) 
         resolved = _condition_map(value, data, path, rows)
         return "" if resolved is None else string(resolved)
     if isinstance(value, str):
-        try:
-            if parse_condition(value)["type"] == "Ternary":
-                result = evaluate_expression_value(
-                    parse_condition(value), _context(data, path, rows)
-                )
-                return "" if result is None else string(result)
-        except ParseError, ValueError, TypeError, ZeroDivisionError:
-            pass
+        # A ternary that parses is an expression: an evaluation error propagates
+        # instead of rendering the expression text as the class or style.
+        if _parses(value) and parse_condition(value)["type"] == "Ternary":
+            result = evaluate_expression_value(
+                parse_condition(value), _context(data, path, rows)
+            )
+            return "" if result is None else string(result)
         if (
             is_condition_expression(value)
             and _TERNARY_COLON.search(value) is None
