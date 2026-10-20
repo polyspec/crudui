@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: 1ff1cd38ee32df679addd25dfe2182208232cbf6202f1cd5d30934baf32d21df -->
+<!-- source-sha256: ac8b0d5386e95acbd15bd2de1ed6ea8725a483606456ea70747b5f62c07cb1aa -->
 
 [English](README.md).
 
@@ -30,7 +30,7 @@
 Go·Rust·PHP는 숫자를 값으로 비교하므로 `5`와 `5.0`은 같습니다.
 [PHP 확장 실행기](../../../packages/php-ext/tests/ValidateReport.php)는 JSON 문자열을 비교하므로 멤버 순서도
 비교합니다. 실패 사례는 `code`, `message`, `at`을 정확히 비교하며, 모든 사례는 `expected`와
-`expectFailure` 중 정확히 하나를 선언해야 합니다.
+`expectFailure` 중 정확히 하나를 선언해야 합니다. [빈 collection](../../../docs/spec/empty-collections.ko.md)의 requirement를 시험하는 case는 `requirements`에 id를 나열하며, 이는 `generate.mts`의 `REQUIREMENTS` map에서 지정합니다.
 
 교차 검증 콘솔의 검증기 프로세스는 각 사례를 표준 입력으로 받습니다. 결과 사례는 종료 코드 `0`과 함께
 결과를 표준 출력에 쓰고, 실패 사례는 종료 코드 `2`와 함께 `{ error, code, at }`을 씁니다.

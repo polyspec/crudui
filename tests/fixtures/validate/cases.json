@@ -2113,7 +2113,10 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Repeated data must be a keyed object: items",
       "at": ""
-    }
+    },
+    "requirements": [
+      "CUEC-003"
+    ]
   },
   {
     "name": "input-repeated-scalar-null",
@@ -2134,7 +2137,10 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Repeated data must be a keyed object: tags",
       "at": ""
-    }
+    },
+    "requirements": [
+      "CUEC-003"
+    ]
   },
   {
     "name": "input-repeated-group-row-not-object",
@@ -2198,7 +2204,10 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Repeated data must be a keyed object: companies.__a__.stores",
       "at": ""
-    }
+    },
+    "requirements": [
+      "CUEC-003"
+    ]
   },
   {
     "name": "input-unknown-root-field",
@@ -9914,7 +9923,10 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Repeated data must be a keyed object: items",
       "at": ""
-    }
+    },
+    "requirements": [
+      "CUEC-003"
+    ]
   },
   {
     "name": "visibility-hidden-field-skips-all-rules",
@@ -10373,7 +10385,10 @@
         "details",
         "rows"
       ]
-    }
+    },
+    "requirements": [
+      "CUEC-006"
+    ]
   },
   {
     "name": "visibility-per-row",
@@ -11321,7 +11336,10 @@
       "hidden": [
         "secret"
       ]
-    }
+    },
+    "requirements": [
+      "CUEC-006"
+    ]
   },
   {
     "name": "visibility-toggle-step-1-shown-valid",
@@ -11568,7 +11586,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUEC-005"
+    ]
   },
   {
     "name": "multiple-only-missing-data-required",
@@ -11615,7 +11636,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUEC-005"
+    ]
   },
   {
     "name": "multiple-only-missing-data-mincount",
@@ -11659,7 +11683,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUEC-005"
+    ]
   },
   {
     "name": "multiple-missing-data-required",

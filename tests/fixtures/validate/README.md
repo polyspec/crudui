@@ -34,7 +34,9 @@ Each test runs the validator and compares the complete result or failure record.
 array is compared in order. Go, Rust and PHP compare numbers by value, so `5` and `5.0` are equal.
 The [PHP extension runner](../../../packages/php-ext/tests/ValidateReport.php) compares JSON text, so
 member order is compared there as well. A failure case compares `code`, `message` and `at`
-exactly, and every case must declare exactly one of `expected` and `expectFailure`.
+exactly, and every case must declare exactly one of `expected` and `expectFailure`. A case that tests a requirement of
+[empty collections](../../../docs/spec/empty-collections.md) lists its ids in `requirements`; `generate.mts` names those
+cases in its `REQUIREMENTS` map, which is how they are added.
 
 The cross-check console's validator processes receive each case on standard input. A result case
 exits `0` with the result on standard output; a failure case exits `2` with `{ error, code, at }`.

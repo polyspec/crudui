@@ -127,6 +127,47 @@
         "CURT-079",
         "CURT-080"
       ]
+    },
+    {
+      "id": "validate",
+      "kind": "suite",
+      "file": "tests/fixtures/validate/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/validate.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/ValidateConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\ValidateConformanceTest::testValidateMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/ValidateConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\ValidateConformanceTest::testValidateMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/conformance_test.go",
+          "symbol": "TestValidateMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/validate_conformance.rs",
+          "symbol": "validate_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_validate.py"
+        }
+      ],
+      "requirements": [
+        "CUEC-003",
+        "CUEC-005",
+        "CUEC-006"
+      ]
     }
   ],
   "tools": [

@@ -983,7 +983,27 @@ function written(c: WrittenCase | FailingCase): Record<string, unknown> {
     : { name, note, spec, data, expected: { ...c.expected, hidden: hiddenOf(name, spec, c.hidden) } };
 }
 
-const out = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written)];
+/**
+ * The requirements of docs/spec/empty-collections.md that these cases test: a case is named here with the ids it tests,
+ * and each named case must be generated, so a renamed case cannot lose its ids silently.
+ */
+const REQUIREMENTS: Record<string, string[]> = {
+  'input-repeated-group-array': ['CUEC-003'],
+  'input-repeated-scalar-null': ['CUEC-003'],
+  'input-nested-repeated-array': ['CUEC-003'],
+  'visibility-hidden-data-shape': ['CUEC-003'],
+  'multiple-only-missing-data-required': ['CUEC-005'],
+  'multiple-only-missing-data-mincount': ['CUEC-005'],
+  'multiple-only-missing-data-valid': ['CUEC-005'],
+  'visibility-hidden-group-descendants': ['CUEC-006'],
+  'visibility-hidden-value-still-read': ['CUEC-006'],
+};
+
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written)];
+for (const name of Object.keys(REQUIREMENTS)) {
+  if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
+}
+const out = generated.map(c => (REQUIREMENTS[String(c.name)] === undefined ? c : { ...c, requirements: REQUIREMENTS[String(c.name)] }));
 let text = JSON.stringify(out, null, 2);
 for (const c of SPECS) {
   if (c.specText === undefined) continue;

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ca29c3cd8115df2d51536abb244bcb6401fe16dc7f4a474064825225919b07be -->
+<!-- source-sha256: 6e7c67f230bfed94965bac22db44ad1d8170874be2f4fbe9390b6c6e0442a62c -->
 
 ## Unreleased
+
+### 2026-10-20 — validate suite는 빈 collection requirement CUEC-003, CUEC-005, CUEC-006을 인용한다 (C16.57-2)
+
+- `tests/fixtures/validate/generate.mts`는 `REQUIREMENTS` map에서 `cases.json`의 case 9건을 지정하고 그 `requirements`를 씁니다. `input-repeated-group-array`, `input-repeated-scalar-null`, `input-nested-repeated-array`, `visibility-hidden-data-shape`는 CUEC-003을, `multiple-only-missing-data-required`, `multiple-only-missing-data-mincount`, `multiple-only-missing-data-valid`는 CUEC-005를, `visibility-hidden-group-descendants`, `visibility-hidden-value-still-read`는 CUEC-006을 인용합니다. `config/parity.json`은 `tests/fixtures/validate/cases.json`의 suite unit `validate`를 선언하며, 범위의 requirement와 여섯 binding을 가집니다: ts, go, rust, python은 case를 실행하고, php와 php-extension은 PHP 라이브러리 test `ValidateConformanceTest::testValidateMatchesFixture`를 지정합니다(C16.57-2). Red: `make parity-declarations-check`가 exit 2이며 finding 650건이고, 그중 CUEC-003, CUEC-005, CUEC-006의 R13 3건과 `tests/fixtures/validate/cases.json`의 R4 1건이었습니다. Green: exit 2이며 finding 641건이고, 해당 id의 R13은 0건, validate의 R4는 0건, R15와 R14는 0건입니다. 남은 R2(history-functions, php-extension)와 R6은 이 row의 범위가 아닙니다. CUEC-001, CUEC-002, CUEC-004, CUEC-007은 여섯 implementation이 모두 실행하는 bindForm suite가 필요하므로 인용하지 않았습니다. Owner test: ts vitest `validate.conformance.test.ts` 319 passed, go `TestValidateMatchesFixture` 318 subtest passed(kit runner가 worktree의 mise.toml을 읽지 못해 packages/validator/go에서 `mise exec -- go test`로 실행), rust `validate_matches_fixture` 1 passed, python `tests.test_validate` 3 passed, PHP 라이브러리 `ValidateConformanceTest` 318 passed. php-extension binding은 여기서 실행하지 않았습니다. 이 binding은 Support/JsonText.php를 읽으므로 C16.70이 validator test를 고치기 전까지 extension에서 통과하지 않습니다.
 
 ### 2026-10-20 — Go native program은 타입이 잘못된 member를 거부한다 (C16.79)
 
