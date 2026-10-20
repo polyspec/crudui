@@ -1,37 +1,374 @@
 {
   "schema": 1,
-  "comment": "The class of each tool of crudui (S1): ecosystem names the tool it uses, replaced the ecosystem tool that replaces it and the item that registers the replacement, record the rebuild record that weighs the tools, policy the reason no ecosystem tool applies. The tools below scripts/kit are copies of kit and are classed in kit. Test files and fixtures are not tools. Not tools, because they are tests (the S9 exception): tests/conformance, tests/native-generators (with its program tests/native-generators/programs/php/generate.php, a harness that drives the PHP generator), tests/build (the *.test.mts and its helpers make-dry-run.mts, json.mts, public-types*.mts), tests/docs, tests/form-inspector, tests/form-markup, tests/php, tests/release-install and the other tests/*.mts; the modules of tests/fixtures other than generate.mts (fixture data); the benchmark programs of benchmarks/validators (run.js, bench-js.js, bench-php.php, drivers.mjs, arguments.js, go and rust drivers); the checks of the form comparison examples/form-comparison/check-*.mjs, which drive the local stacks and assert one comparison; and the code of the examples, which is example product.",
-  "paths": [
-    "scripts/!(*.test).mts",
-    "scripts/*.php",
-    "scripts/docs-web/*.mts",
-    "packages/*/scripts/*",
-    "packages/*/*/scripts/*",
-    "packages/php-ext/tools/*.mjs",
-    "packages/*/*/tools/*.mjs",
-    "packages/*/go/**/*_generate.go",
-    "packages/validator/php/tests/Values/*.generate.mjs",
-    "benchmarks/validators/{build-drivers.mjs,gen-fixtures.js}",
-    "examples/form-comparison/install-ordered-json.mjs",
-    "examples/cross-check-console/server/build-rust.mjs",
-    "tests/fixtures/*/generate.mts"
-  ],
+  "comment": "The class of each tool source of crudui (S1); kit finds the sources by the layout of the repository (K286) and this file classes each of them: ecosystem names the tool it uses, replaced the ecosystem tool that replaces it and the item that registers the replacement, record the rebuild record that weighs the tools, policy the reason no ecosystem tool applies. The example applications are classed by what they use, and policy where they implement no tool of an ecosystem. The tests under tests/ (the S9 exception) are not tool sources.",
   "tools": {
+    "benchmarks/validators/arguments.js": {
+      "kind": "policy",
+      "reason": "the iteration counts of the validator benchmark, which measures the four validators on one protocol; no ecosystem tool defines this protocol"
+    },
+    "benchmarks/validators/bench-js.js": {
+      "kind": "policy",
+      "reason": "the JavaScript driver of the validator benchmark, which measures the four validators on one protocol; no ecosystem tool defines this protocol"
+    },
+    "benchmarks/validators/bench-php.php": {
+      "kind": "policy",
+      "reason": "the PHP driver of the validator benchmark, which measures the four validators on one protocol; no ecosystem tool defines this protocol"
+    },
     "benchmarks/validators/build-drivers.mjs": {
       "kind": "ecosystem",
       "tool": "go build and cargo build, run through scripts/run-command.mts"
+    },
+    "benchmarks/validators/drivers.mjs": {
+      "kind": "policy",
+      "reason": "the location of the compiled drivers of the validator benchmark, which measures the four validators on one protocol; no ecosystem tool defines this protocol"
     },
     "benchmarks/validators/gen-fixtures.js": {
       "kind": "policy",
       "reason": "writes the benchmark specifications and inputs that the four validators consume through one protocol; no ecosystem tool defines this protocol"
     },
+    "benchmarks/validators/run.js": {
+      "kind": "policy",
+      "reason": "the orchestrator of the validator benchmark, which measures the four validators on one protocol; no ecosystem tool defines this protocol"
+    },
+    "examples/cross-check-console/client/app.js": {
+      "kind": "ecosystem",
+      "tool": "js-yaml reads the YAML text of a specification in the page of the cross-check console"
+    },
+    "examples/cross-check-console/client/doc.js": {
+      "kind": "policy",
+      "reason": "the the syntax document of the cross-check-console example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/cross-check-console/client/examples.js": {
+      "kind": "policy",
+      "reason": "the the example specifications of the cross-check-console example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/cross-check-console/client/fixture-export.js": {
+      "kind": "policy",
+      "reason": "the the fixture export of the cross-check-console example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
     "examples/cross-check-console/server/build-rust.mjs": {
       "kind": "ecosystem",
       "tool": "cargo build --locked --release, through scripts/run-rust-command.mts"
     },
+    "examples/cross-check-console/server/engine.mjs": {
+      "kind": "ecosystem",
+      "tool": "a Vite SSR environment loads the HTML, React, Vue and Svelte render entries"
+    },
+    "examples/cross-check-console/server/render-runner.mjs": {
+      "kind": "policy",
+      "reason": "the render runner that compares the HTML of four renderers of the cross-check-console example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/cross-check-console/server/server.mjs": {
+      "kind": "ecosystem",
+      "tool": "node:http serves the gateway and js-yaml reads the YAML requests"
+    },
+    "examples/cross-check-console/server/validate-runner.mjs": {
+      "kind": "ecosystem",
+      "tool": "node:child_process runs the validator processes of five languages"
+    },
+    "examples/cross-check-console/validators/js/validate.mjs": {
+      "kind": "policy",
+      "reason": "the JavaScript validator process of the cross-check console: it reads one JSON request, calls the public API of the validator and writes one JSON response, an application of CRUDUI that implements no tool of an ecosystem"
+    },
+    "examples/cross-check-console/validators/php/validate.php": {
+      "kind": "policy",
+      "reason": "the PHP validator process of the cross-check console: it reads one JSON request, calls the public API of the validator and writes one JSON response, an application of CRUDUI that implements no tool of an ecosystem"
+    },
+    "examples/cross-check-console/validators/python/validate.py": {
+      "kind": "policy",
+      "reason": "the Python validator process of the cross-check console: it reads one JSON request, calls the public API of the validator and writes one JSON response, an application of CRUDUI that implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/benchmark-console/main.mjs": {
+      "kind": "policy",
+      "reason": "the benchmark console page of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/browser-report-policy.mjs": {
+      "kind": "policy",
+      "reason": "the module (browser-report-policy.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/build.mjs": {
+      "kind": "ecosystem",
+      "tool": "Vite builds the pages of the form comparison"
+    },
+    "examples/form-comparison/check-browser-reports.mjs": {
+      "kind": "policy",
+      "reason": "the check that asserts one comparison across the runtimes of the form comparison of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/check-generation.mjs": {
+      "kind": "policy",
+      "reason": "the check that asserts one comparison across the runtimes of the form comparison of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/check-interaction.mjs": {
+      "kind": "policy",
+      "reason": "the check that asserts one comparison across the runtimes of the form comparison of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/check-pipeline.mjs": {
+      "kind": "ecosystem",
+      "tool": "puppeteer drives the browser of the form comparison"
+    },
+    "examples/form-comparison/check-servers.mjs": {
+      "kind": "policy",
+      "reason": "the check that asserts one comparison across the runtimes of the form comparison of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/check-typing.mjs": {
+      "kind": "ecosystem",
+      "tool": "puppeteer drives the browser of the form comparison"
+    },
+    "examples/form-comparison/check.mjs": {
+      "kind": "ecosystem",
+      "tool": "puppeteer drives the browser of the form comparison (check.mjs reads the markup with parse5)"
+    },
     "examples/form-comparison/install-ordered-json.mjs": {
       "kind": "ecosystem",
       "tool": "git clones and checks out the tag of the OrderedJSON checkout"
+    },
+    "examples/form-comparison/local-verification.mjs": {
+      "kind": "policy",
+      "reason": "the module (local-verification.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/persistence-report.mjs": {
+      "kind": "policy",
+      "reason": "the module (persistence-report.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/pipeline.browser.mjs": {
+      "kind": "ecosystem",
+      "tool": "puppeteer drives the browser of the form comparison"
+    },
+    "examples/form-comparison/public/main.mjs": {
+      "kind": "policy",
+      "reason": "the module of the canonical page of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/public/record-view.mjs": {
+      "kind": "policy",
+      "reason": "the module of the canonical page of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/public/text.mjs": {
+      "kind": "policy",
+      "reason": "the module of the canonical page of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/server.mjs": {
+      "kind": "ecosystem",
+      "tool": "node:http serves the public server of the form comparison"
+    },
+    "examples/form-comparison/servers/javascript/main.mjs": {
+      "kind": "ecosystem",
+      "tool": "node:http serves the JavaScript record server"
+    },
+    "examples/form-comparison/servers/javascript/records.mjs": {
+      "kind": "policy",
+      "reason": "the JavaScript record server that stores the customer records and renders the stage views of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/api.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/main.mjs": {
+      "kind": "ecosystem",
+      "tool": "PHP-FPM runs servers/php/api.php and nginx accepts the connections"
+    },
+    "examples/form-comparison/servers/php/src/ApiServer.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/BrowserMatrix.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/FormGeneration.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/FormJson.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/FormRepository.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/FormShape.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/RecordStore.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/RequestBody.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/servers/php/src/ServerMode.php": {
+      "kind": "policy",
+      "reason": "the module of the PHP record server of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/action-completion.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/action-completion.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/adapters/bind-form-html.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/adapters/bind-form-svelte.svelte.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/adapters/bind-form-vue.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/adapters/create-form-html.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/adapters/create-form-svelte.svelte.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/adapters/create-form-vue.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/bind-form-controller.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/bind-form-controller.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/browser-job.browser.mjs": {
+      "kind": "ecosystem",
+      "tool": "puppeteer drives the browser of the form comparison"
+    },
+    "examples/form-comparison/src/browser-job.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/browser-job.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/form-validation.mjs": {
+      "kind": "ecosystem",
+      "tool": "@polyspec/crudui-validator validates the form data"
+    },
+    "examples/form-comparison/src/form-views.ts": {
+      "kind": "policy",
+      "reason": "the module (src/form-views.ts) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/forward.mjs": {
+      "kind": "replaced",
+      "reason": "replaced by the http-proxy package, which forwards a request and drops the hop-by-hop headers; item C16.29 registers the replacement"
+    },
+    "examples/form-comparison/src/frame-document.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/frame-document.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/frame-pointer.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/frame-pointer.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/frame-readiness.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/frame-readiness.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/frame.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/frame.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/json.mjs": {
+      "kind": "ecosystem",
+      "tool": "@polyspec/ordered-json encodes and decodes the records"
+    },
+    "examples/form-comparison/src/local-servers.mjs": {
+      "kind": "ecosystem",
+      "tool": "node:child_process starts the record servers and the public server as local processes"
+    },
+    "examples/form-comparison/src/main-page-readiness.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/main-page-readiness.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/ordered-json-source.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/ordered-json-source.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/pages/stage-html.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/pages/stage-svelte.svelte.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/pages/stage-vue.ts": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/pages/stage.mjs": {
+      "kind": "ecosystem",
+      "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
+    },
+    "examples/form-comparison/src/php-provenance.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/php-provenance.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/pipeline-flow.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/pipeline-flow.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/record-contract.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/record-contract.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/runtime-paths.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/runtime-paths.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/save-form.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/save-form.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/scenario.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/scenario.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/server-generation.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/server-generation.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/server-layout.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/server-layout.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/source-identity.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/source-identity.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/source-tree.mjs": {
+      "kind": "ecosystem",
+      "tool": "git reads the checked-out commit and the tracked files of a repository"
+    },
+    "examples/form-comparison/src/step-runner.mjs": {
+      "kind": "replaced",
+      "reason": "replaced by the process-group runner of @polyspec/kit once kit exports it (the kit item of C16.10); it starts a step, prints its progress and stops its process tree; item C16.28 registers the replacement"
+    },
+    "examples/form-comparison/src/storage-lock.mjs": {
+      "kind": "ecosystem",
+      "tool": "the Web Locks API (navigator.locks.request with ifAvailable) holds the origin lock"
+    },
+    "examples/form-comparison/src/unit-pool.mjs": {
+      "kind": "replaced",
+      "reason": "replaced by node:test, whose test() runs each independent unit with its own timeout and reports its start, result and duration through the test runner of @polyspec/kit; item C16.28 registers the replacement"
+    },
+    "examples/form-comparison/src/vue-errors.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/vue-errors.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/verification-evidence.mjs": {
+      "kind": "policy",
+      "reason": "the module (verification-evidence.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-structure/main.js": {
+      "kind": "ecosystem",
+      "tool": "yaml reads the specification text and the renderers of CRUDUI draw the form, the structure map and the data view"
+    },
+    "packages/cli/bin/crudui.mjs": {
+      "kind": "ecosystem",
+      "tool": "the tsx loader runs the TypeScript command entries"
     },
     "packages/generator/go/interface_messages_generate.go": {
       "kind": "policy",
@@ -76,6 +413,10 @@
     "packages/react/scripts/written-form-render-cases.ts": {
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/svelte/tools/eslint.config.js": {
+      "kind": "ecosystem",
+      "tool": "ESLint with eslint-plugin-svelte and typescript-eslint lints the Svelte components"
     },
     "packages/validator/go/validator/validate/unicode_data_generate.go": {
       "kind": "policy",
@@ -200,6 +541,42 @@
     "scripts/install-phpdocumentor.mts": {
       "kind": "record",
       "record": "docs/rebuild/install-phpdocumentor.md"
+    },
+    "scripts/kit/bootstrap/bootstrap.mts": {
+      "kind": "policy",
+      "reason": "a copy of the bootstrap of @polyspec/kit, which classes and records it in its own config/rebuild.json and docs/rebuild/toolchain.md; this repository changes it only in kit"
+    },
+    "scripts/kit/bootstrap/digest.mts": {
+      "kind": "ecosystem",
+      "tool": "node:crypto"
+    },
+    "scripts/kit/bootstrap/files.mts": {
+      "kind": "ecosystem",
+      "tool": "node:fs"
+    },
+    "scripts/kit/bootstrap/install-mise.mts": {
+      "kind": "policy",
+      "reason": "a copy of the bootstrap of @polyspec/kit, which classes and records it in its own config/rebuild.json and docs/rebuild/toolchain.md; this repository changes it only in kit"
+    },
+    "scripts/kit/bootstrap/install-npm.mts": {
+      "kind": "policy",
+      "reason": "a copy of the bootstrap of @polyspec/kit, which classes and records it in its own config/rebuild.json and docs/rebuild/toolchain.md; this repository changes it only in kit"
+    },
+    "scripts/kit/bootstrap/install-tool.mts": {
+      "kind": "policy",
+      "reason": "a copy of the bootstrap of @polyspec/kit, which classes and records it in its own config/rebuild.json and docs/rebuild/toolchain.md; this repository changes it only in kit"
+    },
+    "scripts/kit/bootstrap/tool-wrappers.mts": {
+      "kind": "policy",
+      "reason": "a copy of the bootstrap of @polyspec/kit, which classes and records it in its own config/rebuild.json and docs/rebuild/toolchain.md; this repository changes it only in kit"
+    },
+    "scripts/kit/bootstrap/toolchain-declared.mts": {
+      "kind": "policy",
+      "reason": "a copy of the bootstrap of @polyspec/kit, which classes and records it in its own config/rebuild.json and docs/rebuild/toolchain.md; this repository changes it only in kit"
+    },
+    "scripts/kit/kit-bootstrap.mk": {
+      "kind": "policy",
+      "reason": "the bootstrap order of a repository before the package @polyspec/kit is installed (K71-2), a copy that kit writes"
     },
     "scripts/package-dist.mts": {
       "kind": "ecosystem",

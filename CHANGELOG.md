@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The rebuild classes by layout (C16.7-10)
+
+- `config/rebuild.json` has no `paths` (kit K286 finds the tool sources by the layout of the repository) and classes the 98 sources that the layout adds: the copies of the bootstrap of kit, the benchmark programs, the cross-check console, the form comparison and form structure examples, the CLI entry and the ESLint configuration of the Svelte components; `step-runner.mjs`, `unit-pool.mjs` and `forward.mjs` of the form comparison are `replaced`, with the items C16.28 and C16.29 (C16.7-10). Red: `make rebuild-check` exit 1 (`paths` rejected by the schema, then 98 sources without a class); green: exit 0.
+
 ### 2026-10-20 — The raw control markup in the core (C16.27)
 
 - `@polyspec/crudui-generator-core/internal` exports the raw control markup that the React, Vue and Svelte adapters each held a copy of: `escAttr`, `escText`, `serializeAttrs`, `rawVoid`, `rawElement`, `rawOptions`, `affixHtml`, `rawControl`, `choiceLabelClass`, `groupButtonHtml`, `choicesHtml`, `searchHtml` and `hasEventAttr` (`src/raw-markup.ts`); the adapters import them (C16.27). The Svelte test for an event attribute is now the `on` plus a letter of the other two adapters, not any name that starts with `on`. Red: `make duplication-check` listed 12 clones among the `raw.ts` and widget files of the three adapters; green: those are gone (118 clones remain in total), the Vue and Svelte form rendering conformance tests (463 each) and the other conformance tests of both pass, and `make lint-ts` passes. The output is unchanged, so the red is the clone list.

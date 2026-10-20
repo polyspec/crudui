@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d0957030160f8417a7343220113c62986062057f137a717157541fad68045a49 -->
+<!-- source-sha256: a6279ab51f726d438377e2b5599529be9e1facbeb819d18f4fae0bf95499402a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -20,6 +20,7 @@
 | C16.7-7 | ci-local test는 kit의 release.yml 사본의 trigger를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.7-8 | offline-checks test는 kit 0.0.54가 정의한 대로 online target을 나열한다 | tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` | [o] |
 | C16.7-9 | config/rebuild.json은 모든 도구 source를 다룬다. Go와 Rust generator, fixture와 benchmark generator, example의 build script | config/rebuild.json | `make rebuild-check` | [o] |
+| C16.7-10 | config/rebuild.json은 kit이 layout으로 찾는 모든 도구 source를 paths 없이 분류한다 | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |
@@ -41,3 +42,5 @@
 | C16.25 | Rust validator는 composition member layering, 허용된 file 판별, list와 detail 입력 읽기를 공유 함수로 수행한다 | packages/validator/rust/src/compose/members.rs, compose.rs, ref_.rs, patch.rs, expr/evaluator.rs, validate/rules.rs, validate/validator.rs, text.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml validate`, `make lint-rust` | [o] |
 | C16.26 | TypeScript validator는 composition layering, literal reader, rule의 형태를 공유한다 | packages/validator/ts/src/compose/layer.ts, rules/factories.ts, compose-root.ts, parser/ConditionParser.ts and the rules | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/validate.conformance.test.ts src/compose.conformance.test.ts src/expr.conformance.test.ts src/validate/parameters.unit.test.ts src/values/values.unit.test.ts`, `make lint-ts` | [o] |
 | C16.27 | React, Vue, Svelte adapter는 raw control markup을 core에서 가져온다 | packages/generator/ts/src/raw-markup.ts, internal.ts, packages/react, packages/vue, packages/svelte (raw.ts, Widget, widget.ts) | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/vue -- tests/form-render.conformance.test.mjs`, `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/svelte -- tests/form-render.conformance.test.mjs`, `make lint-ts` | [o] |
+| C16.28 | form comparison은 step을 kit의 process-group runner로, unit을 node:test test로 실행한다 (examples/form-comparison/src/step-runner.mjs와 unit-pool.mjs를 대체). step runner는 kit export를 기다린다 | examples/form-comparison, config/rebuild.json | `make rebuild-check` | [ ] |
+| C16.29 | form comparison의 public server는 http-proxy package로 request를 전달한다 (examples/form-comparison/src/forward.mjs를 대체) | examples/form-comparison, config/rebuild.json | `make rebuild-check` | [ ] |

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 15f362beb3ca7c365fc91f495d76cfc0a96716c21ce3c00b780b8abc152fd720 -->
+<!-- source-sha256: 79f571351c0b0c9eab66e02905aa8ae61e820df00c1818094109988ffb66b939 -->
 
 ## Unreleased
+
+### 2026-10-20 — layout으로 찾는 rebuild class (C16.7-10)
+
+- `config/rebuild.json`에서 `paths`를 제거하고(kit K286이 저장소 layout으로 도구 source를 찾음) layout이 더한 98개 source를 분류합니다. kit bootstrap의 사본, benchmark program, cross-check console, form comparison과 form structure example, CLI entry, Svelte component의 ESLint 설정입니다. form comparison의 `step-runner.mjs`, `unit-pool.mjs`, `forward.mjs`는 `replaced`이며 item은 C16.28과 C16.29입니다 (C16.7-10). Red: `make rebuild-check` exit 1(schema가 `paths`를 거부하고, 이어서 class 없는 source 98개), green: exit 0.
 
 ### 2026-10-20 — core의 raw control markup (C16.27)
 
