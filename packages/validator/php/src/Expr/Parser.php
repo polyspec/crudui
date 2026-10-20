@@ -188,19 +188,18 @@ final class Parser
             return new LiteralNode('string', $this->previous()->value);
         }
 
-        if ($this->match(TokenType::NUMBER)) {
-            /** @var int|float $lit */
-            $lit = $this->previous()->literal;
-            return new LiteralNode('number', $lit);
-        }
+        return $this->literal(TokenType::NUMBER, 'number')
+            ?? $this->literal(TokenType::STRING, 'string')
+            ?? throw new ParseError('Invalid value in list: ' . $this->peek()->value);
+    }
 
-        if ($this->match(TokenType::STRING)) {
-            /** @var string $lit */
-            $lit = $this->previous()->literal;
-            return new LiteralNode('string', $lit);
+    /** Consume a token of `$type` as a literal of `$valueType`, or leave the input and return null. */
+    private function literal(TokenType $type, string $valueType): ?LiteralNode
+    {
+        if (!$this->match($type)) {
+            return null;
         }
-
-        throw new ParseError('Invalid value in list: ' . $this->peek()->value);
+        return new LiteralNode($valueType, $this->previous()->literal);
     }
 
     /**
@@ -251,22 +250,11 @@ final class Parser
             return $this->parsePath();
         }
 
-        if ($this->match(TokenType::STRING)) {
-            /** @var string $lit */
-            $lit = $this->previous()->literal;
-            return new LiteralNode('string', $lit);
-        }
-
-        if ($this->match(TokenType::NUMBER)) {
-            /** @var int|float $lit */
-            $lit = $this->previous()->literal;
-            return new LiteralNode('number', $lit);
-        }
-
-        if ($this->match(TokenType::BOOLEAN)) {
-            /** @var bool $lit */
-            $lit = $this->previous()->literal;
-            return new LiteralNode('boolean', $lit);
+        $literal = $this->literal(TokenType::STRING, 'string')
+            ?? $this->literal(TokenType::NUMBER, 'number')
+            ?? $this->literal(TokenType::BOOLEAN, 'boolean');
+        if ($literal !== null) {
+            return $literal;
         }
 
         if ($this->match(TokenType::NULL)) {

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ecb9f13f491ba2778daa3e9b66feb9081355caf460aa10c0973a2f128ea32294 -->
+<!-- source-sha256: c6b1cc2e4c19da00f282f17cb30aba6a44ca889ba7abf5d8ce5588f368216192 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP expression parser의 literal reader 하나 (C16.16)
+
+- `Parser::literal`은 string, number, boolean token을 `LiteralNode`로 소비합니다. 이전에는 `parsePrimary`와 `parseValueListItem`이 각각 풀어서 세 번씩 적었습니다 (C16.16). Red: `make duplication-check`가 `Expr/Parser.php`의 clone 2건을 나열했고, green: 없음. `ExprConformanceTest`(78)와 `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — 조합 member를 위한 하나의 module (C16.15)
 

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — One literal reader in the PHP expression parser (C16.16)
+
+- `Parser::literal` consumes a string, number or boolean token as a `LiteralNode`, which `parsePrimary` and `parseValueListItem` each spelled out three times (C16.16). Red: `make duplication-check` listed 2 clones in `Expr/Parser.php`; green: none, `ExprConformanceTest` (78) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — One module for the composition members (C16.15)
 
 - `Compose\Members` holds the layering of the members of a node (`$ref` base, later members, `$patch`), the shallow merge, the plain-object test, the `UNDEFINED` sentinel and the shape-keeping rebuild of a member, which `Compose`, `Ref` and `Patch` each held a copy of (C16.15). Red: `make duplication-check` listed 9 clones in `src/Compose` (`Compose`/`Ref`/`Patch`); green: 1 remains (the docblock and signature of `setDeepPath` and `removeDeepPath`), and `ComposeConformanceTest` (20), `PatchTest` (17), `RefTest` (7) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.

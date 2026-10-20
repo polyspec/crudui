@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f2f9f0c2813f97a1ded0d438e0558b8e24a846b9f60e0087217598013bcddbc9 -->
+<!-- source-sha256: 20a3d87b59a6ea80d9f5a2c9372447efb6ad05c17ae31f1e45d5fdb2cff5d416 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -21,3 +21,4 @@
 | C16.13 | contracts/unicode-properties.json은 @unicode/unicode-16.0.0에서 얻는다 (scripts/generate-unicode-properties.mts와 contracts/unicode를 대체) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [ ] |
 | C16.14 | config/duplication.json은 생성된 Unicode table과 test를 각각의 이유와 함께 제외한다 | config/duplication.json | `make duplication-check` | [o] |
 | C16.15 | PHP validator는 ef와 atch member를 하나의 module로 조합한다 (Compose clone) | packages/validator/php/src/Compose/Members.php, Compose.php, Ref.php, Patch.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/ComposeConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/PatchTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/RefTest.php`, `make lint-php` | [o] |
+| C16.16 | PHP expression parser는 literal을 하나의 method로 읽는다 | packages/validator/php/src/Expr/Parser.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Expr/ExprConformanceTest.php`, `make lint-php` | [o] |
