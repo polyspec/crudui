@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e95e5b5022d4b8b10f8fc3598227f182bd4db5627ee1294612aa88bd206281a2 -->
+<!-- source-sha256: 671ae1a828304771d197276063f3765c530c005dd2800471c71338f9be979443 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -11,6 +11,7 @@
 | C16.5 | docs/는 K245가 허용한 폴더만 담는다 | docs/.site, scripts/docs-web/build.mts, scripts/docs-web/watch.mts, docs/operations/documentation.md, docs/operations/documentation.ko.md | `make layout-check`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/development-server.test.mts tests/docs/web-build.test.mts` | [o] |
 | C16.6 | PHP generator에 빈 catch가 없다 | packages/generator/php/src/Internal/Design.php, packages/generator/php/tests/FormTest.php | `make lint-php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormTest.php` | [o] |
 | C16.7 | repository의 모든 도구가 config/rebuild.json에 class를 가진다 | config/rebuild.json, docs/rebuild | `make rebuild-check` | [o] |
+| C16.7-1 | config/rebuild.json과 config/duplication.json은 config/owner-checks.json에 owner를 가진다 | config/owner-checks.json | `make owner-validate` | [!] 원인: config/owner-checks.json의 fullSuite가 kit 0.0.54의 어떤 Makefile이나 kit.mk에도 없는 rerun-failed를 가리켜 make owner-validate가 아직 실패한다. rebuild.json과 duplication.json의 경로는 이제 owner가 있다; 재시도: kit이 rerun-failed target을 제공한 후 |
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |

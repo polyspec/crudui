@@ -474,6 +474,23 @@
     },
     {
       "paths": [
+        "config/rebuild.json",
+        "docs/rebuild/**"
+      ],
+      "targets": [
+        "rebuild-check"
+      ]
+    },
+    {
+      "paths": [
+        "config/duplication.json"
+      ],
+      "targets": [
+        "duplication-check"
+      ]
+    },
+    {
+      "paths": [
         "scripts/run-rust-command.mts",
         "scripts/tool-resolution.mts"
       ],
