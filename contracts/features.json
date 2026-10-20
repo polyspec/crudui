@@ -1214,7 +1214,7 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "unsupported",
+        "php-native": "pass",
         "python": "pass"
       },
       "status": "implemented",
