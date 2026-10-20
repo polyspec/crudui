@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — make install of a fresh worktree runs to its end (C16.149)
+
+- `crudui-install` of the Makefile runs `install-link` after `crudui-install-python` and `crudui-install-composer` and before `crudui-install-phpdocumentor` (C16.149). composer install writes `vendor/composer/platform_check.php` from the tracked `composer.lock`, which demands PHP 8.5 for the released polyspec/ordered-json 0.0.9, and the link that writes the check for the PHP 8.4.1 of `.php-version` ran only at the end of `make install`, so `make worktree-setup` stopped at phpDocumentor with "Composer detected issues in your platform". Red: the order check of `make -n crudui-install` exit 1 on 379832f3; green: exit 0, and `make install-link` then `make crudui-install-phpdocumentor` install phpDocumentor 3.10.0 in the worktree.
+
 ### 2026-10-21 — CURT-055 is cited by the session that covers it whole; CURT-054 is withdrawn from the form state citation (C16.146-1)
 
 Corrects the citations of C16.146. A case is cited only for a requirement it tests whole.

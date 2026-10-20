@@ -111,8 +111,11 @@ help: ## 타겟 설명
 # Composer are the tools of mise.toml in var/tools. `make toolchain-check` names every tool at another version.
 install: crudui-install ## Install the declared tools with the Rust toolchain, the npm, Composer, Python and Cargo dependencies and phpDocumentor
 
-# crudui-install is the repository step of install: it runs after install-kit, the bootstrap of kit (K246-2).
-crudui-install: install-kit crudui-install-composer crudui-install-python crudui-install-crates crudui-install-go-modules crudui-install-phpdocumentor crudui-install-browsers
+# crudui-install is the repository step of install: it runs after install-kit, the bootstrap of kit (K246-2). composer install
+# writes vendor/composer/platform_check.php from the tracked composer.lock, which demands the PHP of the released polyspec
+# packages; install-link, which install runs again at its end, points them at the sibling checkouts and writes the check for the
+# PHP of .php-version, so it runs before phpDocumentor, the first step that runs PHP, and after the Python install it needs.
+crudui-install: install-kit crudui-install-python crudui-install-composer install-link crudui-install-crates crudui-install-go-modules crudui-install-phpdocumentor crudui-install-browsers
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of

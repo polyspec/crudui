@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 36d1321df52c0683ace04519f0a23c048260f5de473e17e0cb9c23a34cfd91e4 -->
+<!-- source-sha256: 6d19266151d1388359f92f3380b02de22f00e11b00781b5238f92ccf3534a766 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -269,3 +269,4 @@
 | C16.148-4 | Rust form state runner가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/rust/tests/form_state.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
 | C16.148-5 | PHP form state 테스트(PHP library와 PHP extension이 모두 실행)가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/php/tests/FormStateTest.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- --filter FormStateTest`, `make test-php-ext CASES='FormStateTest'` | [o] |
 | C16.148-6 | form-actions unit이 CURT-054를 전부 인용한다. 새 경로의 검증 오류를 관찰하는 rekey 세션을 통해서다 | config/parity.json | `sh -c 'make -s parity-declarations-check > var/pd-C16.148-6.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURT-054," var/pd-C16.148-6.log'` | [o] |
+| C16.149 | 새 worktree의 make install이 끝까지 실행된다: kit link가 Python과 Composer 설치 뒤, PHP를 처음 실행하는 phpDocumentor 앞에서 실행된다 | Makefile | `sh -c 'make -n crudui-install > var/c149.log 2>&1; awk "/composer install/&&!c{c=NR} /link.mjs link/&&c&&!l{l=NR} /install-phpdocumentor.mts/{p=NR} END{exit !(c&&l&&p&&c<l&&l<p)}" var/c149.log'` | [o] |
