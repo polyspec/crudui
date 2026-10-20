@@ -54,6 +54,94 @@
         {
           "glob": "packages/html/src/view-session.test.ts",
           "reason": "test: the browser session of the HTML renderer, the browser session of the HTML renderer (the view re-render of tests/fixtures/view-session); only the TypeScript runtime runs a browser session, and the shared view fixture checks it in the four TypeScript renderers"
+        },
+        {
+          "glob": "packages/generator/ts/src/button-control.test.ts",
+          "reason": "test: the unit test of the button widget model (Button fields); the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/choice-appearance.test.ts",
+          "reason": "test: the unit test of the choice appearance of the widget model; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/choice-groups.test.ts",
+          "reason": "test: the unit test of the choice groups of the widget model; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/css.test.ts",
+          "reason": "test: the CSS declaration parser of the TypeScript generator (canonical style); no other implementation parses CSS declarations and no shared suite runs it"
+        },
+        {
+          "glob": "packages/generator/ts/src/date.test.ts",
+          "reason": "test: the unit test of the UTC date formatting of date controls, datetime controls and list cells; the shared suite list-render covers it through packages/html/src/list-conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/declared-attributes.test.ts",
+          "reason": "test: the unit test of the declared attributes of the node and widget models; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/detail.test.ts",
+          "reason": "test: the unit test of the buildDetail display model; the shared suite detail-render covers it through packages/html/src/detail-conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/form-render.test.ts",
+          "reason": "test: the unit test of the decoding of render options (decodeFormRenderOptions); the shared suite form-complete covers it through packages/html/src/form-complete.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/inline-layout.test.ts",
+          "reason": "test: the unit test of the inline and line layout of the node model; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/list.test.ts",
+          "reason": "test: the unit test of the buildList view model; the shared suite list-render covers it through packages/html/src/list-conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/node.test.ts",
+          "reason": "test: the unit test of the node grammar view model; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/range-control.test.ts",
+          "reason": "test: the unit test of the range widget model; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/switch-control.test.ts",
+          "reason": "test: the unit test of the switch model; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/generator/ts/src/widget-controls.test.ts",
+          "reason": "test: the unit test of the display field defaults and the widget paths of keyed rows; the shared suite form-render covers it through packages/html/src/conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/pattern/pattern.unit.test.ts",
+          "reason": "test: the unit test of the pattern language and its state sets; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/range-field.test.ts",
+          "reason": "test: the unit test of the range field values; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/rules/accept.test.ts",
+          "reason": "test: the unit test of the accept rule on file objects; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/rules/unique.reads.test.ts",
+          "reason": "test: the unit test of the reads of the unique rule; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/ternary-validation.test.ts",
+          "reason": "test: the unit test of the conditional validation parameters; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/types.roundtrip.test.ts",
+          "reason": "test: the round trip of the TypeScript FieldSpec type (canonical JSON shape); the type model belongs to the TypeScript validator and no shared suite runs it"
+        },
+        {
+          "glob": "packages/validator/ts/src/validate/parameters.unit.test.ts",
+          "reason": "test: the unit test of the conditional parameters; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/validator/ts/src/validate/unknown-input.test.ts",
+          "reason": "test: the unit test of the unknown form data fields; the shared suite validate covers it through packages/validator/ts/src/validate.conformance.test.ts; this file reads no fixture of tests/fixtures"
         }
       ]
     },
@@ -416,6 +504,12 @@
       "roots": [
         "packages/generator/python",
         "packages/validator/python"
+      ],
+      "internal": [
+        {
+          "glob": "packages/validator/python/tests/test_pattern_states.py",
+          "reason": "test: the unit test of the pattern states; the shared suite validate covers it through packages/validator/python/tests/test_validate.py; this file reads no fixture of tests/fixtures"
+        }
       ]
     }
   ],

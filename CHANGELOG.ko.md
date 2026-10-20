@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ce43fcf55181c0b98219fb3ef87061f82acbd514bb60bf9580c5b3ab1cf6d42c -->
+<!-- source-sha256: dee75ab2b11e25ad2f7c1045ed219e31a805850964fbb0cc08a6fd443e239854 -->
 
 ## Unreleased
 
@@ -20,6 +20,11 @@
 ### 2026-10-21 — PHP file이 phpcs 줄 길이 규칙을 통과한다 (C16.107)
 
 - `make lint-php`가 보고한 PHP file들을 120자로 줄바꿈했습니다(C16.107). `packages/generator/php/src/Form.php`(`normalizeFields`), `src/Internal/Lists.php`, test `DetailRenderConformanceTest.php`, `ListRenderConformanceTest.php`, `FormCompleteConformanceTest.php`, `LayoutTree.php`, `DetailTest.php`, `DisplayRulesTest.php`, `packages/php-ext/tests/ApiReport.php`, `packages/validator/php/tests/Validate/TextValidityConformanceTest.php`, `UniqueValuesTest.php`의 docblock과 comment를 줄바꿈하고, 코드 줄은 값을 바꾸지 않고 나눴습니다(`TextValidityConformanceTest`의 정규식은 `|`에서 이어 붙입니다). 이 규칙은 kit의 PSR-12 `phpcs.xml.dist`(kit K77, 2026-10-13)이며, 줄은 main이 2026-10-20과 2026-10-21에 합친 file(C16.70, C16.87, C16.89 ~ C16.97)에서 왔습니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` exit 2, 17 file의 Generic.Files.LineLength warning 30개. Green: 같은 명령 exit 0; owner test `DisplayRulesTest`, `DetailTest`, `DetailRenderConformanceTest`, `ListRenderConformanceTest`, `FormCompleteConformanceTest`, `FormTest`는 305 test, `TextValidityConformanceTest`와 `UniqueValuesTest`는 48 test가 통과하고, `packages/php-ext/tests/ApiReport.php`는 exit 0입니다.
+
+### 2026-10-21 — 공유 suite가 덮는 TypeScript와 Python 테스트 파일은 internal이다 (C16.105)
+
+- `config/parity.json`은 테스트 파일 23개를 internal로 선언합니다. TypeScript 22개와 Python 1개이며, 각 이유는 행동을 덮는 공유 suite와 unit의 이름을 적습니다. generator TypeScript 파일 14개는 form-render, list-render, detail-render, form-complete 아래에 있고, 다만 `css.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. validator TypeScript 파일 8개는 validate 아래에 있고, 다만 `types.roundtrip.test.ts`는 자기 구현 안에서만 쓰는 internal 파일입니다. `packages/validator/python/tests/test_pattern_states.py`는 validate 아래에 있습니다.
+- 검사는 이 23개 파일을 R5 undeclared-test로 더 이상 보고하지 않습니다. 남은 TypeScript와 Python 파일 26개는 compose, expr, interface-messages, unicode-data 파일이거나 분류 기록의 gap이며, 뒤의 행에서 다룹니다.
 
 ### 2026-10-21 — Rust generator와 validator가 embed된 contract를 include_str로 검사한다 (C16.58-13)
 
