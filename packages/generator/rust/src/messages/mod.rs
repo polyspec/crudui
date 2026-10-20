@@ -128,17 +128,11 @@ mod tests {
 
     #[test]
     fn embedded_messages_match_the_contract() {
-        let path = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../../contracts/interface-messages.json"
-        );
-        let text = match std::fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(error) => panic!("read {path}: {error}"),
-        };
-        let contract: Value = match serde_json::from_str(&text) {
+        let contract: Value = match serde_json::from_str(include_str!(
+            "../../../../../contracts/interface-messages.json"
+        )) {
             Ok(value) => value,
-            Err(error) => panic!("parse {path}: {error}"),
+            Err(error) => panic!("parse contracts/interface-messages.json: {error}"),
         };
         let hint = "src/interface_messages.rs differs from the contract; \
                     run `node tools/generate-interface-messages.mjs` in packages/generator/rust";

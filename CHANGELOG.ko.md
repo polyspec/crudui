@@ -1,8 +1,37 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: bcda67ea6e0aa948eb39a6a3cb8f2512cd8f804ee9298897e7f863e31d04a0f6 -->
+<!-- source-sha256: 8bbe5425bc17e56f2e20ca6e17fa5f1a07aca8394d7848c7a0a65c919a12497b -->
 
 ## Unreleased
+
+### 2026-10-21 — Rust generator와 validator가 embed된 contract를 include_str로 검사한다 (C16.58-13)
+
+- `packages/generator/rust/src/messages/mod.rs`와 `packages/validator/rust/src/validate/unicode/mod.rs`는 embed된 table과 비교하는 test에서 contract를 `include_str!`로 embed합니다. 각자 같은 path, read, parse preamble로 run time에 읽던 것을 대신합니다(C16.58-13). contract가 없거나 잘못되어도 test는 여전히 실패하며, 이제 compile 시점이거나 같은 parse panic으로 실패합니다. duplication check는 두 preamble의 clone을 없앴습니다. Red: `make duplication-check` exit 2, 35 clone(두 test module의 preamble clone 포함: `packages/generator/rust/src/messages/mod.rs` 134-140 행과 `packages/validator/rust/src/validate/unicode/mod.rs` 76-82 행); green: `embedded_data_matches_the_contract`(validator)와 `embedded_messages_match_the_contract`(generator)가 각각 1 test passed, 두 파일의 `rustfmt --check`는 아무것도 보고하지 않습니다.
+
+### 2026-10-21 — validator가 JSON object의 member를 하나의 walker로 디코딩한다 (C16.58-12)
+
+- `packages/validator/go/validator/types.go`에 `objectOpen`, `objectEntries`, `objectEntry`를 더했습니다. 이들은 JSON object를 문서 순서의 member로 token 단위 순회합니다. `orderedRawObject`(반복된 key는 첫 자리와 마지막 값을 갖고, object가 아니면 오류)와 `objectMembers`(object가 아니면 member가 없고, 모든 member를 유지)가 이것을 쓰며 각자의 규칙을 그대로 둡니다(C16.58-12). duplication check는 두 함수 사이의 clone을 없앴습니다. Red: `make duplication-check` exit 2, 35 clone(`types.go` 991-998 행과 1320-1327 행의 clone 포함); green: validator의 선택된 owner test(`TestRoundTrip`, `TestForbidden`, `TestXComment`, `TestNonCanonical`, `TestClosed`, `TestDesign`, `TestValidateExtra`, `TestNested`, `TestRule`, `TestTopLevel`, `TestOptions`, 19 passed) exit 0; `go vet ./validator` exit 0; `gofmt -l`은 아무것도 보고하지 않습니다.
+
+### 2026-10-21 — form-comparison Rust server가 lock 열기와 test fixture를 공유한다 (C16.58-10)
+
+- `examples/form-comparison/servers/rust/src/repository.rs`에 `open_lock`을 더했습니다. 이 함수는 store file의 lock file을 엽니다. `Repository::transaction`과 `records.rs`의 `Store::locked`가 모두 이것을 씁니다(C16.58-10). `tests.rs`에는 React create form의 repository를 만드는 `react_repository`와 그 native form 제출을 보내는 `post_native`를 더했고, 네 test가 되풀이하던 `Repository` literal과 form POST block을 대신합니다. duplication check는 example의 Rust clone을 없앴습니다(변경 전 38 clone, 후 35 clone; 수에는 C16.58-9의 변경이 포함됩니다). Red: `make duplication-check` exit 2, 38 clone(example Rust clone 세 개 포함); green: 같은 check가 exit 2, 35 clone이며 이 파일들에는 없습니다; Rust owner test(`tests::`, 18 passed)가 exit 0입니다. `rustfmt --check`는 `repository.rs`와 `tests.rs`에서 차이가 없고, `records.rs`의 차이(`specs`)는 HEAD에도 있습니다.
+
+### 2026-10-21 — form-comparison script와 frame이 entry guard, native form field, 결과 payload를 공유한다 (C16.58-9)
+
+- `examples/form-comparison/src/entry-point.mjs`(신규)는 script가 entry point일 때 `main`을 실행하는 guard를 담고, `check-pipeline.mjs`와 `local-verification.mjs`가 그것을 부릅니다. `src/native-fields.mjs`(신규)는 제출의 native form field를 담고, `check-servers.mjs`와 `src/frame.mjs`가 그것으로 제출을 만듭니다. `src/unit-pool.mjs`는 unit과 operation 결과의 value와 error 부분을 `resultPayload` 하나로 만들며, 각 결과의 key 순서는 바뀌지 않았습니다(C16.58-9). duplication check는 그 clone들을 없앴습니다(변경 전 41 clone, 후 38 clone). Red: `make duplication-check` exit 2, 41 clone(guard, native field, 결과 payload 포함); green: 같은 check가 exit 2, 38 clone이며 이 파일들에는 없습니다; owner test `src/unit-pool.test.mjs`(7 passed), `check-servers.test.mjs`(4 passed), `check-verification.test.mjs`(8 passed)가 exit 0입니다.
+- `config/rebuild.json`은 `examples/form-comparison/src/entry-point.mjs`와 `native-fields.mjs`를 다른 module과 같이 form comparison example의 policy module로 분류합니다(C16.58-9).
+
+### 2026-10-21 — form-comparison stage page들이 form의 binding 평가를 공유한다 (C16.58-8)
+
+- `examples/form-comparison/src/form-views.ts`에 `evaluateBinding`을 더했습니다. 이 함수는 template을 record data와 view 상태에 bind합니다. `pages/stage-svelte.svelte.ts`와 `pages/stage-vue.ts`는 같은 평가를 각자 가지는 대신 이 함수를 씁니다(C16.58-8). duplication check는 그 clone을 없앴습니다(변경 전 42 clone, 후 41 clone). page의 동작은 같습니다. Red: `make duplication-check` exit 2, 42 clone(두 page 사이의 stage clone); green: 같은 check가 exit 2, 41 clone이며 stage clone이 없습니다; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/public/pipeline.test.mjs` exit 0, 9 passed; `node examples/form-comparison/build.mjs <절대 경로>`가 page를 bundle합니다. adapter의 mount와 hydrate wrapper는 남깁니다. `src/adapter-completion.test.mjs`가 각 adapter가 자기 signature로 그것을 선언하기를 요구하기 때문입니다.
+
+### 2026-10-21 — PHP table generator들이 contract reader와 source writer를 공유한다 (C16.58-7)
+
+- `scripts/generator-contract.php`에 `crudui_generate`를 더했습니다. 이 함수는 `contracts/<name>.json`을 읽고 source를 만들어 출력하거나 씁니다. 모든 table generator가 하던 일입니다. `packages/generator/php/scripts/generate-interface-messages.php`와 `packages/validator/php/scripts/generate-unicode-data.php`는 table builder를 넘겨 이 함수를 부르며, 둘이 공유하던 header와 `--stdout` 설명은 한 곳에만 있습니다(C16.58-7). duplication check는 두 script가 공유하던 PHP header clone을 없앴습니다(변경 전 43 clone, 후 42 clone). 출력: 두 generator의 `php <script> --stdout`은 전과 같은 byte를 출력하며, 생성된 `src/Internal/InterfaceMessages.php`와 `src/Values/UnicodeData.php`는 바뀌지 않았습니다. Red: `make duplication-check` exit 2, 43 clone(두 script 사이의 PHP header clone); green: 같은 check가 exit 2, 42 clone(script clone 없음); `tests/Internal/InterfaceMessagesTest.php`와 `tests/Values/UnicodeDataTest.php`의 `phpunit`이 통과합니다.
+
+### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
+
+- `packages/generator/ts/styles/crudui.tailwind.css`와 `packages/generator/ts/scripts/write-tailwind-styles.mjs`를 지웠습니다. page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를 `layer(components)`로 import합니다. 이것은 CSS와 Tailwind CSS 4가 제공하는 기능입니다(C16.12). package는 더 이상 `./crudui.tailwind.css`를 export하지 않고, `test:forms`는 script를 실행하지 않습니다. `tests/tailwind-styles.test.mts`는 같은 `crudui.css` import를 layer `components`로 compile합니다. compile된 CSS는 같습니다: test 입력은 변경 전후 모두 21,286 byte로 compile되며 두 출력은 다른 줄이 없습니다. `config/rebuild.json`은 script의 항목을 뺐고, `docs/spec/form-markup.ko.md`, `docs/operations/forms.ko.md`, `docs/features.ko.md`는 그 import를 설명합니다. Red: 생성 file과 import의 compile 결과(package build로 비교)가 같았습니다. Green: `make rebuild-check` exit 0, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/tailwind-styles.test.mts` exit 0, 1363 passed.
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 
@@ -27,30 +56,6 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
-
-### 2026-10-21 — validator가 JSON object의 member를 하나의 walker로 디코딩한다 (C16.58-12)
-
-- `packages/validator/go/validator/types.go`에 `objectOpen`, `objectEntries`, `objectEntry`를 더했습니다. 이들은 JSON object를 문서 순서의 member로 token 단위 순회합니다. `orderedRawObject`(반복된 key는 첫 자리와 마지막 값을 갖고, object가 아니면 오류)와 `objectMembers`(object가 아니면 member가 없고, 모든 member를 유지)가 이것을 쓰며 각자의 규칙을 그대로 둡니다(C16.58-12). duplication check는 두 함수 사이의 clone을 없앴습니다. Red: `make duplication-check` exit 2, 35 clone(`types.go` 991-998 행과 1320-1327 행의 clone 포함); green: validator의 선택된 owner test(`TestRoundTrip`, `TestForbidden`, `TestXComment`, `TestNonCanonical`, `TestClosed`, `TestDesign`, `TestValidateExtra`, `TestNested`, `TestRule`, `TestTopLevel`, `TestOptions`, 19 passed) exit 0; `go vet ./validator` exit 0; `gofmt -l`은 아무것도 보고하지 않습니다.
-
-### 2026-10-21 — form-comparison Rust server가 lock 열기와 test fixture를 공유한다 (C16.58-10)
-
-- `examples/form-comparison/servers/rust/src/repository.rs`에 `open_lock`을 더했습니다. 이 함수는 store file의 lock file을 엽니다. `Repository::transaction`과 `records.rs`의 `Store::locked`가 모두 이것을 씁니다(C16.58-10). `tests.rs`에는 React create form의 repository를 만드는 `react_repository`와 그 native form 제출을 보내는 `post_native`를 더했고, 네 test가 되풀이하던 `Repository` literal과 form POST block을 대신합니다. duplication check는 example의 Rust clone을 없앴습니다(변경 전 38 clone, 후 35 clone; 수에는 C16.58-9의 변경이 포함됩니다). Red: `make duplication-check` exit 2, 38 clone(example Rust clone 세 개 포함); green: 같은 check가 exit 2, 35 clone이며 이 파일들에는 없습니다; Rust owner test(`tests::`, 18 passed)가 exit 0입니다. `rustfmt --check`는 `repository.rs`와 `tests.rs`에서 차이가 없고, `records.rs`의 차이(`specs`)는 HEAD에도 있습니다.
-
-### 2026-10-21 — form-comparison script와 frame이 entry guard, native form field, 결과 payload를 공유한다 (C16.58-9)
-
-- `examples/form-comparison/src/entry-point.mjs`(신규)는 script가 entry point일 때 `main`을 실행하는 guard를 담고, `check-pipeline.mjs`와 `local-verification.mjs`가 그것을 부릅니다. `src/native-fields.mjs`(신규)는 제출의 native form field를 담고, `check-servers.mjs`와 `src/frame.mjs`가 그것으로 제출을 만듭니다. `src/unit-pool.mjs`는 unit과 operation 결과의 value와 error 부분을 `resultPayload` 하나로 만들며, 각 결과의 key 순서는 바뀌지 않았습니다(C16.58-9). duplication check는 그 clone들을 없앴습니다(변경 전 41 clone, 후 38 clone). Red: `make duplication-check` exit 2, 41 clone(guard, native field, 결과 payload 포함); green: 같은 check가 exit 2, 38 clone이며 이 파일들에는 없습니다; owner test `src/unit-pool.test.mjs`(7 passed), `check-servers.test.mjs`(4 passed), `check-verification.test.mjs`(8 passed)가 exit 0입니다.
-
-### 2026-10-21 — form-comparison stage page들이 form의 binding 평가를 공유한다 (C16.58-8)
-
-- `examples/form-comparison/src/form-views.ts`에 `evaluateBinding`을 더했습니다. 이 함수는 template을 record data와 view 상태에 bind합니다. `pages/stage-svelte.svelte.ts`와 `pages/stage-vue.ts`는 같은 평가를 각자 가지는 대신 이 함수를 씁니다(C16.58-8). duplication check는 그 clone을 없앴습니다(변경 전 42 clone, 후 41 clone). page의 동작은 같습니다. Red: `make duplication-check` exit 2, 42 clone(두 page 사이의 stage clone); green: 같은 check가 exit 2, 41 clone이며 stage clone이 없습니다; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/public/pipeline.test.mjs` exit 0, 9 passed; `node examples/form-comparison/build.mjs <절대 경로>`가 page를 bundle합니다. adapter의 mount와 hydrate wrapper는 남깁니다. `src/adapter-completion.test.mjs`가 각 adapter가 자기 signature로 그것을 선언하기를 요구하기 때문입니다.
-
-### 2026-10-21 — PHP table generator들이 contract reader와 source writer를 공유한다 (C16.58-7)
-
-- `scripts/generator-contract.php`에 `crudui_generate`를 더했습니다. 이 함수는 `contracts/<name>.json`을 읽고 source를 만들어 출력하거나 씁니다. 모든 table generator가 하던 일입니다. `packages/generator/php/scripts/generate-interface-messages.php`와 `packages/validator/php/scripts/generate-unicode-data.php`는 table builder를 넘겨 이 함수를 부르며, 둘이 공유하던 header와 `--stdout` 설명은 한 곳에만 있습니다(C16.58-7). duplication check는 두 script가 공유하던 PHP header clone을 없앴습니다(변경 전 43 clone, 후 42 clone). 출력: 두 generator의 `php <script> --stdout`은 전과 같은 byte를 출력하며, 생성된 `src/Internal/InterfaceMessages.php`와 `src/Values/UnicodeData.php`는 바뀌지 않았습니다. Red: `make duplication-check` exit 2, 43 clone(두 script 사이의 PHP header clone); green: 같은 check가 exit 2, 42 clone(script clone 없음); `tests/Internal/InterfaceMessagesTest.php`와 `tests/Values/UnicodeDataTest.php`의 `phpunit`이 통과합니다.
-
-### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
-
-- `packages/generator/ts/styles/crudui.tailwind.css`와 `packages/generator/ts/scripts/write-tailwind-styles.mjs`를 지웠습니다. page는 `tailwindcss` 뒤에 `@polyspec/crudui-generator-core/crudui.css`를 `layer(components)`로 import합니다. 이것은 CSS와 Tailwind CSS 4가 제공하는 기능입니다(C16.12). package는 더 이상 `./crudui.tailwind.css`를 export하지 않고, `test:forms`는 script를 실행하지 않습니다. `tests/tailwind-styles.test.mts`는 같은 `crudui.css` import를 layer `components`로 compile합니다. compile된 CSS는 같습니다: test 입력은 변경 전후 모두 21,286 byte로 compile되며 두 출력은 다른 줄이 없습니다. `config/rebuild.json`은 script의 항목을 뺐고, `docs/spec/form-markup.ko.md`, `docs/operations/forms.ko.md`, `docs/features.ko.md`는 그 import를 설명합니다. Red: 생성 file과 import의 compile 결과(package build로 비교)가 같았습니다. Green: `make rebuild-check` exit 0, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/tailwind-styles.test.mts` exit 0, 1363 passed.
 
 ### 2026-10-20 — 렌더링과 outline suite를 parity unit으로 선언한다 (C16.83)
 

@@ -70,17 +70,11 @@ mod tests {
 
     #[test]
     fn embedded_data_matches_the_contract() {
-        let path = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../../contracts/unicode-properties.json"
-        );
-        let text = match std::fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(error) => panic!("read {path}: {error}"),
-        };
-        let contract: Value = match serde_json::from_str(&text) {
+        let contract: Value = match serde_json::from_str(include_str!(
+            "../../../../../../contracts/unicode-properties.json"
+        )) {
             Ok(contract) => contract,
-            Err(error) => panic!("parse {path}: {error}"),
+            Err(error) => panic!("parse contracts/unicode-properties.json: {error}"),
         };
         let hint = "src/validate/unicode/data.rs differs from the contract; \
                     run `node tools/generate-unicode-properties.mjs`";

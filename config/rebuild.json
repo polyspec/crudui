@@ -637,6 +637,14 @@
     "scripts/json-schema.mts": {
       "kind": "ecosystem",
       "tool": "ajv (the JSON Schema validator of the repository, which packages/validator/ts and packages/cli use)"
+    },
+    "examples/form-comparison/src/entry-point.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/entry-point.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
+    },
+    "examples/form-comparison/src/native-fields.mjs": {
+      "kind": "policy",
+      "reason": "the module (src/native-fields.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
     }
   }
 }
