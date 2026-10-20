@@ -454,14 +454,6 @@
       "kind": "policy",
       "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
-    "scripts/build-crudui-php-extension.mts": {
-      "kind": "replaced",
-      "reason": "replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
-    },
-    "scripts/build-ordered-json-php-extension.mts": {
-      "kind": "replaced",
-      "reason": "replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
-    },
     "scripts/check-ci-browser.mts": {
       "kind": "ecosystem",
       "tool": "puppeteer opens chrome://sandbox"
@@ -594,10 +586,6 @@
       "kind": "ecosystem",
       "tool": "PHP Reflection, through tests/docs/php/DocCoverage.php, reads the public API and its docblocks"
     },
-    "scripts/php-extension-builder.mts": {
-      "kind": "replaced",
-      "reason": "replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
-    },
     "scripts/repeat-build.mts": {
       "kind": "record",
       "record": "docs/rebuild/build-stamp.md"
@@ -628,7 +616,7 @@
     },
     "scripts/tool-resolution.mts": {
       "kind": "replaced",
-      "reason": "it only serves the PHP extension builders (executable discovery and version checks); replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
+      "reason": "replaced by the cargo and rustc that the shims of mise and rust-toolchain.toml pin, which toolchain-check of kit verifies; it discovers and verifies the executables of the Rust toolchain for scripts/run-rust-command.mts; item C16.41 registers the replacement"
     },
     "scripts/values.mts": {
       "kind": "replaced",

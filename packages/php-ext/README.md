@@ -14,12 +14,12 @@ loads the PHP packages. Each process uses one implementation.
 
 ## Build and verification
 
-Build from the complete repository with 64-bit PHP 8.4 or later, matching PHP
-development headers, `php-config` and a C compiler. Linux and macOS are
-supported build targets. macOS builds target 11.0 or later. The build resolves
-regular executable paths before compilation and rejects symbolic links, multiple
-discovery results and mismatched PHP installations. It does not use `phpize`,
-Autoconf or libtool.
+Build from the complete repository with 64-bit PHP 8.4 or later, its development
+tools (`phpize` and `php-config`) and a C compiler. Linux and macOS are supported
+build targets. macOS builds target 11.0 or later. `make build-php-ext` builds
+the extension with `phpize` into `var/php-ext/polyspec_crudui.so`, in a copy of
+the package that keeps `composer.json` beside `src/`, so that `src/config.m4`
+takes the version of the extension from `composer.json`.
 
 The `pattern` and `match` rules use no regular-expression library: the engine
 recognizes CRUDUI patterns and matches them itself in linear time over the Unicode
@@ -31,12 +31,12 @@ PCRE2 files or `pkg-config`.
 Run from the repository root:
 
 ```sh
-node scripts/build-crudui-php-extension.mts
+make build-php-ext
 composer install
 node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
-  --extension "$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
+  --extension "$(pwd)/var/php-ext/polyspec_crudui.so" \
   --report .git/native-generators/report.json
 ```
 
@@ -67,7 +67,7 @@ The PHP example loads the extension and calls its public classes:
 
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \
-  php -n -d "extension=$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
+  php -n -d "extension=$(pwd)/var/php-ext/polyspec_crudui.so" \
   -S 127.0.0.1:8080 packages/generator/php/examples/index.php
 ```
 

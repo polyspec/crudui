@@ -74,8 +74,7 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   assert.doesNotMatch(job, /^ {4}timeout-minutes:/m);
   assert.match(job, /uses: shivammathur\/setup-php@/);
   // setup-php installs PHP alone; make install-tools installs the Go and the Composer of mise.toml (kit K127).
-  assert.match(job, /tools: none/);
-  assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);
+  assert.match(job, /tools: phpize, php-config\n/);
   // make install-tools installs the Rust toolchain of rust-toolchain.toml too (kit K151).
   assert.match(job, /run: make install-tools\n/);
   assert.doesNotMatch(job, /install-rust/);
@@ -122,7 +121,7 @@ test('CI runs the browser checks of each form server in a job of its own and eve
   assert.ok(summary.steps.indexOf(download) < summary.steps.findIndex(step => step.run === run(summary)[0]));
   assert.deepEqual(run(summary), ['make ci-targets TARGETS="crudui-test-form-comparison-summary"']);
   for (const job of [browser, summary]) {
-    assert.equal(job.env.PHP_EXTENSION_PHP_CONFIG, '/usr/bin/php-config8.5');
+    assert.ok(job.steps.some(step => step.with?.tools === 'phpize, php-config'), 'phpize and php-config of the PHP of the job');
     assert.ok(job.steps.some(step => step.run === 'make crudui-install-crates'));
   }
   // Both parts share one report directory, and each run takes ports of the system, so runs at the same time do not collide.
@@ -137,13 +136,13 @@ test('CI runs the browser checks of each form server in a job of its own and eve
   for (const run of [browserRun, summaryRun]) assert.doesNotMatch(run.stdout, /--address|FORM_ADDRESS/);
 });
 
-test('the native PHP job passes the regular php-config of the PHP of .php-version', async () => {
+test('the native PHP job installs phpize and php-config for the PHP of .php-version', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'php-api');
-  const minor = (await readFile(path.join(repository, '.php-version'), 'utf8')).trim();
 
   assert.match(job, /php-version-file:\s*\.php-version\n/);
-  assert.ok(job.includes(`PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${minor}\n`), job);
+  assert.match(job, /tools: phpize, php-config\n/);
+  assert.doesNotMatch(job, /PHP_EXTENSION_PHP_CONFIG/);
 });
 
 test('native job caches the generator packages and the programs that run them', async () => {

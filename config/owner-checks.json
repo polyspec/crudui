@@ -497,21 +497,6 @@
     },
     {
       "paths": [
-        "scripts/php-extension-builder.mts",
-        "scripts/build-crudui-php-extension.mts",
-        "scripts/build-ordered-json-php-extension.mts"
-      ],
-      "targets": [
-        "crudui-test-php-engine",
-        "crudui-test-php-api"
-      ],
-      "tests": [
-        "tests/build/atomic-publish.test.mts",
-        "tests/build/php-extensions.test.mts"
-      ]
-    },
-    {
-      "paths": [
         "scripts/documentation-links*.mts"
       ],
       "targets": [

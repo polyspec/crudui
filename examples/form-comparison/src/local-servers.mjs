@@ -56,20 +56,29 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   const goBinary = path.join(buildDirectory, 'go-server');
   const step = (id, command, args, cwd = repositoryRoot, environment = {}) =>
     ({ id, command, args, cwd, environment });
+  // The OrderedJSON module builds with phpize in a copy of the source of the checkout, which stays as it was installed.
+  const copied = path.join(buildDirectory, 'ordered-json-php-ext');
   const results = await runStages([[
-    step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mts']),
-    step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mts',
-      '--source', path.join(localOrderedJsonDirectory, 'packages/php-ext/src')]),
+    step('ordered-json-php-directory', 'mkdir', ['-p', copied]),
+  ], [
+    step('crudui-php-extension', 'make', ['build-php-ext']),
+    step('ordered-json-php-copy', 'cp', ['-R', path.join(localOrderedJsonDirectory, 'packages/php-ext/src/.'), copied]),
     step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
     step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mts'),
       'build', '--locked'], path.join(exampleDirectory, 'servers/rust')),
+  ], [
+    step('ordered-json-phpize', 'phpize', [], copied),
+  ], [
+    step('ordered-json-configure', './configure', ['--enable-ordered-json'], copied),
+  ], [
+    step('ordered-json-make', 'make', [], copied),
   ]], { label: 'local-servers', write });
   const failed = results.find(result => result.status !== 'passed');
   assert.equal(failed, undefined, `Building ${failed?.id} ${failed?.status}`);
   return {
-    cruduiModule: path.join(repositoryRoot, 'packages/php-ext/modules/polyspec_crudui.so'),
-    orderedJsonModule: path.join(localOrderedJsonDirectory, 'packages/php-ext/src/modules/ordered_json.so'),
+    cruduiModule: path.join(repositoryRoot, 'var/php-ext/polyspec_crudui.so'),
+    orderedJsonModule: path.join(copied, 'modules/ordered_json.so'),
     binaries: {
       go: goBinary,
       rust: path.join(exampleDirectory, 'servers/rust/target/debug/polyspec-crudui-form-comparison'),

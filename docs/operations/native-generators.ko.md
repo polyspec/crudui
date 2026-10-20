@@ -1,6 +1,6 @@
 # 네이티브 생성기 검사
 <!-- doc-id: docs-operations-native-generators -->
-<!-- source-sha256: 109438ff213b1368632aacbf94588fe8d4507ef8029ab471cbf0a6c0c3bd4187 -->
+<!-- source-sha256: 3fe1735187c0323e0b01ce359a9c74d62f4a9a94064743f1492129436c49fe05 -->
 
 [English](native-generators.md).
 
@@ -31,18 +31,14 @@ make docs-check
 Go, Rust, 네이티브 PHP 비교를 실행합니다. CI가 세 job으로 실행하는 세 부분으로 이루어집니다.
 `make crudui-test-php-engine`은 확장의 C 엔진을 C 컴파일러와 그 sanitizer로 컴파일해 검사하며 PHP가 필요 없습니다.
 `make crudui-test-native-generators`는 Go·Rust 생성기 검사, 프로토콜·위젯 검사, JavaScript·HTML·Go·Rust 대상의
-공용 검사를 실행하며 PHP가 필요 없습니다. `make crudui-test-php-api`는 확장을 빌드하고 로드한 뒤 빌더·API 검사,
+공용 검사를 실행하며 PHP가 필요 없습니다. `make crudui-test-php-api`는 확장을 빌드하고 로드한 뒤 API 검사,
 PHP 생성기 검사, PHP·네이티브 PHP 대상의 공용 검사를 실행하며, CI에서는 PHP 릴리스마다 한 번 실행합니다.
 각 런타임은 패키지의 공개 API를 호출하는
 [`tests/native-generators/programs`](../../tests/native-generators/README.ko.md#프로그램)의
 프로그램으로 응답하며, 패키지는 라이브러리만 배포합니다.
-확장 빌드는 `php-config`에서 PHP 실행 파일, 헤더, 빌드 플래그를 읽고
-`packages/php-ext/src`의 C 소스를 컴파일합니다. `phpize`, Autoconf,
-libtool은 필요하지 않습니다. 도구 발견은 상대경로, 심볼릭 링크, 여러 결과를
-거부합니다. 명시한 도구 경로는 정규 실행 파일을 식별해야 합니다.
-Debian 계열 Linux에서 컴파일러 발견은 설치된 `gcc` 패키지 기록을 읽고 정규 target
-compiler 파일 하나를 선택합니다. 여러 PHP 릴리스를 선택할 수 있으면
-`PHP_EXTENSION_PHP_CONFIG`에 정규 versioned `php-config` 파일을 지정합니다.
+`make build-php-ext`는 `phpize`로 `packages/php-ext/src`의 extension을
+`var/php-ext/polyspec_crudui.so`에 빌드합니다. `PATH`의 `phpize`와 `php-config`가 PHP 릴리스를
+정하며, job은 `setup-php`의 `tools: phpize, php-config`로 이를 설치합니다.
 
 PHP API 검사는 Composer 클래스, Composer 없는 확장, Composer를 함께 사용하는
 확장의 세 프로세스를 실행합니다. 리플렉션은 실제 클래스 구현과 모든 공개 메서드

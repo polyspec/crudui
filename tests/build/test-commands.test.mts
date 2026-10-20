@@ -163,7 +163,7 @@ test('a CI step runs tests when its command reaches the test runner', () => {
   ]) assert.equal(runsTests(command, project), true, command);
   for (const command of [
     'make install-packages', 'make crudui-install-composer', 'make build', 'make lint', 'make typecheck',
-    'make crudui-build-php-extension', 'make check-ci-browser', 'make check-conformance',
+    'make build-php-ext', 'make check-ci-browser', 'make check-conformance',
   ]) assert.equal(runsTests(command, project), false, command);
 });
 

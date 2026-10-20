@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The PHP extension builds with phpize (C16.9)
+
+- `make build-php-ext` of kit builds `polyspec_crudui.so` with `phpize`, `configure` and `make` into `var/php-ext`; `scripts/php-extension-builder.mts`, `build-crudui-php-extension.mts`, `build-ordered-json-php-extension.mts` and the builder test are removed; `crudui-build`, `crudui-test-php-api` and the CI targets use `build-php-ext`; the CI jobs install `phpize` and `php-config` through `setup-php` instead of naming a `php-config` file; the local form-comparison run builds the OrderedJSON module with `phpize` in a copy of its source; the version of the module comes from `composer.json` through `config.m4` (C16.9). Red: the test `The PHP module builds with phpize through the build-php-ext target of kit` failed against the Makefile that built with the script; green: it passes with `make lint-php-ext`, `ApiTest` (4) against the phpize build, and the CI, test-command, atomic-publish and offline-check tests. `make test-php-ext` compares the declarations of the extension with both libraries and passes that step; its unit-test step runs the PHPUnit files of the libraries with the extension loaded, 422 of which fail because they require the pure PHP runtime, which belongs to the parity item.
+
 ### 2026-10-20 — The Rust generator test in a project command (C16.38-1)
 
 - `tests/build/rust-generators.test.mts` is listed in the `test:runtimes` script of `package.json`, so a project command runs it (C16.38-1). Red: `every node:test file runs in a project command` of `test-commands.test.mts` failed naming that file; green: that test passes.

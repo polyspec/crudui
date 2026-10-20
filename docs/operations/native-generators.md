@@ -33,19 +33,14 @@ in three jobs: `make crudui-test-php-engine` compiles and tests the C engine of 
 compiler and its sanitizers and needs no PHP; `make crudui-test-native-generators` runs the Go and Rust
 generator tests, the protocol and widget tests and the shared suite for the JavaScript, HTML, Go
 and Rust targets and needs no PHP; `make crudui-test-php-api` builds and loads the extension and runs its
-builder and API tests, the PHP generator tests and the shared suite for the PHP and native PHP
+API tests, the PHP generator tests and the shared suite for the PHP and native PHP
 targets, in CI once for each PHP release. Each runtime answers through
 a program in [`tests/native-generators/programs`](../../tests/native-generators/README.md#programs)
 that calls its package's public API; the packages publish libraries only.
-The extension build reads the PHP executable, headers and build flags from
-`php-config` and compiles the C sources of the extension in `packages/php-ext/src`.
-It does not require `phpize`, Autoconf or libtool. Tool discovery rejects relative
-paths, symbolic links and multiple results. Explicit tool paths must identify
-regular executable files.
-On Debian-derived Linux systems, compiler discovery reads the installed `gcc`
-package record and selects one regular target compiler file. Set
-`PHP_EXTENSION_PHP_CONFIG` to the regular versioned `php-config` file when more
-than one PHP release can be selected.
+`make build-php-ext` builds the extension with `phpize` from `packages/php-ext/src`
+into `var/php-ext/polyspec_crudui.so`; the `phpize` and `php-config` on `PATH` select
+the PHP release, which the job installs with `tools: phpize, php-config` of
+`setup-php`.
 
 The PHP API check uses three separate processes: Composer classes, the extension
 without Composer, and the extension with Composer. Reflection verifies the actual

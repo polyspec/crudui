@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-ordered-json crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-build-php-extension crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
+.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-ordered-json crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -42,7 +42,7 @@ include scripts/kit/kit-bootstrap.mk
 # `make bench BENCH_ITERS=100000`).
 BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
-PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/polyspec_crudui.so
+PHP_EXTENSION ?= $(CURDIR)/var/php-ext/polyspec_crudui.so
 # Reports live in the Git directory, which is a file-referenced directory in a worktree: NATIVE_REPORT of the JavaScript,
 # HTML, Go and Rust targets and PHP_NATIVE_REPORT of the PHP and native PHP targets of tests/native-generators/run.mts.
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
@@ -78,10 +78,10 @@ help: ## 타겟 설명
 	@echo "  make docs-check            doc-coverage 게이트 (문서 + 라이브러리, 미문서화 시 RED)"
 	@echo "  make docs-check-libs       라이브러리 packages/* 만 검사"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
-	@echo "  make crudui-build-php-extension   Build and load the native PHP module"
+	@echo "  make build-php-ext                Build the native PHP module with phpize (kit)"
 	@echo "  make crudui-test-php-engine       Test the C engine of the native PHP module with the C compiler and its sanitizers"
 	@echo "  make crudui-test-native-generators  Test the Go and Rust generators and compare JavaScript, HTML, Go and Rust generation"
-	@echo "  make crudui-test-php-api          Build the native PHP module, test its builder and PHP API and compare PHP and native PHP generation"
+	@echo "  make crudui-test-php-api          Build the native PHP module, test its PHP API and compare PHP and native PHP generation"
 	@echo "  make crudui-test-native           Run crudui-test-php-engine, crudui-test-native-generators and crudui-test-php-api"
 	@echo "  make crudui-test-validators       Test the JavaScript, PHP, Go and Rust validators"
 	@echo "  make crudui-test-form-binding     Test the browser validation binding, its markup parity and three browsers"
@@ -178,7 +178,7 @@ crudui-test-dependencies: ## The dependency graph, the dependency policy and its
 # packages/generator/ts/src/form-template-validator.mjs, and the build checks that it is current, so the package has no
 # runtime dependency on ajv and compiles no schema at run time.
 build: crudui-build ## Build the JavaScript packages
-crudui-build: form-template-validator-check crudui-build-php-extension
+crudui-build: form-template-validator-check build-php-ext
 	$(NPM) run build
 form-template-validator: ## Generate the form template validator of packages/generator/ts from its JSON Schema
 	$(NODE) scripts/generate-form-template-validator.mts
@@ -355,14 +355,6 @@ bench-go: cargo-downloads-check bench-fixtures ## Go 검증기만 측정
 bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-# The JavaScript packages are built only when their sources or output changed; the
-# extension build and the native suite both read the built packages. Every test runs through
-# the run-tests tool of @polyspec/kit, which prints each test with its elapsed time and gives it its own
-# timeout.
-crudui-build-php-extension:
-	$(NODE) scripts/require-current-build.mts
-	$(NODE) scripts/build-crudui-php-extension.mts
-
 # The native suites in three parts, which CI runs in three jobs (.github/workflows/ci.yml) and crudui-test-native runs in one
 # command. crudui-test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers and needs
 # no PHP; crudui-test-native-generators runs the Go and Rust generator suites, the widget and protocol tests and the shared
@@ -384,9 +376,8 @@ crudui-test-native-generators: cargo-downloads-check
 	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
-crudui-test-php-api: crudui-build-php-extension
+crudui-test-php-api: require-build build-php-ext
 	@status=0; \
-	$(NODE) tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts || status=1; \
 	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
 	$(NODE) $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
@@ -473,7 +464,7 @@ CI_TARGETS = \
 	crudui-test-validator-python \
 	crudui-test-generator-python \
 	docs-check \
-	crudui-build-php-extension \
+	build-php-ext \
 	crudui-test-cross-check \
 	manifest-test \
 	require-build \

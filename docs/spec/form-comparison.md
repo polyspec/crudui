@@ -286,14 +286,10 @@ No build embeds a commit.
 
 ## Builds and browser readiness
 
-One PHP extension builder builds `polyspec_crudui.so` and `ordered_json.so`. Each extension has an explicit build entry point and declares
-its sources, module name, output directory and load check. The builder reads the
-PHP executable, headers and build flags from one `php-config` executable and
-compiles both modules directly without `phpize`, Autoconf or libtool. It resolves
-each required executable once before compilation. Relative paths, symbolic links,
-missing tools, multiple discovery results and PHP installation mismatches fail
-the build. A failed command does not select another executable or build path.
-Generated build and module paths contain only regular files and directories.
+`make build-php-ext` builds `polyspec_crudui.so` into `var/php-ext` with `phpize`, `configure` and `make`. The local run builds
+`ordered_json.so` the same way, in a copy of `packages/php-ext/src` of the OrderedJSON checkout. The PHP of the build is the
+one that `phpize` and `php-config` on `PATH` belong to. A failed command does not select another executable or build
+path.
 
 The form-comparison CI job installs the root npm graph and the Composer graphs
 for the PHP validator and generator before it runs the source and generator

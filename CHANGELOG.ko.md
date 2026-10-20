@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0cc5507ab7a6be2da1e84c2015a35fc663763f2ea6562868b502393ffa585d09 -->
+<!-- source-sha256: f667648a380a1f5b5dd4be58320d4ddd27ce82c4c254989c6437f3236f064ce8 -->
 
 ## Unreleased
+
+### 2026-10-20 — phpize로 빌드하는 PHP extension (C16.9)
+
+- kit의 `make build-php-ext`가 `polyspec_crudui.so`를 `phpize`, `configure`, `make`로 `var/php-ext`에 빌드합니다. `scripts/php-extension-builder.mts`, `build-crudui-php-extension.mts`, `build-ordered-json-php-extension.mts`와 builder test는 제거되고, `crudui-build`, `crudui-test-php-api`, CI target은 `build-php-ext`를 쓰며, CI job은 `php-config` file을 이름으로 부르는 대신 `setup-php`로 `phpize`와 `php-config`를 설치하고, local form-comparison 실행은 OrderedJSON module을 그 source의 사본에서 `phpize`로 빌드하며, module의 version은 `config.m4`를 통해 `composer.json`에서 가져옵니다 (C16.9). Red: `The PHP module builds with phpize through the build-php-ext target of kit` test가 script로 빌드하던 Makefile에 대해 실패했고, green: `make lint-php-ext`, phpize 빌드에 대한 `ApiTest`(4건), CI, test-command, atomic-publish, offline-check test와 함께 통과합니다. `make test-php-ext`는 extension의 선언을 두 library와 비교하는 단계를 통과하며, 그 unit-test 단계는 extension을 로드한 채 library의 PHPUnit file을 실행하는데 그중 422건이 순수 PHP runtime을 요구하여 실패하므로 parity item에 속합니다.
 
 ### 2026-10-20 — project 명령 안의 Rust generator test (C16.38-1)
 

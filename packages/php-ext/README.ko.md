@@ -1,6 +1,6 @@
 # PHP 네이티브 생성과 검증
 <!-- doc-id: packages-php-ext-readme -->
-<!-- source-sha256: 99fbb2a96347e8db82bd0f7c041951e2ac89733475712867945544e4da2ec437 -->
+<!-- source-sha256: d4cc64217d0b9042208a8c21ee4b028d005da0917fec6c16fea2c6bec4e8f676 -->
 
 [English](README.md).
 
@@ -15,11 +15,11 @@
 
 ## 빌드와 검증
 
-전체 저장소에서 64비트 PHP 8.4 이상, 일치하는 PHP 개발 헤더, `php-config`, C
+전체 저장소에서 64비트 PHP 8.4 이상, 그 개발 도구(`phpize`와 `php-config`), C
 컴파일러로 빌드합니다. Linux와 macOS를 빌드 대상으로 지원합니다. macOS
-빌드는 11.0 이상을 대상으로 합니다. 빌드는 컴파일 전에 정규 실행 파일 경로를 확인하고
-심볼릭 링크, 여러 발견 결과, 서로 다른 PHP 설치 정보를 거부합니다. `phpize`,
-Autoconf, libtool은 사용하지 않습니다.
+빌드는 11.0 이상을 대상으로 합니다. `make build-php-ext`는 `phpize`로 extension을
+`var/php-ext/polyspec_crudui.so`에 빌드하며, `composer.json`을 `src/` 옆에 둔 package 사본에서
+빌드하므로 `src/config.m4`가 extension의 version을 `composer.json`에서 가져옵니다.
 
 `pattern`과 `match` 규칙은 정규 표현식 라이브러리를 사용하지 않습니다. 엔진이
 CRUDUI 패턴을 직접 해석하고, 내장한 유니코드 데이터(`src/unicode_data.c`,
@@ -30,12 +30,12 @@ PCRE2 파일이나 `pkg-config`가 필요하지 않습니다.
 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/build-crudui-php-extension.mts
+make build-php-ext
 composer install
 node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
-  --extension "$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
+  --extension "$(pwd)/var/php-ext/polyspec_crudui.so" \
   --report .git/native-generators/report.json
 ```
 
@@ -65,7 +65,7 @@ PHP 예제는 확장을 로드하고 공개 클래스를 호출합니다.
 
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \
-  php -n -d "extension=$(pwd)/packages/php-ext/modules/polyspec_crudui.so" \
+  php -n -d "extension=$(pwd)/var/php-ext/polyspec_crudui.so" \
   -S 127.0.0.1:8080 packages/generator/php/examples/index.php
 ```
 

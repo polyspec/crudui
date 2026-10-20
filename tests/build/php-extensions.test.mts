@@ -7,7 +7,6 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
-import { assertMachoArchitecture, machoArchitectures } from '../../scripts/php-extension-builder.mts';
 import { parseJson } from '../json.mts';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -78,18 +77,4 @@ test('an optional extension used without its requirement is reported', async () 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
-});
-
-test('a PHP extension module has the architecture its PHP executable reports', async () => {
-  const reports = (architecture: string) => async (executable: string, args: string[]) => {
-    assert.equal(executable, '/usr/bin/lipo');
-    assert.deepEqual(args, ['-archs', '/opt/php/bin/php']);
-    return { stdout: architecture + '\n' };
-  };
-  assert.deepEqual(await machoArchitectures('/opt/php/bin/php', { run: reports('arm64') }), ['arm64']);
-  await assertMachoArchitecture('/opt/php/bin/php', 'arm64', { run: reports('arm64') });
-  await assert.rejects(
-    assertMachoArchitecture('/opt/php/bin/php', 'arm64', { run: reports('x86_64') }),
-    /x86_64/,
-  );
 });

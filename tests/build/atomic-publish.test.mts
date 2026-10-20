@@ -15,8 +15,6 @@ const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8
 // Each shared output: the program, the staging path it writes and the rename that publishes it.
 const publications = [
   { output: 'the build stamp', file: 'scripts/require-current-build.mts', staging: /writeFile\(`\$\{STAMP\}\.\$\{process\.pid\}`/, publish: /rename\(`\$\{STAMP\}\.\$\{process\.pid\}`, STAMP\)/ },
-  { output: 'the PHP module', file: 'scripts/php-extension-builder.mts', staging: /const linked = module \+ '\.' \+ process\.pid;/, publish: /await rename\(linked, module\);/ },
-  { output: 'the PHP build manifest', file: 'scripts/php-extension-builder.mts', staging: /writeFile\(manifest \+ '\.' \+ process\.pid,/, publish: /rename\(manifest \+ '\.' \+ process\.pid, manifest\)/ },
   { output: 'a package dist', file: 'scripts/package-dist.mts', staging: /process\.env\.CRUDUI_DIST = 'dist\.next'/, publish: /fs\.renameSync\(next, dist\);/ },
   { output: 'the OrderedJSON checkout', file: 'examples/form-comparison/src/ordered-json-source.mjs', staging: /const next = `\$\{directory\}\.next-\$\{process\.pid\}`;/, publish: /await rename\(next, directory\);/ },
 ];

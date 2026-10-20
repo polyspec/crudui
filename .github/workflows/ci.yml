@@ -358,7 +358,6 @@ jobs:
     name: cross-check console gateway
     runs-on: ubuntu-24.04
     env:
-      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.4
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -379,7 +378,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version-file: .php-version
-          tools: none
+          tools: phpize, php-config
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Install PHP dependencies
@@ -399,7 +398,7 @@ jobs:
         run: make crudui-install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="crudui-build-php-extension crudui-test-cross-check manifest-test"
+        run: make ci-targets TARGETS="build-php-ext crudui-test-cross-check manifest-test"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -550,7 +549,6 @@ jobs:
       # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mts).
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
       CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
-      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.4
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup the Node.js of mise.toml, which starts the bootstrap
@@ -570,7 +568,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version-file: .php-version
-          tools: none
+          tools: phpize, php-config
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Cargo cache
@@ -618,7 +616,6 @@ jobs:
       # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mts).
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
       CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
-      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.4
       FORM_SERVERS: ${{ matrix.server }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -639,7 +636,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version-file: .php-version
-          tools: none
+          tools: phpize, php-config
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Cargo cache
@@ -692,7 +689,6 @@ jobs:
       # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mts).
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
       CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
-      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.4
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup the Node.js of mise.toml, which starts the bootstrap
@@ -712,7 +708,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version-file: .php-version
-          tools: none
+          tools: phpize, php-config
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Cargo cache
@@ -930,7 +926,6 @@ jobs:
     name: Native generation and PHP API
     runs-on: ubuntu-24.04
     env:
-      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.4
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -951,7 +946,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version-file: .php-version
-          tools: none
+          tools: phpize, php-config
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions

@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: cceb49aa176811d5c3129f1d1fb3d44947e72bc4d8b748771d9075c23b22e9ee -->
+<!-- source-sha256: 1476076d0a353e38fdfae0d4930ad3db952f62c13f50e55ad35a7de650ba579a -->
 
 [English](form-comparison.md).
 
@@ -257,13 +257,9 @@ Rust 서버는 상태·생성·SSR 응답마다 이 파일을 읽고, 메인 페
 
 ## 빌드와 브라우저 준비
 
-공용 PHP 확장 빌더 하나가 `polyspec_crudui.so`와 `ordered_json.so`를 빌드합니다. 각 확장은 명시적인 빌드 진입점에서 소스, 모듈 이름, 출력 디렉터리, 로드
-검사를 선언합니다. 빌더는 `php-config` 실행 파일 하나에서 PHP 실행 파일, 헤더, 빌드
-플래그를 읽고 `phpize`, Autoconf, libtool 없이 두 모듈을 직접 컴파일합니다. 컴파일
-전에 필요한 각 실행 파일을 한 번 확인합니다. 상대경로, 심볼릭 링크, 누락된 도구, 여러
-발견 결과, 서로 다른 PHP 설치 정보가 있으면 빌드에 실패합니다. 명령이 실패한 뒤 다른
-실행 파일이나 빌드 경로를 선택하지 않습니다. 생성한 빌드 경로와 모듈 경로에는 정규
-파일과 디렉터리만 포함합니다.
+`make build-php-ext`는 `polyspec_crudui.so`를 `phpize`, `configure`, `make`로 `var/php-ext`에 빌드합니다. local 실행은
+`ordered_json.so`도 같은 방법으로, OrderedJSON checkout의 `packages/php-ext/src` 사본에서 빌드합니다. 빌드의 PHP는
+`PATH`의 `phpize`와 `php-config`가 속한 것입니다. 명령이 실패한 뒤 다른 실행 파일이나 빌드 경로를 선택하지 않습니다.
 
 폼 비교 CI 작업은 소스·생성기 생성 스위트를 실행하기 전에 루트 npm 그래프와 PHP
 검증기·생성기의 Composer 그래프를 설치합니다. 깨끗한 체크아웃은 무시된 `vendor/`

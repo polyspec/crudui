@@ -2279,28 +2279,25 @@ const files = Object.fromEntries([
   'Makefile',
   'packages/php-ext/README.md',
   'packages/php-ext/README.ko.md',
-  'scripts/build-crudui-php-extension.mts',
 ].map(filename => [filename, readFileSync(new URL(filename, root), 'utf8')]));
 
-test('PHP modules use the shared builder through explicit entry points', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
-  const common = 'scripts/php-extension-builder.mts';
-  const crudui = 'scripts/build-crudui-php-extension.mts';
-  const orderedJson = 'scripts/build-ordered-json-php-extension.mts';
-  for (const filename of [common, crudui, orderedJson]) await access(new URL(filename, root));
-
-  assert.match(files.Makefile, /\$\(NODE\) scripts\/build-crudui-php-extension\.mts/);
+test('The PHP module builds with phpize through the build-php-ext target of kit', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
+  assert.match(files.Makefile, /^crudui-build: .*\bbuild-php-ext\b/m);
   for (const removed of [
-    'packages/php-ext/config.m4',
+    'scripts/php-extension-builder.mts',
+    'scripts/build-crudui-php-extension.mts',
+    'scripts/build-ordered-json-php-extension.mts',
     'scripts/build-php-extension.sh',
     'scripts/build-php-extension.mjs',
   ]) {
     await assert.rejects(access(new URL(removed, root)));
   }
+  await access(new URL('packages/php-ext/src/config.m4', root));
 });
 
-test('PHP extension instructions use the current direct build entry point', { timeout: ENGINE_INSPECTION_BUDGET }, () => {
+test('PHP extension instructions use the build-php-ext target', { timeout: ENGINE_INSPECTION_BUDGET }, () => {
   for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {
-    assert.match(files[filename], /node scripts\/build-crudui-php-extension\.mts/);
+    assert.match(files[filename], /make build-php-ext/);
     assert.doesNotMatch(files[filename], /sh scripts\/build-php-extension\.sh/);
   }
 });
@@ -2323,10 +2320,6 @@ test('CRUDUI PHP extension package contains one C implementation', { timeout: EN
   await inspect(sourceRoot);
   prohibited.sort();
   assert.deepEqual(prohibited, []);
-  assert.doesNotMatch(
-    files['scripts/build-crudui-php-extension.mts'],
-    /\b(?:cargo|rustc|rustdoc|Rust)\b/,
-  );
   for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {
     assert.doesNotMatch(files[filename], /\b(?:Cargo|Rust|rustc|rustdoc)\b/);
   }
