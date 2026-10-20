@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0ece5a49d7e7f4b3cb8a30b400d794d1a58b88a425798378384dc08343eabe19 -->
+<!-- source-sha256: b7942777eccd8958ec27f1f7691813cd8294d7201df5cdb1b9b65ca9249b0a19 -->
 
 ## Unreleased
+
+### 2026-10-20 — runAction을 php, go, rust, php-native, python에 선언한다 (C16.50)
+
+- `contracts/features.json`에서 `runAction`의 support를 `php`, `go`, `rust`, `php-native`, `python`에 대해 `pass`로 바꾸고(C16.50), form-actions test를 tests 목록에, go, python, rust, php 검증 명령을 추가합니다. row의 Verification 셀은 manifest test, manifest docs check, divergence check를 명명합니다. 생성된 feature contract 문서가 이를 따릅니다. Red: `make divergence-check`가 exit 2이며 `contracts/features.json`이 다섯 implementation의 `runAction`을 unsupported로 명명; green: 이 check는 `runAction`의 entry를 명명하지 않습니다. python, rust, php 명령은 통과했고, go 명령은 module 안에서 `go test -run TestFormActions`로 통과하지만 runner의 mise 호출이 worktree의 `mise.toml`을 신뢰하지 않는다고 보고합니다. php-native support는 C16.51, C16.52와 같이 php-ext 실행 없이 선언했습니다.
 
 ### 2026-10-20 — PHP extension이 form action을 실행한다: resolveAction과 runAction (C16.50-5)
 

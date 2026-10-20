@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — runAction is declared in php, go, rust, php-native and python (C16.50)
+
+- `contracts/features.json` sets the support of `runAction` to `pass` for `php`, `go`, `rust`, `php-native` and `python` (C16.50), adds their form-actions tests to its tests list and the go, python, rust and php verification commands; the Verification cell of the row now names the manifest test, the manifest docs check and the divergence check. The generated feature contract pages follow. Red: `make divergence-check` exit 2, with `contracts/features.json` naming `runAction` unsupported in those five implementations; green: the check names no entry of `runAction`. The python, rust and php commands pass here; the go command passes when run as `go test -run TestFormActions` in the module, but the runner's mise call reports the worktree's `mise.toml` as untrusted. The php-native support is declared without a php-ext run, as for C16.51 and C16.52.
+
 ### 2026-10-20 — The PHP extension runs the form actions: resolveAction and runAction (C16.50-5)
 
 - `packages/php-ext/src/actions.c` (new) implements `ps_resolve_action` and `ps_run_action` with the eleven action names of the PHP library: a run applies each operation through `ps_form_apply` (`add-row`, `copy-row`, `remove-row`, `toggle-row`, `move-up`, `move-down`, `expand-all`, `collapse-all`, `undo`, `redo`), so a failing operation leaves the form unchanged, and `crudui.c` adds `Generator::resolveAction` and `Generator::runAction`, declared in `polyspec_crudui.stub.php` and `polyspec_crudui_arginfo.h` (C16.50-5). Red: `make test-php-ext CASES='FormStateTest'` exited 2 at the declaration step, with `Generator::resolveAction` and `Generator::runAction` missing ("extension none"); green: `make lint-php-ext` exit 0 and `make test-php-ext CASES='FormStateTest'` exit 0, with the generator suite running 28 tests under the extension, including the nine form-action sessions (`resolve-action-names` through `run-action-unknown-name`); the validator and php-ext libraries have no case selected by CASES (C16.50-5).

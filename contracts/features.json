@@ -1169,17 +1169,21 @@
         "react": "pass",
         "vue": "pass",
         "svelte": "pass",
-        "php": "unsupported",
-        "go": "unsupported",
-        "rust": "unsupported",
-        "php-native": "unsupported",
-        "python": "unsupported"
+        "php": "pass",
+        "go": "pass",
+        "rust": "pass",
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "form instance data, view state and undo history",
       "tests": [
         "packages/generator/ts/src/node.test.ts",
-        "tests/fixtures/form-session/scenario.mts"
+        "tests/fixtures/form-session/scenario.mts",
+        "packages/generator/go/form_state_test.go",
+        "packages/generator/rust/tests/form_state.rs",
+        "packages/generator/php/tests/FormStateTest.php",
+        "packages/generator/python/tests/test_form_state.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -1189,6 +1193,22 @@
         {
           "id": "test-1",
           "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions'"
+        },
+        {
+          "id": "test-3",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
+        },
+        {
+          "id": "test-4",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state"
+        },
+        {
+          "id": "test-5",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
         }
       ]
     },
