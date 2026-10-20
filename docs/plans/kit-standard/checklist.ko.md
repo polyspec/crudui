@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 01b514f83027f52649750e2501cff362796b447665abd5e3f3ce6518c3717dc7 -->
+<!-- source-sha256: 5626530ac9372e84bb7654476923b24c15bdd229996231e4dd7c7e014cde3a27 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -264,3 +264,4 @@
 | C16.147 | CURT-050(중첩 필드를 미리 준비하고 템플릿을 직렬화하며, 구성 파일을 다시 읽지 않고 독립된 레코드를 바인드한다)을 직렬화된 한 템플릿에서 둘 이상의 레코드를 바인드하는 case가 인용하며, 각 결과는 자기 레코드에만 의존한다 | tests/fixtures/template-shape (generate.mts, cases.json: two record cases), the six runners, config/parity.json (CURT-050 in the template-shape unit) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16147-pd.log 2>&1; grep -q 'check the units against the tree' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16147-pd.log && ! grep -q 'defines CURT-050' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16147-pd.log` | [o] |
 | C16.148 | CURT-054를 전부 인용한다. form state 세션이 검증 오류를 데이터 경로와 함께 관찰하고, rekey 세션이 여섯 runner에서 오류가 새 키를 따르는지 보인다 | tests/fixtures/form-state/harness.mts, tests/fixtures/form-state/generate.mts, tests/fixtures/form-actions/cases.json, config/parity.json | `sh -c 'make -s parity-declarations-check > var/pd-C16.148.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURT-054," var/pd-C16.148.log'` | [ ] |
 | C16.148-1 | form state harness에 검증 단계가 있어 검증기의 오류를 데이터 경로와 함께 관찰하며, 팀과 멤버를 rekey한 뒤 새 경로의 오류를 관찰하는 세션이 있다(기준과 case) | tests/fixtures/form-state/harness.mts, tests/fixtures/form-state/generate.mts, tests/fixtures/form-actions/cases.json | `sh -c 'grep -q rekey-moves-validation-errors-to-the-new-paths tests/fixtures/form-actions/cases.json'` | [o] |
+| C16.148-2 | Go form state runner가 검증 단계를 구현한다. 세션 명세와 현재 데이터로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/go/form_state_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormView\|TestFormHistory\|TestFormActions' ./...` | [o] |

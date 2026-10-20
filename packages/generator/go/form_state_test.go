@@ -2,6 +2,7 @@ package generator
 
 import (
 	"encoding/json"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -151,10 +152,25 @@ func addRowOptions(options any) AddRowOptions {
 }
 
 // perform runs one step on the form and returns what the step returned.
-func performStep(t *testing.T, form *Form, op string, args []any) (any, error) {
+func performStep(t *testing.T, form *Form, spec *Object, op string, args []any) (any, error) {
 	t.Helper()
 	text := func(i int) string { return fixtureText(t, args, i) }
 	switch op {
+	case "validate":
+		// The validator reads its data as a plain map; the errors follow the specification, so the decoded order does not matter.
+		var data map[string]any
+		if e := json.Unmarshal([]byte(marshal(t, form.GetData())), &data); e != nil {
+			return nil, e
+		}
+		result, e := validate.Validate(spec, data, validate.Options{})
+		if e != nil {
+			return nil, e
+		}
+		errors := make([]any, 0, len(result.Errors))
+		for _, item := range result.Errors {
+			errors = append(errors, NewObject("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message))
+		}
+		return NewObject("valid", result.Valid, "errors", errors), nil
 	case "resolveAction":
 		target, ok := ResolveAction(ActionInput{Action: stringAt(args[0], "action"), Path: stringAt(args[0], "path"), Key: stringAt(args[0], "key")})
 		if !ok {
@@ -225,7 +241,7 @@ func observeSessions(t *testing.T, family string, history bool) {
 			for i, step := range steps {
 				observed := NewObject()
 				op := stringAt(step, "op")
-				result, e := performStep(t, form, op, list(read(step, "args")))
+				result, e := performStep(t, form, object(spec), op, list(read(step, "args")))
 				if e != nil {
 					observed.Set("error", NewObject("code", "INVALID_FORM_INPUT", "message", e.Error()))
 				} else if result != nil || op == "runAction" || op == "resolveAction" {
