@@ -208,6 +208,10 @@
         {
           "glob": "packages/generator/rust/src/date.rs",
           "reason": "test: unit tests of the Rust generator's date parser (chrono and regex internals of the Rust build)"
+        },
+        {
+          "glob": "packages/validator/rust/src/text.rs",
+          "reason": "test: unit tests of the Rust JsonText parser (input-text.md, JSON text); the repeated-member rule binds only the TypeScript specification parser and the Rust JsonText parser, so no shared suite runs it"
         }
       ]
     },

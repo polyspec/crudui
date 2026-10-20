@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 0c83b326315d4d4d5f779c6fd5a653566758c9c2aedd76b9501da9e54d954cc2 -->
+<!-- source-sha256: c259d9c49c1513520c7824adb546af39e39bbc41b889f1630a29e4ce1d31266e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -186,4 +186,5 @@
 | C16.90 | PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 | packages/generator/php/tests/DisplayRulesTest.php, packages/php-ext/src/list.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |
 | C16.95 | ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.97 | PHP extension은 public API만으로 rendering conformance suite를 실행한다 | packages/generator/php/tests/RenderingConformanceTest.php, packages/generator/php/tests/LayoutTree.php, packages/generator/php/tests/ListRenderConformanceTest.php, packages/generator/php/tests/DetailRenderConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php tests/OutlineTest.php tests/FormCompleteConformanceTest.php tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest\|OutlineTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest'` | [o] |
-| C16.98 | 공유 suite를 시험하지 않는 Rust test 파일은 이유와 함께 internal로, 공용 test 도우미는 support 파일로 선언한다 | config/parity.json | `test "$(make parity-declarations-check > var/parity-gate.log 2>&1; grep -c "R5 undeclared-test rust" var/parity-gate.log)" -eq 4` | [o] |
+| C16.98 | 공유 suite를 시험하지 않는 Rust test 파일은 이유와 함께 internal로, 공용 test 도우미는 support 파일로 선언한다 | config/parity.json | `test "$(make parity-declarations-check > var/parity-gate.log 2>&1; grep -c "R5 undeclared-test rust" var/parity-gate.log)" -le 4` | [o] |
+| C16.99 | Rust JsonText 단위 test는 internal이다: 반복 member 규칙은 TypeScript 명세 parser와 Rust JsonText parser에만 묶인다 | config/parity.json | `test "$(make parity-declarations-check > var/parity-gate.log 2>&1; grep -c "R5 undeclared-test rust" var/parity-gate.log)" -eq 3`, `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/text/json.test.ts` | [o] |
