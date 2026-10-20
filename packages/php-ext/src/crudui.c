@@ -226,8 +226,9 @@ static bool standard_object(zval *value)
 PHP_METHOD(Polyspec_Crudui_Generator, formButtonsHtml)
 {
     zval *buttons;
-    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY(buttons) ZEND_PARSE_PARAMETERS_END();
-    if (!zend_array_is_list(Z_ARRVAL_P(buttons))) {
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ZVAL(buttons) ZEND_PARSE_PARAMETERS_END();
+    ZVAL_DEREF(buttons);
+    if (Z_TYPE_P(buttons) != IS_ARRAY || !zend_array_is_list(Z_ARRVAL_P(buttons))) {
         crudui_invalid_value("Form buttons must be a list", true);
         return;
     }

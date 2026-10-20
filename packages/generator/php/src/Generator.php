@@ -272,7 +272,7 @@ final class Generator
     }
 
     /** Render evaluated buttons as the markup every renderer places in the form footer; reject any other element. */
-    public static function formButtonsHtml(array $buttons): string
+    public static function formButtonsHtml(mixed $buttons): string
     {
         return Buttons::htmlPublic($buttons);
     }

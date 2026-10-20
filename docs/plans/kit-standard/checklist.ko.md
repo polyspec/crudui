@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 5004fd2471ef6c4961305b37c70fe2320772ab9fe705abef8c0a9e57dabc6eac -->
+<!-- source-sha256: c89f12534735154103da8c7e88f0295d09f15bac6d39978363126ddf985f12de -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -221,3 +221,4 @@
 | C16.120 | Go generator가 모든 form 버튼 case를 실행한다. BindButtons와 FormButtonsHTML의 관찰은 case가 기록한 값과 같고, FormButtonsHTML은 목록이 아닌 값을 case가 기록한 거부로 처리한다 | packages/generator/go/buttons_conformance_test.go, packages/generator/go/buttons.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestButtonsSuite ./...` | [o] |
 | C16.121 | Python generator가 모든 form 버튼 case를 실행한다. bindButtons와 formButtonsHtml의 관찰은 case가 기록한 값과 같고, bindButtons는 알 수 없는 타입의 버튼을 reference처럼 거부한다 | packages/generator/python/tests/test_buttons.py, packages/generator/python/src/polyspec/crudui/generator/buttons.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests/test_buttons.py` | [o] |
 | C16.122 | Rust generator가 모든 form 버튼 case를 실행한다. bind_buttons와 form_buttons_html의 관찰은 case가 기록한 값과 같고, bind_buttons는 알 수 없는 타입의 버튼을 거부하며, form_buttons_html은 목록이 아닌 값을 case가 기록한 거부로 처리한다 | packages/generator/rust/tests/buttons.rs, packages/generator/rust/src/binding.rs, packages/generator/rust/src/tests.rs, tests/native-generators/programs/rust/src/main.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test buttons` | [o] |
+| C16.123 | PHP library와 PHP extension이 form 버튼 case를 실행한다. bindButtons는 알 수 없는 타입의 버튼을 거부하고, formButtonsHtml은 목록이 아닌 값을 spec 메시지로 거부하며, 둘 다 case가 기록한 값을 관찰한다 | packages/generator/php/tests/ButtonsConformanceTest.php, packages/generator/php/src/Generator.php, packages/generator/php/src/Internal/Buttons.php, packages/php-ext/src/crudui.c, packages/php-ext/src/binding.c, packages/php-ext/src/polyspec_crudui.stub.php, packages/php-ext/src/polyspec_crudui_arginfo.h | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- --filter ButtonsConformanceTest`, `make test-php-ext CASES='ButtonsConformanceTest'` | [o] |

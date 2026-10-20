@@ -7,7 +7,7 @@ namespace Polyspec\Crudui {
         public static function compileForm(array|\stdClass $spec, array $options = []): \stdClass {}
         public static function bindForm(\stdClass $template, mixed $data = [], array $options = []): array {}
         public static function bindButtons(\stdClass $template, mixed $data = [], array $options = []): array {}
-        public static function formButtonsHtml(array $buttons): string {}
+        public static function formButtonsHtml(mixed $buttons): string {}
         public static function renderForm(Form $form, mixed $options = []): string {}
         public static function renderList(mixed $spec, mixed $rows, array $options = []): string {}
         public static function buildList(mixed $spec, mixed $rows = [], array $options = []): \stdClass {}

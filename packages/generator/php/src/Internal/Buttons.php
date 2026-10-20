@@ -27,6 +27,10 @@ final class Buttons
         foreach ($template->buttons as $button) {
             $button = Value::object($button);
             $type = $button->type;
+            if (!is_string($type) || !in_array($type, self::TYPES, true)) {
+                $name = is_scalar($type) ? (string) $type : '';
+                throw new FormError('INVALID_FORM_INPUT', 'Invalid button type: ' . $name);
+            }
             $design = Design::resolve($button->design ?? null, $data, [], []);
             $attrs = new stdClass();
             if ($type !== 'link') {
@@ -69,9 +73,9 @@ final class Buttons
     }
 
     /** Markup of public input after checking that every element is an evaluated button. */
-    public static function htmlPublic(array $buttons): string
+    public static function htmlPublic(mixed $buttons): string
     {
-        if (!array_is_list($buttons)) {
+        if (!is_array($buttons) || !array_is_list($buttons)) {
             throw new FormError('INVALID_FORM_INPUT', 'Form buttons must be a list');
         }
         foreach ($buttons as $button) {

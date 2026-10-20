@@ -830,6 +830,25 @@ static ps_result unsupported_language(ps_text language)
 }
 
 /* Public button binding: form binding input checks, then the buttons in specification order. */
+/* The declared button types are link, submit, button and reset; another type is an input error (CURP-008). */
+static ps_result invalid_button_type(const ps_value *template)
+{
+    const ps_value *declared = member(template, "buttons");
+    for (size_t i = 0; declared && declared->kind == PS_ARRAY && i < ps_size(declared); ++i) {
+        ps_text type = string_member(ps_at(declared, i), "type");
+        if (ps_text_is(type, "link") || ps_text_is(type, "submit") || ps_text_is(type, "button") ||
+            ps_text_is(type, "reset"))
+            continue;
+        ps_chars message = PS_CONCAT(ps_fixed("Invalid button type: "), type);
+        if (!message.bytes) return ps_fail("internal", "INTERNAL_ERROR", "C button binding failed", "");
+        ps_result failure = ps_fail_text("form", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""));
+        free(message.bytes);
+        return failure;
+    }
+    ps_result none = {NULL, NULL};
+    return none;
+}
+
 ps_result ps_bind_form_buttons(const ps_value *template, const ps_value *data,
                                const ps_value *options)
 {
@@ -838,6 +857,7 @@ ps_result ps_bind_form_buttons(const ps_value *template, const ps_value *data,
         return ps_fail("internal", "INTERNAL_ERROR", "C button binding failed", "");
     ps_text language = {NULL, 0};
     ps_result result = check_bind_input(ordered, data, options, &language);
+    if (!result.error) result = invalid_button_type(ordered);
     if (!result.error) {
         if (!ps_form_messages_for(language)) result = unsupported_language(language);
         else {
