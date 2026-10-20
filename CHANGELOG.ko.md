@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8bbe5425bc17e56f2e20ca6e17fa5f1a07aca8394d7848c7a0a65c919a12497b -->
+<!-- source-sha256: 27ca2902f2a3e33595b048b6bff8742de428ec63f9c46c356e3b3f717c1bacb7 -->
 
 ## Unreleased
 
@@ -40,6 +40,10 @@
 ### 2026-10-20 — 런타임의 row 작업과 keyPrefix 옵션을 case가 인용한다 (C16.57-10)
 
 - state case가 시험하는 row 작업 requirement를 이름으로 밝힙니다(C16.57-10): `tests/fixtures/form-history`의 `undo-and-redo-restore-the-record`는 CURT-004(공급된 key로 `addRow`)를, `tests/fixtures/form-actions`의 `run-action-add-and-copy-row`는 CURT-005(`copyRow`가 복사된 row와 중첩 row의 key를 `$1`, `$2`로 새로 만듦)를, `run-action-move-row`는 CURT-007(`moveRow`가 key와 값을 유지함)을, `tests/fixtures/form-view`의 `row-removal-drops-and-rekey-moves-view`는 CURT-006(`removeRow`가 선택된 row만 제거함)과 CURT-008(`rekeyRow`가 하위 path를 다시 만듦)을 인용합니다. 생성기는 `tests/fixtures/form-state/generate.mts`입니다. `tests/fixtures/form-render`에는 `packages/react/scripts/scenario-form-render-cases.ts`를 거친 `key-prefix-option-names`가 추가되며, 그 React 기준 출력은 모든 control을 `form[…]`으로 명명합니다(CURT-025). form-view, form-history, form-actions, form-render unit이 새 id를 가집니다. Owner test: ts `form-state.test.ts` 28, Go `TestFormView|TestFormHistory|TestFormActions` 20, Python `test_form_state` 4, Rust `form_state` 4, PHP `FormStateTest` 28; ts `conformance.test.ts` 330, Go `TestFormRenderSuite` 192, Python `test_form_render` 5, Rust `form_render` 1, PHP `RenderingConformanceTest` 191(라이브러리). Red: `make parity-declarations-check`는 form-runtime.md의 R13 줄 161개(전체, 그중 CURT id 44개)를 보고합니다; green: R13 줄 155개(그중 CURT id 38개)이며 새 finding 줄은 없습니다. 아직 추적되지 않은 CURT id 38개는 이유와 함께 나열합니다: CURT-001에서 003(데이터 오류 message; 이 message로 실패하는 case가 없고 기준 생성기는 구성 오류만 씀); CURT-026에서 049(함수 옵션, DOM form 요소에 대한 bindForm, control 값과 이름, 검증 시점과 submit, hydration: TypeScript 브라우저 런타임 전용); CURT-050(준비 순서), 051(framework view 마운트), 052(예제 store), 056(validate unit이 수행하는 검증 절차; case가 아님); CURT-053에서 055(각 case가 requirement의 일부만 시험하므로 인용하지 않음); CURT-057, 058, 059, 060(포인터, 키보드, 네이티브 입력 이벤트, 재렌더와 브라우저별 script, 브라우저에서 서버 렌더 바인딩: TypeScript 전용).
+
+### 2026-10-20 — Rust의 공유 contract 관련 test 파일은 internal로, 공용 conformance 도우미는 support 파일로 선언한다 (C16.98)
+
+- `config/parity.json`은 `rust` implementation의 `internal`로 Rust test 파일 23개를 선언하며, 각 항목에는 그 module과 contract를 밝히는 이유가 있습니다(공유 suite가 다루는 행은 suite unit을, Rust 전용 내부는 시험하는 내용을 씁니다). 또한 test를 담지 않는 `packages/validator/rust/tests/common/**`을 `support` glob으로 선언합니다(C16.98). Red: `make parity-declarations-check`가 exit 2이며 finding 309건, 그중 `R5 undeclared-test rust` 28건이었습니다. Green: exit 2이며 finding 285건입니다. 23건의 R5와 요약 줄이 빠졌고 새 줄은 없습니다. 남은 R5 4건은 `packages/generator/rust/src/messages/mod.rs`, `packages/validator/rust/src/text.rs`, `packages/validator/rust/tests/compose_conformance.rs`, `packages/validator/rust/tests/expr_conformance.rs`이며, 각각 C16.99, C16.100, C16.81의 compose와 expr unit에 속합니다. 내부 id를 명시한 파일은 없으므로 R16은 깨끗합니다.
 
 ### 2026-10-20 — PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 (C16.90)
 

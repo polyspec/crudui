@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 791a4e6d38acf5db50084efe26abbb617d3ca3b65bc3fb1154d1d7f943d7be70 -->
+<!-- source-sha256: aa3c02a310c94cc80d81c454688a7b002ec382b72f67efb3848686729cdf0326 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -186,3 +186,4 @@
 | C16.90 | PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 | packages/generator/php/tests/DisplayRulesTest.php, packages/php-ext/src/list.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |
 | C16.95 | ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.97 | PHP extension은 public API만으로 rendering conformance suite를 실행한다 | packages/generator/php/tests/RenderingConformanceTest.php, packages/generator/php/tests/LayoutTree.php, packages/generator/php/tests/ListRenderConformanceTest.php, packages/generator/php/tests/DetailRenderConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php tests/OutlineTest.php tests/FormCompleteConformanceTest.php tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest\|OutlineTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest'` | [o] |
+| C16.98 | 공유 suite를 시험하지 않는 Rust test 파일은 이유와 함께 internal로, 공용 test 도우미는 support 파일로 선언한다 | config/parity.json | `make parity-declarations-check` reports no R5 finding for the rust files named in the classification | [~] |

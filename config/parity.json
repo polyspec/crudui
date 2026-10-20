@@ -113,7 +113,102 @@
         "packages/validator/rust"
       ],
       "support": [
-        "packages/generator/rust/tests/support/**"
+        "packages/generator/rust/tests/support/**",
+        "packages/validator/rust/tests/common/**"
+      ],
+      "internal": [
+        {
+          "glob": "packages/validator/rust/src/compose/compose.rs",
+          "reason": "test: unit tests of the Rust composition orchestrator (order of the composed fields); the contract is tested by the shared compose suite (fixture tests/fixtures/compose), whose unit is pending (C16.81)"
+        },
+        {
+          "glob": "packages/validator/rust/src/compose/member_order.rs",
+          "reason": "test: unit tests of the Rust member order (array indexes and canonical order); the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/compose/patch.rs",
+          "reason": "test: unit tests of the Rust $patch application; the contract is tested by the shared compose suite (fixture tests/fixtures/compose), whose unit is pending (C16.81)"
+        },
+        {
+          "glob": "packages/validator/rust/src/detail/mod.rs",
+          "reason": "test: unit tests of the Rust detail-spec structure validation; the contract is tested by the shared detail-validity suite (unit detail-validity)"
+        },
+        {
+          "glob": "packages/validator/rust/src/forbidden_scan.rs",
+          "reason": "test: unit tests of the Rust forbidden meta-key scan; the contract is tested by the shared spec-validity suite (unit spec-validity)"
+        },
+        {
+          "glob": "packages/validator/rust/src/list/mod.rs",
+          "reason": "test: unit tests of the Rust list-spec structure validation; the contract is tested by the shared list-validity suite (unit list-validity)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/canonical.rs",
+          "reason": "test: unit tests of the Rust canonical text of scalars; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/length.rs",
+          "reason": "test: unit tests of the Rust length rules; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/membership.rs",
+          "reason": "test: unit tests of the Rust membership (in) rule; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/numeric.rs",
+          "reason": "test: unit tests of the Rust numeric rules; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/parameters.rs",
+          "reason": "test: unit tests of the Rust rule parameter checks; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/pattern/mod.rs",
+          "reason": "test: unit tests of the Rust pattern language; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/rules.rs",
+          "reason": "test: unit tests of the Rust rule registry, comparison keys and unique; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/visibility.rs",
+          "reason": "test: unit tests of the Rust design.show visibility resolution; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/whitespace.rs",
+          "reason": "test: unit tests of the Rust whitespace, trimming and emptiness; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/tests/unique_rows.rs",
+          "reason": "test: unit tests of the Rust row-level unique check; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/rust/tests/unknown_data.rs",
+          "reason": "test: unit tests of the Rust unknown data member checks; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/generator/rust/src/detail.rs",
+          "reason": "test: unit tests of the Rust detail renderer; the contract is tested by the shared detail-render suite (unit detail-render)"
+        },
+        {
+          "glob": "packages/validator/rust/src/types.rs",
+          "reason": "test: unit tests of the Rust validator's canonical field model and serde types (Rust-only data shapes that no other implementation has)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/pattern/sets.rs",
+          "reason": "test: unit tests of the Rust code-point range sets that the pattern classes are built from (a Rust-only representation)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/pattern/tree.rs",
+          "reason": "test: unit tests of the Rust pattern tree and its size (a Rust-only representation of the parsed pattern)"
+        },
+        {
+          "glob": "packages/validator/rust/src/validate/unicode/mod.rs",
+          "reason": "test: unit tests of the embedded Unicode data tables of the Rust validator (a Rust-only data layout of the shared Unicode data)"
+        },
+        {
+          "glob": "packages/generator/rust/src/date.rs",
+          "reason": "test: unit tests of the Rust generator's date parser (chrono and regex internals of the Rust build)"
+        }
       ]
     },
     {
