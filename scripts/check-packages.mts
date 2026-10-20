@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -10,7 +10,32 @@ import { installLock, isLockPackages, isPackedManifest, type PackedPackage } fro
 import { packPackage } from './package-install-pack.mts';
 import { createProgress } from '@polyspec/kit/test-progress';
 import { readFeatureManifest } from './features-manifest.mts';
-import { errorMessage, isRecord, readJson, record, string } from './values.mts';
+import { checkedShape, readShape, shapeDetail, shapeOf } from './json-schema.mts';
+
+/** A JSON object: a package.json, a package lock or a module's object of JSON values, which the checks read by its keys. */
+const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
+/** The package.json of the repository, whose allowScripts setting the install project keeps. */
+const ROOT_MANIFEST = shapeOf<{ allowScripts?: unknown }>({ type: 'object' });
+/** A package.json of a workspace package: its devDependencies, which the svelte versions are read from. */
+const DEV_DEPENDENCIES = shapeOf<{ devDependencies?: Record<string, unknown> }>({ type: 'object' });
+/** A version of a package.json. */
+const VERSION = shapeOf<{ version?: unknown }>({ type: 'object' });
+/** The package-lock.json of the repository, whose packages the install lock reads. */
+const ROOT_LOCK = shapeOf<{ packages?: unknown }>({ type: 'object' });
+/** A version that is a string. */
+const STRING = shapeOf<string>({ type: 'string' });
+/** A value of an exports map of package.json: a path, or conditions and subpaths that lead to paths. */
+const EXPORT_TARGET = shapeOf<ExportTarget>({
+  $ref: '#/definitions/target',
+  definitions: {
+    target: {
+      anyOf: [{ type: 'string' }, { type: 'object', additionalProperties: { $ref: '#/definitions/target' } }],
+    },
+  },
+});
+/** The error message of a caught value, as text. */
+const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
@@ -21,7 +46,7 @@ const published = readFeatureManifest(root).packages.map(({ path }) => relative(
 const dependencies: Record<string, string> = {};
 // The packed packages for the install lock (scripts/install-lock.mts).
 const packed: Record<string, PackedPackage> = {};
-const { allowScripts } = record(readJson(join(root, 'package.json')), 'package.json');
+const { allowScripts } = readShape(ROOT_MANIFEST, join(root, 'package.json'));
 process.stdout.write(`Install project: ${directory}\n`);
 
 /*
@@ -34,12 +59,11 @@ process.stdout.write(`Install project: ${directory}\n`);
 type ExportTarget = string | { [key: string]: ExportTarget };
 
 /** Whether `value` is a value of an exports map that leads to paths. */
-const isExportTarget = (value: unknown): value is ExportTarget =>
-  typeof value === 'string' || (isRecord(value) && Object.values(value).every(isExportTarget));
+const isExportTarget = (value: unknown): value is ExportTarget => EXPORT_TARGET(value);
 
 /** Whether `value` is the module of vite, in the two functions that the check calls. */
 const isVite = (value: unknown): value is typeof import('vite') =>
-  isRecord(value) && typeof value.createServer === 'function' && typeof value.preview === 'function';
+  OBJECT(value) && typeof value.createServer === 'function' && typeof value.preview === 'function';
 
 /** Whether `value` is a function, which the check calls without arguments. */
 const isCallable = (value: unknown): value is () => unknown => typeof value === 'function';
@@ -81,8 +105,8 @@ try {
   assert.deepEqual([...packages].sort(), [...published].sort(), 'the install check packs every published package');
   for (const folder of packages) {
     const source = join(root, 'packages', folder);
-    const manifest = readJson(join(source, 'package.json'));
-    assert.ok(isPackedManifest(manifest), `${folder}/package.json has a name, a version and dependency fields of strings`);
+    const manifest: unknown = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
+    assert.ok(isPackedManifest(manifest), `${folder}/package.json has a name, a version and dependency fields of strings: ${shapeDetail(isPackedManifest.errors)}`);
     assert.equal(manifest.version, '0.0.7', manifest.name);
     const tarball = await packPackage(source, directory, manifest.name, run);
     dependencies[manifest.name] = `file:${tarball}`;
@@ -91,14 +115,14 @@ try {
   });
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
     const version = ['vite', '@sveltejs/vite-plugin-svelte'].includes(name)
-      ? record(record(readJson(join(root, 'packages/svelte/package.json')), 'packages/svelte/package.json').devDependencies, 'devDependencies of packages/svelte/package.json')[name]
-      : record(readJson(require.resolve(`${name}/package.json`)), `${name}/package.json`).version;
-    dependencies[name] = string(version, `the version of ${name}`);
+      ? readShape(DEV_DEPENDENCIES, join(root, 'packages/svelte/package.json')).devDependencies?.[name]
+      : readShape(VERSION, require.resolve(`${name}/package.json`)).version;
+    dependencies[name] = checkedShape(STRING, version, `the version of ${name}`);
   }
   const project = { name: 'crudui-install-check', version: '0.0.1', private: true, type: 'module', dependencies, allowScripts };
   writeFileSync(join(directory, 'package.json'), JSON.stringify(project, null, 2));
   // The install project installs the releases of the root lock from the npm cache that make install fills, without a registry.
-  const lockPackages = record(readJson(join(root, 'package-lock.json')), 'package-lock.json').packages;
+  const lockPackages = readShape(ROOT_LOCK, join(root, 'package-lock.json')).packages;
   assert.ok(lockPackages === undefined || isLockPackages(lockPackages), 'the packages of package-lock.json are lock entries');
   const rootLock = lockPackages === undefined ? {} : { packages: lockPackages };
   writeFileSync(join(directory, 'package-lock.json'), `${JSON.stringify(installLock({ rootLock, manifest: project, packed }), null, 2)}\n`);
@@ -146,7 +170,7 @@ bindForm(document.querySelector<HTMLFormElement>('#binding form')!, bindingSpec,
   await step('verify package exports', 10000, () => {
   for (const name of Object.keys(dependencies).filter(name => name.startsWith('@polyspec/crudui-'))) {
     const base = join(directory, 'node_modules', name);
-    const manifest = record(readJson(join(base, 'package.json')), `${name}/package.json`);
+    const manifest = readShape(OBJECT, join(base, 'package.json'));
     assert.ok(isExportTarget(manifest.exports), `${name}: the exports of package.json lead to paths`);
     const check = (value: ExportTarget): void => {
       if (typeof value === 'string') assert.ok(existsSync(resolve(base, value)), `${name}: ${value}`);
@@ -228,7 +252,7 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
 } catch (error) {
   // A failed step throws an Error; a failed command adds its output to it.
   const output = (name: string) => {
-    const value = isRecord(error) ? error[name] : undefined;
+    const value = OBJECT(error) ? error[name] : undefined;
     return typeof value === 'string' ? value : undefined;
   };
   const detail = [errorMessage(error), output('stdout'), output('stderr')].filter(Boolean).join('\n');

@@ -5,7 +5,20 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
-import { errorCode, parseJson, record } from './values.mts';
+import { checkedShape, shapeOf } from './json-schema.mts';
+
+/** The package.json of @polyspec/kit: its kit.copies, whose keys are the copies that the repository does not own. */
+const KIT_MANIFEST = shapeOf<{ kit: { copies: Record<string, unknown> } }>({
+  type: 'object',
+  required: ['kit'],
+  properties: {
+    kit: {
+      type: 'object',
+      required: ['copies'],
+      properties: { copies: { type: 'object' } },
+    },
+  },
+});
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 // The copies of each root that a process read: the installed package does not change while a check runs.
@@ -27,10 +40,12 @@ function readCopies(root: string): string[] {
   try {
     text = readFileSync(manifest, 'utf8');
   } catch (error) {
-    if (errorCode(error) === 'ENOENT') throw new Error(`${manifest} is missing; run make install-tools TOOLS=npm, then make install-packages`);
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      throw new Error(`${manifest} is missing; run make install-tools TOOLS=npm, then make install-packages`);
+    }
     throw error;
   }
-  return Object.keys(record(record(record(parseJson(text), manifest).kit, `kit of ${manifest}`).copies, `kit.copies of ${manifest}`)).sort();
+  return Object.keys(checkedShape(KIT_MANIFEST, JSON.parse(text), manifest).kit.copies).sort();
 }
 
 /** Whether `file`, relative to the checkout, is a copy of polyspec/kit. */

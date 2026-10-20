@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Ajv, type SchemaObject } from 'ajv';
-import { isRecord, parseJson } from './values.mts';
+import { shapeOf } from './json-schema.mts';
 
 /** An entry of a package of the manifest. */
 export interface ManifestEntry {
@@ -61,9 +61,9 @@ export interface FeatureManifest {
 }
 
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const schema = parseJson(readFileSync(resolve(scriptRoot, 'contracts/features.schema.json'), 'utf8'));
+const schema: unknown = JSON.parse(readFileSync(resolve(scriptRoot, 'contracts/features.schema.json'), 'utf8'));
 /** Whether `value` is a JSON object, the shape of a JSON Schema that ajv compiles. */
-const isSchemaObject = (value: unknown): value is SchemaObject => isRecord(value);
+const isSchemaObject = shapeOf<SchemaObject>({ type: 'object' });
 if (!isSchemaObject(schema)) throw new Error('contracts/features.schema.json is no JSON object');
 
 /** The type guard of contracts/features.schema.json; its `errors` hold the errors of the last value that it refused. */
@@ -76,7 +76,7 @@ export function featureManifestErrors(): string {
 
 /** The JSON text `text` of a feature manifest, checked; `source` names it in the Error of a manifest that breaks the schema. */
 export function parseFeatureManifest(text: string, source: string): FeatureManifest {
-  const manifest = parseJson(text);
+  const manifest: unknown = JSON.parse(text);
   if (!isFeatureManifest(manifest)) throw new Error(`${source} breaks contracts/features.schema.json: ${featureManifestErrors()}`);
   return manifest;
 }

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c3ce379301277956eb2a4f17653c3ce32dc1f03dcdc912c11eba3b14c592671b -->
+<!-- source-sha256: fb07e936ca02f0383c4f3f0e37f9168bd4b408004d7553aded923d8076e3997f -->
 
 ## Unreleased
 
@@ -8,6 +8,10 @@
 
 - `config/parity.json`은 form-render, form-complete, list-render, detail-render, form-outline unit을 선언합니다. 각 unit은 존재하는 ts, go, python, php, php-extension, rust binding과 그 case가 시험하는 requirement id를 가집니다(C16.83). `packages/html`은 ts implementation의 root이며, markup 규칙 test 8개와 browser session test 2개는 internal로 선언합니다. `docs/spec/runtime-packages.md`는 TypeScript 구현에 requirement CURP-028을 부여합니다. 다섯 suite의 case는 `requirements` member에 id를 가지며, tests/fixtures/*/generate.mts와 packages/react/scripts/generate-form-render-cases.mts가 생성합니다. 바뀐 것은 그 member뿐입니다. Red: main의 `make parity-declarations-check`는 420 finding(R13 259, R4 12, R5 148, R6 1)을 보고합니다; green: 317 finding(R13 168, R4 7, R5 141, R6 1). Rust form-render runner(tests/form_render.rs, C16.88에서 옴)는 하나의 test `form_render_cases_reproduce_the_normalized_layout_or_the_failure`가 188개 case를 모두 실행하도록 바뀌었으므로, binding 하나가 모든 case를 실행합니다. Owner test: 다섯 html conformance file의 `vitest`, 587 passed, 0 failed.
 - `config/parity.json`의 rust implementation은 `packages/generator/rust/tests/support/**`를 support 파일로 선언합니다. rendering runner들이 함께 쓰는 module은 test가 아닙니다(C16.83).
+
+### 2026-10-20 — package와 repository reader는 JSON을 ajv 형태로 읽는다 (C16.11-2)
+
+- `scripts/repository-files.mts`는 @polyspec/kit package.json의 kit.copies를 ajv 형태로 검사하고, `scripts/package-install-pack.mts`는 npm pack 보고와 원본 package.json을 형태로 검사하며, `scripts/check-contract-manifest.mts`는 exports map과 package.json을 형태로 검사하고, `scripts/features-manifest.mts`는 schema 객체를 형태로 검사하며, `scripts/check-packages.mts`는 package.json, lock과 버전 파일을 형태로 읽습니다(C16.11-2). 호출자의 각 거부는 조건과 고유 메시지를 유지하며, 형태가 값을 거부하면 메시지는 파일과 잘못된 값의 JSON Pointer를 밝힙니다(`shapeDetail`). Red: 이 family는 `scripts/values.mts`로 읽었습니다. Green: `tests/build/package-install-pack.test.mts`, `tests/build/repository-files.test.mts`, `tests/build/contract-manifest.test.mts`, `tests/build/install-lock.test.mts`, `scripts/json-schema.test.mts`가 함께 25건 통과하며, `make rebuild-check` exit 0입니다. `scripts/check-packages.mts`는 install project를 실행하므로 TypeScript 컴파일러로만 확인했고, `make test:packages` gate에서 검사됩니다.
 
 ### 2026-10-20 — install lock은 형태를 ajv schema로 읽는다 (C16.11-1)
 

@@ -24,7 +24,7 @@ import { init, parse } from 'es-module-lexer';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 import { featureManifestErrors, isFeatureManifest, type ManifestEntry, type ManifestPackage } from './features-manifest.mts';
-import { isRecord, parseJson } from './values.mts';
+import { checkedShape, shapeOf } from './json-schema.mts';
 
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /** A value of a package.json exports map: a target path, a list of targets, or conditions and subpaths. */
@@ -41,18 +41,27 @@ export interface ManifestCheck {
   counts: { features: number, packages: number, entries: number, fixtures: number };
 }
 
-/** Whether `value` is a value of a package.json exports map. */
-function isExportsValue(value: unknown): value is ExportsValue {
-  if (value === null || typeof value === 'string') return true;
-  if (Array.isArray(value)) return value.every(isExportsValue);
-  return isRecord(value) && Object.values(value).every(isExportsValue);
-}
+/** A value of a package.json exports map: null, a string, or an array or object of such values. */
+const isExportsValue = shapeOf<ExportsValue>({
+  $ref: '#/definitions/value',
+  definitions: {
+    value: {
+      anyOf: [
+        { type: 'null' },
+        { type: 'string' },
+        { type: 'array', items: { $ref: '#/definitions/value' } },
+        { type: 'object', additionalProperties: { $ref: '#/definitions/value' } },
+      ],
+    },
+  },
+});
+
+/** A package.json, which is an object. */
+const PACKAGE_MANIFEST = shapeOf<Record<string, unknown>>({ type: 'object' });
 
 /** The name and exports of the package.json `file`; throws when they are of another type. */
 function readPackageManifest(file: string): PackageManifest {
-  const value = parseJson(readFileSync(file, 'utf8'));
-  if (!isRecord(value)) throw new Error(`${file} is no JSON object`);
-  const { name, exports } = value;
+  const { name, exports } = checkedShape(PACKAGE_MANIFEST, JSON.parse(readFileSync(file, 'utf8')), file);
   if (name !== undefined && typeof name !== 'string') throw new Error(`name of ${file} is no string`);
   if (exports !== undefined && (exports === null || !isExportsValue(exports))) throw new Error(`exports of ${file} is no exports map`);
   return { ...(name === undefined ? {} : { name }), ...(exports === undefined ? {} : { exports }) };
@@ -134,7 +143,7 @@ const moduleSpecifier = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimpor
 
 /** Check the manifest of the repository at `root`; returns the failures and the checked counts. */
 export function checkContractManifest(root: string): ManifestCheck {
-  const manifest = parseJson(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
+  const manifest: unknown = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
   const errors: string[] = [];
   const check = (condition: unknown, message: string): void => { if (!condition) errors.push(message); };
 
