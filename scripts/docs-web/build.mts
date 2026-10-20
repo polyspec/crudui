@@ -402,7 +402,6 @@ export async function buildDocumentationWeb(
   const publicDirectory = join(docs, 'public');
   const sourceFiles = (await walk(docs, filename => filename.endsWith('.md')))
     .filter(filename => !within(join(docs, '.web'), filename)
-      && !within(join(docs, '.site'), filename)
       && !within(publicDirectory, filename));
   const publicInputs = await walk(publicDirectory);
   const publicFiles = new Map(publicInputs.map(filename => [posix(relative(publicDirectory, filename)), filename]));

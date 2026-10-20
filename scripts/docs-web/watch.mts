@@ -27,8 +27,7 @@ function generatedPath(directory: string, filename: string | Buffer | null | und
   const value = filename.toString();
   const local = (isAbsolute(value) ? relative(directory, value) : value)
     .replaceAll('\\', '/');
-  return local === '.web' || local.startsWith('.web/')
-    || local === '.site' || local.startsWith('.site/');
+  return local === '.web' || local.startsWith('.web/');
 }
 
 /** Subscribe to documentation source events and serialize requested rebuilds. */

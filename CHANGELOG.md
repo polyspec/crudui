@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The docs folder without .site (C16.5)
+
+- `docs/` holds only the folders K245 allows: the orphaned `docs/.site/` build output is removed together with its exclusions in `scripts/docs-web/build.mts` and `watch.mts`, their tests and `docs/operations/documentation.md` (C16.5). Red: `make layout-check` exit 2 (`docs/.site: docs-folders: K245`), and the two docs tests failed with the exclusions removed; green: `make layout-check` exit 0, 17 docs tests passed.
+
 ### 2026-10-20 — The Korean checklist revision (C16.4)
 
 - The Korean checklist of the kit-standard plan is reviewed against `checklist.md` and carries the sha256 of its source (C16.4). Red: `check-documents.mjs` reported one revision finding; green: no finding.

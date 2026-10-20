@@ -45,7 +45,6 @@ test('documentation source events serialize rebuilds and exclude generated outpu
   receive('rename', 'guide.md');
   receive('change', 'reference/api.md');
   receive('change', '.web/dist/guide.html');
-  receive('change', '.site/dist/license.md');
   assert.ok(releaseFirst, 'the promise executor ran');
   releaseFirst();
   await subscription.idle();
@@ -53,7 +52,6 @@ test('documentation source events serialize rebuilds and exclude generated outpu
   assert.deepEqual(failures, []);
 
   receive('change', '.web/dist/index.html');
-  receive('change', '.site/dist/license.md');
   await subscription.idle();
   assert.deepEqual(builds, [1, 2]);
   subscription.close();

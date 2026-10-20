@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6462ac08700d13bf64c3039c1eee7ef01f04c0b0aa1e018553724c0753cbd4e4 -->
+<!-- source-sha256: d4262afc9760fa8b97882fb00e79d1bc4985569744a3ddfc64ab32f23b0a6d48 -->
 
 ## Unreleased
+
+### 2026-10-20 — .site 없는 docs 폴더 (C16.5)
+
+- `docs/`는 K245가 허용한 폴더만 담습니다. 더 이상 생성되지 않는 `docs/.site/` build 출력을 `scripts/docs-web/build.mts`와 `watch.mts`의 제외 조건, 그 test, `docs/operations/documentation.md`와 함께 제거합니다 (C16.5). Red: `make layout-check` exit 2 (`docs/.site: docs-folders: K245`), 제외 조건을 제거하면 docs test 2건이 실패했고, green: `make layout-check` exit 0, docs test 17건 통과.
 
 ### 2026-10-20 — 한국어 checklist revision (C16.4)
 

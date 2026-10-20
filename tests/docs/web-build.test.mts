@@ -36,8 +36,8 @@ test('documentation build preserves page routes, titles, links and public files'
   const outputDirectory = join(repositoryRoot, 'output');
   await mkdir(join(docsDirectory, 'guide'), { recursive: true });
   await mkdir(join(docsDirectory, 'public', 'assets'), { recursive: true });
-  await mkdir(join(docsDirectory, '.site', 'dist'), { recursive: true });
-  await writeFile(join(docsDirectory, '.site', 'dist', 'license.md'), 'Generated asset text');
+  await mkdir(join(docsDirectory, '.web', 'dist'), { recursive: true });
+  await writeFile(join(docsDirectory, '.web', 'dist', 'license.md'), 'Generated asset text');
   await mkdir(join(repositoryRoot, 'tests'), { recursive: true });
   await writeFile(join(docsDirectory, 'index.md'), [
     '# Home',
