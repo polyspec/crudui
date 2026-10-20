@@ -42,6 +42,7 @@
 
 ### 2026-10-20 — The Rust test files of the shared contracts are declared internal, and the conformance helper is a support file (C16.98)
 
+- The verification of C16.98 counts the four rust R5 lines that remain in `make parity-declarations-check` (C16.98): the item closes with this line, since the change itself is in the commit before.
 - `config/parity.json` declares 23 Rust test files as `internal` of the `rust` implementation, each with a reason that names its module and its contract (for the rows covered by a shared suite: the suite unit; for Rust-only internals: what they test), and `packages/validator/rust/tests/common/**` as a `support` glob, since it holds no test (C16.98). Red: `make parity-declarations-check` exit 2 with 309 findings, 28 of them `R5 undeclared-test rust`. Green: exit 2 with 285 findings; 24 lines left the output (23 R5 and the count line), none was added, and 4 R5 lines remain for `packages/generator/rust/src/messages/mod.rs`, `packages/validator/rust/src/text.rs`, `packages/validator/rust/tests/compose_conformance.rs` and `packages/validator/rust/tests/expr_conformance.rs` (C16.99, C16.100, and the compose and expr units of C16.81). No internal id is named, so R16 is clean.
 
 ### 2026-10-20 — The PHP extension reads a signed radix number text as the library does (C16.90)

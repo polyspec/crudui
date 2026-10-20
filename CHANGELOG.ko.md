@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 27ca2902f2a3e33595b048b6bff8742de428ec63f9c46c356e3b3f717c1bacb7 -->
+<!-- source-sha256: a35310cd9cfd2abc6809142ab236ec5cc0c7eb0dc408961b127cb4141409cd57 -->
 
 ## Unreleased
 
@@ -43,6 +43,7 @@
 
 ### 2026-10-20 — Rust의 공유 contract 관련 test 파일은 internal로, 공용 conformance 도우미는 support 파일로 선언한다 (C16.98)
 
+- C16.98의 verification은 `make parity-declarations-check`에 남은 rust R5 줄 4개를 센다(C16.98). 이 항목은 이 줄과 함께 닫히며, 변경 자체는 앞 commit에 있습니다.
 - `config/parity.json`은 `rust` implementation의 `internal`로 Rust test 파일 23개를 선언하며, 각 항목에는 그 module과 contract를 밝히는 이유가 있습니다(공유 suite가 다루는 행은 suite unit을, Rust 전용 내부는 시험하는 내용을 씁니다). 또한 test를 담지 않는 `packages/validator/rust/tests/common/**`을 `support` glob으로 선언합니다(C16.98). Red: `make parity-declarations-check`가 exit 2이며 finding 309건, 그중 `R5 undeclared-test rust` 28건이었습니다. Green: exit 2이며 finding 285건입니다. 23건의 R5와 요약 줄이 빠졌고 새 줄은 없습니다. 남은 R5 4건은 `packages/generator/rust/src/messages/mod.rs`, `packages/validator/rust/src/text.rs`, `packages/validator/rust/tests/compose_conformance.rs`, `packages/validator/rust/tests/expr_conformance.rs`이며, 각각 C16.99, C16.100, C16.81의 compose와 expr unit에 속합니다. 내부 id를 명시한 파일은 없으므로 R16은 깨끗합니다.
 
 ### 2026-10-20 — PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 (C16.90)
