@@ -33,6 +33,10 @@ changes. The form-actions unit cites CURT-053, CURT-054 and CURT-055. Every runn
 - The template-shape fixture gets two cases that bind records from one serialized template: `create-two-records-from-serialized-template` and `create-three-records-independent`. The compiled template resolves a composition file (`$ref` in a repeated group) before any record exists, serializes to JSON, and each record is bound from that template alone, with no composition file given to the binding. Each record reads its own values; in the three-record case the third binding reads what the first one read. CURT-050 is cited on both cases and in the unit `template-shape`.
 - All six runners run the two cases: the TypeScript, Go, Rust, PHP (with the extension) and Python runners compare the values that each binding reads with the expectation, which the TypeScript reference computed.
 
+### 2026-10-21 — The form state validation observation is closed (C16.148)
+
+- The stack C16.148 is complete: its six rows observe the validation errors in every form state runner and cite CURT-054 through the rekey session.
+
 ### 2026-10-21 — The form state sessions observe the validation errors, and CURT-054 is cited whole (C16.148)
 
 - The six form state runners run a `validate` step that observes the validator's errors with their data paths. The rekey session of CURT-054 shows that the errors follow the new keys, and the form-actions unit cites CURT-054 through it.
