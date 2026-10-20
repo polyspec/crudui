@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator;
 use stdClass;
 
 /**
@@ -84,7 +85,7 @@ final class FormStateTest extends TestCase
         foreach ($case->steps as $index => $step) {
             $observed = [];
             try {
-                $result = self::perform($form, $step->op, $step->args);
+                $result = self::perform($form, $step->op, $step->args, $case->spec);
                 // An action reports its result even when it is none, as the TypeScript reference does (null).
                 if ($result !== null || in_array($step->op, ['runAction', 'resolveAction'], true)) {
                     $observed['result'] = $namer->walk($result);
@@ -129,9 +130,29 @@ final class FormStateTest extends TestCase
     }
 
     /** Run one step on the form and return what the step returned. */
-    private static function perform(Form $form, string $op, array $args): mixed
+    /**
+     * The errors of the validator for the specification and the current record, in the validator's order.
+     * The observation of a validate step is the flag `valid` and each error's data path, field name, rule and message.
+     */
+    private static function validation(stdClass $spec, stdClass $data): array
+    {
+        $result = Validator::validate($spec, $data);
+        $errors = [];
+        foreach ($result->errors as $error) {
+            $errors[] = [
+                'path' => $error->path,
+                'field' => $error->field,
+                'rule' => $error->rule,
+                'message' => $error->message,
+            ];
+        }
+        return ['valid' => $result->valid, 'errors' => $errors];
+    }
+
+    private static function perform(Form $form, string $op, array $args, stdClass $spec): mixed
     {
         return match ($op) {
+            'validate' => self::validation($spec, $form->getData()),
             'addRow' => $form->addRow($args[0], isset($args[1]) ? (array) $args[1] : []),
             'copyRow' => $form->copyRow($args[0], $args[1], isset($args[2]) ? (array) $args[2] : []),
             'removeRow' => $form->removeRow($args[0], $args[1]),

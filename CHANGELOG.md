@@ -33,6 +33,10 @@ changes. The form-actions unit cites CURT-053, CURT-054 and CURT-055. Every runn
 - The template-shape fixture gets two cases that bind records from one serialized template: `create-two-records-from-serialized-template` and `create-three-records-independent`. The compiled template resolves a composition file (`$ref` in a repeated group) before any record exists, serializes to JSON, and each record is bound from that template alone, with no composition file given to the binding. Each record reads its own values; in the three-record case the third binding reads what the first one read. CURT-050 is cited on both cases and in the unit `template-shape`.
 - All six runners run the two cases: the TypeScript, Go, Rust, PHP (with the extension) and Python runners compare the values that each binding reads with the expectation, which the TypeScript reference computed.
 
+### 2026-10-21 — The PHP form state test runs the validate step in the library and in the extension (C16.148-5)
+
+- `packages/generator/php/tests/FormStateTest.php` runs the `validate` step of the form state sessions through `Validator::validate`: the validity and each error's data path, field name, rule and message are observed in the validator's order. The PHP library and the PHP extension run the same test.
+
 ### 2026-10-21 — The Rust form state runner runs the validate step (C16.148-4)
 
 - `packages/generator/rust/tests/form_state.rs` runs the `validate` step of the form state sessions: the validator runs on the session's specification and the current record, and each error's path, field, rule and message is observed in the validator's order.
