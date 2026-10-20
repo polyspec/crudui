@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4b6e9c94bb4c6bfd4458287f682ca328e40b3790883d8bbbaf369e9768ff6d1c -->
+<!-- source-sha256: c3ce379301277956eb2a4f17653c3ce32dc1f03dcdc912c11eba3b14c592671b -->
 
 ## Unreleased
 
@@ -8,6 +8,10 @@
 
 - `config/parity.json`은 form-render, form-complete, list-render, detail-render, form-outline unit을 선언합니다. 각 unit은 존재하는 ts, go, python, php, php-extension, rust binding과 그 case가 시험하는 requirement id를 가집니다(C16.83). `packages/html`은 ts implementation의 root이며, markup 규칙 test 8개와 browser session test 2개는 internal로 선언합니다. `docs/spec/runtime-packages.md`는 TypeScript 구현에 requirement CURP-028을 부여합니다. 다섯 suite의 case는 `requirements` member에 id를 가지며, tests/fixtures/*/generate.mts와 packages/react/scripts/generate-form-render-cases.mts가 생성합니다. 바뀐 것은 그 member뿐입니다. Red: main의 `make parity-declarations-check`는 420 finding(R13 259, R4 12, R5 148, R6 1)을 보고합니다; green: 317 finding(R13 168, R4 7, R5 141, R6 1). Rust form-render runner(tests/form_render.rs, C16.88에서 옴)는 하나의 test `form_render_cases_reproduce_the_normalized_layout_or_the_failure`가 188개 case를 모두 실행하도록 바뀌었으므로, binding 하나가 모든 case를 실행합니다. Owner test: 다섯 html conformance file의 `vitest`, 587 passed, 0 failed.
 - `config/parity.json`의 rust implementation은 `packages/generator/rust/tests/support/**`를 support 파일로 선언합니다. rendering runner들이 함께 쓰는 module은 test가 아닙니다(C16.83).
+
+### 2026-10-20 — install lock은 형태를 ajv schema로 읽는다 (C16.11-1)
+
+- `scripts/json-schema.mts`는 scripts의 공통 형태 검사입니다. schema가 형태를 정하고 ajv가 값을 검증하며, 다른 형태의 값은 파일과 잘못된 값의 JSON Pointer를 밝히는 Error로 실패합니다(`shapeOf`, `checkedShape`, `readShape`, `shapeDetail`). `scripts/json-schema.test.mts`가 메시지를 검사합니다. `scripts/install-lock.mts`의 `isLockEntry`, `isLockPackages`, `isPackedManifest`는 `scripts/values.mts` 대신 ajv 형태로 주어지며 받아들이는 값은 같습니다(C16.11-1). `config/rebuild.json`은 새 script를 ajv ecosystem 도구로 분류합니다. Red: `make rebuild-check`가 exit 0이며 `scripts/values.mts`는 아직 `replaced` 항목입니다. Green: `make rebuild-check` exit 0, `tests/build/install-lock.test.mts` 5 passed, `scripts/json-schema.test.mts` 2 passed입니다.
 
 ### 2026-10-20 — schema suite들이 그 case가 시험하는 CUSC requirement를 인용한다 (C16.57-7)
 

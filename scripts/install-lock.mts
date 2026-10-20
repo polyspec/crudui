@@ -10,7 +10,8 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { isRecord } from './values.mts';
+import type { SchemaObject } from 'ajv';
+import { shapeOf } from './json-schema.mts';
 
 /** The sha512 integrity of a file, as npm records it. */
 export const fileIntegrity = (file: string): string => `sha512-${createHash('sha512').update(readFileSync(file)).digest('base64')}`;
@@ -67,34 +68,46 @@ export interface InstallLock {
 }
 const ROOT_FLAGS = new Set(['dev', 'devOptional', 'peer', 'optional']);
 
-const isOptional = <T,>(value: unknown, check: (value: unknown) => value is T): value is T | undefined => value === undefined || check(value);
-const isString = (value: unknown): value is string => typeof value === 'string';
-const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
-const isStringRecord = (value: unknown): value is Record<string, string> => isRecord(value) && Object.values(value).every(isString);
-const isPeerMeta = (value: unknown): value is Record<string, { optional?: boolean | undefined }> =>
-  isRecord(value) && Object.values(value).every((meta) => isRecord(meta) && isOptional(meta.optional, isBoolean));
-
-/** Whether the dependency fields of `value` hold objects of strings, and peerDependenciesMeta objects with a boolean optional. */
-function hasDependencyFields(value: Record<string, unknown>): boolean {
-  return RELATIONS.every((kind) => isOptional(value[kind], isStringRecord)) && isOptional(value.peerDependenciesMeta, isPeerMeta);
-}
+/** The shapes of a dependency field: an object of strings, and peerDependenciesMeta objects with a boolean optional. */
+const STRING_RECORD: SchemaObject = { type: 'object', additionalProperties: { type: 'string' } };
+const PEER_META: SchemaObject = {
+  type: 'object',
+  additionalProperties: { type: 'object', properties: { optional: { type: 'boolean' } } },
+};
+const DEPENDENCY_FIELDS: Record<string, SchemaObject> = {
+  dependencies: STRING_RECORD,
+  optionalDependencies: STRING_RECORD,
+  peerDependencies: STRING_RECORD,
+  peerDependenciesMeta: PEER_META,
+};
+const LOCK_ENTRY: SchemaObject = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    version: { type: 'string' },
+    resolved: { type: 'string' },
+    integrity: { type: 'string' },
+    link: { type: 'boolean' },
+    dev: { type: 'boolean' },
+    devOptional: { type: 'boolean' },
+    peer: { type: 'boolean' },
+    optional: { type: 'boolean' },
+    ...DEPENDENCY_FIELDS,
+  },
+};
 
 /** Whether `value` is an entry of the `packages` of a package lock, in the fields that the lock of the install project reads. */
-export function isLockEntry(value: unknown): value is LockEntry {
-  return isRecord(value) && hasDependencyFields(value)
-    && ['name', 'version', 'resolved', 'integrity'].every((key) => isOptional(value[key], isString))
-    && ['link', 'dev', 'devOptional', 'peer', 'optional'].every((key) => isOptional(value[key], isBoolean));
-}
+export const isLockEntry = shapeOf<LockEntry>(LOCK_ENTRY);
 
 /** Whether `value` is the `packages` of a package lock. */
-export function isLockPackages(value: unknown): value is LockPackages {
-  return isRecord(value) && Object.values(value).every(isLockEntry);
-}
+export const isLockPackages = shapeOf<LockPackages>({ type: 'object', additionalProperties: LOCK_ENTRY });
 
 /** Whether `value` is the package.json of a packed package: its name, version and dependency fields. */
-export function isPackedManifest(value: unknown): value is PackedManifest {
-  return isRecord(value) && isString(value.name) && isString(value.version) && hasDependencyFields(value);
-}
+export const isPackedManifest = shapeOf<PackedManifest>({
+  type: 'object',
+  required: ['name', 'version'],
+  properties: { name: { type: 'string' }, version: { type: 'string' }, ...DEPENDENCY_FIELDS },
+});
 
 /** The lock path from which npm resolves `name` for a package at `from`: its own node_modules, then each parent's. */
 export function resolveIn(packages: LockPackages, from: string, name: string): string | null {

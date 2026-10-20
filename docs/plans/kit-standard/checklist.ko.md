@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3e6ca6bf96657c581a4c952bbabbb86d8c85a10e0c33fc5b9e0e66f4a2b6f2fa -->
+<!-- source-sha256: 346b5b97e0adb206cf477d524b5d4ecce8dfa2a2d9f856d824e3dc8011b8b52f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -28,7 +28,8 @@
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make lint-php-ext`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="builds with phpize" packages/php-ext/tests/engine.test.mjs` | [o] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |
-| C16.11 | scripts는 JSON을 scripts/values.mts가 아니라 ajv schema로 읽는다 (21개 파일이 호출) | scripts, tests/build, config/rebuild.json | `make rebuild-check` | [ ] |
+| C16.11 | scripts는 JSON을 scripts/values.mts가 아니라 ajv schema로 읽는다 (21개 파일이 호출) | scripts, tests/build, config/rebuild.json | `make rebuild-check` | [~] |
+| C16.11-1 | install lock은 형태를 scripts/values.mts가 아니라 ajv schema(scripts/json-schema.mts)로 읽는다 | scripts/json-schema.mts scripts/json-schema.test.mts scripts/install-lock.mts config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/install-lock.test.mts scripts/json-schema.test.mts`, `make rebuild-check` | [o] |
 | C16.12 | Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (write-tailwind-styles.mjs를 대체) | packages/generator/ts/styles, packages/generator/ts/scripts, docs, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.13 | contracts/unicode-properties.json은 @unicode/unicode-16.0.0에서 얻는다 (scripts/generate-unicode-properties.mts와 contracts/unicode를 대체) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [ ] |
 | C16.14 | config/duplication.json은 생성된 Unicode table과 test를 각각의 이유와 함께 제외한다 | config/duplication.json | `make duplication-check` | [o] |
