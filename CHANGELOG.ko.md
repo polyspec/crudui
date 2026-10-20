@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 31c9d30ad6a4c9c3712c94d2b2f94c7c50eb047d18ae41a3b1c5ffd9e202b095 -->
+<!-- source-sha256: 179b728df759eb5fccd1fe693bbc7d4a060bf03ca6cd63aee946d753386eb793 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-21 — make crudui-test-php-engine이 PHP 확장의 계약 테스트를 실행한다 (C16.160)
 
 - Makefile의 `crudui-test-php-engine`이 엔진·비교 테스트와 함께 `packages/php-ext/tests/contract/*.test.mjs`를 실행한다 (C16.160). C16.57-3-1과 C16.57-3-2가 unit `compose`와 `expr`의 php-extension binding으로 그곳에 `compose.test.mjs`와 `expr.test.mjs`를 추가했지만 어떤 프로젝트 명령도 이를 실행하지 않아 `tests/build/test-commands.test.mts`("every node:test file runs in a project command")가 거부했다. Red: 그 테스트가 d68d71c6에서 두 파일을 명명하며 exit 1; green: exit 0.
+
+### 2026-10-21 — text-validity 단위의 PHP 바인딩이 모든 사례를 보고한다 (C16.159)
+
+- text-validity 단위 여덟 개의 PHP 테스트를 단위별로 나눈다 (C16.159): `packages/validator/php/tests/Validate/TextValidityConformanceTest.php`는 `testValidateInputTextMatchesFixture`, `testValidateListInputTextMatchesFixture`, `testValidateDetailInputTextMatchesFixture`를 실행하고, `packages/generator/php/tests/InputTextTest.php`는 `testCompileFormCase`, `testBindFormCase`, `testCreateFormCase`, `testBuildListCase`, `testBuildDetailCase`를 실행하며, 데이터 제공자는 각 데이터 세트를 사례 이름으로 키 짓는다. `config/parity.json`에서 단위들의 php와 php-extension 바인딩 열여섯 개가 이 메서드를 명명한다. 데이터 세트 88개(21, 6, 5, 7, 17, 15, 11, 6 사례)와 그 단언은 바뀌지 않는다. Red: Verification이 d68d71c6에서 실패하며, 단위의 모든 php와 php-extension 바인딩이 R3 줄과 함께 `0 of N cases passed`를 보고한다; green: exit 0, 모든 php와 php-extension 바인딩이 `N of N cases passed`를 보고한다.
 
 ### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b433e2cb91a20643e441d6dc456fd4367245c4480207d5e4a7cdf3645e652252 -->
+<!-- source-sha256: e5c36d87a92f661ba8b0fc1351db6087cb34ea6fd9903234d6b960d674d3df05 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -284,3 +284,4 @@
 | C16.160 | make crudui-test-php-engine이 C16.57-3-1과 C16.57-3-2가 어느 프로젝트 명령에도 넣지 않은 packages/php-ext/tests/contract의 PHP 확장 계약 테스트를 실행한다 | Makefile | `var/tools/bin/node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="every node:test file runs in a project command" tests/build/test-commands.test.mts` | [o] |
 | C16.161 | tests/build/runtime-version-policy.test.mts의 CI 도구 규칙이 확장의 phpize 빌드(C16.9)가 필요로 하는 setup-php의 phpize와 php-config를 허용한다; setup-php는 여전히 Composer를 설치하지 않는다 | tests/build/runtime-version-policy.test.mts | `var/tools/bin/node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="every CI job sets up the recorded toolchains" tests/build/runtime-version-policy.test.mts` | [o] |
 | C16.162 | tests/build/runtime-version-policy.test.mts의 설치 검사가 링크된 checkout의 kit를 받아들인다: make install은 KIT의 install-tools를 실행하며, kit가 형제 checkout에 링크되면 KIT는 ../kit/dist이다 | tests/build/runtime-version-policy.test.mts | `var/tools/bin/node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/runtime-version-policy.test.mts` | [o] |
+| C16.159 | 여덟 개 text-validity 단위의 PHP 바인딩(라이브러리와 확장)이 각 단위의 고유 메서드 아래에서 짧은 케이스 이름으로 모든 케이스를 실행하여, make parity-check가 각 케이스를 실행된 것으로 보고한다 | packages/validator/php/tests/Validate/TextValidityConformanceTest.php, packages/generator/php/tests/InputTextTest.php, config/parity.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-compile-form text-bind-form text-create-form text-build-list text-build-detail" > var/pc-C16.159.log 2>&1; ! grep -E "R3 not-executed [^ ]+ php(-extension)? " var/pc-C16.159.log'` | [o] |

@@ -21,16 +21,32 @@ use Polyspec\Crudui\Conformance\Evidence;
  */
 final class TextValidityConformanceTest extends TestCase
 {
-    /** @return array<string, array{0: string, 1: stdClass}> */
-    public static function fixtureProvider(): array
+    /** @return array<string, array{0: stdClass}> */
+    public static function validateProvider(): array
     {
+        return self::casesOf('validate');
+    }
+
+    /** @return array<string, array{0: stdClass}> */
+    public static function validateListProvider(): array
+    {
+        return self::casesOf('validateList');
+    }
+
+    /** @return array<string, array{0: stdClass}> */
+    public static function validateDetailProvider(): array
+    {
+        return self::casesOf('validateDetail');
+    }
+
+    /** The cases of one text-validity family by their bare names, the keys of its data provider. */
+    private static function casesOf(string $feature): array
+    {
+        $raw = \file_get_contents(__DIR__ . "/../../../../../tests/fixtures/text-validity/{$feature}/cases.json");
+        self::assertIsString($raw);
         $out = [];
-        foreach (['validate', 'validateList', 'validateDetail'] as $feature) {
-            $raw = \file_get_contents(__DIR__ . "/../../../../../tests/fixtures/text-validity/{$feature}/cases.json");
-            self::assertIsString($raw);
-            foreach (self::decodeFixture($raw) as $case) {
-                $out["{$feature}/{$case->name}"] = [$feature, $case];
-            }
+        foreach (self::decodeFixture($raw) as $case) {
+            $out[$case->name] = [$case];
         }
         return $out;
     }
@@ -128,8 +144,26 @@ final class TextValidityConformanceTest extends TestCase
         };
     }
 
-    #[DataProvider('fixtureProvider')]
-    public function testInputTextMatchesFixture(string $feature, stdClass $case): void
+    #[DataProvider('validateProvider')]
+    public function testValidateInputTextMatchesFixture(stdClass $case): void
+    {
+        $this->assertInputTextCase('validate', $case);
+    }
+
+    #[DataProvider('validateListProvider')]
+    public function testValidateListInputTextMatchesFixture(stdClass $case): void
+    {
+        $this->assertInputTextCase('validateList', $case);
+    }
+
+    #[DataProvider('validateDetailProvider')]
+    public function testValidateDetailInputTextMatchesFixture(stdClass $case): void
+    {
+        $this->assertInputTextCase('validateDetail', $case);
+    }
+
+    /** The assertions of one case of a text-validity family (CUIT-041: the record and the error class). */
+    private function assertInputTextCase(string $feature, stdClass $case): void
     {
         $passed = false;
         try {

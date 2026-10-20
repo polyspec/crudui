@@ -15,8 +15,8 @@ use stdClass;
 
 /**
  * Byte strings that are not UTF-8 are invalid text in every generator input
- * (docs/spec/input-text.md). The shared cases of tests/fixtures/text-validity run in
- * testGeneratorCase, one PHPUnit case each.
+ * (docs/spec/input-text.md). The shared cases of tests/fixtures/text-validity run in one test method per
+ * generator fixture (testCompileFormCase to testBuildDetailCase), one PHPUnit case each.
  */
 final class InputTextTest extends TestCase
 {
@@ -128,8 +128,82 @@ final class InputTextTest extends TestCase
         }
     }
 
-    #[DataProvider('textCases')]
-    public function testGeneratorCase(string $feature, stdClass $case): void
+    /** @return array<string, array{0: stdClass}> The cases of one generator fixture by their bare names. */
+    public static function compileFormCases(): array
+    {
+        return self::casesOf('compileForm');
+    }
+
+    /** @return array<string, array{0: stdClass}> */
+    public static function bindFormCases(): array
+    {
+        return self::casesOf('bindForm');
+    }
+
+    /** @return array<string, array{0: stdClass}> */
+    public static function createFormCases(): array
+    {
+        return self::casesOf('createForm');
+    }
+
+    /** @return array<string, array{0: stdClass}> */
+    public static function buildListCases(): array
+    {
+        return self::casesOf('buildList');
+    }
+
+    /** @return array<string, array{0: stdClass}> */
+    public static function buildDetailCases(): array
+    {
+        return self::casesOf('buildDetail');
+    }
+
+    /** The cases of one generator fixture by their bare names, the keys of its data provider. */
+    private static function casesOf(string $feature): array
+    {
+        $root = \dirname(__DIR__, 4);
+        $cases = JsonText::decode(
+            (string) \file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')
+        );
+        $out = [];
+        foreach ($cases as $case) {
+            $out[$case->name] = [$case];
+        }
+        return $out;
+    }
+
+    #[DataProvider('compileFormCases')]
+    public function testCompileFormCase(stdClass $case): void
+    {
+        $this->assertGeneratorCase('compileForm', $case);
+    }
+
+    #[DataProvider('bindFormCases')]
+    public function testBindFormCase(stdClass $case): void
+    {
+        $this->assertGeneratorCase('bindForm', $case);
+    }
+
+    #[DataProvider('createFormCases')]
+    public function testCreateFormCase(stdClass $case): void
+    {
+        $this->assertGeneratorCase('createForm', $case);
+    }
+
+    #[DataProvider('buildListCases')]
+    public function testBuildListCase(stdClass $case): void
+    {
+        $this->assertGeneratorCase('buildList', $case);
+    }
+
+    #[DataProvider('buildDetailCases')]
+    public function testBuildDetailCase(stdClass $case): void
+    {
+        $this->assertGeneratorCase('buildDetail', $case);
+    }
+
+    /** The outcome of one case of a generator fixture equals its expectation. */
+    private function assertGeneratorCase(string $feature, stdClass $case): void
     {
         $expected = \is_string($case->expect) ? $case->expect : (array) $case->expect;
         self::assertSame($expected, self::outcome(static fn () => self::runOperation($feature, $case)));
