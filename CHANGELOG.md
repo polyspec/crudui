@@ -6,6 +6,19 @@
 ### 2026-10-21 — The copies of kit name no check that only kit has (C16.139)
 
 - `PRINCIPLES.md` and `PRINCIPLES.ko.md` are the copies of kit at 0.0.54 with K359-2 (`f9f80e60`, "Name no check that only kit has"): P10 no longer names `tests/kit/worktree-setup.test.mts`, which only kit holds, so `make rules-check` no longer reports that the file does not exist (C16.139). Red: `make rules-check` exit 2 on 0afab14d, `PRINCIPLES.md:44: tests/kit/worktree-setup.test.mts does not exist`. Green: `make rules-check`, `make kit-check`, `make layout-check` and `make link-state-check` exit 0.
+### 2026-10-21 — The untraced form-markup requirements are placed or reported (C16.142)
+
+Decision table for the 25 untraced CUMK ids of `docs/spec/form-markup.md` (path 1 = native integration, path 2 = one runtime by nature, moved to that package's documentation and cited by no unit):
+
+| Requirement | Path | Where / reason |
+|---|---|---|
+| CUMK-039..055 (`--crudui-*` custom properties with defaults and uses) | 2 | `packages/generator/ts/README.md`. Only `packages/generator/ts/styles/crudui.css` defines them. |
+| CUMK-056 (readiness and scroll sync, sticky headers once per animation frame) | 2 | `packages/generator/ts/README.md`. Only `packages/generator/ts/src/dom.ts` uses `requestAnimationFrame`. |
+| CUMK-008 `crudui-outline`, CUMK-009 `crudui-data` (block markup) | 2 | `packages/html/README.md`. Only the TypeScript HTML renderer and its styles emit these blocks. |
+| CUMK-001/002/003 (BEM class naming) | report | Every generator emits the BEM class names. This is an every-implementation contract that needs a shared case, not moved. |
+| CUMK-057 (expansion is view state), CUMK-061 (undo records every data change) | report | View and history functions exist in every generator. This needs shared form-view and history-function fixtures, not moved. |
+
+The spec keeps a pointer to each moved block. The moved text has no requirement id and stays in English and Korean. Red: `make parity-declarations-check` on 0afab14d, R13 `untraced-requirement` for the CUMK-039..056, 008 and 009 ids. Green: the R13 grep (`defines CUMK-039..056|CUMK-008|CUMK-009`) is empty. `make docs-check` and `make lint-ts` pass.
 
 ### 2026-10-21 — The generated Go tables are declared generated-file exceptions (C16.136)
 

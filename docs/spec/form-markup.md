@@ -36,8 +36,7 @@ spec declares in `design`.
 - **CUMK-005** `crudui-node`: One data node; see the kinds below.
 - **CUMK-006** `crudui-controls`: A button group with `role="group"` and an accessible name.
 - **CUMK-007** `crudui-action`: A button: an action with `data-crudui-action`, a form button or the button of a [button field](#button-fields); `crudui-action--text` shows its label as text.
-- **CUMK-008** `crudui-outline`: Structure map with `__header` form controls and `__body` nodes.
-- **CUMK-009** `crudui-data`: Current data view with `__header` and a `pre` `__body`.
+- The structure map (`crudui-outline`) and the current data view (`crudui-data`) are blocks of the TypeScript HTML renderer, documented in `packages/html/README.md`.
 - **CUMK-010** `crudui-widget`: A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget.
 - **CUMK-011** `crudui-input`: A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input and `--switch` for the checkbox input of a [switch](#switches).
 - **CUMK-012** `crudui-choices`: Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)).
@@ -429,23 +428,7 @@ other rule writes a color. A page themes the blocks with a rule that selects the
 sets the properties, for example `.crudui-form, .crudui-list { --crudui-accent: … }`;
 the rule overrides the defaults in any stylesheet order.
 
-- **CUMK-039** `--crudui-text` — Default: `#111827`; Use: text color of every block
-- **CUMK-040** `--crudui-muted` — Default: `#6b7280`; Use: descriptions, counts, affixes, detail labels
-- **CUMK-041** `--crudui-border` — Default: `#e5e7eb`; Use: borders of rows, lists, details and actions
-- **CUMK-042** `--crudui-surface` — Default: `#ffffff`; Use: background of controls, rows and actions
-- **CUMK-043** `--crudui-subtle` — Default: `#f9fafb`; Use: background of row headers, list headings, affixes and read-only controls
-- **CUMK-044** `--crudui-accent` — Default: `#1d4ed8`; Use: focus outlines, the selected choice and the track of an on switch
-- **CUMK-045** `--crudui-error` — Default: `#b91c1c`; Use: text of form and node errors
-- **CUMK-046** `--crudui-on-accent` — Default: `#ffffff`; Use: text of the selected choice
-- **CUMK-047** `--crudui-action-text` — Default: `#374151`; Use: text and icon color of actions
-- **CUMK-048** `--crudui-action-size` — Default: `1.75rem`; Use: width and height of an icon action, height of a text action
-- **CUMK-049** `--crudui-control-border` — Default: `var(--crudui-border)`; Use: borders of controls, affixes, widget buttons and choices
-- **CUMK-050** `--crudui-control-height` — Default: `2.25rem`; Use: minimum height of controls and choices
-- **CUMK-051** `--crudui-radius` — Default: `0.375rem`; Use: corner radius of controls, affixes, choices and actions
-- **CUMK-052** `--crudui-submit-background` — Default: `var(--crudui-surface)`; Use: background of the submit button of the form footer
-- **CUMK-053** `--crudui-submit-border` — Default: `var(--crudui-border)`; Use: border color of the submit button of the form footer
-- **CUMK-054** `--crudui-submit-text` — Default: `var(--crudui-action-text)`; Use: text color of the submit button of the form footer
-- **CUMK-055** `--crudui-label-width` — Default: `10rem`; Use: width of the label column of an inline layout
+- The `--crudui-*` custom properties with their defaults and uses are documented, with the stylesheet `crudui.css`, in `packages/generator/ts/README.md`.
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border` and
 `--crudui-form-footer-height` size the sticky rows and the form footer (see above).
@@ -510,9 +493,8 @@ presentation classes.
 
 The reference form that motivated this grammar differs in these deliberate ways:
 
-1. **CUMK-056** Readiness polling and time-based scroll locks are replaced by synchronization
-   after rendering. Sticky headers are marked stuck on scroll and resize events,
-   measured at most once per animation frame, for rows of any height.
+1. The readiness and scroll behaviour of the TypeScript renderer (synchronization after rendering; sticky headers marked on scroll and resize at most once per animation frame) is documented in `packages/generator/ts/README.md`.
+
 2. **CUMK-057** Expansion is view state, not record data.
 3. **CUMK-058** Rows are identified by keys, not array positions.
 4. **CUMK-059** Depth is unlimited; one recursive node replaces per-depth components.

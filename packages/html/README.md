@@ -32,3 +32,8 @@ instance. These eight render functions are the package entry.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)
 - [Form operations](../../docs/operations/forms.md)
+
+## Block markup
+
+- `crudui-outline`: Structure map with `__header` form controls and `__body` nodes.
+- `crudui-data`: Current data view with `__header` and a `pre` `__body`.

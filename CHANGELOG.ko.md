@@ -1,12 +1,25 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4170e90586bdf5568c4805ff390e43b05b55b11d55e0798aebde148f60976dcc -->
+<!-- source-sha256: 10399189d00e0828f1856d4cd94b8f3667745c94252e6366e811789dcda643d4 -->
 
 ## Unreleased
 
 ### 2026-10-21 — kit copy들이 kit에만 있는 check를 이름으로 대지 않는다 (C16.139)
 
 - `PRINCIPLES.md`와 `PRINCIPLES.ko.md`는 K359-2(`f9f80e60`, "Name no check that only kit has")가 든 kit 0.0.54의 copy입니다. P10은 kit에만 있는 `tests/kit/worktree-setup.test.mts`를 더 이상 이름으로 대지 않으므로 `make rules-check`가 그 file이 없다고 보고하지 않습니다(C16.139). Red: 0afab14d에서 `make rules-check` exit 2, `PRINCIPLES.md:44: tests/kit/worktree-setup.test.mts does not exist`. Green: `make rules-check`, `make kit-check`, `make layout-check`, `make link-state-check` exit 0입니다.
+### 2026-10-21 — 양식 마크업의 추적되지 않은 요구사항을 배치하거나 보고합니다 (C16.142)
+
+`docs/spec/form-markup.md`의 추적되지 않은 CUMK 25개 id에 대한 결정표입니다(경로 1은 네이티브 통합, 경로 2는 한 런타임에만 해당하는 내용으로, 해당 패키지 문서로 옮기며 어떤 유닛도 인용하지 않습니다):
+
+| 요구사항 | 경로 | 위치 / 이유 |
+|---|---|---|
+| CUMK-039..055 (`--crudui-*` 사용자 지정 속성과 기본값, 쓰임) | 2 | `packages/generator/ts/README.ko.md`. 이 속성들은 `packages/generator/ts/styles/crudui.css`에만 정의됩니다. |
+| CUMK-056 (준비와 스크롤 동기화, 애니메이션 프레임당 한 번 표시되는 고정 헤더) | 2 | `packages/generator/ts/README.ko.md`. `requestAnimationFrame`은 `packages/generator/ts/src/dom.ts`에만 있습니다. |
+| CUMK-008 `crudui-outline`, CUMK-009 `crudui-data` (블록 마크업) | 2 | `packages/html/README.ko.md`. 이 블록은 TypeScript HTML 렌더러와 그 스타일만 내보냅니다. |
+| CUMK-001/002/003 (BEM 클래스 이름 짓기) | 보고 | 모든 생성기가 BEM 클래스 이름을 내보내므로 모든 구현이 지켜야 하는 계약입니다. 공유 케이스가 필요하며 옮기지 않았습니다. |
+| CUMK-057 (펼침은 뷰 상태), CUMK-061 (실행 취소는 모든 데이터 변경을 기록) | 보고 | 뷰와 기록 함수가 모든 생성기에 있습니다. 공유 form-view와 history 함수 픽스처가 필요하며 옮기지 않았습니다. |
+
+스펙에는 옮긴 각 블록의 포인터가 남아 있습니다. 옮긴 텍스트에는 요구사항 id가 없고 영어와 한국어로 유지됩니다. 빨강: 0afab14d에서 `make parity-declarations-check`의 R13 `untraced-requirement`가 CUMK-039..056, 008, 009 id에 대해 나옵니다. 초록: R13 grep(`defines CUMK-039..056|CUMK-008|CUMK-009`)이 비어 있습니다. `make docs-check`와 `make lint-ts`가 통과합니다.
 
 ### 2026-10-21 — 생성된 Go table은 생성 파일 예외로 선언한다 (C16.136)
 

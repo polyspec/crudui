@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 16b54799d2a0c24437ab733c7c3d45ebd7b38e3527e76141cf881b8733c74b50 -->
+<!-- source-sha256: afe8c119b0199a10ba853a43457f5bbba9cf0199cfe4c2c6794c63ce0dcaa9af -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -34,8 +34,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 - **CUMK-005** `crudui-node`: 데이터 노드 하나입니다. 종류는 아래와 같습니다.
 - **CUMK-006** `crudui-controls`: `role="group"`과 접근성 이름을 가진 버튼 묶음입니다.
 - **CUMK-007** `crudui-action`: 버튼입니다. `data-crudui-action`을 가진 조작, 폼 버튼, [버튼 필드](#버튼-필드)의 버튼이 이에 해당합니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다.
-- **CUMK-008** `crudui-outline`: `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다.
-- **CUMK-009** `crudui-data`: `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다.
+- 구조 맵(`crudui-outline`)과 현재 데이터 보기(`crudui-data`)는 TypeScript HTML 렌더러의 블록이며, `packages/html/README.ko.md`에 문서화되어 있습니다.
 - **CUMK-010** `crudui-widget`: 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다.
 - **CUMK-011** `crudui-input`: 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다.
 - **CUMK-012** `crudui-choices`: 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)).
@@ -393,23 +392,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 정하는 규칙으로 블록의 테마를 정합니다. 예: `.crudui-form, .crudui-list { --crudui-accent: … }`.
 이 규칙은 스타일시트 순서와 관계없이 기본값보다 우선합니다.
 
-- **CUMK-039** `--crudui-text` — 기본값: `#111827`; 쓰임: 모든 블록의 글자색
-- **CUMK-040** `--crudui-muted` — 기본값: `#6b7280`; 쓰임: 설명, 개수, 접사, 상세 레이블
-- **CUMK-041** `--crudui-border` — 기본값: `#e5e7eb`; 쓰임: 행, 목록, 상세, 동작의 테두리
-- **CUMK-042** `--crudui-surface` — 기본값: `#ffffff`; 쓰임: 컨트롤, 행, 동작의 배경
-- **CUMK-043** `--crudui-subtle` — 기본값: `#f9fafb`; 쓰임: 행 헤더, 목록 제목 칸, 접사, 읽기 전용 컨트롤의 배경
-- **CUMK-044** `--crudui-accent` — 기본값: `#1d4ed8`; 쓰임: 포커스 윤곽선, 선택된 선택지, 켜진 스위치의 트랙
-- **CUMK-045** `--crudui-error` — 기본값: `#b91c1c`; 쓰임: 폼 오류와 노드 오류의 텍스트
-- **CUMK-046** `--crudui-on-accent` — 기본값: `#ffffff`; 쓰임: 선택된 선택지의 글자색
-- **CUMK-047** `--crudui-action-text` — 기본값: `#374151`; 쓰임: 동작의 글자와 아이콘 색
-- **CUMK-048** `--crudui-action-size` — 기본값: `1.75rem`; 쓰임: 아이콘 동작의 너비와 높이, 글자 동작의 높이
-- **CUMK-049** `--crudui-control-border` — 기본값: `var(--crudui-border)`; 쓰임: 컨트롤, 접사, 위젯 버튼, 선택지의 테두리
-- **CUMK-050** `--crudui-control-height` — 기본값: `2.25rem`; 쓰임: 컨트롤과 선택지의 최소 높이
-- **CUMK-051** `--crudui-radius` — 기본값: `0.375rem`; 쓰임: 컨트롤, 접사, 선택지, 동작의 모서리 반지름
-- **CUMK-052** `--crudui-submit-background` — 기본값: `var(--crudui-surface)`; 쓰임: 폼 바닥글 제출 버튼의 배경
-- **CUMK-053** `--crudui-submit-border` — 기본값: `var(--crudui-border)`; 쓰임: 폼 바닥글 제출 버튼의 테두리 색
-- **CUMK-054** `--crudui-submit-text` — 기본값: `var(--crudui-action-text)`; 쓰임: 폼 바닥글 제출 버튼의 글자색
-- **CUMK-055** `--crudui-label-width` — 기본값: `10rem`; 쓰임: inline 배치의 레이블 열 너비
+- `--crudui-*` 사용자 지정 속성과 기본값, 쓰임은 스타일시트 `crudui.css`와 함께 `packages/generator/ts/README.ko.md`에 문서화되어 있습니다.
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border`,
 `--crudui-form-footer-height`는 고정 행과 폼 바닥글의 크기를 정합니다(위 참조).
@@ -473,9 +456,8 @@ element에 `crudui.css`와 같은 computed style(custom property 제외)을 줍�
 
 이 문법의 기준이 된 폼과 다음을 의도적으로 다르게 정했습니다.
 
-1. **CUMK-056** 준비 폴링과 시간 기반 스크롤 잠금 대신 렌더링 후 동기화를 사용합니다. 고정 헤더의
-   고정 상태는 scroll과 resize 이벤트에서 애니메이션 프레임당 최대 한 번 측정하며, 행
-   높이와 관계없이 동작합니다.
+1. TypeScript 렌더러의 준비와 스크롤 동작(렌더링 후 동기화, scroll과 resize에서 애니메이션 프레임당 최대 한 번 표시되는 고정 헤더)은 `packages/generator/ts/README.ko.md`에 문서화되어 있습니다.
+
 2. **CUMK-057** 펼침 상태는 레코드 데이터가 아닌 뷰 상태입니다.
 3. **CUMK-058** 행은 배열 위치가 아닌 키로 식별합니다.
 4. **CUMK-059** 깊이에 제한이 없으며 깊이별 컴포넌트 대신 재귀 노드 하나를 사용합니다.

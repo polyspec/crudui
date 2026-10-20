@@ -1,6 +1,6 @@
 # @polyspec/crudui-generator-html
 <!-- doc-id: packages-generator-html-readme -->
-<!-- source-sha256: 57e07bf8c58a40e74ee68529bd63cd5e702e0db8b7131cfa00ff43ce62376a8b -->
+<!-- source-sha256: d63a23279ee885c7ea994786aedbe6fdedcb6d50ebefdebd388a4ed190f0f702 -->
 
 [English](README.md).
 
@@ -33,3 +33,8 @@ renderer는 평가된 core 모델을 소비하고 HTML을 반환합니다. `rend
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)
 - [폼 작업](../../docs/operations/forms.ko.md)
+
+## 블록 마크업
+
+- `crudui-outline`: `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다.
+- `crudui-data`: `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다.
