@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The benchmark driver of the Go validator is a tools root (C16.126)
+
+- `config/parity.json` declares `benchmarks` a tools root, the harness of the validator benchmarks, which times the validators and tests no contract. The Go test of its driver, `benchmarks/validators/go/main_test.go`, is no longer reported as a misplaced test (R6).
+
 ### 2026-10-21 — The build cases and the form state root case cite their runtime requirements (C16.57-16)
 ### 2026-10-21 — make install-link links the Python packages of the repository without a hand-set environment (C16.135)
 

@@ -2115,6 +2115,10 @@
     {
       "root": "packages/cli",
       "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
+    },
+    {
+      "root": "benchmarks",
+      "reason": "harness: the benchmark drivers of the validators, which time the validators; their Go test checks the fixture loader of the driver and tests no contract"
     }
   ],
   "comparators": [

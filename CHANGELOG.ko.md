@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 833220c2e9cd517a4227eaecd9e513187794011e6ffb34e7620a2a6375aa12bb -->
+<!-- source-sha256: 67ed5258600c62ac5784455d9214cefb81f228011e297a614c5c57e7dc831955 -->
 
 ## Unreleased
+
+### 2026-10-21 — Go validator의 benchmark driver는 tools root이다 (C16.126)
+
+- `config/parity.json`은 `benchmarks`를 tools root로 선언합니다. 이는 validator를 측정하는 benchmark의 harness이며 어떤 contract도 검사하지 않습니다. 그 driver의 Go test인 `benchmarks/validators/go/main_test.go`는 더 이상 잘못 놓인 test(R6)로 보고되지 않습니다.
 
 ### 2026-10-21 — build case와 form state root case가 런타임 요구사항을 인용한다 (C16.57-16)
 ### 2026-10-21 — make install-link가 손으로 준 환경 없이 저장소의 Python 패키지를 link한다 (C16.135)
