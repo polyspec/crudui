@@ -298,11 +298,11 @@ func (e *Evaluator) resolvePathSegments(node *PathNode) []string {
 	return basePath
 }
 
-// getValueByPath reads the value at a concrete path (JS getValueByPath). A
-// missing key yields nil. Numeric segments index into list arrays.
-func (e *Evaluator) getValueByPath(path []string) any {
-	var current any = e.formData
-
+// ValueAtSegments reads the value at concrete path segments (JS getValueByPath). A
+// missing key, or a descent into a value that is neither an object nor an array, yields
+// nil. Numeric segments index into arrays.
+func ValueAtSegments(data any, path []string) any {
+	current := data
 	for _, segment := range path {
 		if current == nil {
 			return nil
@@ -324,8 +324,12 @@ func (e *Evaluator) getValueByPath(path []string) any {
 			return nil
 		}
 	}
-
 	return current
+}
+
+// getValueByPath reads the value at a concrete path (JS getValueByPath).
+func (e *Evaluator) getValueByPath(path []string) any {
+	return ValueAtSegments(e.formData, path)
 }
 
 type pathValue struct {

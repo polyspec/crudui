@@ -17,7 +17,6 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -37,35 +36,6 @@ func parsePathString(pathString string) []string {
 		}
 	}
 	return out
-}
-
-// getValueBySegments reads the value at concrete path segments (JS getValueByPath
-// for the rule layer). A missing key / non-object descent yields nil. Numeric
-// segments index into arrays.
-func getValueBySegments(data any, path []string) any {
-	current := data
-	for _, segment := range path {
-		if current == nil {
-			return nil
-		}
-		switch c := current.(type) {
-		case map[string]any:
-			v, ok := c[segment]
-			if !ok {
-				return nil
-			}
-			current = v
-		case []any:
-			idx, err := strconv.Atoi(segment)
-			if err != nil || idx < 0 || idx >= len(c) {
-				return nil
-			}
-			current = c[idx]
-		default:
-			return nil
-		}
-	}
-	return current
 }
 
 // resolveFieldReference resolves a field-reference param to its value, mirroring
@@ -92,9 +62,9 @@ func resolveFieldReference(expression string, currentPath []string, rowKeys []in
 			levelsUp = 0
 		}
 		base := expr.RelativeBase(currentPath, rowKeys, levelsUp)
-		return getValueBySegments(formData, append(base, parsePathString(trimmed[dots:])...))
+		return expr.ValueAtSegments(formData, append(base, parsePathString(trimmed[dots:])...))
 	}
-	return getValueBySegments(formData, parsePathString(trimmed))
+	return expr.ValueAtSegments(formData, parsePathString(trimmed))
 }
 
 // conditionOpRE matches an infix comparison/logical/membership operator with

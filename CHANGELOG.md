@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — One path reader in the Go validator (C16.22)
+
+- `expr.ValueAtSegments` reads the value at concrete path segments; `Evaluator.getValueByPath` and the `validate` package call it instead of each holding a copy (C16.22). Red: `make duplication-check` listed 1 clone of 24 lines between `expr/evaluator.go` and `validate/helpers.go`; green: none, 369 Go tests of `expr` and `validate` and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — The generated Go and TypeScript tables in the duplication exclusions (C16.21)
 
 - `config/duplication.json` excludes `packages/validator/go/validator/validate/unicode_data.go` (written by `unicode_data_generate.go`) and `packages/validator/ts/src/unicode/properties.ts` (written by `generate-unicode-properties.mjs`) from `contracts/unicode-properties.json`, each with its reason (C16.21). Red: `make duplication-check` listed 168 clones, 10 of them in these two files; green for this item: 158 clones remain.

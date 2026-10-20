@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 537a163308db441d3c0ab8760fcd98388afb87be3b938c6d784e0eee7a22f9aa -->
+<!-- source-sha256: 9e0ad6a908b0b2e5866708692b17b1e437c45d4fc8a3fcd3aa14276160cf1a1a -->
 
 ## Unreleased
+
+### 2026-10-20 — Go validator의 하나의 path reader (C16.22)
+
+- `expr.ValueAtSegments`는 구체적인 path segment의 값을 읽고, `Evaluator.getValueByPath`와 `validate` package가 각자 사본을 두는 대신 이를 호출합니다 (C16.22). Red: `make duplication-check`가 `expr/evaluator.go`와 `validate/helpers.go` 사이의 24줄 clone 1건을 나열했고, green: 없음. `expr`와 `validate`의 Go test 369건과 `make lint-go`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — duplication 제외 목록의 생성된 Go와 TypeScript table (C16.21)
 

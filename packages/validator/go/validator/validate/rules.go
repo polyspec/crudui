@@ -20,6 +20,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/polyspec/crudui/packages/validator/go/validator/expr"
 )
 
 // ruleContext carries the data a rule needs beyond value + param.
@@ -339,7 +341,7 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	fieldName := ctx.pathSegments[len(ctx.pathSegments)-1]
 	itemKey := ctx.pathSegments[len(ctx.pathSegments)-2]
 	containerPath := ctx.pathSegments[:len(ctx.pathSegments)-2]
-	container := getValueBySegments(ctx.formData, containerPath)
+	container := expr.ValueAtSegments(ctx.formData, containerPath)
 
 	switch container.(type) {
 	case []any:
@@ -421,7 +423,7 @@ func extractFieldValues(items []any, fieldName string) []any {
 	segs := parsePathString(strings.TrimLeft(fieldName, "."))
 	for _, it := range items {
 		if m, ok := it.(map[string]any); ok {
-			v := getValueBySegments(m, segs)
+			v := expr.ValueAtSegments(m, segs)
 			if !isEmpty(v) {
 				out = append(out, v)
 			}
