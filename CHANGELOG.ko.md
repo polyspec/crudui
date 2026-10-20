@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a23a9581a91741c3876c29ebb5ea30c096301bfc46e25eba5d3b5e58e1594663 -->
+<!-- source-sha256: e2dc5f1f84dcb933acdbc6da9494f8a1bf30669e6d97fc8db549991b319f5abb -->
 
 ## Unreleased
+
+### 2026-10-20 — form comparison의 Rust record server는 view 옵션과 함께 빌드된다 (C16.51-5-1)
+
+- `examples/form-comparison/servers/rust/src/generation.rs`의 `render`는 C16.51-5가 추가한 `BindOptions` 멤버 `collapsed`를 null, 즉 모든 행이 펼쳐진 초기 뷰(CURT-068)로 두며, test `compilation_and_cached_rendering_use_rust_and_preserve_order`는 렌더된 field의 접을 수 있는 행이 모두 펼쳐져 있음을 확인합니다(C16.51-5-1). Red: 서버의 `cargo test compilation_and_cached_rendering`이 `error[E0063]: missing field collapsed in initializer of BindOptions`로 끝나 test를 하나도 실행하지 않았고, green: 1 passed입니다.
 
 ### 2026-10-20 — cross-check console Rust validator는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-8)
 

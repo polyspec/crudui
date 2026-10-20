@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust record server of the form comparison builds with the view option (C16.51-5-1)
+
+- `render` of `examples/form-comparison/servers/rust/src/generation.rs` sets the `BindOptions` member `collapsed` that C16.51-5 added to null, the initial view with every row expanded (CURT-068), and its test `compilation_and_cached_rendering_use_rust_and_preserve_order` asserts that every collapsible row of the rendered fields is expanded (C16.51-5-1). Red: `cargo test compilation_and_cached_rendering` of the server ended with `error[E0063]: missing field collapsed in initializer of BindOptions` and ran no test; green: 1 passed.
+
 ### 2026-10-20 — The cross-check console Rust validator handles the hidden error that the kit lint reports (C16.67-8)
 
 - `examples/cross-check-console/validators/rust/src/main.rs` `write_line` serializes the JSON line with `expect` and an invariant message, instead of `Result::unwrap_or_else` with a fallback `"{}"` that would print a wrong line (C16.67-8). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason` exit 101 with 1 finding (`Result::unwrap_or_else` at src/main.rs:210); green: exit 0, and `cargo build --locked` of the crate exits 0.

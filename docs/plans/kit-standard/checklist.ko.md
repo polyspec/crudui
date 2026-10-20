@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3d3d42477a6d2ecc4b3ff3b09e2d93b2656c42be31bc369ad14c29c0eda4dc15 -->
+<!-- source-sha256: 516142e416150272202742270c52e41342f5d4e410e59f5edd9d6c704ffdcacd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -88,6 +88,7 @@
 | C16.51-3 | Go generator 가 뷰 상태를 가진다: ViewState 와 뷰 함수, bindForm 옵션 Collapsed, Form.ToggleRow 와 Form.SetAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/go (view.go, instance.go, bind.go, template.go, form_state_test.go), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormView\|TestViewFunctions'` | [o] |
 | C16.51-4 | Python generator 가 뷰 상태를 가진다: Generator 의 뷰 함수, bindForm 옵션 collapsed, Form.toggleRow 와 Form.setAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/python (view.py, form.py, binding.py, __init__.py, tests/test_form_state.py), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` | [o] |
 | C16.51-5 | Rust generator 가 뷰 상태를 가진다: ViewState 와 뷰 함수, BindOptions 의 collapsed, Form::toggle_row 와 Form::set_all_expanded 이며 뷰는 remove_row, rekey_row, set_data 를 따른다 | packages/generator/rust (src/view.rs, instance.rs, binding.rs, lib.rs, tests/form_state.rs), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state` | [o] |
+| C16.51-5-1 | BindOptions에 collapsed가 생긴 뒤에도 form comparison의 Rust record server가 빌드된다: 그 form 렌더링은 초기 뷰를 명시한다 | examples/form-comparison/servers/rust/src/generation.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path examples/form-comparison/servers/rust/Cargo.toml compilation_and_cached_rendering` | [o] |
 | C16.51-6 | PHP generator 가 뷰 상태를 가진다: Generator 의 뷰 함수, bindForm 옵션 collapsed, Form::toggleRow 와 Form::setAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/php (src/Internal/View.php, Form.php, Generator.php, Internal/Binding.php, tests/FormStateTest.php, tests/FixtureNamer.php), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [o] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
 | C16.52-2 | Python generator는 history 함수 emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange를 가진다 | packages/generator/python/src/polyspec/crudui/generator/history.py, __init__.py, tests/test_form_history.py, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_history` | [o] |

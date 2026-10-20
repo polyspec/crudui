@@ -113,6 +113,8 @@ fn render(request: &Value, options: &Map<String, Value>, generator: Value) -> Re
         id_prefix: option("idPrefix")?,
         language: option("language")?,
         unsupported: option("unsupported")?,
+        // The comparison renders the initial view, every row expanded (CURT-068).
+        collapsed: Value::Null,
     };
     let form = Form::new(template, object(request, "data")?, binding)
         .map_err(|error| bad(error.to_string()))?;

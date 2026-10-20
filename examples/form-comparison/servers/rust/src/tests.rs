@@ -104,6 +104,16 @@ async fn post(app: &Router, operation: &str, body: Value) -> Value {
     value
 }
 
+/// The collapsible rows of evaluated nodes, depth first.
+fn collapsible_rows<'a>(nodes: &'a Value, rows: &mut Vec<&'a Value>) {
+    for node in nodes.as_array().into_iter().flatten() {
+        if node["collapsible"] == json!(true) {
+            rows.push(node);
+        }
+        collapsible_rows(&node["children"], rows);
+    }
+}
+
 #[tokio::test]
 async fn compilation_and_cached_rendering_use_rust_and_preserve_order() {
     let (_directory, server) = fixture();
@@ -145,6 +155,11 @@ async fn compilation_and_cached_rendering_use_rust_and_preserve_order() {
     assert_eq!(initial["revision"], 0);
     assert_eq!(initial["generator"], compiled["generator"]);
     assert!(initial["fields"].is_array());
+    // Server rendering uses the initial view: every collapsible row is expanded (CURT-068).
+    let mut rows = Vec::new();
+    collapsible_rows(&initial["fields"], &mut rows);
+    assert!(!rows.is_empty());
+    assert!(rows.iter().all(|row| row["expanded"] == json!(true)));
     let html = initial["html"].as_str().unwrap();
     assert!(html.contains("form[companies][__0000000000005__][stores][__0000000000005__][name]"));
     assert!(html.contains("id=\"scope%3A&#x27;"));
