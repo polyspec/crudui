@@ -17,6 +17,7 @@ mod common;
 const FEATURE: &str = "validate";
 const FIXTURE: &str = "tests/fixtures/spec-validity/cases.json";
 
+use libtest_mimic::{Arguments, Failed, Trial};
 use polyspec_crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -69,73 +70,81 @@ fn run(case: &Value) -> Result<(bool, usize), String> {
     }
 }
 
-#[test]
-fn spec_validity_matches_fixture() {
-    let cases = load_cases();
-    let mut failures: Vec<String> = Vec::new();
-    let mut ran = 0usize;
+/// One case of the spec-validity fixture, run through `prove_case`; returns its failure messages (none when it passes).
+fn spec_validity_case_failures(case: &Value) -> Vec<String> {
+    let name = case
+        .get("name")
+        .and_then(Value::as_str)
+        .unwrap_or_else(|| panic!("fixture case missing name"));
+    common::prove_case(FEATURE, FIXTURE, name, || {
+        let mut failures: Vec<String> = Vec::new();
+        let engine = case.get("engine").expect("case missing engine");
 
-    for case in &cases {
-        ran += 1;
-        let name = case
-            .get("name")
-            .and_then(Value::as_str)
-            .unwrap_or_else(|| panic!("fixture case missing name"));
-        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
-            let mut failures: Vec<String> = Vec::new();
-            let engine = case.get("engine").expect("case missing engine");
+        let result = run(case);
 
-            let result = run(case);
-
-            match engine {
-                // "pass" — no load failure and { valid: true, errors: [] }.
-                Value::String(s) if s == "pass" => match result {
-                    Ok((true, 0)) => {}
-                    Ok((valid, errors)) => failures.push(format!(
-                        "[{}] engine:\"pass\" but valid={} with {} error(s)",
-                        name, valid, errors
+        match engine {
+            // "pass" — no load failure and { valid: true, errors: [] }.
+            Value::String(s) if s == "pass" => match result {
+                Ok((true, 0)) => {}
+                Ok((valid, errors)) => failures.push(format!(
+                    "[{}] engine:\"pass\" but valid={} with {} error(s)",
+                    name, valid, errors
+                )),
+                Err(got) => failures.push(format!(
+                    "[{}] engine:\"pass\" but got load error: {}",
+                    name, got
+                )),
+            },
+            // { code, at } — must be a LOAD ERROR with that exact code AND that
+            // exact dotted path (depth is load-bearing).
+            Value::Object(want) => {
+                let code = want.get("code").and_then(Value::as_str).unwrap_or("?");
+                let at = want.get("at").and_then(Value::as_str).unwrap_or("?");
+                let expected = format!("{}|{}", code, at);
+                match result {
+                    Ok(_) => failures.push(format!(
+                        "[{}] expected load error {} but loaded successfully",
+                        name, expected
                     )),
-                    Err(got) => failures.push(format!(
-                        "[{}] engine:\"pass\" but got load error: {}",
-                        name, got
-                    )),
-                },
-                // { code, at } — must be a LOAD ERROR with that exact code AND that
-                // exact dotted path (depth is load-bearing).
-                Value::Object(want) => {
-                    let code = want.get("code").and_then(Value::as_str).unwrap_or("?");
-                    let at = want.get("at").and_then(Value::as_str).unwrap_or("?");
-                    let expected = format!("{}|{}", code, at);
-                    match result {
-                        Ok(_) => failures.push(format!(
-                            "[{}] expected load error {} but loaded successfully",
-                            name, expected
-                        )),
-                        Err(got) => {
-                            if got != expected {
-                                failures.push(format!(
-                                    "[{}] mismatch: expected {} got {}",
-                                    name, expected, got
-                                ));
-                            }
+                    Err(got) => {
+                        if got != expected {
+                            failures.push(format!(
+                                "[{}] mismatch: expected {} got {}",
+                                name, expected, got
+                            ));
                         }
                     }
                 }
-                other => failures.push(format!(
-                    "[{}] engine must be \"pass\" | {{code, at}}, got {}",
-                    name, other
-                )),
             }
-            failures
-        }));
-    }
+            other => failures.push(format!(
+                "[{}] engine must be \"pass\" | {{code, at}}, got {}",
+                name, other
+            )),
+        }
+        failures
+    })
+}
 
-    assert!(ran > 0, "no spec-validity fixture cases were loaded");
-    assert!(
-        failures.is_empty(),
-        "{}/{} spec-validity mismatch(es):\n{}",
-        failures.len(),
-        ran,
-        failures.join("\n")
-    );
+fn main() {
+    let cases = load_cases();
+    assert!(!cases.is_empty(), "no spec-validity fixture cases were loaded");
+    let trials: Vec<Trial> = cases
+        .into_iter()
+        .map(|case| {
+            let name = case
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or_else(|| panic!("fixture case missing name"))
+                .to_owned();
+            Trial::test(format!("spec_validity_matches_fixture::{name}"), move || {
+                let failures = spec_validity_case_failures(&case);
+                if failures.is_empty() {
+                    Ok(())
+                } else {
+                    Err(Failed::from(failures.join("\n")))
+                }
+            })
+        })
+        .collect();
+    libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }

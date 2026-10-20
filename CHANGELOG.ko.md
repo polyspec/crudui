@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1184a506ab5acb2ef0b635dccf2b25ed7714e9fc54b728bdb1a4883ef72677c7 -->
+<!-- source-sha256: c5745bdc868160841f6d81cff4740172dae7339fcdf5e7da0ac5a7075bdd1633 -->
 
 ## Unreleased
 
@@ -91,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — 일곱 unit의 Rust 바인딩이 각 사례를 이름으로 보고한다 (C16.156-1-1)
+
+- list-validity, detail-validity, spec-validity, compose unit의 Rust 바인딩(`packages/validator/rust/tests/list_validity_conformance.rs`, `detail_validity_conformance.rs`, `spec_validity_conformance.rs`, `compose_conformance.rs`)과 form-complete, list-render, detail-render unit의 Rust 바인딩(`packages/generator/rust/tests/form_complete.rs`, `list_render.rs`, `detail_render.rs`)이 fixture 사례마다 `libtest-mimic` trial 하나를 `<symbol>::<case>` 이름으로 실행한다. 두 `Cargo.toml`의 `[[test]]` target은 `harness = false`이다. 사례 검사는 바뀌지 않았다 (C16.156-1-1). Red: `make -s parity-check UNITS="list-validity detail-validity spec-validity compose form-complete list-render detail-render"` exit 2, 일곱 unit마다 rust R3 not-executed 줄; green: 같은 명령에 rust R3 줄이 없고 모든 rust 사례가 통과한다 (list-validity 20/20, detail-validity 13/13, spec-validity 34/34, compose 20/20, form-complete 28/28, list-render 165/165, detail-render 68/68).
 
 ### 2026-10-21 — 다섯 unit의 Rust 바인딩이 각 사례를 이름으로 보고한다 (C16.156)
 

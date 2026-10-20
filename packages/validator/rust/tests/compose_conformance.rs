@@ -12,6 +12,7 @@ mod common;
 const FEATURE: &str = "compileForm";
 const FIXTURE: &str = "tests/fixtures/compose/cases.json";
 
+use libtest_mimic::{Arguments, Failed, Trial};
 use polyspec_crudui_validator::compose::{compose_properties, compose_spec, ComposeOptions, MemoryLoader};
 use serde_json::{Map, Value};
 use std::path::{Path, PathBuf};
@@ -71,104 +72,112 @@ fn obj(v: &Value) -> Map<String, Value> {
     v.as_object().cloned().unwrap_or_default()
 }
 
-#[test]
-fn compose_matches_fixture() {
-    let cases = load_cases();
-    let mut failures: Vec<String> = Vec::new();
-    let mut ran = 0usize;
+/// One case of the compose fixture, run through `prove_case`; returns its failure messages (none when it passes).
+fn compose_case_failures(spec: &Value) -> Vec<String> {
+    let name = spec
+        .get("name")
+        .and_then(Value::as_str)
+        .unwrap_or_else(|| panic!("fixture case missing name"));
+    common::prove_case(FEATURE, FIXTURE, name, || {
+        let mut failures: Vec<String> = Vec::new();
+        let input = spec.get("input").expect("case missing input");
 
-    for spec in &cases {
-        ran += 1;
-        let name = spec
-            .get("name")
+        // Build the loader from input.files (default empty).
+        let files = input
+            .get("files")
+            .and_then(Value::as_object)
+            .cloned()
+            .unwrap_or_default();
+        let loader = MemoryLoader::new(files);
+
+        // kind: 'properties' (default) | 'spec'.
+        let kind = input
+            .get("kind")
             .and_then(Value::as_str)
-            .unwrap_or_else(|| panic!("fixture case missing name"));
-        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
-            let mut failures: Vec<String> = Vec::new();
-            let input = spec.get("input").expect("case missing input");
+            .unwrap_or("properties");
 
-            // Build the loader from input.files (default empty).
-            let files = input
-                .get("files")
-                .and_then(Value::as_object)
-                .cloned()
-                .unwrap_or_default();
-            let loader = MemoryLoader::new(files);
+        // basepath (default '').
+        let opts = match input.get("basepath").and_then(Value::as_str) {
+            Some(bp) => ComposeOptions::with_basepath(bp),
+            None => ComposeOptions::default(),
+        };
 
-            // kind: 'properties' (default) | 'spec'.
-            let kind = input
-                .get("kind")
-                .and_then(Value::as_str)
-                .unwrap_or("properties");
+        let entry = obj(input.get("entry").expect("case missing entry"));
 
-            // basepath (default '').
-            let opts = match input.get("basepath").and_then(Value::as_str) {
-                Some(bp) => ComposeOptions::with_basepath(bp),
-                None => ComposeOptions::default(),
-            };
+        let result = if kind == "spec" {
+            compose_spec(entry, &loader, &opts)
+        } else {
+            compose_properties(entry, &loader, &opts)
+        };
 
-            let entry = obj(input.get("entry").expect("case missing entry"));
-
-            let result = if kind == "spec" {
-                compose_spec(entry, &loader, &opts)
-            } else {
-                compose_properties(entry, &loader, &opts)
-            };
-
-            match (spec.get("expected"), spec.get("expectError")) {
-                (Some(expected), None) => match result {
-                    Ok(actual) => {
-                        let actual_v = Value::Object(actual);
-                        if normalize(expected) != normalize(&actual_v) {
+        match (spec.get("expected"), spec.get("expectError")) {
+            (Some(expected), None) => match result {
+                Ok(actual) => {
+                    let actual_v = Value::Object(actual);
+                    if normalize(expected) != normalize(&actual_v) {
+                        failures.push(format!(
+                            "[{}] expanded spec mismatch\n  expected: {}\n  actual:   {}",
+                            name, expected, actual_v
+                        ));
+                    }
+                }
+                Err(e) => failures.push(format!(
+                    "[{}] expected success but got load error {}: {}",
+                    name, e.code, e.message
+                )),
+            },
+            (None, Some(expect_error)) => {
+                let want = expect_error
+                    .get("code")
+                    .and_then(Value::as_str)
+                    .unwrap_or("?");
+                match result {
+                    Ok(actual) => failures.push(format!(
+                        "[{}] expected load error {} but composed successfully: {}",
+                        name,
+                        want,
+                        Value::Object(actual)
+                    )),
+                    Err(e) => {
+                        let got = e.code.as_str();
+                        if got != want {
                             failures.push(format!(
-                                "[{}] expanded spec mismatch\n  expected: {}\n  actual:   {}",
-                                name, expected, actual_v
+                                "[{}] error code mismatch: expected {} got {} ({})",
+                                name, want, got, e.message
                             ));
                         }
                     }
-                    Err(e) => failures.push(format!(
-                        "[{}] expected success but got load error {}: {}",
-                        name, e.code, e.message
-                    )),
-                },
-                (None, Some(expect_error)) => {
-                    let want = expect_error
-                        .get("code")
-                        .and_then(Value::as_str)
-                        .unwrap_or("?");
-                    match result {
-                        Ok(actual) => failures.push(format!(
-                            "[{}] expected load error {} but composed successfully: {}",
-                            name,
-                            want,
-                            Value::Object(actual)
-                        )),
-                        Err(e) => {
-                            let got = e.code.as_str();
-                            if got != want {
-                                failures.push(format!(
-                                    "[{}] error code mismatch: expected {} got {} ({})",
-                                    name, want, got, e.message
-                                ));
-                            }
-                        }
-                    }
                 }
-                _ => failures.push(format!(
-                    "[{}] case has neither (or both) expected/expectError",
-                    name
-                )),
             }
-            failures
-        }));
-    }
+            _ => failures.push(format!(
+                "[{}] case has neither (or both) expected/expectError",
+                name
+            )),
+        }
+        failures
+    })
+}
 
-    assert!(ran > 0, "no compose fixture cases were loaded");
-    assert!(
-        failures.is_empty(),
-        "{}/{} compose mismatch(es):\n{}",
-        failures.len(),
-        ran,
-        failures.join("\n")
-    );
+fn main() {
+    let cases = load_cases();
+    assert!(!cases.is_empty(), "no compose fixture cases were loaded");
+    let trials: Vec<Trial> = cases
+        .into_iter()
+        .map(|spec| {
+            let name = spec
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or_else(|| panic!("fixture case missing name"))
+                .to_owned();
+            Trial::test(format!("compose_matches_fixture::{name}"), move || {
+                let failures = compose_case_failures(&spec);
+                if failures.is_empty() {
+                    Ok(())
+                } else {
+                    Err(Failed::from(failures.join("\n")))
+                }
+            })
+        })
+        .collect();
+    libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }

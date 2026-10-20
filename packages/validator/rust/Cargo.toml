@@ -24,6 +24,22 @@ harness = false
 name = "expr_conformance"
 harness = false
 
+[[test]]
+name = "list_validity_conformance"
+harness = false
+
+[[test]]
+name = "detail_validity_conformance"
+harness = false
+
+[[test]]
+name = "spec_validity_conformance"
+harness = false
+
+[[test]]
+name = "compose_conformance"
+harness = false
+
 [lints]
 workspace = true
 
