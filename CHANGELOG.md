@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The scenarios of the React form render cases share their repeated specifications (C16.58-3)
+
+- `emailShownBySubscribe` and `groupClassByItems` hold the specifications that four and two scenarios of `packages/react/scripts/scenario-form-render-cases.ts` repeated; the generated `cases.json` is unchanged (C16.58-3). Red: `make duplication-check` reported 53 clones before; green: 50 clones after, and the targeted check passes (generator output unchanged).
+
 ### 2026-10-20 — The Rust text validators of a list and a detail are defined by one macro (C16.58-2)
 
 - `validate_list_text` and `validate_detail_text` of `packages/validator/rust/src/text.rs` are defined by the macro `structure_text_validator!` (C16.58-2). Red: `make duplication-check` reported 54 clones before; green: 53 clones after, and the targeted check passes (8 passed).

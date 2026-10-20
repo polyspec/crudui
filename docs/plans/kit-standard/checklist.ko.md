@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 4de98a667f7ffdbfa0cdbcde70ec0535296b3b8be1038b6fd00b1a2ed4945291 -->
+<!-- source-sha256: 8f1923c26ecfe875c4469731eae96e3dcdd4eb39d56080b2be63515d769b2da4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -82,6 +82,7 @@
 | C16.58 | 중복은 0이다: generator script, adapter, example, php-ext C code는 각 조각의 사본을 하나만 둔다 | scripts, packages/*/adapters, examples, packages/php-ext/src | `make duplication-check` | [ ] |
 | C16.58-1 | 두 문서 link 재작성기는 markdown-it 속성 재작성기 하나를 공유한다 | scripts/documentation-links.mts, scripts/docs-web/build.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- scripts/documentation-links.test.mts tests/docs/web-build.test.mts` | [o] |
 | C16.58-2 | 목록과 상세의 Rust text validator는 macro 하나로 정의한다 | packages/validator/rust/src/text.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --lib text` | [o] |
+| C16.58-3 | React form render case의 scenario는 반복되는 specification을 공유한다 | packages/react/scripts/scenario-form-render-cases.ts | `node node_modules/tsx/dist/cli.mjs packages/react/scripts/generate-form-render-cases.mts` leaves tests/fixtures/form-render/cases.json unchanged | [o] |
 | C16.59 | docs/spec은 여섯 implementation의 규칙만 담는다: tooling 문서는 docs/operations로 옮기고 runtime-packages와 php-extension은 나눈다 | docs/operations, docs/spec, the links to the moved documents | `make docs-check` link check, `make check-documents`, and no document of docs/spec without a requirement id | [o] |
 | C16.60 | record server 준비는 OrderedJSON extension source의 내용을 복사하므로 phpize가 config.m4를 찾는다 | examples/form-comparison/src/local-servers.mjs, examples/form-comparison/src/local-servers.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C16.61 | 중립 규칙은 각 implementation이 폼 값 모델을 네이티브 타입으로 옮기는 방식을 서술한다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md | `make parity-declarations-check` defines CURP-026 and `check-documents` passes | [o] |

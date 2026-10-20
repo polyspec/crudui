@@ -15,6 +15,29 @@ export interface ScenarioCase {
   expectError?: { code: string };
 }
 
+/** An email field that the `subscribe` data member shows or hides. */
+const emailShownBySubscribe = {
+  type: 'group',
+  properties: {
+    email: { type: 'email', label: { ko: '이메일', en: 'Email' }, design: { show: '.subscribe' } },
+  },
+};
+
+/** A group whose `design.group.class` condition map selects a class by the `items` value. */
+const groupClassByItems = {
+  type: 'group',
+  properties: {
+    block: {
+      type: 'group',
+      label: { ko: '블록' },
+      design: { group: { class: { '.block.items': 'has-data', true: 'empty' } } },
+      properties: {
+        items: { type: 'text', label: { ko: '항목' } },
+      },
+    },
+  },
+};
+
 /** The fixture matrix (one entry per `fixture_ideas` scenario). */
 export const SCENARIOS: ScenarioCase[] = [
   {
@@ -32,24 +55,14 @@ export const SCENARIOS: ScenarioCase[] = [
   {
     name: 'design-show-expr-truthy',
     note: "design.show '.subscribe' truthy → input shown (visible envelope).",
-    spec: {
-      type: 'group',
-      properties: {
-        email: { type: 'email', label: { ko: '이메일', en: 'Email' }, design: { show: '.subscribe' } },
-      },
-    },
+    spec: emailShownBySubscribe,
     data: { subscribe: 1 },
     options: { language: 'ko' },
   },
   {
     name: 'design-show-expr-falsy',
     note: "design.show '.subscribe' falsy → node carries the hidden attribute, DOM kept (non-removal contract).",
-    spec: {
-      type: 'group',
-      properties: {
-        email: { type: 'email', label: { ko: '이메일', en: 'Email' }, design: { show: '.subscribe' } },
-      },
-    },
+    spec: emailShownBySubscribe,
     data: { subscribe: 0 },
     options: { language: 'ko' },
   },
@@ -140,38 +153,14 @@ export const SCENARIOS: ScenarioCase[] = [
   {
     name: 'group-class-condmap-has-data',
     note: "The design.group.class condition map selects has-data or empty according to the items value.",
-    spec: {
-      type: 'group',
-      properties: {
-        block: {
-          type: 'group',
-          label: { ko: '블록' },
-          design: { group: { class: { '.block.items': 'has-data', true: 'empty' } } },
-          properties: {
-            items: { type: 'text', label: { ko: '항목' } },
-          },
-        },
-      },
-    },
+    spec: groupClassByItems,
     data: { block: { items: 'x' } },
     options: { language: 'ko' },
   },
   {
     name: 'group-class-condmap-empty',
     note: 'Same group.class condition map; no data → empty branch.',
-    spec: {
-      type: 'group',
-      properties: {
-        block: {
-          type: 'group',
-          label: { ko: '블록' },
-          design: { group: { class: { '.block.items': 'has-data', true: 'empty' } } },
-          properties: {
-            items: { type: 'text', label: { ko: '항목' } },
-          },
-        },
-      },
-    },
+    spec: groupClassByItems,
     data: {},
     options: { language: 'ko' },
   },
@@ -309,24 +298,14 @@ export const SCENARIOS: ScenarioCase[] = [
   {
     name: 'content-langmap-with-show',
     note: 'label LangMap {ko,en} + language=ko → label text 이메일; design.show expression applies independently (content axis vs appearance axis).',
-    spec: {
-      type: 'group',
-      properties: {
-        email: { type: 'email', label: { ko: '이메일', en: 'Email' }, design: { show: '.subscribe' } },
-      },
-    },
+    spec: emailShownBySubscribe,
     data: { subscribe: 1 },
     options: { language: 'ko' },
   },
   {
     name: 'content-langmap-en',
     note: 'Same spec, language=en → label text Email (content translation switches with language).',
-    spec: {
-      type: 'group',
-      properties: {
-        email: { type: 'email', label: { ko: '이메일', en: 'Email' }, design: { show: '.subscribe' } },
-      },
-    },
+    spec: emailShownBySubscribe,
     data: { subscribe: 1 },
     options: { language: 'en' },
   },

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7674cbc7a7b97b7a9548f4bce292a883c66aaabcfdd14ff2868c2eb50d3df9ac -->
+<!-- source-sha256: 4ed3709d6ec43cb97e543a802f8718fc8d3d756c37d4aea1dcbaa90a4a40b23e -->
 
 ## Unreleased
+
+### 2026-10-20 — React form render case의 scenario는 반복되는 specification을 공유한다 (C16.58-3)
+
+- `emailShownBySubscribe`와 `groupClassByItems`가 `packages/react/scripts/scenario-form-render-cases.ts`의 scenario 네 개와 두 개가 반복하던 specification을 담으며, 생성된 `cases.json`은 그대로입니다 (C16.58-3). Red: `make duplication-check`는 이전에 중복 53건을 보고했고, green: 이후 50건이며 대상 검사가 통과합니다(generator output unchanged).
 
 ### 2026-10-20 — 목록과 상세의 Rust text validator는 macro 하나로 정의한다 (C16.58-2)
 
