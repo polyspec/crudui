@@ -479,6 +479,14 @@
     },
     {
       "paths": [
+        "config/parity.json"
+      ],
+      "targets": [
+        "parity-declarations-check"
+      ]
+    },
+    {
+      "paths": [
         "config/duplication.json"
       ],
       "targets": [

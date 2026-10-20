@@ -181,7 +181,7 @@ export const evidenceSuites: EvidenceSuite[] = [
   { name: 'React renderer', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/react' }, runtimes: ['react'] },
   { name: 'Vue renderer', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/vue' }, runtimes: ['vue'] },
   { name: 'Svelte renderer', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/svelte' }, runtimes: ['svelte'] },
-  { name: 'PHP extension', run: { program: 'tests/conformance/run-suite.mts', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'PHP extension', run: { program: 'tests/conformance/run-suite.mts', tool: 'node', argument: 'packages/php-ext/tests/engine/engine.test.mjs' }, runtimes: ['php-native'] },
   { name: 'PHP extension API', run: { program: 'tests/conformance/run-suite.mts', tool: 'phpunit', cwd: 'packages/php-ext' }, runtimes: ['php-native'] },
   { name: 'generator Python', run: { program: 'tests/conformance/run-suite.mts', tool: 'python', cwd: 'packages/generator/python' }, runtimes: ['python'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mts' }, runtimes: ['javascript', 'javascript-html', 'php', 'go', 'rust', 'php-native'] },

@@ -1,6 +1,6 @@
 # 상세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-detail-validity-readme -->
-<!-- source-sha256: 99872c2da37a0db656ee1f0b9723bec9a8d53d5907ddb4245786886024ad82d6 -->
+<!-- source-sha256: c359148f2e7fca2fa57cf148021a1763a006eeb217fac46acd6752740bc463e1 -->
 
 [English](README.md).
 
@@ -41,7 +41,7 @@ API는 `"pass"`에 대해 `{ valid: true, errors: [] }`에 해당하는 `Ok(())`
 [PHP](../../../packages/validator/php/tests/Validate/DetailValidateConformanceTest.php),
 [Go](../../../packages/validator/go/validator/validate/detail_conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/detail_validity_conformance.rs)의 상세 검증 검사,
-[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs),
+[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine/engine.test.mjs),
 [PHP 확장 실행기](../../../packages/php-ext/tests/ValidateReport.php), 교차 검증 콘솔의
 [상세 실행기 검사](../../../examples/cross-check-console/server/validate-detail-runner.test.mjs)와
 [검증기 프로세스 검사](../../../examples/cross-check-console/server/validator-processes.test.mjs)가 런타임

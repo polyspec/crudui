@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 9586d74a5e59bd46d96a7b34b8c8bbdd4c0734d18ce56230523260a30690931c -->
+<!-- source-sha256: e58f1634bdc34c39fe438bcfe182433bb06befe19ab11f4441b03477aca7c17e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -66,3 +66,4 @@
 | C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [!] 원인: make dependency-policy-check는 이 item이 아닌 finding 세 건을 계속 보고한다. PHP 8.5.0으로 resolve된 root composer.lock과 그 오래된 lock(환경, 이 machine에는 PHP 8.4가 설치되어 있지 않음), 그리고 이 machine의 PHP 8.4에 대한 결정 뒤에 다시 기록하는 dependency review record이다; 재시도: PHP 8.4를 설치하고 review를 다시 기록한 뒤 |
 | C16.46 | config/parity.json은 crudui의 implementation, tooling root, comparator를 선언한다 | config/parity.json | `make parity-declarations-check` | [!] 원인: make parity-declarations-check는 unit이 없애야 하는 finding 261건을 보고한다. unit 없는 suite 19건(R4), binding 없는 implementation의 test file 230건(R5), implementation root 밖의 test 11건(R6), docs/spec의 requirement id 없음이다. 여섯 implementation, tools root(scripts, tests/build, tests/docs), comparator(tests/native-generators, examples)의 선언이 이 item이다; 재시도: unit, requirement id, 어긋난 test 11건의 이동(C16.47부터 C16.49) 뒤 |
 | C16.46-1 | config/parity.json은 TypeScript 전용 package와 tooling test를 implementation root 밖에 둔다 | config/parity.json | `make parity-declarations-check` | [!] 원인: make parity-declarations-check는 unit과 spec id가 없애는 finding 187건(R4 19건, R5 166건)과, php-extension root 안에 있는 C engine의 node test인 packages/php-ext/tests/engine.test.mjs(R6)를 계속 보고한다; 재시도: unit, requirement id, C engine test의 위치에 대한 결정 뒤 |
+| C16.47 | C engine test는 php-ext test folder에 있고 config/parity.json에 선언된다 | packages/php-ext/tests/engine/engine.test.mjs, config/parity.json, config/owner-checks.json | `make parity-declarations-check` | [o] |

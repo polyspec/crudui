@@ -44,7 +44,7 @@ The cases are read by the validation conformance tests in
 [PHP](../../../packages/validator/php/tests/Validate/ValidateConformanceTest.php),
 [Go](../../../packages/validator/go/validator/validate/conformance_test.go) and
 [Rust](../../../packages/validator/rust/tests/validate_conformance.rs); the
-[PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the
+[PHP extension engine test](../../../packages/php-ext/tests/engine/engine.test.mjs) and the
 [PHP extension API test](../../../packages/php-ext/tests/ApiTest.php), which runs the PHP and native
 validators; and the cross-check console
 [validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs),

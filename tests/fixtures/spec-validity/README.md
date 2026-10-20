@@ -48,7 +48,7 @@ checks are the forbidden-key conformance tests in
 [PHP](../../../packages/validator/php/tests/Validate/ForbiddenScanConformanceTest.php),
 [Go](../../../packages/validator/go/validator/validate/forbidden_scan_conformance_test.go) and
 [Rust](../../../packages/validator/rust/tests/spec_validity_conformance.rs), the
-[PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the
+[PHP extension engine test](../../../packages/php-ext/tests/engine/engine.test.mjs) and the
 [PHP extension runner](../../../packages/php-ext/tests/ValidateReport.php). The Rust structure result is
 `Ok(ValidationResult)` with `valid` and `errors`.
 

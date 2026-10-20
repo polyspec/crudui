@@ -792,7 +792,7 @@
         "packages/generator/php/tests/DetailTest.php",
         "packages/generator/go/detail_test.go",
         "packages/generator/rust/src/detail.rs",
-        "packages/php-ext/tests/engine.test.mjs",
+        "packages/php-ext/tests/engine/engine.test.mjs",
         "packages/php-ext/tests/ApiReport.php",
         "tests/native-generators/run.mts",
         "packages/generator/ts/src/input-text.test.ts"
@@ -840,7 +840,7 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/php-ext/tests/engine.test.mjs",
+        "packages/php-ext/tests/engine/engine.test.mjs",
         "packages/php-ext/tests/ApiReport.php",
         "packages/html/src/detail-conformance.test.ts",
         "packages/react/src/tests/detail-render.conformance.test.ts",
@@ -898,7 +898,7 @@
         "packages/validator/php/tests/Validate/DetailValidateConformanceTest.php",
         "packages/validator/rust/tests/detail_validity_conformance.rs",
         "packages/php-ext/tests/ValidateReport.php",
-        "packages/php-ext/tests/engine.test.mjs",
+        "packages/php-ext/tests/engine/engine.test.mjs",
         "examples/cross-check-console/server/validate-detail-runner.test.mjs",
         "packages/validator/ts/src/text/text-validity.conformance.test.ts"
       ],

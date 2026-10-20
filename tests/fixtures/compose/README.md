@@ -28,7 +28,7 @@ The cases are read by the composition conformance tests in
 [PHP](../../../packages/validator/php/tests/Compose/ComposeConformanceTest.php),
 [Go](../../../packages/validator/go/validator/compose/conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/compose_conformance.rs) and the
-[PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs).
+[PHP extension engine test](../../../packages/php-ext/tests/engine/engine.test.mjs).
 
 ## Regeneration
 

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b9a2af26767186faf78380c63669f5fed265e8a357666d8e71567d65effd70c9 -->
+<!-- source-sha256: ae59234f3675729452bd392f9f9d995251572dcc630176700bf90b5d06227a00 -->
 
 ## Unreleased
+
+### 2026-10-20 — C engine test가 구현 안으로 옮겨진다 (C16.47)
+
+- `packages/php-ext/tests/engine.test.mjs`는 `packages/php-ext/tests/engine/engine.test.mjs`로 옮겨지고, 그 folder는 `config/parity.json`의 comparator이며 그 file의 owner rule이 있습니다 (C16.47). Red: `make parity-declarations-check`가 R6 finding 1건을 보고했고, green: 0건을 보고합니다.
 
 ### 2026-10-20 — CHECK_TARGETS의 link-metadata-check gate (C16.43)
 

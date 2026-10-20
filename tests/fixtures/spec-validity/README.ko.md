@@ -1,6 +1,6 @@
 # 명세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-spec-validity-readme -->
-<!-- source-sha256: a44600612be64d705a87605a8238d2dd343f6f708322f62b1e3e2773180adf18 -->
+<!-- source-sha256: d0aa510fada665ba5b666423db37430fa78aea7dfd6438d3e055decc8d6094c6 -->
 
 [English](README.md).
 
@@ -42,7 +42,7 @@
 [PHP](../../../packages/validator/php/tests/Validate/ForbiddenScanConformanceTest.php),
 [Go](../../../packages/validator/go/validator/validate/forbidden_scan_conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/spec_validity_conformance.rs)의 금지 키 적합성 검사,
-[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs),
+[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine/engine.test.mjs),
 [PHP 확장 실행기](../../../packages/php-ext/tests/ValidateReport.php)가 런타임 사용처입니다. Rust 구조 결과는
 `valid`와 `errors`를 가진 `Ok(ValidationResult)`입니다.
 

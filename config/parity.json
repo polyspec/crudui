@@ -118,6 +118,7 @@
     "tests/native-generators",
     "examples/form-comparison",
     "examples/cross-check-console",
-    "examples/product-forms"
+    "examples/product-forms",
+    "packages/php-ext/tests/engine"
   ]
 }

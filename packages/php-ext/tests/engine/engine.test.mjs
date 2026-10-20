@@ -12,10 +12,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Node } from '@polyspec/crudui-generator-react';
 import { buildDetail } from '@polyspec/crudui-generator-core';
 
-import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mts';
-import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mts';
-import { recordConformance } from '../../../tests/conformance/evidence.mts';
-import { contractPath, outputPath, unicodeDataSource } from '../tools/generate-unicode-data.mjs';
+import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../../tests/native-generators/cases.mts';
+import { dispatch, errorRecord } from '../../../../tests/native-generators/javascript.mts';
+import { recordConformance } from '../../../../tests/conformance/evidence.mts';
+import { contractPath, outputPath, unicodeDataSource } from '../../tools/generate-unicode-data.mjs';
 
 /*
  * A C string of the UTF-8 bytes of a value followed by a zero byte; a NUL character is a zero byte
@@ -318,7 +318,7 @@ export async function compileAndRunEngineFixture({ directory, source, name, ...o
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 
@@ -366,7 +366,7 @@ test('PHP extension engine compiles every shared form fixture', { timeout: ENGIN
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const cases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/compose/cases.json'), 'utf8'));
 
@@ -447,7 +447,7 @@ test('PHP extension engine rejects a null reference value', { timeout: ENGINE_TE
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/expr/cases.json'), 'utf8'));
 
@@ -527,7 +527,7 @@ test('PHP extension engine evaluates every shared expression fixture', { timeout
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const validationCases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/validate/cases.json'), 'utf8'));
 const specCases = JSON.parse(readFileSync(
@@ -920,7 +920,7 @@ test('PHP extension validation returns failure after repeated-field allocation f
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const unicode = JSON.parse(readFileSync(contractPath, 'utf8'));
 
 test('PHP extension Unicode data is generated from the contract', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
@@ -930,7 +930,7 @@ test('PHP extension Unicode data is generated from the contract', { timeout: ENG
 });
 
 test('PHP extension interface messages are generated from the contract', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
-  const messages = await import('../tools/generate-interface-messages.mjs');
+  const messages = await import('../../tools/generate-interface-messages.mjs');
   const contract = JSON.parse(await readFile(messages.contractPath, 'utf8'));
   assert.equal(contract.format, 'crudui/interface-messages');
   assert.equal(await readFile(messages.outputPath, 'utf8'), messages.interfaceMessagesSource(contract, await messages.structFields()),
@@ -1491,7 +1491,7 @@ for (const sanitized of [false, true]) {
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 // A fixture that compilation rejects has no template to bind; the compilation test covers it.
@@ -1671,7 +1671,7 @@ test('PHP extension engine reports supported widget construction failures as int
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 const renderFixtures = fixtures.filter(fixture => !fixture.expectError);
@@ -1794,7 +1794,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', {
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const additionalFixtures = [
@@ -1903,7 +1903,7 @@ test('PHP extension engine list rendering has no undefined behavior findings', {
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 const fieldMembers = ['key', 'label', 'format', 'value', 'display', 'design'];
@@ -2015,7 +2015,7 @@ test('PHP extension engine detail evaluation has no undefined behavior findings'
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 function sourceForKeys() {
   return [
@@ -2078,7 +2078,7 @@ test('PHP extension engine creates and formats row keys', { timeout: ENGINE_TEST
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 function sourceForFormState() {
   const fixture = new EngineFixtureSource();
@@ -2240,7 +2240,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 test('PHP extension engine compiles composed form templates', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-template-'));
@@ -2258,7 +2258,7 @@ test('PHP extension engine compiles composed form templates', { timeout: ENGINE_
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 test('PHP extension engine value model preserves order and owns independent values', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-value-'));
@@ -2274,7 +2274,7 @@ test('PHP extension engine value model preserves order and owns independent valu
 }
 
 {
-const root = new URL('../../../', import.meta.url);
+const root = new URL('../../../../', import.meta.url);
 const files = Object.fromEntries([
   'Makefile',
   'packages/php-ext/README.md',
@@ -2327,7 +2327,7 @@ test('CRUDUI PHP extension package contains one C implementation', { timeout: EN
 }
 
 {
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 /* Byte strings and whether each is a sequence of Unicode scalar values (docs/spec/input-text.md). */
 const textBytes = [
   [[], true], [[0x00, 0x41], true], [[0xc3, 0xa9], true], [[0xed, 0x9f, 0xbf], true], [[0xee, 0x80, 0x80], true],

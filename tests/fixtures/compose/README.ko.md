@@ -1,6 +1,6 @@
 # 합성 고정 데이터
 <!-- doc-id: tests-fixtures-compose-readme -->
-<!-- source-sha256: 290291d2957155da66339535e54c5b29c5f0a6af74691798769b1bcc5d9ad1e6 -->
+<!-- source-sha256: 08578b84210cc0629666922ee3a22d6b034774318849e618f5bf0f3015ee3877 -->
 
 [English](README.md).
 
@@ -26,7 +26,7 @@
 [PHP](../../../packages/validator/php/tests/Compose/ComposeConformanceTest.php),
 [Go](../../../packages/validator/go/validator/compose/conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/compose_conformance.rs)의 합성 적합성 검사와
-[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs)가 사용합니다.
+[PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine/engine.test.mjs)가 사용합니다.
 
 ## 재생성
 

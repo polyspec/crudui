@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The C engine test moves into its implementation (C16.47)
+
+- `packages/php-ext/tests/engine.test.mjs` moved to `packages/php-ext/tests/engine/engine.test.mjs` and the folder is a comparator of `config/parity.json`, with an owner rule for that file (C16.47). Red: `make parity-declarations-check` reported 1 R6 finding; green: it reports 0.
+
 ### 2026-10-20 — The link-metadata-check gate in CHECK_TARGETS (C16.43)
 
 - `CHECK_TARGETS` lists `link-metadata-check`, the gate that kit K305 added to `kit-gates`, and the principle files follow the current text of kit (C16.43). Red: `make kit-check` exit 1 (`CHECK_TARGETS runs no link-metadata-check`); green: exit 0.
