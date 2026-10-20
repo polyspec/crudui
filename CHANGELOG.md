@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go generator has the history functions (C16.52-4)
+
+- `packages/generator/go/history.go` defines `History[T]` (`Entries`, `RedoEntries`, `LastPath`) and `EmptyHistory`, `RecordChange`, `CanUndo`, `CanRedo`, `UndoChange` and `RedoChange` as CURT-062, CURT-063 and CURT-076 to CURT-080 state them: a value edit on the path of the last edit shares its entry, each direction keeps 100 records, and an undo or a redo with nothing to restore returns the error `Nothing to undo` or `Nothing to redo`. `TestHistoryFunctions` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as subtests named by the case, and `config/parity.json` binds it to the unit `history-functions`; red: the test did not compile without the functions, green: 13 of 13 pass and the other tests of the package pass.
+
 ### 2026-10-20 — The TypeScript test of history-functions is a binding (C16.52-3)
 
 - `packages/generator/ts/src/history-functions.test.ts` runs the 13 cases of `tests/fixtures/history-functions/cases.json` as top-level tests named by the case, and `config/parity.json` binds it to the unit `history-functions`; `form-state.test.ts` keeps the other function and session families. Go has no history function yet, so the declaration still lacks the bindings of php, php-extension, go and rust; red: the unit had no TypeScript binding, green: 13 of 13 pass.

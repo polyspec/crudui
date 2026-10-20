@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 05b320a9a7c4f3bcaa59e450581b697cb73c9037455e031c6308545d090bcee7 -->
+<!-- source-sha256: c5bf4855f6db72f432cd2bda317b98f1bb5ac36669269c356e2178d769895ba8 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -89,6 +89,7 @@
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
 | C16.52-2 | Python generator는 history 함수 emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange를 가진다 | packages/generator/python/src/polyspec/crudui/generator/history.py, __init__.py, tests/test_form_history.py, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_history` | [o] |
 | C16.52-3 | history-functions의 TypeScript test는 case마다 test 하나를 둔 unit의 binding이다 | packages/generator/ts/src/history-functions.test.ts, packages/generator/ts/src/form-state.test.ts, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/history-functions.test.ts` | [o] |
+| C16.52-4 | Go generator는 history 함수 EmptyHistory, RecordChange, CanUndo, CanRedo, UndoChange, RedoChange를 가진다 | packages/generator/go/history.go, packages/generator/go/history_test.go, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestHistoryFunctions .` | [o] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
 | C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [o] |

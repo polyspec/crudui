@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5bed6cab885a54214ed02041b96b09d376b324bb0f81447106dcedeaa6417120 -->
+<!-- source-sha256: 757d2cc0e6955db02ec2af99dd7120f0bb5e494f2f81cfa35f10ec92a57e2571 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go generator에 history 함수가 있다 (C16.52-4)
+
+- `packages/generator/go/history.go`는 `History[T]`(`Entries`, `RedoEntries`, `LastPath`)와 `EmptyHistory`, `RecordChange`, `CanUndo`, `CanRedo`, `UndoChange`, `RedoChange`를 CURT-062, CURT-063, CURT-076~CURT-080이 정한 대로 정의한다. 마지막 편집과 같은 경로의 값 편집은 항목을 공유하고, 각 방향은 기록 100개를 두며, 복원할 것이 없는 실행취소나 실행복귀는 오류 `Nothing to undo` 또는 `Nothing to redo`를 돌려준다. `TestHistoryFunctions`는 `tests/fixtures/history-functions/cases.json`의 사례 13개를 사례 이름의 subtest로 실행하고, `config/parity.json`은 이를 unit `history-functions`에 묶는다. red: 함수가 없어 test가 compile되지 않았고, green: 13개 중 13개가 통과하며 package의 다른 test도 통과한다.
 
 ### 2026-10-20 — history-functions의 TypeScript test는 binding이다 (C16.52-3)
 
