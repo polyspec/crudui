@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 8b6eb5e46fcf5c7ac5fdfaee6d6039342060687f5a1749564e99d94d04b4fa9e -->
+<!-- source-sha256: 2c4cf2719d62f81569c5f57f31596a174b3263ee7d43187de93e5154506542a0 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -293,3 +293,4 @@
 | C16.159 | 여덟 개 text-validity 단위의 PHP 바인딩(라이브러리와 확장)이 각 단위의 고유 메서드 아래에서 짧은 케이스 이름으로 모든 케이스를 실행하여, make parity-check가 각 케이스를 실행된 것으로 보고한다 | packages/validator/php/tests/Validate/TextValidityConformanceTest.php, packages/generator/php/tests/InputTextTest.php, config/parity.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-compile-form text-bind-form text-create-form text-build-list text-build-detail" > var/pc-C16.159.log 2>&1; ! grep -E "R3 not-executed [^ ]+ php(-extension)? " var/pc-C16.159.log'` | [o] |
 | C16.157 | 모든 python 바인딩이 자기 단위의 각 케이스를 make parity-check에 이름으로 보고한다 (R3): 테스트 메서드 하나가 케이스 하나이고, 바인딩은 자기 단위의 테스트 클래스만 venv 인터프리터 var/python/bin/python으로 실행한다 | config/parity.json, packages/generator/python/tests/conformance.py, packages/generator/python/tests/test_buttons.py, packages/generator/python/tests/test_form_render.py, packages/generator/python/tests/test_form_state.py, packages/validator/python/tests/conformance.py, packages/validator/python/tests/test_expr.py, packages/validator/python/tests/test_validate.py, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-check UNITS="buttons validate form-render form-view expr form-history form-actions view-functions" > var/pc-C16.157.log 2>&1; ! grep -E "R3 not-executed [^ ]+ python " var/pc-C16.157.log'` | [o] |
 | C16.163 | config/rebuild.json이 C16.58-27이 추가한 examples/form-comparison/src/adapters/view-entries.ts를 form comparison 예제의 policy 모듈로 분류한다 | config/rebuild.json | `make rebuild-check` | [o] |
+| C16.164 | 사본 PRINCIPLES.md와 PRINCIPLES.ko.md가 K431 뒤 링크된 kit의 것과 같아(make kit-sync) make kit-check가 통과한다 | PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |

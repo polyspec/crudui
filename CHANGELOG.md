@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The PRINCIPLES copies follow kit K431 (C16.164)
+
+- `make kit-sync` rewrites `PRINCIPLES.md` and `PRINCIPLES.ko.md` from the linked kit (C16.164): kit K431 added to P-rules that a comment or document that a change makes stale is corrected in that commit, and one found later is a sub-item whose Verification is `make text-absent FILE=<path> TEXT=<stale text>`. Red: `make kit-check` exit 2 on aaa19888 (both copies differ); green: exit 0.
+
 ### 2026-10-21 — config/rebuild.json classes the shared adapter entries of the form comparison (C16.163)
 
 - `config/rebuild.json` declares `examples/form-comparison/src/adapters/view-entries.ts`, which C16.58-27 added, as a policy module of the form comparison example (C16.163); without a class, `make rebuild-check` failed on main. Red: `make rebuild-check` exit 2 on ffb7d22a ("the tool has no class in config/rebuild.json"); green: exit 0.

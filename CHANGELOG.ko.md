@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e2852a4a659d48fe439a3da4bac438978e071a48aa2257d13a3a6250e24206fa -->
+<!-- source-sha256: fe9f96e56fc5e997a59d8c67c13f0f27f10c5fe8d6acc3d82f93f6a4b61a8c56 -->
 
 ## Unreleased
+
+### 2026-10-21 — PRINCIPLES 사본이 kit K431을 따른다 (C16.164)
+
+- `make kit-sync`가 링크된 kit에서 `PRINCIPLES.md`와 `PRINCIPLES.ko.md`를 다시 쓴다 (C16.164): kit K431은 변경으로 낡게 된 주석이나 문서를 그 커밋에서 고치고, 나중에 발견된 것은 Verification이 `make text-absent FILE=<path> TEXT=<stale text>`인 하위 항목으로 둔다는 규칙을 더했다. Red: `make kit-check`가 aaa19888에서 exit 2(두 사본이 다름); green: exit 0.
 
 ### 2026-10-21 — config/rebuild.json이 form comparison의 공유 adapter 진입점을 분류한다 (C16.163)
 
