@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "comment": "The implementations of crudui and the units that each holds.",
+  "implementations": [
+    {
+      "name": "ts",
+      "runner": "vitest",
+      "prose": [
+        "TypeScript",
+        "JavaScript"
+      ],
+      "roots": [
+        "packages/generator/ts",
+        "packages/validator/ts",
+        "packages/html",
+        "packages/react",
+        "packages/vue",
+        "packages/svelte",
+        "packages/form-binding",
+        "packages/cli"
+      ]
+    },
+    {
+      "name": "php",
+      "runner": "php",
+      "prose": [
+        "PHP"
+      ],
+      "roots": [
+        "packages/generator/php",
+        "packages/validator/php"
+      ]
+    },
+    {
+      "name": "php-extension",
+      "runner": "php",
+      "prose": [
+        "PHP extension"
+      ],
+      "roots": [
+        "packages/php-ext"
+      ],
+      "args": [
+        "-d",
+        "extension=var/php-ext/polyspec_crudui.so"
+      ]
+    },
+    {
+      "name": "go",
+      "runner": "go",
+      "prose": [
+        "Go"
+      ],
+      "roots": [
+        "packages/generator/go",
+        "packages/validator/go"
+      ]
+    },
+    {
+      "name": "rust",
+      "runner": "cargo",
+      "prose": [
+        "Rust"
+      ],
+      "roots": [
+        "packages/generator/rust",
+        "packages/validator/rust"
+      ]
+    },
+    {
+      "name": "python",
+      "runner": "python",
+      "prose": [
+        "Python"
+      ],
+      "roots": [
+        "packages/generator/python",
+        "packages/validator/python"
+      ]
+    }
+  ],
+  "suites": [
+    "tests/fixtures/**/cases.json"
+  ],
+  "requirements": {
+    "pattern": "CR-[0-9]{3}"
+  },
+  "units": [],
+  "tools": [
+    {
+      "root": "scripts",
+      "reason": "the tests of the build, documentation and API tooling scripts of the repository; they test no contract"
+    },
+    {
+      "root": "tests/build",
+      "reason": "the tests of the repository tooling (CI, Makefile, manifests, locks, names, generators); they test no contract"
+    },
+    {
+      "root": "tests/docs",
+      "reason": "the tests of the documentation site tooling; they test no contract"
+    }
+  ],
+  "comparators": [
+    "tests/native-generators",
+    "examples/form-comparison",
+    "examples/cross-check-console",
+    "examples/product-forms"
+  ]
+}

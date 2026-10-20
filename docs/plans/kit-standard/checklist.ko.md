@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c240b72fbfde862653c911c30c0306c1e568757f411688c9493be04f7ada8055 -->
+<!-- source-sha256: 9e0929b28a267de90479f12a85f413291725b03fd77b4a98af7488e8540bb334 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -64,3 +64,4 @@
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [!] 원인: make rules-check가 AGENTS.md:18을 계속 보고한다(make hooks-check에 닿지 않음). kit check-rules.mts:184는 target ci-targets에 이미 닿았다는 이유로 이후의 make ci-targets TARGETS=... 호출을 건너뛰므로 .github/workflows/push-gate.yml의 push-gate-commit에 닿지 않는다; 재시도: kit이 닿은 target을 target과 variable로 구분한 뒤 |
 | C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [!] 원인: make dependency-policy-check는 이 item이 아닌 finding 세 건을 계속 보고한다. PHP 8.5.0으로 resolve된 root composer.lock과 그 오래된 lock(환경, 이 machine에는 PHP 8.4가 설치되어 있지 않음), 그리고 이 machine의 PHP 8.4에 대한 결정 뒤에 다시 기록하는 dependency review record이다; 재시도: PHP 8.4를 설치하고 review를 다시 기록한 뒤 |
+| C16.46 | config/parity.json은 crudui의 implementation, tooling root, comparator를 선언한다 | config/parity.json | `make parity-declarations-check` | [!] 원인: make parity-declarations-check는 unit이 없애야 하는 finding 261건을 보고한다. unit 없는 suite 19건(R4), binding 없는 implementation의 test file 230건(R5), implementation root 밖의 test 11건(R6), docs/spec의 requirement id 없음이다. 여섯 implementation, tools root(scripts, tests/build, tests/docs), comparator(tests/native-generators, examples)의 선언이 이 item이다; 재시도: unit, requirement id, 어긋난 test 11건의 이동(C16.47부터 C16.49) 뒤 |
