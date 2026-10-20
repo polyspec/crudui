@@ -59,8 +59,8 @@ final class DetailRenderConformanceTest extends TestCase
             self::fail($case->name . ' must fail');
         }
         self::assertSame(
-            self::layout($case->expected_html),
-            self::layout(Generator::renderDetail($case->spec, $case->record ?? new stdClass(), $options))
+            self::layout(self::withoutPreloads($case->expected_html)),
+            self::layout(self::withoutPreloads(Generator::renderDetail($case->spec, $case->record ?? new stdClass(), $options)))
         );
     }
 }

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The PHP extension runs the rendering conformance suites through the public API (C16.97)
+
+- `packages/generator/php/tests/RenderingConformanceTest.php` builds each form with `new Form` and `Generator::renderForm` and compares the layout through the trait `LayoutTree.php` (its own style reading, so no internal class is loaded); `ListRenderConformanceTest.php` and `DetailRenderConformanceTest.php` compare the bodies with `LayoutTree::withoutPreloads`. The five rendering files run under `make test-php-ext` (C16.97). The placeholder row of missing repeated data has the fixed key `__0000000000000__` again (`Form.php` `normalizeFields`, `form.c` `normalize_fields`), and only a row that `addRow` creates gets a fresh key below it (the `fresh` flag), as the form-render suite records. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest|OutlineTest|FormCompleteConformanceTest|ListRenderConformanceTest|DetailRenderConformanceTest'` exit 2, refused: a library source was loaded (`Internal/Buttons.php` and others), and the placeholder case `multiple-leaf-empty-placeholder` fails with a random key. Green: that command exit 0, 443 passed; the library run of the same files exit 0, 443 OK; the form-state regression `FormStateTest|FormTest|HistoryFunctionsTest|DisplayRulesTest` exit 0 under the extension and the library.
+
 ### 2026-10-20 — The PHP extension reads a signed radix number text as the library does (C16.90)
 
 - `packages/php-ext/src/list.c` (`parse_number`): a text with a sign before a radix prefix, such as `-0x10`, is no number, so a number cell keeps its text as the library does; the unsigned forms `0x10` and `0b101` still read as numbers. `DisplayRulesTest::testSignedRadixTextIsNoNumber` (C16.90) uses only `Generator::renderList`. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` exit 2, the new test fails (the extension renders `-16.00`); the library run exit 0, 23 OK. Green: the extension run exit 0, 23 passed; the library run exit 0, 23 OK.

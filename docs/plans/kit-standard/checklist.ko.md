@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f6fb1dd7a849946843a87c2fb76e6ea8cac5b5fc3a8cd633406876639152e300 -->
+<!-- source-sha256: f2d54b484d1954b343bebdffc13a67bba06399e0c0ec31b5ef43c1ed54f8dd82 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -178,3 +178,4 @@
 | C16.89 | PHP extension은 유한하지 않은 page 또는 total 옵션을 라이브러리와 같이 읽는다 | packages/php-ext/src/crudui.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |
 | C16.90 | PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 | packages/generator/php/tests/DisplayRulesTest.php, packages/php-ext/src/list.c | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DisplayRulesTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=DisplayRulesTest` | [o] |
 | C16.95 | ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
+| C16.97 | PHP extension은 public API만으로 rendering conformance suite를 실행한다 | packages/generator/php/tests/RenderingConformanceTest.php, packages/generator/php/tests/LayoutTree.php, packages/generator/php/tests/ListRenderConformanceTest.php, packages/generator/php/tests/DetailRenderConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php tests/OutlineTest.php tests/FormCompleteConformanceTest.php tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest\|OutlineTest\|FormCompleteConformanceTest\|ListRenderConformanceTest\|DetailRenderConformanceTest'` | [o] |

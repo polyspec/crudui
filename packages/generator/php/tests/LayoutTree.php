@@ -9,18 +9,25 @@ use Dom\Node;
 use Dom\Text;
 
 /**
- * The layout comparison of the list and detail fixtures, as the Python and JavaScript normalizers make it: the image preload
- * links of a string renderer are removed, then both sides are parsed with the HTML5 parser into a tree with sorted attributes,
+ * The layout comparison of the fixtures, as the Python and JavaScript normalizers make it: both sides are parsed with the HTML5 parser into a tree with sorted attributes,
  * boolean attributes empty, a canonical style attribute and no whitespace-only text outside preformatted elements.
  */
 trait LayoutTree
 {
-    /** The normalized tree of rendered layout HTML, without its image preload links. */
+    /**
+     * The HTML of a string renderer without its image preload links: the list and detail expectations cover the body only,
+     * so the links are removed on both sides of their comparison.
+     */
+    private static function withoutPreloads(string $html): string
+    {
+        return (string) preg_replace('/<link [^>]*rel="preload"[^>]*>/', '', $html);
+    }
+
+    /** The normalized tree of rendered layout HTML. */
     private static function layout(string $html): array
     {
-        $body = (string) preg_replace('/<link [^>]*rel="preload"[^>]*>/', '', $html);
         $document = \Dom\HTMLDocument::createFromString(
-            '<!doctype html><html><body>' . $body . '</body></html>',
+            '<!doctype html><html><body>' . $html . '</body></html>',
             LIBXML_NOERROR,
             'UTF-8'
         );

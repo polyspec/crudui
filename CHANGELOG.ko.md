@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c9f27f86fb2e0843afda2f8743ad78b0d4e2d1dfa546c8e1868ba6d35d3b8910 -->
+<!-- source-sha256: 8a785b03cff1a1eedc747955109274a89aa6003bf57313f3eed01a600f236848 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
+
+- `packages/generator/php/tests/RenderingConformanceTest.php`는 `new Form`과 `Generator::renderForm`으로 form을 만들고, trait `LayoutTree.php`로 layout을 비교합니다(자체 style 해석을 쓰므로 내부 class를 load하지 않습니다). `ListRenderConformanceTest.php`와 `DetailRenderConformanceTest.php`는 `LayoutTree::withoutPreloads`로 body를 비교합니다. 다섯 rendering 파일이 `make test-php-ext`로 실행됩니다(C16.97). 누락된 반복 data의 placeholder row는 다시 고정 key `__0000000000000__`를 받고(`Form.php` `normalizeFields`, `form.c` `normalize_fields`), `addRow`가 만든 row 아래의 placeholder만 새 key를 받습니다(`fresh` flag). 형식 suite가 기록한 대로입니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='RenderingConformanceTest|OutlineTest|FormCompleteConformanceTest|ListRenderConformanceTest|DetailRenderConformanceTest'` exit 2, 거부됨: 라이브러리 source(`Internal/Buttons.php` 등)가 load되었고, placeholder case `multiple-leaf-empty-placeholder`가 무작위 key로 실패. Green: 같은 명령 exit 0, 443 passed; 같은 파일의 라이브러리 실행 exit 0, 443 OK; form-state 회귀 `FormStateTest|FormTest|HistoryFunctionsTest|DisplayRulesTest`는 extension과 라이브러리 모두 exit 0입니다.
 
 ### 2026-10-20 — PHP extension은 부호가 붙은 radix 숫자 text를 라이브러리와 같이 읽는다 (C16.90)
 

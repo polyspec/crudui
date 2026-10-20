@@ -61,8 +61,8 @@ final class ListRenderConformanceTest extends TestCase
             self::fail($case->name . ' must fail');
         }
         self::assertSame(
-            self::layout($case->expected_html),
-            self::layout(Generator::renderList($case->spec, $case->rows ?? [], $options))
+            self::layout(self::withoutPreloads($case->expected_html)),
+            self::layout(self::withoutPreloads(Generator::renderList($case->spec, $case->rows ?? [], $options)))
         );
     }
 }

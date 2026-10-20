@@ -172,7 +172,8 @@ final class Form
         $value = $this->normalizeRow(
             $field,
             array_key_exists('value', $options) ? Value::copy($options['value']) : Missing::Value,
-            implode('.', [...self::checkedPath($path), $key])
+            implode('.', [...self::checkedPath($path), $key]),
+            true
         );
         $next = (object) (
             array_slice($members, 0, $index, true) + [$key => $value] + array_slice($members, $index, null, true)
@@ -380,7 +381,7 @@ final class Form
     }
 
     /** Normalize record data; `$path` is the full data path, empty at the root. */
-    private function normalizeFields(array $fields, mixed $value, string $path = ''): stdClass
+    private function normalizeFields(array $fields, mixed $value, string $path = '', bool $fresh = false): stdClass
     {
         if ($value !== Missing::Value && !$value instanceof stdClass) {
             self::fail($path === '' ? 'Form data must be an object' : 'Group data must be an object: ' . $path);
@@ -396,14 +397,14 @@ final class Form
                 $rows = new stdClass();
                 $entries = $raw !== Missing::Value
                     ? $raw
-                    : (self::dataOnly($field) ? new stdClass() : (object) [self::freshKey([]) => Missing::Value]);
+                    : (self::dataOnly($field) ? new stdClass() : (object) [($fresh ? self::freshKey([]) : '__0000000000000__') => Missing::Value]);
                 foreach ($entries as $key => $row) {
                     self::checkKey((string) $key);
-                    $rows->{$key} = $this->normalizeRow($field, $row, $fieldPath . '.' . $key);
+                    $rows->{$key} = $this->normalizeRow($field, $row, $fieldPath . '.' . $key, $fresh);
                 }
                 $data->{$field->name} = $rows;
             } elseif (($field->spec->type ?? null) === 'group') {
-                $data->{$field->name} = $this->normalizeFields($field->children, $raw, $fieldPath);
+                $data->{$field->name} = $this->normalizeFields($field->children, $raw, $fieldPath, $fresh);
             } elseif ($raw === Missing::Value && property_exists($field->spec, 'default')) {
                 $data->{$field->name} = Value::copy($field->spec->default);
             }
@@ -411,10 +412,11 @@ final class Form
         return $data;
     }
 
-    private function normalizeRow(stdClass $field, mixed $value, string $path): mixed
+    /** A row of a collection; `$fresh` gives a placeholder row of a nested collection a fresh key (AddRow only). */
+    private function normalizeRow(stdClass $field, mixed $value, string $path, bool $fresh = false): mixed
     {
         return ($field->spec->type ?? null) === 'group'
-            ? $this->normalizeFields($field->children, $value, $path)
+            ? $this->normalizeFields($field->children, $value, $path, $fresh)
             : Value::copy($value === Missing::Value ? $field->spec->default ?? '' : $value);
     }
 

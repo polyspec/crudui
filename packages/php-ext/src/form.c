@@ -109,13 +109,14 @@ static ps_value *fresh_key(const ps_value *used, ps_value **error)
 }
 
 static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
-                                  ps_text path, ps_value **error);
+                                  ps_text path, bool fresh, ps_value **error);
 
+/* fresh gives a placeholder row of a nested collection a fresh key; only a row that AddRow creates has one. */
 static ps_value *normalize_row(const ps_value *field, const ps_value *value,
-                               ps_text path, ps_value **error)
+                               ps_text path, bool fresh, ps_value **error)
 {
     if (field_group(field))
-        return normalize_fields(member(field, "children"), value, path, error);
+        return normalize_fields(member(field, "children"), value, path, fresh, error);
     if (value) return ps_value_clone(value);
     const ps_value *fallback = member(member(field, "spec"), "default");
     return fallback ? ps_value_clone(fallback) : ps_string_value("");
@@ -123,7 +124,7 @@ static ps_value *normalize_row(const ps_value *field, const ps_value *value,
 
 /* Normalize one keyed row at "<collection path>.<key>". */
 static ps_value *normalize_keyed_row(const ps_value *field, const ps_value *value,
-                                     ps_text collection_path, ps_text key,
+                                     ps_text collection_path, ps_text key, bool fresh,
                                      ps_value **error)
 {
     ps_chars row_path = ps_join_path(collection_path, key);
@@ -131,14 +132,14 @@ static ps_value *normalize_keyed_row(const ps_value *field, const ps_value *valu
         *error = internal_error();
         return NULL;
     }
-    ps_value *row = normalize_row(field, value, ps_view(row_path), error);
+    ps_value *row = normalize_row(field, value, ps_view(row_path), fresh, error);
     free(row_path.bytes);
     return row;
 }
 
 /* Normalize record data; path is the full data path, empty at the root. */
 static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
-                                  ps_text path, ps_value **error)
+                                  ps_text path, bool fresh, ps_value **error)
 {
     if (!fields || fields->kind != PS_ARRAY) {
         *error = input_error("Unsupported form template");
@@ -182,11 +183,12 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
                 *error = internal_error();
                 goto fail;
             }
-            /* Missing data creates one row, except in a data-only collection. */
+            /* Missing data creates one row with the initial key of a keyed row, except in a data-only collection. */
             if (!raw && !field_data_only(field)) {
-                ps_value *key = fresh_key(rows, error);
+                ps_value *key = fresh ? fresh_key(rows, error) : ps_string_value("__0000000000000__");
+                if (!key && !*error) *error = internal_error();
                 ps_value *row = key
-                    ? normalize_keyed_row(field, NULL, ps_view(field_path), ps_string(key), error) : NULL;
+                    ? normalize_keyed_row(field, NULL, ps_view(field_path), ps_string(key), fresh, error) : NULL;
                 if (!key || !row || !ps_set_text(rows, ps_string(key), row)) {
                     ps_value_free(key);
                     ps_value_free(rows);
@@ -203,7 +205,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
                         goto fail;
                     }
                     ps_value *row = normalize_keyed_row(field, ps_at(raw, row_index),
-                                                        ps_view(field_path), key, error);
+                                                        ps_view(field_path), key, fresh, error);
                     if (!row || !ps_set_text(rows, key, row)) {
                         ps_value_free(rows);
                         if (!*error) *error = internal_error();
@@ -213,7 +215,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
             }
             normalized = rows;
         } else if (field_group(field)) {
-            normalized = normalize_fields(member(field, "children"), raw, ps_view(field_path), error);
+            normalized = normalize_fields(member(field, "children"), raw, ps_view(field_path), fresh, error);
         } else if (!raw) {
             const ps_value *fallback = member(member(field, "spec"), "default");
             if (fallback) normalized = ps_value_clone(fallback);
@@ -475,7 +477,7 @@ static ps_result commit(ps_form *form, ps_value *data, ps_value *view, const ps_
 static ps_result replace_data(ps_form *form, const ps_value *value)
 {
     ps_value *error = NULL;
-    ps_value *data = normalize_fields(member(form->template, "fields"), value, PS_TEXT(""), &error);
+    ps_value *data = normalize_fields(member(form->template, "fields"), value, PS_TEXT(""), false, &error);
     if (!data) return (ps_result){NULL, error ? error : internal_error()};
     /* Replacing the record resets the view to the initial view and restarts the history. */
     ps_value *view = result_value(ps_initial_view(), &error);
@@ -679,7 +681,7 @@ static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
         row_path = next;
     }
     if (!error && !row_path.bytes) error = internal_error();
-    ps_value *row = error ? NULL : normalize_row(field, source_value, ps_view(row_path), &error);
+    ps_value *row = error ? NULL : normalize_row(field, source_value, ps_view(row_path), true, &error);
     free(row_path.bytes);
     ps_value *next_rows = row
         ? object_with_insert(rows, ps_string(key), row, at) : NULL;
@@ -902,7 +904,7 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
     ps_value *ordered = ps_value_ordered(template);
     if (!ordered) return (ps_form_result){NULL, internal_error()};
     ps_value *error = NULL;
-    ps_value *normalized = normalize_fields(member(ordered, "fields"), data, PS_TEXT(""), &error);
+    ps_value *normalized = normalize_fields(member(ordered, "fields"), data, PS_TEXT(""), false, &error);
     if (!normalized) {
         ps_value_free(ordered);
         return (ps_form_result){NULL, error ? error : internal_error()};
@@ -1240,7 +1242,7 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
             free(dotted.bytes);
             return (ps_result){NULL, internal_error()};
         }
-        ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, PS_TEXT(""), &error);
+        ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, PS_TEXT(""), false, &error);
         ps_value_free(updated);
         if (!normalized) {
             free(dotted.bytes);
