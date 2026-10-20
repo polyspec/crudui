@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 72dcb74f54e8a905d55d73cbebe04fe918f5b1658d1bb45a82ae4b9624691069 -->
+<!-- source-sha256: a3d043cee5ae1d05cd574c4587cf9332fde2b21ed49ebcdfcd5898df925efac9 -->
 
 ## Unreleased
+
+### 2026-10-20 — config/rebuild.json의 모든 도구 source (C16.7-9)
+
+- `config/rebuild.json`의 `paths`는 Rust port의 tool folder(`packages/*/*/tools`), Go generator(`*_generate.go`), PHP test의 number-text generator, benchmark의 build와 fixture script, example의 build와 install script 2개, fixture generator `tests/fixtures/*/generate.mts`도 선택하며, 새 도구 15개가 각각 class를 가집니다. `policy` 12개(single-source table과 fixture generator)와 `ecosystem` 3개입니다. `comment`는 test이거나 example product여서 도구가 아닌 묶음을 밝힙니다 (C16.7-9). Red: `make rebuild-check` exit 1, class 없는 도구 15개, green: exit 0.
 
 ### 2026-10-20 — Go validate package의 공유 field 순회, rule 해제, composition 입력 (C16.24)
 

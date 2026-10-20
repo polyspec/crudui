@@ -1,20 +1,51 @@
 {
   "schema": 1,
-  "comment": "The class of each tool of crudui (S1): ecosystem names the tool it uses, replaced the ecosystem tool that replaces it and the item that registers the replacement, record the rebuild record that weighs the tools, policy the reason no ecosystem tool applies. The tools below scripts/kit are copies of kit and are classed in kit. Test files and fixtures are not tools.",
+  "comment": "The class of each tool of crudui (S1): ecosystem names the tool it uses, replaced the ecosystem tool that replaces it and the item that registers the replacement, record the rebuild record that weighs the tools, policy the reason no ecosystem tool applies. The tools below scripts/kit are copies of kit and are classed in kit. Test files and fixtures are not tools. Not tools, because they are tests (the S9 exception): tests/conformance, tests/native-generators (with its program tests/native-generators/programs/php/generate.php, a harness that drives the PHP generator), tests/build (the *.test.mts and its helpers make-dry-run.mts, json.mts, public-types*.mts), tests/docs, tests/form-inspector, tests/form-markup, tests/php, tests/release-install and the other tests/*.mts; the modules of tests/fixtures other than generate.mts (fixture data); the benchmark programs of benchmarks/validators (run.js, bench-js.js, bench-php.php, drivers.mjs, arguments.js, go and rust drivers); the checks of the form comparison examples/form-comparison/check-*.mjs, which drive the local stacks and assert one comparison; and the code of the examples, which is example product.",
   "paths": [
     "scripts/!(*.test).mts",
     "scripts/*.php",
     "scripts/docs-web/*.mts",
     "packages/*/scripts/*",
     "packages/*/*/scripts/*",
-    "packages/php-ext/tools/*.mjs"
+    "packages/php-ext/tools/*.mjs",
+    "packages/*/*/tools/*.mjs",
+    "packages/*/go/**/*_generate.go",
+    "packages/validator/php/tests/Values/*.generate.mjs",
+    "benchmarks/validators/{build-drivers.mjs,gen-fixtures.js}",
+    "examples/form-comparison/install-ordered-json.mjs",
+    "examples/cross-check-console/server/build-rust.mjs",
+    "tests/fixtures/*/generate.mts"
   ],
   "tools": {
+    "benchmarks/validators/build-drivers.mjs": {
+      "kind": "ecosystem",
+      "tool": "go build and cargo build, run through scripts/run-command.mts"
+    },
+    "benchmarks/validators/gen-fixtures.js": {
+      "kind": "policy",
+      "reason": "writes the benchmark specifications and inputs that the four validators consume through one protocol; no ecosystem tool defines this protocol"
+    },
+    "examples/cross-check-console/server/build-rust.mjs": {
+      "kind": "ecosystem",
+      "tool": "cargo build --locked --release, through scripts/run-rust-command.mts"
+    },
+    "examples/form-comparison/install-ordered-json.mjs": {
+      "kind": "ecosystem",
+      "tool": "git clones and checks out the tag of the OrderedJSON checkout"
+    },
+    "packages/generator/go/interface_messages_generate.go": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
     "packages/generator/php/scripts/generate-interface-messages.php": {
       "kind": "policy",
       "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
     "packages/generator/python/scripts/generate_interface_messages.py": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/generator/rust/tools/generate-interface-messages.mjs": {
       "kind": "policy",
       "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
@@ -46,11 +77,27 @@
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
     },
+    "packages/validator/go/validator/validate/unicode_data_generate.go": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
     "packages/validator/php/scripts/generate-unicode-data.php": {
       "kind": "policy",
       "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
+    "packages/validator/php/tests/Values/number-text.generate.mjs": {
+      "kind": "policy",
+      "reason": "writes the table of doubles with the text ECMAScript Number.prototype.toString gives them, the reference that the canonical number text of every runtime must reproduce (S6); no ecosystem tool defines it"
+    },
     "packages/validator/python/scripts/generate_unicode_data.py": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/validator/rust/tools/generate-number-text.mjs": {
+      "kind": "policy",
+      "reason": "writes the table of doubles with the text ECMAScript Number.prototype.toString gives them, the reference that the canonical number text of every runtime must reproduce (S6); no ecosystem tool defines it"
+    },
+    "packages/validator/rust/tools/generate-unicode-properties.mjs": {
       "kind": "policy",
       "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
@@ -209,6 +256,26 @@
     "scripts/values.mts": {
       "kind": "replaced",
       "reason": "replaced by JSON schemas read with ajv (kit K157, K158); item C16.11 registers the replacement for its 21 callers"
+    },
+    "tests/fixtures/detail-render/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "tests/fixtures/form-complete/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "tests/fixtures/form-outline/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "tests/fixtures/list-render/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "tests/fixtures/validate/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
     }
   }
 }

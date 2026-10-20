@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Every tool source in config/rebuild.json (C16.7-9)
+
+- `paths` of `config/rebuild.json` also selects the tool folders of the Rust ports (`packages/*/*/tools`), the Go generators (`*_generate.go`), the number-text generator of the PHP tests, the benchmark build and fixture scripts, the two build and install scripts of the examples and the fixture generators `tests/fixtures/*/generate.mts`, and each of the 15 new tools has its class: 12 `policy` (single-source table and fixture generators) and 3 `ecosystem`; the `comment` names the groups that are tests or example product and are not tools (C16.7-9). Red: `make rebuild-check` exit 1 with 15 tools without a class; green: exit 0.
+
 ### 2026-10-20 — Shared field walk, rule switch-off and composition input in the Go validate package (C16.24)
 
 - `fieldDeclarations` yields the field declarations of a properties map, `ruleOff` tests the parameter that switches a rule off, and `composeInput` prepares the specification, loader and options for `Validate`, `ValidateList` and `ValidateDetail`, in place of the copies in `params.go`, `validator.go`, `rules.go`, `list.go`, `detail.go` and `index.go` (C16.24). Red: `make duplication-check` listed 6 clones in `validate/`; green: 1 remains (the head of `ValidateList` and `ValidateDetail`), 762 Go tests and `make lint-go` pass. The behaviour is unchanged, so the red is the clone list.
