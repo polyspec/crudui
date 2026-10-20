@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — CUIT-041 has a Python entry (C16.140-2)
+
+- The table of CUIT-041 gets a Python entry, which names the classes that the Python packages raise, checked in the sources: validation raises `ComposeLoadError` (`compose_errors.py`) for a load failure and `FormInputError` (`errors.py`) for an input failure; generation raises the same `ComposeLoadError` for a load failure, as the validator package does when it composes a specification, and `FormError` (`generator/errors.py`) for an input failure. The owner decided that the spec, not the runners, carried the gap: the Python runners already assert these types.
+
 ### 2026-10-21 — CUIT-041 keeps the meaning of the items it replaced (C16.140-1)
 
 - CUIT-041 now states the table of the error types as its content: each implementation reports a load failure and an input failure with the error types that its entry names. The entries are the old items CUIT-032 to CUIT-036: JavaScript; PHP and the extension; Go, where generation reports an error with the message; and Rust, where a load failure is `ComposeLoadError` in `ValidateError::Load` or `FormError`, and an input failure is `FormInputError` in `ValidateError::Input` or `FormError`. The rule no longer says that the two failures are distinct types, which the old items did not say. The Rust generator reports `FormError` for both, as its entry allows; its runner names CUIT-041.

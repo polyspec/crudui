@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6639e4931c22c0ab9021d3a3990d2a9216fee4f2ae60851c30364c123f617e89 -->
+<!-- source-sha256: d0e96afca22c14a3e1d8c49da7227eb703743d2810da7c742ff10bd136c0a962 -->
 
 ## Unreleased
+
+### 2026-10-21 — CUIT-041에 Python 항목이 있다 (C16.140-2)
+
+- CUIT-041의 표에 Python 항목을 더합니다. 이 항목은 Python 패키지가 던지는 클래스를 소스에서 확인해 적습니다. 검증은 로드 실패에 `ComposeLoadError`(`compose_errors.py`), 입력 실패에 `FormInputError`(`errors.py`)를 던집니다. 생성은 로드 실패에 validator 패키지가 명세를 구성할 때 던지는 같은 `ComposeLoadError`를, 입력 실패에 `FormError`(`generator/errors.py`)를 던집니다. 소유자는 이 공백이 runner가 아니라 명세에 있다고 정했습니다. Python runner는 이미 이 타입들을 검사합니다.
 
 ### 2026-10-21 — CUIT-041은 대체한 항목들의 뜻을 유지한다 (C16.140-1)
 
