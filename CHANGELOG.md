@@ -6,6 +6,7 @@
 ### 2026-10-20 — View state in the PHP generator (C16.51-6)
 
 - The PHP generator has the view functions `initialView`, `toggleRowView`, `collapsibleRows`, `setAllExpandedView`, `removeRowView` and `rekeyRowView` on `Generator`, the `bindForm` option `collapsed`, `Form::toggleRow` and `Form::setAllExpanded`; `removeRow`, `rekeyRow` and `setData` change the view and a view change leaves the revision. `viewState` is `pass` for PHP in `contracts/features.json`. Red: `FormStateTest` failed in every `form-view` and `view-functions` case (`Call to undefined method Form::toggleRow()`, `Generator::collapsibleRows()`). Green: its 14 cases pass with the 28 tests of `FormTest`, `DocCoverageTest` and `OutlineTest`, and `phpstan` passes.
+- Under PHP 8.4.26, the pinned minor, with the linked vendor, `FormStateTest` passes its 14 cases after the rebase onto main (C16.51-6).
 
 ### 2026-10-20 — View state in the Rust generator (C16.51-5)
 
