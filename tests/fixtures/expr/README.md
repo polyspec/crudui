@@ -12,7 +12,9 @@ semantics. Source positions are excluded from token and AST comparison.
 
 Each case lists in `requirements` the ids of the [expression contract](../../../docs/spec/expressions.md) that it
 tests: an id is listed when the case contains the token type, the whitespace or the tree node that the id defines
-(CUXP-001 to CUXP-017 by token, CUXP-016 by whitespace, CUXP-018 to CUXP-023 by tree node).
+(CUXP-001 to CUXP-017 by token, CUXP-016 by whitespace, CUXP-018 to CUXP-023 by tree node). The case
+`path-sibling-truthy` also lists CURP-001 of the [runtime packages](../../../docs/spec/runtime-packages.md): every
+implementation evaluates expressions.
 
 Tokens contain `type`, `value` and `literal`. Whitespace is omitted and the final
 token is `EOF`. AST fields are:

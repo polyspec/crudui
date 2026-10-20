@@ -36,6 +36,8 @@ interface CaseSpec {
   name: string;
   note: string;
   input: CaseInput;
+  /** Requirements the case tests besides CUSC-007. */
+  requirements?: string[];
 }
 
 // Every case tests the composition of field definitions, the requirement CUSC-007 of docs/spec/schema.md.
@@ -50,6 +52,8 @@ const SPECS: CaseSpec[] = [
   {
     name: 'ref-inherit-base',
     note: 'plain $ref pulls the file properties layer as the base (a,b)',
+    // Every implementation composes field definitions: the composition part of CURP-001 of docs/spec/runtime-packages.md.
+    requirements: ['CURP-001'],
     input: {
       files: {
         'base.yml': {
@@ -408,7 +412,7 @@ const out: OutCase[] = SPECS.map((spec) => {
   const kind = spec.input.kind ?? 'properties';
   const opts = spec.input.basepath ? { basepath: spec.input.basepath } : {};
 
-  const base: OutCase = { name: spec.name, note: spec.note, requirements: REQUIREMENTS, input: spec.input };
+  const base: OutCase = { name: spec.name, note: spec.note, requirements: [...REQUIREMENTS, ...(spec.requirements ?? [])].sort(), input: spec.input };
   try {
     const result =
       kind === 'spec'

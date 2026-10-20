@@ -104,6 +104,8 @@ interface CaseSpec {
   name: string;
   expr: string;
   dataCases: DataSpec[];
+  /** Requirements the case tests besides those that its tokens, whitespace and tree nodes exercise. */
+  requirements?: string[];
 }
 
 /**
@@ -117,6 +119,8 @@ const SPECS: CaseSpec[] = [
   // ---- simple paths -----------------------------------------------------
   {
     name: 'path-sibling-truthy',
+    // Every implementation evaluates expressions: the expression part of CURP-001 of docs/spec/runtime-packages.md.
+    requirements: ['CURP-001'],
     expr: '.x',
     dataCases: [
       { data: { x: 1, self: 0 }, currentPath: ['self'] },
@@ -705,7 +709,7 @@ const out = SPECS.map((spec) => {
     return entry;
   });
 
-  return { name: spec.name, expr: spec.expr, requirements: requirementsOf(spec.expr, tokens, ast), tokens, ast, cases };
+  return { name: spec.name, expr: spec.expr, requirements: [...new Set([...requirementsOf(spec.expr, tokens, ast), ...(spec.requirements ?? [])])].sort(), tokens, ast, cases };
 });
 
 const rejected = REJECTED.map(({ name, expr }) => {

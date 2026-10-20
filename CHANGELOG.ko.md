@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 925af4743c288d92c7c03e7d5cdc43f10ab112ac80d322520fbc96cd4e99daec -->
+<!-- source-sha256: 0170bca49d9a6514b7bebfe4e5f4bdb7ca66e67fe8a8b69eb60203624b9bf3f0 -->
 
 ## Unreleased
+
+### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
+
+- C16.150을 작성한 뒤 들어온 unit `compose`와 `expr`가 CURP-001을 인용한다 (C16.150-1): `tests/fixtures/compose/cases.json`의 사례 `ref-inherit-base`와 `tests/fixtures/expr/cases.json`의 사례 `path-sibling-truthy`가 그것을 명명하며, 생성기(`packages/validator/ts/scripts/generate-compose-cases.mts`와 `generate-expr-cases.mts`가 사례의 추가 `requirements`를 받는다)가 이를 쓰고 fixture README가 그렇게 적는다. 이제 CURP-001은 네 기능 모두에서 인용된다. Red: Verification이 1fe05704에서 exit 1; green: exit 0 (두 생성기가 fixture를 재현하고, 두 unit과 각 사례 하나가 CURP-001을 명명한다).
 
 ### 2026-10-21 — php 기록 서버가 자신의 모듈을 빌드한 PHP의 php-fpm을 실행한다 (C16.62)
 

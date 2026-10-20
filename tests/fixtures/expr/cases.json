@@ -3,6 +3,7 @@
     "name": "path-sibling-truthy",
     "expr": ".x",
     "requirements": [
+      "CURP-001",
       "CUXP-001",
       "CUXP-004",
       "CUXP-017",

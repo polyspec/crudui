@@ -1,11 +1,12 @@
 # 합성 고정 데이터
 <!-- doc-id: tests-fixtures-compose-readme -->
-<!-- source-sha256: 3566f6174d6c505d0eb70006e0f474096acdff2b5eb342762543a57ff080a266 -->
+<!-- source-sha256: 15a587223244442e9bdbab0c195f13ebca21735673435014c4848323dd299f0e -->
 
 [English](README.md).
 
 `cases.json`은 TypeScript, PHP, PHP 확장, Go, Rust가 공유하는 `$ref`·`$patch` 합성 사례입니다. 각 사례는
-`name`, `note`, `requirements`(명세 스키마의 합성 요구사항 CUSC-007), `input`, 그리고 `expected` 또는
+`name`, `note`, `requirements`(명세 스키마의 합성 요구사항 CUSC-007; 사례 `ref-inherit-base`는 모든 구현이 합성하므로
+`docs/spec/runtime-packages.md`의 CURP-001도 나열), `input`, 그리고 `expected` 또는
 `code`를 가진 `expectError`를 제공합니다. `input`은
 `entry`, 선택적인 `files`, 선택적인 `kind`(기본값 `properties`, 또는 `spec`), 선택적인 `basepath`를
 가집니다.

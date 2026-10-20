@@ -3,6 +3,7 @@
     "name": "ref-inherit-base",
     "note": "plain $ref pulls the file properties layer as the base (a,b)",
     "requirements": [
+      "CURP-001",
       "CUSC-007"
     ],
     "input": {

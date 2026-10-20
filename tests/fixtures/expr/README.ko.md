@@ -1,6 +1,6 @@
 # 공통 표현식 고정 사례
 <!-- doc-id: tests-fixtures-expr-readme -->
-<!-- source-sha256: b5a373448bacfe71660f51dbca3ab5a35561bf21656c8c47f10b49d6a0224089 -->
+<!-- source-sha256: 42e5deb9d3eb83dfa013de11be0a0ecda38e7a8bbbfb3bc3382f323e450dddfe -->
 
 [English](README.md).
 
@@ -10,6 +10,11 @@ TypeScript·PHP·Go·Rust와 PHP 확장은 `cases.json`을 불러옵니다. 각 
 포함하며 메시지를 보고하지 않는 PHP 확장은 파싱에 실패하는지 확인합니다.
 [표현식 계약](../../../docs/spec/expressions.ko.md)이 의미를 정의합니다.
 토큰·AST 비교에서는 소스 위치를 제외합니다.
+
+각 사례는 `requirements`에 자기가 시험하는 [표현식 계약](../../../docs/spec/expressions.ko.md)의 id를 나열합니다.
+사례가 그 id가 정의하는 토큰 종류·공백·트리 노드를 포함하면 그 id를 나열합니다(토큰은 CUXP-001~CUXP-017, 공백은
+CUXP-016, 트리 노드는 CUXP-018~CUXP-023). 사례 `path-sibling-truthy`는 [런타임 패키지](../../../docs/spec/runtime-packages.ko.md)의
+CURP-001도 나열합니다: 모든 구현이 표현식을 평가합니다.
 
 토큰은 `type`, `value`, `literal`을 포함합니다. 공백은 제외하며 마지막 토큰은
 `EOF`입니다. AST 필드는 다음과 같습니다.

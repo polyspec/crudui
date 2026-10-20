@@ -5,7 +5,8 @@
 
 `cases.json` contains the shared `$ref` and `$patch` composition cases for TypeScript, PHP, the
 PHP extension, Go and Rust. Each case provides `name`, `note`, `requirements` (the composition requirement CUSC-007 of the
-`docs/spec/schema.md` specification), `input`, and either `expected` or `expectError` with its `code`. `input` has `entry`, optional `files`, optional `kind`
+`docs/spec/schema.md` specification; the case `ref-inherit-base` also lists CURP-001 of `docs/spec/runtime-packages.md`,
+since every implementation composes), `input`, and either `expected` or `expectError` with its `code`. `input` has `entry`, optional `files`, optional `kind`
 (`properties` by default, or `spec`) and optional `basepath`.
 
 These cases check reference inheritance, path references, the order of several references, nested

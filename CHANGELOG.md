@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The composition and expression part of CURP-001 is cited (C16.150-1)
+
+- The units `compose` and `expr`, which landed after C16.150 was written, cite CURP-001 (C16.150-1): the case `ref-inherit-base` of `tests/fixtures/compose/cases.json` and the case `path-sibling-truthy` of `tests/fixtures/expr/cases.json` name it, written by their generators (`packages/validator/ts/scripts/generate-compose-cases.mts` and `generate-expr-cases.mts` take the extra `requirements` of a case), and the fixture READMEs say so. CURP-001 is now cited for all four capabilities. Red: the Verification exit 1 on 1fe05704; green: exit 0 (both generators reproduce their fixtures, and both units and one case each name CURP-001).
+
 ### 2026-10-21 — The php record server runs the php-fpm of the PHP that built its modules (C16.62)
 
 - `examples/form-comparison/servers/php/main.mjs` starts the php-fpm of the PHP that built the modules (the `php-config` of `var/tools/bin`, the PHP of `.php-version`) from the `sbin` of its installation, in `phpFpmPath()`, instead of `php-fpm` from PATH; a missing php-fpm fails with the path it looked for (C16.62). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` exit 1, 104 passed, 26 failed; the php-ext store fails with "ordered_json: Unable to initialize module" because the php-fpm on PATH (`/opt/homebrew/sbin/php-fpm`, PHP 8.5) loads modules built for API 20240924 of PHP 8.4; green: exit 0, 130 passed, 0 failed.
