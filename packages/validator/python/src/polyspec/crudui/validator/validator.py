@@ -834,26 +834,7 @@ def validateList(
     validated: a list injects them. Raises `ComposeLoadError` for an
     unresolved composition or a forbidden key.
     """
-    options = options or {}
-    checked = checked_composition(spec, options)
-    from .text import check_option_text
-
-    check_option_text(options, ["basepath"])
-    loader = checked if checked is not None else _files_loader(options)
-    opts = {"basepath": options["basepath"]} if options.get("basepath") else {}
-
-    composed = compose_root(_ordered_spec(spec), loader, opts)
-    columns = composed.get("columns")
-    if _is_object(columns):
-        composed = {
-            **composed,
-            "columns": compose_properties(columns, loader, opts),
-        }
-    search = composed.get("search")
-    if _is_object(search) and ("$ref" in search or "$patch" in search):
-        composed = {**composed, "search": compose_properties(search, loader, opts)}
-    scan_forbidden_keys(composed, [])
-    return {"valid": True, "errors": []}
+    return _validate_structure(spec, options, {"columns": False, "search": True})
 
 
 def validateDetail(
@@ -865,6 +846,19 @@ def validateDetail(
     the composition entry point. Raises `ComposeLoadError` for an unresolved
     composition or a forbidden key.
     """
+    return _validate_structure(spec, options, {"fields": False})
+
+
+def _validate_structure(
+    spec: dict[str, JsonValue],
+    options: Mapping[str, Any] | None,
+    maps: Mapping[str, bool],
+) -> dict[str, Any]:
+    """Compose the root of a list or detail and its object maps, then scan for forbidden keys.
+
+    `maps` names the object maps to compose; a map marked True composes only
+    when it declares `$ref` or `$patch`.
+    """
     options = options or {}
     checked = checked_composition(spec, options)
     from .text import check_option_text
@@ -874,11 +868,11 @@ def validateDetail(
     opts = {"basepath": options["basepath"]} if options.get("basepath") else {}
 
     composed = compose_root(_ordered_spec(spec), loader, opts)
-    fields = composed.get("fields")
-    if _is_object(fields):
-        scan_forbidden_keys(
-            {**composed, "fields": compose_properties(fields, loader, opts)}, []
-        )
-    else:
-        scan_forbidden_keys(composed, [])
+    for key, only_composed in maps.items():
+        member = composed.get(key)
+        if _is_object(member) and (
+            not only_composed or "$ref" in member or "$patch" in member
+        ):
+            composed = {**composed, key: compose_properties(member, loader, opts)}
+    scan_forbidden_keys(composed, [])
     return {"valid": True, "errors": []}

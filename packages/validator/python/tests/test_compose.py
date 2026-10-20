@@ -15,6 +15,7 @@ from polyspec.crudui.conformance import Proving
 from polyspec.crudui.validator.compose import (
     MemoryLoader,
     compose_properties,
+    compose_root,
     compose_spec,
 )
 from polyspec.crudui.validator.compose_errors import ComposeLoadError
@@ -87,3 +88,15 @@ class TestComposeConformance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestNullPatch(unittest.TestCase):
+    """A `$patch` of null is a shape error at every entry, as in the other runtimes."""
+
+    def test_every_entry_rejects_a_null_patch(self):
+        loader = MemoryLoader({})
+        for compose in (compose_properties, compose_spec, compose_root):
+            with self.subTest(entry=compose.__name__):
+                with self.assertRaises(ComposeLoadError) as raised:
+                    compose({"$patch": None}, loader)
+                self.assertEqual(raised.exception.code, "PATCH_SHAPE")

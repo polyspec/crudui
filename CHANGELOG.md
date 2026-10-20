@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — One layering function in the Python validator and a null patch rejected everywhere (C16.34)
+
+- `_layer_members` layers the members of a node for `compose_properties`, `compose_spec`, `compose_root` and the nested expansion of a `$ref`, and `_validate_structure` serves `validateList` and `validateDetail` (C16.34). The copies disagreed about `{"$patch": null}`: `compose_properties` raised `PATCH_SHAPE` as the TypeScript, PHP and Rust engines do at every entry, while `compose_spec` and `compose_root` ignored it; now every entry raises it. Red: `tests.test_compose.TestNullPatch` failed for `compose_spec` and `compose_root` (2 of 3 sub-tests) and `make duplication-check` listed 3 clones in `packages/validator/python`; green: the test and the 4 compose, 9 structure validity and 3 validate tests pass, no clone remains, and `make lint-python` passes.
+
 ### 2026-10-20 — Shared reference resolver, type names and structure text in the Rust validator (C16.33)
 
 - `reference_resolver` gives `expand_properties` and `expand_spec` the resolution of a `$ref` from the options, `json_type::js_type_of` is the one `typeof` bucket that `kind_of` and the expression engine use, `structure_text` reads the input of `validate_list_text` and `validate_detail_text`, and the composition tests call `composed` (C16.33). Red: `make duplication-check` listed 4 clones in `packages/validator/rust`; green: 1 remains, the signature of the two public functions `validate_list_text` and `validate_detail_text` (`text.rs` lines 672-678 and 685-691), and the `compose` (23), `validate` (46), `text` (12) and `expr` (1) tests and `make lint-rust` pass. The behaviour is unchanged, so the red is the clone list.

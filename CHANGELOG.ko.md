@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b93973f0fcc950fe076c4d871d60549ef7ed7ecea8c6b677c8398750811825a4 -->
+<!-- source-sha256: 8041776f302bb9297b256b959c74c4628278c560f720d189cb87a4c3fc0b7b8d -->
 
 ## Unreleased
+
+### 2026-10-20 — Python validator의 하나의 layering 함수와 모든 곳에서 거부되는 null patch (C16.34)
+
+- `_layer_members`는 `compose_properties`, `compose_spec`, `compose_root`, `$ref`의 중첩 확장을 위해 node의 member를 layering하고, `_validate_structure`는 `validateList`와 `validateDetail`을 처리합니다 (C16.34). 사본들은 `{"$patch": null}`에 대해 서로 달랐습니다. `compose_properties`는 TypeScript, PHP, Rust engine이 모든 진입점에서 하는 것처럼 `PATCH_SHAPE`를 raise했으나 `compose_spec`과 `compose_root`는 무시했습니다. 이제 모든 진입점이 raise합니다. Red: `tests.test_compose.TestNullPatch`가 `compose_spec`과 `compose_root`에서 실패했고(sub-test 3건 중 2건), `make duplication-check`가 `packages/validator/python`의 clone 3건을 나열했으며, green: 이 test와 compose 4건, structure validity 9건, validate 3건이 통과하고 clone이 남지 않으며 `make lint-python`이 통과합니다.
 
 ### 2026-10-20 — Rust validator의 공유 reference resolver, type 이름, structure text (C16.33)
 

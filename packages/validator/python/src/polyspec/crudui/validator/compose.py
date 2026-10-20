@@ -15,7 +15,7 @@ on the current resolution chain is a cycle.
 """
 
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from copy import deepcopy
 from typing import TypeGuard
 
@@ -156,6 +156,34 @@ def _resolve_single_ref(
     return _expand_nested_refs(node, basepath, loader, visiting | {key})
 
 
+def _layer_members(
+    node: dict[str, JsonValue],
+    resolve: Callable[[JsonValue], dict[str, JsonValue]],
+) -> dict[str, JsonValue]:
+    """Layer the members of a node in declaration order.
+
+    A `$ref` lays its resolved base over the members declared before it, the
+    members declared after it override that base, and a `$patch` overlays the
+    result (a `$patch` of null is a shape error, as in the other runtimes).
+    """
+    base: dict[str, JsonValue] = {}
+    own: dict[str, JsonValue] = {}
+    patch: JsonValue = None
+    saw_patch = False
+    for key, value in node.items():
+        if key == "$ref":
+            # The ref merges onto whatever was declared before it.
+            base = _merge(own, resolve(value))
+            own = {}
+        elif key == "$patch":
+            saw_patch = True
+            patch = value
+        else:
+            own[key] = value
+    result = _merge(base, own)
+    return apply_patch(result, patch) if saw_patch else result
+
+
 def _expand_nested_refs(
     node: dict[str, JsonValue],
     basepath: str,
@@ -165,22 +193,9 @@ def _expand_nested_refs(
     """Expand `$ref` and merge `$patch` inside a resolved properties map."""
     if "$ref" not in node and "$patch" not in node:
         return node
-    base: dict[str, JsonValue] = {}
-    own: dict[str, JsonValue] = {}
-    patch: JsonValue = None
-    for key, value in node.items():
-        if key == "$ref":
-            # The ref merges onto whatever was declared before it.
-            base = _merge(own, resolve_ref(value, basepath, loader, visiting))
-            own = {}
-        elif key == "$patch":
-            patch = value
-        else:
-            own[key] = value
-    result = _merge(base, own)
-    if patch is not None:
-        result = apply_patch(result, patch)
-    return result
+    return _layer_members(
+        node, lambda ref: resolve_ref(ref, basepath, loader, visiting)
+    )
 
 
 def _split_path(path: str) -> list[str]:
@@ -315,23 +330,7 @@ def compose_properties(
     """Compose a `properties` map: expand `$ref`, overlay `$patch`, recurse children."""
     opts = opts or {}
     basepath = opts.get("basepath", "")
-    base: dict[str, JsonValue] = {}
-    own: dict[str, JsonValue] = {}
-    patch: JsonValue = None
-    saw_patch = False
-    for key, value in properties.items():
-        if key == "$ref":
-            # `$ref` merges onto whatever was declared before it.
-            base = _merge(own, resolve_ref(value, basepath, loader))
-            own = {}
-        elif key == "$patch":
-            saw_patch = True
-            patch = value
-        else:
-            own[key] = value
-    result = _merge(base, own)
-    if saw_patch:
-        result = apply_patch(result, patch)
+    result = _layer_members(properties, lambda ref: resolve_ref(ref, basepath, loader))
     # Recurse into every child field's `properties`; the tree may compose deeper.
     for name, field in result.items():
         if isinstance(field, dict):
@@ -348,21 +347,8 @@ def compose_spec(
     opts = opts or {}
     basepath = opts.get("basepath", "")
     if "$ref" in spec or "$patch" in spec:
-        base: dict[str, JsonValue] = {}
-        own: dict[str, JsonValue] = {}
-        patch: JsonValue = None
-        for key, value in spec.items():
-            if key == "$ref":
-                # A field-level `$ref` resolves a file's properties layer too.
-                base = _merge(own, resolve_ref(value, basepath, loader))
-                own = {}
-            elif key == "$patch":
-                patch = value
-            else:
-                own[key] = value
-        resolved = _merge(base, own)
-        if patch is not None:
-            resolved = apply_patch(resolved, patch)
+        # A field-level `$ref` resolves a file's properties layer too.
+        resolved = _layer_members(spec, lambda ref: resolve_ref(ref, basepath, loader))
     else:
         resolved = dict(spec)
     properties = resolved.get("properties")
@@ -386,18 +372,4 @@ def compose_root(
     basepath = opts.get("basepath", "")
     if "$ref" not in spec and "$patch" not in spec:
         return dict(spec)
-    base: dict[str, JsonValue] = {}
-    own: dict[str, JsonValue] = {}
-    patch: JsonValue = None
-    for key, value in spec.items():
-        if key == "$ref":
-            base = _merge(own, resolve_ref(value, basepath, loader))
-            own = {}
-        elif key == "$patch":
-            patch = value
-        else:
-            own[key] = value
-    resolved = _merge(base, own)
-    if patch is not None:
-        resolved = apply_patch(resolved, patch)
-    return resolved
+    return _layer_members(spec, lambda ref: resolve_ref(ref, basepath, loader))
