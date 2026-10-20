@@ -8,12 +8,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { validate } from '../../../packages/validator/ts/src/validate/index';
-import { validateList } from '../../../packages/validator/ts/src/validate-list/index';
-import { validateDetail } from '../../../packages/validator/ts/src/validate-detail/index';
-import { ComposeLoadError } from '../../../packages/validator/ts/src/compose/index';
-import { FormInputError } from '../../../packages/validator/ts/src/validate/errors';
-import { isRecord } from '../../../packages/validator/ts/src/record';
+import { validate } from '../../../packages/validator/ts/src/validate/index.ts';
+import { validateList } from '../../../packages/validator/ts/src/validate-list/index.ts';
+import { validateDetail } from '../../../packages/validator/ts/src/validate-detail/index.ts';
+import { ComposeLoadError } from '../../../packages/validator/ts/src/compose/index.ts';
+import { FormInputError } from '../../../packages/validator/ts/src/validate/errors.ts';
+import { isRecord } from '../../../packages/validator/ts/src/record.ts';
 import { provesConformance } from '../../conformance/evidence.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');

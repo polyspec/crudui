@@ -1,5 +1,5 @@
 /**
- * Input text helpers of the JavaScript validator (CUIT-041): unit cases for the text helpers of this folder, and the
+ * Input text helpers of the JavaScript validator: unit cases for the text helpers of this folder, and the
  * loader check of a custom document. The shared validation cases of tests/fixtures/text-validity are registered by the
  * unit files text-validity-validate, text-validity-validate-list, text-validity-validate-detail and
  * text-validity-value-graphs, which read them by their case names.

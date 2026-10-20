@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: daa5f164ef14ea6f0d8b69f5ef21a168073c4339c77d7cd5a74b2d28051d7fdd -->
+<!-- source-sha256: 95ba368d5596171820c7046ae0b4856b3bcd04b388ec3956ea3d14c552abf878 -->
 
 ## Unreleased
 
@@ -43,6 +43,10 @@
 ### 2026-10-21 — scripts의 명령은 kit의 runner로 실행한다 (C16.10)
 
 - `scripts/run-command.mts`를 제거한다. 사용처는 `@polyspec/kit/run-command`를 import한다(`scripts/repeat-build.mts`, `scripts/run-contract-tests.mts`, `scripts/gen-api-docs.mts`, `scripts/install-browsers.mts`, `scripts/require-current-build.mts`, `benchmarks/validators/build-drivers.mjs`, `benchmarks/validators/run.js`, `tests/native-generators/run.mts`). 그 테스트 `tests/build/run-command.test.mts`는 `npm run test:build`에서 빠지며, runner와 그 테스트는 kit이 소유한다. `config/rebuild.json`은 `replaced` 항목을 버리고, `config/owner-checks.json`, `tests/build/rust-node-entry-points.test.mts`, `scripts/gen-api-docs.test.mts`는 제거된 파일을 뺀다. 출력 한도 실패는 kit의 메시지 `wrote more than its output limit; stopped its process group`를 쓰며, 더 이상 byte 수를 출력하지 않는다. 호출하는 스크립트 중 byte 수를 출력한 곳은 없었다. Red: HEAD에서 `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` exit 1(파일이 남아 있다); green: 같은 명령 exit 0; `scripts/gen-api-docs.test.mts` 8 passed, `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/offline-checks.test.mts` 2 passed, `tests/build/install-browsers.test.mts` 3 passed.
+### 2026-10-21 — 공유 text-validity 도우미(tests/fixtures/text-validity/cases.mts, input-text.mts)가 패키지 모듈을 .ts 경로로 import하도록 하고(nodenext 루트 tsconfig가 요구한다), 쓰이지 않는 export를 뺐다. internal 테스트 text-validity.conformance.test.ts는 더 이상 CUIT-041을 명명하지 않는다(parity-declarations-check의 R16). Red: `make -s parity-declarations-check` exit 2, `R16 internal-contract ts packages/validator/ts/src/text/text-validity.conformance.test.ts`; green: 그 finding이 사라졌고 `make lint-ts`는 exit 0. (C16.158-7)
+
+- undefined
+
 ### 2026-10-21 — template-shape 단위의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158-6): template-shape.test.ts의 사례 반복문이 단위 자체 테스트의 describe 밖으로 나가, 각 사례가 그 이름의 최상위 테스트다. Red: `make -s parity-check UNITS="template-shape"` exit 1, `R3 not-executed template-shape ts`와 사례 이름(bindForm-compiled 등); green: exit 0, 44 of 44 사례 통과. (C16.158-6)
 
 - undefined

@@ -11,13 +11,13 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 import {
   bindForm, buildDetail, buildList, compileForm, ComposeLoadError, createForm, FormInputError,
-} from '../../../packages/generator/ts/src/index';
-import { checkFormTemplate } from '../../../packages/generator/ts/src/template-shape';
-import { isRecord } from '../../../packages/generator/ts/src/util';
+} from '../../../packages/generator/ts/src/index.ts';
+import { checkFormTemplate } from '../../../packages/generator/ts/src/template-shape.ts';
+import { isRecord } from '../../../packages/generator/ts/src/util.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
-export interface TextCase {
+interface TextCase {
   name: string;
   spec?: Record<string, unknown>;
   /** A compiled template as decoded JSON, which the operation checks at run time. */
