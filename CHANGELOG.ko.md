@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 38cf91db7deb60fdd5f3226c3a97bc85f39b391f43d9efaf430e856ea8ca07ed -->
+<!-- source-sha256: 6255cb8ff61bb323a2ef43fa4ca7310160158019c94ebb6387ba4628b26fb00b -->
 
 ## Unreleased
+
+### 2026-10-20 — ci-local test의 release workflow trigger (C16.7-7)
+
+- `tests/build/ci-local.test.mts`는 `@polyspec/kit`이 복사한 `.github/workflows/release.yml`의 trigger를 기대합니다. tag `v*`와 `**/v*`, 그리고 tag를 지정하는 수동 실행입니다 (C16.7-7). Red: `each workflow declares exactly its triggers`가 `workflow_dispatch`와 입력 `tag`를 선언한 `release.yml`에서 실패했고, green: `ci-local.test.mts`의 17건이 모두 통과합니다.
 
 ### 2026-10-20 — local 전체 실행이 없는 Makefile (C16.7-3)
 

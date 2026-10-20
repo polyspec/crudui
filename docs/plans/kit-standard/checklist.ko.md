@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 31d6010331db0e1400249dae6b946b1f063bd78461364fcc58e6c37632ea30d2 -->
+<!-- source-sha256: 2c1ac7d5f42c90fe695886121c6d359eb4ca1a2cae76bf6586cfc150d870d1c6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -17,6 +17,7 @@
 | C16.7-4 | 한국어 testing guide는 검토한 영어 원문의 hash를 담는다 | docs/operations/testing.ko.md | `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
 | C16.7-5 | ci-local test는 crudui-install target을 준비 step으로 인식한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="make ci runs every checking command\|every job runs its checks through\|every checking step of the CI\|a workflow command missing" tests/build/ci-local.test.mts` | [o] |
 | C16.7-6 | ci-local test는 kit의 gates.yml workflow를 trigger와 함께 나열한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="each workflow declares exactly its triggers" tests/build/ci-local.test.mts` | [o] |
+| C16.7-7 | ci-local test는 kit의 release.yml 사본의 trigger를 기대한다 | tests/build/ci-local.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |

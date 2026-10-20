@@ -367,8 +367,8 @@ test('no run of a commit of main is stopped by a later push', async () => {
 // main receives a push of the maintainer while the version is 0.x: CI runs on a push to main and on a manual run, the
 // push check on every pushed branch, the documentation web is built and deployed from main and on a manual run, the
 // dependency review runs on its schedule and on a manual run, the gates of kit (the copy gates.yml) run on pull requests,
-// on main and on a manual run, and the release runs on a pushed tag vX.Y.Z or
-// <directory>/vX.Y.Z at any depth: in a tag filter * does not match /, so **/v* covers packages/<directory>/vX.Y.Z. No
+// on main and on a manual run, and the release (the copy release.yml) runs on a pushed tag vX.Y.Z or
+// <directory>/vX.Y.Z at any depth, or on a manual run that names the tag: in a tag filter * does not match /, so **/v* covers packages/<directory>/vX.Y.Z. No
 // other workflow exists, and each declares exactly these lines.
 const TRIGGERS = {
   'ci.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
@@ -376,7 +376,7 @@ const TRIGGERS = {
   'push-gate.yml': "on:\n  push:\n    branches: ['**']\n",
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
-  'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n",
+  'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n  workflow_dispatch:\n    inputs:\n      tag:\n        description: The tag of the release, such as v0.0.1\n        required: true\n        type: string\n",
 };
 
 test('each workflow declares exactly its triggers', async () => {
