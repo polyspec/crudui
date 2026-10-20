@@ -1965,6 +1965,8 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-003",
+      "CUSC-052",
       "CUVR-001",
       "CURP-018",
       "CURP-022"
@@ -9778,6 +9780,7 @@
       "at": "x"
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-041",
       "CURP-018",
       "CURP-022"
@@ -9820,6 +9823,7 @@
       "at": "outer"
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-041",
       "CURP-018",
       "CURP-022"
@@ -9851,6 +9855,7 @@
       "at": "x"
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-042",
       "CURP-018",
       "CURP-022"
@@ -9925,6 +9930,8 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-003",
+      "CUSC-052",
       "CUVR-009",
       "CURP-018",
       "CURP-022"
@@ -10629,6 +10636,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-005",
       "CURP-018",
       "CURP-022"
@@ -11151,6 +11159,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-001",
       "CUVR-017",
       "CURP-018",
@@ -11287,6 +11296,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -11492,6 +11502,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-001",
       "CUVR-017",
       "CURP-018",
@@ -11568,6 +11579,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-001",
       "CUVR-017",
       "CURP-018",
@@ -11682,6 +11694,7 @@
     },
     "requirements": [
       "CUEC-006",
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -11753,6 +11766,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-001",
       "CUVR-003",
       "CUVR-017",
@@ -12152,6 +12166,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -12210,6 +12225,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -12336,6 +12352,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -12390,6 +12407,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -12549,6 +12567,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-001",
       "CUVR-017",
       "CURP-018",
@@ -12644,6 +12663,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-001",
       "CUVR-017",
       "CURP-018",
@@ -12708,6 +12728,7 @@
     },
     "requirements": [
       "CUEC-006",
+      "CUSC-055",
       "CUVR-001",
       "CUVR-010",
       "CUVR-017",
@@ -12813,6 +12834,7 @@
       ]
     },
     "requirements": [
+      "CUSC-055",
       "CUVR-017",
       "CURP-018",
       "CURP-022"
@@ -13879,6 +13901,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-008",
       "CUVR-007",
       "CUVR-025",
       "CURP-018",
@@ -14221,6 +14244,9 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-008",
+      "CUSC-009",
+      "CUSC-010",
       "CUVR-007",
       "CUVR-008",
       "CUVR-020",
@@ -14315,6 +14341,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-008",
       "CURP-018",
       "CURP-022"
@@ -14358,6 +14385,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-008",
       "CURP-018",
       "CURP-022"
@@ -14408,6 +14436,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-008",
       "CURP-018",
       "CURP-022"
@@ -14451,6 +14480,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-008",
       "CURP-018",
       "CURP-022"
@@ -14494,6 +14524,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-008",
       "CURP-018",
       "CURP-022"
@@ -14950,6 +14981,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-006",
       "CUVR-028",
       "CURP-018",
@@ -14987,6 +15019,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-006",
       "CUVR-028",
       "CURP-018",
@@ -15030,6 +15063,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-007",
       "CUVR-028",
       "CURP-018",
@@ -15070,6 +15104,7 @@
       "hidden": []
     },
     "requirements": [
+      "CUSC-052",
       "CUVR-006",
       "CUVR-028",
       "CURP-018",
@@ -15302,6 +15337,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-008",
       "CUVR-046",
       "CURP-018",
       "CURP-022"
@@ -15332,6 +15368,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-008",
       "CUVR-046",
       "CURP-018",
       "CURP-022"
@@ -15364,6 +15401,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-008",
       "CUVR-046",
       "CURP-018",
       "CURP-022"
@@ -15395,6 +15433,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-008",
       "CUVR-046",
       "CURP-018",
       "CURP-022"
@@ -15423,6 +15462,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-047",
       "CURP-018",
       "CURP-022"
@@ -15451,6 +15491,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-047",
       "CURP-018",
       "CURP-022"
@@ -15479,6 +15520,7 @@
       "at": "value"
     },
     "requirements": [
+      "CUSC-009",
       "CUVR-047",
       "CURP-018",
       "CURP-022"

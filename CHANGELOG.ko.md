@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fbe86c91e74b4cda22c2347511cde4aee431b12027bc8af0b2cad4a81002c7e6 -->
+<!-- source-sha256: ffa3f4ee6ff1ef6b3e53bb17851d871dbf953d51063b7b73ca90b359c88de6f7 -->
 
 ## Unreleased
+
+### 2026-10-20 — schema suite들이 그 case가 시험하는 CUSC requirement를 인용한다 (C16.57-7)
+
+- `tests/fixtures/spec-validity`, `list-validity`, `detail-validity`의 case는 손으로 쓴 `requirements` 배열을 가집니다(이 suite에는 generator가 없습니다). runtime `engine` 기대를 시험하는 case는 구조, 내용, design, choice, multiple, lang, 버튼과 action key를 받아들이거나 거부하는 CUSC 항목을 인용합니다(C16.57-7). `tests/fixtures/validate/generate.mts`는 `REQUIREMENTS` map에 CUSC-003, CUSC-008부터 CUSC-010, CUSC-052, CUSC-055를 추가하고 `cases.json`은 그 map에서 다시 생성됩니다. `config/parity.json`은 suite unit `spec-validity`, `list-validity`, `detail-validity`를 각각 여섯 binding(ts, php, php-extension, go, rust, python)과 함께 선언하며, `validate` unit은 새 id를 나열합니다. `compose` suite는 선언하지 않았습니다. 그 PHP test가 PHP 라이브러리 source를 읽어 PHP extension 실행이 거부하므로, php-extension binding이 없는 unit은 R2에 걸립니다. Red: `make parity-declarations-check`가 exit 2이며 finding 514건, CUSC-001부터 CUSC-060까지의 R13 60건, 세 validity 파일의 R4 3건이었습니다. Green: exit 2이며 finding 454건, R13 16건(CUSC-005, CUSC-012, CUSC-013, CUSC-016부터 CUSC-019, CUSC-022, CUSC-025, CUSC-037부터 CUSC-040, CUSC-043, CUSC-044, CUSC-046), 세 파일의 R4 0건, R14와 R15 0건입니다. 여섯 binding이 모두 `engine` 기대를 실행하지만, 그 suite의 meta-schema `expect`는 TypeScript의 `form-metaschema`와 `detail-metaschema` test만 실행하므로, meta-schema만 검사하는 CUSC 항목(예: design.attributes의 이름 거부, CUSC-012)은 인용하지 않았습니다. Owner test: ts, php, php-extension, go, rust를 실행했습니다(세부 수치는 영문 항목과 같습니다). python tests.test_structure_validity는 9개가 통과합니다. C16.57-8이 먼저 선언한 unit `list-validity`와 `detail-validity`는 그 TypeScript binding인 meta-schema test `list-metaschema`와 `detail-metaschema`를 유지하고(unit은 implementation마다 binding 하나, R12), 그 CUDF id에 이 CUSC id를 더합니다. C16.57-8 위에서 check는 finding 420건(R13 259, R4 12, R5 148, R6 1)을 보고합니다.
 
 ### 2026-10-20 — Go generator는 공유 form-render suite를 실행한다 (C16.82)
 

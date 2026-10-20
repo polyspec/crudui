@@ -170,21 +170,23 @@
         }
       ],
       "requirements": [
-        "CUEC-003",
-        "CUEC-005",
-        "CUEC-006",
-        "CURP-018",
-        "CURP-022",
         "CUVR-001",
         "CUVR-002",
+        "CUEC-003",
         "CUVR-003",
+        "CUSC-003",
         "CUVR-004",
         "CUVR-005",
+        "CUEC-005",
         "CUVR-006",
+        "CUEC-006",
         "CUVR-007",
         "CUVR-008",
+        "CUSC-008",
         "CUVR-009",
+        "CUSC-009",
         "CUVR-010",
+        "CUSC-010",
         "CUVR-011",
         "CUVR-013",
         "CUVR-014",
@@ -192,10 +194,12 @@
         "CUVR-016",
         "CUVR-017",
         "CUVR-018",
+        "CURP-018",
         "CUVR-019",
         "CUVR-020",
         "CUVR-021",
         "CUVR-022",
+        "CURP-022",
         "CUVR-023",
         "CUVR-024",
         "CUVR-025",
@@ -226,9 +230,11 @@
         "CUVR-050",
         "CUVR-051",
         "CUVR-052",
+        "CUSC-052",
         "CUVR-053",
         "CUVR-054",
         "CUVR-055",
+        "CUSC-055",
         "CUVR-056",
         "CUVR-057"
       ]
@@ -662,7 +668,19 @@
         "CUDF-079",
         "CUDF-080",
         "CUDF-081",
-        "CUDF-082"
+        "CUDF-082",
+        "CUSC-001",
+        "CUSC-002",
+        "CUSC-007",
+        "CUSC-027",
+        "CUSC-028",
+        "CUSC-029",
+        "CUSC-030",
+        "CUSC-031",
+        "CUSC-032",
+        "CUSC-033",
+        "CUSC-034",
+        "CUSC-035"
       ]
     },
     {
@@ -716,7 +734,81 @@
         "CUDF-064",
         "CUDF-066",
         "CUDF-068",
-        "CUDF-069"
+        "CUDF-069",
+        "CUSC-001",
+        "CUSC-007",
+        "CUSC-036"
+      ]
+    },
+    {
+      "id": "spec-validity",
+      "kind": "suite",
+      "file": "tests/fixtures/spec-validity/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/forbidden-scan.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/ForbiddenScanConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\ForbiddenScanConformanceTest::testForbiddenScanMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/ForbiddenScanConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\ForbiddenScanConformanceTest::testForbiddenScanMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/forbidden_scan_conformance_test.go",
+          "symbol": "TestForbiddenScanMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/spec_validity_conformance.rs",
+          "symbol": "spec_validity_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_structure_validity.py"
+        }
+      ],
+      "requirements": [
+        "CUSC-001",
+        "CUSC-002",
+        "CUSC-003",
+        "CUSC-004",
+        "CUSC-006",
+        "CUSC-007",
+        "CUSC-008",
+        "CUSC-009",
+        "CUSC-010",
+        "CUSC-011",
+        "CUSC-014",
+        "CUSC-015",
+        "CUSC-020",
+        "CUSC-021",
+        "CUSC-023",
+        "CUSC-024",
+        "CUSC-026",
+        "CUSC-041",
+        "CUSC-042",
+        "CUSC-045",
+        "CUSC-047",
+        "CUSC-048",
+        "CUSC-049",
+        "CUSC-050",
+        "CUSC-051",
+        "CUSC-053",
+        "CUSC-054",
+        "CUSC-055",
+        "CUSC-056",
+        "CUSC-057",
+        "CUSC-058",
+        "CUSC-059",
+        "CUSC-060"
       ]
     }
   ],

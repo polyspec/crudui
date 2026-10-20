@@ -1,7 +1,7 @@
 [
   {
     "name": "ok-minimal-columns",
-    "requirements": ["CUDF-027", "CUDF-043", "CUDF-044", "CUDF-046", "CUDF-047"],
+    "requirements": ["CUDF-027", "CUDF-043", "CUDF-044", "CUDF-046", "CUDF-047", "CUSC-001"],
     "note": "the smallest valid list-spec — required columns map with one text column.",
     "expect": "ok",
     "engine": "pass",
@@ -13,7 +13,7 @@
   },
   {
     "name": "ok-catalog-formats",
-    "requirements": ["CUDF-048", "CUDF-049", "CUDF-050", "CUDF-051", "CUDF-052", "CUDF-053", "CUDF-054", "CUDF-055"],
+    "requirements": ["CUDF-048", "CUDF-049", "CUDF-050", "CUDF-051", "CUDF-052", "CUDF-053", "CUDF-054", "CUDF-055", "CUSC-027", "CUSC-028", "CUSC-029", "CUSC-030", "CUSC-031", "CUSC-032", "CUSC-033", "CUSC-034", "CUSC-035"],
     "note": "every §9.2 cell format passes (date/number/badge/link/choice-label/bool/image/html).",
     "expect": "ok",
     "engine": "pass",
@@ -67,6 +67,7 @@
   },
   {
     "name": "ok-compose-ref-patch-columns",
+    "requirements": ["CUSC-007"],
     "note": "$ref/$patch compose entry on the columns map (the SAME engine as form-spec). files resolve the base for the four-language engine; ajv ignores files and reads only spec.",
     "expect": "ok",
     "engine": "pass",
@@ -87,7 +88,7 @@
   },
   {
     "name": "ok-search-form-ref",
-    "requirements": ["CUDF-040", "CUDF-057"],
+    "requirements": ["CUDF-040", "CUDF-057", "CUSC-007"],
     "note": "search is input → a form-spec reference ($ref base + $patch overlay). files resolve the base form for the engine; ajv ignores files and reads only spec.",
     "expect": "ok",
     "engine": "pass",
@@ -243,7 +244,7 @@
   },
   {
     "name": "ok-description",
-    "requirements": ["CUDF-040", "CUDF-078"],
+    "requirements": ["CUDF-040", "CUDF-078", "CUSC-002"],
     "note": "a list description is content: a string or a language map.",
     "expect": "ok",
     "engine": "pass",

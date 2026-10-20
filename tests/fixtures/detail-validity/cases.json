@@ -1,7 +1,7 @@
 [
   {
     "name": "ok-basic-detail",
-    "requirements": ["CUDF-032", "CUDF-034", "CUDF-041", "CUDF-043", "CUDF-045", "CUDF-046", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-051", "CUDF-052"],
+    "requirements": ["CUDF-032", "CUDF-034", "CUDF-041", "CUDF-043", "CUDF-045", "CUDF-046", "CUDF-047", "CUDF-048", "CUDF-049", "CUDF-051", "CUDF-052", "CUSC-001"],
     "note": "the smallest valid detail specification with text and badge fields.",
     "expect": "ok",
     "engine": "pass",
@@ -41,6 +41,7 @@
   },
   {
     "name": "ok-compose-ref-patch-fields",
+    "requirements": ["CUSC-007"],
     "note": "$ref and $patch on the fields map use the same composition engine as form properties; files resolve the base for the engine.",
     "expect": "ok",
     "engine": "pass",
@@ -149,6 +150,7 @@
   },
   {
     "name": "patched-field-forbidden-key",
+    "requirements": ["CUSC-007"],
     "note": "a forbidden key introduced by $patch is rejected by the meta-schema inside the patch and by the four-language engine after composition.",
     "expect": "fail",
     "reason": "propertyNames",
@@ -198,6 +200,7 @@
   },
   {
     "name": "red-unresolved-fields-ref",
+    "requirements": ["CUSC-007", "CUSC-036"],
     "note": "an unresolved $ref on the fields map is a load failure.",
     "expect": "ok",
     "engine": {
