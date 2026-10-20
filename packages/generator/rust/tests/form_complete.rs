@@ -37,8 +37,10 @@ fn first_difference(actual: &str, expected: &str) -> String {
 fn form_complete_cases_render_the_recorded_bytes_or_failures() {
     for case in cases() {
         let name = case["name"].as_str().unwrap();
-        let template = compile_form(&case["spec"], &CompileOptions::default())
-            .unwrap_or_else(|error| panic!("{name}: compile failed: {error}"));
+        let template = match compile_form(&case["spec"], &CompileOptions::default()) {
+            Ok(template) => template,
+            Err(error) => panic!("{name}: compile failed: {error}"),
+        };
         let language = case["options"]
             .get("language")
             .cloned()
@@ -47,8 +49,10 @@ fn form_complete_cases_render_the_recorded_bytes_or_failures() {
             language,
             ..BindOptions::default()
         };
-        let form = Form::new(template, &case["data"], options)
-            .unwrap_or_else(|error| panic!("{name}: bind failed: {error}"));
+        let form = match Form::new(template, &case["data"], options) {
+            Ok(form) => form,
+            Err(error) => panic!("{name}: bind failed: {error}"),
+        };
         let rendered = render_form(&form, Some(&case["render"]));
         if let Some(expected) = case.get("expectError") {
             let error = rendered.err().unwrap_or_else(|| panic!("{name} must fail"));
@@ -63,7 +67,10 @@ fn form_complete_cases_render_the_recorded_bytes_or_failures() {
                 "{name}: message"
             );
         } else {
-            let html = rendered.unwrap_or_else(|error| panic!("{name}: render failed: {error}"));
+            let html = match rendered {
+                Ok(html) => html,
+                Err(error) => panic!("{name}: render failed: {error}"),
+            };
             let expected = case["expected_html"].as_str().unwrap();
             assert!(
                 html == expected,

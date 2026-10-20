@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ea6c16e91870a55da873e003ad32c08c171815366aaded8a3713be8f55243ba8 -->
+<!-- source-sha256: 0e816bde4b96386fbe2d3d9568cadc23874e906fd168bd76a1439e47195737a0 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-20 — Rust 명령 진입점은 PATH가 고정한 toolchain을 쓰고 tool-resolution.mts는 제거한다 (C16.41)
 
 - `scripts/run-rust-command.mts`는 PATH가 가리키는 cargo, rustc, rustdoc을 실행합니다(mise shim이 `rust-toolchain.toml`이 고정한 toolchain을 앞에 둡니다). 각 도구의 버전 출력을 확인하고, `RUSTC`와 `RUSTDOC`에는 절대경로를 설정합니다. `scripts/tool-resolution.mts`는 rustup 발견 로직과 함께 제거되며, 그 `replaced` 항목은 파일과 함께 `config/rebuild.json`에서 빠집니다(C16.41). owner-check의 경로 목록과 doc-coverage, API 문서, run-command, 진입점 test의 목록에서 제거된 파일을 뺐고, `tests/build/make-tool-path.test.mts`와 `tests/build/rust-node-entry-points.test.mts`는 가짜 rustup 대신 PATH의 toolchain을 시험합니다. `docs/operations/package-build.md`와 `.ko.md`는 새 규칙을 설명합니다. Red: `make rebuild-check > var/red.log 2>&1`이 exit 0이었고, `scripts/tool-resolution.mts`는 "item C16.41 registers the replacement" 사유의 `replaced`로 남아 있었습니다. Green: `make rebuild-check` exit 0이며 항목이 사라졌습니다. `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/run-command.test.mts` 9 passed, `scripts/check-doc-coverage.test.mts` 13 passed, `scripts/gen-api-docs.test.mts` 8 passed입니다. `tests/build/make-tool-path.test.mts`는 5개 중 4개가 통과하며, `crudui-test-native runs the Rust tests through the test runner`은 main checkout에서도 실패합니다(Makefile이 `../kit`에서 kit을 실행하는데 test는 `node_modules/@polyspec/kit`을 기대하는 worktree 배치 차이이며, 이 변경과 무관합니다). 변경한 TypeScript 파일은 저장소의 컴파일러로 타입 검사를 통과합니다.
+
+### 2026-10-20 — Rust generator는 공유 form-render, list-render, detail-render suite를 실행한다 (C16.88)
+
+- `packages/generator/rust/tests/form_render.rs`, `list_render.rs`, `detail_render.rs`는 세 suite의 모든 case를 `test_render.py`처럼 Rust generator로 실행합니다. 결과 case는 정규화된 layout tree로 비교하고(`tests/support/mod.rs`, Python runner의 `html_tree`; list와 detail은 preload link를 뺍니다), 실패 case는 기록된 code를 내야 합니다(list와 detail은 message도). 수는 form-render 결과 137건과 실패 51건, list-render 157건, detail-render 62건으로 assert합니다. `packages/generator/rust/src/instance.rs`는 누락된 반복 데이터에 초기 행 `__0000000000000__`을 주며(CUEC-002), 연산이 만든 행만 새 key를 받습니다(`normalize_fields`와 `normalize_row`가 `fresh`를 받으며, Python과 TypeScript reference와 같습니다). `tests/form_complete.rs`(C16.84)는 금지된 `Result::unwrap_or_else` 규칙을 맞추려고 unwrap 호출만 `match`로 바꿨습니다(C16.88). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_render` exit 1이며, `multiple-leaf-empty-placeholder`가 행 key `__b8532f96c45a1__`을 렌더링하고 case는 `__0000000000000__`을 기대했습니다. Green: `form_render` exit 0(2 passed), `list_render` exit 0(1 passed), `detail_render` exit 0(2 passed), `form_complete` exit 0, unit test `tests` exit 0(41 passed), `--test form_state --test history_functions` exit 0(17 passed), crate clippy 명령 exit 0입니다. 변이 검사는 각 family의 임시 복사본에서 expected 값 하나를 바꿨고, 각 runner가 실패(exit 1)한 뒤 fixture를 복원했습니다.
 
 ### 2026-10-20 — Rust generator는 공유 form-complete suite를 실행한다 (C16.84)
 

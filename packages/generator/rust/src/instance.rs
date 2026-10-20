@@ -92,9 +92,17 @@ fn fresh_key(used: &Map<String, Value>) -> FormResult<String> {
     Err(FormError::input("Unable to generate an unused row key"))
 }
 
-fn normalize_row(field: &FieldTemplate, value: Option<&Value>, path: &str) -> FormResult<Value> {
+/// The key of the one initial row that missing repeated data creates (CUEC-002).
+const INITIAL_ROW_KEY: &str = "__0000000000000__";
+
+fn normalize_row(
+    field: &FieldTemplate,
+    value: Option<&Value>,
+    path: &str,
+    fresh: bool,
+) -> FormResult<Value> {
     if field.spec.get("type").is_some_and(|t| t == "group") {
-        normalize_fields(&field.children, value, path)
+        normalize_fields(&field.children, value, path, fresh)
     } else {
         Ok(value
             .or_else(|| field.spec.get("default"))
@@ -104,10 +112,13 @@ fn normalize_row(field: &FieldTemplate, value: Option<&Value>, path: &str) -> Fo
 }
 
 /// Normalize record data; `path` is the full data path, empty at the root.
+/// `fresh` is set for a row that an operation creates: its missing repeated data gets a fresh key, where the record
+/// normalization gives the initial row `__0000000000000__`, as the TypeScript and Python references do.
 fn normalize_fields(
     fields: &[FieldTemplate],
     value: Option<&Value>,
     path: &str,
+    fresh: bool,
 ) -> FormResult<Value> {
     let mut data = match value {
         None => Map::new(),
@@ -132,15 +143,23 @@ fn normalize_fields(
                 // A data-only collection has no row without data.
                 None if data_only(field) => {}
                 None => {
-                    let key = fresh_key(&rows)?;
-                    let row = normalize_row(field, None, &format!("{field_path}.{key}"))?;
+                    let key = if fresh {
+                        fresh_key(&rows)?
+                    } else {
+                        INITIAL_ROW_KEY.to_owned()
+                    };
+                    let row = normalize_row(field, None, &format!("{field_path}.{key}"), fresh)?;
                     rows.insert(key, row);
                 }
                 Some(Value::Object(map)) => {
                     for (key, value) in map {
                         check_key(key)?;
-                        let row =
-                            normalize_row(field, Some(value), &format!("{field_path}.{key}"))?;
+                        let row = normalize_row(
+                            field,
+                            Some(value),
+                            &format!("{field_path}.{key}"),
+                            fresh,
+                        )?;
                         rows.insert(key.clone(), row);
                     }
                 }
@@ -152,7 +171,7 @@ fn normalize_fields(
             }
             data.insert(field.name.clone(), rows.into());
         } else if field.spec.get("type").is_some_and(|t| t == "group") {
-            let group = normalize_fields(&field.children, raw, &field_path)?;
+            let group = normalize_fields(&field.children, raw, &field_path, fresh)?;
             data.insert(field.name.clone(), group);
         } else if raw.is_none() {
             if let Some(default) = field.spec.get("default") {
@@ -229,7 +248,7 @@ impl Form {
     pub fn new(template: FormTemplate, data: &Value, options: BindOptions) -> FormResult<Self> {
         // The template specification is kept in member order; the data keeps its own order.
         let template = member_ordered_template(&template);
-        let data = normalize_fields(&template.fields, Some(data), "")?;
+        let data = normalize_fields(&template.fields, Some(data), "", false)?;
         let fields = bind_ordered(&template, &data, &options)?;
         Ok(Self {
             template,
@@ -270,7 +289,7 @@ impl Form {
     /// Replace record data, restart the history and reevaluate the form atomically.
     pub fn set_data(&mut self, data: &Value) -> FormResult<()> {
         self.commit_view(
-            normalize_fields(&self.template.fields, Some(data), "")?,
+            normalize_fields(&self.template.fields, Some(data), "", false)?,
             initial_view(),
             empty_history(),
         )
@@ -287,7 +306,7 @@ impl Form {
         let segments = checked_segments(path)?;
         let data = put_at(&self.data, &segments, value);
         self.commit(
-            normalize_fields(&self.template.fields, Some(&data), "")?,
+            normalize_fields(&self.template.fields, Some(&data), "", false)?,
             Some(&segments.join(".")),
         )
     }
@@ -472,7 +491,7 @@ impl Form {
             at,
             (
                 key.clone(),
-                normalize_row(field, options.value.as_ref(), &row_path)?,
+                normalize_row(field, options.value.as_ref(), &row_path, true)?,
             ),
         );
         self.commit(
