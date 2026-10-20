@@ -2,6 +2,13 @@
   {
     "name": "complete-form",
     "note": "the form element, a hidden field, a form error and a field error; attribute and text values are escaped.",
+    "requirements": [
+      "CUMK-004",
+      "CURT-013",
+      "CURT-014",
+      "CURT-015",
+      "CURT-016"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -43,6 +50,9 @@
   {
     "name": "template-action",
     "note": "each form attribute takes the render member, or the template action member when the render action has none.",
+    "requirements": [
+      "CURT-013"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -73,6 +83,9 @@
   {
     "name": "empty-action",
     "note": "an empty render action without a template action writes a form element without attributes.",
+    "requirements": [
+      "CURT-013"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -96,6 +109,10 @@
   {
     "name": "hidden-order",
     "note": "hidden inputs follow member order and an empty value is written.",
+    "requirements": [
+      "CURT-013",
+      "CURT-014"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -126,6 +143,9 @@
   {
     "name": "javascript-url",
     "note": "a JavaScript URL in the form action is replaced by the blocked URL.",
+    "requirements": [
+      "CURT-013"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -172,6 +192,10 @@
   {
     "name": "errors-without-action",
     "note": "errors without action write no form element; an empty form error list writes nothing.",
+    "requirements": [
+      "CURT-015",
+      "CURT-016"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -201,6 +225,10 @@
   {
     "name": "form-errors-order",
     "note": "form errors keep list order.",
+    "requirements": [
+      "CUMK-004",
+      "CURT-015"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -227,6 +255,9 @@
   {
     "name": "node-errors",
     "note": "collection, row, group, field and hidden field errors follow each node body in list order.",
+    "requirements": [
+      "CURT-016"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -320,6 +351,12 @@
   {
     "name": "root-description",
     "note": "the translated root description precedes the form errors and the body inside the form element; its text is escaped.",
+    "requirements": [
+      "CUMK-004",
+      "CURT-013",
+      "CURT-014",
+      "CURT-015"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -355,6 +392,9 @@
   {
     "name": "root-description-without-options",
     "note": "empty options write the root description in the crudui-form block alone.",
+    "requirements": [
+      "CUMK-004"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -377,6 +417,10 @@
   {
     "name": "root-description-null",
     "note": "a null root description writes nothing.",
+    "requirements": [
+      "CUMK-004",
+      "CURT-015"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -403,6 +447,9 @@
   {
     "name": "options-not-object",
     "note": "render options are an object.",
+    "requirements": [
+      "CURT-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -427,6 +474,9 @@
   {
     "name": "options-list",
     "note": "a list is not render options.",
+    "requirements": [
+      "CURT-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -453,6 +503,9 @@
   {
     "name": "unknown-option",
     "note": "the first unknown member in member order is reported before other checks.",
+    "requirements": [
+      "CURT-018"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -481,6 +534,9 @@
   {
     "name": "action-string",
     "note": "action is an object.",
+    "requirements": [
+      "CURT-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -507,6 +563,9 @@
   {
     "name": "action-member",
     "note": "action has only method, url and enctype.",
+    "requirements": [
+      "CURT-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -535,6 +594,9 @@
   {
     "name": "action-number",
     "note": "action members are strings.",
+    "requirements": [
+      "CURT-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -563,6 +625,9 @@
   {
     "name": "hidden-number",
     "note": "hidden values are strings.",
+    "requirements": [
+      "CURT-020"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -592,6 +657,9 @@
   {
     "name": "hidden-list",
     "note": "hidden is an object.",
+    "requirements": [
+      "CURT-020"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -621,6 +689,9 @@
   {
     "name": "hidden-without-action",
     "note": "hidden inputs need the form element.",
+    "requirements": [
+      "CURT-021"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -650,6 +721,9 @@
   {
     "name": "form-errors-string",
     "note": "formErrors is a list.",
+    "requirements": [
+      "CURT-022"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -676,6 +750,9 @@
   {
     "name": "form-errors-number",
     "note": "formErrors holds strings.",
+    "requirements": [
+      "CURT-022"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -705,6 +782,9 @@
   {
     "name": "errors-object",
     "note": "errors is a list.",
+    "requirements": [
+      "CURT-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -733,6 +813,9 @@
   {
     "name": "errors-message-missing",
     "note": "every error has a string message.",
+    "requirements": [
+      "CURT-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -763,6 +846,9 @@
   {
     "name": "errors-path-number",
     "note": "every error has a string path.",
+    "requirements": [
+      "CURT-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -794,6 +880,9 @@
   {
     "name": "unknown-error-path",
     "note": "the first error whose path names no node is reported.",
+    "requirements": [
+      "CURT-024"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -833,6 +922,9 @@
   {
     "name": "row-key-path",
     "note": "a lang-item or partial path names no node.",
+    "requirements": [
+      "CURT-024"
+    ],
     "spec": {
       "type": "group",
       "properties": {

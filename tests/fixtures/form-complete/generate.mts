@@ -127,4 +127,40 @@ const cases = [
   failure('row-key-path', 'a lang-item or partial path names no node.', { errors: [{ path: 'email.x', message: 'a' }] }, 'Unknown error path: email.x'),
 ];
 
-process.stdout.write(`${JSON.stringify(cases, null, 2)}\n`);
+const REQUIREMENTS: Record<string, readonly string[]> = {
+  "complete-form": ["CUMK-004", "CURT-013", "CURT-014", "CURT-015", "CURT-016"],
+  "template-action": ["CURT-013"],
+  "empty-action": ["CURT-013"],
+  "hidden-order": ["CURT-013", "CURT-014"],
+  "javascript-url": ["CURT-013"],
+  "errors-without-action": ["CURT-015", "CURT-016"],
+  "form-errors-order": ["CUMK-004", "CURT-015"],
+  "node-errors": ["CURT-016"],
+  "root-description": ["CUMK-004", "CURT-013", "CURT-014", "CURT-015"],
+  "root-description-without-options": ["CUMK-004"],
+  "root-description-null": ["CUMK-004", "CURT-015"],
+  "options-not-object": ["CURT-017"],
+  "options-list": ["CURT-017"],
+  "unknown-option": ["CURT-018"],
+  "action-string": ["CURT-019"],
+  "action-member": ["CURT-019"],
+  "action-number": ["CURT-019"],
+  "hidden-number": ["CURT-020"],
+  "hidden-list": ["CURT-020"],
+  "hidden-without-action": ["CURT-021"],
+  "form-errors-string": ["CURT-022"],
+  "form-errors-number": ["CURT-022"],
+  "errors-object": ["CURT-023"],
+  "errors-message-missing": ["CURT-023"],
+  "errors-path-number": ["CURT-023"],
+  "unknown-error-path": ["CURT-024"],
+  "row-key-path": ["CURT-024"],
+};
+
+/** The requirement ids that each case tests (docs/spec); a case that tests none keeps no requirements member. */
+function withRequirements<T extends { name: string; note: string }>(c: T): T & { requirements?: readonly string[] } {
+  const ids = REQUIREMENTS[c.name];
+  if (ids === undefined) return c;
+  return Object.assign({ name: c.name, note: c.note, requirements: ids }, c);
+}
+process.stdout.write(`${JSON.stringify(cases.map(withRequirements), null, 2)}\n`);

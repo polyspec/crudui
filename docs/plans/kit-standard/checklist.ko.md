@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d573f589f878e102dd08bab0e6bbc5e23b9a7532707707118c2c78e51f583942 -->
+<!-- source-sha256: 3e6ca6bf96657c581a4c952bbabbb86d8c85a10e0c33fc5b9e0e66f4a2b6f2fa -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -169,3 +169,4 @@
 | C16.86 | Go generator는 공유 form-complete, list-render, detail-render suite를 실행한다 | packages/generator/go/form_complete_suite_test.go, packages/generator/go/list_render_suite_test.go, packages/generator/go/detail_render_suite_test.go, packages/generator/go/form_render_suite_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormCompleteSuite\|TestListRenderSuite\|TestDetailRenderSuite'` | [o] |
 | C16.85 | PHP generator와 PHP extension은 공유 form-complete suite를 실행한다 | packages/generator/php/tests/FormCompleteConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormCompleteConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=FormCompleteConformanceTest` | [o] |
 | C16.87 | PHP generator와 PHP extension은 공유 list-render와 detail-render suite를 실행한다 | packages/generator/php/tests/ListRenderConformanceTest.php, packages/generator/php/tests/DetailRenderConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/ListRenderConformanceTest.php tests/DetailRenderConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='ListRenderConformanceTest\|DetailRenderConformanceTest'` | [o] |
+| C16.83 | TypeScript 구현은 generator core, validator와 HTML renderer packages/html로 구성된다(CURP-028); 그 html test는 binding되거나 internal로 선언된다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/html -- src/conformance.test.ts src/form-complete.conformance.test.ts src/outline.conformance.test.ts src/list-conformance.test.ts src/detail-conformance.test.ts` | [o] |

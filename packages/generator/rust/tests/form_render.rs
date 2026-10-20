@@ -1,6 +1,6 @@
 //! The form rendering fixtures against the Rust generator: each result case of `tests/fixtures/form-render` compiles,
-//! binds and renders to the recorded layout, and each failure case raises the recorded code. Results are compared as
-//! normalized layout trees (tests/support), as the Python runner does.
+//! binds and renders to the recorded layout, and each failure case raises the recorded code, in one test that runs
+//! every case. Results are compared as normalized layout trees (tests/support), as the Python runner does.
 
 mod support;
 
@@ -22,8 +22,9 @@ fn instance(case: &Value) -> polyspec_crudui_generator::FormResult<Form> {
     Form::new(template, &data, bind)
 }
 
+/// Every case of the suite: each result case renders the recorded layout, and each failure case raises the recorded code.
 #[test]
-fn form_render_result_cases_reproduce_the_normalized_layout() {
+fn form_render_cases_reproduce_the_normalized_layout_or_the_failure() {
     let cases = support::cases("form-render");
     let results: Vec<&Value> = cases
         .iter()
@@ -49,11 +50,6 @@ fn form_render_result_cases_reproduce_the_normalized_layout() {
         let again = render_form(&instance(case).unwrap(), None).unwrap();
         assert_eq!(actual, again, "{name}: a new instance renders differently");
     }
-}
-
-#[test]
-fn form_render_failure_cases_raise_the_recorded_code() {
-    let cases = support::cases("form-render");
     let failures: Vec<&Value> = cases
         .iter()
         .filter(|case| case.get("expectError").is_some())

@@ -80,6 +80,7 @@ const CASES: OutlineCase[] = [
   {
     name: 'outline-rows-ko',
     note: 'Korean map of top-level and nested rows with undo available; data view escapes markup characters.',
+    requirements: ['CUMK-031', 'CUMK-032'],
     spec: teams(),
     data,
     options: { language: 'ko' },
@@ -89,6 +90,7 @@ const CASES: OutlineCase[] = [
   {
     name: 'outline-controls-in-map-en',
     note: 'controls: outline puts every row\'s controls in the map, where the stylesheet shows those of the current row; empty collection controls stay in the form.',
+    requirements: ['CUMK-031', 'CUMK-032', 'CUMK-035', 'CUMK-037'],
     spec: teams('outline'),
     data,
     options: { language: 'en' },
@@ -98,6 +100,7 @@ const CASES: OutlineCase[] = [
   {
     name: 'outline-untitled-rows-ja',
     note: 'Japanese map with row controls in the map; untitled rows show the untitled message.',
+    requirements: ['CUMK-031', 'CUMK-032', 'CUMK-035', 'CUMK-037'],
     spec: teams('outline'),
     data,
     options: { language: 'ja' },
@@ -116,6 +119,7 @@ const CASES: OutlineCase[] = [
   {
     name: 'outline-only-rows-en',
     note: 'Rows of a multiple.only collection appear in the map under their data keys without row controls, while the enclosing rows keep theirs; the second section has no data for the collection and so no nested rows.',
+    requirements: ['CUMK-031', 'CUMK-032', 'CUMK-034', 'CUMK-035', 'CUMK-037'],
     spec: {
       type: 'group',
       properties: {

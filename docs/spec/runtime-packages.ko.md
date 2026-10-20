@@ -1,6 +1,6 @@
 # 런타임 패키지
 <!-- doc-id: docs-spec-runtime-packages -->
-<!-- source-sha256: 074e8d555d3789bcd9562965401af006977fea1e5d11b151b8e3ee7f0265c393 -->
+<!-- source-sha256: 9c7313a66f7f0fcf386c60681916c82205f11dece144f253f062d5a4bb7170e4 -->
 
 [English](runtime-packages.md).
 구현과 검증 결과는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -98,3 +98,11 @@ Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 
 - **CURP-027** 반복 행 키는 부모 컬렉션 안에서 행을 식별합니다. 모든 구현은 저장된
   시퀀스, 신규 키, 순서, 지정된 범위의 행 작업에 폼 런타임 계약을 적용합니다.
   유효하지 않은 작업은 데이터와 계산된 필드를 모두 변경하지 않습니다.
+
+## 구현 패키지
+
+TypeScript 구현은 generator core(`@polyspec/crudui-generator-core`,
+`packages/generator/ts`), validator(`@polyspec/crudui-validator`, `packages/validator/ts`),
+그리고 계산된 필드를 HTML로 쓰는 HTML renderer(`@polyspec/crudui-generator-html`,
+`packages/html`)로 구성됩니다. React, Vue, Svelte adapter는 같은 model을 각자 네이티브로
+그리며, 그 구현의 integration으로 시험합니다.

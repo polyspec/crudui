@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f64b4b3e0ba580c4ecb4981f5c93f845e0a6469cd5f46d0d6fbd4016ffa92449 -->
+<!-- source-sha256: 4b6e9c94bb4c6bfd4458287f682ca328e40b3790883d8bbbaf369e9768ff6d1c -->
 
 ## Unreleased
+
+### 2026-10-20 — 렌더링과 outline suite를 parity unit으로 선언한다 (C16.83)
+
+- `config/parity.json`은 form-render, form-complete, list-render, detail-render, form-outline unit을 선언합니다. 각 unit은 존재하는 ts, go, python, php, php-extension, rust binding과 그 case가 시험하는 requirement id를 가집니다(C16.83). `packages/html`은 ts implementation의 root이며, markup 규칙 test 8개와 browser session test 2개는 internal로 선언합니다. `docs/spec/runtime-packages.md`는 TypeScript 구현에 requirement CURP-028을 부여합니다. 다섯 suite의 case는 `requirements` member에 id를 가지며, tests/fixtures/*/generate.mts와 packages/react/scripts/generate-form-render-cases.mts가 생성합니다. 바뀐 것은 그 member뿐입니다. Red: main의 `make parity-declarations-check`는 420 finding(R13 259, R4 12, R5 148, R6 1)을 보고합니다; green: 317 finding(R13 168, R4 7, R5 141, R6 1). Rust form-render runner(tests/form_render.rs, C16.88에서 옴)는 하나의 test `form_render_cases_reproduce_the_normalized_layout_or_the_failure`가 188개 case를 모두 실행하도록 바뀌었으므로, binding 하나가 모든 case를 실행합니다. Owner test: 다섯 html conformance file의 `vitest`, 587 passed, 0 failed.
+- `config/parity.json`의 rust implementation은 `packages/generator/rust/tests/support/**`를 support 파일로 선언합니다. rendering runner들이 함께 쓰는 module은 test가 아닙니다(C16.83).
 
 ### 2026-10-20 — schema suite들이 그 case가 시험하는 CUSC requirement를 인용한다 (C16.57-7)
 

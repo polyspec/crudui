@@ -2,6 +2,10 @@
   {
     "name": "basic-columns",
     "note": "plain text columns + i18n headers; two injected rows → table body.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -64,6 +68,15 @@
   {
     "name": "format-date",
     "note": "date format → pattern applied to the cell value (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-008",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-083"
+    ],
     "spec": {
       "columns": {
         "joined": {
@@ -120,6 +133,19 @@
   {
     "name": "format-number",
     "note": "number format → decimals + thousands + i18n prefix affix (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-009",
+      "CUDF-016",
+      "CUDF-018",
+      "CUDF-019",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-050",
+      "CUDF-083"
+    ],
     "spec": {
       "columns": {
         "score": {
@@ -180,6 +206,17 @@
   {
     "name": "format-number-shortest",
     "note": "number format without decimals → the shortest round-trip text in plain notation between 1e-6 and 1e21 (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-009",
+      "CUDF-017",
+      "CUDF-018",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-083"
+    ],
     "spec": {
       "columns": {
         "value": {
@@ -239,6 +276,17 @@
   {
     "name": "format-badge",
     "note": "badge format → span.badge.badge-<variant> from the value→variant map (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-010",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-051",
+      "CUDF-052",
+      "CUDF-084"
+    ],
     "spec": {
       "columns": {
         "status": {
@@ -298,6 +346,16 @@
   {
     "name": "format-choice-label",
     "note": "choice-label format → static code→label lookup (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-012",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-054",
+      "CUDF-083"
+    ],
     "spec": {
       "columns": {
         "grade": {
@@ -329,6 +387,17 @@
   {
     "name": "format-choice-label-choice-list",
     "note": "choice-label format looks the value up in a choice list by the canonical text of each value; a value without a pair is displayed unchanged.",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-012",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-054",
+      "CUDF-055",
+      "CUDF-083"
+    ],
     "spec": {
       "columns": {
         "answer": {
@@ -372,6 +441,17 @@
   {
     "name": "format-link",
     "note": "link format → <a> with explicit {=field}-interpolated href, literal domain and extension, + target (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-011",
+      "CUDF-022",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-053",
+      "CUDF-085"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -429,6 +509,16 @@
   {
     "name": "format-bool",
     "note": "bool format as=check → glyph host carrying the i18n label (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-013",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-050",
+      "CUDF-086"
+    ],
     "spec": {
       "columns": {
         "admin": {
@@ -487,6 +577,16 @@
   {
     "name": "format-image",
     "note": "image format → <img> with src + explicit {=field} alt, literal extension, + size (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-014",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-050",
+      "CUDF-087"
+    ],
     "spec": {
       "columns": {
         "avatar": {
@@ -545,6 +645,15 @@
   {
     "name": "format-html",
     "note": "html format → the ONE sanctioned raw passthrough (verbatim, no wrapper) (§9.2).",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-015",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-088"
+    ],
     "spec": {
       "columns": {
         "bio": {
@@ -569,6 +678,11 @@
   {
     "name": "column-show-expr-hidden",
     "note": "design.show '.admin' falsy → the column is dropped from header AND every row (G1).",
+    "requirements": [
+      "CUDF-028",
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -601,6 +715,11 @@
   {
     "name": "column-show-expr-visible",
     "note": "design.show '.admin' truthy → the column is kept (G1).",
+    "requirements": [
+      "CUDF-028",
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -633,6 +752,11 @@
   {
     "name": "column-show-map-without-selection",
     "note": "A design.show condition map that selects nothing leaves the column visible: only a resolved false hides.",
+    "requirements": [
+      "CUDF-028",
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -667,6 +791,11 @@
   {
     "name": "column-show-literal-string",
     "note": "A design.show string that is not a valid expression is a literal and leaves the column visible.",
+    "requirements": [
+      "CUDF-028",
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -699,6 +828,10 @@
   {
     "name": "i18n-header-ko",
     "note": "i18n header resolves to ko under language:ko.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -761,6 +894,10 @@
   {
     "name": "i18n-header-en",
     "note": "i18n header resolves to en under language:en (same spec as -ko).",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -823,6 +960,16 @@
   {
     "name": "sort-display",
     "note": "sortable column + declared sort → data-sortable + data-sort-dir on the matching <th>.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-056",
+      "CUDF-058",
+      "CUDF-059",
+      "CUDF-060",
+      "CUDF-061"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -884,6 +1031,12 @@
   {
     "name": "sortable-map-without-selection",
     "note": "A sortable condition map that selects nothing is false: the column is not sortable (a map selecting a true value is).",
+    "requirements": [
+      "CUDF-028",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-056"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -950,6 +1103,17 @@
   {
     "name": "pagination-display",
     "note": "pagination declared + supplied page and total → <nav class=crudui-list__pagination> data attrs.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079",
+      "CUDF-080",
+      "CUDF-081",
+      "CUDF-082"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1008,6 +1172,14 @@
   {
     "name": "pagination-empty-first-page",
     "note": "page 1 with total 0 is valid, and the largest safe integer page is accepted.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1028,6 +1200,14 @@
   {
     "name": "pagination-page-beyond-last",
     "note": "a page after the last page marks the last page current and disables both boundary controls.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1048,6 +1228,14 @@
   {
     "name": "pagination-middle-window",
     "note": "more than seven pages render the first, previous, current, next and last page numbers.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1068,6 +1256,14 @@
   {
     "name": "pagination-largest-window",
     "note": "the largest safe integer page and total clamp to the last page of a bounded window.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1088,6 +1284,13 @@
   {
     "name": "pagination-without-total",
     "note": "without a total no page numbers render and both boundary controls are disabled.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1107,6 +1310,13 @@
   {
     "name": "pagination-page-without-total",
     "note": "without a total the current page is the first page, whatever page is supplied.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1126,6 +1336,10 @@
   {
     "name": "design-column-class-style",
     "note": "column design class/style reaches the <th> verbatim (form-spec design reuse).",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1182,6 +1396,16 @@
   {
     "name": "pagination-labels-ko",
     "note": "pagination button names come from the ko list messages; the buttons show ‹, the page number and ›.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079",
+      "CUDF-080",
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1239,6 +1463,16 @@
   {
     "name": "pagination-labels-ja",
     "note": "pagination button names come from the ja list messages; the buttons show ‹, the page number and ›.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079",
+      "CUDF-080",
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1296,6 +1530,16 @@
   {
     "name": "pagination-labels-zh",
     "note": "pagination button names come from the zh list messages; the buttons show ‹, the page number and ›.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079",
+      "CUDF-080",
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1353,6 +1597,16 @@
   {
     "name": "pagination-labels-fr",
     "note": "pagination button names come from the English list messages (fr is not in the table); the buttons show ‹, the page number and ›.",
+    "requirements": [
+      "CUDF-029",
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079",
+      "CUDF-080",
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1410,6 +1664,10 @@
   {
     "name": "empty-undeclared-ko",
     "note": "no rows and no declared empty → the ko emptyList interface message.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1427,6 +1685,10 @@
   {
     "name": "empty-undeclared-en",
     "note": "no rows and no declared empty → the en emptyList interface message.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1444,6 +1706,10 @@
   {
     "name": "empty-undeclared-ja",
     "note": "no rows and no declared empty → the ja emptyList interface message.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1461,6 +1727,10 @@
   {
     "name": "empty-undeclared-zh",
     "note": "no rows and no declared empty → the zh emptyList interface message.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1478,6 +1748,12 @@
   {
     "name": "empty-declared-null",
     "note": "a null empty is the same as no declaration → the emptyList interface message.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-077"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1496,6 +1772,12 @@
   {
     "name": "empty-declared-blank",
     "note": "a declared empty text is used as declared, even when it is empty.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-077"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1514,6 +1796,12 @@
   {
     "name": "empty-message",
     "note": "no rows → the translated empty message, no <table>.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-077"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1535,6 +1823,17 @@
   {
     "name": "actions-toolbar",
     "note": "link-format action → <a>; a script action → <button> whose onclick attribute holds the script.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-062",
+      "CUDF-064",
+      "CUDF-066",
+      "CUDF-067",
+      "CUDF-068",
+      "CUDF-069"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1568,6 +1867,22 @@
   {
     "name": "action-behavior-events",
     "note": "a behavior member is the event attribute: each declared script or script object is written once under its member name, on a button and on a link.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-062",
+      "CUDF-064",
+      "CUDF-066",
+      "CUDF-068",
+      "CUDF-069",
+      "CUDF-070",
+      "CUDF-071",
+      "CUDF-072",
+      "CUDF-073",
+      "CUDF-074",
+      "CUDF-075"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1617,6 +1932,17 @@
   {
     "name": "description-before-actions",
     "note": "a translated description is the first child of the list, before the actions; its text is escaped.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-062",
+      "CUDF-064",
+      "CUDF-066",
+      "CUDF-068",
+      "CUDF-069",
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1653,6 +1979,13 @@
   {
     "name": "description-card-without-actions",
     "note": "a description without actions precedes the card layout.",
+    "requirements": [
+      "CUDF-031",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-078"
+    ],
     "spec": {
       "description": "All members",
       "columns": {
@@ -1676,6 +2009,12 @@
   {
     "name": "description-empty-rows",
     "note": "a description precedes the empty state of a list without rows.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1694,6 +2033,12 @@
   {
     "name": "description-empty-text",
     "note": "an empty description and a null description write nothing.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1716,6 +2061,12 @@
   {
     "name": "description-null",
     "note": "a null description writes nothing.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1738,6 +2089,18 @@
   {
     "name": "card-layout",
     "note": "card layout → one .crudui-list__card article per row with label:value pairs, no <table>.",
+    "requirements": [
+      "CUDF-006",
+      "CUDF-010",
+      "CUDF-031",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-049",
+      "CUDF-051",
+      "CUDF-052",
+      "CUDF-084"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1806,6 +2169,9 @@
   {
     "name": "compose-ref-patch",
     "note": "$ref base columns + $patch overlay (the SAME compose engine as form-spec).",
+    "requirements": [
+      "CUDF-044"
+    ],
     "spec": {
       "columns": {
         "$ref": "base-columns.yml",
@@ -1858,6 +2224,10 @@
   {
     "name": "text-with-nul",
     "note": "a NUL character in a label and in a value is written like any other character.",
+    "requirements": [
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "v": {
@@ -1879,6 +2249,9 @@
   {
     "name": "reject-pagination-null",
     "note": "a null pagination is neither a boolean nor an object.",
+    "requirements": [
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1897,6 +2270,9 @@
   {
     "name": "reject-pagination-string",
     "note": "a string pagination is neither a boolean nor an object.",
+    "requirements": [
+      "CUDF-079"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1915,6 +2291,10 @@
   {
     "name": "reject-pagination-unknown-key",
     "note": "an undeclared pagination member is rejected.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-080"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1936,6 +2316,9 @@
   {
     "name": "reject-pagination-per-page-zero",
     "note": "rows per page start at 1.",
+    "requirements": [
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1956,6 +2339,9 @@
   {
     "name": "reject-pagination-per-page-fraction",
     "note": "rows per page are an integer.",
+    "requirements": [
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1976,6 +2362,9 @@
   {
     "name": "reject-pagination-per-page-null",
     "note": "a null per_page is not a count.",
+    "requirements": [
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -1996,6 +2385,9 @@
   {
     "name": "reject-pagination-per-page-unsafe",
     "note": "rows per page stay within the safe integer range.",
+    "requirements": [
+      "CUDF-081"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2016,6 +2408,9 @@
   {
     "name": "reject-pagination-mode-unknown",
     "note": "the mode is one of the declared modes.",
+    "requirements": [
+      "CUDF-082"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2036,6 +2431,9 @@
   {
     "name": "reject-pagination-mode-empty",
     "note": "an empty mode is not a declared mode.",
+    "requirements": [
+      "CUDF-082"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2056,6 +2454,15 @@
   {
     "name": "pagination-declared-defaults",
     "note": "a declared mode keeps the default of 20 rows per page.",
+    "requirements": [
+      "CUDF-030",
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-079",
+      "CUDF-080",
+      "CUDF-082"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2077,6 +2484,9 @@
   {
     "name": "reject-array-specification",
     "note": "a specification that is not an object is rejected.",
+    "requirements": [
+      "CUDF-024"
+    ],
     "spec": [],
     "rows": [],
     "expectError": {
@@ -2087,6 +2497,9 @@
   {
     "name": "reject-string-specification",
     "note": "a string specification is rejected.",
+    "requirements": [
+      "CUDF-024"
+    ],
     "spec": "list",
     "rows": [],
     "expectError": {
@@ -2097,6 +2510,9 @@
   {
     "name": "reject-object-rows",
     "note": "rows that are not an array are rejected.",
+    "requirements": [
+      "CUDF-025"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2113,6 +2529,9 @@
   {
     "name": "reject-scalar-row",
     "note": "a row that is not an object is rejected.",
+    "requirements": [
+      "CUDF-026"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2131,6 +2550,9 @@
   {
     "name": "reject-array-row",
     "note": "a row that is an array is rejected.",
+    "requirements": [
+      "CUDF-026"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2149,6 +2571,9 @@
   {
     "name": "reject-array-context",
     "note": "a data option that is not an object is rejected.",
+    "requirements": [
+      "CUDF-028"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2168,6 +2593,9 @@
   {
     "name": "reject-context-before-page",
     "note": "the data rule is checked before the page rule.",
+    "requirements": [
+      "CUDF-028"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2188,6 +2616,9 @@
   {
     "name": "reject-string-page",
     "note": "a page that is not a number is rejected.",
+    "requirements": [
+      "CUDF-029"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2207,6 +2638,9 @@
   {
     "name": "reject-zero-page",
     "note": "a page below 1 is rejected, before the total and layout rules.",
+    "requirements": [
+      "CUDF-029"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2228,6 +2662,9 @@
   {
     "name": "reject-fractional-page",
     "note": "a page that is not an integer is rejected.",
+    "requirements": [
+      "CUDF-029"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2247,6 +2684,9 @@
   {
     "name": "reject-unsafe-page",
     "note": "a page above the largest safe integer is rejected.",
+    "requirements": [
+      "CUDF-029"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2266,6 +2706,9 @@
   {
     "name": "reject-negative-total",
     "note": "a total below 0 is rejected, before the layout rule.",
+    "requirements": [
+      "CUDF-030"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2286,6 +2729,9 @@
   {
     "name": "reject-fractional-total",
     "note": "a total that is not an integer is rejected.",
+    "requirements": [
+      "CUDF-030"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2305,6 +2751,9 @@
   {
     "name": "reject-boolean-total",
     "note": "a total that is not a number is rejected.",
+    "requirements": [
+      "CUDF-030"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2324,6 +2773,9 @@
   {
     "name": "reject-unknown-layout",
     "note": "a layout other than table or card is rejected.",
+    "requirements": [
+      "CUDF-031"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2343,6 +2795,9 @@
   {
     "name": "reject-number-layout",
     "note": "a layout that is not a string is rejected.",
+    "requirements": [
+      "CUDF-031"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2362,6 +2817,9 @@
   {
     "name": "reject-column-design-unknown-key",
     "note": "a column design key that the schema does not list is rejected at its column path.",
+    "requirements": [
+      "CUDF-044"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2383,6 +2841,9 @@
   {
     "name": "reject-list-design-before-columns",
     "note": "the list's own design is checked before its columns.",
+    "requirements": [
+      "CUDF-040"
+    ],
     "spec": {
       "design": {
         "color": "red"
@@ -2424,6 +2885,16 @@
   {
     "name": "action-script-object",
     "note": "an action object with script is a script action: its label is translated and its button holds the script in onclick.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-062",
+      "CUDF-064",
+      "CUDF-065",
+      "CUDF-067",
+      "CUDF-068"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2453,6 +2924,9 @@
   {
     "name": "reject-missing-columns",
     "note": "a list specification declares columns.",
+    "requirements": [
+      "CUDF-027"
+    ],
     "spec": {
       "sort": {
         "field": "name",
@@ -2468,6 +2942,9 @@
   {
     "name": "reject-rows-before-columns",
     "note": "the rows argument is checked before the columns declaration.",
+    "requirements": [
+      "CUDF-025"
+    ],
     "spec": {},
     "rows": {},
     "expectError": {
@@ -2478,6 +2955,9 @@
   {
     "name": "reject-columns-before-context",
     "note": "the columns declaration is checked before the options.",
+    "requirements": [
+      "CUDF-027"
+    ],
     "spec": {},
     "rows": [],
     "options": {
@@ -2491,6 +2971,9 @@
   {
     "name": "reject-root-ref-without-columns",
     "note": "a root $ref is not composed, so a specification without its own columns declares none.",
+    "requirements": [
+      "CUDF-027"
+    ],
     "spec": {
       "$ref": "base-list.yml"
     },
@@ -2516,6 +2999,9 @@
   {
     "name": "reject-context-before-columns-shape",
     "note": "the options are checked before the columns value.",
+    "requirements": [
+      "CUDF-028"
+    ],
     "spec": {
       "columns": 5
     },
@@ -2531,6 +3017,9 @@
   {
     "name": "reject-layout-before-composition",
     "note": "the layout option is an input rule: renderList checks it before composition; buildList does not read it.",
+    "requirements": [
+      "CUDF-031"
+    ],
     "spec": {
       "columns": {
         "$ref": "missing.yml"
@@ -2549,6 +3038,9 @@
   {
     "name": "reject-layout-before-declarations",
     "note": "renderList checks the layout option before the declarations.",
+    "requirements": [
+      "CUDF-031"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2606,6 +3098,12 @@
   {
     "name": "search-composed",
     "note": "a search declaration with $ref and $patch is composed; the list model does not use search.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-057"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2766,6 +3264,9 @@
   {
     "name": "reject-unknown-root-key",
     "note": "a list root member that the schema does not list is rejected.",
+    "requirements": [
+      "CUDF-040"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2783,6 +3284,9 @@
   {
     "name": "reject-root-key-before-design",
     "note": "root members are checked before the own design.",
+    "requirements": [
+      "CUDF-040"
+    ],
     "spec": {
       "design": {
         "color": "red"
@@ -2803,6 +3307,9 @@
   {
     "name": "reject-root-ref",
     "note": "a root $ref beside the columns is not composed.",
+    "requirements": [
+      "CUDF-042"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2867,6 +3374,9 @@
   {
     "name": "reject-string-column",
     "note": "each column is an object.",
+    "requirements": [
+      "CUDF-043"
+    ],
     "spec": {
       "columns": {
         "name": "text"
@@ -2881,6 +3391,9 @@
   {
     "name": "reject-null-column",
     "note": "a null column is not a column.",
+    "requirements": [
+      "CUDF-043"
+    ],
     "spec": {
       "columns": {
         "name": null
@@ -2895,6 +3408,9 @@
   {
     "name": "reject-column-unknown-key",
     "note": "a column member that the schema does not list is rejected.",
+    "requirements": [
+      "CUDF-044"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2912,6 +3428,9 @@
   {
     "name": "reject-column-unknown-key-before-field",
     "note": "unknown column keys are checked before the member values.",
+    "requirements": [
+      "CUDF-044"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2929,6 +3448,9 @@
   {
     "name": "reject-column-field",
     "note": "the field path is a string.",
+    "requirements": [
+      "CUDF-046"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2945,6 +3467,9 @@
   {
     "name": "reject-column-label",
     "note": "a label is content.",
+    "requirements": [
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2962,6 +3487,9 @@
   {
     "name": "reject-column-label-empty-map",
     "note": "a language map has at least one member.",
+    "requirements": [
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2979,6 +3507,9 @@
   {
     "name": "reject-column-label-map-value",
     "note": "a language map holds strings or null.",
+    "requirements": [
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -2998,6 +3529,9 @@
   {
     "name": "reject-column-order",
     "note": "columns are checked in member order.",
+    "requirements": [
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "first": {
@@ -3017,6 +3551,9 @@
   {
     "name": "reject-format-array",
     "note": "a format is a boolean, a string or an object.",
+    "requirements": [
+      "CUDF-048"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3036,6 +3573,9 @@
   {
     "name": "reject-format-null",
     "note": "a null format is not a format.",
+    "requirements": [
+      "CUDF-048"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3053,6 +3593,9 @@
   {
     "name": "reject-format-type",
     "note": "the format type is a string.",
+    "requirements": [
+      "CUDF-049"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3072,6 +3615,9 @@
   {
     "name": "reject-format-pattern",
     "note": "a date pattern is a string.",
+    "requirements": [
+      "CUDF-049"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3092,6 +3638,9 @@
   {
     "name": "reject-format-target",
     "note": "a link target is a string.",
+    "requirements": [
+      "CUDF-049"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3113,6 +3662,9 @@
   {
     "name": "reject-format-as",
     "note": "a boolean display mode is a string.",
+    "requirements": [
+      "CUDF-049"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3133,6 +3685,9 @@
   {
     "name": "reject-format-prefix",
     "note": "a number prefix is content.",
+    "requirements": [
+      "CUDF-050"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3153,6 +3708,9 @@
   {
     "name": "reject-format-true-label",
     "note": "a boolean label is content.",
+    "requirements": [
+      "CUDF-050"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3173,6 +3731,9 @@
   {
     "name": "reject-format-map",
     "note": "a badge map is an object.",
+    "requirements": [
+      "CUDF-051"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3193,6 +3754,10 @@
   {
     "name": "reject-format-map-label",
     "note": "each badge map label is content.",
+    "requirements": [
+      "CUDF-050",
+      "CUDF-052"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3215,6 +3780,9 @@
   {
     "name": "reject-format-href",
     "note": "a link href is a string or a condition map.",
+    "requirements": [
+      "CUDF-053"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3235,6 +3803,9 @@
   {
     "name": "reject-format-href-empty-map",
     "note": "a condition map has at least one member.",
+    "requirements": [
+      "CUDF-053"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3255,6 +3826,9 @@
   {
     "name": "reject-format-items",
     "note": "choice items are an array or an object.",
+    "requirements": [
+      "CUDF-054"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3275,6 +3849,9 @@
   {
     "name": "reject-format-items-choice-list",
     "note": "a choice list element has only value and label.",
+    "requirements": [
+      "CUDF-055"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3301,6 +3878,9 @@
   {
     "name": "reject-format-items-choice-group",
     "note": "a choice list of the choice-label format has no groups.",
+    "requirements": [
+      "CUDF-055"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3331,6 +3911,9 @@
   {
     "name": "reject-format-items-duplicate",
     "note": "choice list values are distinct.",
+    "requirements": [
+      "CUDF-055"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3360,6 +3943,9 @@
   {
     "name": "reject-sortable",
     "note": "sortable is a boolean, an expression or a condition map.",
+    "requirements": [
+      "CUDF-056"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3377,6 +3963,9 @@
   {
     "name": "reject-sortable-empty-map",
     "note": "a sortable condition map has at least one member.",
+    "requirements": [
+      "CUDF-056"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3414,6 +4003,9 @@
   {
     "name": "reject-search",
     "note": "search is a boolean or an object.",
+    "requirements": [
+      "CUDF-057"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3431,6 +4023,9 @@
   {
     "name": "reject-sort",
     "note": "sort is an object.",
+    "requirements": [
+      "CUDF-058"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3448,6 +4043,10 @@
   {
     "name": "reject-sort-unknown-key",
     "note": "sort holds field and dir.",
+    "requirements": [
+      "CUDF-040",
+      "CUDF-059"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3469,6 +4068,9 @@
   {
     "name": "reject-sort-field",
     "note": "the sort field is a string.",
+    "requirements": [
+      "CUDF-060"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3488,6 +4090,9 @@
   {
     "name": "reject-sort-dir",
     "note": "the sort direction is asc or desc.",
+    "requirements": [
+      "CUDF-061"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3508,6 +4113,9 @@
   {
     "name": "reject-sort-before-pagination",
     "note": "sort is checked before pagination.",
+    "requirements": [
+      "CUDF-061"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3528,6 +4136,9 @@
   {
     "name": "reject-actions",
     "note": "actions are an object.",
+    "requirements": [
+      "CUDF-062"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3545,6 +4156,9 @@
   {
     "name": "reject-action-ref",
     "note": "actions are not composed.",
+    "requirements": [
+      "CUDF-063"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3564,6 +4178,9 @@
   {
     "name": "reject-action",
     "note": "an action is a script or an object.",
+    "requirements": [
+      "CUDF-064"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3583,6 +4200,10 @@
   {
     "name": "reject-action-unknown-key",
     "note": "an action object holds label, format, behavior and design.",
+    "requirements": [
+      "CUDF-065",
+      "CUDF-066"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3605,6 +4226,10 @@
   {
     "name": "reject-script-action-format",
     "note": "a script action holds label and script.",
+    "requirements": [
+      "CUDF-065",
+      "CUDF-066"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3627,6 +4252,9 @@
   {
     "name": "reject-script-action-script",
     "note": "an action script is a string.",
+    "requirements": [
+      "CUDF-067"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3648,6 +4276,10 @@
   {
     "name": "reject-action-label",
     "note": "an action label is content.",
+    "requirements": [
+      "CUDF-047",
+      "CUDF-068"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3669,6 +4301,9 @@
   {
     "name": "reject-action-format",
     "note": "an action format follows the format rules.",
+    "requirements": [
+      "CUDF-053"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3693,6 +4328,9 @@
   {
     "name": "reject-action-behavior",
     "note": "behavior is a boolean or an object.",
+    "requirements": [
+      "CUDF-070"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3714,6 +4352,11 @@
   {
     "name": "reject-action-behavior-key",
     "note": "behavior holds onchange, onclick and onload.",
+    "requirements": [
+      "CUDF-065",
+      "CUDF-066",
+      "CUDF-071"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3737,6 +4380,9 @@
   {
     "name": "reject-action-behavior-entry",
     "note": "a behavior entry is a script or an object.",
+    "requirements": [
+      "CUDF-072"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3760,6 +4406,12 @@
   {
     "name": "reject-action-behavior-entry-key",
     "note": "a behavior entry object holds label and script.",
+    "requirements": [
+      "CUDF-065",
+      "CUDF-066",
+      "CUDF-071",
+      "CUDF-073"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3786,6 +4438,9 @@
   {
     "name": "reject-action-behavior-label",
     "note": "a behavior entry label is content.",
+    "requirements": [
+      "CUDF-074"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3812,6 +4467,9 @@
   {
     "name": "reject-action-behavior-script",
     "note": "a behavior entry script is a string.",
+    "requirements": [
+      "CUDF-075"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3837,6 +4495,10 @@
   {
     "name": "reject-action-design",
     "note": "an action design follows the design rules.",
+    "requirements": [
+      "CUDF-065",
+      "CUDF-066"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3860,6 +4522,9 @@
   {
     "name": "reject-empty",
     "note": "the empty text is content.",
+    "requirements": [
+      "CUDF-077"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3877,6 +4542,9 @@
   {
     "name": "reject-empty-before-pagination",
     "note": "empty is checked before pagination.",
+    "requirements": [
+      "CUDF-077"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3895,6 +4563,9 @@
   {
     "name": "reject-description",
     "note": "the description is content.",
+    "requirements": [
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3912,6 +4583,9 @@
   {
     "name": "reject-description-language-map",
     "note": "a language map description holds strings or null.",
+    "requirements": [
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3931,6 +4605,9 @@
   {
     "name": "reject-empty-before-description",
     "note": "empty is checked before the description.",
+    "requirements": [
+      "CUDF-077"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3949,6 +4626,9 @@
   {
     "name": "reject-description-before-pagination",
     "note": "the description is checked before pagination.",
+    "requirements": [
+      "CUDF-078"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3967,6 +4647,9 @@
   {
     "name": "reject-actions-before-description",
     "note": "actions are checked before the description.",
+    "requirements": [
+      "CUDF-062"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -3985,6 +4668,11 @@
   {
     "name": "layout-null-selects-table",
     "note": "a null layout selects the table layout, as an absent layout does.",
+    "requirements": [
+      "CUDF-031",
+      "CUDF-044",
+      "CUDF-047"
+    ],
     "spec": {
       "columns": {
         "name": {

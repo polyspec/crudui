@@ -11,7 +11,50 @@
       ],
       "roots": [
         "packages/generator/ts",
-        "packages/validator/ts"
+        "packages/validator/ts",
+        "packages/html"
+      ],
+      "internal": [
+        {
+          "glob": "packages/html/src/button-control.test.ts",
+          "reason": "test: the unit test of the HTML renderer's button fields (Button fields); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/choice-appearance.test.ts",
+          "reason": "test: the unit test of the HTML renderer's choice appearance (Choice appearance); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/choice-groups.test.ts",
+          "reason": "test: the unit test of the HTML renderer's choice groups (Choice groups); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/declared-attributes.test.ts",
+          "reason": "test: the unit test of the HTML renderer's declared attributes (Declared attributes); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/inline-layout.test.ts",
+          "reason": "test: the unit test of the HTML renderer's layout modifiers (Layout); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/range-control.test.ts",
+          "reason": "test: the unit test of the HTML renderer's range fields (Range fields); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/switch-control.test.ts",
+          "reason": "test: the unit test of the HTML renderer's switches (Switches); it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/index.test.ts",
+          "reason": "test: the unit test of the public renderForm and renderList entry points of the HTML renderer on one instance; it reads no shared suite fixture of tests/fixtures"
+        },
+        {
+          "glob": "packages/html/src/form-session.test.ts",
+          "reason": "test: the browser session of the HTML renderer, the browser session of the HTML renderer (the form session of tests/fixtures/form-session); only the TypeScript runtime runs a browser session, and the shared view fixture checks it in the four TypeScript renderers"
+        },
+        {
+          "glob": "packages/html/src/view-session.test.ts",
+          "reason": "test: the browser session of the HTML renderer, the browser session of the HTML renderer (the view re-render of tests/fixtures/view-session); only the TypeScript runtime runs a browser session, and the shared view fixture checks it in the four TypeScript renderers"
+        }
       ]
     },
     {
@@ -68,6 +111,9 @@
       "roots": [
         "packages/generator/rust",
         "packages/validator/rust"
+      ],
+      "support": [
+        "packages/generator/rust/tests/support/**"
       ]
     },
     {
@@ -810,6 +856,380 @@
         "CUSC-059",
         "CUSC-060"
       ]
+    },
+    {
+      "id": "form-outline",
+      "kind": "suite",
+      "file": "tests/fixtures/form-outline/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/html/src/outline.conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/outline_test.go",
+          "symbol": "TestOutlineFixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_outline.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/src/tests.rs",
+          "symbol": "native_outline_fixture"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/OutlineTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\OutlineTest::testBuildOutlineMatchesTheSharedFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/OutlineTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\OutlineTest::testBuildOutlineMatchesTheSharedFixture"
+        }
+      ],
+      "requirements": [
+        "CUMK-031",
+        "CUMK-032",
+        "CUMK-034",
+        "CUMK-035",
+        "CUMK-037"
+      ]
+    },
+    {
+      "id": "form-render",
+      "kind": "suite",
+      "file": "tests/fixtures/form-render/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/html/src/conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_render_suite_test.go",
+          "symbol": "TestFormRenderSuite"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_render.py",
+          "symbol": "TestFormRenderConformance"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/RenderingConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\RenderingConformanceTest::testFormLayoutMatchesTheSharedFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/RenderingConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\RenderingConformanceTest::testFormLayoutMatchesTheSharedFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_render.rs",
+          "symbol": "form_render_cases_reproduce_the_normalized_layout_or_the_failure"
+        }
+      ],
+      "requirements": [
+        "CUMK-004",
+        "CUMK-006",
+        "CUMK-007",
+        "CUMK-010",
+        "CUMK-011",
+        "CUMK-012",
+        "CUMK-013",
+        "CUMK-014",
+        "CUMK-015",
+        "CUMK-016",
+        "CUMK-017",
+        "CUMK-018",
+        "CUMK-019",
+        "CUMK-020",
+        "CUMK-021",
+        "CUMK-022",
+        "CUMK-023",
+        "CUMK-024",
+        "CUMK-025",
+        "CUMK-026",
+        "CUMK-027",
+        "CUMK-028",
+        "CUMK-029",
+        "CUMK-030",
+        "CUMK-032",
+        "CUMK-033",
+        "CUMK-034",
+        "CUMK-036",
+        "CUMK-038",
+        "CUSC-008",
+        "CUSC-009",
+        "CUSC-010",
+        "CUSC-011",
+        "CUSC-012",
+        "CUSC-013",
+        "CUSC-017",
+        "CUSC-018",
+        "CUSC-019",
+        "CUSC-023",
+        "CUSC-024",
+        "CUSC-025",
+        "CUSC-026"
+      ]
+    },
+    {
+      "id": "form-complete",
+      "kind": "suite",
+      "file": "tests/fixtures/form-complete/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/html/src/form-complete.conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_complete_suite_test.go",
+          "symbol": "TestFormCompleteSuite"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_render.py",
+          "symbol": "TestFormCompleteConformance.test_every_case_reproduces_its_expectation"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/FormCompleteConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormCompleteConformanceTest::testCaseWritesItsExpectation"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/FormCompleteConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormCompleteConformanceTest::testCaseWritesItsExpectation"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_complete.rs",
+          "symbol": "form_complete_cases_render_the_recorded_bytes_or_failures"
+        }
+      ],
+      "requirements": [
+        "CUMK-004",
+        "CURT-013",
+        "CURT-014",
+        "CURT-015",
+        "CURT-016",
+        "CURT-017",
+        "CURT-018",
+        "CURT-019",
+        "CURT-020",
+        "CURT-021",
+        "CURT-022",
+        "CURT-023",
+        "CURT-024"
+      ]
+    },
+    {
+      "id": "list-render",
+      "kind": "suite",
+      "file": "tests/fixtures/list-render/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/html/src/list-conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/list_render_suite_test.go",
+          "symbol": "TestListRenderSuite"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_render.py",
+          "symbol": "TestListRenderConformance.test_every_case_reproduces_its_expectation"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/list_render.rs",
+          "symbol": "list_render_cases_reproduce_the_normalized_layout_or_the_failure"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/ListRenderConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\ListRenderConformanceTest::testCaseWritesItsExpectation"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/ListRenderConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\ListRenderConformanceTest::testCaseWritesItsExpectation"
+        }
+      ],
+      "requirements": [
+        "CUDF-006",
+        "CUDF-008",
+        "CUDF-009",
+        "CUDF-010",
+        "CUDF-011",
+        "CUDF-012",
+        "CUDF-013",
+        "CUDF-014",
+        "CUDF-015",
+        "CUDF-016",
+        "CUDF-017",
+        "CUDF-018",
+        "CUDF-019",
+        "CUDF-022",
+        "CUDF-024",
+        "CUDF-025",
+        "CUDF-026",
+        "CUDF-027",
+        "CUDF-028",
+        "CUDF-029",
+        "CUDF-030",
+        "CUDF-031",
+        "CUDF-040",
+        "CUDF-042",
+        "CUDF-043",
+        "CUDF-044",
+        "CUDF-046",
+        "CUDF-047",
+        "CUDF-048",
+        "CUDF-049",
+        "CUDF-050",
+        "CUDF-051",
+        "CUDF-052",
+        "CUDF-053",
+        "CUDF-054",
+        "CUDF-055",
+        "CUDF-056",
+        "CUDF-057",
+        "CUDF-058",
+        "CUDF-059",
+        "CUDF-060",
+        "CUDF-061",
+        "CUDF-062",
+        "CUDF-063",
+        "CUDF-064",
+        "CUDF-065",
+        "CUDF-066",
+        "CUDF-067",
+        "CUDF-068",
+        "CUDF-069",
+        "CUDF-070",
+        "CUDF-071",
+        "CUDF-072",
+        "CUDF-073",
+        "CUDF-074",
+        "CUDF-075",
+        "CUDF-077",
+        "CUDF-078",
+        "CUDF-079",
+        "CUDF-080",
+        "CUDF-081",
+        "CUDF-082",
+        "CUDF-083",
+        "CUDF-084",
+        "CUDF-085",
+        "CUDF-086",
+        "CUDF-087",
+        "CUDF-088"
+      ]
+    },
+    {
+      "id": "detail-render",
+      "kind": "suite",
+      "file": "tests/fixtures/detail-render/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/html/src/detail-conformance.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/detail_render_suite_test.go",
+          "symbol": "TestDetailRenderSuite"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_render.py",
+          "symbol": "TestDetailRenderConformance.test_every_case_reproduces_its_expectation"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/detail_render.rs",
+          "symbol": "detail_render_cases_reproduce_the_normalized_layout_or_the_failure"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/DetailRenderConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\DetailRenderConformanceTest::testCaseWritesItsExpectation"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/DetailRenderConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\DetailRenderConformanceTest::testCaseWritesItsExpectation"
+        }
+      ],
+      "requirements": [
+        "CUDF-006",
+        "CUDF-007",
+        "CUDF-008",
+        "CUDF-009",
+        "CUDF-010",
+        "CUDF-011",
+        "CUDF-012",
+        "CUDF-013",
+        "CUDF-014",
+        "CUDF-015",
+        "CUDF-016",
+        "CUDF-018",
+        "CUDF-019",
+        "CUDF-021",
+        "CUDF-022",
+        "CUDF-032",
+        "CUDF-033",
+        "CUDF-034",
+        "CUDF-035",
+        "CUDF-041",
+        "CUDF-043",
+        "CUDF-045",
+        "CUDF-046",
+        "CUDF-047",
+        "CUDF-048",
+        "CUDF-049",
+        "CUDF-050",
+        "CUDF-051",
+        "CUDF-052",
+        "CUDF-053",
+        "CUDF-054",
+        "CUDF-055",
+        "CUDF-062",
+        "CUDF-063",
+        "CUDF-064",
+        "CUDF-065",
+        "CUDF-066",
+        "CUDF-067",
+        "CUDF-068",
+        "CUDF-069",
+        "CUDF-070",
+        "CUDF-071",
+        "CUDF-072",
+        "CUDF-073",
+        "CUDF-074",
+        "CUDF-075",
+        "CUDF-083",
+        "CUDF-084",
+        "CUDF-085",
+        "CUDF-086",
+        "CUDF-087",
+        "CUDF-088"
+      ]
     }
   ],
   "tools": [
@@ -820,10 +1240,6 @@
     {
       "root": "tests",
       "reason": "test: the tests of the repository tooling (CI, Makefile, manifests, locks, names, generators, documentation) and the browser tests of the styles, widget scripts, form inspector and markup names of the generated HTML; they test no contract of an implementation"
-    },
-    {
-      "root": "packages/html",
-      "reason": "ecosystem: the TypeScript package of the framework adapters and tools of CRUDUI; it is a TypeScript-only integration that renders what the generator core evaluates"
     },
     {
       "root": "packages/react",

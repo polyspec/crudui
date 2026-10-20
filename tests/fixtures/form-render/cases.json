@@ -49,6 +49,9 @@
   {
     "name": "design-show-expr-falsy",
     "note": "design.show '.subscribe' falsy → node carries the hidden attribute, DOM kept (non-removal contract).",
+    "requirements": [
+      "CUMK-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -97,6 +100,9 @@
   {
     "name": "design-show-condmap-non-admin",
     "note": "Same condition-map show; non-admin → true fallback (false) → node hidden attribute, DOM kept.",
+    "requirements": [
+      "CUMK-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -160,6 +166,9 @@
   {
     "name": "design-node-map-4nodes",
     "note": "design 4-node map (label/wrapper/group N/A on leaf/prepend) → each node carries its class; R8 key-visible target.",
+    "requirements": [
+      "CUMK-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -213,6 +222,10 @@
   {
     "name": "group-class-condmap-has-data",
     "note": "The design.group.class condition map selects has-data or empty according to the items value.",
+    "requirements": [
+      "CUMK-013",
+      "CUMK-021"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -253,6 +266,10 @@
   {
     "name": "group-class-condmap-empty",
     "note": "Same group.class condition map; no data → empty branch.",
+    "requirements": [
+      "CUMK-013",
+      "CUMK-021"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -289,6 +306,14 @@
   {
     "name": "multiple-leaf-two-rows",
     "note": "multiple:true + 2 keyed rows → collection node with 2 row nodes, each with add-row and remove-row controls.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-022",
+      "CUMK-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -315,6 +340,14 @@
   {
     "name": "multiple-leaf-empty-placeholder",
     "note": "multiple:true + empty data → a single placeholder row.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-022",
+      "CUMK-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -336,6 +369,15 @@
   {
     "name": "multiple-settings-bucket",
     "note": "multiple:{ max:5, sortable:true, copy:true } → move-up/move-down, add-row, copy-row and remove-row controls with computed disabled states (canonical keys only).",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-036"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -365,6 +407,18 @@
   {
     "name": "multiple-group-rows",
     "note": "type:group + multiple:true + 1 row → collapsible row node with number, controls and child nodes (no position id leakage; the row key is the identity).",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-033"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -400,6 +454,11 @@
   {
     "name": "lang-default-langs",
     "note": "lang:true → default ko/en/ja/zh lang-item nodes, each labelled with its code. Content label translation stays separate.",
+    "requirements": [
+      "CUMK-015",
+      "CUMK-024",
+      "CUMK-025"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -421,6 +480,12 @@
   {
     "name": "lang-settings-only-frame-off",
     "note": "lang:{ only:[ko,en], title:{ko:언어팩}, frame:false } → 2 languages, frame off (p-0 border-0), title applied.",
+    "requirements": [
+      "CUMK-015",
+      "CUMK-024",
+      "CUMK-025",
+      "CUMK-032"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -450,6 +515,10 @@
   {
     "name": "group-nested-properties",
     "note": "type:group + properties:{a,b} → group node with 2 recursive child nodes.",
+    "requirements": [
+      "CUMK-013",
+      "CUMK-021"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -641,6 +710,9 @@
   {
     "name": "textarea-rows5",
     "note": "textarea → rows=5, input-group envelope.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -661,6 +733,9 @@
   {
     "name": "textarea-with-data",
     "note": "textarea with data → escaped text content.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -683,6 +758,9 @@
   {
     "name": "integer-alias",
     "note": "integer alias → type=number input.",
+    "requirements": [
+      "CUMK-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -703,6 +781,9 @@
   {
     "name": "float-alias",
     "note": "float alias → type=number input.",
+    "requirements": [
+      "CUMK-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -725,6 +806,9 @@
   {
     "name": "decimal-alias",
     "note": "decimal alias → type=number input.",
+    "requirements": [
+      "CUMK-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -767,6 +851,9 @@
   {
     "name": "dropdown-alias",
     "note": "dropdown alias → select with static items.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -818,6 +905,9 @@
   {
     "name": "select-with-data",
     "note": "select static items + selected value.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -932,6 +1022,9 @@
   {
     "name": "switcher-bare",
     "note": "switcher → a checkbox input with role=switch and the switch class, its caption in the node body, no value.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -952,6 +1045,9 @@
   {
     "name": "choice-empty",
     "note": "choice/radio btn-group, no value → no checked, data-attr trio per input.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -980,6 +1076,9 @@
   {
     "name": "choice-with-data",
     "note": "choice with value → checked on matching radio; data-is-default on default.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1011,6 +1110,9 @@
   {
     "name": "radio-alias",
     "note": "radio alias → choice markup.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1041,6 +1143,9 @@
   {
     "name": "multichoice-empty",
     "note": "multichoice/checkboxes btn-group, no value.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1069,6 +1174,9 @@
   {
     "name": "multichoice-with-data",
     "note": "multichoice with array value → checked on selected.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1105,6 +1213,9 @@
   {
     "name": "checkboxes-alias",
     "note": "checkboxes alias → multichoice markup.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1394,6 +1505,10 @@
   {
     "name": "image-empty",
     "note": "image two-input file widget, empty-data branch.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1414,6 +1529,10 @@
   {
     "name": "image-options",
     "note": "image with options size constraints + accept → data-* attrs.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1439,6 +1558,9 @@
   {
     "name": "button-empty",
     "note": "button → a button element with the content text, no script and no hidden input.",
+    "requirements": [
+      "CUMK-007"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1462,6 +1584,9 @@
   {
     "name": "action-alias",
     "note": "action alias → the button element with the onclick behavior attribute.",
+    "requirements": [
+      "CUMK-007"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1488,6 +1613,10 @@
   {
     "name": "search-empty",
     "note": "search/autocomplete select2 host, no items → placeholder option.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1508,6 +1637,10 @@
   {
     "name": "search-static-items",
     "note": "search with static items → options built.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1538,6 +1671,10 @@
   {
     "name": "autocomplete-alias",
     "note": "autocomplete alias → search markup.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1558,6 +1695,9 @@
   {
     "name": "tinymce-empty",
     "note": "tinymce textarea + init script, defaults rows=3 height=300.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1578,6 +1718,9 @@
   {
     "name": "tinymce-options",
     "note": "tinymce with options height/rows/fileserver.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1605,6 +1748,9 @@
   {
     "name": "wysiwyg-alias",
     "note": "wysiwyg alias → tinymce markup.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1625,6 +1771,10 @@
   {
     "name": "file-empty",
     "note": "file widget empty-data branch (image family).",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1645,6 +1795,9 @@
   {
     "name": "cover-empty",
     "note": "cover empty-data branch (single file input).",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1665,6 +1818,9 @@
   {
     "name": "cover-simple-alias",
     "note": "cover-simple alias → cover markup.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1733,6 +1889,9 @@
   {
     "name": "selectbox-alias",
     "note": "selectbox → select variant (reuses select emitter).",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1760,6 +1919,9 @@
   {
     "name": "checkcontainer-alias",
     "note": "checkcontainer → multichoice variant.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1789,6 +1951,9 @@
   {
     "name": "summernote-empty",
     "note": "summernote textarea + init script, rows=5.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1809,6 +1974,9 @@
   {
     "name": "editorjs-empty",
     "note": "editorjs host textarea + init script.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1829,6 +1997,9 @@
   {
     "name": "tui-empty",
     "note": "tui host textarea + init script.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1893,6 +2064,9 @@
   {
     "name": "choice-design-label-class",
     "note": "design.main.class → choice per-item LABEL class.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1923,6 +2097,9 @@
   {
     "name": "tinymce-design-class",
     "note": "design.main.class → tinymce textarea class.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1946,6 +2123,10 @@
   {
     "name": "image-design-class",
     "note": "design.main.class → image file-input class.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1969,6 +2150,9 @@
   {
     "name": "date-design-prepend",
     "note": "date design.prepend.class + prepend content.",
+    "requirements": [
+      "CUMK-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -1997,6 +2181,10 @@
   {
     "name": "choice-design-show-false",
     "note": "design.show:false → node hidden attribute; choice inner present.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2025,6 +2213,9 @@
   {
     "name": "select-dynamic-stub",
     "note": "select dynamic items {model} → placeholder option + data-source-*, NO fabricated options.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2053,6 +2244,9 @@
   {
     "name": "choice-dynamic-stub",
     "note": "choice dynamic items {model} → empty btn-group + dynamic-items comment.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2077,6 +2271,9 @@
   {
     "name": "multichoice-dynamic-stub",
     "note": "multichoice dynamic items {model} → empty btn-group + comment.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2101,6 +2298,10 @@
   {
     "name": "search-dynamic-stub",
     "note": "search dynamic items {model} → keeps placeholder option + data-source-*.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2166,6 +2367,9 @@
   {
     "name": "choice-behavior-passthrough",
     "note": "choice behavior onchange/onclick → verbatim attrs on each input (no minify, no eval).",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2223,6 +2427,9 @@
   {
     "name": "button-behavior-onclick",
     "note": "button behavior onclick → an onclick attribute on the button element, verbatim.",
+    "requirements": [
+      "CUMK-007"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2249,6 +2456,10 @@
   {
     "name": "control-attributes-text",
     "note": "design.attributes on a text input after its crudui attributes and design.wrapper.attributes on the node root after its class and path.",
+    "requirements": [
+      "CUMK-026",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2285,6 +2496,10 @@
   {
     "name": "control-attributes-hidden-node",
     "note": "design.wrapper.attributes follow the hidden attribute of a node that design.show hides.",
+    "requirements": [
+      "CUMK-017",
+      "CUMK-026"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2311,6 +2526,9 @@
   {
     "name": "control-attributes-behavior",
     "note": "design.attributes on a text input with a behavior attribute follow the behavior and id attributes.",
+    "requirements": [
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2339,6 +2557,10 @@
   {
     "name": "control-attributes-select-textarea",
     "note": "design.attributes on a select and a textarea, each before its style.",
+    "requirements": [
+      "CUMK-011",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2379,6 +2601,11 @@
   {
     "name": "control-attributes-checkbox",
     "note": "design.attributes on a checkbox input and a switcher input before name, checked and value.",
+    "requirements": [
+      "CUMK-011",
+      "CUMK-026",
+      "CUMK-027"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2418,6 +2645,10 @@
   {
     "name": "control-attributes-choices",
     "note": "design.attributes on every option input of a choice and a multichoice field, after their crudui attributes.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2464,6 +2695,10 @@
   {
     "name": "control-attributes-choice-behavior",
     "note": "design.attributes on option inputs with behavior attributes follow data-is-default and checked.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2514,6 +2749,11 @@
   {
     "name": "control-attributes-dynamic-choice",
     "note": "A dynamic choice source renders no option input and no control attributes; the node root keeps its wrapper attributes.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-026",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2546,6 +2786,12 @@
   {
     "name": "control-attributes-file-display-button",
     "note": "design.attributes on the file input of an image field, the div of a dummy field, the button of an action field and the select of a search field.",
+    "requirements": [
+      "CUMK-007",
+      "CUMK-010",
+      "CUMK-011",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2604,6 +2850,22 @@
   {
     "name": "control-attributes-rows-lang-group",
     "note": "design.attributes on every row control of a repeated scalar field and every language control; wrapper attributes on the collection, lang and group roots and none on row or lang-item nodes.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-015",
+      "CUMK-016",
+      "CUMK-019",
+      "CUMK-021",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-024",
+      "CUMK-025",
+      "CUMK-026",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2679,6 +2941,10 @@
   {
     "name": "range-default-unit",
     "note": "range → a range input with min, max and step from validate.range and validate.step, an output with the default value and the append affix as the unit.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2706,6 +2972,10 @@
   {
     "name": "range-bound-fraction",
     "note": "range with fractional bounds and step, a prepend affix and a bound value written in the input and the output.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2734,6 +3004,10 @@
   {
     "name": "range-empty",
     "note": "range without a default or data → an empty value and an empty output.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2760,6 +3034,11 @@
   {
     "name": "range-behavior-design",
     "note": "range with a behavior attribute, design.class, design.style and declared attributes → the raw input and the output.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2815,6 +3094,10 @@
   {
     "name": "choice-appearance-swatches",
     "note": "choice items with class, style and attributes → the label class after the label classes, the label style, the input attributes after the control attributes; design.group on the choices element.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2866,6 +3149,10 @@
   {
     "name": "choice-appearance-multichoice-override",
     "note": "multichoice items: a choice attribute named like a control attribute keeps its position and takes the choice value; the choices style without a class.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2912,6 +3199,10 @@
   {
     "name": "choice-appearance-behavior",
     "note": "choice items with appearance and a behavior attribute → the raw inputs with the choice attributes and the raw label style.",
+    "requirements": [
+      "CUMK-012",
+      "CUMK-028"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -2957,6 +3248,15 @@
   {
     "name": "inline-layout-fields",
     "note": "an inline group → crudui-node--inline on every field node before the wrapper class; a checkbox and a switcher with a label write the label and the description in the header and the input alone in the body; a checkbox without a label keeps its caption; buttons with and without a label.",
+    "requirements": [
+      "CUMK-007",
+      "CUMK-011",
+      "CUMK-013",
+      "CUMK-020",
+      "CUMK-021",
+      "CUMK-027",
+      "CUMK-029"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3035,6 +3335,18 @@
   {
     "name": "inline-layout-line-stacked",
     "note": "a line group in an inline group → crudui-node--inline crudui-node--line and plain child fields; a nested group inherits inline; a stacked group ends it; a lang field in an inline group; a line group outside an inline layout.",
+    "requirements": [
+      "CUMK-011",
+      "CUMK-013",
+      "CUMK-015",
+      "CUMK-019",
+      "CUMK-020",
+      "CUMK-021",
+      "CUMK-024",
+      "CUMK-025",
+      "CUMK-029",
+      "CUMK-030"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3138,6 +3450,21 @@
   {
     "name": "inline-layout-repeated",
     "note": "an inline repeated group → the fields of its rows have crudui-node--inline; the collection and row nodes do not.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-011",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-020",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-029",
+      "CUMK-033"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3177,6 +3504,9 @@
   {
     "name": "choice-groups-select",
     "note": "select items with plain choices and groups in written order → options and optgroup elements with the translated group label; the selected value inside a group.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3235,6 +3565,9 @@
   {
     "name": "choice-groups-only-groups",
     "note": "dropdown and selectbox items made only of groups → optgroup elements alone; the Korean group label.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3297,6 +3630,9 @@
   {
     "name": "choice-groups-behavior",
     "note": "a select with groups and a behavior attribute → the raw select with its optgroup elements.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3691,6 +4027,9 @@
   {
     "name": "layout-on-field",
     "note": "design.layout is a member of a group field only.",
+    "requirements": [
+      "CUSC-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3713,6 +4052,9 @@
   {
     "name": "layout-on-form-root",
     "note": "The form root declares no layout.",
+    "requirements": [
+      "CUSC-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3735,6 +4077,9 @@
   {
     "name": "layout-on-form-button",
     "note": "A form button declares no layout.",
+    "requirements": [
+      "CUSC-017"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3762,6 +4107,9 @@
   {
     "name": "layout-unknown-value",
     "note": "design.layout is stacked, inline or line.",
+    "requirements": [
+      "CUSC-018"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3785,6 +4133,9 @@
   {
     "name": "layout-condition-map",
     "note": "design.layout is a literal, not a condition map.",
+    "requirements": [
+      "CUSC-018"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3810,6 +4161,9 @@
   {
     "name": "layout-line-repeated",
     "note": "A repeated group is not laid out on one line.",
+    "requirements": [
+      "CUSC-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3917,6 +4271,9 @@
   {
     "name": "choice-appearance-class-list",
     "note": "The class of a choice is a string.",
+    "requirements": [
+      "CUSC-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3946,6 +4303,9 @@
   {
     "name": "choice-appearance-style-map",
     "note": "The style of a choice is a string, not a condition map.",
+    "requirements": [
+      "CUSC-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -3979,6 +4339,9 @@
   {
     "name": "choice-appearance-attributes-text",
     "note": "The attributes of a choice are an object.",
+    "requirements": [
+      "CUSC-024"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4006,6 +4369,9 @@
   {
     "name": "choice-appearance-event-attribute",
     "note": "A choice attribute name is a data-* or aria-* name.",
+    "requirements": [
+      "CUSC-025"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4035,6 +4401,9 @@
   {
     "name": "choice-appearance-owned-attribute",
     "note": "A choice attribute name is not one that crudui writes.",
+    "requirements": [
+      "CUSC-025"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4064,6 +4433,10 @@
   {
     "name": "choice-appearance-number-attribute",
     "note": "A choice attribute value is a string.",
+    "requirements": [
+      "CUSC-023",
+      "CUSC-026"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4093,6 +4466,9 @@
   {
     "name": "range-without-rules",
     "note": "A range field requires validate.range.",
+    "requirements": [
+      "CUSC-008"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4113,6 +4489,9 @@
   {
     "name": "range-reversed-bounds",
     "note": "The minimum of validate.range is not above the maximum.",
+    "requirements": [
+      "CUSC-008"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4140,6 +4519,9 @@
   {
     "name": "range-reference-bounds",
     "note": "validate.range of a range field is a literal pair, not a reference.",
+    "requirements": [
+      "CUSC-008"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4164,6 +4546,9 @@
   {
     "name": "range-three-bounds",
     "note": "validate.range of a range field has exactly two numbers.",
+    "requirements": [
+      "CUSC-008"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4192,6 +4577,9 @@
   {
     "name": "range-without-step",
     "note": "A range field requires validate.step.",
+    "requirements": [
+      "CUSC-009"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4218,6 +4606,9 @@
   {
     "name": "range-zero-step",
     "note": "validate.step of a range field is above 0.",
+    "requirements": [
+      "CUSC-009"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4245,6 +4636,9 @@
   {
     "name": "range-conditional-step",
     "note": "validate.step of a range field is a literal number, not a conditional map.",
+    "requirements": [
+      "CUSC-009"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4275,6 +4669,9 @@
   {
     "name": "range-minimum-off-step",
     "note": "The minimum of validate.range is a multiple of validate.step.",
+    "requirements": [
+      "CUSC-010"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4302,6 +4699,9 @@
   {
     "name": "control-attributes-not-object",
     "note": "design.attributes must be an object.",
+    "requirements": [
+      "CUSC-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4352,6 +4752,9 @@
   {
     "name": "control-attributes-event-name",
     "note": "An event attribute name is neither data-* nor aria-*.",
+    "requirements": [
+      "CUSC-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4377,6 +4780,9 @@
   {
     "name": "control-attributes-uppercase-name",
     "note": "A data-* name with an uppercase letter is refused.",
+    "requirements": [
+      "CUSC-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4402,6 +4808,9 @@
   {
     "name": "control-attributes-bare-prefix",
     "note": "A prefix without a name after it is refused.",
+    "requirements": [
+      "CUSC-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4427,6 +4836,9 @@
   {
     "name": "control-attributes-owned-name",
     "note": "A name crudui writes on a control is refused.",
+    "requirements": [
+      "CUSC-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4479,6 +4891,9 @@
   {
     "name": "control-attributes-names-before-values",
     "note": "Every name is checked before any value: the refused name fails although an earlier value is not a string.",
+    "requirements": [
+      "CUSC-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4505,6 +4920,9 @@
   {
     "name": "control-attributes-value-type",
     "note": "An attribute value must be a string.",
+    "requirements": [
+      "CUSC-013"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4587,6 +5005,9 @@
   {
     "name": "root-description",
     "note": "The translated root description is the first child of crudui-form, before the body; its text is escaped.",
+    "requirements": [
+      "CUMK-004"
+    ],
     "spec": {
       "type": "group",
       "description": {
@@ -4611,6 +5032,9 @@
   {
     "name": "root-description-fallback-language",
     "note": "A root description without an entry for the display language or en uses the content rule: the ko entry, then the first key.",
+    "requirements": [
+      "CUMK-004"
+    ],
     "spec": {
       "type": "group",
       "description": {
@@ -4656,6 +5080,20 @@
   {
     "name": "multiple-only-group-rows",
     "note": "multiple: only renders exactly the data rows in data order under their data keys; each row keeps its toggle, label and number and has no row controls.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-019",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-033",
+      "CUMK-034"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4696,6 +5134,21 @@
   {
     "name": "multiple-only-object-title-sticky",
     "note": "multiple.only: true combines with title and header: rows are titled and sticky, with no row controls.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-032",
+      "CUMK-033",
+      "CUMK-034",
+      "CUMK-038"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4734,6 +5187,10 @@
   {
     "name": "multiple-only-missing-data",
     "note": "Missing data of a multiple: only collection is zero rows, not an initial row: the header and an empty body render, with no footer and no add-row control.",
+    "requirements": [
+      "CUMK-022",
+      "CUMK-034"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4763,6 +5220,10 @@
   {
     "name": "multiple-only-empty-data",
     "note": "An empty multiple: only collection renders its header and an empty body, with no add-row control.",
+    "requirements": [
+      "CUMK-022",
+      "CUMK-034"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4794,6 +5255,12 @@
   {
     "name": "multiple-only-scalar-rows",
     "note": "A repeated scalar declared multiple: only renders its data rows under their keys without row controls.",
+    "requirements": [
+      "CUMK-014",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-034"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4818,6 +5285,17 @@
   {
     "name": "design-show-hidden-group-keeps-values",
     "note": "A group hidden by design.show carries the hidden attribute and still renders the values of its fields and rows, which stay part of native submission.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-021",
+      "CUMK-022",
+      "CUMK-023"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4862,6 +5340,20 @@
   {
     "name": "design-show-row-parent-on",
     "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-019",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-033",
+      "CUMK-034"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -4910,6 +5402,20 @@
   {
     "name": "design-show-row-parent-off",
     "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
+    "requirements": [
+      "CUMK-006",
+      "CUMK-007",
+      "CUMK-013",
+      "CUMK-014",
+      "CUMK-016",
+      "CUMK-017",
+      "CUMK-018",
+      "CUMK-019",
+      "CUMK-022",
+      "CUMK-023",
+      "CUMK-033",
+      "CUMK-034"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -5100,6 +5606,9 @@
   {
     "name": "number-any-step",
     "note": "A number control accepts any number natively (step=\"any\"), so the step base taken from its value never makes another valid number a step mismatch; the step rule owns increments.",
+    "requirements": [
+      "CUMK-019"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -5126,6 +5635,9 @@
   {
     "name": "choice-list-select-order",
     "note": "A select field lists a choice list in list order, so the integer-like values 1 and 0 show Yes before No; the option values are the canonical texts of the values.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -5156,6 +5668,9 @@
   {
     "name": "choice-list-index-labels",
     "note": "An array of labels keeps its written order with the indexes as values.",
+    "requirements": [
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -5180,6 +5695,9 @@
   {
     "name": "choice-list-choice-default",
     "note": "A choice field lists a choice list in list order with a translated label, checks the value and marks the default.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -5214,6 +5732,9 @@
   {
     "name": "choice-list-multichoice-mixed-values",
     "note": "A multichoice field keeps the list order of string and number values.",
+    "requirements": [
+      "CUMK-012"
+    ],
     "spec": {
       "type": "group",
       "properties": {
@@ -5251,6 +5772,10 @@
   {
     "name": "choice-list-search-order",
     "note": "A search field lists a static choice list in list order.",
+    "requirements": [
+      "CUMK-010",
+      "CUMK-011"
+    ],
     "spec": {
       "type": "group",
       "properties": {
