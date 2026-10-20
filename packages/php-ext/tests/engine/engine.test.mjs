@@ -12,38 +12,6 @@ import { cString, cText, cTextInitializer, EngineFixtureSource, caseProgramStart
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const cases = JSON.parse(readFileSync(
-  path.join(root, 'tests/fixtures/compose/cases.json'), 'utf8'));
-
-function sourceForCases() {
-  const builder = new EngineFixtureSource();
-  const { lines } = builder;
-
-  lines.push(...caseProgramStart);
-  cases.forEach((fixture, index) => {
-    lines.push('  {');
-    lines.push(`  /* ${fixture.name} */`);
-    lines.push('  int ok = 1;');
-    const entry = builder.emit(fixture.input.entry);
-    const files = builder.emit(fixture.input.files ?? {});
-    lines.push('  ps_value *error = NULL;');
-    const operation = fixture.input.kind === 'spec' ? 'ps_compose_spec' : 'ps_compose_properties';
-    lines.push(`  ps_value *actual = ${operation}(${entry}, ${files}, ${cText(fixture.input.basepath ?? '')}, &error);`);
-    if (fixture.expected) {
-      const expected = builder.emit(fixture.expected);
-      lines.push(`  if (!actual || error || !ps_equal(actual, ${expected})) { ok = 0; print_text("composed result differs: ", ${cText(fixture.name)}); }`);
-      lines.push(`  ps_value_free(${expected});`);
-    } else {
-      lines.push(`  if (actual || !error || !text_is(ps_get(error, "code"), ${cText(fixture.expectError.code)})) { ok = 0; print_text("error differs: ", ${cText(fixture.name)}); }`);
-    }
-    lines.push(`  ps_value_free(actual); ps_value_free(error); ps_value_free(${entry}); ps_value_free(${files});`);
-    lines.push(...caseReport(index + 1));
-    lines.push('  }');
-  });
-  lines.push(...caseProgramEnd);
-  return fixtureProgram(lines);
-}
-
 function sourceForInvalidReference() {
   const builder = new EngineFixtureSource();
   const entry = builder.emit({ field: { $ref: null }, fixture: { values: ['used'] } });
@@ -59,25 +27,6 @@ function sourceForInvalidReference() {
   return fixtureProgram(builder.lines);
 }
 
-test('PHP extension engine satisfies all composition fixtures', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(cases.length, 20,
-    'Review C composition coverage when the shared fixture inventory changes');
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compose-'));
-  let output = '';
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForCases(), name: 'compose-fixtures',
-      sources: ['value.c', 'number_text.c', 'engine_error.c', 'compose.c'],
-      onOutput: stdout => { output = stdout; },
-    });
-  } finally {
-    recordCases(cases.map(fixture => ({
-      features: ['compileForm'], fixture: 'tests/fixtures/compose/cases.json', name: fixture.name,
-    })), output);
-    await rm(directory, { recursive: true, force: true });
-  }
-});
-
 test('PHP extension engine rejects a null reference value', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compose-invalid-'));
   try {
@@ -86,86 +35,6 @@ test('PHP extension engine rejects a null reference value', { timeout: ENGINE_TE
       sources: ['value.c', 'number_text.c', 'engine_error.c', 'compose.c'],
     });
   } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
-}
-
-{
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const fixtures = JSON.parse(readFileSync(
-  path.join(root, 'tests/fixtures/expr/cases.json'), 'utf8'));
-
-function sourceForFixtures() {
-  const builder = new EngineFixtureSource();
-  const { lines } = builder;
-  let caseIndex = 0;
-  lines.push(...caseProgramStart);
-  for (const [fixtureIndex, fixture] of fixtures.entries()) {
-    if (fixture.error) {
-      // The engine reports no message: a rejected expression is one that does not parse.
-      lines.push('  {', `  /* ${fixture.name} */`, '  int ok = 1;');
-      const data = builder.emit({});
-      lines.push('  bool parsed_value = true, parsed_truth = true;');
-      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, NULL, NULL, 0, &parsed_value);`);
-      lines.push(`  ps_expression_truth(${cText(fixture.expr)}, ${data}, NULL, NULL, 0, &parsed_truth);`);
-      lines.push('  if (parsed_value || parsed_truth || actual) {');
-      lines.push(`    ok = 0; print_text("expression parsed: ", ${cText(fixture.name)});`);
-      lines.push('  }');
-      lines.push(`  ps_value_free(actual); ps_value_free(${data});`);
-      lines.push(...caseReport(fixtureIndex + 1));
-      lines.push('  }');
-      continue;
-    }
-    for (const example of fixture.cases) {
-      caseIndex += 1;
-      lines.push('  {', `  /* ${fixture.name} */`, '  int ok = 1;');
-      const data = builder.emit(example.data);
-      const expected = builder.emit(example.value);
-      const pathItems = example.currentPath ?? [];
-      const currentPath = `path${caseIndex}`;
-      const rowKeys = `rows${caseIndex}`;
-      if (pathItems.length) {
-        lines.push(`  const ps_text ${currentPath}[] = {${pathItems.map(cText).join(', ')}};`);
-        lines.push(`  const bool ${rowKeys}[] = {${pathItems.map((_, index) => ((example.rowKeys ?? []).includes(index) ? 'true' : 'false')).join(', ')}};`);
-      } else {
-        lines.push(`  const ps_text *${currentPath} = NULL;`);
-        lines.push(`  const bool *${rowKeys} = NULL;`);
-      }
-      lines.push('  bool parsed_value = false;');
-      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, ${currentPath}, ${rowKeys}, ${pathItems.length}, &parsed_value);`);
-      lines.push('  bool parsed_truth = false;');
-      lines.push(`  bool truth = ps_expression_truth(${cText(fixture.expr)}, ${data}, ${currentPath}, ${rowKeys}, ${pathItems.length}, &parsed_truth);`);
-      lines.push(`  if (!parsed_value || !parsed_truth || !actual || !ps_equal(actual, ${expected}) || truth != ${example.truthy}) {`);
-      lines.push(`    ok = 0; print_text("expression result differs: ", ${cText(`${fixture.name} case ${caseIndex}`)});`);
-      lines.push('  }');
-      lines.push(`  ps_value_free(actual); ps_value_free(${expected}); ps_value_free(${data});`);
-      // Every example of an entry reports under the entry, which passes only when all do.
-      lines.push(...caseReport(fixtureIndex + 1));
-      lines.push('  }');
-    }
-  }
-  lines.push(...caseProgramEnd);
-  return fixtureProgram(lines);
-}
-
-test('PHP extension engine evaluates every shared expression fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 74,
-    'Review C expression coverage when the shared fixture inventory changes');
-  assert.equal(fixtures.reduce((total, fixture) => total + (fixture.cases?.length ?? 0), 0), 129,
-    'Review C expression coverage when the shared fixture cases change');
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-expression-'));
-  let output = '';
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'expression-fixtures',
-      sources: ['value.c', 'number_text.c', 'value_path.c', 'expression.c'],
-      onOutput: stdout => { output = stdout; },
-    });
-  } finally {
-    recordCases(fixtures.map(fixture => ({
-      features: ['validate'], fixture: 'tests/fixtures/expr/cases.json', name: fixture.name,
-    })), output);
     await rm(directory, { recursive: true, force: true });
   }
 });

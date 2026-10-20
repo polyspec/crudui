@@ -296,7 +296,8 @@
         "packages/php-ext"
       ],
       "tests": [
-        "packages/php-ext/tests/engine/*.test.mjs"
+        "packages/php-ext/tests/engine/*.test.mjs",
+        "packages/php-ext/tests/contract/*.test.mjs"
       ],
       "internal": [
         {
@@ -2125,6 +2126,12 @@
           "implementation": "php",
           "test": "packages/validator/php/tests/Expr/ExprConformanceTest.php",
           "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Expr\\ExprConformanceTest::testExpressionMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/php-ext/tests/contract/expr.test.mjs",
+          "runner": "node",
+          "reason": "the C engine of the extension is checked with node, which compiles the engine sources and runs each case of the suite"
         }
       ],
       "requirements": [

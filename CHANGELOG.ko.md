@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: da17944356c214d8ab767821536326b0a2b15ef33051f50bcc8970cc6fbc1271 -->
+<!-- source-sha256: 2eeffc08eb1f54a91aadd3ff2d9c9612049bc9081ba3c7b03505f419da36a709 -->
 
 ## Unreleased
 
 ### 2026-10-21 — 새 worktree의 make install이 끝까지 실행된다 (C16.149)
 
 - Makefile의 `crudui-install`이 `crudui-install-python`과 `crudui-install-composer` 뒤, `crudui-install-phpdocumentor` 앞에서 `install-link`를 실행한다 (C16.149). composer install은 추적되는 `composer.lock`에서 `vendor/composer/platform_check.php`를 쓰는데, 배포된 polyspec/ordered-json 0.0.9 때문에 PHP 8.5를 요구한다. `.php-version`의 PHP 8.4.1로 검사를 다시 쓰는 link는 `make install`의 끝에서만 실행되어, `make worktree-setup`이 phpDocumentor에서 "Composer detected issues in your platform"으로 멈췄다. Red: `make -n crudui-install`의 순서 검사가 379832f3에서 exit 1; green: exit 0, worktree에서 `make install-link` 뒤 `make crudui-install-phpdocumentor`가 phpDocumentor 3.10.0을 설치한다.
+
+### 2026-10-21 — PHP extension의 C engine이 expression suite를 실행한다 (C16.57-3-1)
+
+- PHP extension의 C engine을 K422에 따라 node runner로 expr suite에 binding한다. `packages/php-ext/tests/contract/expr.test.mjs`는 engine source를 한 번 컴파일하고 `tests/fixtures/expr/cases.json`의 case마다 자기 test로 결과를 보고한다. expression과 composition contract test는 `packages/php-ext/tests/engine/engine.test.mjs`에서 `packages/php-ext/tests/contract/`로 옮겼으며(composition 파일은 C16.57-3-2가 binding한다), `config/parity.json`이 unit `expr`의 binding과 contract glob을 더한다 (C16.57-3-1). Red: `make -s parity-declarations-check`가 exit 1이며 `R2 missing-binding expr php-extension` 줄을 낸다; green: 그 check에 expr의 R2 줄이 없고, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/contract/expr.test.mjs`가 74개 case를 모두 통과한다.
 
 ### 2026-10-21 — CURT-055는 그것을 전부 시험하는 세션이 인용하고, CURT-054는 form state 인용에서 철회된다 (C16.146-1)
 

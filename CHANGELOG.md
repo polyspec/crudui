@@ -7,6 +7,10 @@
 
 - `crudui-install` of the Makefile runs `install-link` after `crudui-install-python` and `crudui-install-composer` and before `crudui-install-phpdocumentor` (C16.149). composer install writes `vendor/composer/platform_check.php` from the tracked `composer.lock`, which demands PHP 8.5 for the released polyspec/ordered-json 0.0.9, and the link that writes the check for the PHP 8.4.1 of `.php-version` ran only at the end of `make install`, so `make worktree-setup` stopped at phpDocumentor with "Composer detected issues in your platform". Red: the order check of `make -n crudui-install` exit 1 on 379832f3; green: exit 0, and `make install-link` then `make crudui-install-phpdocumentor` install phpDocumentor 3.10.0 in the worktree.
 
+### 2026-10-21 — The expression suite runs in the C engine of the PHP extension (C16.57-3-1)
+
+- The C engine of the PHP extension is bound to the expr suite with the node runner (K422). `packages/php-ext/tests/contract/expr.test.mjs` compiles the engine sources once and reports each case of `tests/fixtures/expr/cases.json` as a test of its own; the expression and composition contract tests move out of `packages/php-ext/tests/engine/engine.test.mjs` into `packages/php-ext/tests/contract/` (the composition file is bound by C16.57-3-2), and `config/parity.json` adds the binding of unit `expr` and the contract glob (C16.57-3-1). Red: `make -s parity-declarations-check` exit 1 with `R2 missing-binding expr php-extension`; green: that check prints no R2 line for expr, and `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/contract/expr.test.mjs` passes 74 of 74 cases.
+
 ### 2026-10-21 — CURT-055 is cited by the session that covers it whole; CURT-054 is withdrawn from the form state citation (C16.146-1)
 
 Corrects the citations of C16.146. A case is cited only for a requirement it tests whole.
