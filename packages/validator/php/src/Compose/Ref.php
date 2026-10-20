@@ -53,7 +53,7 @@ final class Ref
         foreach ($paths as $path) {
             $resolved = self::resolveSingle($path, $basepath, $loader, $visiting);
             // array_merge: later keys override earlier.
-            $merged = self::shallowMerge($merged, $resolved);
+            $merged = Members::shallowMerge($merged, $resolved);
         }
         return $merged;
     }
@@ -137,7 +137,7 @@ final class Ref
         // Descend detectKeys.
         $node = $doc;
         foreach ($detectKeys as $detectKey) {
-            if (self::isPlainObject($node) && \array_key_exists($detectKey, (array) $node)) {
+            if (Members::isPlainObject($node) && \array_key_exists($detectKey, (array) $node)) {
                 /** @var array<string, mixed> $node */
                 $node = ((array) $node)[$detectKey];
             } else {
@@ -150,7 +150,7 @@ final class Ref
             }
         }
 
-        if (!self::isPlainObject($node)) {
+        if (!Members::isPlainObject($node)) {
             // A properties layer must be a map. A scalar/array here is malformed.
             $chain = [...\array_keys($visiting), $key];
             throw new ComposeLoadError(
@@ -188,71 +188,19 @@ final class Ref
             return $node;
         }
 
-        $base = [];
-        $patch = self::UNDEFINED;
-        $own = [];
-
-        // Preserve declaration order: $ref expands to the base; keys declared
-        // after it override, keys before it are overridden by it (positional
-        // merge).
-        foreach ($node as $k => $v) {
-            if ($k === '$ref') {
-                // base = (earlier own keys) overlaid by ref, in declaration order:
-                // the ref array_merges onto whatever was processed before it.
-                $base = self::shallowMerge($own, self::resolve($v, $basepath, $loader, $visiting));
-                // own keys already folded into base; reset so later keys override.
-                $own = [];
-            } elseif ($k === '$patch') {
-                $patch = $v;
-            } else {
-                $own[$k] = $v;
-            }
-        }
-
-        $result = self::shallowMerge($base, $own);
-        if ($patch !== self::UNDEFINED) {
-            $result = Patch::apply($result, $patch);
-        }
-        return $result;
-    }
-
-    /** Sentinel for "no $patch seen" (distinct from a present null $patch). */
-    private const UNDEFINED = "\0__compose_undefined__\0";
-
-    /**
-     * Shallow merge: { ...a, ...b } — b's keys override a's, b's new keys append.
-     * PHP array union (+) keeps left on clash, so this assigns b over a instead.
-     * Insertion order follows a's order for shared keys, then b's new keys (the
-     * JS spread { ...a, ...b } order).
-     *
-     * @param array<string, mixed> $a
-     * @param array<string, mixed> $b
-     * @return array<string, mixed>
-     */
-    private static function shallowMerge(array $a, array $b): array
-    {
-        $out = $a;
-        foreach ($b as $k => $v) {
-            $out[$k] = $v;
-        }
-        return JsonValue::orderedMembers($out);
-    }
-
-    /** Objects are stdClass values or non-list PHP associative arrays. */
-    private static function isPlainObject(mixed $v): bool
-    {
-        return $v instanceof \stdClass || (\is_array($v) && !\array_is_list($v));
+        return Members::layer(
+            $node,
+            fn (mixed $ref): array => self::resolve($ref, $basepath, $loader, $visiting),
+        );
     }
 
     /** JS-style type name for $ref value-type error messages. */
     private static function typeName(mixed $v): string
     {
-        if ($v === null) {
-            return 'null';
-        }
-        if (\is_array($v)) {
-            return 'array';
-        }
-        return \gettype($v);
+        return match (true) {
+            $v === null => 'null',
+            \is_array($v) => 'array',
+            default => \gettype($v),
+        };
     }
 }

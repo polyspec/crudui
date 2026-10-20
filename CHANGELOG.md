@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — One module for the composition members (C16.15)
+
+- `Compose\Members` holds the layering of the members of a node (`$ref` base, later members, `$patch`), the shallow merge, the plain-object test, the `UNDEFINED` sentinel and the shape-keeping rebuild of a member, which `Compose`, `Ref` and `Patch` each held a copy of (C16.15). Red: `make duplication-check` listed 9 clones in `src/Compose` (`Compose`/`Ref`/`Patch`); green: 1 remains (the docblock and signature of `setDeepPath` and `removeDeepPath`), and `ComposeConformanceTest` (20), `PatchTest` (17), `RefTest` (7) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — The owner check without rerun-failed (C16.7-1)
 
 - `config/owner-checks.json` lists only `ci` in `fullSuite`: kit K240 removed the local full run and its `rerun-failed` target (C16.7-1). Red: `make owner-validate` exit 1 (`fullSuite names rerun-failed, which is not a target`); green: exit 0 (`owns every tracked path`). C16.7-2 rewrites the rules of AGENTS.md that still describe the local full run.

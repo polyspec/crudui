@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Compose;
 
-use Polyspec\Crudui\Validator\Support\JsonValue;
-
 /**
  * Composition orchestrator (SPEC §5, G5) — the parser's FIRST pass.
  * Byte-for-byte port of validator-ts/src/compose/compose.ts.
@@ -33,9 +31,6 @@ use Polyspec\Crudui\Validator\Support\JsonValue;
  */
 final class Compose
 {
-    /** Sentinel for "no $patch seen" (distinct from a present null $patch). */
-    private const UNDEFINED = "\0__compose_undefined__\0";
-
     /**
      * Compose a properties map: expand $ref to a base, overlay $patch, return the
      * single (composition-free) properties map. Named sibling keys follow
@@ -50,31 +45,11 @@ final class Compose
         FileLoader $loader,
         string $basepath = '',
     ): array {
-        $base = [];
-        $patch = self::UNDEFINED;
-        $own = [];
-
-        foreach ($properties as $k => $v) {
-            if ($k === '$ref') {
-                // $ref array_merges onto whatever was declared before it (declaration order).
-                $base = self::merge($own, Ref::resolve($v, $basepath, $loader));
-                $own = [];
-            } elseif ($k === '$patch') {
-                $patch = $v;
-            } else {
-                $own[$k] = $v;
-            }
-        }
-
-        // No composition keys: still recurse into children so nested $ref expands.
-        $result = self::merge($base, $own);
-        if ($patch !== self::UNDEFINED) {
-            $result = Patch::apply($result, $patch);
-        }
+        $result = Members::layer($properties, static fn (mixed $ref): array => Ref::resolve($ref, $basepath, $loader));
 
         // Recurse into every child field's properties (the tree may compose deeper).
         foreach ($result as $fieldName => $field) {
-            if (self::isPlainObject($field)) {
+            if (Members::isPlainObject($field)) {
                 /** @var array<string, mixed> $field */
                 $composed = self::spec((array) $field, $loader, $basepath);
                 $result[$fieldName] = $field instanceof \stdClass ? (object) $composed : $composed;
@@ -98,30 +73,13 @@ final class Compose
     ): array {
         // Field-level $ref / $patch (a field may inherit a whole base spec).
         if (\array_key_exists('$ref', $spec) || \array_key_exists('$patch', $spec)) {
-            $base = [];
-            $patch = self::UNDEFINED;
-            $own = [];
-            foreach ($spec as $k => $v) {
-                if ($k === '$ref') {
-                    // Field-level $ref resolves a file's properties layer too.
-                    $base = self::merge($own, Ref::resolve($v, $basepath, $loader));
-                    $own = [];
-                } elseif ($k === '$patch') {
-                    $patch = $v;
-                } else {
-                    $own[$k] = $v;
-                }
-            }
-            $resolved = self::merge($base, $own);
-            if ($patch !== self::UNDEFINED) {
-                $resolved = Patch::apply($resolved, $patch);
-            }
+            $resolved = Members::layer($spec, static fn (mixed $ref): array => Ref::resolve($ref, $basepath, $loader));
         } else {
             $resolved = $spec;
         }
 
         // Recurse into properties (composition entry point, SPEC §2).
-        if (\array_key_exists('properties', $resolved) && self::isPlainObject($resolved['properties'])) {
+        if (\array_key_exists('properties', $resolved) && Members::isPlainObject($resolved['properties'])) {
             /** @var array<string, mixed> $props */
             $props = $resolved['properties'];
             $composed = self::properties((array) $props, $loader, $basepath);
@@ -129,27 +87,5 @@ final class Compose
         }
 
         return $resolved;
-    }
-
-    /**
-     * Shallow merge { ...a, ...b }: b overrides a on clash, b's new keys append.
-     *
-     * @param array<string, mixed> $a
-     * @param array<string, mixed> $b
-     * @return array<string, mixed>
-     */
-    private static function merge(array $a, array $b): array
-    {
-        $out = $a;
-        foreach ($b as $k => $v) {
-            $out[$k] = $v;
-        }
-        return JsonValue::orderedMembers($out);
-    }
-
-    /** Objects are stdClass values or non-list PHP associative arrays. */
-    private static function isPlainObject(mixed $v): bool
-    {
-        return $v instanceof \stdClass || (\is_array($v) && !\array_is_list($v));
     }
 }

@@ -39,7 +39,7 @@ final class Patch
      */
     public static function apply(array $base, mixed $patch): array
     {
-        if (!self::isPlainObject($patch)) {
+        if (!Members::isPlainObject($patch)) {
             throw new ComposeLoadError(
                 'PATCH_SHAPE',
                 '$patch must be an object of operations, got ' . self::typeName($patch),
@@ -72,7 +72,7 @@ final class Patch
      */
     private static function applyAddReplace(array $base, mixed $val, string $op): array
     {
-        if (!self::isPlainObject($val)) {
+        if (!Members::isPlainObject($val)) {
             throw new ComposeLoadError(
                 'PATCH_SHAPE',
                 '$patch.' . $op . ' must be an object of deep-path → value',
@@ -107,7 +107,7 @@ final class Patch
             }
             return $result;
         }
-        if (self::isPlainObject($val)) {
+        if (Members::isPlainObject($val)) {
             // Nested map form: recurse where both sides are objects.
             /** @var array<string, mixed> $val */
             return self::removeNested($base, (array) $val);
@@ -150,7 +150,7 @@ final class Patch
         if (\count($rest) === 0) {
             $existing = \array_key_exists($head, $out) ? $out[$head] : null;
             $out[$head] = self::mergeValue(
-                \array_key_exists($head, $out) ? $existing : self::UNDEFINED,
+                \array_key_exists($head, $out) ? $existing : Members::UNDEFINED,
                 $value,
             );
             return $out;
@@ -158,12 +158,13 @@ final class Patch
 
         if (!\array_key_exists($head, $out)) {
             $out[$head] = (object) self::setDeepPath([], $rest, $value);
-        } elseif (self::isPlainObject($out[$head])) {
+        } elseif (Members::isPlainObject($out[$head])) {
             /** @var array<string, mixed> $child */
             $child = $out[$head];
-            $out[$head] = ($child instanceof \stdClass
-                ? (object) self::setDeepPath((array) $child, $rest, $value)
-                : self::setDeepPath($child, $rest, $value));
+            $out[$head] = Members::rebuild(
+                $child,
+                fn (array $members): array => self::setDeepPath($members, $rest, $value),
+            );
         } else {
             // Intermediate node is a scalar/array — cannot descend into it.
             throw new ComposeLoadError(
@@ -174,9 +175,6 @@ final class Patch
         return $out;
     }
 
-    /** Sentinel for "key absent" (distinct from a present null value). */
-    private const UNDEFINED = "\0__compose_undefined__\0";
-
     /**
      * Deep-merge leaf rule: both plain objects
      * → recursive deep merge; otherwise the latter value wins (scalar/array
@@ -186,15 +184,15 @@ final class Patch
     private static function mergeValue(mixed $existing, mixed $incoming): mixed
     {
         if (
-            $existing !== self::UNDEFINED
-            && self::isPlainObject($existing)
-            && self::isPlainObject($incoming)
+            $existing !== Members::UNDEFINED
+            && Members::isPlainObject($existing)
+            && Members::isPlainObject($incoming)
         ) {
             /** @var array<string, mixed> $existing */
             /** @var array<string, mixed> $incoming */
             $out = (array) $existing;
             foreach ($incoming as $k => $v) {
-                $prior = \array_key_exists($k, $out) ? $out[$k] : self::UNDEFINED;
+                $prior = \array_key_exists($k, $out) ? $out[$k] : Members::UNDEFINED;
                 $out[$k] = self::mergeValue($prior, $v);
             }
             return $existing instanceof \stdClass || $incoming instanceof \stdClass ? (object) $out : $out;
@@ -225,7 +223,7 @@ final class Patch
             unset($out[$head]);
             return $out;
         }
-        if (!self::isPlainObject($out[$head])) {
+        if (!Members::isPlainObject($out[$head])) {
             throw new ComposeLoadError(
                 'PATCH_REMOVE_TARGET_MISSING',
                 "\$patch remove cannot descend into non-object at '" . $head . "'",
@@ -233,9 +231,10 @@ final class Patch
         }
         /** @var array<string, mixed> $child */
         $child = $out[$head];
-        $out[$head] = ($child instanceof \stdClass
-            ? (object) self::removeDeepPath((array) $child, $rest)
-            : self::removeDeepPath($child, $rest));
+        $out[$head] = Members::rebuild(
+            $child,
+            fn (array $members): array => self::removeDeepPath($members, $rest),
+        );
         return $out;
     }
 
@@ -256,14 +255,15 @@ final class Patch
             $target = $hasKey ? $out[$key] : null;
             if (
                 $hasKey
-                && self::isPlainObject($target)
-                && self::isPlainObject($sub)
+                && Members::isPlainObject($target)
+                && Members::isPlainObject($sub)
             ) {
                 /** @var array<string, mixed> $target */
                 /** @var array<string, mixed> $sub */
-                $out[$key] = ($target instanceof \stdClass
-                    ? (object) self::removeNested((array) $target, (array) $sub)
-                    : self::removeNested($target, (array) $sub));
+                $out[$key] = Members::rebuild(
+                    $target,
+                    fn (array $members): array => self::removeNested($members, (array) $sub),
+                );
             } else {
                 unset($out[$key]);
             }
@@ -271,21 +271,13 @@ final class Patch
         return $out;
     }
 
-    /** Objects are stdClass values or non-list PHP associative arrays. */
-    private static function isPlainObject(mixed $v): bool
-    {
-        return $v instanceof \stdClass || (\is_array($v) && !\array_is_list($v));
-    }
-
     /** JS-style type name for $patch shape error messages. */
     private static function typeName(mixed $v): string
     {
-        if ($v === null) {
-            return 'null';
-        }
-        if (\is_array($v)) {
-            return \array_is_list($v) && $v !== [] ? 'array' : 'object';
-        }
-        return \gettype($v);
+        return match (true) {
+            $v === null => 'null',
+            \is_array($v) => \array_is_list($v) && $v !== [] ? 'array' : 'object',
+            default => \gettype($v),
+        };
     }
 }

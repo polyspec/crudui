@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2159296abd750ed568ef1ea6072fe881cb0c268af536e9485955add6b2b4fc4e -->
+<!-- source-sha256: ecb9f13f491ba2778daa3e9b66feb9081355caf460aa10c0973a2f128ea32294 -->
 
 ## Unreleased
+
+### 2026-10-20 — 조합 member를 위한 하나의 module (C16.15)
+
+- `Compose\Members`는 node member의 layering(`$ref` base, 이후 member, `$patch`), shallow merge, plain-object 판별, `UNDEFINED` sentinel, member의 shape 유지 rebuild를 담습니다. 이전에는 `Compose`, `Ref`, `Patch`가 각각 사본을 가졌습니다 (C16.15). Red: `make duplication-check`가 `src/Compose`의 clone 9건(`Compose`/`Ref`/`Patch`)을 나열했고, green: 1건이 남으며(`setDeepPath`와 `removeDeepPath`의 docblock과 signature), `ComposeConformanceTest`(20), `PatchTest`(17), `RefTest`(7), `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — rerun-failed 없는 owner 검사 (C16.7-1)
 
