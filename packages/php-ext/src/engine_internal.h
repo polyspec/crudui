@@ -627,4 +627,16 @@ static inline bool set_owned_value(ps_value *object, const char *key, ps_value *
     return ps_set(object, key, owned);
 }
 
+/* Append the significant digits of a number in scientific form: the first digit, then a point and the rest when any. */
+static inline size_t ps_append_mantissa(char *text, size_t length, const char *digits, size_t count)
+{
+    text[length++] = digits[0];
+    if (count > 1) {
+        text[length++] = '.';
+        memcpy(text + length, digits + 1, count - 1);
+        length += count - 1;
+    }
+    return length;
+}
+
 #endif

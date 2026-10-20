@@ -330,12 +330,7 @@ static ps_chars shortest_number(double number)
         memcpy(text + length, digits, count);
         length += count;
     } else {
-        text[length++] = digits[0];
-        if (count > 1) {
-            text[length++] = '.';
-            memcpy(text + length, digits + 1, count - 1);
-            length += count - 1;
-        }
+        length = ps_append_mantissa(text, length, digits, count);
         length += (size_t)snprintf(text + length, sizeof(text) - length, "e%c%ld", point - 1 < 0 ? '-' : '+', labs(point - 1));
     }
     text[length] = '\0';

@@ -429,12 +429,7 @@ ps_chars ps_format_general(double number, int precision)
         }
         while (count > 1 && digits[count - 1] == '0') count--;
         if (exponent < -4 || exponent >= precision) {
-            text[length++] = digits[0];
-            if (count > 1) {
-                text[length++] = '.';
-                memcpy(text + length, digits + 1, count - 1);
-                length += count - 1;
-            }
+            length = ps_append_mantissa(text, length, digits, count);
             int power = exponent < 0 ? -exponent : exponent;
             text[length++] = 'e';
             text[length++] = exponent < 0 ? '-' : '+';
