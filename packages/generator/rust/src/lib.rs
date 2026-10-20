@@ -20,6 +20,7 @@ mod render;
 mod template;
 pub mod text;
 mod util;
+mod view;
 mod widget;
 
 pub use binding::{bind_buttons, bind_form, form_buttons_html, BindOptions};
@@ -30,6 +31,10 @@ pub use list::{build_list, list_rows, render_list, ListOptions};
 pub use outline::build_outline;
 pub use render::render_form;
 pub use template::{compile_form, CompileOptions, FieldTemplate, FormTemplate};
+pub use view::{
+    collapsible_rows, initial_view, rekey_row_view, remove_row_view, set_all_expanded_view,
+    toggle_row_view, ViewState,
+};
 
 #[cfg(test)]
 mod tests;

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b7b87cea5aaf6a1172cf8a59d5dc2e7b97925491fc93fd66f3687a8ea44b5b6f -->
+<!-- source-sha256: e51225ef34f55733ea2df88d8a358902fb97475a558a62b7863f1e6fc4d0c11a -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust generator의 뷰 상태 (C16.51-5)
+
+- Rust generator는 `ViewState`와 뷰 함수 `initial_view`, `toggle_row_view`, `collapsible_rows`, `set_all_expanded_view`, `remove_row_view`, `rekey_row_view`, `BindOptions`의 `collapsed`, `Form::toggle_row`, `Form::set_all_expanded`를 가지며, `remove_row`, `rekey_row`, `set_data`는 뷰를 바꾸고 뷰 변경은 revision을 바꾸지 않습니다. `set_value`는 `set_data`를 호출하던 것을 바꾸어 뷰를 새로 시작하지 않고 레코드를 commit합니다. `contracts/features.json`에서 Rust의 `viewState`는 `pass`입니다. Red: `tests/form_state.rs`가 compile되지 않았습니다(뷰 함수의 `unresolved imports`, `toggle_row` method 없음). Green: 두 test가 통과하고 unit test 37개와 `-D warnings`의 clippy도 통과합니다.
 
 ### 2026-10-20 — Python generator의 뷰 상태 (C16.51-4)
 

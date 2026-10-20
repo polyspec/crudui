@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — View state in the Rust generator (C16.51-5)
+
+- The Rust generator has `ViewState` and the view functions `initial_view`, `toggle_row_view`, `collapsible_rows`, `set_all_expanded_view`, `remove_row_view` and `rekey_row_view`, the `BindOptions` member `collapsed`, `Form::toggle_row` and `Form::set_all_expanded`; `remove_row`, `rekey_row` and `set_data` change the view and a view change leaves the revision. `set_value` commits the record without restarting the view; it had called `set_data`. `viewState` is `pass` for Rust in `contracts/features.json`. Red: `tests/form_state.rs` did not compile (`unresolved imports` of the view functions, no method `toggle_row`). Green: its two tests pass and the 37 unit tests and clippy with `-D warnings` still pass.
+
 ### 2026-10-20 — View state in the Python generator (C16.51-4)
 
 - The Python generator has the view functions `initialView`, `toggleRowView`, `collapsibleRows`, `setAllExpandedView`, `removeRowView` and `rekeyRowView` on `Generator`, the `bindForm` option `collapsed`, `Form.toggleRow` and `Form.setAllExpanded`; `removeRow`, `rekeyRow` and `setData` change the view and a view change leaves the revision. `viewState` is `pass` for Python in `contracts/features.json`. Red: `tests.test_form_state` failed in every case of `form-view` and `view-functions` before the change. Green: its two tests pass, with `make lint-python`.

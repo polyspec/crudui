@@ -1194,7 +1194,7 @@
         "svelte": "pass",
         "php": "unsupported",
         "go": "pass",
-        "rust": "unsupported",
+        "rust": "pass",
         "php-native": "unsupported",
         "python": "pass"
       },
@@ -1205,7 +1205,8 @@
         "examples/form-comparison/src/bind-form-controller.test.mjs",
         "packages/generator/ts/src/form-state.test.ts",
         "packages/generator/go/form_state_test.go",
-        "packages/generator/python/tests/test_form_state.py"
+        "packages/generator/python/tests/test_form_state.py",
+        "packages/generator/rust/tests/form_state.rs"
       ],
       "docs": [
         "docs/spec/form-runtime.md"
@@ -1226,6 +1227,10 @@
         {
           "id": "test-4",
           "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
+        },
+        {
+          "id": "test-5",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state"
         }
       ]
     },

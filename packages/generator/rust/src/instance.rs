@@ -2,6 +2,10 @@ use crate::binding::bind_ordered;
 use crate::template::member_ordered_template;
 use crate::template::{data_only, repeats};
 use crate::util::{segments, value_at};
+use crate::view::{
+    initial_view, rekey_row_view, remove_row_view, set_all_expanded_view, toggle_row_view,
+    ViewState,
+};
 use crate::{BindOptions, FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -50,6 +54,16 @@ fn checked_segments(path: &str) -> FormResult<Vec<String>> {
         return Err(FormError::input(format!("Invalid form path: {path}")));
     }
     Ok(parts)
+}
+
+/// The row path `{collection}.{key}` of a row.
+fn row_path(collection: &[String], key: &str) -> String {
+    collection
+        .iter()
+        .map(String::as_str)
+        .chain([key])
+        .collect::<Vec<_>>()
+        .join(".")
 }
 
 fn put_at(data: &Value, path: &[String], value: Value) -> Value {
@@ -202,6 +216,7 @@ pub struct Form {
     fields: Vec<Value>,
     options: BindOptions,
     revision: u64,
+    view: ViewState,
 }
 
 impl Form {
@@ -217,6 +232,7 @@ impl Form {
             fields,
             options,
             revision: 0,
+            view: initial_view(),
         })
     }
 
@@ -247,7 +263,10 @@ impl Form {
 
     /// Replace record data and reevaluate the form atomically.
     pub fn set_data(&mut self, data: &Value) -> FormResult<()> {
-        self.commit(normalize_fields(&self.template.fields, Some(data), "")?)
+        self.commit_view(
+            normalize_fields(&self.template.fields, Some(data), "")?,
+            initial_view(),
+        )
     }
 
     /// Return a detached value relative to the data root.
@@ -259,14 +278,56 @@ impl Form {
     /// Update one data path and reevaluate the form atomically.
     pub fn set_value(&mut self, path: &str, value: Value) -> FormResult<()> {
         let data = put_at(&self.data, &checked_segments(path)?, value);
-        self.set_data(&data)
+        self.commit(normalize_fields(&self.template.fields, Some(&data), "")?)
     }
 
+    /// The options of the form with the collapsed rows of a view.
+    fn bind_options(&self, view: &ViewState) -> BindOptions {
+        let mut options = self.options.clone();
+        options.collapsed = view
+            .collapsed
+            .iter()
+            .cloned()
+            .map(Value::String)
+            .collect::<Vec<_>>()
+            .into();
+        options
+    }
+
+    /// Replace the record and keep the view; a failure leaves the record and the view unchanged.
     fn commit(&mut self, data: Value) -> FormResult<()> {
-        let fields = bind_ordered(&self.template, &data, &self.options)?;
+        let view = self.view.clone();
+        self.commit_view(data, view)
+    }
+
+    /// Replace the record and the view together.
+    fn commit_view(&mut self, data: Value, view: ViewState) -> FormResult<()> {
+        let fields = bind_ordered(&self.template, &data, &self.bind_options(&view))?;
         self.data = data;
         self.fields = fields;
+        self.view = view;
         self.revision += 1;
+        Ok(())
+    }
+
+    /// Expand a collapsed row or collapse an expanded one; the record and the revision do not change.
+    pub fn toggle_row(&mut self, path: &str, key: &str) -> FormResult<()> {
+        let (_, rows) = self.collection(path)?;
+        if !rows.contains_key(key) {
+            return Err(FormError::input(format!("Unknown row: {key}")));
+        }
+        let segments = checked_segments(path)?;
+        self.refresh_view(toggle_row_view(&self.view, &row_path(&segments, key)))
+    }
+
+    /// Expand every row, or collapse every collapsible row; the record and the revision do not change.
+    pub fn set_all_expanded(&mut self, expanded: bool) -> FormResult<()> {
+        self.refresh_view(set_all_expanded_view(&self.fields, expanded))
+    }
+
+    fn refresh_view(&mut self, view: ViewState) -> FormResult<()> {
+        self.fields = bind_ordered(&self.template, &self.data, &self.bind_options(&view))?;
+        self.view = view;
         Ok(())
     }
 
@@ -399,7 +460,9 @@ impl Form {
         }
         let mut rows = rows.clone();
         rows.shift_remove(key);
-        self.commit(put_at(&self.data, &checked_segments(path)?, rows.into()))
+        let segments = checked_segments(path)?;
+        let view = remove_row_view(&self.view, &row_path(&segments, key));
+        self.commit_view(put_at(&self.data, &segments, rows.into()), view)
     }
 
     /// Move a row without changing its identity or values.
@@ -456,6 +519,12 @@ impl Form {
                 )
             })
             .collect::<Map<_, _>>();
-        self.commit(put_at(&self.data, &checked_segments(path)?, rows.into()))
+        let segments = checked_segments(path)?;
+        let view = rekey_row_view(
+            &self.view,
+            &row_path(&segments, old_key),
+            &row_path(&segments, new_key),
+        );
+        self.commit_view(put_at(&self.data, &segments, rows.into()), view)
     }
 }

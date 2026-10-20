@@ -25,6 +25,8 @@ pub struct BindOptions {
     pub key_prefix: Value,
     /// Unsupported field handling: `throw` (default) or `marker`.
     pub unsupported: Value,
+    /// Row paths `{collection}.{key}` rendered collapsed, a list of strings; null renders every row expanded.
+    pub collapsed: Value,
 }
 impl Default for BindOptions {
     fn default() -> Self {
@@ -33,6 +35,7 @@ impl Default for BindOptions {
             language: "ko".into(),
             key_prefix: Value::Null,
             unsupported: "throw".into(),
+            collapsed: Value::Null,
         }
     }
 }
@@ -48,6 +51,8 @@ fn string_option<'a>(value: &'a Value, error: &str) -> FormResult<Option<&'a str
 
 struct Binding<'a> {
     data: &'a Value,
+    /// The row paths rendered collapsed.
+    collapsed: Vec<&'a str>,
     id_prefix: &'a str,
     key_prefix: Option<&'a str>,
     unsupported: &'a str,
@@ -152,9 +157,21 @@ pub(crate) fn bind_ordered(
         Value::String(mode) if mode == "throw" || mode == "marker" => mode.as_str(),
         _ => return Err(FormError::input("unsupported must be throw or marker")),
     };
+    let collapsed = match &options.collapsed {
+        Value::Null => Vec::new(),
+        Value::Array(rows) => rows
+            .iter()
+            .map(|row| {
+                row.as_str()
+                    .ok_or_else(|| FormError::input("collapsed must be a list of row paths"))
+            })
+            .collect::<FormResult<Vec<_>>>()?,
+        _ => return Err(FormError::input("collapsed must be a list of row paths")),
+    };
     let messages = form_messages(language)?;
     let state = Binding {
         data,
+        collapsed,
         id_prefix: id_prefix.unwrap_or("crudui"),
         key_prefix: key_prefix.or(template.key_prefix.as_deref()),
         unsupported,
@@ -735,8 +752,10 @@ impl Binding<'_> {
             ),
         );
         row.insert("collapsible".into(), true.into());
-        // Server rendering has no view state: every row is expanded.
-        row.insert("expanded".into(), true.into());
+        row.insert(
+            "expanded".into(),
+            (!self.collapsed.contains(&row_path.as_str())).into(),
+        );
         put_string(&mut row, "toggleLabel", messages.toggle_row);
         row.insert("children".into(), children.into());
         Ok(row.into())

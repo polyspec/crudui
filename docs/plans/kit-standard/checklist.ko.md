@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a466a0793c69280f3b6d7997e122b4e646c9890d75e140ae20fd66e861a25769 -->
+<!-- source-sha256: 7966851f4604ad291a74919e8d54bad358e3d2c84e42a81b7ce0cfb4919eae51 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -84,6 +84,7 @@
 | C16.51-2 | form-view 세션에서 canUndo 와 canRedo 를 뺀다. 이력이 없는 구현도 실행할 수 있게 한다 | tests/fixtures/form-state, tests/fixtures/form-view, packages/generator/ts/src/form-state.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |
 | C16.51-3 | Go generator 가 뷰 상태를 가진다: ViewState 와 뷰 함수, bindForm 옵션 Collapsed, Form.ToggleRow 와 Form.SetAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/go (view.go, instance.go, bind.go, template.go, form_state_test.go), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormView\|TestViewFunctions'` | [o] |
 | C16.51-4 | Python generator 가 뷰 상태를 가진다: Generator 의 뷰 함수, bindForm 옵션 collapsed, Form.toggleRow 와 Form.setAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/python (view.py, form.py, binding.py, __init__.py, tests/test_form_state.py), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` | [o] |
+| C16.51-5 | Rust generator 가 뷰 상태를 가진다: ViewState 와 뷰 함수, BindOptions 의 collapsed, Form::toggle_row 와 Form::set_all_expanded 이며 뷰는 remove_row, rekey_row, set_data 를 따른다 | packages/generator/rust (src/view.rs, instance.rs, binding.rs, lib.rs, tests/form_state.rs), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state` | [o] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
