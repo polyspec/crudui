@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 27621b77a2dc9b0d54737b07891270a770a2d8cdc62e8894e5f9bcf542586f3a -->
+<!-- source-sha256: ebed9a46f956b03cc200d594b8810210cb3d7b0086c4a66ea3db2d997d8b485b -->
 
 ## Unreleased
 
@@ -59,6 +59,11 @@
 
 - `tests/fixtures/buttons`는 `bindButtons`(CURP-008)와 `formButtonsHtml`(CURP-009)의 case 22개를 가집니다. 기본 submit 버튼, 네 언어의 선언된 버튼, 그대로 유지되는 link href, 지역화된 text, template, 버튼 타입, 언어 옵션의 거부, 속성이 순서대로 있는 버튼 마크업, 그 이스케이프, 목록, 항목, tag, 속성, class의 거부를 다룹니다. `generate.mts`가 TypeScript reference에서 `cases.json`을 쓰며, README가 명령을 적습니다.
 - `config/rebuild.json`과 `config/knip-entries.json`은 다른 fixture generator와 같은 방식으로 generator를 등록합니다.
+
+### 2026-10-21 — make hooks-check가 CI 검사에서 실행되고, AGENTS.md 규칙이 검사를 이름으로 든다 (C16.44)
+
+- `make rules-check`는 `make hooks-check`가 건너뛸 수 없는 지점에서 실행되지 않는다는 규칙에서 실패했습니다. 앞선 원인, 즉 TARGETS를 준 `make ci-targets`가 뒤의 호출을 건너뛰던 문제는 kit(da0d0e07, K312)가 고쳤습니다.
+- `.github/workflows/ci.yml`의 첫 job은 `make ci-targets TARGETS`에 `hooks-check`를 실행하고, Makefile의 `CI_TARGETS`도 `typecheck` 뒤에 같은 순서로 이를 적으므로 규칙이 이 실행에 닿습니다.
 
 ### 2026-10-21 — layout check가 native program의 Go test와 Composer vendor folder를 받아들인다 (C16.115)
 

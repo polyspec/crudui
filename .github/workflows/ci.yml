@@ -70,7 +70,7 @@ jobs:
         run: make crudui-install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="crudui-test-runtimes crudui-test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck"
+        run: make ci-targets TARGETS="crudui-test-runtimes crudui-test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck hooks-check"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

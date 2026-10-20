@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 87e639bc737f686e160db22f5097a7e2d6a37bac9a5fdef4f5cbed5848014cdb -->
+<!-- source-sha256: 99fd133dca7278170178274d780af29dd395133b852f718f892ba9ba05f46b10 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -67,7 +67,7 @@
 | C16.41 | run-rust-command.mts는 mise shim이 pin한 cargo를 쓰고 scripts/tool-resolution.mts는 제거한다 | scripts/run-rust-command.mts, scripts/tool-resolution.mts, config/rebuild.json | `make rebuild-check` | [o] |
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
-| C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [!] 원인: make rules-check가 AGENTS.md:18을 계속 보고한다(make hooks-check에 닿지 않음). kit check-rules.mts:184는 target ci-targets에 이미 닿았다는 이유로 이후의 make ci-targets TARGETS=... 호출을 건너뛰므로 .github/workflows/push-gate.yml의 push-gate-commit에 닿지 않는다; 재시도: kit이 닿은 target을 target과 variable로 구분한 뒤 |
+| C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [!] 원인: composer.lock이 polyspec/crudui-generator 0.0.7, polyspec/crudui-validator 0.0.7, polyspec/ordered-json 0.0.9를 해석하며, 이들은 php >=8.5를 요구하는데 composer.json은 php 8.4.1을 선언한다. review record에는 packages/php-ext/composer.lock과 Go, Rust lock이 없다; 재시도: PHP 8.4 또는 8.5에 대한 저장소 간 결정 뒤, make dependency-review RECORD=1을 실행한다 |
 | C16.46 | config/parity.json은 crudui의 implementation, tooling root, comparator를 선언한다 | config/parity.json | `make parity-declarations-check` | [!] 원인: make parity-declarations-check는 unit이 없애야 하는 finding 261건을 보고한다. unit 없는 suite 19건(R4), binding 없는 implementation의 test file 230건(R5), implementation root 밖의 test 11건(R6), docs/spec의 requirement id 없음이다. 여섯 implementation, tools root(scripts, tests/build, tests/docs), comparator(tests/native-generators, examples)의 선언이 이 item이다; 재시도: unit, requirement id, 어긋난 test 11건의 이동(C16.47부터 C16.49) 뒤 |
 | C16.46-1 | config/parity.json은 TypeScript 전용 package와 tooling test를 implementation root 밖에 둔다 | config/parity.json | `make parity-declarations-check` | [!] 원인: make parity-declarations-check는 unit과 spec id가 없애는 finding 187건(R4 19건, R5 166건)과, php-extension root 안에 있는 C engine의 node test인 packages/php-ext/tests/engine.test.mjs(R6)를 계속 보고한다; 재시도: unit, requirement id, C engine test의 위치에 대한 결정 뒤 |

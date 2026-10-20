@@ -449,6 +449,7 @@ CI_TARGETS = \
 	lint-rust \
 	lint-go \
 	typecheck \
+	hooks-check \
 	crudui-test-validator-js \
 	crudui-test-validator-php \
 	crudui-test-validator-go \
