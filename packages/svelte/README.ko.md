@@ -1,6 +1,6 @@
 # @polyspec/crudui-generator-svelte
 <!-- doc-id: packages-generator-svelte-readme -->
-<!-- source-sha256: 7c8e4956b139cf5e227f20cde5458c903c274b54d13c2e73e0bc6b5f8bdf75c0 -->
+<!-- source-sha256: 4c7bc57e3d5de0a2b79683356c5b9fa69bb65247dab7f7fa15b96904e362b3fc -->
 
 [English](README.md).
 
@@ -45,3 +45,13 @@ const listHtml = renderList(listSpec, [{ name: 'Ada' }], { language: 'en' });
 - [기능 상태](../../docs/features.ko.md)
 
 저장소 루트에서 `npm run test:forms`로 모든 어댑터를 빌드하고 테스트합니다.
+
+## 프레임워크 화면
+
+- 각 프레임워크 화면을 데이터 로드 전에 마운트하고 데이터를 주입·교체합니다.
+
+- 포인터와 키보드로 행 작업을 실행하고 React, Vue, Svelte에서 포커스를 받은 행을
+  확인합니다.
+
+- 프레임워크 렌더링 사이에 연속 기본 입력 이벤트를 전송하고, 각 편집값을 유지하며
+  마지막 입력값과 인스턴스 값이 일치하는지 확인합니다.

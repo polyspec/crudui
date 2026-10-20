@@ -1,6 +1,6 @@
 # 데이터 검증
 <!-- doc-id: docs-operations-validation -->
-<!-- source-sha256: 1f60e4e9ce199e51756e65994bc558458e88850c1c78314818d1e09902df424c -->
+<!-- source-sha256: 243e8d019f6b2e9fdf393ff4cd15bfbda6c9a1f728a67ae6094dc4b42c0581d5 -->
 
 [English](validation.md).
 
@@ -134,7 +134,7 @@ const binding = bindForm(document.querySelector('#member-form'), spec, {
 발생시키지 않으므로 바인딩이 검증하지 않습니다. 페이지가 폼을 제거하기 전에 `binding.dispose()`를
 호출합니다.
 바인딩은 데이터가 바뀌면 `design.show`를 선언한 필드와 그룹도 값을 바꾸지 않고 보이거나 숨깁니다
-([표시](../spec/form-runtime.ko.md#표시)). `@polyspec/crudui-validator`의 `hiddenPaths(spec, data)`는 다른 스크립트에
+([표시](../../packages/form-binding/README.ko.md#표시)). `@polyspec/crudui-validator`의 `hiddenPaths(spec, data)`는 다른 스크립트에
 숨은 경로를 반환합니다.
 
 Chromium, Firefox, WebKit 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.

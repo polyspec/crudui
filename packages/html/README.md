@@ -37,3 +37,21 @@ instance. These eight render functions are the package entry.
 
 - `crudui-outline`: Structure map with `__header` form controls and `__body` nodes.
 - `crudui-data`: Current data view with `__header` and a `pre` `__body`.
+
+## Scripts in rendered markup
+
+A script in rendered markup runs once, when its markup first appears, in every renderer
+(HTML, React, Vue and Svelte) and for forms, lists and details:
+
+- Server-rendered markup: the browser runs the script while it parses the page. Hydration keeps
+  the parsed nodes and never runs the script again.
+- Client-rendered markup, a new row and a new list row: the script runs when its markup is
+  inserted, after the rest of that markup is in place, so it finds the controls that follow it.
+- A re-render, a data load with the same values, a moved row and a changed script text never run
+  a kept script again.
+
+## Keeping controls across re-renders
+
+- Keep every control, button, script, style and raw content node of forms, lists and details
+  across re-renders, and run each script once, when its markup first appears, in Chromium,
+  Firefox and WebKit.

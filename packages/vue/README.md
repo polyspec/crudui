@@ -44,3 +44,13 @@ The package entry exports components and render functions (`Form`, `List`, `Deta
 - [Feature status](../../docs/features.md)
 
 Run `npm run test:forms` from the repository root to build and test all adapters.
+
+## Framework views
+
+- Mount each framework view before loading data, then inject and replace data.
+
+- Run row operations with pointer and keyboard input and verify the focused row
+  in React, Vue and Svelte.
+
+- Send consecutive native input events across framework renders; retain every
+  accepted edit and finish with matching control and instance values.

@@ -1,6 +1,6 @@
 # @polyspec/crudui-generator-react
 <!-- doc-id: packages-generator-react-readme -->
-<!-- source-sha256: 4201c1c6b697b0a2968a12e618bbabf02aba7a1fb48785210adcb669cd81affb -->
+<!-- source-sha256: dbf553ecd3a5596682abf9e1998b167232170ab562202e3fc32e9bd30735ff36 -->
 
 [English](README.md).
 
@@ -43,3 +43,13 @@ const list = <List vm={buildList(listSpec, rows, { language: 'en' })} layout="ta
 - [기능 상태](../../docs/features.ko.md)
 
 저장소 루트에서 `npm run test:forms`로 모든 어댑터를 빌드하고 테스트합니다.
+
+## 프레임워크 화면
+
+- 각 프레임워크 화면을 데이터 로드 전에 마운트하고 데이터를 주입·교체합니다.
+
+- 포인터와 키보드로 행 작업을 실행하고 React, Vue, Svelte에서 포커스를 받은 행을
+  확인합니다.
+
+- 프레임워크 렌더링 사이에 연속 기본 입력 이벤트를 전송하고, 각 편집값을 유지하며
+  마지막 입력값과 인스턴스 값이 일치하는지 확인합니다.

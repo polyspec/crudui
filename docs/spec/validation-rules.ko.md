@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: e81695e81ba16395d39acad0d82fbae705b70d0f5ace68484ff7a38d1e8fb028 -->
+<!-- source-sha256: 1b0365f6faec94eea4c04c2f33de972b69c449806e0191cde424c1b7061c4df2 -->
 
 [English](validation-rules.md).
 
@@ -55,7 +55,7 @@
 
 검증 결과는 `valid`와 `errors` 외에 `hidden` 멤버를 가집니다. 이 멤버는 `design.show`가 데이터에 대해
 `false`로 결정되는 필드의 데이터 경로를 선언 순서로 담으며, 그룹 행의 필드는 행 키 아래 경로를 가지고, 숨은
-필드 안의 필드도 포함합니다. 이 목록은 [브라우저 바인딩](form-runtime.ko.md#표시)이 `hiddenPaths`로 읽는
+필드 안의 필드도 포함합니다. 이 목록은 [브라우저 바인딩](../../packages/form-binding/README.ko.md#표시)이 `hiddenPaths`로 읽는
 목록과 같습니다. 경로는 그 필드와 그 안의 모든 것을 가리키므로, 데이터를 저장하는 서버는 이 경로의 값을
 저장하지 않을 수 있습니다. 검증기는 값을 바꾸지 않습니다. 아래 필드에서 데이터
 `{ "is_display": 0, "display": { "code": "abc1" } }`는 `hidden`에 목록 `["display"]`를 줍니다.

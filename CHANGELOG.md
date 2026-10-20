@@ -19,6 +19,34 @@ Decision table for the 25 untraced CUMK ids of `docs/spec/form-markup.md` (path 
 | CUMK-057 (expansion is view state), CUMK-061 (undo records every data change) | report | View and history functions exist in every generator. This needs shared form-view and history-function fixtures, not moved. |
 
 The spec keeps a pointer to each moved block. The moved text has no requirement id and stays in English and Korean. Red: `make parity-declarations-check` on 0afab14d, R13 `untraced-requirement` for the CUMK-039..056, 008 and 009 ids. Green: the R13 grep (`defines CUMK-039..056|CUMK-008|CUMK-009`) is empty. `make docs-check` and `make lint-ts` pass.
+### 2026-10-21 — The browser runtime text leaves the spec for the packages that have the runtime (C16.141)
+
+Decision table for the 35 untraced CURT requirements of docs/spec/form-runtime.md (path 2 is the one-runtime rule of the
+scope brief: the text moves to the documentation of the package that has the runtime, is kept, and its id goes away; path
+1, a native integration, applies to none of these):
+
+| Requirement | Decision | Where the text is kept | Reason |
+| --- | --- | --- | --- |
+| CURT-026, CURT-027 (`message`, `formErrors` options) | path 2 | `packages/form-binding/README.md` (Browser validation) | the browser binding's options; a server runtime has no binding |
+| CURT-028 to CURT-034 (`bindForm` binding errors) | path 2 | the same | errors of the browser binding only |
+| CURT-035 to CURT-038 (control values read from the form) | path 2 | the same (Data) | reading the controls of a DOM form; no other runtime has a DOM |
+| CURT-039 to CURT-042 (control name errors) | path 2 | the same (Data) | names of DOM controls, decoded as a browser submission sends them |
+| CURT-043 to CURT-046 (validation timing, submit, focus, re-render) | path 2 | the same (Timing) | events of the browser; a server cannot receive them |
+| CURT-047 to CURT-049 (scripts run once in rendered markup) | path 2 | `packages/html/README.md` (Scripts in rendered markup) | only a browser runs a script; the HTML renderer writes the markup |
+| CURT-051 (mount each framework view before data) | path 2 | `packages/react`, `packages/vue`, `packages/svelte` README (Framework views) | framework views exist only in the TypeScript packages |
+| CURT-057, CURT-058 (pointer, keyboard and native input events in framework views) | path 2 | the same (Framework views) | the same reason: framework event handling in the browser |
+| CURT-059 (keep controls across re-renders; scripts once in Chromium, Firefox, WebKit) | path 2 | `packages/html/README.md` (Keeping controls across re-renders) | browser behaviour of the rendered markup |
+| CURT-060 (bind a server-rendered form in the browser) | path 2 | `packages/form-binding/README.md` (Acceptance of the browser binding) | the browser binding's acceptance |
+| CURT-050 (prepare nested fields, serialize the template, bind independent records) | reported | none | a contract of every implementation as written; needs shared cases |
+| CURT-052 (copy a store when its key equals its company key) | reported | none | an acceptance example of the form comparison, not a rule of the library; the owner decides whether it is a requirement |
+| CURT-053 (edit, reorder, remove and add rows without stale values) | reported | none | a contract of every implementation as written; the form state sessions test the row operations, and the citation needs a case row |
+| CURT-054 (saved sequence key and rule paths) | reported | none | a contract of every implementation as written; needs cases of rekey and rule paths |
+| CURT-055 (reject invalid operations atomically; add after deleting all rows) | reported | none | a contract of every implementation as written; needs cases of failing operations |
+| CURT-056 (every shared validation case through four languages, one idempotent signature) | reported | none | a contract of every implementation as written; the validate suite already runs six runners |
+
+The moved text keeps its wording without the requirement ids. The spec keeps one pointer per moved section, and the
+`keyPrefix` option (CURT-025), which no moved id depends on, stays in the spec. No test cites a moved id: the browser tests
+of `packages/form-binding` are in an ecosystem root that parity does not check, so their declaration is not needed.
 
 ### 2026-10-21 — The generated Go tables are declared generated-file exceptions (C16.136)
 
