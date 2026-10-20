@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 170b428f6ba1978ac2b6250affc8c8bae31a7ceab6a42655739acd583dd6bf36 -->
+<!-- source-sha256: 0b8e1ba973294c1320e51e43e93fde7426b21d6dee9e5f836dbcd30c546f1455 -->
 
 ## Unreleased
+
+### 2026-10-20 — Python form instance는 undo 이력을 유지한다 (C16.52-8)
+
+- `packages/generator/python/src/polyspec/crudui/generator/form.py`의 `Form`에 `undo`, `redo`, `canUndo`, `canRedo`를 추가했고, `history.py`의 pure function을 사용합니다. `setValue`는 path를 기록하고, `setData`는 이력을 비우며, undo와 redo는 view 상태를 바꾸지 않고 `revision`만 올립니다(C16.52-8). `packages/generator/python/tests/test_form_state.py`는 `form-history` session을 history flag와 함께 `form-view` session 옆에서 실행합니다. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state tests.test_form_history` exit 1, 16개 중 5개 실패(`AttributeError: 'Form' object has no attribute 'canUndo'`); green: exit 0, 16 passed, 0 failed.
 
 ### 2026-10-20 — Python validator의 날짜 파서는 layout fallback을 명시한다 (C16.67-10)
 

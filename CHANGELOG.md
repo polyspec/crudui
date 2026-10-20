@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Python form instance keeps its undo history (C16.52-8)
+
+- `packages/generator/python/src/polyspec/crudui/generator/form.py` gives `Form` the methods `undo`, `redo`, `canUndo` and `canRedo` over the pure functions of `history.py`; `setValue` records its path, `setData` clears the history, and the undo and redo steps change `revision` without changing the view state (C16.52-8). `packages/generator/python/tests/test_form_state.py` runs the `form-history` sessions with the history flags beside the `form-view` sessions. Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state tests.test_form_history` exit 1, 5 of 16 tests failed (`AttributeError: 'Form' object has no attribute 'canUndo'`); green: exit 0, 16 passed, 0 failed.
+
 ### 2026-10-20 — The Python validator's date parser names its layout fallback (C16.67-10)
 
 - `packages/validator/python/src/polyspec/crudui/validator/rules.py` has `_strptime_layout`, which returns None for a value that has another layout, and `_parse_date` tries every accepted layout through it, so no `try`/`except` block continues or passes silently (C16.67-10). Red: `ruff check --config ruff.toml rules.py` exit 1, 2 findings S112 `try`-`except`-`continue` at lines 455 and 460; `tests.test_validate` 3 passed and `tests.test_text_validity` 4 passed; green: ruff exit 0 (`All checks passed!`), both test modules pass (3 and 4 passed).

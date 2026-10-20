@@ -13,6 +13,7 @@ from typing import Any, NoReturn
 from .binding import bind as bind_fields
 from .binding import language as bind_language
 from . import buttons as buttons_module
+from . import history as history_module
 from . import view as view_module
 from .errors import FormError
 from .input_text import inputs as check_inputs
@@ -77,6 +78,7 @@ class Form:
         self._buttons = buttons_module.bind(
             self._template, self._data, self._language()
         )
+        self._history = history_module.empty()
         self._revision = 0
 
     # -- Readers -------------------------------------------------------------
@@ -109,6 +111,14 @@ class Form:
         """Detached submission data."""
         return _copy(self._data)
 
+    def canUndo(self) -> bool:
+        """Whether `undo` can restore an earlier record (CURT-061)."""
+        return history_module.can_undo(self._history)
+
+    def canRedo(self) -> bool:
+        """Whether `redo` can reapply an undone change (CURT-061)."""
+        return history_module.can_redo(self._history)
+
     def getValue(self, path: Any) -> Any:
         """A detached path value, or None when missing."""
         check_inputs([("path", path)])
@@ -126,13 +136,28 @@ class Form:
         self._commit(
             self._normalize_fields(self._template["fields"], object_value(data)),
             view_module.initial(),
+            reset=True,
         )
 
     def setValue(self, path: Any, value: Any) -> None:
         """Replace one path value and reevaluate the fields atomically."""
         check_inputs([("path", path), ("value", value)])
-        data = self._put(self._data, self._checked_path(path), _copy(value))
-        self._commit(self._normalize_fields(self._template["fields"], data))
+        parts = self._checked_path(path)
+        data = self._put(self._data, parts, _copy(value))
+        self._commit(
+            self._normalize_fields(self._template["fields"], data),
+            path=".".join(parts),
+        )
+
+    def undo(self) -> None:
+        """Restore the record before the last data change; the view state stays (CURT-011)."""
+        change = history_module.undo(self._history, self._data)
+        self._install(change["value"], self._view, change["history"])
+
+    def redo(self) -> None:
+        """Reapply the most recently undone data change (CURT-012)."""
+        change = history_module.redo(self._history, self._data)
+        self._install(change["value"], self._view, change["history"])
 
     def addRow(self, path: Any, options: Any = None) -> Any:
         """Insert one supplied or defaulted row and return its key."""
@@ -267,14 +292,27 @@ class Form:
         self._fields = bind_fields(self._template, self._data, self._bind_options(view))
         self._view = view
 
-    def _commit(self, data: Any, view: Any = None) -> None:
+    def _commit(
+        self, data: Any, view: Any = None, path: Any = None, reset: bool = False
+    ) -> None:
+        """Apply one data change; `path` is the value edit it records, `reset` clears the history."""
         view = self._view if view is None else view
+        history = (
+            history_module.empty()
+            if reset
+            else history_module.record(self._history, self._data, path)
+        )
+        self._install(data, view, history)
+
+    def _install(self, data: Any, view: Any, history: Any) -> None:
+        """Evaluate the record and the view, then replace the state; the revision counts it."""
         fields = bind_fields(self._template, data, self._bind_options(view))
         buttons = buttons_module.bind(self._template, data, self._language())
         self._view = view
         self._data = data
         self._fields = fields
         self._buttons = buttons
+        self._history = history
         self._revision += 1
 
     def _language(self) -> Any:

@@ -74,35 +74,52 @@ def _perform(form, op, args):
         return getattr(form, op)(*args)
     if op == "setAllExpanded":
         return form.setAllExpanded(args[0])
+    if op in ("undo", "redo"):
+        return getattr(form, op)()
     raise AssertionError(f"unknown step {op}")
+
+
+def _assert_sessions(test, family, history):
+    """Run the sessions of a family; `history` adds the history flags to each observation."""
+    for case in cases_of(family):
+        with test.subTest(case=case["name"]):
+            name = _Namer(
+                _text(case["spec"]), _text(case["data"]), _text(case["steps"])
+            )
+            form = Generator.createForm(
+                Generator.compileForm(case["spec"]), case["data"]
+            )
+            for index, step in enumerate(case["steps"]):
+                observed = {}
+                try:
+                    result = _perform(form, step["op"], step["args"])
+                    if result is not None:
+                        observed["result"] = name.walk(result)
+                except FormError as error:
+                    observed["error"] = {"code": error.code, "message": str(error)}
+                observed["data"] = name.walk(form.getData())
+                observed["revision"] = form.getRevision()
+                if history:
+                    observed["canUndo"] = form.canUndo()
+                    observed["canRedo"] = form.canRedo()
+                observed["collapsed"] = name.walk(_collapsed_rows(form.getFields()))
+                test.assertEqual(
+                    _text(observed), _text(case["expected"][index]), step
+                )
 
 
 class TestFormView(unittest.TestCase):
     """The sessions of the view state fixtures."""
 
     def test_sessions_equal_the_recorded_observations(self):
-        for case in cases_of("form-view"):
-            with self.subTest(case=case["name"]):
-                name = _Namer(
-                    _text(case["spec"]), _text(case["data"]), _text(case["steps"])
-                )
-                form = Generator.createForm(
-                    Generator.compileForm(case["spec"]), case["data"]
-                )
-                for index, step in enumerate(case["steps"]):
-                    observed = {}
-                    try:
-                        result = _perform(form, step["op"], step["args"])
-                        if result is not None:
-                            observed["result"] = name.walk(result)
-                    except FormError as error:
-                        observed["error"] = {"code": error.code, "message": str(error)}
-                    observed["data"] = name.walk(form.getData())
-                    observed["revision"] = form.getRevision()
-                    observed["collapsed"] = name.walk(_collapsed_rows(form.getFields()))
-                    self.assertEqual(
-                        _text(observed), _text(case["expected"][index]), step
-                    )
+        _assert_sessions(self, "form-view", history=False)
+
+
+class TestFormHistory(unittest.TestCase):
+    """The sessions of the undo history fixtures, with the history flags of the form."""
+
+    def test_sessions_equal_the_recorded_observations(self):
+        _assert_sessions(self, "form-history", history=True)
 
 
 def _nodes(spec, data, collapsed=None):
