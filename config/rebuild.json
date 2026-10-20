@@ -226,6 +226,10 @@
       "kind": "ecosystem",
       "tool": "the renderers of CRUDUI for HTML, Vue and Svelte (vue, svelte) draw and hydrate the canonical page"
     },
+    "examples/form-comparison/src/adapters/view-entries.ts": {
+      "kind": "policy",
+      "reason": "the module (src/adapters/view-entries.ts) of the form comparison example, an application of CRUDUI, that gives every adapter its mountView and hydrateView; it implements no tool of an ecosystem"
+    },
     "examples/form-comparison/src/bind-form-controller.mjs": {
       "kind": "policy",
       "reason": "the module (src/bind-form-controller.mjs) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"

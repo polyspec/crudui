@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — config/rebuild.json classes the shared adapter entries of the form comparison (C16.163)
+
+- `config/rebuild.json` declares `examples/form-comparison/src/adapters/view-entries.ts`, which C16.58-27 added, as a policy module of the form comparison example (C16.163); without a class, `make rebuild-check` failed on main. Red: `make rebuild-check` exit 2 on ffb7d22a ("the tool has no class in config/rebuild.json"); green: exit 0.
+
 ### 2026-10-21 — The install check accepts the kit of a linked checkout (C16.162)
 
 - `tests/build/runtime-version-policy.test.mts` ("make installs nothing on its own and make install installs the Rust toolchain") finds the install-tools step of `make install` under `node_modules/@polyspec/kit/dist` or `../kit/dist` (C16.162): in a checkout whose kit is linked to its sibling checkout (make link), KIT is `../kit/dist`, so the test failed in every linked checkout although make install ran kit's install-tools. Red: the test file exit 1 on 53d11cac; green: exit 0.

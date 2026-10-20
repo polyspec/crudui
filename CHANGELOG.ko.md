@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7a8c16cc7a2915ba906475725a3c1e19a4678c2acbccf01d8a15fca79846f93a -->
+<!-- source-sha256: e2852a4a659d48fe439a3da4bac438978e071a48aa2257d13a3a6250e24206fa -->
 
 ## Unreleased
+
+### 2026-10-21 — config/rebuild.json이 form comparison의 공유 adapter 진입점을 분류한다 (C16.163)
+
+- `config/rebuild.json`이 C16.58-27이 추가한 `examples/form-comparison/src/adapters/view-entries.ts`를 form comparison 예제의 policy 모듈로 선언한다 (C16.163); 분류가 없어 main에서 `make rebuild-check`가 실패했다. Red: `make rebuild-check`가 ffb7d22a에서 exit 2("the tool has no class in config/rebuild.json"); green: exit 0.
 
 ### 2026-10-21 — 설치 검사가 링크된 checkout의 kit를 받아들인다 (C16.162)
 
