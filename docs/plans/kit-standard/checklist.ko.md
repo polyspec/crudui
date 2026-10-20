@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: daa67c0297a49cb94988f767e417fb2fe7d32cd11ae457337f70249b169577c6 -->
+<!-- source-sha256: 74c45a208fce71c01ef2b2bb35775a85fe50390e1e7560b14afd11230d9a3fa3 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -163,3 +163,4 @@
 | C16.80 | crudui는 f7c1f10c의 kit 사본을 받는다(K354 K394 K386 K348-1 K360-2 K349-2 K390-1 K392-1 K393) | scripts/kit/kit-bootstrap.mk, .gitattributes and the other copies that make kit-sync and make hooks write | `make kit-check` | [o] |
 | C16.70 | PHP text validity conformance test는 fixture를 읽고 내부 text helper를 검사하되, library source를 읽지 않아 extension 실행이 extension을 검사한다 | packages/validator/php/tests/Validate/TextValidityConformanceTest.php, packages/validator/php/tests/Validate/TextInternalsTest.php, packages/validator/php/tests/Validate/UniqueValuesTest.php, CHANGELOG.md, CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/TextValidityConformanceTest.php tests/Validate/TextInternalsTest.php tests/Validate/UniqueValuesTest.php tests/Validate/ValidateConformanceTest.php tests/Validate/ListValidateConformanceTest.php tests/Validate/DetailValidateConformanceTest.php tests/Validate/ForbiddenScanConformanceTest.php tests/Validate/PublicApiTest.php`; `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES='ValidateConformanceTest\|ListValidateConformanceTest\|DetailValidateConformanceTest\|ForbiddenScanConformanceTest\|MessagePlaceholderTest\|UniqueValuesTest\|TextValidityConformanceTest'` | [o] |
 | C16.82 | Go generator는 공유 form-render suite를 실행한다 | packages/generator/go/form_render_suite_test.go, packages/generator/go/instance.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestFormRenderSuite` | [o] |
+| C16.91 | crudui-test-native test는 node_modules를 가리키는 대신 Makefile의 KIT 디렉터리를 도출한다 | tests/build/make-tool-path.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/make-tool-path.test.mts` | [o] |

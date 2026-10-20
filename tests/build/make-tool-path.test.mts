@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { chmod, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,6 +10,33 @@ import { runRustCommand, type CommandRunner } from '../../scripts/run-rust-comma
 
 const repository = path.resolve(import.meta.dirname, '../..');
 const make = process.env.MAKE || '/usr/bin/make';
+
+/** A string as a regular expression that matches it literally. */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * The directory of the kit tools that the Makefile runs (KIT): make decides it from the checkout, a kit checkout beside
+ * the repository or the installed package, so the test asks make for it instead of naming one of them.
+ */
+function kitDirectory(): string {
+  const probe = mkdtempSync(path.join(os.tmpdir(), 'crudui-kit-probe-'));
+  try {
+    const probeFile = path.join(probe, 'kit-directory.mk');
+    writeFileSync(probeFile, 'print-kit-directory:\n\t@printf \'%s\\n\' \'$(KIT)\'\n');
+    const result = spawnSync(make, ['--no-print-directory', '-s', '-f', 'Makefile', '-f', probeFile, 'print-kit-directory'], {
+      cwd: repository,
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const [directory] = result.stdout.trim().split('\n');
+    assert.ok(directory, 'make printed no KIT directory');
+    return directory;
+  } finally {
+    rmSync(probe, { recursive: true, force: true });
+  }
+}
 
 async function writeExecutable(filename: string): Promise<void> {
   await writeFile(filename, [
@@ -58,8 +86,9 @@ test('crudui-test-native runs the Rust tests through the test runner', async t =
   assert.equal(result.error, undefined, result.error?.message ?? '');
   assert.equal(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
+  const kit = kitDirectory();
   assert.match(commands,
-    /^node\tnode_modules\/@polyspec\/kit\/dist\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator\/rust\/Cargo\.toml$/m);
+    new RegExp(`^node\\t${escapeRegExp(kit)}/run-tests\\.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo\\.toml$`, 'm'));
 });
 
 test('crudui-test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', async t => {
