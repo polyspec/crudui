@@ -83,31 +83,27 @@ describe('detail validate — every case declares an engine expectation', () => 
   });
 });
 
-describe('detail validate — engine:pass loads clean', () => {
-  for (const c of cases.filter((x) => x.engine === 'pass')) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        expect(run(c)).toStrictEqual({ valid: true, errors: [] });
-      }));
-  }
-});
+for (const c of cases.filter((x) => x.engine === 'pass')) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      expect(run(c)).toStrictEqual({ valid: true, errors: [] });
+    }));
+}
 
-describe('detail validate — a composition or forbidden-key failure is a load error', () => {
-  for (const c of cases.filter((x) => isLoadError(x.engine))) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        const want = c.engine;
-        assert(isLoadError(want), `${c.name} expects a load error`);
-        let thrown: unknown;
-        try {
-          run(c);
-        } catch (error) {
-          thrown = error;
-        }
-        assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
-        const error = thrown;
-        expect(error.code).toStrictEqual(want.code);
-        expect(error.trace.join('.')).toStrictEqual(want.at);
-      }));
-  }
-});
+for (const c of cases.filter((x) => isLoadError(x.engine))) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      const want = c.engine;
+      assert(isLoadError(want), `${c.name} expects a load error`);
+      let thrown: unknown;
+      try {
+        run(c);
+      } catch (error) {
+        thrown = error;
+      }
+      assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
+      const error = thrown;
+      expect(error.code).toStrictEqual(want.code);
+      expect(error.trace.join('.')).toStrictEqual(want.at);
+    }));
+}

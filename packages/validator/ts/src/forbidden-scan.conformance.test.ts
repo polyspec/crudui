@@ -85,34 +85,30 @@ function run(c: FixtureCase) {
   return validate(c.spec, {}, c.files ? { files: c.files } : {});
 }
 
-describe('forbidden-scan — clean specs pass the load path', () => {
-  for (const c of cases.filter((x) => x.engine === 'pass')) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        expect(run(c)).toStrictEqual({ valid: true, errors: [], hidden: [] });
-      }));
-  }
-});
+for (const c of cases.filter((x) => x.engine === 'pass')) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      expect(run(c)).toStrictEqual({ valid: true, errors: [], hidden: [] });
+    }));
+}
 
-describe('forbidden-scan — a forbidden meta key at any depth is a LOAD ERROR', () => {
-  for (const c of cases.filter((x) => isLoadError(x.engine))) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        const want = c.engine;
-        assert(isLoadError(want), `${c.name} expects a load error`);
-        let thrown: unknown;
-        try {
-          run(c);
-        } catch (e) {
-          thrown = e;
-        }
-        assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
-        const err = thrown;
-        expect(err.code).toStrictEqual(want.code);
-        expect(err.trace.join('.')).toStrictEqual(want.at);
-      }));
-  }
-});
+for (const c of cases.filter((x) => isLoadError(x.engine))) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      const want = c.engine;
+      assert(isLoadError(want), `${c.name} expects a load error`);
+      let thrown: unknown;
+      try {
+        run(c);
+      } catch (e) {
+        thrown = e;
+      }
+      assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
+      const err = thrown;
+      expect(err.code).toStrictEqual(want.code);
+      expect(err.trace.join('.')).toStrictEqual(want.at);
+    }));
+}
 
 describe('forbidden-scan — every fixture case declares an expectation', () => {
   test('no case is silently missing an engine field', () => {

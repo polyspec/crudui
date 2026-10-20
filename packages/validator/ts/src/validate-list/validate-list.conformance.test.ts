@@ -103,44 +103,40 @@ describe('list validate — every case declares an engine expectation', () => {
   });
 });
 
-describe('list validate — engine:pass loads clean (no rows validated)', () => {
-  for (const c of cases.filter((x) => x.engine === 'pass')) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        // The structure check does not reject a meta-schema-only invalid case
-        // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
-        // never this engine's — so it loads clean here.
-        let result: ReturnType<typeof validateList> | undefined;
-        expect(() => {
-          result = run(c);
-        }, `${c.name} must not be rejected by the four-language structure check`).not.toThrow();
-        // No rows → no data validation: a clean load is always { valid:true, errors:[] }.
-        expect(result).toStrictEqual({ valid: true, errors: [] });
-      }));
-  }
-});
+for (const c of cases.filter((x) => x.engine === 'pass')) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      // The structure check does not reject a meta-schema-only invalid case
+      // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
+      // never this engine's — so it loads clean here.
+      let result: ReturnType<typeof validateList> | undefined;
+      expect(() => {
+        result = run(c);
+      }, `${c.name} must not be rejected by the four-language structure check`).not.toThrow();
+      // No rows → no data validation: a clean load is always { valid:true, errors:[] }.
+      expect(result).toStrictEqual({ valid: true, errors: [] });
+    }));
+}
 
-describe('list validate — a forbidden meta key in the list tree is a LOAD ERROR', () => {
-  for (const c of cases.filter((x) => isLoadError(x.engine))) {
-    test(c.name, () =>
-      proves(c.name, () => {
-        const want = c.engine;
-        assert(isLoadError(want), `${c.name} expects a load error`);
-        let thrown: unknown;
-        try {
-          run(c);
-        } catch (e) {
-          thrown = e;
-        }
-        assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
-        const err = thrown;
-        expect(err.code).toStrictEqual(want.code);
-        // The dotted trace points at the shallowest offending key — depth is
-        // load-bearing (a deeply nested meta key must be caught at its real path).
-        expect(err.trace.join('.')).toStrictEqual(want.at);
-      }));
-  }
-});
+for (const c of cases.filter((x) => isLoadError(x.engine))) {
+  test(c.name, () =>
+    proves(c.name, () => {
+      const want = c.engine;
+      assert(isLoadError(want), `${c.name} expects a load error`);
+      let thrown: unknown;
+      try {
+        run(c);
+      } catch (e) {
+        thrown = e;
+      }
+      assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
+      const err = thrown;
+      expect(err.code).toStrictEqual(want.code);
+      // The dotted trace points at the shallowest offending key — depth is
+      // load-bearing (a deeply nested meta key must be caught at its real path).
+      expect(err.trace.join('.')).toStrictEqual(want.at);
+    }));
+}
 
 describe('list validate — does NOT touch form-spec validate (R7 parallel)', () => {
   test('validateList takes no `data` argument and validates no rows', () => {
