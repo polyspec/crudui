@@ -951,6 +951,9 @@
         "CUIT-026",
         "CUIT-027",
         "CUIT-028",
+        "CUIT-032",
+        "CUIT-033",
+        "CUIT-035",
         "CUIT-037",
         "CUIT-038",
         "CUIT-039",
@@ -1005,6 +1008,9 @@
         "CUIT-026",
         "CUIT-027",
         "CUIT-028",
+        "CUIT-032",
+        "CUIT-033",
+        "CUIT-035",
         "CUIT-037",
         "CUIT-038",
         "CUIT-039",
@@ -1059,10 +1065,55 @@
         "CUIT-026",
         "CUIT-027",
         "CUIT-028",
+        "CUIT-032",
+        "CUIT-033",
+        "CUIT-035",
         "CUIT-037",
         "CUIT-038",
         "CUIT-039",
         "CUIT-040"
+      ]
+    },
+    {
+      "id": "text-validity-value-graphs",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/value-graphs.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testValueGraphMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testValueGraphMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/text_conformance_test.go",
+          "symbol": "TestValueGraphsMatchFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/text_validity_conformance.rs",
+          "symbol": "value_graph_limits"
+        }
+      ],
+      "requirements": [
+        "CUIT-021",
+        "CUIT-022",
+        "CUIT-029",
+        "CUIT-030",
+        "CUIT-031",
+        "CUIT-032",
+        "CUIT-033",
+        "CUIT-035"
       ]
     },
     {

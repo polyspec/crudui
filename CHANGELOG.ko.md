@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d10d897d6a8fff64803bb04caf1be92701a7a9abdcdab55b8314af0068539d8d -->
+<!-- source-sha256: dfc2f13b7c595ee142941308da31da2b7cb5b00ee3d540fa553d838ccb713a52 -->
 
 ## Unreleased
 
@@ -13,6 +13,10 @@
 - render와 outline 제품군은 자기 case가 실행하는 런타임 operation을 인용합니다. `tests/fixtures/form-complete`는 CURP-013(`renderForm`), `tests/fixtures/list-render`는 CURP-015(`renderList`), `tests/fixtures/detail-render`는 CURP-017(`renderDetail`), `tests/fixtures/form-outline`은 CURP-006(`compileForm`), CURP-007(`bindForm`), CURP-021(바인딩이 record에 대해 field를 평가함)을 인용합니다. form state 세션(`form-view`, `form-history`, `form-actions`)은 각 세션이 record와 row 작업을 소유하는 instance를 만들므로 CURP-020을 인용합니다. `config/parity.json`의 unit도 같은 id를 인용합니다.
 - 확장된 제품군의 모든 runner가 한 번씩 통과합니다. TypeScript, Go, Python, Rust, PHP library runner와 PHP extension runner입니다.
 - 아직 인용하지 않은 id와 그 이유입니다. CURP-001부터 CURP-005까지는 각각 네 가지 기능을 명시하는 언어별 행입니다. validation과 composition 부분은 validate 제품군이 시험하지만, 다섯 런타임에서 모든 기능을 함께 실행하는 제품군은 없으며, 기능별 인용에 대한 판정이 필요합니다. CURP-008과 CURP-009(`bindButtons`, `formButtonsHtml`)는 실행하는 제품군이 없고, 추가하려면 여섯 runner에 새 operation이 필요합니다. CURP-014와 CURP-016(`buildList`, `buildDetail`)은 text-validity case만 실행하며, 그 파일은 C16.111을 기다립니다. CURP-019(컴파일된 template의 직렬화와 캐시)는 직렬화된 컴파일 출력을 비교하는 제품군이 없습니다. CURP-023(브라우저 바인딩)은 JavaScript 브라우저 런타임만 가지는 단일 구현 요구사항이므로 판정을 기다립니다. CURP-024(한 런타임이 컴파일한 template을 다른 런타임이 바인딩함)는 그런 제품군이 없으며 C16.111을 기다립니다. CURP-025(ordered JSON 전송)는 ordered-json 저장소에서 시험합니다. CURP-026(PHP 배열이 객체인지 목록인지)은 C16.57-13이 main에 들어간 뒤 form state 세션의 PHP root case가 인용합니다.
+
+### 2026-10-21 — input-text limit의 text-validity unit이 그 case의 id를 인용한다 (C16.57-15)
+
+- `config/parity.json`: unit `text-validity-validate`, `text-validity-validate-list`, `text-validity-validate-detail`은 실패 case의 CUIT-032, CUIT-033, CUIT-035를 인용하고, suite unit `text-validity-value-graphs`는 `tests/fixtures/text-validity/value-graphs.json`에 대해 CUIT-021, CUIT-022, CUIT-029 ~ CUIT-033, CUIT-035를 인용합니다. 이 unit은 그 file을 읽는 TypeScript, PHP, PHP extension, Go, Rust runner의 binding을 가집니다. Python runner는 그 file을 읽지 않으므로 R2가 그 binding의 부재를 보고합니다(C16.57-15). Red: HEAD에서의 record, `make item-red ID=C16.57-15 BEFORE=HEAD`: grep Verification이 exit 1입니다. R13이 이 id들을 인용되지 않은 것으로 보고하기 때문입니다. Green: `make item-test ID=C16.57-15`, unit이 id를 인용하면 grep이 exit 0입니다.
 
 ### 2026-10-21 — input-text case가 시험하는 limit와 오류 타입 요구를 인용한다 (C16.57-15)
 
