@@ -11,6 +11,8 @@ static RFC: LazyLock<Regex> = LazyLock::new(|| {
 const MONTHS: [&str; 12] = [
     "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
 ];
+/// The digit runs that the expressions capture fit their numeric types, so they always parse.
+const CAPTURED_DIGITS: &str = "the expression captures ASCII digits that fit the type";
 const WEEKDAYS: [&str; 7] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 fn offset_minutes(zone: &str) -> Option<i64> {
@@ -27,8 +29,8 @@ fn offset_minutes(zone: &str) -> Option<i64> {
         return Some(offset);
     }
     let digits = zone.get(1..)?.replace(':', "");
-    let hours: i64 = digits.get(..2)?.parse().ok()?;
-    let minutes: i64 = digits.get(2..)?.parse().ok()?;
+    let hours: i64 = digits.get(..2)?.parse().expect(CAPTURED_DIGITS);
+    let minutes: i64 = digits.get(2..)?.parse().expect(CAPTURED_DIGITS);
     if hours > 23 || minutes > 59 {
         return None;
     }
@@ -39,12 +41,24 @@ pub(crate) fn parse(value: &str) -> Option<DateTime<Utc>> {
     let (year, month, day, hour, minute, second, fraction, zone, weekday) =
         if let Some(parts) = ISO.captures(value) {
             (
-                parts[1].parse().ok()?,
-                parts[2].parse().ok()?,
-                parts[3].parse().ok()?,
-                parts.get(4).map_or("0", |v| v.as_str()).parse().ok()?,
-                parts.get(5).map_or("0", |v| v.as_str()).parse().ok()?,
-                parts.get(6).map_or("0", |v| v.as_str()).parse().ok()?,
+                parts[1].parse().expect(CAPTURED_DIGITS),
+                parts[2].parse().expect(CAPTURED_DIGITS),
+                parts[3].parse().expect(CAPTURED_DIGITS),
+                parts
+                    .get(4)
+                    .map_or("0", |v| v.as_str())
+                    .parse()
+                    .expect(CAPTURED_DIGITS),
+                parts
+                    .get(5)
+                    .map_or("0", |v| v.as_str())
+                    .parse()
+                    .expect(CAPTURED_DIGITS),
+                parts
+                    .get(6)
+                    .map_or("0", |v| v.as_str())
+                    .parse()
+                    .expect(CAPTURED_DIGITS),
                 parts.get(7).map_or("", |v| v.as_str()),
                 parts.get(8).map_or("", |v| v.as_str()),
                 None,
@@ -52,15 +66,19 @@ pub(crate) fn parse(value: &str) -> Option<DateTime<Utc>> {
         } else {
             let parts = RFC.captures(value)?;
             (
-                parts[4].parse().ok()?,
+                parts[4].parse().expect(CAPTURED_DIGITS),
                 MONTHS
                     .iter()
                     .position(|m| parts[3].eq_ignore_ascii_case(m))? as u32
                     + 1,
-                parts[2].parse().ok()?,
-                parts[5].parse().ok()?,
-                parts[6].parse().ok()?,
-                parts.get(7).map_or("0", |v| v.as_str()).parse().ok()?,
+                parts[2].parse().expect(CAPTURED_DIGITS),
+                parts[5].parse().expect(CAPTURED_DIGITS),
+                parts[6].parse().expect(CAPTURED_DIGITS),
+                parts
+                    .get(7)
+                    .map_or("0", |v| v.as_str())
+                    .parse()
+                    .expect(CAPTURED_DIGITS),
                 "",
                 parts.get(8)?.as_str(),
                 parts.get(1).map(|v| v.as_str()),
@@ -80,7 +98,7 @@ pub(crate) fn parse(value: &str) -> Option<DateTime<Utc>> {
         fraction = &fraction[..fraction.len().min(9)]
     )
     .parse()
-    .ok()?;
+    .expect(CAPTURED_DIGITS);
     let time = date.and_hms_nano_opt(hour, minute, second, nanos)?;
     let utc = time.checked_sub_signed(Duration::minutes(offset_minutes(zone)?))?;
     Some(Utc.from_utc_datetime(&utc))

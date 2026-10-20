@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1cf7164bd6472e71cfdb9606ebb7277775ae3fd648c23a428da0ee38dc81cca0 -->
+<!-- source-sha256: 74d5c459a1671dd8d3943588dba29f578f16bb633c650bbe453d3413d42dcccb -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust generator는 kit lint의 숨은 오류를 처리한다 (C16.67-13)
+
+- `packages/generator/rust/src/date.rs`는 식이 캡처한 숫자 묶음을 invariant 메시지(`CAPTURED_DIGITS`)와 함께 읽고, `design.rs`는 평가되지 않는 condition expression을 false로 두는 reference fallback을 헬퍼 `expression_flag`와 `expression_value`에 유지하며(`expr.ts`가 읽는 대로), `instance.rs`의 `move_row`는 변환 전에 위치를 검사하고, `list.rs`는 인덱스가 아닌 텍스트를 `choice-label`의 label로 유지하며 `pagination_model`에서 `pagination.per_page`의 오류를 전파하고, `number.rs`는 `decimal`에서 숫자가 아닌 텍스트를 reference대로 읽고, `util.rs`는 인덱스가 아닌 segment의 path lookup을 유지하며, `messages/mod.rs`와 `tests.rs`는 같은 동작의 `match`로 `unwrap_or_else`를 바꾸고, `tests.rs`에 `pagination_per_page_that_is_no_integer_is_an_error`가 추가됩니다(C16.67-13). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`가 library에서 finding 21건(`Result::ok`, `Result::unwrap_or`, `Result::unwrap_or_else`)과 unit test에서 24건으로 exit 101이었습니다. Green: exit 0이며, `tests` 39 passed, `date` 2, `design` 3, `list` 6, `number` 2, `messages` 1, `--test form_state --test history_functions` 17 passed입니다.
 
 ### 2026-10-20 — Go generator는 appearance ternary의 평가 오류를 반환한다 (C16.72)
 

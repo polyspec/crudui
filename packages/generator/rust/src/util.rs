@@ -87,7 +87,15 @@ pub(crate) fn value_at<'a>(data: &'a Value, path: &str) -> Option<&'a Value> {
         let key = segment.as_str();
         value = match value {
             Value::Object(map) => map.get(key)?,
-            Value::Array(list) => list.get(key.parse::<usize>().ok()?)?,
+            Value::Array(list) => {
+                // A segment that is no index names no item of the array, so the path has no value.
+                #[allow(
+                    clippy::disallowed_methods,
+                    reason = "a segment that is no index names no item: the lookup has no value"
+                )]
+                let index = key.parse::<usize>().ok()?;
+                list.get(index)?
+            }
             _ => return None,
         };
     }

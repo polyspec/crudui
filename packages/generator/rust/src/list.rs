@@ -184,7 +184,13 @@ fn cell_display(
             } else if items.get("model").is_some() {
                 None
             } else if let Some(array) = items.as_array() {
-                text.parse::<usize>().ok().and_then(|i| array.get(i))
+                // A text that is no position selects no choice, and the label is the text itself.
+                #[allow(
+                    clippy::disallowed_methods,
+                    reason = "a text that is no position is a label, not an error"
+                )]
+                let position = text.parse::<usize>().ok();
+                position.and_then(|i| array.get(i))
             } else {
                 items.get(&text)
             };
@@ -368,7 +374,7 @@ pub(crate) fn build_display(
         checked.page,
         checked.total,
         &options.language,
-    );
+    )?;
     let mut actions = Vec::new();
     for (key, raw) in spec["actions"].as_object().into_iter().flatten() {
         // A script string: a button that runs the script when it is clicked.
@@ -782,13 +788,15 @@ fn pagination_model(
     page: Option<u64>,
     total: Option<u64>,
     language: &str,
-) -> Value {
+) -> FormResult<Value> {
     let enabled = *declared == true || declared.is_object();
     let mut pagination = json!({"enabled":enabled});
-    let per_page = declared
-        .get("per_page")
-        .and_then(|value| list_integer(value, 1, "").ok().flatten())
-        .unwrap_or(20);
+    let per_page = match declared.get("per_page") {
+        Some(value) => {
+            list_integer(value, 1, "pagination.per_page must be a positive integer")?.unwrap_or(20)
+        }
+        None => 20,
+    };
     if enabled {
         pagination["perPage"] = per_page.into();
         pagination["mode"] = declared
@@ -849,7 +857,7 @@ fn pagination_model(
 
         pagination["buttons"] = buttons.into();
     }
-    pagination
+    Ok(pagination)
 }
 
 /// The bounded page-number window: every page up to seven pages, otherwise the first,

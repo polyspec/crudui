@@ -24,7 +24,7 @@ pub(crate) fn flag(value: Option<&Value>, data: &Value, path: &[String], rows: &
     match value {
         None | Some(Value::Null) => true,
         Some(Value::Object(_)) => is_truthy(&resolve_map(value.unwrap(), data, path, rows)),
-        Some(Value::String(s)) => Expression::evaluate(s, data, path, rows).unwrap_or(false),
+        Some(Value::String(s)) => expression_flag(s, data, path, rows),
         Some(v) => is_truthy(v),
     }
 }
@@ -58,8 +58,7 @@ pub(crate) fn appearance(
                 };
             }
             if Expression::parse(s).is_ok() && is_condition_expression(s) && !has_ternary_text(s) {
-                let result =
-                    Expression::evaluate_value(s, data, path, rows).unwrap_or(Value::Bool(false));
+                let result = expression_value(s, data, path, rows);
                 return if result.is_null() || result == false {
                     String::new()
                 } else {
@@ -70,6 +69,24 @@ pub(crate) fn appearance(
         }
         Some(v) => js_string(v),
     }
+}
+
+/// A condition expression that does not evaluate is false, as the TypeScript reference reads it (expr.ts).
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the reference defines an expression that does not evaluate as false"
+)]
+fn expression_flag(text: &str, data: &Value, path: &[String], rows: &[usize]) -> bool {
+    Expression::evaluate(text, data, path, rows).unwrap_or(false)
+}
+
+/// A condition expression value that does not evaluate is false, as the TypeScript reference reads it (expr.ts).
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the reference defines an expression that does not evaluate as false"
+)]
+fn expression_value(text: &str, data: &Value, path: &[String], rows: &[usize]) -> Value {
+    Expression::evaluate_value(text, data, path, rows).unwrap_or(Value::Bool(false))
 }
 
 fn has_ternary_text(s: &str) -> bool {

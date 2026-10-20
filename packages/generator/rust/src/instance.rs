@@ -541,10 +541,10 @@ impl Form {
             .iter()
             .position(|(k, _)| k == key)
             .ok_or_else(|| FormError::input(format!("Unknown row: {key}")))?;
-        let to = usize::try_from(index)
-            .ok()
-            .filter(|to| *to < entries.len())
-            .ok_or_else(|| FormError::input(format!("Invalid row position: {index}")))?;
+        if index < 0 || index >= entries.len() as i64 {
+            return Err(FormError::input(format!("Invalid row position: {index}")));
+        }
+        let to = index as usize;
         if from == to {
             return Ok(());
         }

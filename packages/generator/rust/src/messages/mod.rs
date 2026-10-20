@@ -132,10 +132,14 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../../contracts/interface-messages.json"
         );
-        let text =
-            std::fs::read_to_string(path).unwrap_or_else(|error| panic!("read {path}: {error}"));
-        let contract: Value =
-            serde_json::from_str(&text).unwrap_or_else(|error| panic!("parse {path}: {error}"));
+        let text = match std::fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(error) => panic!("read {path}: {error}"),
+        };
+        let contract: Value = match serde_json::from_str(&text) {
+            Ok(value) => value,
+            Err(error) => panic!("parse {path}: {error}"),
+        };
         let hint = "src/interface_messages.rs differs from the contract; \
                     run `node tools/generate-interface-messages.mjs` in packages/generator/rust";
 

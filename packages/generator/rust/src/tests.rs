@@ -657,7 +657,12 @@ fn settled(case: &Value, result: FormResult<Value>) -> Value {
             result.as_ref().err()
         );
     }
-    result.unwrap_or_else(|error| json!({"name": case["name"], "error": {"code": error.code, "message": error.message, "at": error.at}}))
+    match result {
+        Ok(value) => value,
+        Err(error) => {
+            json!({"name": case["name"], "error": {"code": error.code, "message": error.message, "at": error.at}})
+        }
+    }
 }
 
 #[test]
@@ -1746,4 +1751,15 @@ fn native_outline_fixture() {
             case["name"]
         );
     }
+}
+
+#[test]
+fn pagination_per_page_that_is_no_integer_is_an_error() {
+    let spec = json!({"columns":{"n":{"field":"number"}},"pagination":{"per_page":"ten"}});
+    let error = build_list(&spec, &[json!({"number":1})], &ListOptions::default()).unwrap_err();
+    assert_eq!(error.code, "INVALID_FORM_INPUT");
+    assert_eq!(
+        error.message,
+        "Invalid pagination.per_page at list: expected a positive integer"
+    );
 }
