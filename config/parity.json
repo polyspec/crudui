@@ -66,6 +66,104 @@
       "roots": [
         "packages/generator/php",
         "packages/validator/php"
+      ],
+      "internal": [
+        {
+          "glob": "packages/generator/php/tests/ButtonsTest.php",
+          "reason": "test: unit tests of the PHP form buttons; the contract is tested by the shared form-render suite (unit form-render)"
+        },
+        {
+          "glob": "packages/generator/php/tests/DatesTest.php",
+          "reason": "test: unit tests of the PHP date cell values; the contract is tested by the shared list-render suite (unit list-render)"
+        },
+        {
+          "glob": "packages/generator/php/tests/DetailTest.php",
+          "reason": "test: unit tests of the PHP detail display model; the contract is tested by the shared detail-render suite (unit detail-render)"
+        },
+        {
+          "glob": "packages/generator/php/tests/DisplayRulesTest.php",
+          "reason": "test: unit tests of the PHP list input rules and text truncation; the contract is tested by the shared list-render suite (unit list-render)"
+        },
+        {
+          "glob": "packages/generator/php/tests/FormTest.php",
+          "reason": "test: unit tests of the PHP form instance rules; the contract is tested by the shared form-view, form-history and form-actions suite (unit form-view, form-history, form-actions)"
+        },
+        {
+          "glob": "packages/generator/php/tests/NumbersTest.php",
+          "reason": "test: unit tests of the PHP number formatting; the contract is tested by the shared list-render suite (unit list-render)"
+        },
+        {
+          "glob": "packages/generator/php/tests/RenderingTest.php",
+          "reason": "test: unit tests of the PHP rendered markup and style declarations; the contract is tested by the shared form-render suite (unit form-render)"
+        },
+        {
+          "glob": "packages/generator/php/tests/DocCoverageTest.php",
+          "reason": "test: unit tests of the PHP documentation gate of the generator package; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/MessagePlaceholderTest.php",
+          "reason": "test: unit tests of the PHP message placeholders; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/UniqueManyValuesTest.php",
+          "reason": "test: unit tests of the PHP unique rule over many values; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/UniqueValuesTest.php",
+          "reason": "test: unit tests of the PHP unique values and their equality; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Expr/VisibilityTest.php",
+          "reason": "test: unit tests of the PHP design.show visibility; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Patterns/PatternLanguageTest.php",
+          "reason": "test: unit tests of the PHP pattern language; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/PublicApiTest.php",
+          "reason": "test: unit tests of the PHP public validation API; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/RuleParametersTest.php",
+          "reason": "test: unit tests of the PHP rule parameter checks; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Values/NumericTest.php",
+          "reason": "test: unit tests of the PHP numeric rules; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Values/ValuesTest.php",
+          "reason": "test: unit tests of the PHP whitespace, emptiness, length and membership; the contract is tested by the shared validate suite (unit validate)"
+        },
+        {
+          "glob": "packages/validator/php/tests/Expr/ExpressionCacheTest.php",
+          "reason": "test: unit tests of the PHP parsed-expression cache; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/Expr/NumberValueTest.php",
+          "reason": "test: unit tests of the PHP number value helper; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/FieldSpecTest.php",
+          "reason": "test: unit tests of the PHP field model round trip and slot forms; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/Support/JsonValueTest.php",
+          "reason": "test: unit tests of the PHP JSON value helper; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/TextInternalsTest.php",
+          "reason": "test: unit tests of the PHP text helpers (Support\\Text and Support\\JsonText); PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/Values/NumberTextTest.php",
+          "reason": "test: unit tests of the PHP canonical number text; PHP-only internals, not part of a shared contract"
+        },
+        {
+          "glob": "packages/validator/php/tests/DocCoverageTest.php",
+          "reason": "test: unit tests of the PHP documentation gate of the validator package; PHP-only internals, not part of a shared contract"
+        }
       ]
     },
     {

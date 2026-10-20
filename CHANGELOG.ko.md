@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: dfd8b1cfa15c89a9262e619add3b24c69f326bb7df8388f8d9eac182304b5578 -->
+<!-- source-sha256: ce43fcf55181c0b98219fb3ef87061f82acbd514bb60bf9580c5b3ab1cf6d42c -->
 
 ## Unreleased
 
@@ -65,6 +65,10 @@
 ### 2026-10-20 — Go의 공유 suite를 시험하지 않는 test 파일은 internal로 선언한다 (C16.102)
 
 - `config/parity.json`은 `go` implementation의 Go test 파일 23개를 `internal`로 선언합니다. 공유 suite가 다루는 규칙이나 렌더링을 시험하는 16개는 이유에 그 suite unit 또는 validate unit을 밝히고, Go 내부만 시험하는 7개는 Go ordered-object decoder, Go template shape, Go loader wrapper, Go FieldSpec round trip, 두 문서 gate와 예제 서버입니다(C16.102). internal 파일은 requirement id를 명시하지 않으므로 R16은 깨끗합니다. Red: `make parity-declarations-check`가 exit 2이며 finding 303건, 그중 `R5 undeclared-test go` 31건이었습니다. Green: exit 2이며 finding 280건입니다. R5 23건이 빠졌고 새 줄은 없습니다(총계만 바뀝니다). 남은 R5 8건은 compose와 expr conformance test(C16.81의 unit 대기), C16.100의 interface-messages test(바인딩됨), Unicode 데이터 contract test와 Go의 바이트 수준 text 검사(gap, 후보 row), compose order test와 expr engine·recognition test(unit 대기)입니다. verification cell은 선언한 파일이 R5 줄에 나오지 않음을 검사합니다.
+
+### 2026-10-20 — 공유 suite를 시험하지 않는 PHP test 파일은 internal로 선언한다 (C16.104)
+
+- `config/parity.json`은 `php` implementation의 PHP test 파일 24개를 `internal`로 선언합니다. 공유 suite가 다루는 규칙이나 렌더링을 시험하는 16개는 이유에 그 suite와 unit(form-render, list-render, validate, form-view, form-history, form-actions)을 밝히고, PHP 내부나 문서 gate만 시험하는 8개는 그 사실을 밝힙니다(C16.104). internal 파일은 requirement id를 명시하지 않으므로 R16은 깨끗합니다. 남긴 파일: Compose/PatchTest.php와 Compose/RefTest.php(공유 suite인 compose에 unit이 아직 없음, C16.81), ComposeConformanceTest.php와 ExprConformanceTest.php(C16.81), Internal/InterfaceMessagesTest.php(C16.100), InputTextTest.php와 Values/UnicodeDataTest.php(gap), packages/php-ext/tests/ApiTest.php(라이브러리와의 API 동등성 검사에 공유 suite가 없어 부분 gap으로 보고). Red: `make parity-declarations-check`가 exit 2이며 finding 303건, 그중 `R5 undeclared-test php` 31건이었습니다. Green: exit 2이며 finding 279건입니다. 선언한 R5 줄 24건이 빠졌고 새 줄은 없습니다. verification cell은 선언한 경로가 R5 php 줄에 나오지 않음을 검사합니다.
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 
