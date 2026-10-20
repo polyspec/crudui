@@ -7,7 +7,7 @@
 use polyspec_crudui_generator::{
     bind_form, collapsible_rows, compile_form, initial_view, rekey_row_view, remove_row_view,
     resolve_action, run_action, set_all_expanded_view, toggle_row_view, ActionInput,
-    ActionResult, ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormResult,
+    ActionResult, ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormError, FormResult,
     ViewState,
 };
 use regex::Regex;
@@ -159,8 +159,28 @@ fn action_result_json(result: ActionResult) -> Value {
 }
 
 /// Run one step on the form and return what the step returned.
-fn perform(form: &mut Form, op: &str, args: &[Value]) -> FormResult<Option<Value>> {
+fn perform(form: &mut Form, spec: &Value, op: &str, args: &[Value]) -> FormResult<Option<Value>> {
     match op {
+        "validate" => {
+            // The errors of the validator for the specification and the current record, in the validator's order.
+            let result = polyspec_crudui_validator::validate::validate(
+                spec,
+                &form.get_data(),
+                &polyspec_crudui_validator::validate::ValidateOptions::default(),
+            )
+            .map_err(|error| FormError {
+                code: error.code().to_string(),
+                message: error.message().to_string(),
+                at: String::new(),
+                trace: Vec::new(),
+            })?;
+            let errors: Vec<Value> = result
+                .errors
+                .iter()
+                .map(|error| json!({"path": error.path, "field": error.field, "rule": error.rule, "message": error.message}))
+                .collect();
+            Ok(Some(json!({"valid": result.valid, "errors": errors})))
+        }
         "resolveAction" => Ok(resolve_action(
             &serde_json::from_value::<ActionInput>(args[0].clone()).unwrap(),
         )
@@ -209,7 +229,7 @@ fn observe_sessions(family: &str, history: bool) {
         for (index, step) in steps.iter().enumerate() {
             let mut observed = Map::new();
             let op = step["op"].as_str().unwrap();
-            match perform(&mut form, op, step["args"].as_array().unwrap()) {
+            match perform(&mut form, &case["spec"], op, step["args"].as_array().unwrap()) {
                 Ok(result) => {
                     // An action step reports its result even when it has none (null), as the reference does.
                     if result.is_some() || op == "runAction" || op == "resolveAction" {

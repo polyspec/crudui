@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c2abcce1ca753562e792d8a96db01f312bc65c928534ad00c1d83ba120fa37d1 -->
+<!-- source-sha256: a92405695b37cb74a2a7dfb15993f7147aa716e58925284db79236360bc6aa69 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -266,3 +266,4 @@
 | C16.148-1 | form state harness에 검증 단계가 있어 검증기의 오류를 데이터 경로와 함께 관찰하며, 팀과 멤버를 rekey한 뒤 새 경로의 오류를 관찰하는 세션이 있다(기준과 case) | tests/fixtures/form-state/harness.mts, tests/fixtures/form-state/generate.mts, tests/fixtures/form-actions/cases.json | `sh -c 'grep -q rekey-moves-validation-errors-to-the-new-paths tests/fixtures/form-actions/cases.json'` | [o] |
 | C16.148-2 | Go form state runner가 검증 단계를 구현한다. 세션 명세와 현재 데이터로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/go/form_state_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormView\|TestFormHistory\|TestFormActions' ./...` | [o] |
 | C16.148-3 | Python form state runner가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/python/tests/test_form_state.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests/test_form_state.py` | [o] |
+| C16.148-4 | Rust form state runner가 검증 단계를 구현한다. 세션 명세와 현재 record로 검증기를 실행하고 유효성과 각 오류의 경로, 필드, 규칙, 메시지를 관찰한다 | packages/generator/rust/tests/form_state.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
