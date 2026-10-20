@@ -78,6 +78,9 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001 to CURP-005 | 1 (native integration) | every implementation has the same four capabilities in its own form, so one neutral item replaces the five per-implementation items |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, five R13 lines (CURP-001 to CURP-005 defined and cited by no unit), 61 findings; green: exit 0, no line with CURP-001 to CURP-005 remains, 56 findings, and `check-documents` passes (C16.150).
+### 2026-10-21 — The Go form-comparison server writes numbers with the validator's canonical number text (C16.58-25)
+
+- The Go validator exports `CanonicalNumber` (packages/validator/go/validator/validate): the former unexported `canonicalNumber` of value_text.go, renamed with its call sites in value_number.go, rules.go and rule_length.go; value_test.go now calls the exported name, so the test of the public helper stands in the library (C16.58-25). The form-comparison Go server drops its copy of the same algorithm (`numberText` and `abs` of json.go) and calls `validate.CanonicalNumber` in json.go, records.go and records_test.go. Red: `make duplication-check` exit 2 with 10 clones, the go clone json.go [179-193] = value_text.go [59-73] among them; the example tests (11 passed) and `TestCanonicalNumber|TestCanonicalText` of the validator exit 0 before the change; after the rename the test built with `undefined: CanonicalNumber`. Green: the same tests exit 0 (validator 2 passed, example 11 passed), `make lint-go` 0 issues, and the go clone is gone from `make duplication-check`.
 
 ### 2026-10-21 — make install of a fresh worktree runs to its end (C16.149)
 

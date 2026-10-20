@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // objectOf returns a decoded object, failing the test when the value has another type.
@@ -214,7 +216,7 @@ func TestRecordViewsCheckTheQuery(t *testing.T) {
 
 func TestNumberTextMatchesECMAScript(t *testing.T) {
 	for value, expected := range map[float64]string{0: "0", 42: "42", 1234567.5: "1234567.5", 1e21: "1e+21", 1e20: "100000000000000000000", 0.000001: "0.000001", 1e-7: "1e-7", -2.5e-8: "-2.5e-8"} {
-		if actual := numberText(value); actual != expected {
+		if actual := validate.CanonicalNumber(value); actual != expected {
 			t.Errorf("%v: %s", value, actual)
 		}
 	}

@@ -58,7 +58,7 @@ func TestIsEmpty(t *testing.T) {
 	}
 }
 
-// TestCanonicalNumber compares canonicalNumber with the text ECMAScript
+// TestCanonicalNumber compares CanonicalNumber with the text ECMAScript
 // String(number) writes for the same doubles (taken from Node.js).
 func TestCanonicalNumber(t *testing.T) {
 	cases := []struct {
@@ -110,8 +110,8 @@ func TestCanonicalNumber(t *testing.T) {
 		{-1.5e+300, "-1.5e+300"},
 	}
 	for _, c := range cases {
-		if got := canonicalNumber(c.value); got != c.want {
-			t.Errorf("canonicalNumber(%v) = %q, want %q", c.value, got, c.want)
+		if got := CanonicalNumber(c.value); got != c.want {
+			t.Errorf("CanonicalNumber(%v) = %q, want %q", c.value, got, c.want)
 		}
 	}
 }

@@ -27,15 +27,15 @@ func canonicalText(value any) (string, bool) {
 	if !ok || math.IsInf(n, 0) || math.IsNaN(n) {
 		return "", false
 	}
-	return canonicalNumber(n), true
+	return CanonicalNumber(n), true
 }
 
-// canonicalNumber writes a finite number as ECMAScript Number.prototype.toString
+// CanonicalNumber writes a finite number as ECMAScript Number.prototype.toString
 // does: the shortest digits that read back as the same double, laid out in plain
 // notation for magnitudes from 10^-6 up to 10^21 and in exponent notation
 // otherwise; negative zero is "0". A nonfinite number, which has no canonical
 // text, is written as ECMAScript writes it (NaN, Infinity) for messages and keys.
-func canonicalNumber(v float64) string {
+func CanonicalNumber(v float64) string {
 	switch {
 	case math.IsNaN(v):
 		return "NaN"
@@ -47,7 +47,7 @@ func canonicalNumber(v float64) string {
 		return "0"
 	}
 	if v < 0 {
-		return "-" + canonicalNumber(-v)
+		return "-" + CanonicalNumber(-v)
 	}
 	// Shortest round-trip digits as d.ddde±x: digits s, k = len(s), and the
 	// decimal point position n, so that v = 0.s × 10^n.

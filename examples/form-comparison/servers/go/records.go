@@ -491,7 +491,7 @@ func formText(stored *object) (*object, error) {
 		return nil, fmt.Errorf("Expected stored score number")
 	}
 	return record("id", get(stored, "id"), "name", get(stored, "name"), "status", get(stored, "status"),
-		"joined", get(stored, "joined"), "score", numberText(score),
+		"joined", get(stored, "joined"), "score", validate.CanonicalNumber(score),
 		"relation", record("name", get(relation, "name")), "markup", get(stored, "markup"),
 		"companies", clone(get(stored, "companies"))), nil
 }

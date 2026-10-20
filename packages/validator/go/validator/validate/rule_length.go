@@ -71,7 +71,7 @@ func ruleMinLength(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	limit, _ := lengthLimit(ruleParam)
 	if length, ok := textLength(value); !ok || length < limit {
 		m := ctx.msg("minlength", "Please enter at least {0} characters.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(limit)), true
+		return strings.ReplaceAll(m, "{0}", CanonicalNumber(limit)), true
 	}
 	return "", false
 }
@@ -84,7 +84,7 @@ func ruleMaxLength(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	limit, _ := lengthLimit(ruleParam)
 	if length, ok := textLength(value); !ok || length > limit {
 		m := ctx.msg("maxlength", "Please enter no more than {0} characters.")
-		return strings.ReplaceAll(m, "{0}", canonicalNumber(limit)), true
+		return strings.ReplaceAll(m, "{0}", CanonicalNumber(limit)), true
 	}
 	return "", false
 }
@@ -98,8 +98,8 @@ func ruleRangeLength(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	lo, hi, _ := lengthRange(ruleParam)
 	if length, ok := textLength(value); !ok || length < lo || length > hi {
 		m := ctx.msg("rangelength", "Please enter a value between {0} and {1} characters.")
-		m = strings.ReplaceAll(m, "{0}", canonicalNumber(lo))
-		m = strings.ReplaceAll(m, "{1}", canonicalNumber(hi))
+		m = strings.ReplaceAll(m, "{0}", CanonicalNumber(lo))
+		m = strings.ReplaceAll(m, "{1}", CanonicalNumber(hi))
 		return m, true
 	}
 	return "", false

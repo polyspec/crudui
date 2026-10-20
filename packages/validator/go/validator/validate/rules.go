@@ -112,7 +112,7 @@ func jsString(value any) string {
 		return "false"
 	}
 	if n, ok := numberValue(value); ok {
-		return canonicalNumber(n)
+		return CanonicalNumber(n)
 	}
 	b, err := json.Marshal(value)
 	if err != nil {
@@ -213,7 +213,7 @@ func canonicalJSON(value any) string {
 	case string:
 		return strconv.Quote(v)
 	case float64:
-		return canonicalNumber(v)
+		return CanonicalNumber(v)
 	case []any:
 		var parts []string
 		for _, item := range v {
@@ -251,7 +251,7 @@ func comparisonKey(value any) string {
 		return "b:" + strconv.FormatBool(v)
 	default:
 		if n, ok := numberValue(v); ok {
-			return "n:" + canonicalNumber(n)
+			return "n:" + CanonicalNumber(n)
 		}
 		return "j:" + canonicalJSON(value)
 	}

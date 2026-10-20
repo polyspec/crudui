@@ -110,7 +110,7 @@ func isDigits(value any) bool {
 		if !ok {
 			return false
 		}
-		text = canonicalNumber(n)
+		text = CanonicalNumber(n)
 	}
 	return asciiDigitsPattern.MatchString(text)
 }
@@ -192,7 +192,7 @@ func checkNumericParameter(rule string, param any) *parameterError {
 // texts of the parameters.
 func withParameters(message string, params ...float64) string {
 	for i, param := range params {
-		message = strings.ReplaceAll(message, "{"+strconv.Itoa(i)+"}", canonicalNumber(param))
+		message = strings.ReplaceAll(message, "{"+strconv.Itoa(i)+"}", CanonicalNumber(param))
 	}
 	return message
 }
