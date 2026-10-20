@@ -652,6 +652,23 @@ pub fn validate_text(
     )
 }
 
+/// The decoded specification, files and base path of a list or detail specification.
+type ListOrDetailInput = (Value, Option<Map<String, Value>>, Option<String>);
+
+/// The input of a list or detail specification,
+/// after the checks of [`validate_text`] for their text.
+fn list_or_detail_input(
+    spec: &JsonText,
+    files: Option<&JsonText>,
+    basepath: Option<&JsonText>,
+) -> Result<ListOrDetailInput, ValidateError> {
+    check_specification(Some(spec), files)?;
+    check_inputs(&[("options.basepath", basepath)])?;
+    let (files, basepath) = composition(files, basepath)?;
+    let spec = decoded(Some(spec))?.unwrap_or(Value::Null);
+    Ok((spec, files, basepath))
+}
+
 /// [`validate_list`](crate::validate_list()) over JSON text, with the checks of
 /// [`validate_text`] for the specification, the files and the base path.
 pub fn validate_list_text(
@@ -659,10 +676,7 @@ pub fn validate_list_text(
     files: Option<&JsonText>,
     basepath: Option<&JsonText>,
 ) -> Result<(), ValidateError> {
-    check_specification(Some(spec), files)?;
-    check_inputs(&[("options.basepath", basepath)])?;
-    let (files, basepath) = composition(files, basepath)?;
-    let spec = decoded(Some(spec))?.unwrap_or(Value::Null);
+    let (spec, files, basepath) = list_or_detail_input(spec, files, basepath)?;
     Ok(crate::validate_list(
         &spec,
         &ValidateListOptions {
@@ -680,10 +694,7 @@ pub fn validate_detail_text(
     files: Option<&JsonText>,
     basepath: Option<&JsonText>,
 ) -> Result<(), ValidateError> {
-    check_specification(Some(spec), files)?;
-    check_inputs(&[("options.basepath", basepath)])?;
-    let (files, basepath) = composition(files, basepath)?;
-    let spec = decoded(Some(spec))?.unwrap_or(Value::Null);
+    let (spec, files, basepath) = list_or_detail_input(spec, files, basepath)?;
     Ok(crate::validate_detail(
         &spec,
         &ValidateDetailOptions {

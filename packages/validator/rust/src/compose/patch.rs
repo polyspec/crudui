@@ -24,6 +24,7 @@
 use serde_json::{Map, Value};
 
 use super::errors::{ComposeErrorCode, ComposeLoadError, ComposeResult};
+use super::members::kind_of;
 
 /// Apply a `$patch` value to the (already `$ref`-expanded) base spec.
 pub fn apply_patch(base: Map<String, Value>, patch: &Value) -> ComposeResult<Map<String, Value>> {
@@ -242,18 +243,6 @@ fn remove_nested(mut base: Map<String, Value>, spec: &Map<String, Value>) -> Map
         }
     }
     base
-}
-
-/// JS-style type name for error messages (matches the JS `typeof`/array wording).
-fn kind_of(v: &Value) -> &'static str {
-    match v {
-        Value::Null => "null",
-        Value::Bool(_) => "boolean",
-        Value::Number(_) => "number",
-        Value::String(_) => "string",
-        Value::Array(_) => "array",
-        Value::Object(_) => "object",
-    }
 }
 
 #[cfg(test)]

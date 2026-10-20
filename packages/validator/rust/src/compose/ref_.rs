@@ -24,7 +24,7 @@ use serde_json::{Map, Value};
 use super::errors::{ComposeErrorCode, ComposeLoadError, ComposeResult};
 use super::loader::FileLoader;
 use super::member_order::member_ordered_map;
-use super::patch::apply_patch;
+use super::members::{kind_of, layer_members};
 
 /// Resolve a `$ref` value (string or string[]) to a single flattened properties
 /// map. Each entry is resolved in declaration order and merged (later overrides
@@ -207,52 +207,7 @@ fn expand_nested_refs(
         return Ok(node);
     }
 
-    let mut base: Map<String, Value> = Map::new();
-    let mut patch: Option<Value> = None;
-    let mut own: Map<String, Value> = Map::new();
-
     // Preserve declaration order: $ref expands to the base; keys declared after it
     // override, keys before it are overridden by it (positional merge).
-    for (k, v) in node {
-        if k == "$ref" {
-            // base = (earlier own keys) overlaid by ref, in declaration order where
-            // the ref array_merges onto whatever was processed before it.
-            let resolved = resolve_ref(&v, basepath, loader, visiting)?;
-            let mut next_base: Map<String, Value> = Map::new();
-            for (ok, ov) in own.iter() {
-                next_base.insert(ok.clone(), ov.clone());
-            }
-            for (rk, rv) in resolved {
-                next_base.insert(rk, rv);
-            }
-            base = next_base;
-            // own keys already folded into base; reset so later keys override base.
-            own.clear();
-        } else if k == "$patch" {
-            patch = Some(v);
-        } else {
-            own.insert(k, v);
-        }
-    }
-
-    let mut result = base;
-    for (k, v) in own {
-        result.insert(k, v);
-    }
-    if let Some(p) = patch {
-        result = apply_patch(result, &p)?;
-    }
-    Ok(result)
-}
-
-/// JS-style type name for error messages (matches the JS `typeof`/array wording).
-fn kind_of(v: &Value) -> &'static str {
-    match v {
-        Value::Null => "null",
-        Value::Bool(_) => "boolean",
-        Value::Number(_) => "number",
-        Value::String(_) => "string",
-        Value::Array(_) => "array",
-        Value::Object(_) => "object",
-    }
+    layer_members(node, |v| resolve_ref(v, basepath, loader, visiting))
 }

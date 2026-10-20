@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a3d043cee5ae1d05cd574c4587cf9332fde2b21ed49ebcdfcd5898df925efac9 -->
+<!-- source-sha256: d15d12c25d6365fd06f370fe18c4a157c34573335fdd0044dd5d4a92d7394f80 -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust validator의 공유 함수 (C16.25)
+
+- `compose::members`는 `layer_members`(`$ref` base, 이후 member, `$patch`)와 `kind_of`를 담습니다. 이전에는 `compose`, `ref_`, `patch`가 각각 사본을 가졌습니다. `file_accepted`는 `accept` rule의 두 file 형태를, `numbers_equal`은 두 equality를 처리하고, `validate_field_rules`는 사본(`validate_element_rules`) 대신 `element_level` flag를 받으며, `list_or_detail_input`은 `validate_list_text`와 `validate_detail_text`의 입력을 읽습니다 (C16.25). Red: `make duplication-check`가 `packages/validator/rust`의 clone 11건을 나열했고, green: 4건이 남으며(함수 머리와 type 이름 match), `compose`(23), `validate`(46), `text`(12), `expr`(1) test와 `make lint-rust`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — config/rebuild.json의 모든 도구 source (C16.7-9)
 

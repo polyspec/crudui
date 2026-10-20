@@ -19,7 +19,7 @@
 //!
 //! No eval / no regex evaluation (GRAMMAR §10) — a pure AST walk.
 
-use serde_json::Value;
+use serde_json::{Number, Value};
 
 use super::ast::{LiteralValue, Node, PathSegment};
 
@@ -464,16 +464,21 @@ fn loose_equals(a: &Value, b: &Value) -> bool {
     to_string(a) == to_string(b)
 }
 
+/// Number equality by value (so 1 equals 1.0); numbers without an `f64` compare as written.
+pub(crate) fn numbers_equal(x: &Number, y: &Number) -> bool {
+    match (x.as_f64(), y.as_f64()) {
+        (Some(xf), Some(yf)) => xf == yf,
+        _ => x == y,
+    }
+}
+
 /// JSON-value structural equality (docs/spec/expressions.md, Evaluation): two
 /// arrays hold equal elements in the same order, two objects the same keys with
 /// equal values in any key order; other values compare without conversion,
 /// numbers by value (so 1 equals 1.0). An array never equals an object.
 fn json_equals(a: &Value, b: &Value) -> bool {
     match (a, b) {
-        (Value::Number(x), Value::Number(y)) => match (x.as_f64(), y.as_f64()) {
-            (Some(xf), Some(yf)) => xf == yf,
-            _ => x == y,
-        },
+        (Value::Number(x), Value::Number(y)) => numbers_equal(x, y),
         (Value::Array(x), Value::Array(y)) => {
             x.len() == y.len()
                 && x.iter()

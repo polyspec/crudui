@@ -253,6 +253,7 @@ impl Validator {
                             row_keys,
                             declaration,
                             run,
+                            false,
                         )?);
                     }
                 } else {
@@ -282,6 +283,7 @@ impl Validator {
                             row_keys,
                             declaration,
                             run,
+                            false,
                         )?);
                     }
                 }
@@ -312,6 +314,7 @@ impl Validator {
                     row_keys,
                     declaration,
                     run,
+                    false,
                 )?);
             }
         }
@@ -373,67 +376,22 @@ impl Validator {
             item_path.push(key);
             let mut item_rows = row_keys.to_vec();
             item_rows.push(field_path.len());
-            errors.extend(self.validate_element_rules(
+            errors.extend(self.validate_field_rules(
                 field,
                 value,
                 &item_path,
                 &item_rows,
                 declaration,
                 run,
+                true,
             )?);
         }
         Ok(())
     }
 
-    /// Element-level rules for one element of a `multiple` field.
-    fn validate_element_rules(
-        &self,
-        field: &Value,
-        value: &Value,
-        item_path: &[String],
-        row_keys: &[usize],
-        declaration: &[String],
-        run: &Run<'_>,
-    ) -> Result<Option<ValidationError>, ValidateError> {
-        let messages = field.get("messages");
-        let rules = normalize_validate_slot(field);
-
-        if let Some(error) =
-            self.run_implicit_number(field, rules, value, item_path, row_keys, messages, run)?
-        {
-            return Ok(Some(error));
-        }
-        let rules = match rules {
-            Some(r) => r,
-            None => return Ok(None),
-        };
-        for (rule_name, rule_value) in rules {
-            if ARRAY_LEVEL_RULES.contains(&rule_name.as_str()) {
-                continue;
-            }
-            if let Some(message) = self.run_rule(
-                rule_name,
-                rule_value,
-                value,
-                item_path,
-                row_keys,
-                declaration,
-                messages,
-                run,
-            )? {
-                return Ok(Some(ValidationError {
-                    path: path_to_string(item_path),
-                    field: field_name(item_path),
-                    rule: rule_name.clone(),
-                    message,
-                    value: value.clone(),
-                }));
-            }
-        }
-        Ok(None)
-    }
-
-    /// All rules for a single (scalar or group-as-whole) field.
+    /// All rules for a single (scalar or group-as-whole) field, or, with `element_level`, the
+    /// element-level rules of one element of a `multiple` field (no array-level rule).
+    #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
     fn validate_field_rules(
         &self,
         field: &Value,
@@ -442,6 +400,7 @@ impl Validator {
         row_keys: &[usize],
         declaration: &[String],
         run: &Run<'_>,
+        element_level: bool,
     ) -> Result<Option<ValidationError>, ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
@@ -456,6 +415,9 @@ impl Validator {
             None => return Ok(None),
         };
         for (rule_name, rule_value) in rules {
+            if element_level && ARRAY_LEVEL_RULES.contains(&rule_name.as_str()) {
+                continue;
+            }
             if let Some(message) = self.run_rule(
                 rule_name,
                 rule_value,

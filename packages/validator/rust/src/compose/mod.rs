@@ -18,6 +18,7 @@ pub mod compose;
 pub mod errors;
 pub mod loader;
 pub mod member_order;
+mod members;
 pub mod patch;
 pub mod ref_;
 

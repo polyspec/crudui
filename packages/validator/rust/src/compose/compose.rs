@@ -28,7 +28,7 @@ use serde_json::{Map, Value};
 use super::errors::ComposeResult;
 use super::loader::FileLoader;
 use super::member_order::member_ordered_map;
-use super::patch::apply_patch;
+use super::members::layer_members;
 use super::ref_::resolve_ref;
 
 /// Options for a composition pass.
@@ -82,38 +82,7 @@ fn expand_properties(
     let basepath = &opts.basepath;
     let visiting: BTreeSet<String> = BTreeSet::new();
 
-    let mut base: Map<String, Value> = Map::new();
-    let mut patch: Option<Value> = None;
-    let mut own: Map<String, Value> = Map::new();
-
-    for (k, v) in properties {
-        if k == "$ref" {
-            // $ref array_merges onto whatever was declared before it (declaration order).
-            let resolved = resolve_ref(&v, basepath, loader, &visiting)?;
-            let mut next_base: Map<String, Value> = Map::new();
-            for (ok, ov) in own.iter() {
-                next_base.insert(ok.clone(), ov.clone());
-            }
-            for (rk, rv) in resolved {
-                next_base.insert(rk, rv);
-            }
-            base = next_base;
-            own.clear();
-        } else if k == "$patch" {
-            patch = Some(v);
-        } else {
-            own.insert(k, v);
-        }
-    }
-
-    // No composition keys: still recurse into children so nested $ref expands.
-    let mut result = base;
-    for (k, v) in own {
-        result.insert(k, v);
-    }
-    if let Some(p) = patch {
-        result = apply_patch(result, &p)?;
-    }
+    let mut result = layer_members(properties, |v| resolve_ref(v, basepath, loader, &visiting))?;
 
     // Recurse into every child field's `properties` (the tree may compose deeper).
     // ORDER: clone the child value out (get().cloned()), compose it, then re-insert
@@ -145,36 +114,8 @@ fn expand_spec(
 
     // Field-level $ref / $patch (a field may inherit a whole base spec).
     if spec.contains_key("$ref") || spec.contains_key("$patch") {
-        let mut base: Map<String, Value> = Map::new();
-        let mut patch: Option<Value> = None;
-        let mut own: Map<String, Value> = Map::new();
-
-        for (k, v) in spec {
-            if k == "$ref" {
-                // Field-level $ref resolves a file's properties layer too (detectKey).
-                let res = resolve_ref(&v, basepath, loader, &visiting)?;
-                let mut next_base: Map<String, Value> = Map::new();
-                for (ok, ov) in own.iter() {
-                    next_base.insert(ok.clone(), ov.clone());
-                }
-                for (rk, rv) in res {
-                    next_base.insert(rk, rv);
-                }
-                base = next_base;
-                own.clear();
-            } else if k == "$patch" {
-                patch = Some(v);
-            } else {
-                own.insert(k, v);
-            }
-        }
-        let mut merged = base;
-        for (k, v) in own {
-            merged.insert(k, v);
-        }
-        if let Some(p) = patch {
-            merged = apply_patch(merged, &p)?;
-        }
+        // Field-level $ref resolves a file's properties layer too (detectKey).
+        let merged = layer_members(spec, |v| resolve_ref(v, basepath, loader, &visiting))?;
         resolved = merged;
     } else {
         resolved = spec;

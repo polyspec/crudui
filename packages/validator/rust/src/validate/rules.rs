@@ -10,10 +10,10 @@
 //! The call site is the CRUDUI validate slot; the rule semantics are the JS rule
 //! registry re-expressed in Rust.
 
-use serde_json::Value;
+use serde_json::{Map, Value};
 use std::collections::HashSet;
 
-use crate::expr::evaluator::relative_base;
+use crate::expr::evaluator::{numbers_equal, relative_base};
 use crate::expr::Expression;
 
 use super::canonical::{canonical_text, number_text};
@@ -537,10 +537,7 @@ fn rule_not_equal(ctx: &RuleContext) -> Option<String> {
 /// numbers compare by f64; strings/bools/null by value; arrays/objects structural.
 fn strict_eq(a: &Value, b: &Value) -> bool {
     match (a, b) {
-        (Value::Number(x), Value::Number(y)) => match (x.as_f64(), y.as_f64()) {
-            (Some(xf), Some(yf)) => xf == yf,
-            _ => x == y,
-        },
+        (Value::Number(x), Value::Number(y)) => numbers_equal(x, y),
         _ => {
             // Same-type structural equality; cross-type is false (handled by ==
             // returning false for differing variants).
@@ -726,6 +723,23 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
 // accept
 // ---------------------------------------------------------------------------
 
+/// Whether a file object, by its MIME type (`type`, `mimeType`) or its name (`name`,
+/// `filename`), matches the accepted types.
+fn file_accepted(file: &Map<String, Value>, accept_list: &[String]) -> bool {
+    let mime = file
+        .get("type")
+        .or_else(|| file.get("mimeType"))
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    let name = file
+        .get("name")
+        .or_else(|| file.get("filename"))
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    (!mime.is_empty() && matches_mime_type(mime, accept_list))
+        || (!name.is_empty() && matches_extension(name, accept_list))
+}
+
 fn rule_accept(ctx: &RuleContext) -> Option<String> {
     if ctx.rule_param.is_null() || ctx.rule_param == &Value::Bool(false) {
         return None;
@@ -760,19 +774,7 @@ fn rule_accept(ctx: &RuleContext) -> Option<String> {
         Value::Array(items) => {
             for file in items {
                 if let Value::Object(obj) = file {
-                    let mime = obj
-                        .get("type")
-                        .or_else(|| obj.get("mimeType"))
-                        .and_then(Value::as_str)
-                        .unwrap_or("");
-                    let name = obj
-                        .get("name")
-                        .or_else(|| obj.get("filename"))
-                        .and_then(Value::as_str)
-                        .unwrap_or("");
-                    let ok = (!mime.is_empty() && matches_mime_type(mime, &accept_list))
-                        || (!name.is_empty() && matches_extension(name, &accept_list));
-                    if !ok {
+                    if !file_accepted(obj, &accept_list) {
                         return fail();
                     }
                 }
@@ -780,19 +782,7 @@ fn rule_accept(ctx: &RuleContext) -> Option<String> {
             None
         }
         Value::Object(obj) => {
-            let mime = obj
-                .get("type")
-                .or_else(|| obj.get("mimeType"))
-                .and_then(Value::as_str)
-                .unwrap_or("");
-            let name = obj
-                .get("name")
-                .or_else(|| obj.get("filename"))
-                .and_then(Value::as_str)
-                .unwrap_or("");
-            let ok = (!mime.is_empty() && matches_mime_type(mime, &accept_list))
-                || (!name.is_empty() && matches_extension(name, &accept_list));
-            if !ok {
+            if !file_accepted(obj, &accept_list) {
                 return fail();
             }
             None

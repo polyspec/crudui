@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: afb5535d8bdb0ac9512b34887bf391845bc4dfd42ff0f8255b34cfe64203797c -->
+<!-- source-sha256: 890df19c2f9ef7aedd8e31dd878b489b44a2cdcaa5e03de6a922db2f1f29b18d -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -38,3 +38,4 @@
 | C16.22 | Go validator는 path segment의 값을 하나의 함수로 읽는다 | packages/validator/go/validator/expr/evaluator.go, packages/validator/go/validator/validate/helpers.go, rules.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'TestValidateMatchesFixture\|TestValueSemanticsMatchJsReference\|TestUniqueManyValues' ./validator/expr/... ./validator/validate/...`, `make lint-go` | [o] |
 | C16.23 | Go validator model은 순서가 있는 object를 두 generic helper로 읽고 쓴다 | packages/validator/go/validator/ordered.go, types.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestParameterChecks\|TestDecodeOrderedKeepsText' ./...`, `make lint-go` | [o] |
 | C16.24 | Go validate package는 field 순회, rule 해제, composition 입력을 공유한다 | packages/validator/go/validator/validate/helpers.go, list.go, detail.go, index.go, params.go, validator.go, rules.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestParameterChecks\|TestUnique' ./...`, `make lint-go` | [o] |
+| C16.25 | Rust validator는 composition member layering, 허용된 file 판별, list와 detail 입력 읽기를 공유 함수로 수행한다 | packages/validator/rust/src/compose/members.rs, compose.rs, ref_.rs, patch.rs, expr/evaluator.rs, validate/rules.rs, validate/validator.rs, text.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml validate`, `make lint-rust` | [o] |

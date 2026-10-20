@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared functions in the Rust validator (C16.25)
+
+- `compose::members` holds `layer_members` (the `$ref` base, later members and `$patch`) and `kind_of`, which `compose`, `ref_` and `patch` each held a copy of; `file_accepted` serves both file shapes of the `accept` rule; `numbers_equal` serves the two equalities; `validate_field_rules` takes an `element_level` flag instead of a copy (`validate_element_rules`); and `list_or_detail_input` reads the input of `validate_list_text` and `validate_detail_text` (C16.25). Red: `make duplication-check` listed 11 clones in `packages/validator/rust`; green: 4 remain (function heads and a type-name match), the `compose` (23), `validate` (46), `text` (12) and `expr` (1) tests and `make lint-rust` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Every tool source in config/rebuild.json (C16.7-9)
 
 - `paths` of `config/rebuild.json` also selects the tool folders of the Rust ports (`packages/*/*/tools`), the Go generators (`*_generate.go`), the number-text generator of the PHP tests, the benchmark build and fixture scripts, the two build and install scripts of the examples and the fixture generators `tests/fixtures/*/generate.mts`, and each of the 15 new tools has its class: 12 `policy` (single-source table and fixture generators) and 3 `ecosystem`; the `comment` names the groups that are tests or example product and are not tools (C16.7-9). Red: `make rebuild-check` exit 1 with 15 tools without a class; green: exit 0.
