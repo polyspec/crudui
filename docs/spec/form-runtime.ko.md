@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 87e3ffc31b225eddc7438f3f330e9c02787fd8028ec53034741bde4f1b6b8a44 -->
+<!-- source-sha256: 30b271874dc9c4c2600002aae71b5c84b5246ebf654013be5b6b618727f0299f -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -200,6 +200,7 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 - **CURT-088** `select-row`는 아무것도 바꾸지 않고 행 `key`의 포커스를 반환합니다.
 - **CURT-089** `move-up`과 `move-down`은 행의 한 칸 앞 또는 뒤 인덱스로 `moveRow(path, key, index)`를 실행하고 이동한 행의 포커스를 반환합니다.
 - **CURT-090** 작업이 실행하는 연산이 실패하면 그 연산의 오류로 실패하고 인스턴스는 그대로입니다.
+- **CURT-091** `name`이 열한 개 작업 중 어느 것도 아닌 target의 `runAction(form, target)`은 `INVALID_FORM_INPUT`과 `Unknown action: {name}` 메시지로 실패하고, 아무것도 바꾸지 않습니다.
 
 ## 렌더링과 검증
 

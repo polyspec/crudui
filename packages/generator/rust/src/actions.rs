@@ -90,6 +90,17 @@ pub struct ActionTarget {
     pub key: Option<String>,
 }
 
+impl ActionTarget {
+    /// The target that a button names by `name`; a name that is none of the eleven actions fails and changes
+    /// nothing when it runs (CURT-091).
+    pub fn named(name: &str, path: Option<String>, key: Option<String>) -> FormResult<Self> {
+        let Some(name) = ActionName::parse(name) else {
+            return Err(FormError::input(format!("Unknown action: {name}")));
+        };
+        Ok(Self { name, path, key })
+    }
+}
+
 /// The row that receives focus after an action, or the collection itself when `key` is absent.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FocusTarget {

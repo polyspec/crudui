@@ -247,6 +247,16 @@ const all: Case[] = [
       run({ name: 'redo' }),
     ],
   }),
+  session({
+    name: 'run-action-unknown-name',
+    note: 'A target whose name is none of the eleven actions fails, with or without a path and key, and changes nothing.',
+    requirements: ['CURT-091'],
+    steps: [
+      run({ name: 'rename-row', path: 'teams', key: k(1) }),
+      run({ name: 'rename-row' }),
+      run({ name: '' }),
+    ],
+  }),
 ];
 
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: de6d599b24549f799a0ecfcb4c8e0564a2df8ae33a8ef8751d0ea62cefa3149c -->
+<!-- source-sha256: e1a9bc238f0996b2a8625e7816976f291dd62dca659e1f547bf07e9529afe5c5 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -149,3 +149,4 @@
 | C16.74 | ruff format이 보고하는 Python 파일을 포맷한다 | packages/generator/python/src/polyspec/crudui/generator/form.py, packages/generator/python/tests/test_form_state.py | `make lint-python`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` | [o] |
 | C16.75 | PHP 소스와 예제는 phpcs 줄 길이 규칙(Generic.Files.LineLength.TooLong)을 통과한다 | packages/generator/php/src/Internal/History.php examples/form-comparison/servers/php/api.php examples/form-comparison/servers/php/src/ApiServer.php examples/form-comparison/servers/php/tests/FormGenerationTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php` | [o] |
 | C16.77 | Rust generator는 appearance ternary나 condition expression을 조용한 값으로 바꾸지 않는다(P8, Python과 Go처럼) | packages/generator/rust/src/design.rs packages/generator/rust/src/tests.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml appearance`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
+| C16.78 | 이름이 열한 개 작업 중 어느 것도 아닌 runAction은 모든 generator에서 INVALID_FORM_INPUT으로 실패한다 (CURT-091) | docs/spec/form-runtime.md, docs/spec/form-runtime.ko.md, packages/generator/ts/src/actions.ts, packages/generator/rust/src/actions.rs, packages/generator/rust/tests/form_state.rs, tests/fixtures/form-state/generate.mts, tests/fixtures/form-actions/cases.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |

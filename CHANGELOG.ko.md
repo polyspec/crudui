@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 594d630da1f696af517526bdc5c9e94bb1a9640a42e8ea6be5b791aa3d7c8e4c -->
+<!-- source-sha256: f3047100be6fb5c55a5de20b9afda0786c9ef85e4ebcc699a9b5aa182d7718b8 -->
 
 ## Unreleased
 
@@ -23,6 +23,9 @@
 ### 2026-10-20 — Rust appearance는 expression을 한 번 파싱하고 fallback 없이 평가한다 (C16.77)
 
 - `packages/generator/rust/src/design.rs`의 `appearance`는 문자열의 파싱을 한 번만 대조합니다. ternary와 condition expression은 파싱된 node를 `Evaluator::evaluate_value`로 평가하고, 파싱되지 않는 문자열은 literal text로 남으며, `unwrap_or(false)`를 가진 헬퍼 `expression_value`는 제거됩니다. `packages/generator/rust/src/tests.rs`에 `appearance_string_that_does_not_parse_stays_literal_text`와 `appearance_ternary_gives_the_branch_value`가 추가됩니다(C16.77). Rust evaluator는 오류를 보고하지 않으므로(데이터에 없는 path는 null), Python과 Go(b396f53e, 9e4be128)와 달리 되돌려 줄 평가 오류가 없습니다. 실패 주입은 validator crate의 변경이 필요하며 이 row의 범위가 아닙니다. Red: main에서 `appearance` test는 변경 전후 모두 통과(3 passed, 기존 test 포함)하므로 red를 기록할 수 없습니다. Green: exit 0, `appearance` 3 passed, `--test form_state --test history_functions` 17 passed, crate clippy exit 0입니다.
+### 2026-10-20 — runAction은 열한 개 작업 중 어느 것도 아닌 이름을 거부한다 (C16.78)
+
+- `docs/spec/form-runtime.md`에 CURT-091을 추가했습니다. 이름이 열한 개 작업 중 어느 것도 아닌 target의 `runAction`은 `INVALID_FORM_INPUT`과 `Unknown action: {name}`으로 실패하고 아무것도 바꾸지 않습니다(C16.78). `packages/generator/ts/src/actions.ts`의 `runAction`은 이름을 먼저 검사해 그 오류를 던집니다. 이전에는 move 분기로 빠졌습니다. `packages/generator/rust/src/actions.rs`에 `ActionTarget::named`를 추가해 알 수 없는 이름에 그 오류를 내게 했고, `packages/generator/rust/tests/form_state.rs`는 이름을 unwrap하는 대신 이 함수로 target을 만듭니다. `tests/fixtures/form-state/generate.mts`에 session `run-action-unknown-name`을 추가했고 `tests/fixtures/form-actions/cases.json`은 이 파일로 다시 생성했습니다. Red: 이전 `actions.ts`로 `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts`가 exit 1, 27 passed와 1 failed(`run-action-unknown-name`); green: exit 0, 28 passed, 0 failed. Go와 Python(`tests.test_form_state`, 4 passed), Rust(`--test form_state`, 4 passed)는 이미 같은 메시지를 내며 새 case를 통과합니다.
 
 ### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
 

@@ -6,7 +6,7 @@
 
 use polyspec_crudui_generator::{
     bind_form, collapsible_rows, compile_form, initial_view, rekey_row_view, remove_row_view,
-    resolve_action, run_action, set_all_expanded_view, toggle_row_view, ActionInput, ActionName,
+    resolve_action, run_action, set_all_expanded_view, toggle_row_view, ActionInput,
     ActionResult, ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormResult,
     ViewState,
 };
@@ -123,12 +123,12 @@ fn options(args: &[Value], index: usize) -> AddRowOptions {
 }
 
 /// The target of a `runAction` step: its operation name, collection path and row key.
-fn action_target(value: &Value) -> ActionTarget {
-    ActionTarget {
-        name: ActionName::parse(value["name"].as_str().unwrap()).unwrap(),
-        path: value["path"].as_str().map(str::to_owned),
-        key: value["key"].as_str().map(str::to_owned),
-    }
+fn action_target(value: &Value) -> FormResult<ActionTarget> {
+    ActionTarget::named(
+        value["name"].as_str().unwrap(),
+        value["path"].as_str().map(str::to_owned),
+        value["key"].as_str().map(str::to_owned),
+    )
 }
 
 /// The JSON object of an action target; path and key are absent when empty.
@@ -166,9 +166,9 @@ fn perform(form: &mut Form, op: &str, args: &[Value]) -> FormResult<Option<Value
         )
         .as_ref()
         .map(target_json)),
-        "runAction" => {
-            run_action(form, &action_target(&args[0])).map(|result| result.map(action_result_json))
-        }
+        "runAction" => action_target(&args[0])
+            .and_then(|target| run_action(form, &target))
+            .map(|result| result.map(action_result_json)),
         "addRow" => form
             .add_row(text(args, 0), options(args, 1))
             .map(|key| Some(json!(key))),

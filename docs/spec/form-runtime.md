@@ -211,6 +211,7 @@ the row key `key`; a focus is `{ path, key? }`, and a result is `{ focus? }`.
 - **CURT-088** `select-row` changes nothing and returns the focus on the row `key`.
 - **CURT-089** `move-up` and `move-down` run `moveRow(path, key, index)` with the index one before or after the row and return the focus on the moved row.
 - **CURT-090** An action whose operation fails fails with the error of that operation and leaves the instance as it was.
+- **CURT-091** `runAction(form, target)` of a target whose `name` is none of the eleven actions fails with `INVALID_FORM_INPUT` and the message `Unknown action: {name}` and changes nothing.
 
 ## Rendering and validation
 

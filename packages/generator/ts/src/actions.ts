@@ -89,10 +89,12 @@ export function resolveAction(source: Element | ActionInput): ActionTarget | und
 /**
  * Run a resolved action. Returns undefined when the target lacks a required path
  * or key. Adding and copying focus the new row, moving focuses the moved row, and
- * removing focuses the previous row, then the next row, then the collection.
+ * removing focuses the previous row, then the next row, then the collection. A name
+ * that is none of the eleven actions fails and changes nothing (CURT-091).
  */
 export function runAction(form: FormInstance, target: ActionTarget): ActionResult | undefined {
   const { name, path, key } = target;
+  if (!ACTIONS.includes(name)) throw new FormInputError(`Unknown action: ${name}`);
   if (name === 'expand-all' || name === 'collapse-all') {
     form.setAllExpanded(name === 'expand-all');
     return {};
