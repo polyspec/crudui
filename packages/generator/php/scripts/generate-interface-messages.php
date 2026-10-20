@@ -4,29 +4,32 @@
  * Generate src/Internal/InterfaceMessages.php from contracts/interface-messages.json.
  *
  * Run: php packages/generator/php/scripts/generate-interface-messages.php
- * With --stdout the source is printed instead of written.
  */
 
 declare(strict_types=1);
 
 require dirname(__DIR__, 4) . '/scripts/generator-contract.php';
 
-$contract = crudui_read_contract(dirname(__DIR__, 4), 'interface-messages');
+crudui_generate(
+    dirname(__DIR__, 4),
+    'interface-messages',
+    dirname(__DIR__) . '/src/Internal/InterfaceMessages.php',
+    $argv,
+    static function (array $contract): string {
+        /** Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit. */
+        $crudui_language_table = static function (array $messages): string {
+            $lines = [];
+            foreach ($messages as $key => $message) {
+                $lines[] = '            ' . var_export($key, true) . ' => ' . var_export($message, true) . ',';
+            }
 
-/** Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit. */
-$crudui_language_table = static function (array $messages): string {
-    $lines = [];
-    foreach ($messages as $key => $message) {
-        $lines[] = '            ' . var_export($key, true) . ' => ' . var_export($message, true) . ',';
-    }
+            return "\n" . implode("\n", $lines) . "\n        ";
+        };
 
-    return "\n" . implode("\n", $lines) . "\n        ";
-};
+        $form = $contract['form'];
+        $list = $contract['list'];
 
-$form = $contract['form'];
-$list = $contract['list'];
-
-$source = <<<'PHP'
+        $source = <<<'PHP'
 <?php
 
 // Generated from contracts/interface-messages.json by
@@ -51,13 +54,13 @@ final class InterfaceMessages
      */
     public const MESSAGES = [
 PHP;
-$source .= "\n";
+        $source .= "\n";
 
-foreach ($form as $lang => $messages) {
-    $source .= "        '{$lang}' => [" . $crudui_language_table($messages) . "],\n";
-}
+        foreach ($form as $lang => $messages) {
+            $source .= "        '{$lang}' => [" . $crudui_language_table($messages) . "],\n";
+        }
 
-$source .= <<<'PHP'
+        $source .= <<<'PHP'
     ];
 
     /**
@@ -67,16 +70,17 @@ $source .= <<<'PHP'
      */
     public const LIST = [
 PHP;
-$source .= "\n";
+        $source .= "\n";
 
-foreach ($list as $lang => $messages) {
-    $source .= "        '{$lang}' => [" . $crudui_language_table($messages) . "],\n";
-}
+        foreach ($list as $lang => $messages) {
+            $source .= "        '{$lang}' => [" . $crudui_language_table($messages) . "],\n";
+        }
 
-$source .= <<<'PHP'
+        $source .= <<<'PHP'
     ];
 }
 
 PHP;
-
-crudui_emit_source($source, dirname(__DIR__) . '/src/Internal/InterfaceMessages.php', $argv);
+        return $source;
+    }
+);

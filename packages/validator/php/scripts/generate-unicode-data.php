@@ -4,36 +4,41 @@
  * Generate src/Values/UnicodeData.php from contracts/unicode-properties.json.
  *
  * Run: php packages/validator/php/scripts/generate-unicode-data.php
- * With --stdout the source is printed instead of written.
  */
 
 declare(strict_types=1);
 
 require dirname(__DIR__, 4) . '/scripts/generator-contract.php';
 
-$contract = crudui_read_contract(dirname(__DIR__, 4), 'unicode-properties');
+crudui_generate(
+    dirname(__DIR__, 4),
+    'unicode-properties',
+    dirname(__DIR__) . '/src/Values/UnicodeData.php',
+    $argv,
+    static function (array $contract): string {
+        /** Write ranges as a flat list of inclusive bounds, six ranges per line. */
+        $crudui_ranges = static function (array $ranges, string $indent): string {
+            $lines = [];
+            foreach (array_chunk($ranges, 6) as $chunk) {
+                $bounds = array_map(static fn (array $range) => sprintf('0x%X, 0x%X', $range[0], $range[1]), $chunk);
+                $lines[] = $indent . '    ' . implode(', ', $bounds) . ',';
+            }
 
-/** Write ranges as a flat list of inclusive bounds, six ranges per line. */
-$crudui_ranges = static function (array $ranges, string $indent): string {
-    $lines = [];
-    foreach (array_chunk($ranges, 6) as $chunk) {
-        $bounds = array_map(static fn (array $range) => sprintf('0x%X, 0x%X', $range[0], $range[1]), $chunk);
-        $lines[] = $indent . '    ' . implode(', ', $bounds) . ',';
-    }
-    return "[\n" . implode("\n", $lines) . "\n" . $indent . ']';
-};
+            return "[\n" . implode("\n", $lines) . "\n" . $indent . ']';
+        };
 
-/** Write a name => ranges map. */
-$crudui_table = static function (array $table) use ($crudui_ranges): string {
-    $lines = [];
-    foreach ($table as $name => $ranges) {
-        $lines[] = '        ' . var_export((string) $name, true) . ' => ' . $crudui_ranges($ranges, '        ') . ',';
-    }
-    return "[\n" . implode("\n", $lines) . "\n    ]";
-};
+        /** Write a name => ranges map. */
+        $crudui_table = static function (array $table) use ($crudui_ranges): string {
+            $lines = [];
+            foreach ($table as $name => $ranges) {
+                $lines[] = '        ' . var_export((string) $name, true) . ' => '
+                    . $crudui_ranges($ranges, '        ') . ',';
+            }
+            return "[\n" . implode("\n", $lines) . "\n    ]";
+        };
 
-$version = $contract['unicodeVersion'];
-$source = <<<PHP
+        $version = $contract['unicodeVersion'];
+        $source = <<<PHP
 <?php
 
 // Generated from contracts/unicode-properties.json (Unicode {$version}) by
@@ -65,10 +70,12 @@ final class UnicodeData
 }
 
 PHP;
-$output = sprintf(
-    $source,
-    $crudui_ranges($contract['whiteSpace'], '    '),
-    $crudui_table($contract['generalCategories']),
-    $crudui_table($contract['scripts'])
+        $output = sprintf(
+            $source,
+            $crudui_ranges($contract['whiteSpace'], '    '),
+            $crudui_table($contract['generalCategories']),
+            $crudui_table($contract['scripts'])
+        );
+        return $output;
+    }
 );
-crudui_emit_source($output, dirname(__DIR__) . '/src/Values/UnicodeData.php', $argv);

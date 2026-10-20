@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 515f9f2eb8bd913fd57596ff2accfe4b8513ef05c4727c2baebc4a82f8c08cac -->
+<!-- source-sha256: 74ffaa4840f2c81c36a2884543174ec03cf55a7110c9340e05b9e52aaed40e18 -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
+
+### 2026-10-21 — PHP table generator들이 contract reader와 source writer를 공유한다 (C16.58-7)
+
+- `scripts/generator-contract.php`에 `crudui_generate`를 더했습니다. 이 함수는 `contracts/<name>.json`을 읽고 source를 만들어 출력하거나 씁니다. 모든 table generator가 하던 일입니다. `packages/generator/php/scripts/generate-interface-messages.php`와 `packages/validator/php/scripts/generate-unicode-data.php`는 table builder를 넘겨 이 함수를 부르며, 둘이 공유하던 header와 `--stdout` 설명은 한 곳에만 있습니다(C16.58-7). duplication check는 두 script가 공유하던 PHP header clone을 없앴습니다(변경 전 43 clone, 후 42 clone). 출력: 두 generator의 `php <script> --stdout`은 전과 같은 byte를 출력하며, 생성된 `src/Internal/InterfaceMessages.php`와 `src/Values/UnicodeData.php`는 바뀌지 않았습니다. Red: `make duplication-check` exit 2, 43 clone(두 script 사이의 PHP header clone); green: 같은 check가 exit 2, 42 clone(script clone 없음); `tests/Internal/InterfaceMessagesTest.php`와 `tests/Values/UnicodeDataTest.php`의 `phpunit`이 통과합니다.
 
 ### 2026-10-21 — Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (C16.12)
 

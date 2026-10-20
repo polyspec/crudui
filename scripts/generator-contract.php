@@ -40,3 +40,15 @@ function crudui_emit_source(string $source, string $file, array $arguments): voi
         file_put_contents($file, $source);
     }
 }
+
+/**
+ * Read contracts/<name>.json, build its source with $build, and print the source with --stdout or write it to $file.
+ * Every generator script runs this way: `php <script>` writes its source, `php <script> --stdout` prints it.
+ *
+ * @param list<string> $arguments
+ * @param callable(array<string, mixed>): string $build
+ */
+function crudui_generate(string $repositoryRoot, string $name, string $file, array $arguments, callable $build): void
+{
+    crudui_emit_source($build(crudui_read_contract($repositoryRoot, $name)), $file, $arguments);
+}
