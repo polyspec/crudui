@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Korean checklist revision (C16.4)
+
+- The Korean checklist of the kit-standard plan is reviewed against `checklist.md` and carries the sha256 of its source (C16.4). Red: `check-documents.mjs` reported one revision finding; green: no finding.
+
 ### 2026-10-19 — The kit standard 0.0.54 (C16.1)
 
 - CI calls only targets that exist, with the PHP 8.4 tools, and the platform tests run on every platform instead of being skipped (C16.2).

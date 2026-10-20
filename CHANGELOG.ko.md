@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 964f1409c5da4e409789392121d006f1e2d5926db4ea1e1f098a8bcf96f6f031 -->
+<!-- source-sha256: 6462ac08700d13bf64c3039c1eee7ef01f04c0b0aa1e018553724c0753cbd4e4 -->
 
 ## Unreleased
+
+### 2026-10-20 — 한국어 checklist revision (C16.4)
+
+- kit-standard plan의 한국어 checklist를 `checklist.md`와 대조해 검토했고, 원문의 sha256을 담습니다 (C16.4). Red: `check-documents.mjs`가 revision finding 1건을 보고했고, green: finding이 없습니다.
 
 ### 2026-10-19 — kit 표준 0.0.54 (C16.1)
 
