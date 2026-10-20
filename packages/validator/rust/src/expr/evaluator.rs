@@ -21,6 +21,7 @@
 
 use serde_json::{Number, Value};
 
+use crate::json_type::js_type_of;
 use super::ast::{LiteralValue, Node, PathSegment};
 
 /// A resolved value is either a single value or a wildcard-produced list of
@@ -428,17 +429,6 @@ pub fn is_truthy(value: &Value) -> bool {
         // [] and {} are both truthy in JS (Boolean of any object/array).
         Value::Array(_) => true,
         Value::Object(_) => true,
-    }
-}
-
-/// JS `typeof` bucket: number covers int and float; arrays/objects are 'object'.
-fn js_type_of(v: &Value) -> &'static str {
-    match v {
-        Value::Null => "null",
-        Value::Bool(_) => "boolean",
-        Value::Number(_) => "number",
-        Value::String(_) => "string",
-        Value::Array(_) | Value::Object(_) => "object",
     }
 }
 

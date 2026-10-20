@@ -652,21 +652,19 @@ pub fn validate_text(
     )
 }
 
-/// The decoded specification, files and base path of a list or detail specification.
-type ListOrDetailInput = (Value, Option<Map<String, Value>>, Option<String>);
-
-/// The input of a list or detail specification,
-/// after the checks of [`validate_text`] for their text.
-fn list_or_detail_input(
+/// The input of a list or detail specification after the checks of [`validate_text`] for their
+/// text, which `validate` then validates: the decoded specification, the files and the base path.
+fn structure_text(
     spec: &JsonText,
     files: Option<&JsonText>,
     basepath: Option<&JsonText>,
-) -> Result<ListOrDetailInput, ValidateError> {
+    validate: impl FnOnce(&Value, Option<Map<String, Value>>, Option<String>) -> Result<(), ValidateError>,
+) -> Result<(), ValidateError> {
     check_specification(Some(spec), files)?;
     check_inputs(&[("options.basepath", basepath)])?;
     let (files, basepath) = composition(files, basepath)?;
     let spec = decoded(Some(spec))?.unwrap_or(Value::Null);
-    Ok((spec, files, basepath))
+    validate(&spec, files, basepath)
 }
 
 /// [`validate_list`](crate::validate_list()) over JSON text, with the checks of
@@ -676,15 +674,10 @@ pub fn validate_list_text(
     files: Option<&JsonText>,
     basepath: Option<&JsonText>,
 ) -> Result<(), ValidateError> {
-    let (spec, files, basepath) = list_or_detail_input(spec, files, basepath)?;
-    Ok(crate::validate_list(
-        &spec,
-        &ValidateListOptions {
-            files,
-            loader: None,
-            basepath,
-        },
-    )?)
+    structure_text(spec, files, basepath, |spec, files, basepath| {
+        let options = ValidateListOptions { files, loader: None, basepath };
+        Ok(crate::validate_list(spec, &options)?)
+    })
 }
 
 /// [`validate_detail`](crate::validate_detail()) over JSON text, with the checks
@@ -694,15 +687,10 @@ pub fn validate_detail_text(
     files: Option<&JsonText>,
     basepath: Option<&JsonText>,
 ) -> Result<(), ValidateError> {
-    let (spec, files, basepath) = list_or_detail_input(spec, files, basepath)?;
-    Ok(crate::validate_detail(
-        &spec,
-        &ValidateDetailOptions {
-            files,
-            loader: None,
-            basepath,
-        },
-    )?)
+    structure_text(spec, files, basepath, |spec, files, basepath| {
+        let options = ValidateDetailOptions { files, loader: None, basepath };
+        Ok(crate::validate_detail(spec, &options)?)
+    })
 }
 
 #[cfg(test)]

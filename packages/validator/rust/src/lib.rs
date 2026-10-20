@@ -5,6 +5,7 @@ pub mod compose;
 pub mod detail;
 pub mod expr;
 pub mod forbidden_scan;
+mod json_type;
 pub mod list;
 mod structure;
 pub mod text;

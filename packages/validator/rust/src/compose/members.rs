@@ -4,6 +4,7 @@
 use serde_json::{Map, Value};
 
 use super::errors::ComposeResult;
+use crate::json_type::js_type_of;
 use super::patch::apply_patch;
 
 /// Layer the members of a node in declaration order: a `$ref` lays its resolved base over the
@@ -47,14 +48,12 @@ pub(super) fn layer_members(
     Ok(result)
 }
 
-/// JS-style type name for error messages (matches the JS `typeof`/array wording).
+/// JS-style type name for error messages (matches the JS `typeof`/array wording): an array
+/// is named `array`, not `object`.
 pub(super) fn kind_of(v: &Value) -> &'static str {
-    match v {
-        Value::Null => "null",
-        Value::Bool(_) => "boolean",
-        Value::Number(_) => "number",
-        Value::String(_) => "string",
-        Value::Array(_) => "array",
-        Value::Object(_) => "object",
+    if v.is_array() {
+        "array"
+    } else {
+        js_type_of(v)
     }
 }

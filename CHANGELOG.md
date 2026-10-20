@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared reference resolver, type names and structure text in the Rust validator (C16.33)
+
+- `reference_resolver` gives `expand_properties` and `expand_spec` the resolution of a `$ref` from the options, `json_type::js_type_of` is the one `typeof` bucket that `kind_of` and the expression engine use, `structure_text` reads the input of `validate_list_text` and `validate_detail_text`, and the composition tests call `composed` (C16.33). Red: `make duplication-check` listed 4 clones in `packages/validator/rust`; green: 1 remains, the signature of the two public functions `validate_list_text` and `validate_detail_text` (`text.rs` lines 672-678 and 685-691), and the `compose` (23), `validate` (46), `text` (12) and `expr` (1) tests and `make lint-rust` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Own docblocks for the twin PHP methods (C16.32)
 
 - `Expression::evaluate` and `evaluateValue`, `Nfa::matches` and `WholeMatchPattern::matches`, `Patch::setDeepPath` and `removeDeepPath`, `Validator::runImplicitNumber` and `applyRules` each had the docblock of the other; every one now says what it returns and throws and how it differs from its twin, and `Public\Validator::validateList` and `validateDetail` pass the names of their maps to `validateComposition` instead of closures with the same head (C16.32). Red: `make duplication-check` listed 5 clones in `packages/validator/php`; green: none; the list (20), detail (14), text validity (46), validate (318), expression (78), patch (17), compose (20) and doc coverage tests and `make lint-php` pass.

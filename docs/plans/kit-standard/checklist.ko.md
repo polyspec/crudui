@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 71387884ebb1b9b159d6b7da212522bfe388096a625b8a2c3274f7eb7f96bc3d -->
+<!-- source-sha256: 4d01fd36b364d6f4ada9b212d9d31a40ca82f4f1c5998f0a1bb2582e5aa9f91e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -47,3 +47,4 @@
 | C16.30 | parameter를 받는 PHP validator rule은 검사 종류마다 하나의 base class를 공유한다 | packages/validator/php/src/Rules (ParameterRule, FlagRule, MeasuredRule, NumericRule, LengthRule, CountRule and the eleven rules) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |
 | C16.31 | Go validator는 slot의 shape marshal과 list, detail 검증을 공유 함수로 수행한다 | packages/validator/go/validator/ordered.go, types.go, validate/list.go, validate/detail.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- -run 'Fixture\|TestValidate\|TestForbidden\|TestParameterChecks' ./...`, `make lint-go` | [o] |
 | C16.32 | PHP validator는 쌍을 이루는 method마다 자기 계약을 문서화하고 list와 detail을 map 이름으로 검증한다 | packages/validator/php/src/Expr/Expression.php, Patterns/WholeMatchPattern.php, Public/Validator.php, Compose/Patch.php, Validate/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ListValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/DetailValidateConformanceTest.php`, `make lint-php` | [o] |
+| C16.33 | Rust validator는 ef 해석, JSON type 이름, structure text 읽기를 공유 함수로 수행한다 | packages/validator/rust/src (compose/compose.rs, compose/members.rs, expr/evaluator.rs, json_type.rs, text.rs, lib.rs) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml text`, `make lint-rust` | [o] |

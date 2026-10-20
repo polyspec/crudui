@@ -73,16 +73,22 @@ pub fn compose_spec(
     Ok(member_ordered_map(&composed))
 }
 
+/// The resolution of the value of a `$ref` from the base path of the options, with no file
+/// being resolved yet.
+fn reference_resolver<'a>(
+    loader: &'a dyn FileLoader,
+    opts: &'a ComposeOptions,
+) -> impl Fn(&Value) -> ComposeResult<Map<String, Value>> + 'a {
+    move |value| resolve_ref(value, &opts.basepath, loader, &BTreeSet::new())
+}
+
 /// `compose_properties` over a member-ordered input, without ordering the result.
 fn expand_properties(
     properties: Map<String, Value>,
     loader: &dyn FileLoader,
     opts: &ComposeOptions,
 ) -> ComposeResult<Map<String, Value>> {
-    let basepath = &opts.basepath;
-    let visiting: BTreeSet<String> = BTreeSet::new();
-
-    let mut result = layer_members(properties, |v| resolve_ref(v, basepath, loader, &visiting))?;
+    let mut result = layer_members(properties, reference_resolver(loader, opts))?;
 
     // Recurse into every child field's `properties` (the tree may compose deeper).
     // ORDER: clone the child value out (get().cloned()), compose it, then re-insert
@@ -107,15 +113,12 @@ fn expand_spec(
     loader: &dyn FileLoader,
     opts: &ComposeOptions,
 ) -> ComposeResult<Map<String, Value>> {
-    let basepath = &opts.basepath;
-    let visiting: BTreeSet<String> = BTreeSet::new();
-
     let mut resolved: Map<String, Value>;
 
     // Field-level $ref / $patch (a field may inherit a whole base spec).
     if spec.contains_key("$ref") || spec.contains_key("$patch") {
         // Field-level $ref resolves a file's properties layer too (detectKey).
-        let merged = layer_members(spec, |v| resolve_ref(v, basepath, loader, &visiting))?;
+        let merged = layer_members(spec, reference_resolver(loader, opts))?;
         resolved = merged;
     } else {
         resolved = spec;
@@ -154,42 +157,41 @@ mod order_tests {
         v.as_object().unwrap().clone()
     }
 
+    /// The composed value of `entry` over the base documents `files`.
+    fn composed(files: Value, entry: Value) -> Value {
+        let out = compose_properties(props(entry), &loader(files), &ComposeOptions::default()).unwrap();
+        Value::Object(out)
+    }
+
     #[test]
     fn child_recursion_preserves_field_declaration_order() {
         // Three sibling fields, each with a nested `properties` that composes. The
         // re-insert after composing each child must keep a,b,c in order — a
         // remove()+insert (swap_remove) would scramble them to e.g. c,b,a / a,c,b.
-        let ml = loader(json!({}));
-        let entry = props(json!({
+        let out = composed(json!({}), json!({
             "a": {"type": "group", "properties": {"x": {"type": "text"}}},
             "b": {"type": "group", "properties": {"y": {"type": "text"}}},
             "c": {"type": "group", "properties": {"z": {"type": "text"}}}
         }));
-        let out = compose_properties(entry, &ml, &ComposeOptions::default()).unwrap();
-        assert_eq!(keys(&Value::Object(out)), vec!["a", "b", "c"]);
+        assert_eq!(keys(&out), vec!["a", "b", "c"]);
     }
 
     #[test]
     fn ref_base_then_sibling_after_keeps_base_order_and_appends_new() {
         // base = {a,b}; entry declares $ref then sibling c → a,b (base order) then c.
-        let ml = loader(json!({
+        let out = composed(json!({
             "base.yml": {"properties": {"a": {"t": 1}, "b": {"t": 2}}}
-        }));
-        let entry = props(json!({"$ref": "base.yml", "c": {"t": 3}}));
-        let out = compose_properties(entry, &ml, &ComposeOptions::default()).unwrap();
-        assert_eq!(keys(&Value::Object(out)), vec!["a", "b", "c"]);
+        }), json!({"$ref": "base.yml", "c": {"t": 3}}));
+        assert_eq!(keys(&out), vec!["a", "b", "c"]);
     }
 
     #[test]
     fn sibling_after_ref_overrides_base_in_its_base_slot() {
         // a declared AFTER $ref overrides the base value but the key keeps the
         // base's slot (insert on an existing key preserves position): a,b order.
-        let ml = loader(json!({
+        let out = composed(json!({
             "base.yml": {"properties": {"a": {"from": "base"}, "b": {"t": 2}}}
-        }));
-        let entry = props(json!({"$ref": "base.yml", "a": {"from": "override"}}));
-        let out = compose_properties(entry, &ml, &ComposeOptions::default()).unwrap();
-        let out = Value::Object(out);
+        }), json!({"$ref": "base.yml", "a": {"from": "override"}}));
         assert_eq!(keys(&out), vec!["a", "b"]);
         assert_eq!(out["a"]["from"], json!("override"));
     }
@@ -224,10 +226,8 @@ mod order_tests {
     #[test]
     fn patched_array_index_member_joins_in_member_order() {
         let base = written(&[("b", json!({"t": "b"})), ("a", json!({"t": "a"}))]);
-        let ml = loader(json!({"base.yml": {"properties": base}}));
-        let entry = props(json!({"$ref": "base.yml", "$patch": {"10": {"t": "ten"}}}));
-        let out = compose_properties(entry, &ml, &ComposeOptions::default()).unwrap();
-        assert_eq!(keys(&Value::Object(out)), vec!["10", "b", "a"]);
+        let out = composed(json!({"base.yml": {"properties": base}}), json!({"$ref": "base.yml", "$patch": {"10": {"t": "ten"}}}));
+        assert_eq!(keys(&out), vec!["10", "b", "a"]);
     }
 
     /// A loader that returns documents exactly as written, like a custom loader.
@@ -295,12 +295,10 @@ mod order_tests {
     fn nested_ref_flatten_keeps_inner_then_own_order() {
         // base.yml: $ref inner.yml (deep) then own → inner base laid first, own
         // appended: deep, own (declaration order across the $ref boundary).
-        let ml = loader(json!({
+        let out = composed(json!({
             "base.yml": {"properties": {"$ref": "inner.yml", "own": {"from": "base"}}},
             "inner.yml": {"properties": {"deep": {"from": "inner"}}}
-        }));
-        let entry = props(json!({"$ref": "base.yml"}));
-        let out = compose_properties(entry, &ml, &ComposeOptions::default()).unwrap();
-        assert_eq!(keys(&Value::Object(out)), vec!["deep", "own"]);
+        }), json!({"$ref": "base.yml"}));
+        assert_eq!(keys(&out), vec!["deep", "own"]);
     }
 }

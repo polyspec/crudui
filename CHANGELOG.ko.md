@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f56bc870013257fa37abd3d19441cea2f4c709900e2ac1043a94a76effe7d578 -->
+<!-- source-sha256: b93973f0fcc950fe076c4d871d60549ef7ed7ecea8c6b677c8398750811825a4 -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust validator의 공유 reference resolver, type 이름, structure text (C16.33)
+
+- `reference_resolver`는 `expand_properties`와 `expand_spec`에 option에서 `$ref`를 해석하는 방법을 주고, `json_type::js_type_of`는 `kind_of`와 expression engine이 쓰는 하나의 `typeof` bucket이며, `structure_text`는 `validate_list_text`와 `validate_detail_text`의 입력을 읽고, composition test는 `composed`를 호출합니다 (C16.33). Red: `make duplication-check`가 `packages/validator/rust`의 clone 4건을 나열했고, green: 1건이 남으며(공개 함수 `validate_list_text`와 `validate_detail_text`의 signature, `text.rs` 672-678줄과 685-691줄), `compose`(23), `validate`(46), `text`(12), `expr`(1) test와 `make lint-rust`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — 쌍을 이루는 PHP method의 고유한 docblock (C16.32)
 
