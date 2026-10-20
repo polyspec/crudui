@@ -2,37 +2,81 @@ package generator
 
 import (
 	"encoding/json"
-	"strings"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
-// A template that is not exactly the compiled shape is rejected when it is decoded.
-func TestTemplateShapeIsRejected(t *testing.T) {
-	named := `{"kind":"crudui/form-template","fields":[{"name":"name","spec":{"type":"text"},"children":[]}],"buttons":[{"type":"submit"}]}`
-	for _, text := range []string{
-		`{"kind":"crudui/form-template","buttons":[]}`,
-		`{"kind":"crudui/form-template","fields":{},"buttons":[]}`,
-		`{"kind":"crudui/form-template","fields":["name"],"buttons":[]}`,
-		`{"kind":"crudui/form-template","fields":[{"name":"name","spec":{}}],"buttons":[]}`,
-		`{"kind":"crudui/form-template","fields":[{"name":"name","spec":{},"children":[],"label":"x"}],"buttons":[]}`,
-		`{"kind":"crudui/form-template","fields":[]}`,
-		`{"kind":"crudui/form-template","fields":[],"buttons":{}}`,
-		`{"kind":"crudui/form-template","fields":[],"buttons":[[]]}`,
-		`{"kind":"crudui/form-template","fields":[],"buttons":[],"version":1}`,
-		`{"kind":"other","fields":[],"buttons":[]}`,
-		`{"kind":"crudui/form-template","fields":[],"buttons":[],"keyPrefix":null}`,
-		`{"kind":"crudui/form-template","fields":[],"buttons":[],"action":"/save"}`,
-	} {
-		var template FormTemplate
-		if e := json.Unmarshal([]byte(text), &template); e == nil || e.Error() != "Unsupported form template" {
-			t.Fatalf("%s: %v", text, e)
+// The cases of tests/fixtures/template-shape (CURT-092). A template is decoded from its JSON text first, which refuses a
+// shape that is not the compiled one; the operation of the case then runs on the decoded template.
+func TestTemplateShapeCases(t *testing.T) {
+	const want = 42
+	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "tests", "fixtures", "template-shape", "cases.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var items []map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &items); err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != want {
+		t.Fatalf("the fixture holds %d cases, want %d", len(items), want)
+	}
+	for _, item := range items {
+		var name string
+		if err := json.Unmarshal(item["name"], &name); err != nil {
+			t.Fatal(err)
 		}
+		t.Run(name, func(t *testing.T) {
+			got, err := json.Marshal(outcomeOf(runTemplateShapeCase(t, item)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			expect, err := DecodeJSON(item["expect"])
+			if err != nil {
+				t.Fatal(err)
+			}
+			want, err := json.Marshal(expect)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != string(want) {
+				t.Errorf("got %s\nwant %s", got, want)
+			}
+		})
+	}
+}
+
+// runTemplateShapeCase decodes the template of a case and runs its operation with the case data and default options.
+func runTemplateShapeCase(t *testing.T, item map[string]json.RawMessage) error {
+	t.Helper()
+	var operation string
+	if err := json.Unmarshal(item["operation"], &operation); err != nil {
+		t.Fatal(err)
 	}
 	var template FormTemplate
-	declared := strings.Replace(named, `"buttons"`, `"keyPrefix":"p","action":{"url":"/save"},"buttons"`, 1)
-	if e := json.Unmarshal([]byte(declared), &template); e != nil || template.KeyPrefix != "p" {
-		t.Fatal(e)
+	if err := json.Unmarshal(item["template"], &template); err != nil {
+		return err
 	}
+	value, err := DecodeJSON(item["data"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, ok := value.(*Object)
+	if !ok {
+		t.Fatalf("the data of the case is %T, not an object", value)
+	}
+	switch operation {
+	case "bindForm":
+		_, err = BindForm(&template, data, BindOptions{})
+	case "bindButtons":
+		_, err = BindButtons(&template, data, BindOptions{})
+	case "createForm":
+		_, err = NewForm(&template, data, BindOptions{})
+	default:
+		t.Fatalf("unknown template operation %s", operation)
+	}
+	return err
 }
 
 // Widget model members follow one output order.

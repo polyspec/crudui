@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 53bffb0900d49ecf0172e8e46c95ce00a2562532bf78e0fa7704c8df76c89c97 -->
+<!-- source-sha256: 013a22cd1e7fc3339c8f90c9c9f24e24b8547500dd0751f07f1d26b06d2e4e96 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -240,3 +240,4 @@
 | C16.135 | make install-link가 저장소의 Python 환경으로 link하므로 make install은 손으로 준 환경 없이 link한다 | Makefile | `make install-link`, `make link-state-check` | [o] |
 | C16.127 | 폼 템플릿 형태는 form-runtime.md의 requirement CURT-092이며, TypeScript 기준 구현으로 생성한 템플릿 문서 fixture가 세 operation에서 각 형태 위반을 거부한다 | docs/spec/form-runtime.md, docs/spec/form-runtime.ko.md, tests/fixtures/template-shape (cases.json, generate.mts, README) | `node tests/fixtures/template-shape/generate.mts` | [o] |
 | C16.128 | TypeScript generator는 inline shape table 대신 template-shape fixture의 모든 case를 bindForm, bindButtons, createForm으로 실행한다 | packages/generator/ts/src/template-shape.test.ts | `cd packages/generator/ts && npx vitest run src/template-shape.test.ts -t "createForm-missing-fields" --reporter=json --outputFile=/private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16128.json && node -e "if (JSON.parse(require('fs').readFileSync('/private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16128.json','utf8')).numPassedTests !== 1) process.exit(1)"` | [o] |
+| C16.129 | Go generator는 inline table 대신 template shape fixture의 모든 case를 template decoder와 bindForm, bindButtons, createForm operation으로 실행한다 | packages/generator/go/template_shape_test.go | `cd packages/generator/go && go test -count=1 -run TestTemplateShapeCases -v . > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16129-go.log 2>&1 && node -e "const n = require('fs').readFileSync('/private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16129-go.log', 'utf8').split('\\n').filter(line => line.includes('--- PASS: TestTemplateShapeCases/')).length; if (n !== 42) process.exit(1)"` | [o] |
