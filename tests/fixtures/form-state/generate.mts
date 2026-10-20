@@ -154,8 +154,8 @@ const all: Case[] = [
   }),
   session({
     name: 'rekey-moves-the-edits-to-the-new-keys',
-    note: 'Rekeying a row and a member under a rule path keeps their values under the new keys; an edit after the rekey uses the new path (CURT-054).',
-    requirements: ['CURT-054'],
+    note: 'Rekeying a row and a member keeps their values under the new keys; an edit after the rekey uses the new path. The rule paths of the fields are not observed.',
+    requirements: [],
     steps: [
       step('rekeyRow', 'teams', A, k(6)),
       step('rekeyRow', `teams.${k(6)}.members`, M1, k(15)),
@@ -164,8 +164,8 @@ const all: Case[] = [
   }),
   session({
     name: 'invalid-removal-leaves-data-and-adding-continues',
-    note: 'An unknown row and a removal below the minimum row count fail without changing the data; adding a row afterwards is permitted (CURT-055).',
-    requirements: ['CURT-055'],
+    note: 'An unknown row and a removal below the minimum row count fail without changing the data; adding a row afterwards is permitted.',
+    requirements: [],
     steps: [
       step('removeRow', 'teams', k(9)),
       step('addRow', 'teams', { key: k(5) }),
@@ -173,6 +173,32 @@ const all: Case[] = [
       step('removeRow', 'teams', B),
       step('removeRow', 'teams', k(5)),
       step('addRow', 'teams', { key: k(6) }),
+    ],
+  }),
+  session({
+    name: 'delete-every-row-then-add-one-with-min-zero',
+    note: 'With no minimum row count, an unknown row fails and changes nothing; every row is deleted, and adding one row then gives a row with empty values (CURT-055).',
+    requirements: ['CURT-055'],
+    spec: {
+      type: 'group',
+      properties: {
+        teams: {
+          type: 'group',
+          label: 'Team',
+          multiple: { min: 0, max: 5, sortable: true, copy: true, title: 'name' },
+          properties: {
+            name: { type: 'text', label: 'Name' },
+            members: { type: 'group', label: 'Member', multiple: { title: 'name' }, properties: { name: { type: 'text', label: 'Name' } } },
+          },
+        },
+        note: { type: 'text', label: 'Note' },
+      },
+    },
+    steps: [
+      step('removeRow', 'teams', k(9)),
+      step('removeRow', 'teams', A),
+      step('removeRow', 'teams', B),
+      step('addRow', 'teams', { key: k(5) }),
     ],
   }),
   session({

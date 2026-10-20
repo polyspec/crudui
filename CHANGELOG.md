@@ -3,6 +3,15 @@
 
 ## Unreleased
 
+### 2026-10-21 — CURT-055 is cited by the session that covers it whole; CURT-054 is withdrawn from the form state citation (C16.146-1)
+
+Corrects the citations of C16.146. A case is cited only for a requirement it tests whole.
+
+- CURT-055 (reject invalid operations atomically; permit adding after deleting all rows) is now cited by `delete-every-row-then-add-one-with-min-zero` (form-actions): with no minimum row count an unknown row fails and changes nothing, every row is deleted, and adding one row gives a row with empty values. The earlier `invalid-removal-leaves-data-and-adding-continues` session keeps its cases but no longer cites CURT-055, because its shared minimum of one team means it cannot delete every row.
+- CURT-054 (apply a saved sequence key and update field names and rule paths) is withdrawn from the citation and from the form-actions unit. The session `rekey-moves-the-edits-to-the-new-keys` observes the data after a rekey, but the form state format observes no rule path: its observations hold results, errors, data, revisions, the undo flags and the collapsed rows, and no step lists the validation errors or the field paths. Observing them would need a new step in all six runners, so CURT-054 is reported as untraced again.
+
+The form state runners of all six implementations pass once: TypeScript, Go, Python, Rust, PHP, the PHP extension and its engine test.
+
 ### 2026-10-21 — The form state sessions cite three acceptance criteria; the copy rule moves to the form comparison example (C16.146)
 
 Decision table for the six acceptance criteria that C16.141 reported (CURT-050 to CURT-056):
@@ -34,6 +43,7 @@ changes. The form-actions unit cites CURT-053, CURT-054 and CURT-055. Every runn
 - Cases and units: the validate, validateList, validateDetail and value-graphs fixtures and the four validator units cite CUIT-041 in place of CUIT-032, CUIT-033 and CUIT-035.
 - Runners (each asserts the native class of every failure, and passes): the TypeScript validator and generator (`ComposeLoadError`, `FormInputError`); the PHP validator and generator and the PHP extension (`ComposeLoadError`, `FormInputError` in validation and `FormError` in generation); the Go validator (`*compose.ComposeLoadError`, `*FormInputError`) and generator (the load type of invalid text); the Rust validator (`ValidateError::Load`, `ValidateError::Input`); the Python validator (`ComposeLoadError`, `FormInputError`) and generator (`FormError` in generation).
 - Rust generator: unchanged, and not fulfilled. Its generation operations return `FormError` for every failure, and the `From<ComposeLoadError>` impl keeps the load kind only in the code `INVALID_TEXT`, so a load failure and an input failure are not distinct error types of the Rust generator. The neutral rule requires either a second error type for load failures or a documented exception; the owner decides which.
+
 ### 2026-10-21 — The untraced CUSC requirements have shared cases (C16.144)
 
 Decision table for the eight untraced CUSC ids of `docs/spec/schema.md` (decision = the case that tests the sentence; each case is run by every runner of its suite):

@@ -1,8 +1,17 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9a6dffc957fcac284d90213779814af12c73d9ef65a04bfbea82628e40164655 -->
+<!-- source-sha256: 51b991a1e0a9a4aa9d389e0bca67b4b45f5cf6b6b9b66afbb3a9686c558abfd2 -->
 
 ## Unreleased
+
+### 2026-10-21 — CURT-055는 그것을 전부 시험하는 세션이 인용하고, CURT-054는 form state 인용에서 철회된다 (C16.146-1)
+
+C16.146의 인용을 바로잡습니다. case는 자기가 요구사항을 전부 시험할 때만 그 요구사항을 인용합니다.
+
+- CURT-055(잘못된 작업의 원자적 거부; 모든 행 삭제 뒤 추가 가능)는 이제 `delete-every-row-then-add-one-with-min-zero`(form-actions)가 인용합니다. 최소 행 수가 없을 때 알 수 없는 행은 실패하며 아무것도 바꾸지 않고, 모든 행을 지운 뒤 한 행을 추가하면 빈 값의 행이 됩니다. 이전 `invalid-removal-leaves-data-and-adding-continues` 세션은 case를 유지하지만 CURT-055를 인용하지 않습니다. 공용 명세의 최소가 팀 한 개이므로 모든 행을 지울 수 없기 때문입니다.
+- CURT-054(저장한 seq 키 적용, 필드 이름과 규칙 경로 갱신)는 인용과 form-actions unit에서 철회됩니다. `rekey-moves-the-edits-to-the-new-keys` 세션은 rekey 뒤의 데이터를 관찰하지만, form state 형식은 규칙 경로를 관찰하지 않습니다. 관찰값은 결과, 오류, 데이터, 개정 번호, 실행 취소 플래그, 접힌 행이며 검증 오류나 필드 경로를 나열하는 단계가 없습니다. 이를 관찰하려면 여섯 runner 모두에 새 단계가 필요하므로 CURT-054는 다시 미추적으로 보고합니다.
+
+form state runner는 여섯 구현 모두 한 번씩 통과합니다. TypeScript, Go, Python, Rust, PHP, PHP extension과 engine 테스트입니다.
 
 ### 2026-10-21 — form state 세션이 인수 기준 세 개를 인용하고, 복사 규칙은 form 비교 예제로 옮겨진다 (C16.146)
 
@@ -33,6 +42,7 @@ C16.141이 보고한 인수 기준 여섯 개(CURT-050부터 CURT-056까지)에 
 - case와 unit: validate, validateList, validateDetail, value-graphs fixture와 validator unit 네 개는 CUIT-032, CUIT-033, CUIT-035 대신 CUIT-041을 인용합니다.
 - runner(각각 모든 실패의 native class를 검사하며 통과합니다): TypeScript validator와 generator(`ComposeLoadError`, `FormInputError`); PHP validator, generator, PHP extension(검증에서 `ComposeLoadError`, `FormInputError`, 생성에서 `FormError`); Go validator(`*compose.ComposeLoadError`, `*FormInputError`)와 generator(잘못된 text의 로드 타입); Rust validator(`ValidateError::Load`, `ValidateError::Input`); Python validator(`ComposeLoadError`, `FormInputError`)와 generator(생성의 `FormError`).
 - Rust generator: 바뀌지 않았고 요구사항을 충족하지 않습니다. 생성 operation은 모든 실패에 `FormError`를 돌려주며, `From<ComposeLoadError>` 구현은 로드 종류를 code `INVALID_TEXT`에만 남기므로 Rust generator에서 로드 실패와 입력 실패는 서로 다른 오류 타입이 아닙니다. 중립 요구사항은 로드 실패용 두 번째 오류 타입이나 명시된 예외를 요구하며, 어느 쪽인지는 소유자가 정합니다.
+
 ### 2026-10-21 — 추적되지 않은 CUSC 요구사항에 공유 사례가 있습니다 (C16.144)
 
 `docs/spec/schema.md`의 추적되지 않은 CUSC id 8개의 결정표입니다(결정은 해당 문장을 검증하는 사례, 각 사례는 해당 suite의 모든 runner가 실행합니다):
