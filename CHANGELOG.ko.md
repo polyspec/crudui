@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 20bad334d797f556ab953bdef87c41b0c82517b2cafcea00cf894cb41f4e5f18 -->
+<!-- source-sha256: 170b428f6ba1978ac2b6250affc8c8bae31a7ceab6a42655739acd583dd6bf36 -->
 
 ## Unreleased
+
+### 2026-10-20 — Python validator의 날짜 파서는 layout fallback을 명시한다 (C16.67-10)
+
+- `packages/validator/python/src/polyspec/crudui/validator/rules.py`에 `_strptime_layout`을 두어 다른 layout인 값에는 None을 반환하게 하고, `_parse_date`가 허용된 layout을 모두 이 함수로 시도하므로 `try`/`except` 블록이 조용히 `continue`나 `pass`하지 않습니다(C16.67-10). Red: `ruff check --config ruff.toml rules.py`가 exit 1이며 finding 2건 S112 `try`-`except`-`continue`를 455행과 460행에서 보고했습니다. `tests.test_validate` 3 passed, `tests.test_text_validity` 4 passed. Green: ruff exit 0(`All checks passed!`), 두 test module 모두 통과(3, 4 passed).
 
 ### 2026-10-20 — adapter는 list와 detail renderer, action과 widget root markup을 core에서 가져온다 (C16.58-4)
 

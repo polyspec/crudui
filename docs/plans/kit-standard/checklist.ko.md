@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 43dd2ea63d6c081b3a5e292cf2a68095fb7e0dce8a0669378481cc5d38517700 -->
+<!-- source-sha256: adeaf69702912b50141d5fd4a2d1e70aec2a4858c55a4fcba1c71618ecb81b25 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -115,3 +115,4 @@
 | C16.65-1 | repository-writing test는 kit가 자기 검사를 부르는 용어 gate를 허용한다(PRINCIPLES P31, kit-gates) | tests/docs/repository-writing.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [o] |
 | C16.66 | CHANGELOG.ko.md는 CHANGELOG.md의 모든 항목을 같은 순서로 한 번씩 담고 revision marker를 하나만 가진다 | CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/changelog.test.mts` | [o] |
 | C16.67 | kit 사본은 2026-10-20의 kit-sync를 따른다(golangci, ruff, clippy 설정, principles, bootstrap) | .golangci.yml, ruff.toml, clippy.toml, PRINCIPLES.md, PRINCIPLES.ko.md, scripts/kit/kit-bootstrap.mk | `make kit-check` | [o] |
+| C16.67-10 | validator은 숨은 오류를 보고하지 않는다: kit lint의 날짜 파서 ruff S112 finding을 처리한다(K334, P8) | packages/validator/python (validator/rules.py) | `var/tools/bin/mise exec -- ruff check --config ruff.toml packages/validator/python/src/polyspec/crudui/validator/rules.py`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_validate`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_text_validity` | [o] |

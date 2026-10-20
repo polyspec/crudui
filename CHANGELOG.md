@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Python validator's date parser names its layout fallback (C16.67-10)
+
+- `packages/validator/python/src/polyspec/crudui/validator/rules.py` has `_strptime_layout`, which returns None for a value that has another layout, and `_parse_date` tries every accepted layout through it, so no `try`/`except` block continues or passes silently (C16.67-10). Red: `ruff check --config ruff.toml rules.py` exit 1, 2 findings S112 `try`-`except`-`continue` at lines 455 and 460; `tests.test_validate` 3 passed and `tests.test_text_validity` 4 passed; green: ruff exit 0 (`All checks passed!`), both test modules pass (3 and 4 passed).
+
 ### 2026-10-20 — The adapters take the list and detail renderers and the action and widget root markup from the core (C16.58-4)
 
 - `@polyspec/crudui-generator-core` has `listRenderer`, `detailRenderer`, `sortDir`, `actionHtml`, `isUnsupported` and `widgetRootHtml` in its internal entry and the types `RenderList`, `RenderListOptions`, `RenderDetail` and `AnyWidget` in its public entry; `renderList` and `renderDetail` of React and Svelte, `sortDir` and `actionHtml` of the Vue and Svelte lists and `AnyWidget`, `isUnsupported` and `widgetRootRaw` of the React, Vue and Svelte widgets use them, and `contracts/features.json` declares the six internal names (C16.58-4). Red: `make duplication-check` found 40 clones, 6 of them between `packages/react/src/server.ts`, `packages/svelte/src` and `packages/vue/src/components`; green: 34 clones, none in the adapters, and the list, detail and form render conformance tests pass in React (811), Vue (786) and Svelte (786).

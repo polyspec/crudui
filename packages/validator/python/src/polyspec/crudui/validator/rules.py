@@ -439,6 +439,18 @@ def _rule_in(context: RuleContext) -> str | None:
     return None
 
 
+def _strptime_layout(text: str, pattern: str) -> datetime | None:
+    """The datetime `text` names in `pattern`, or None when it has another layout.
+
+    A value is tried against each accepted layout in turn, so a mismatch with one
+    layout is the expected outcome here and only a value that matches none is invalid.
+    """
+    try:
+        return datetime.strptime(text, pattern)
+    except ValueError:
+        return None
+
+
 def _parse_date(value: Value) -> datetime | None:
     """The date a value names in an accepted layout, or None.
 
@@ -449,17 +461,10 @@ def _parse_date(value: Value) -> datetime | None:
         text = trim(value)
         if text == "":
             return None
-        for pattern in _DATE_FORMATS:
-            try:
-                return datetime.strptime(text, pattern)
-            except ValueError:
-                continue
-        for pattern in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
-            try:
-                parsed = datetime.strptime(text, pattern)
-            except ValueError:
-                continue
-            return parsed
+        for pattern in (*_DATE_FORMATS, "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
+            parsed = _strptime_layout(text, pattern)
+            if parsed is not None:
+                return parsed
         return None
     if isinstance(value, bool):
         return None
