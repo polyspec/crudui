@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b793fb866277ef9262e07dfb2669f4bd75a944f0352a1363fa7accefb3e3f522 -->
+<!-- source-sha256: daa67c0297a49cb94988f767e417fb2fe7d32cd11ae457337f70249b169577c6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -60,7 +60,7 @@
 | C16.38-1 | rust-generators test는 test:runtimes에서 실행된다 | package.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/test-commands.test.mts` | [o] |
 | C16.39 | Rust generator는 binding language, fixture 결과 정리, message table을 공유하고 Rust test는 사본 없이 순서 있는 object를 만든다 | packages/generator/rust/src/binding.rs, tests.rs, tools/generate-interface-messages.mjs, packages/validator/rust/src/compose/compose.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml native_fixture_records`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/rust-generators.test.mts`, `make lint-rust` | [o] |
 | C16.40 | PHP library가 둘인 저장소의 PHP extension은 S10의 layout과 이름을 따른다. polyspec_crudui, src/의 하나뿐인 stub, composer.json, config.m4 | packages/php-ext (composer.json, src/config.m4, src/polyspec_crudui.stub.php, src/polyspec_crudui_arginfo.h, src/crudui.c), config/layout.yml, the module name in the Makefile, the examples, the tests and the documents | `make lint-php-ext`, `make layout-check`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext -- tests/ApiTest.php` | [o] |
-| C16.41 | run-rust-command.mts는 mise shim이 pin한 cargo를 쓰고 scripts/tool-resolution.mts는 제거한다 | scripts/run-rust-command.mts, scripts/tool-resolution.mts, config/rebuild.json | `make rebuild-check` | [ ] |
+| C16.41 | run-rust-command.mts는 mise shim이 pin한 cargo를 쓰고 scripts/tool-resolution.mts는 제거한다 | scripts/run-rust-command.mts, scripts/tool-resolution.mts, config/rebuild.json | `make rebuild-check` | [o] |
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [!] 원인: make rules-check가 AGENTS.md:18을 계속 보고한다(make hooks-check에 닿지 않음). kit check-rules.mts:184는 target ci-targets에 이미 닿았다는 이유로 이후의 make ci-targets TARGETS=... 호출을 건너뛰므로 .github/workflows/push-gate.yml의 push-gate-commit에 닿지 않는다; 재시도: kit이 닿은 target을 target과 variable로 구분한 뒤 |

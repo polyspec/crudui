@@ -50,20 +50,15 @@ files selected by the toolchain record.
 
 Repository Node.js build and test entry points resolve Rust tools through one
 shared rule. An invocation may declare absolute Cargo, rustc and rustdoc paths.
-Otherwise, the resolver discovers one regular rustup executable from the
-declared `PATH` entries and the Rustup Cargo home (`CARGO_HOME`, or the Rustup
-default under `HOME` when omitted). Duplicate references to the same executable
-are one result; distinct results are ambiguous and fail. The resolver executes
-`rustup which cargo`, `rustup which rustc` and `rustup which rustdoc` in the
-working directory declared for the Cargo command. The resolver requires that
-directory to be absolute and canonical, with regular directory components and
-no symbolic links. It then
-requires every returned path to be an absolute, canonical, executable regular
-file with no symbolic-link path
-component. Missing records, malformed version output and ambiguous discovery
-fail before a build starts. Entry points execute the resolved Cargo path, set
-`RUSTC` and `RUSTDOC` to the resolved compiler paths and do not substitute Rust
-commands from the process `PATH`.
+Otherwise, the entry point uses the Cargo, rustc and rustdoc that `PATH` names: the
+shims of mise put the toolchain that `rust-toolchain.toml` pins on `PATH`. The
+entry point resolves each name to the absolute path that the shell finds, runs
+`cargo --version`, `rustc --version` and `rustdoc --version` on those paths, and
+requires each to report its tool. The working directory of the Cargo command must
+be an absolute directory that is not a symbolic link and is canonical. Missing,
+mismatched or unverifiable tools fail before a build starts. The entry point
+executes the resolved Cargo path, sets `RUSTC` and `RUSTDOC` to the resolved
+compiler paths, and does not substitute Rust commands from any other source.
 
 The specification CLI runs its TypeScript source through `tsx`. Its generator
 imports load the validator through the public package entry, so local commands

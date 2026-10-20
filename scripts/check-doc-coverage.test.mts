@@ -26,7 +26,7 @@ function environment<T>(operation: (root: string) => T): T {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'crudui-doc-check-')));
   try {
     for (const relative of ['scripts', 'bin', 'node_modules/.bin', 'packages/validator/go', 'packages/generator/go', 'packages/validator/rust', 'packages/generator/rust']) mkdirSync(join(root, relative), { recursive: true });
-    for (const file of ['check-doc-coverage.mts', 'run-rust-command.mts', 'tool-resolution.mts']) {
+    for (const file of ['check-doc-coverage.mts', 'run-rust-command.mts']) {
       copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
     }
     return operation(root);

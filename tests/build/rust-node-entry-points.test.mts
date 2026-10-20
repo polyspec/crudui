@@ -28,34 +28,22 @@ function fixture(t: TestContext, name: string, files: string[], directories: str
   const root = mkdtempSync(path.join(repository, 'var/tmp', name));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   for (const directory of directories) mkdirSync(path.join(root, directory), { recursive: true });
-  for (const file of [...files, 'scripts/run-rust-command.mts', 'scripts/tool-resolution.mts']) {
+  for (const file of [...files, 'scripts/run-rust-command.mts']) {
     copy(root, file);
   }
   return root;
 }
 
 function rustEnvironment(root: string, additions: NodeJS.ProcessEnv = {}): { cargo: string; commandLog: string; environment: NodeJS.ProcessEnv; rustc: string; rustdoc: string } {
-  const home = path.join(root, 'home');
-  const rustupDirectory = path.join(home, '.cargo', 'bin');
   const toolchain = path.join(root, 'toolchain');
   const commandDirectory = path.join(root, 'commands');
   const commandLog = path.join(root, 'rust-commands.jsonl');
-  mkdirSync(rustupDirectory, { recursive: true });
   mkdirSync(toolchain);
   mkdirSync(commandDirectory);
 
   const cargo = path.join(toolchain, 'cargo');
   const rustc = path.join(toolchain, 'rustc');
   const rustdoc = path.join(toolchain, 'rustdoc');
-  executable(path.join(rustupDirectory, 'rustup'), String.raw`
-const name = process.argv[2];
-if (name === '--version') process.stdout.write('rustup 1.29.0\n');
-else if (name === 'which') {
-  const tools = { cargo: process.env.TEST_CARGO, rustc: process.env.TEST_RUSTC, rustdoc: process.env.TEST_RUSTDOC };
-  if (!tools[process.argv[3]]) process.exit(2);
-  process.stdout.write(tools[process.argv[3]] + '\n');
-} else process.exit(2);
-`);
   executable(cargo, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
@@ -91,14 +79,10 @@ process.stdout.write('rustdoc 1.98.1 (test 2026-09-01)\n');
 
   const environment: NodeJS.ProcessEnv = {
     ...process.env,
-    HOME: home,
     LANG: 'C',
     LC_ALL: 'C',
-    PATH: commandDirectory,
+    PATH: `${toolchain}${path.delimiter}${commandDirectory}`,
     RUST_COMMAND_LOG: commandLog,
-    TEST_CARGO: cargo,
-    TEST_RUSTC: rustc,
-    TEST_RUSTDOC: rustdoc,
     ...additions,
   };
   delete environment.CARGO;

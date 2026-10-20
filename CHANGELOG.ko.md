@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ffa3f4ee6ff1ef6b3e53bb17851d871dbf953d51063b7b73ca90b359c88de6f7 -->
+<!-- source-sha256: 2d729b7b7f52d375e2aa8abe0da2f96fca6a9139e0024d6261db37266c72db43 -->
 
 ## Unreleased
 
 ### 2026-10-20 — schema suite들이 그 case가 시험하는 CUSC requirement를 인용한다 (C16.57-7)
 
 - `tests/fixtures/spec-validity`, `list-validity`, `detail-validity`의 case는 손으로 쓴 `requirements` 배열을 가집니다(이 suite에는 generator가 없습니다). runtime `engine` 기대를 시험하는 case는 구조, 내용, design, choice, multiple, lang, 버튼과 action key를 받아들이거나 거부하는 CUSC 항목을 인용합니다(C16.57-7). `tests/fixtures/validate/generate.mts`는 `REQUIREMENTS` map에 CUSC-003, CUSC-008부터 CUSC-010, CUSC-052, CUSC-055를 추가하고 `cases.json`은 그 map에서 다시 생성됩니다. `config/parity.json`은 suite unit `spec-validity`, `list-validity`, `detail-validity`를 각각 여섯 binding(ts, php, php-extension, go, rust, python)과 함께 선언하며, `validate` unit은 새 id를 나열합니다. `compose` suite는 선언하지 않았습니다. 그 PHP test가 PHP 라이브러리 source를 읽어 PHP extension 실행이 거부하므로, php-extension binding이 없는 unit은 R2에 걸립니다. Red: `make parity-declarations-check`가 exit 2이며 finding 514건, CUSC-001부터 CUSC-060까지의 R13 60건, 세 validity 파일의 R4 3건이었습니다. Green: exit 2이며 finding 454건, R13 16건(CUSC-005, CUSC-012, CUSC-013, CUSC-016부터 CUSC-019, CUSC-022, CUSC-025, CUSC-037부터 CUSC-040, CUSC-043, CUSC-044, CUSC-046), 세 파일의 R4 0건, R14와 R15 0건입니다. 여섯 binding이 모두 `engine` 기대를 실행하지만, 그 suite의 meta-schema `expect`는 TypeScript의 `form-metaschema`와 `detail-metaschema` test만 실행하므로, meta-schema만 검사하는 CUSC 항목(예: design.attributes의 이름 거부, CUSC-012)은 인용하지 않았습니다. Owner test: ts, php, php-extension, go, rust를 실행했습니다(세부 수치는 영문 항목과 같습니다). python tests.test_structure_validity는 9개가 통과합니다. C16.57-8이 먼저 선언한 unit `list-validity`와 `detail-validity`는 그 TypeScript binding인 meta-schema test `list-metaschema`와 `detail-metaschema`를 유지하고(unit은 implementation마다 binding 하나, R12), 그 CUDF id에 이 CUSC id를 더합니다. C16.57-8 위에서 check는 finding 420건(R13 259, R4 12, R5 148, R6 1)을 보고합니다.
+
+### 2026-10-20 — Rust 명령 진입점은 PATH가 고정한 toolchain을 쓰고 tool-resolution.mts는 제거한다 (C16.41)
+
+- `scripts/run-rust-command.mts`는 PATH가 가리키는 cargo, rustc, rustdoc을 실행합니다(mise shim이 `rust-toolchain.toml`이 고정한 toolchain을 앞에 둡니다). 각 도구의 버전 출력을 확인하고, `RUSTC`와 `RUSTDOC`에는 절대경로를 설정합니다. `scripts/tool-resolution.mts`는 rustup 발견 로직과 함께 제거되며, 그 `replaced` 항목은 파일과 함께 `config/rebuild.json`에서 빠집니다(C16.41). owner-check의 경로 목록과 doc-coverage, API 문서, run-command, 진입점 test의 목록에서 제거된 파일을 뺐고, `tests/build/make-tool-path.test.mts`와 `tests/build/rust-node-entry-points.test.mts`는 가짜 rustup 대신 PATH의 toolchain을 시험합니다. `docs/operations/package-build.md`와 `.ko.md`는 새 규칙을 설명합니다. Red: `make rebuild-check > var/red.log 2>&1`이 exit 0이었고, `scripts/tool-resolution.mts`는 "item C16.41 registers the replacement" 사유의 `replaced`로 남아 있었습니다. Green: `make rebuild-check` exit 0이며 항목이 사라졌습니다. `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/run-command.test.mts` 9 passed, `scripts/check-doc-coverage.test.mts` 13 passed, `scripts/gen-api-docs.test.mts` 8 passed입니다. `tests/build/make-tool-path.test.mts`는 5개 중 4개가 통과하며, `crudui-test-native runs the Rust tests through the test runner`은 main checkout에서도 실패합니다(Makefile이 `../kit`에서 kit을 실행하는데 test는 `node_modules/@polyspec/kit`을 기대하는 worktree 배치 차이이며, 이 변경과 무관합니다). 변경한 TypeScript 파일은 저장소의 컴파일러로 타입 검사를 통과합니다.
 
 ### 2026-10-20 — Go generator는 공유 form-render suite를 실행한다 (C16.82)
 

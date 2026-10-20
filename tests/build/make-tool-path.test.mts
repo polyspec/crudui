@@ -5,8 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { runRustCommand } from '../../scripts/run-rust-command.mts';
-import type { CommandRunner } from '../../scripts/tool-resolution.mts';
+import { runRustCommand, type CommandRunner } from '../../scripts/run-rust-command.mts';
 
 const repository = path.resolve(import.meta.dirname, '../..');
 const make = process.env.MAKE || '/usr/bin/make';
@@ -105,28 +104,16 @@ test('crudui-test-native runs the generator and PHP API parts after the PHP engi
     `the PHP API part did not run:\n${commands}`);
 });
 
-test('the Rust command entry point executes regular toolchain files', async t => {
+test('the Rust command entry point runs the toolchain that PATH names', async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-rust-command-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
 
-  const home = path.join(directory, 'home');
-  const rustupDirectory = path.join(home, '.cargo', 'bin');
   const toolchain = path.join(directory, 'toolchain');
+  const commandLog = path.join(directory, 'commands.log');
+  await mkdir(toolchain);
   const cargo = path.join(toolchain, 'cargo');
   const rustc = path.join(toolchain, 'rustc');
   const rustdoc = path.join(toolchain, 'rustdoc');
-  const commandLog = path.join(directory, 'commands.log');
-  await Promise.all([mkdir(rustupDirectory, { recursive: true }), mkdir(toolchain)]);
-  const rustup = path.join(rustupDirectory, 'rustup');
-  await writeFile(rustup, [
-    '#!/bin/sh',
-    'if [ "$1" = "--version" ]; then printf "rustup 1.29.0\n"; exit 0; fi',
-    'if [ "$1" = "which" ] && [ "$2" = "cargo" ]; then printf "%s\n" "$TEST_CARGO"; exit 0; fi',
-    'if [ "$1" = "which" ] && [ "$2" = "rustc" ]; then printf "%s\n" "$TEST_RUSTC"; exit 0; fi',
-    'if [ "$1" = "which" ] && [ "$2" = "rustdoc" ]; then printf "%s\n" "$TEST_RUSTDOC"; exit 0; fi',
-    'exit 2',
-    '',
-  ].join('\n'));
   await writeFile(cargo, [
     '#!/bin/sh',
     'if [ "$1" = "--version" ]; then printf "cargo 1.98.1\n"; exit 0; fi',
@@ -135,15 +122,15 @@ test('the Rust command entry point executes regular toolchain files', async t =>
   ].join('\n'));
   await writeFile(rustc, [
     '#!/bin/sh',
-    'printf "rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n"',
+    'printf "rustc 1.98.1 (test 2026-09-01)\\nhost: aarch64-test-system\\n"',
     '',
   ].join('\n'));
   await writeFile(rustdoc, [
     '#!/bin/sh',
-    'printf "rustdoc 1.98.1 (test 2026-09-01)\n"',
+    'printf "rustdoc 1.98.1 (test 2026-09-01)\\n"',
     '',
   ].join('\n'));
-  await Promise.all([rustup, cargo, rustc, rustdoc].map(filename => chmod(filename, 0o755)));
+  await Promise.all([cargo, rustc, rustdoc].map(filename => chmod(filename, 0o755)));
 
   const result = spawnSync(process.execPath, [
     path.join(repository, 'scripts/run-rust-command.mts'),
@@ -153,45 +140,30 @@ test('the Rust command entry point executes regular toolchain files', async t =>
     encoding: 'utf8',
     env: {
       COMMAND_LOG: commandLog,
-      HOME: home,
       LANG: 'C',
       LC_ALL: 'C',
-      PATH: '/usr/bin:/bin',
-      TEST_CARGO: cargo,
-      TEST_RUSTC: rustc,
-      TEST_RUSTDOC: rustdoc,
+      PATH: `${toolchain}:/usr/bin:/bin`,
     },
   });
 
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(await readFile(commandLog, 'utf8'),
-    `cargo\ttest --locked --manifest-path packages/generator/rust/Cargo.toml`
-      + `\t${rustc}\t${rustdoc}\n`);
+    `cargo\ttest --locked --manifest-path packages/generator/rust/Cargo.toml\t${rustc}\t${rustdoc}\n`);
 });
 
-test('Rust toolchain resolution uses the Cargo working directory', async t => {
+test('Rust commands run in the working directory of the crate', async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-rust-cwd-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const home = path.join(directory, 'home');
-  const rustupDirectory = path.join(home, '.cargo', 'bin');
   const toolchain = path.join(directory, 'toolchain');
   const workingDirectory = path.join(directory, 'crate');
-  await Promise.all([
-    mkdir(rustupDirectory, { recursive: true }), mkdir(toolchain), mkdir(workingDirectory),
-  ]);
-  const rustup = path.join(rustupDirectory, 'rustup');
+  await Promise.all([mkdir(toolchain), mkdir(workingDirectory)]);
   const cargo = path.join(toolchain, 'cargo');
   const rustc = path.join(toolchain, 'rustc');
   const rustdoc = path.join(toolchain, 'rustdoc');
-  await Promise.all([rustup, cargo, rustc, rustdoc].map(writeExecutable));
+  await Promise.all([cargo, rustc, rustdoc].map(writeExecutable));
   const calls: { file: string; args: string[]; cwd: string | undefined }[] = [];
   const run: CommandRunner = async (file, args, options) => {
     calls.push({ file, args, cwd: options?.cwd });
-    if (file === rustup && args[0] === '--version') return { stdout: 'rustup 1.29.0\n' };
-    if (file === rustup && args[0] === 'which') {
-      const tools: Record<string, string> = { cargo, rustc, rustdoc };
-      return { stdout: tools[String(args[1])] + '\n' };
-    }
     if (file === cargo && args[0] === '--version') return { stdout: 'cargo 1.98.1\n' };
     if (file === rustc) {
       return { stdout: 'rustc 1.98.1 (test 2026-09-01)\nhost: aarch64-test-system\n' };
@@ -203,13 +175,10 @@ test('Rust toolchain resolution uses the Cargo working directory', async t => {
   };
 
   await runRustCommand(['test'], {
-    cwd: workingDirectory, environment: { HOME: home, PATH: '' }, run,
+    cargo, cwd: workingDirectory, environment: { PATH: '' }, run, rustc, rustdoc,
   });
-  assert.deepEqual(
-    calls.filter(call => call.file === rustup).map(call => call.cwd),
-    [workingDirectory, workingDirectory, workingDirectory, workingDirectory],
-  );
-  assert.equal(calls.at(-1)?.cwd, workingDirectory);
+  assert.deepEqual(calls.map(call => call.cwd), [workingDirectory, workingDirectory, workingDirectory, workingDirectory]);
+  assert.equal(calls.at(-1)?.file, cargo);
 });
 
 test('Rust commands reject a symbolic working directory', async t => {

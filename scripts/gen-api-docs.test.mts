@@ -34,7 +34,7 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
           ...['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'].map(pkg => `packages/${pkg}`)]) {
           mkdirSync(join(root, path), { recursive: true });
         }
-        for (const file of ['gen-api-docs.mts', 'run-rust-command.mts', 'tool-resolution.mts', 'run-command.mts']) {
+        for (const file of ['gen-api-docs.mts', 'run-rust-command.mts', 'run-command.mts']) {
           mkdirSync(dirname(join(root, 'scripts', file)), { recursive: true });
           copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
         }

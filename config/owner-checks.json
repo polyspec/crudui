@@ -495,8 +495,7 @@
     },
     {
       "paths": [
-        "scripts/run-rust-command.mts",
-        "scripts/tool-resolution.mts"
+        "scripts/run-rust-command.mts"
       ],
       "tests": [
         "tests/build/rust-node-entry-points.test.mts",

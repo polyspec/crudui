@@ -134,7 +134,7 @@ test('require-current-build runs the build to its end and stops what it left beh
 });
 
 test('gen-api-docs runs each documentation tool to its end with its elapsed time', async t => {
-  const box = sandbox(t, ['scripts/gen-api-docs.mts', 'scripts/run-rust-command.mts', 'scripts/tool-resolution.mts']);
+  const box = sandbox(t, ['scripts/gen-api-docs.mts', 'scripts/run-rust-command.mts']);
   // A Go tool that lists one package and documents it, each after 1.2 seconds.
   box.program('go', "process.stdout.write('');\n"
     + "setTimeout(() => process.stdout.write(process.argv[2] === 'list' ? 'example.com/one\\n' : 'package one\\n'), 1200);\n");
@@ -195,7 +195,7 @@ test('run.js fails when a version command fails, with its error', async t => {
 
 test('build-drivers.mjs streams a driver build to its end and stops what it left behind', async t => {
   // GO names the Go command of the build. The Rust build finds no toolchain in the sandbox and fails.
-  const box = sandbox(t, ['benchmarks/validators/build-drivers.mjs', 'benchmarks/validators/drivers.mjs', 'scripts/run-rust-command.mts', 'scripts/tool-resolution.mts']);
+  const box = sandbox(t, ['benchmarks/validators/build-drivers.mjs', 'benchmarks/validators/drivers.mjs', 'scripts/run-rust-command.mts']);
   const pidFile = path.join(box.root, 'orphan.pid');
   stopRecorded(t, pidFile);
   mkdirSync(path.join(box.root, 'benchmarks/validators/go'));
