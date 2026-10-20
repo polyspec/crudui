@@ -6,14 +6,14 @@
 // never connects.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 
-import { anyLoopbackPort, publicServerDefinition, startProcess } from './local-servers.mjs';
+import { anyLoopbackPort, orderedJsonCopyArguments, publicServerDefinition, startProcess } from './local-servers.mjs';
 
 const localServers = pathToFileURL(path.join(import.meta.dirname, 'local-servers.mjs')).href;
 
@@ -119,4 +119,20 @@ test('the local pipeline stack has no summed hook limit and starts and stops in 
   const stack = await readFile(new URL('../pipeline.browser.mjs', import.meta.url), 'utf8');
   assert.match(stack, /setup\('browser launch'/);
   assert.match(stack, /teardown\('browser close'/);
+});
+
+test('the copy of the OrderedJSON extension source puts config.m4 at the top of the destination', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-ordered-json-copy-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const checkout = path.join(directory, 'checkout');
+  const destination = path.join(directory, 'copied');
+  await mkdir(path.join(checkout, 'packages/php-ext/src'), { recursive: true });
+  await mkdir(destination);
+  await writeFile(path.join(checkout, 'packages/php-ext/src/config.m4'), 'PHP_ARG_ENABLE([ordered-json])\n');
+  await new Promise((resolve, reject) => {
+    spawn('cp', orderedJsonCopyArguments(checkout, destination), { stdio: 'inherit' })
+      .once('error', reject)
+      .once('close', status => (status === 0 ? resolve() : reject(new Error(`cp ended with status ${status}`))));
+  });
+  await access(path.join(destination, 'config.m4'));
 });

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The record servers build the OrderedJSON module (C16.60)
+
+- `prepareRecordServers` copies the contents of `packages/php-ext/src` of the OrderedJSON checkout into the build directory with `orderedJsonCopyArguments`; `path.join` had dropped the trailing `/.` of the source, so `cp -R` put the directory inside the destination and `phpize` found no `config.m4` (C16.60). Red: `examples/form-comparison/record-stores.test.mjs` ended `0 passed, 130 failed` at `7cafb4fb^` and at `HEAD` with `ordered-json-phpize: failed (exit 1)`; green: the new test of `local-servers.test.mjs` passes (6 passed) and the record-stores run is `78 passed, 52 failed`: the js, go and rust stores pass and the 52 failures are the php and php-ext stores, which load `vendor/polyspec/ordered-json` that the Composer link item installs.
+
 ### 2026-10-20 — docs/spec holds only the rules of the implementations (C16.59)
 
 - `conformance`, `examples`, `test-fixtures`, `package-build`, `feature-contracts`, `form-comparison` and `php-extension` moved from `docs/spec` to `docs/operations` with their Korean twins, and every link, path and doc id that named them follows; `runtime-packages` keeps in `docs/spec` the required capabilities, the API operations, the shared contracts and the data rules, now with the ids `CURP-n`, and its package map and verification are `docs/operations/runtime-packages.md`; `empty-collections` states its rules as the ids `CUEC-n` (C16.59). Red: `docs/spec` held 9 documents without a requirement id, 8 of them for tooling or the extension; green: every document of `docs/spec` defines requirements, `make parity-declarations-check` reports 422 R13 findings and `check-documents` passes.

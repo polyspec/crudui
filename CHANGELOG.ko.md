@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 91634a59555f59493926c8b880c61e691ec521cd3ea39bd840897209204ec07e -->
+<!-- source-sha256: 8d7fef333606ea90c170e1193b94d2fbd94fb22a6178236a13f672e070f4758d -->
 
 ## Unreleased
+
+### 2026-10-20 — record server가 OrderedJSON module을 빌드한다 (C16.60)
+
+- `prepareRecordServers`는 OrderedJSON checkout의 `packages/php-ext/src` 내용을 `orderedJsonCopyArguments`로 build directory에 복사합니다. `path.join`이 source 끝의 `/.`을 없애 `cp -R`이 directory를 destination 안에 넣었고 `phpize`가 `config.m4`를 찾지 못했습니다(C16.60). Red: `examples/form-comparison/record-stores.test.mjs`는 `7cafb4fb^`와 `HEAD`에서 `ordered-json-phpize: failed (exit 1)`로 `0 passed, 130 failed`였고, green: `local-servers.test.mjs`의 새 test가 통과하고(6 passed) record-stores 실행은 `78 passed, 52 failed`입니다. js, go, rust store는 통과하고 실패 52건은 Composer link item이 설치할 `vendor/polyspec/ordered-json`을 읽는 php와 php-ext store입니다.
 
 ### 2026-10-20 — docs/spec에는 implementation의 규칙만 둔다 (C16.59)
 

@@ -37,6 +37,14 @@ const readyLine = server => new RegExp(`^CRUDUI_READY ${server} (127\\.0\\.0\\.1
 /** The loopback address on which a local server takes a port of the system. */
 export const anyLoopbackPort = '127.0.0.1:0';
 
+/**
+ * The arguments of cp that copy the contents of the PHP extension source of an OrderedJSON checkout into `destination`.
+ * The source ends with a dot so that cp copies its contents; `path.join` drops that segment, so the string is made here.
+ */
+export function orderedJsonCopyArguments(checkout, destination) {
+  return ['-R', `${path.join(checkout, 'packages/php-ext/src')}${path.sep}.`, destination];
+}
+
 async function orderedJsonCheckout(write) {
   // The checkout is a download of make install; a check reads it and downloads nothing.
   if (!await orderedJsonPresent(localOrderedJsonDirectory)) {
@@ -62,7 +70,7 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
     step('ordered-json-php-directory', 'mkdir', ['-p', copied]),
   ], [
     step('crudui-php-extension', 'make', ['build-php-ext']),
-    step('ordered-json-php-copy', 'cp', ['-R', path.join(localOrderedJsonDirectory, 'packages/php-ext/src/.'), copied]),
+    step('ordered-json-php-copy', 'cp', orderedJsonCopyArguments(localOrderedJsonDirectory, copied)),
     step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
     step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mts'),
