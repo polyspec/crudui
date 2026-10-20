@@ -67,8 +67,9 @@ evaluation. Rendering does not redefine requiredness or validation rules.
 3. **CURP-021** Binding evaluates field values, localization and design against instance data.
 4. **CURP-022** Rendering creates HTML from evaluated fields. Validation receives submitted
    record data and reports validation or specification errors.
-5. **CURP-023** Browser binding applies user input and row actions. Server runtimes do not
-   implement browser focus, selection or scroll behavior.
+
+The browser binding, which applies user input and row actions, is documented in the
+[form binding package](../../packages/form-binding/README.md#browser-validation).
 
 Server rendering and static delivery are both supported.
 Rendering can use data on the server, or load a cached structure in the

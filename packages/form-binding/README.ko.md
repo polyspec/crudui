@@ -1,6 +1,6 @@
 # @polyspec/crudui-form-binding
 <!-- doc-id: packages-form-binding-readme -->
-<!-- source-sha256: edf6e0794516a8b5000f5206523ae55c701b84f521dd47909d8014b657d34ff5 -->
+<!-- source-sha256: 821eb0a4d7cc723d8936bae14bc2e41802a3a5829e2451cc4005d53e86d27b17 -->
 
 [English](README.md).
 
@@ -34,6 +34,8 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 브라우저에서 검증합니다. 브라우저에서만 실행되는 ESM 패키지이며 `@polyspec/crudui-validator`에 의존합니다.
 서버가 최종 권한을 가집니다. 바인딩은 오류를 더 일찍 보여 주고 유효하지 않다고 판단한 제출을
 멈추며, 서버는 받은 모든 제출을 검증합니다.
+
+브라우저 바인딩은 사용자 입력과 행 작업을 적용합니다. 서버 런타임은 브라우저의 포커스, 선택 영역, 스크롤 동작을 구현하지 않습니다.
 
 `bindForm(form, spec, options)`는 [완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼) 하나를 담고 파싱이 끝난 `form` 요소 하나를
 연결하고 `{ validate(), dispose() }`를 반환합니다. generator-core의 `bindForm(template, data, options)`와는

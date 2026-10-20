@@ -35,6 +35,8 @@ with the rules the server applies. It is an ESM package that runs only in a brow
 `@polyspec/crudui-validator`. The server stays authoritative: the binding shows errors earlier and stops a
 submission it finds invalid, and the server validates every submission it receives.
 
+Browser binding applies user input and row actions. Server runtimes do not implement browser focus, selection or scroll behavior.
+
 `bindForm(form, spec, options)` connects one parsed `form` element that holds one
 [complete form](../../docs/spec/form-runtime.md#complete-form) and returns `{ validate(), dispose() }`. It is a separate operation
 from generator-core's `bindForm(template, data, options)`. `spec` is the specification the server

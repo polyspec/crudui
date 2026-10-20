@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c0cd43117ceb1ce4d51c74529e961acb8346a30aab35f9682096f6e58fe80704 -->
+<!-- source-sha256: 925af4743c288d92c7c03e7d5cdc43f10ab112ac80d322520fbc96cd4e99daec -->
 
 ## Unreleased
 
@@ -33,6 +33,17 @@ Red: `make item-red ID=C16.155 BEFORE=69bd6b3b`가 exit 1로, 위 파일의 `R5 
 ### 2026-10-21 — form-view와 form-history의 cases가 생성기와 같다 (C16.154)
 
 - `tests/fixtures/form-state/generate.mts`가 세 view 세션에 CUMK-057을, 네 history 세션에 CUMK-061을 인용한다 (C16.154). main이 `tests/fixtures/form-view/cases.json`과 `tests/fixtures/form-history/cases.json`에 손으로 써 넣은 인용이다. `session()`은 각 case의 `requirements`를 main과 같이 정렬하여 쓰므로, 재생성이 main의 파일을 그대로 만든다. `set-data-restarts-history-and-view`의 requirements 순서와 `tests/fixtures/form-actions/cases.json`의 case 순서가 바뀌며, 내용은 바뀌지 않는다. Red: `sh -c 'node tests/fixtures/form-state/generate.mts && git diff --exit-code -- tests/fixtures/form-view/cases.json tests/fixtures/form-history/cases.json tests/fixtures/form-actions/cases.json'` exit 1, 재생성이 form-history의 네 case에서 CUMK-061을 빼고 requirements 순서를 바꾼다. Green: 재생성된 파일에서 exit 0이며, `make -s parity-declarations-check`의 출력 줄은 변경 전과 같다.
+
+### 2026-10-21 — 브라우저 바인딩 항목이 폼 바인딩 패키지로 옮겨진다 (C16.151)
+
+- `docs/spec/runtime-packages.md`와 한국어 쌍: CURP-023(브라우저 바인딩은 사용자 입력과 행 작업을 적용하며, 서버 런타임은 브라우저의 포커스, 선택 영역, 스크롤 동작을 구현하지 않는다)을 CURP-019부터 CURP-022까지의 번호 목록에서 뺐다. 이제 목록은 네 항목이며, 스펙은 `packages/form-binding/README.md`의 "Browser validation" 절로 링크한다 (C16.151). 영문과 한국어 본문은 `packages/form-binding/README.md`와 `README.ko.md`에 그대로 옮겼고, 두 문서에서 id를 뺐다. 경로 2: 브라우저 바인딩을 가진 런타임은 TypeScript 폼 바인딩 패키지 하나뿐이다.
+- 테스트: 내부 테스트로 선언한 테스트는 없다. `packages/form-binding`은 `config/parity.json`의 tools root(ecosystem)이지 `ts` 구현의 root가 아니므로, kit는 그 테스트를 가리키는 internal glob을 "lies outside the roots of ts"로 거부한다. 그 테스트들은 requirement id를 인용하지 않으며, `packages/form-binding/tests/binding.test.ts`와 `browser.test.ts`의 포커스 테스트는 parity 계약 밖에 있다 (C16.151).
+
+| id | 경로 | 이유 |
+| --- | --- | --- |
+| CURP-023 | 2 (본질상 한 런타임) | 브라우저에서 사용자 입력과 행 작업을 적용하는 것은 TypeScript 브라우저 런타임(`packages/form-binding`)뿐이며, 서버 런타임에는 브라우저 포커스, 선택 영역, 스크롤 동작이 없다 |
+
+Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-023," var/pd-C16.151.log'` exit 1, CURP-023 R13 줄 하나, 56 findings (9ec2ffc4 기준); green: exit 0, CURP-023 줄 없음, 55 findings, 사라진 줄은 그 하나뿐; `check-documents` 통과; `make lint-ts` exit 0 (C16.151).
 
 ### 2026-10-21 — 여섯 런타임이 중립 항목 하나(CURP-001)의 런타임 능력을 제공한다 (C16.150)
 
