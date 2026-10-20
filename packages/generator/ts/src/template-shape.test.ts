@@ -53,31 +53,32 @@ function readPaths(template: unknown, record: unknown, paths: string[]): Record<
   return out;
 }
 
-describe('form template shape', () => {
-  // The compiled cases of tests/fixtures/template-shape also test CURP-019 and CURP-024: a serialized compiled template is bound.
+// The compiled cases of tests/fixtures/template-shape also test CURP-019 and CURP-024: a serialized compiled template is bound.
 // The record cases test CURT-050: records bound from one serialized template are independent.
-  for (const item of cases) {
-    it(item.name, () => {
-      if (item.operation === 'createRecords') {
-        // CURT-050: each record is bound from the serialized template alone, and reads its own values.
-        assert(Array.isArray(item.data) && item.paths, 'the records and their paths are lists');
-        const results = item.data.map((record, index) => readPaths(item.template, record, pathsOf(item.paths, index)));
-        expect({ results }).toStrictEqual(item.expect);
-        return;
-      }
-      const run = OPERATIONS[item.operation];
-      assert(run, `${item.operation} is a template operation`);
-      let caught: unknown;
-      try { run(item.template, item.data, item.options); } catch (error) { caught = error; }
-      if (item.expect === 'pass') {
-        expect(caught).toBeUndefined();
-        return;
-      }
-      assert(caught instanceof FormInputError, 'the operation throws a FormInputError');
-      expect({ code: caught.code, message: caught.message, at: '' }).toStrictEqual(item.expect);
-    });
-  }
+// Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name.
+for (const item of cases) {
+  it(item.name, () => {
+    if (item.operation === 'createRecords') {
+      // CURT-050: each record is bound from the serialized template alone, and reads its own values.
+      assert(Array.isArray(item.data) && item.paths, 'the records and their paths are lists');
+      const results = item.data.map((record, index) => readPaths(item.template, record, pathsOf(item.paths, index)));
+      expect({ results }).toStrictEqual(item.expect);
+      return;
+    }
+    const run = OPERATIONS[item.operation];
+    assert(run, `${item.operation} is a template operation`);
+    let caught: unknown;
+    try { run(item.template, item.data, item.options); } catch (error) { caught = error; }
+    if (item.expect === 'pass') {
+      expect(caught).toBeUndefined();
+      return;
+    }
+    assert(caught instanceof FormInputError, 'the operation throws a FormInputError');
+    expect({ code: caught.code, message: caught.message, at: '' }).toStrictEqual(item.expect);
+  });
+}
 
+describe('form template shape', () => {
   it('bindButtons rejects a button whose type is no form button type', () => {
     const template: unknown = JSON.parse(JSON.stringify(compileForm({ type: 'group', properties: { name: { type: 'text' } } })));
     assert(isRecord(template) && Array.isArray(template.buttons), 'a compiled template has a list of buttons');
