@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e6293ba741b490696016bf0616b114e11bb1f1dcf31d0f078c36cc962c026c6f -->
+<!-- source-sha256: d3bdc7c67c295c9f6114b30b7af8490b20eacd5a62a1e4c8ed242c6492ece9d4 -->
 
 ## Unreleased
+
+### 2026-10-21 — kit copy들이 kit에만 있는 check를 이름으로 대지 않는다 (C16.139)
+
+- `PRINCIPLES.md`와 `PRINCIPLES.ko.md`는 K359-2(`f9f80e60`, "Name no check that only kit has")가 든 kit 0.0.54의 copy입니다. P10은 kit에만 있는 `tests/kit/worktree-setup.test.mts`를 더 이상 이름으로 대지 않으므로 `make rules-check`가 그 file이 없다고 보고하지 않습니다(C16.139). Red: 0afab14d에서 `make rules-check` exit 2, `PRINCIPLES.md:44: tests/kit/worktree-setup.test.mts does not exist`. Green: `make rules-check`, `make kit-check`, `make layout-check`, `make link-state-check` exit 0입니다.
 
 ### 2026-10-21 — 생성된 Go table은 생성 파일 예외로 선언한다 (C16.136)
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c67dcb33abd7418eba384231aa6cd28d68bb38461f71dc1325c4a0f1271a3780 -->
+<!-- source-sha256: 8a39a7b00e28ba4a9fbdecf9ff37b41f57259e132fe87b8c1085a7df95171c43 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -248,3 +248,4 @@
 | C16.126 | Go validator의 benchmark driver는 구현이 아닌 harness이므로, parity 검사의 tools root에 선언한다 | config/parity.json (tools root benchmarks) | `sh -c 'make -s parity-declarations-check > var/c16126-pd.log 2>&1; ! grep -E "R6 misplaced-test benchmarks/validators/go/main_test\.go:" var/c16126-pd.log'` | [o] |
 | C16.126-1 | PHP extension의 API test는 php-extension의 internal이다. API와 value-limit test는 PHP만 가진 것을 검사하고, fixture 비교는 validate와 text-validity unit이 덮는다 | config/parity.json (php-extension internal entry) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16126-1-pd.log 2>&1; ! grep -E 'R5 undeclared-test php-extension packages/php-ext/tests/ApiTest\.php:' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16126-1-pd.log` | [o] |
 | C16.136 | interface message와 Unicode data의 생성된 Go table을 Go module이 배포하므로 생성 파일 예외로 선언한다 | config/generated.json | `make layout-check` | [o] |
+| C16.139 | kit copy는 kit에만 있는 check를 이름으로 대지 않는다(K359-2): PRINCIPLES는 tests/kit 파일을 이름으로 대지 않는다 | PRINCIPLES.md, PRINCIPLES.ko.md | `make rules-check`, `make kit-check`, `make layout-check`, `make link-state-check` | [o] |

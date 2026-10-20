@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The copies of kit name no check that only kit has (C16.139)
+
+- `PRINCIPLES.md` and `PRINCIPLES.ko.md` are the copies of kit at 0.0.54 with K359-2 (`f9f80e60`, "Name no check that only kit has"): P10 no longer names `tests/kit/worktree-setup.test.mts`, which only kit holds, so `make rules-check` no longer reports that the file does not exist (C16.139). Red: `make rules-check` exit 2 on 0afab14d, `PRINCIPLES.md:44: tests/kit/worktree-setup.test.mts does not exist`. Green: `make rules-check`, `make kit-check`, `make layout-check` and `make link-state-check` exit 0.
+
 ### 2026-10-21 — The generated Go tables are declared generated-file exceptions (C16.136)
 
 - `config/generated.json`: the exceptions `packages/generator/go/interface_messages.go` and `packages/validator/go/validator/validate/unicode_data.go` declare the two Go tables that `go generate` writes from `contracts/interface-messages.json` and `contracts/unicode-properties.json` (C16.136). A Go module ships them, because `go get` runs no generator (S6), so they are tracked on purpose. The other languages' generated tables carry no generated-file header, and so are not flagged. The schema allows globs only, so the reason is recorded here. Red: `make layout-check` exit 2 on 2bf1b1b5, `has a generated-file header (Code generated ... DO NOT EDIT)` for both files. Green: `make layout-check` exit 0, `no tracked file is generated`.
