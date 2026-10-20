@@ -13,6 +13,17 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 
+[dev-dependencies]
+libtest-mimic = "0.8"
+
+[[test]]
+name = "validate_conformance"
+harness = false
+
+[[test]]
+name = "expr_conformance"
+harness = false
+
 [lints]
 workspace = true
 

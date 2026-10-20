@@ -32,6 +32,18 @@ harness = false
 name = "template_shape"
 harness = false
 
+[[test]]
+name = "form_state"
+harness = false
+
+[[test]]
+name = "form_render"
+harness = false
+
+[[test]]
+name = "buttons"
+harness = false
+
 [lints]
 workspace = true
 

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f2741f3370b73fd2335454ffee8b8aa0ac072f4f7cf963bee0a9e920366556da -->
+<!-- source-sha256: 1184a506ab5acb2ef0b635dccf2b25ed7714e9fc54b728bdb1a4883ef72677c7 -->
 
 ## Unreleased
 
@@ -59,6 +59,7 @@
 ### 2026-10-21 — scripts의 명령은 kit의 runner로 실행한다 (C16.10)
 
 - `scripts/run-command.mts`를 제거한다. 사용처는 `@polyspec/kit/run-command`를 import한다(`scripts/repeat-build.mts`, `scripts/run-contract-tests.mts`, `scripts/gen-api-docs.mts`, `scripts/install-browsers.mts`, `scripts/require-current-build.mts`, `benchmarks/validators/build-drivers.mjs`, `benchmarks/validators/run.js`, `tests/native-generators/run.mts`). 그 테스트 `tests/build/run-command.test.mts`는 `npm run test:build`에서 빠지며, runner와 그 테스트는 kit이 소유한다. `config/rebuild.json`은 `replaced` 항목을 버리고, `config/owner-checks.json`, `tests/build/rust-node-entry-points.test.mts`, `scripts/gen-api-docs.test.mts`는 제거된 파일을 뺀다. 출력 한도 실패는 kit의 메시지 `wrote more than its output limit; stopped its process group`를 쓰며, 더 이상 byte 수를 출력하지 않는다. 호출하는 스크립트 중 byte 수를 출력한 곳은 없었다. Red: HEAD에서 `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` exit 1(파일이 남아 있다); green: 같은 명령 exit 0; `scripts/gen-api-docs.test.mts` 8 passed, `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/offline-checks.test.mts` 2 passed, `tests/build/install-browsers.test.mts` 3 passed.
+
 ### 2026-10-21 — 공유 text-validity 도우미(tests/fixtures/text-validity/cases.mts, input-text.mts)가 패키지 모듈을 .ts 경로로 import하도록 하고(nodenext 루트 tsconfig가 요구한다), 쓰이지 않는 export를 뺐다. internal 테스트 text-validity.conformance.test.ts는 더 이상 CUIT-041을 명명하지 않는다(parity-declarations-check의 R16). Red: `make -s parity-declarations-check` exit 2, `R16 internal-contract ts packages/validator/ts/src/text/text-validity.conformance.test.ts`; green: 그 finding이 사라졌고 `make lint-ts`는 exit 0. (C16.158-7)
 
 - undefined
@@ -90,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — 다섯 unit의 Rust 바인딩이 각 사례를 이름으로 보고한다 (C16.156)
+
+- buttons, validate, form-render, form-view, expr unit의 Rust 바인딩이 fixture 사례마다 `<symbol>::<case>`라는 이름의 test를 따로 실행하므로 `make parity-check`가 사례 이름을 읽는다: `packages/validator/rust/tests/validate_conformance.rs`와 `expr_conformance.rs`(expr의 unit 검사도 포함), `packages/generator/rust/tests/form_state.rs`(그 파일의 form-history, form-actions, view-functions symbol도 포함), `form_render.rs`와 `buttons.rs`가 `libtest-mimic`을 쓰고 각 `Cargo.toml`에 `harness = false`인 `[[test]]` target을 둔다. validator crate는 생성기 lock이 해석하는 버전인 `libtest-mimic` 0.8.2를 dev-dependency로 얻으며, `packages/validator/rust/Cargo.lock`은 그 전이 패키지만 더한다. 단언은 바뀌지 않는다 (C16.156). Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` 종료 코드 2, validate(341 사례), form-view(3), form-render(201), buttons(22), expr(74)의 rust `not-executed` R3; green: 종료 코드 0, 다섯 unit의 모든 rust 바인딩이 사례를 모두 통과하고(341/341, 3/3, 201/201, 22/22, 74/74) rust R3 줄이 남지 않는다.
 
 ### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
 

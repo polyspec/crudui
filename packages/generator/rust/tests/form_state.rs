@@ -10,6 +10,7 @@ use polyspec_crudui_generator::{
     ActionResult, ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormError, FormResult,
     ViewState,
 };
+use libtest_mimic::{Arguments, Trial};
 use regex::Regex;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
@@ -214,69 +215,52 @@ fn perform(form: &mut Form, spec: &Value, op: &str, args: &[Value]) -> FormResul
     }
 }
 
-/// Run the sessions of a family on forms and compare each observation with the recorded one; `history` adds the undo
+/// Runs one session of a family on a form and compares each observation with the recorded one; `history` adds the undo
 /// flags of the form to the observation.
-fn observe_sessions(family: &str, history: bool) {
-    for case in cases(family) {
-        let steps = case["steps"].as_array().unwrap();
-        let mut namer = Namer::new(&[
-            case["spec"].to_string(),
-            case["data"].to_string(),
-            case["steps"].to_string(),
-        ]);
-        let template = compile_form(&case["spec"], &CompileOptions::default()).unwrap();
-        let mut form = Form::new(template, &case["data"], BindOptions::default()).unwrap();
-        for (index, step) in steps.iter().enumerate() {
-            let mut observed = Map::new();
-            let op = step["op"].as_str().unwrap();
-            match perform(&mut form, &case["spec"], op, step["args"].as_array().unwrap()) {
-                Ok(result) => {
-                    // An action step reports its result even when it has none (null), as the reference does.
-                    if result.is_some() || op == "runAction" || op == "resolveAction" {
-                        let value = result.unwrap_or(Value::Null);
-                        observed.insert("result".into(), namer.walk(&value));
-                    }
-                }
-                Err(error) => {
-                    observed.insert(
-                        "error".into(),
-                        json!({"code": error.code, "message": error.message}),
-                    );
+fn check_session(case: &Value, history: bool) {
+    let steps = case["steps"].as_array().unwrap();
+    let mut namer = Namer::new(&[
+        case["spec"].to_string(),
+        case["data"].to_string(),
+        case["steps"].to_string(),
+    ]);
+    let template = compile_form(&case["spec"], &CompileOptions::default()).unwrap();
+    let mut form = Form::new(template, &case["data"], BindOptions::default()).unwrap();
+    for (index, step) in steps.iter().enumerate() {
+        let mut observed = Map::new();
+        let op = step["op"].as_str().unwrap();
+        match perform(&mut form, &case["spec"], op, step["args"].as_array().unwrap()) {
+            Ok(result) => {
+                // An action step reports its result even when it has none (null), as the reference does.
+                if result.is_some() || op == "runAction" || op == "resolveAction" {
+                    let value = result.unwrap_or(Value::Null);
+                    observed.insert("result".into(), namer.walk(&value));
                 }
             }
-            observed.insert("data".into(), namer.walk(&form.get_data()));
-            observed.insert("revision".into(), json!(form.revision()));
-            if history {
-                observed.insert("canUndo".into(), json!(form.can_undo()));
-                observed.insert("canRedo".into(), json!(form.can_redo()));
+            Err(error) => {
+                observed.insert(
+                    "error".into(),
+                    json!({"code": error.code, "message": error.message}),
+                );
             }
-            observed.insert(
-                "collapsed".into(),
-                namer.walk(&Value::Array(collapsed_rows(form.fields()))),
-            );
-            assert_eq!(
-                Value::Object(observed).to_string(),
-                case["expected"][index].to_string(),
-                "{} step {index} {step}",
-                case["name"]
-            );
         }
+        observed.insert("data".into(), namer.walk(&form.get_data()));
+        observed.insert("revision".into(), json!(form.revision()));
+        if history {
+            observed.insert("canUndo".into(), json!(form.can_undo()));
+            observed.insert("canRedo".into(), json!(form.can_redo()));
+        }
+        observed.insert(
+            "collapsed".into(),
+            namer.walk(&Value::Array(collapsed_rows(form.fields()))),
+        );
+        assert_eq!(
+            Value::Object(observed).to_string(),
+            case["expected"][index].to_string(),
+            "{} step {index} {step}",
+            case["name"]
+        );
     }
-}
-
-#[test]
-fn form_view_sessions_equal_the_recorded_observations() {
-    observe_sessions("form-view", false);
-}
-
-#[test]
-fn form_history_sessions_equal_the_recorded_observations() {
-    observe_sessions("form-history", true);
-}
-
-#[test]
-fn form_actions_sessions_equal_the_recorded_observations() {
-    observe_sessions("form-actions", true);
 }
 
 fn view_of(value: &Value) -> ViewState {
@@ -323,18 +307,40 @@ fn call(op: &str, args: &[Value]) -> Value {
     }
 }
 
-#[test]
-fn view_function_calls_equal_the_recorded_results() {
-    for case in cases("view-functions") {
-        let result = call(
-            case["op"].as_str().unwrap(),
-            case["args"].as_array().unwrap(),
-        );
-        assert_eq!(
-            json!({"result": result}).to_string(),
-            case["expected"].to_string(),
-            "{}",
-            case["name"]
-        );
+/// One view function call returns the recorded result.
+fn check_view_call(case: &Value) {
+    let result = call(
+        case["op"].as_str().unwrap(),
+        case["args"].as_array().unwrap(),
+    );
+    assert_eq!(
+        json!({"result": result}).to_string(),
+        case["expected"].to_string(),
+        "{}",
+        case["name"]
+    );
+}
+
+fn main() {
+    let families: [(&str, &str, bool); 4] = [
+        ("form-view", "form_view_sessions_equal_the_recorded_observations", false),
+        ("form-history", "form_history_sessions_equal_the_recorded_observations", true),
+        ("form-actions", "form_actions_sessions_equal_the_recorded_observations", true),
+        ("view-functions", "view_function_calls_equal_the_recorded_results", false),
+    ];
+    let mut trials = Vec::new();
+    for (family, symbol, history) in families {
+        for case in cases(family) {
+            let name = case["name"].as_str().expect("a case has a name").to_string();
+            trials.push(Trial::test(format!("{symbol}::{name}"), move || {
+                if family == "view-functions" {
+                    check_view_call(&case);
+                } else {
+                    check_session(&case, history);
+                }
+                Ok(())
+            }));
+        }
     }
+    libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }

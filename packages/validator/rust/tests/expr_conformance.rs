@@ -11,6 +11,7 @@ mod common;
 const FEATURE: &str = "validate";
 const FIXTURE: &str = "tests/fixtures/expr/cases.json";
 
+use libtest_mimic::{Arguments, Failed, Trial};
 use polyspec_crudui_validator::expr::Expression;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -71,137 +72,115 @@ fn load_cases() -> Vec<Value> {
         .clone()
 }
 
-/// One record per fixture entry: its tokens, syntax tree and every evaluation
-/// sub-case must all match.
-#[test]
-fn expression_fixture_matches() {
-    let cases = load_cases();
+/// The failures of one fixture case: its tokens, syntax tree and every evaluation sub-case must all match.
+fn check_case(spec: &Value, name: &str) -> Vec<String> {
     let mut failures: Vec<String> = Vec::new();
+    let expr = spec
+        .get("expr")
+        .and_then(Value::as_str)
+        .unwrap_or_else(|| panic!("[{}] case missing expr", name));
 
-    for spec in &cases {
-        let name = spec
-            .get("name")
-            .and_then(Value::as_str)
-            .unwrap_or_else(|| panic!("fixture case missing name"));
-        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
-            let mut failures: Vec<String> = Vec::new();
-            let expr = spec
-                .get("expr")
-                .and_then(Value::as_str)
-                .unwrap_or_else(|| panic!("[{}] case missing expr", name));
-
-            // A rejected expression fails to parse with the recorded message.
-            if let Some(error) = spec.get("error").and_then(Value::as_str) {
-                match Expression::parse(expr) {
-                    Ok(_) => failures.push(format!("[{}] parsed; want error {}", name, error)),
-                    Err(e) if e.message != error => failures.push(format!(
-                        "[{}] error mismatch\n  expected: {}\n  actual:   {}",
-                        name, error, e.message
-                    )),
-                    Err(_) => {}
-                }
-                return failures;
-            }
-
-            // (1) lexer
-            let expected = spec
-                .get("tokens")
-                .unwrap_or_else(|| panic!("[{}] case missing tokens", name));
-            match Expression::tokenize(expr) {
-                Ok(tokens) => {
-                    let actual = Value::Array(tokens.iter().map(|t| t.to_value()).collect());
-                    if normalize(expected) != normalize(&actual) {
-                        failures.push(format!(
-                            "[{}] tokens mismatch for `{}`\n  expected: {}\n  actual:   {}",
-                            name, expr, expected, actual
-                        ));
-                    }
-                }
-                Err(e) => failures.push(format!("[{}] lex: {}", name, e)),
-            }
-
-            // (2) parser
-            let expected = spec
-                .get("ast")
-                .unwrap_or_else(|| panic!("[{}] case missing ast", name));
-            match Expression::parse(expr) {
-                Ok(ast) => {
-                    let actual = ast.to_value();
-                    if normalize(expected) != normalize(&actual) {
-                        failures.push(format!(
-                            "[{}] AST mismatch for `{}`\n  expected: {}\n  actual:   {}",
-                            name, expr, expected, actual
-                        ));
-                    }
-                }
-                Err(e) => failures.push(format!("[{}] parse: {}", name, e)),
-            }
-
-            // (3) evaluation sub-cases
-            let empty: Vec<Value> = Vec::new();
-            let case_list = spec
-                .get("cases")
-                .and_then(Value::as_array)
-                .unwrap_or(&empty);
-            for (i, case) in case_list.iter().enumerate() {
-                let data = case.get("data").cloned().unwrap_or(Value::Null);
-                let current_path: Vec<String> = case
-                    .get("currentPath")
-                    .and_then(Value::as_array)
-                    .map(|a| {
-                        a.iter()
-                            .map(|x| x.as_str().unwrap_or_default().to_string())
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                let row_keys: Vec<usize> = case
-                    .get("rowKeys")
-                    .and_then(Value::as_array)
-                    .map(|a| {
-                        a.iter()
-                            .filter_map(Value::as_u64)
-                            .map(|x| x as usize)
-                            .collect()
-                    })
-                    .unwrap_or_default();
-
-                let exp_value = case.get("value").cloned().unwrap_or(Value::Null);
-                let exp_truthy = case.get("truthy").and_then(Value::as_bool).unwrap_or(false);
-
-                match Expression::evaluate_value(expr, &data, &current_path, &row_keys) {
-                    Ok(value) if !value_equals(&exp_value, &value) => failures.push(format!(
-                        "[{}] value mismatch case {}: `{}` data={} expected={} got={}",
-                        name, i, expr, data, exp_value, value
-                    )),
-                    Ok(_) => {}
-                    Err(e) => failures.push(format!("[{}] eval_value case {}: {}", name, i, e)),
-                }
-
-                match Expression::evaluate(expr, &data, &current_path, &row_keys) {
-                    Ok(truthy) if truthy != exp_truthy => failures.push(format!(
-                        "[{}] truthy mismatch case {}: `{}` data={} expected={} got={}",
-                        name, i, expr, data, exp_truthy, truthy
-                    )),
-                    Ok(_) => {}
-                    Err(e) => failures.push(format!("[{}] eval case {}: {}", name, i, e)),
-                }
-            }
-            failures
-        }));
+    // A rejected expression fails to parse with the recorded message.
+    if let Some(error) = spec.get("error").and_then(Value::as_str) {
+        match Expression::parse(expr) {
+            Ok(_) => failures.push(format!("[{}] parsed; want error {}", name, error)),
+            Err(e) if e.message != error => failures.push(format!(
+                "[{}] error mismatch\n  expected: {}\n  actual:   {}",
+                name, error, e.message
+            )),
+            Err(_) => {}
+        }
+        return failures;
     }
 
-    assert!(!cases.is_empty(), "no expr fixture cases were loaded");
-    assert!(
-        failures.is_empty(),
-        "{} expression mismatch(es):\n{}",
-        failures.len(),
-        failures.join("\n")
-    );
+    // (1) lexer
+    let expected = spec
+        .get("tokens")
+        .unwrap_or_else(|| panic!("[{}] case missing tokens", name));
+    match Expression::tokenize(expr) {
+        Ok(tokens) => {
+            let actual = Value::Array(tokens.iter().map(|t| t.to_value()).collect());
+            if normalize(expected) != normalize(&actual) {
+                failures.push(format!(
+                    "[{}] tokens mismatch for `{}`\n  expected: {}\n  actual:   {}",
+                    name, expr, expected, actual
+                ));
+            }
+        }
+        Err(e) => failures.push(format!("[{}] lex: {}", name, e)),
+    }
+
+    // (2) parser
+    let expected = spec
+        .get("ast")
+        .unwrap_or_else(|| panic!("[{}] case missing ast", name));
+    match Expression::parse(expr) {
+        Ok(ast) => {
+            let actual = ast.to_value();
+            if normalize(expected) != normalize(&actual) {
+                failures.push(format!(
+                    "[{}] AST mismatch for `{}`\n  expected: {}\n  actual:   {}",
+                    name, expr, expected, actual
+                ));
+            }
+        }
+        Err(e) => failures.push(format!("[{}] parse: {}", name, e)),
+    }
+
+    // (3) evaluation sub-cases
+    let empty: Vec<Value> = Vec::new();
+    let case_list = spec
+        .get("cases")
+        .and_then(Value::as_array)
+        .unwrap_or(&empty);
+    for (i, case) in case_list.iter().enumerate() {
+        let data = case.get("data").cloned().unwrap_or(Value::Null);
+        let current_path: Vec<String> = case
+            .get("currentPath")
+            .and_then(Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .map(|x| x.as_str().unwrap_or_default().to_string())
+                    .collect()
+            })
+            .unwrap_or_default();
+        let row_keys: Vec<usize> = case
+            .get("rowKeys")
+            .and_then(Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(Value::as_u64)
+                    .map(|x| x as usize)
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let exp_value = case.get("value").cloned().unwrap_or(Value::Null);
+        let exp_truthy = case.get("truthy").and_then(Value::as_bool).unwrap_or(false);
+
+        match Expression::evaluate_value(expr, &data, &current_path, &row_keys) {
+            Ok(value) if !value_equals(&exp_value, &value) => failures.push(format!(
+                "[{}] value mismatch case {}: `{}` data={} expected={} got={}",
+                name, i, expr, data, exp_value, value
+            )),
+            Ok(_) => {}
+            Err(e) => failures.push(format!("[{}] eval_value case {}: {}", name, i, e)),
+        }
+
+        match Expression::evaluate(expr, &data, &current_path, &row_keys) {
+            Ok(truthy) if truthy != exp_truthy => failures.push(format!(
+                "[{}] truthy mismatch case {}: `{}` data={} expected={} got={}",
+                name, i, expr, data, exp_truthy, truthy
+            )),
+            Ok(_) => {}
+            Err(e) => failures.push(format!("[{}] eval case {}: {}", name, i, e)),
+        }
+    }
+    failures
 }
 
 // --- targeted unit checks beyond the shared fixture --------------------------
 
-#[test]
 fn condition_map_resolves_in_declaration_order() {
     use polyspec_crudui_validator::expr::condition_map;
 
@@ -248,7 +227,6 @@ fn condition_map_resolves_in_declaration_order() {
     );
 }
 
-#[test]
 fn condition_map_default_does_not_short_circuit() {
     use polyspec_crudui_validator::expr::condition_map;
 
@@ -277,7 +255,6 @@ fn condition_map_default_does_not_short_circuit() {
     );
 }
 
-#[test]
 fn ternary_returns_raw_branch_value() {
     let cp: Vec<String> = vec!["x".to_string()];
 
@@ -311,4 +288,40 @@ fn ternary_returns_raw_branch_value() {
         .unwrap(),
         Value::Null
     );
+}
+
+fn main() {
+    let cases = load_cases();
+    assert!(!cases.is_empty(), "no expr fixture cases were loaded");
+    let mut trials: Vec<Trial> = cases
+        .into_iter()
+        .map(|spec| {
+            let name = spec
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or_else(|| panic!("fixture case missing name"))
+                .to_string();
+            Trial::test(format!("expression_fixture_matches::{name}"), move || {
+                let failures = common::prove_case(FEATURE, FIXTURE, &name, || check_case(&spec, &name));
+                if failures.is_empty() {
+                    Ok(())
+                } else {
+                    Err(Failed::from(format!("\n{}", failures.join("\n"))))
+                }
+            })
+        })
+        .collect();
+    trials.push(Trial::test("condition_map_resolves_in_declaration_order", || {
+        condition_map_resolves_in_declaration_order();
+        Ok(())
+    }));
+    trials.push(Trial::test("condition_map_default_does_not_short_circuit", || {
+        condition_map_default_does_not_short_circuit();
+        Ok(())
+    }));
+    trials.push(Trial::test("ternary_returns_raw_branch_value", || {
+        ternary_returns_raw_branch_value();
+        Ok(())
+    }));
+    libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }

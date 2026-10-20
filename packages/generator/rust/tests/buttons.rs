@@ -2,6 +2,7 @@
 //! and `form_buttons_html` (CURP-009). Each observation equals the one that the TypeScript reference recorded, as JSON text,
 //! so the order of the attributes counts. A failure is observed with its code and message.
 
+use libtest_mimic::{Arguments, Trial};
 use polyspec_crudui_generator::{
     bind_buttons, compile_form, form_buttons_html, BindOptions, CompileOptions, FormResult, FormTemplate,
 };
@@ -54,15 +55,27 @@ fn observe_case(case: &Value) -> Value {
     }
 }
 
-#[test]
-fn every_case_reproduces_its_expectation() {
-    for case in cases() {
-        let name = case["name"].as_str().unwrap_or("unnamed");
-        let observed = observe_case(&case);
-        assert_eq!(
-            serde_json::to_string(&observed).unwrap(),
-            serde_json::to_string(&case["expected"]).unwrap(),
-            "{name}"
-        );
-    }
+/// One case reproduces its recorded expectation, as the JSON text of the observation.
+fn check_case(case: &Value) {
+    let observed = observe_case(case);
+    assert_eq!(
+        serde_json::to_string(&observed).unwrap(),
+        serde_json::to_string(&case["expected"]).unwrap(),
+        "{}",
+        case["name"].as_str().unwrap_or("unnamed")
+    );
+}
+
+fn main() {
+    let trials = cases()
+        .into_iter()
+        .map(|case| {
+            let name = case["name"].as_str().expect("a case has a name").to_string();
+            Trial::test(format!("every_case_reproduces_its_expectation::{name}"), move || {
+                check_case(&case);
+                Ok(())
+            })
+        })
+        .collect();
+    libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }
