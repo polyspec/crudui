@@ -4,26 +4,14 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Rules;
 
-use Polyspec\Crudui\Validator\Expr\FieldPath;
-
 /**
  * Equal To validation rule.
  * Validates that a value matches another field's value.
  */
-class EqualTo implements RuleInterface
+class EqualTo extends ReferenceRule
 {
-    /**
-     * Validate that a value matches another field's value.
-     */
-    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
+    protected function agrees(mixed $value, mixed $reference): bool
     {
-        if ($param === null || $param === '') {
-            return true;
-        }
-
-        $targetPath = (string)$param;
-        $targetValue = $path->reference($targetPath, $allData);
-
-        return $value === $targetValue;
+        return $value === $reference;
     }
 }

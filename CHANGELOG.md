@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared guards of the PHP string and reference rules (C16.20)
+
+- `Rules\StringRule` holds the switch-off and string guard of `Email`, `Url` and `DateISO`, and `Rules\ReferenceRule` the switch-off and field lookup of `EndDate` and `EqualTo`; each rule keeps only what decides its result (C16.20). Red: `make duplication-check` listed 5 clones between `Date`, `DateISO`, `Email`, `Url`, `EndDate` and `EqualTo`; green: none of them, and `ValidateConformanceTest` (318), `DocCoverageTest`, `FieldSpecTest` (17) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Shared rule application in the PHP data validator (C16.19)
 
 - `Validate\Validator::applyRules` runs rules until one fails and records its error; the array-level, element-level, field and implicit `number` rules all use it, `validateFieldRules` takes an `elementLevel` flag instead of a second copy (`validateElementRules`), and `fieldsOf` yields the field declarations of a properties map once (C16.19). Red: `make duplication-check` listed 4 clones in `Validate/Validator.php`; green: 1 remains (the docblock and signature of `runImplicitNumber` and `applyRules`), and `ValidateConformanceTest` (318), `PublicApiTest` (8), `MessagePlaceholderTest` (6) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.

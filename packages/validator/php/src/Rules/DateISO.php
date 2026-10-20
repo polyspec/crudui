@@ -4,29 +4,17 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Rules;
 
-use Polyspec\Crudui\Validator\Expr\FieldPath;
 use Polyspec\Crudui\Validator\Values\Whitespace;
 
 /**
  * ISO Date validation rule.
  * Validates that a value is a valid ISO 8601 date format (YYYY-MM-DD).
  */
-class DateISO implements RuleInterface
+class DateISO extends StringRule
 {
-    /**
-     * Validate that a value is a valid ISO date.
-     */
-    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
+    protected function accepts(string $text): bool
     {
-        if ($param === false) {
-            return true;
-        }
-
-        if (!is_string($value)) {
-            return false;
-        }
-
-        $stringValue = Whitespace::trim($value);
+        $stringValue = Whitespace::trim($text);
 
         // Check format YYYY-MM-DD
         if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $stringValue)) {

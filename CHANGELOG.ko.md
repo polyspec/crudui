@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: aa77ada9c2be0bf2341570919e7ace409abe3174101c3a4f7fe69e1b865d5699 -->
+<!-- source-sha256: 5e032e26fd26903756197c42479a9a0172b28f171dec27ef2bed078f98e8f4b6 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP string rule과 참조 rule의 공유 guard (C16.20)
+
+- `Rules\StringRule`은 `Email`, `Url`, `DateISO`의 해제와 string guard를, `Rules\ReferenceRule`은 `EndDate`와 `EqualTo`의 해제와 field 조회를 담습니다. 각 rule은 결과를 정하는 부분만 남깁니다 (C16.20). Red: `make duplication-check`가 `Date`, `DateISO`, `Email`, `Url`, `EndDate`, `EqualTo` 사이의 clone 5건을 나열했고, green: 해당 clone 없음. `ValidateConformanceTest`(318), `DocCoverageTest`, `FieldSpecTest`(17), `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — PHP data validator의 공유 rule 적용 (C16.19)
 

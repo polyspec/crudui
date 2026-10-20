@@ -4,29 +4,17 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Rules;
 
-use Polyspec\Crudui\Validator\Expr\FieldPath;
 use Polyspec\Crudui\Validator\Values\Whitespace;
 
 /**
  * URL validation rule.
  * Validates that a value is a valid URL.
  */
-class Url implements RuleInterface
+class Url extends StringRule
 {
-    /**
-     * Validate that a value is a valid URL.
-     */
-    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
+    protected function accepts(string $text): bool
     {
-        if ($param === false) {
-            return true;
-        }
-
-        if (!is_string($value)) {
-            return false;
-        }
-
-        $url = Whitespace::trim($value);
+        $url = Whitespace::trim($text);
         if ($url === '') {
             return false;
         }

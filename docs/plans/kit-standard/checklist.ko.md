@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: fcc90e7ae33ae5bed2497672889350b4b074aa6f92e3b89c998c09e89ddeef8a -->
+<!-- source-sha256: b0bc1e8cf67abd76c095ea44c366f604fa3f2cf23896bafbc8e02f441edfb2c0 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -25,3 +25,4 @@
 | C16.17 | PHP validator는 list와 detail composition을 하나의 method로 검증한다 | packages/validator/php/src/Public/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ListValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/DetailValidateConformanceTest.php`, `make lint-php` | [o] |
 | C16.18 | PHP validator는 range parameter의 pair를 하나의 method로 읽는다 | packages/validator/php/src/Values/Numeric.php, packages/validator/php/src/Values/LengthLimit.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Values/NumericTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |
 | C16.19 | PHP data validator는 rule 적용과 field 순회를 공유 method로 수행한다 | packages/validator/php/src/Validate/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/PublicApiTest.php`, `make lint-php` | [o] |
+| C16.20 | PHP의 string rule과 field 참조 rule은 두 base class로 guard를 공유한다 | packages/validator/php/src/Rules/StringRule.php, ReferenceRule.php, Email.php, Url.php, DateISO.php, EndDate.php, EqualTo.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |
