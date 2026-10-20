@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 741999b8021851bb9d9f8fbe931ac32dd783ae8645d7353ccffb8693e771b6ad -->
+<!-- source-sha256: 2fc32a95133dfe9347a8f4e5bb7e1de278cff860d80afd8aa3d50bfeb3ce9b0c -->
 
 ## Unreleased
 
@@ -79,6 +79,10 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001부터 CURP-005까지 | 1 (native 통합) | 모든 구현이 같은 네 능력을 자기 형태로 가지므로, 구현별 다섯 항목을 중립 항목 하나로 대체한다 |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, R13 줄 다섯 개(CURP-001부터 CURP-005까지 정의되고 어떤 단위도 인용하지 않음), 61 findings; green: exit 0, CURP-001부터 CURP-005까지의 줄이 남지 않음, 56 findings, `check-documents` 통과 (C16.150).
+### 2026-10-21 — TypeScript form-comparison adapter가 mountView와 hydrateView를 하나의 module에서 받는다 (C16.58-27)
+
+- 새 파일 examples/form-comparison/src/adapters/view-entries.ts의 `viewEntries(start)`가 하나의 start 함수 위에 타입이 붙은 `mountView`와 `hydrateView`를 돌려준다. 서명은 타입으로 한 번만 적는다(C16.58-27). 여덟 adapter(html, svelte, vue, react의 bind-form과 create-form)는 두 export 함수의 사본을 `export const { mountView, hydrateView } = viewEntries(start);` 한 줄로 바꾼다. adapter-completion.test.mjs는 adapter 원문에서 복사된 서명을 더 이상 찾지 않는다. 대신 각 adapter가 ./view-entries.ts에서 viewEntries를 가져오고 mountView와 hydrateView를 export하는지 확인하며, 서명은 tsc가 타입으로 검사한다. 테스트가 확인하는 내용이 바뀌었고, adapter의 동작은 바뀌지 않았다. Red: `make duplication-check`가 bind-form-html.ts, create-form-html.ts, svelte와 vue adapter의 clone을 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, adapter-completion.test.mjs 3 passed, svelte-dispose.test.mjs 2 passed, `make lint-ts` 0 errors.
+
 ### 2026-10-21 — PHP form-comparison record store가 validator의 NumberValue로 number text를 파싱한다 (C16.58-26)
 
 - examples/form-comparison/servers/php/src/RecordStore.php의 `RecordStore::number`가 자체 복사본 대신 `Polyspec\Crudui\Validator\Support\NumberValue::parseString`을 호출한다(C16.58-26). `Infinity`, `+Infinity`, `-Infinity` 문자열은 복사본과 같은 메시지 `Expected a number`를 유지하고(NumberValue는 이를 무한대 수로 읽는다), 그 밖의 비유한 수는 `Expected a finite number`를 유지한다. 동작은 바뀌지 않았다: var/php-number-compare.php의 입력 9038개가 변경 전후 같은 결과를 낸다. Go와 Rust record server는 이 literal에 `Expected a finite score`를, TypeScript server는 이를 받아들이므로, 이 변경으로 PHP 메시지가 그들과 맞춰진 것은 아니다. Red: `make duplication-check`가 clone RecordStore.php [150-156] = NumberValue.php [28-34]를 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, `make duplication-check`는 clone 8개를 찾는다, phpunit FormShapeTest와 FormJsonTest 2 passed, NumberValueTest 20 passed; `make lint-php` exit 0.

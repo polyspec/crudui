@@ -5,6 +5,7 @@ import OutlineView from '#svelte/OutlineView.svelte';
 import DataPanel from '#svelte/DataPanel.svelte';
 import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
 import { emptyView, type BindView, type FormViews, type RecordData } from '../form-views.ts';
+import { viewEntries } from './view-entries.ts';
 
 /**
  * Svelte hydration reads the markers its own server renderer writes (`<!--[-->`), which the form
@@ -44,10 +45,4 @@ function start(views: FormViews, template: FormTemplate, language: Language, dat
   };
 }
 
-export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
-  return start(views, template, language, data, false);
-}
-
-export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
-  return start(views, template, language, data, true);
-}
+export const { mountView, hydrateView } = viewEntries(start);

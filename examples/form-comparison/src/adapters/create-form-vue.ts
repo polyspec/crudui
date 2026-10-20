@@ -5,6 +5,7 @@ import { Outline } from '#vue/Outline';
 import { DataView } from '#vue/DataView';
 import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
 import type { FormViews, RecordData } from '../form-views.ts';
+import { viewEntries } from './view-entries.ts';
 
 /** Vue hydration adopts the server-rendered nodes instead of replacing them. */
 export const hydration = 'keep';
@@ -28,10 +29,4 @@ function start(views: FormViews, template: FormTemplate, language: Language, dat
   };
 }
 
-export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
-  return start(views, template, language, data, false);
-}
-
-export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
-  return start(views, template, language, data, true);
-}
+export const { mountView, hydrateView } = viewEntries(start);

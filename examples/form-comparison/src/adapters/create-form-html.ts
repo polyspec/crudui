@@ -2,6 +2,7 @@ import { connectForm, connectOutline, createForm, patchContent } from '@polyspec
 import { renderData, renderForm, renderOutline } from '#html';
 import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
 import type { FormViews, RecordData } from '../form-views.ts';
+import { viewEntries } from './view-entries.ts';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */
 export const hydration = 'keep';
@@ -43,10 +44,4 @@ function start(views: FormViews, template: FormTemplate, language: Language, dat
   };
 }
 
-export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
-  return start(views, template, language, data, false);
-}
-
-export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
-  return start(views, template, language, data, true);
-}
+export const { mountView, hydrateView } = viewEntries(start);

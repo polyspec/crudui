@@ -20,8 +20,9 @@ const sources = Object.fromEntries(await Promise.all(
 
 test('every adapter offers both initialization paths and declares what hydration does', () => {
   for (const [name, source] of Object.entries(adapterFiles).map(([name]) => [name, sources[name]])) {
-    assert.match(source, /export function mountView\(views: FormViews, template: FormTemplate, language: Language, data: RecordData = \{\}\)/, `${name} mounts`);
-    assert.match(source, /export function hydrateView\(views: FormViews, template: FormTemplate, language: Language, data: RecordData\)/, `${name} hydrates`);
+    // The signatures are stated once, by the type of view-entries.ts, which tsc checks; each adapter takes both entries from it.
+    assert.match(source, /import \{ viewEntries \} from '\.\/view-entries\.ts';/, `${name} takes the shared entries`);
+    assert.match(source, /export const \{ mountView, hydrateView \} = viewEntries\(start\);/, `${name} mounts and hydrates`);
     const declaration = /export const hydration = '(keep|replace)'/.exec(source);
     assert.ok(declaration, `${name} must declare whether hydration keeps the server nodes`);
     assert.equal(declaration[1], name.endsWith('svelte') ? 'replace' : 'keep', `${name} hydration`);
