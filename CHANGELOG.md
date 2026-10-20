@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The contract manifest declares the internal raw markup exports of generator-core (C16.64)
+
+- The entry `./internal` of `@polyspec/crudui-generator-core` in `contracts/features.json` declares the 13 raw markup helpers that the React, Vue and Svelte adapters import since C16.27 (`affixHtml`, `choiceLabelClass`, `choicesHtml`, `escAttr`, `escText`, `groupButtonHtml`, `hasEventAttr`, `rawControl`, `rawElement`, `rawOptions`, `rawVoid`, `searchHtml`, `serializeAttrs`), and `docs/operations/feature-contracts.md` lists them (C16.64). Red: `make manifest-check` exited 2 with `"./internal": exported but not declared` and those 13 names; green: it passes with 21 features, 7 packages with 10 entries and 26 fixture links.
+
 ### 2026-10-20 — The repository-writing test accepts gate, the term of kit (C16.65-1)
 
 - `tests/docs/repository-writing.test.mts` no longer discourages the word gate, which is the term of kit for its checks (PRINCIPLES P31, `make kit-gates`, `.github/workflows/gates.yml`), and states that reason beside its list (C16.65-1). Red: the test ended `5 passed, 1 failed` with 34 findings `acceptance-check metaphor: "gate"`, the first `CHANGELOG.ko.md:149`; green: `6 passed, 0 failed`.

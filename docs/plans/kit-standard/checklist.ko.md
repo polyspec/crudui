@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 29ecf2c075fd2675051ee590654594e8bd4d84a494634e16ef76fda9e3970e43 -->
+<!-- source-sha256: 5926321a300e3a7bb8c8459e3e485d71d469c1e4073bfb703caa538fdd720070 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -109,7 +109,7 @@
 | C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [ ] |
 | C16.63 | make link가 Go module 옆에 쓰는 go.work와 go.work.sum file은 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` writes the Go links without refusing | [o] |
 | C16.63-1 | make link가 Go 모듈 scripts/go 옆에 쓰는 go.work는 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link . ../kit ../ordered-json` writes the Go links without refusing | [o] |
-| C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [ ] |
+| C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [o] |
 | C16.65 | 관리하는 문서와 changelog는 합격 검사를 gate라는 말로 부르지 않는다 (records-check) | CHANGELOG.md, CHANGELOG.ko.md, the documents of docs/ | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [-] 원인: gate는 kit가 자기 검사를 부르는 용어이며(PRINCIPLES P31, make kit-gates, gates.yml), 저장소의 기록 단어 금지는 그 저장소가 채택한 규칙의 용어를 금지할 수 없습니다(link-owner 결정, 2026-10-20); C16.65-1이 테스트를 고칩니다 |
 | C16.65-1 | repository-writing test는 kit가 자기 검사를 부르는 용어 gate를 허용한다(PRINCIPLES P31, kit-gates) | tests/docs/repository-writing.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/repository-writing.test.mts` | [o] |
 | C16.66 | CHANGELOG.ko.md는 CHANGELOG.md의 모든 항목을 같은 순서로 한 번씩 담고 revision marker를 하나만 가진다 | CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/docs/changelog.test.mts` | [o] |

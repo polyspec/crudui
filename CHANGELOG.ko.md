@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: db2ef8fc8f4cb67a6c363214fe2e6d345077bc56860fb2693526b13b0a1af7ff -->
+<!-- source-sha256: 0610e059db0b25765f161e52141db5611a1dbe8b61954c4c13388e05f1caef7e -->
 
 ## Unreleased
+
+### 2026-10-20 — contract manifest는 generator-core의 internal raw markup export를 선언한다 (C16.64)
+
+- `contracts/features.json`에서 `@polyspec/crudui-generator-core`의 진입점 `./internal`은 C16.27 이후 React, Vue, Svelte adapter가 가져가는 raw markup helper 13개(`affixHtml`, `choiceLabelClass`, `choicesHtml`, `escAttr`, `escText`, `groupButtonHtml`, `hasEventAttr`, `rawControl`, `rawElement`, `rawOptions`, `rawVoid`, `searchHtml`, `serializeAttrs`)를 선언하고, `docs/operations/feature-contracts.md`가 이를 나열합니다(C16.64). Red: `make manifest-check`가 `"./internal": exported but not declared`와 그 13개 이름으로 exit 2였고, green: feature 21개, entry 10개를 가진 package 7개, fixture link 26개로 통과합니다.
 
 ### 2026-10-20 — repository-writing test는 kit 용어 gate를 허용한다 (C16.65-1)
 
