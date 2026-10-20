@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6ec9acf4217782d5d17ae31c969d5650652a22a155a2cc000352ac6fc215e5bc -->
+<!-- source-sha256: 3f2206ee0e23c0c0341ed4df344f7cbf5198bc0276198a7b867cfcd58dc4c65e -->
 
 ## Unreleased
+
+### 2026-10-20 — Python generator에 history 함수가 있다 (C16.52-2)
+
+- `packages/generator/python`의 `Generator.emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange`, `redoChange`는 CURT-063과 CURT-076~CURT-080을 따른다. 이력은 `{entries, redoEntries, lastPath?}`이고, 마지막 편집과 같은 경로의 값 편집은 항목을 공유하며, 각 방향은 기록 100개를 두고, 복원할 것이 없는 실행취소나 실행복귀는 `INVALID_FORM_INPUT`과 `Nothing to undo` 또는 `Nothing to redo`인 `FormError`를 일으킨다. `config/parity.json`은 `tests/fixtures/history-functions/cases.json`에 대한 unit `history-functions`를 선언하고 binding `packages/generator/python/tests/test_form_history.py`를 묶는다. red: 사례 13개가 없는 method로 실패했고, green: 13개 중 13개가 통과하며 `ruff`와 `vulture`는 아무것도 보고하지 않는다. 다른 구현의 binding은 그 구현에서 `formHistory`를 구현하는 하위 항목(C16.52)에서 더한다.
 
 ### 2026-10-20 — PHP generator의 뷰 상태 (C16.51-6)
 

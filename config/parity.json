@@ -88,7 +88,28 @@
   "requirements": {
     "pattern": "CU(DF|XP|MK|RT|IT|SC|VR|RP|EC)-[0-9]{3}"
   },
-  "units": [],
+  "units": [
+    {
+      "id": "history-functions",
+      "kind": "suite",
+      "file": "tests/fixtures/history-functions/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_history.py"
+        }
+      ],
+      "requirements": [
+        "CURT-063",
+        "CURT-076",
+        "CURT-077",
+        "CURT-078",
+        "CURT-079",
+        "CURT-080"
+      ]
+    }
+  ],
   "tools": [
     {
       "root": "scripts",

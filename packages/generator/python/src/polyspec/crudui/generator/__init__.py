@@ -20,6 +20,7 @@ from .details import render as _detail_render
 from .errors import FormError
 from .form import Form, createRowKey, sequenceRowKey
 from .form_render import model as _render_model
+from . import history as _history
 from .input_text import inputs as _check_inputs
 from .input_text import specification as _check_specification
 from .lists import build_public as _list_build
@@ -121,6 +122,38 @@ class Generator:
     ) -> Any:
         """An independent form instance over a copied template."""
         return Form(template, data, options)
+
+    @staticmethod
+    def emptyHistory() -> dict[str, Any]:
+        """A history with nothing to undo (CURT-011)."""
+        return _history.empty()
+
+    @staticmethod
+    def recordChange(
+        history: Mapping[str, Any], previous: Any, path: str | None = None
+    ) -> dict[str, Any]:
+        """The history after a change from `previous`, with at most 100 records in each direction (CURT-011)."""
+        return _history.record(history, previous, path)
+
+    @staticmethod
+    def canUndo(history: Mapping[str, Any]) -> bool:
+        """Whether a record can be restored (CURT-011)."""
+        return _history.can_undo(history)
+
+    @staticmethod
+    def canRedo(history: Mapping[str, Any]) -> bool:
+        """Whether an undone change can be reapplied (CURT-012)."""
+        return _history.can_redo(history)
+
+    @staticmethod
+    def undoChange(history: Mapping[str, Any], current: Any) -> dict[str, Any]:
+        """The history and the record before the last change; `FormError` when there is none (CURT-011)."""
+        return _history.undo(history, current)
+
+    @staticmethod
+    def redoChange(history: Mapping[str, Any], current: Any) -> dict[str, Any]:
+        """The history and the record after the last undone change; `FormError` when there is none (CURT-012)."""
+        return _history.redo(history, current)
 
     @staticmethod
     def renderForm(form: Any, options: Mapping[str, Any] | None = None) -> Any:

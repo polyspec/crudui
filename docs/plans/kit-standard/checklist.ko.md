@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 63fd8b03609830871cc5da88633e3aaeb0f99a4a94cd94bb751f2fc64ae0fa4d -->
+<!-- source-sha256: ae2de542d9cc3b6d691b581cb8c3b8f4375bdc4a66be567bb60904e79ee864ae -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -87,6 +87,7 @@
 | C16.51-5 | Rust generator 가 뷰 상태를 가진다: ViewState 와 뷰 함수, BindOptions 의 collapsed, Form::toggle_row 와 Form::set_all_expanded 이며 뷰는 remove_row, rekey_row, set_data 를 따른다 | packages/generator/rust (src/view.rs, instance.rs, binding.rs, lib.rs, tests/form_state.rs), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state` | [o] |
 | C16.51-6 | PHP generator 가 뷰 상태를 가진다: Generator 의 뷰 함수, bindForm 옵션 collapsed, Form::toggleRow 와 Form::setAllExpanded 이며 뷰는 removeRow, rekeyRow, setData 를 따른다 | packages/generator/php (src/Internal/View.php, Form.php, Generator.php, Internal/Binding.php, tests/FormStateTest.php, tests/FixtureNamer.php), contracts/features.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [o] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
+| C16.52-2 | Python generator는 history 함수 emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange를 가진다 | packages/generator/python/src/polyspec/crudui/generator/history.py, __init__.py, tests/test_form_history.py, config/parity.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_history` | [o] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
 | C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [o] |

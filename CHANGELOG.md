@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Python generator has the history functions (C16.52-2)
+
+- `Generator.emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` of `packages/generator/python` follow CURT-063 and CURT-076 to CURT-080: a history is `{entries, redoEntries, lastPath?}`, a value edit on the path of the last edit shares its entry, each direction keeps 100 records, and an undo or a redo with nothing to restore raises `FormError` with `INVALID_FORM_INPUT` and `Nothing to undo` or `Nothing to redo`. `config/parity.json` declares the unit `history-functions` over `tests/fixtures/history-functions/cases.json` with the binding `packages/generator/python/tests/test_form_history.py`; red: the 13 cases failed with a missing method, green: 13 of 13 pass, and `ruff` and `vulture` report nothing. The other implementations get their binding in the sub-items that implement `formHistory` there (C16.52).
+
 ### 2026-10-20 — View state in the PHP generator (C16.51-6)
 
 - The PHP generator has the view functions `initialView`, `toggleRowView`, `collapsibleRows`, `setAllExpandedView`, `removeRowView` and `rekeyRowView` on `Generator`, the `bindForm` option `collapsed`, `Form::toggleRow` and `Form::setAllExpanded`; `removeRow`, `rekeyRow` and `setData` change the view and a view change leaves the revision. `viewState` is `pass` for PHP in `contracts/features.json`. Red: `FormStateTest` failed in every `form-view` and `view-functions` case (`Call to undefined method Form::toggleRow()`, `Generator::collapsibleRows()`). Green: its 14 cases pass with the 28 tests of `FormTest`, `DocCoverageTest` and `OutlineTest`, and `phpstan` passes.
