@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 631d444f0e94cfd47c666871d877bb8ddbf41dcebf2e06d83388ef1b741ca21f -->
+<!-- source-sha256: 6e96a8ff301adbc8c9108b0e64f06e9bf3d6f3f90f4d2f56d7a35469e82572e6 -->
 
 ## Unreleased
+
+### 2026-10-20 — native generator Go 프로그램은 숨은 오류를 처리한다 (C16.67-5)
+
+- `tests/native-generators/programs/go/main.go`는 kit lint가 보고하는 오류를 검사합니다 (C16.67-5). `obj`와 `str`은 다른 타입의 값을 `ok` 검사로 nil 또는 빈 문자열로 읽으며, 각 호출자는 이를 이미 오류로 보고하거나 부재로 읽습니다. `run`은 action의 method를 `str`로 읽고, `errorObject`는 `errors.As`로 `ComposeLoadError`와 `UnsupportedFieldTypeError`를 찾습니다. 라이브러리가 두 오류 타입을 감싸지 않고 반환하므로 동작은 바뀌지 않습니다. Red: `golangci-lint run --config=../../../../.golangci.yml ./...`가 `5 issues`(errcheck 3, errorlint 2)로 exit 1; green: exit 0이며 `0 issues`, `go build -o /dev/null ./...`는 exit 0입니다(이 프로그램에는 Go test가 없고 conformance suite가 실행합니다).
 
 ### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
 

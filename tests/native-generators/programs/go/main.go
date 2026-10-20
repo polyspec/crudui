@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -22,8 +23,25 @@ func val(o *gen.Object, k string) any {
 	v, _ := o.Get(k)
 	return v
 }
-func obj(v any) *gen.Object { o, _ := v.(*gen.Object); return o }
-func str(v any) string      { s, _ := v.(string); return s }
+
+// obj reads a value as an object; any other value is nil, and each caller reports a nil object as its own error
+// or reads it as absent, as the request protocol defines.
+func obj(v any) *gen.Object {
+	o, ok := v.(*gen.Object)
+	if !ok {
+		return nil
+	}
+	return o
+}
+
+// str reads a value as text; any other value is the empty string, the value of an absent member.
+func str(v any) string {
+	s, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return s
+}
 func compileOptions(o *gen.Object) gen.CompileOptions {
 	files := map[string]*gen.Object{}
 	if f := obj(val(o, "files")); f != nil {
@@ -39,14 +57,16 @@ func bindOptions(o *gen.Object) gen.BindOptions {
 }
 func errorObject(err error) *gen.Object {
 	code, message, at := "INVALID_FORM_INPUT", err.Error(), ""
-	if e, ok := err.(*compose.ComposeLoadError); ok {
-		code, message = string(e.Code), e.Message
-		if len(e.Trace) > 0 {
-			at = strings.Join(e.Trace, ".")
+	var loadErr *compose.ComposeLoadError
+	if errors.As(err, &loadErr) {
+		code, message = string(loadErr.Code), loadErr.Message
+		if len(loadErr.Trace) > 0 {
+			at = strings.Join(loadErr.Trace, ".")
 		}
 	}
-	if e, ok := err.(*gen.UnsupportedFieldTypeError); ok {
-		code, at = e.Code(), e.Path
+	var fieldErr *gen.UnsupportedFieldTypeError
+	if errors.As(err, &fieldErr) {
+		code, at = fieldErr.Code(), fieldErr.Path
 	}
 	return gen.NewObject("code", code, "message", message, "at", at)
 }
@@ -220,7 +240,7 @@ func run(request *gen.Object) (any, error) {
 			for _, raw := range a {
 				a := obj(raw)
 				args, isList := val(a, "args").([]any)
-				method, _ := val(a, "method").(string)
+				method := str(val(a, "method"))
 				var result any
 				e := fmt.Errorf("Invalid form action")
 				if a != nil && isList && actionMethods[method] {

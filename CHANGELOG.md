@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The native generator Go program handles its hidden errors (C16.67-5)
+
+- `tests/native-generators/programs/go/main.go` checks the errors that the kit lint reports (C16.67-5): `obj` and `str` read a value of another type as nil or the empty string through an `ok` check, which each caller already reports or reads as absent, `run` reads the method of an action with `str`, and `errorObject` finds the `ComposeLoadError` and `UnsupportedFieldTypeError` with `errors.As`. Behaviour does not change, because the library returns both error types unwrapped. Red: `golangci-lint run --config=../../../../.golangci.yml ./...` exited 1 with `5 issues` (errcheck 3, errorlint 2); green: exit 0 with `0 issues`, and `go build -o /dev/null ./...` exits 0 (the program has no Go test; the conformance suite runs it).
+
 ### 2026-10-20 — PHP sources and examples pass the phpcs line length rule (C16.75)
 
 - `packages/generator/php/src/Internal/History.php` rewraps the docblocks of `record`, `undo` and `redo` to 120 columns, and `examples/form-comparison/servers/php` rewraps the docblocks of `api.php` and `src/ApiServer.php` and a comment of `tests/FormGenerationTest.php`, without changing code (C16.75). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php` exit 2, phpcs: 8 Generic.Files.LineLength.TooLong warnings (History.php 11, 12, 27, 57, 78; api.php 5; ApiServer.php 17; FormGenerationTest.php 291); green: exit 0, and phpunit `tests/HistoryFunctionsTest.php` 13 passed, form-comparison `tests/FormGenerationTest.php` 9 passed.
