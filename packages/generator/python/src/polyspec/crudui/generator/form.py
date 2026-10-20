@@ -34,6 +34,8 @@ __all__ = ["Form"]
 _KEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 _DIGITS = re.compile(r"^\d+$")
 _SEQUENCE = re.compile(r"^\d{1,13}$")
+# The key of the one initial row that missing repeated data creates (CUEC-002).
+_INITIAL_ROW_KEY = "__0000000000000__"
 
 
 def _copy(value: Any) -> Any:
@@ -187,6 +189,7 @@ class Form:
             field,
             _copy(options["value"]) if "value" in options else MISSING,
             ".".join([*self._checked_path(path), key]),
+            fresh=True,
         )
         items = list(rows.items())
         following = dict(items[:index])
@@ -369,8 +372,14 @@ class Form:
                 return key
         Form._fail("Unable to generate an unused row key")
 
-    def _normalize_fields(self, fields: Any, value: Any, path: str = "") -> Any:
-        """Normalize record data; `path` is the full data path, empty at the root."""
+    def _normalize_fields(
+        self, fields: Any, value: Any, path: str = "", fresh: bool = False
+    ) -> Any:
+        """Normalize record data; `path` is the full data path, empty at the root.
+
+        Missing repeated data gets the initial row `__0000000000000__`; a row that an operation creates
+        (`fresh`) gets a fresh key instead, as the TypeScript reference does (instance.ts normalizeFields).
+        """
         if value is not MISSING and not isinstance(value, dict):
             self._fail(
                 "Form data must be an object"
@@ -389,24 +398,30 @@ class Form:
                     raw
                     if isinstance(raw, dict)
                     else (
-                        {} if self._data_only(field) else {"__0000000000000__": MISSING}
+                        {}
+                        if self._data_only(field)
+                        else {
+                            (self._fresh_key([]) if fresh else _INITIAL_ROW_KEY): MISSING
+                        }
                     )
                 )
                 for key, row in entries.items():
                     self._check_key(str(key))
-                    rows[key] = self._normalize_row(field, row, f"{field_path}.{key}")
+                    rows[key] = self._normalize_row(
+                        field, row, f"{field_path}.{key}", fresh
+                    )
                 data[field["name"]] = rows
             elif field["spec"].get("type") == "group":
                 data[field["name"]] = self._normalize_fields(
-                    field["children"], raw, field_path
+                    field["children"], raw, field_path, fresh
                 )
             elif raw is MISSING and "default" in field["spec"]:
                 data[field["name"]] = _copy(field["spec"]["default"])
         return data
 
-    def _normalize_row(self, field: Any, value: Any, path: str) -> Any:
+    def _normalize_row(self, field: Any, value: Any, path: str, fresh: bool = False) -> Any:
         if field["spec"].get("type") == "group":
-            return self._normalize_fields(field["children"], value, path)
+            return self._normalize_fields(field["children"], value, path, fresh)
         if value is MISSING:
             return _copy(field["spec"]["default"]) if "default" in field["spec"] else ""
         return _copy(value)

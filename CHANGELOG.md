@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Python generator has resolveAction and runAction (C16.50-2)
+
+- `packages/generator/python/src/polyspec/crudui/generator/actions.py` adds `resolveAction` and `runAction` over the eleven form actions of CURT-081 to CURT-090, exposed as `Generator.resolveAction` and `Generator.runAction`; `form.py` keys the default row of a repeated field that the data omits with `__0000000000000__` at construction, `setData` and `setValue` (CUEC-002) and with a fresh key inside a row that `addRow` creates, as the TypeScript reference and the `form-actions` sessions do; `tests/test_form_state.py` runs the `form-actions` sessions with the history flags in `TestFormActions` (C16.50-2). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` exit 1, 7 of the 8 `form-actions` sessions failing on the observed result (the two functions stubbed to return None); green: exit 0, 4 passed, 0 failed.
+
 ### 2026-10-20 — The Rust record server of the form comparison builds with the view option (C16.51-5-1)
 
 - `render` of `examples/form-comparison/servers/rust/src/generation.rs` sets the `BindOptions` member `collapsed` that C16.51-5 added to null, the initial view with every row expanded (CURT-068), and its test `compilation_and_cached_rendering_use_rust_and_preserve_order` asserts that every collapsible row of the rendered fields is expanded (C16.51-5-1). Red: `cargo test compilation_and_cached_rendering` of the server ended with `error[E0063]: missing field collapsed in initializer of BindOptions` and ran no test; green: 1 passed.

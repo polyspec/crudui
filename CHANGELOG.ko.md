@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e2dc5f1f84dcb933acdbc6da9494f8a1bf30669e6d97fc8db549991b319f5abb -->
+<!-- source-sha256: b06c3cdfb60e5ba437a72b715089961ba0cc8c0fe0d448488c3a6c4716d5c5ac -->
 
 ## Unreleased
+
+### 2026-10-20 — Python generator는 resolveAction과 runAction을 가진다 (C16.50-2)
+
+- `packages/generator/python/src/polyspec/crudui/generator/actions.py`가 CURT-081 ~ CURT-090의 열한 개 form action에 대한 `resolveAction`과 `runAction`을 추가하고, 이를 `Generator.resolveAction`, `Generator.runAction`으로 노출합니다. `form.py`는 데이터가 생략한 repeated field의 기본 row를 생성자, `setData`, `setValue`에서는 `__0000000000000__`(CUEC-002)로, `addRow`가 만든 row 안에서는 TypeScript reference와 `form-actions` session처럼 fresh key로 만듭니다. `tests/test_form_state.py`의 `TestFormActions`는 history flag와 함께 `form-actions` session을 실행합니다(C16.50-2). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state` exit 1, `form-actions` session 8개 중 7개가 관찰 결과에서 실패(두 함수는 None을 반환하는 stub); green: exit 0, 4 passed, 0 failed.
 
 ### 2026-10-20 — form comparison의 Rust record server는 view 옵션과 함께 빌드된다 (C16.51-5-1)
 

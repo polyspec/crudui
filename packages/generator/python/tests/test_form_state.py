@@ -64,6 +64,9 @@ def _collapsed_rows(nodes):
     return found
 
 
+_ACTION_STEPS = ("runAction", "resolveAction")
+
+
 def _perform(form, op, args):
     """Run one step on the form and return what the step returned."""
     if op == "addRow":
@@ -76,6 +79,10 @@ def _perform(form, op, args):
         return form.setAllExpanded(args[0])
     if op in ("undo", "redo"):
         return getattr(form, op)()
+    if op == "runAction":
+        return Generator.runAction(form, args[0])
+    if op == "resolveAction":
+        return Generator.resolveAction(args[0])
     raise AssertionError(f"unknown step {op}")
 
 
@@ -93,7 +100,8 @@ def _assert_sessions(test, family, history):
                 observed = {}
                 try:
                     result = _perform(form, step["op"], step["args"])
-                    if result is not None:
+                    # An action reports its target or its outcome, null when it has none.
+                    if result is not None or step["op"] in _ACTION_STEPS:
                         observed["result"] = name.walk(result)
                 except FormError as error:
                     observed["error"] = {"code": error.code, "message": str(error)}
@@ -144,6 +152,13 @@ def _call(op, args):
     if op == "bindCollapsed":
         return _collapsed_rows(_nodes(args[0], args[1], args[2]))
     raise AssertionError(f"unknown function {op}")
+
+
+class TestFormActions(unittest.TestCase):
+    """The sessions of the action fixtures: resolveAction and runAction, with the history flags."""
+
+    def test_sessions_equal_the_recorded_observations(self):
+        _assert_sessions(self, "form-actions", history=True)
 
 
 class TestViewFunctions(unittest.TestCase):

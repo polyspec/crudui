@@ -12,6 +12,8 @@ from typing import Any
 
 from polyspec.crudui.validator.jsvalue import JsonValue
 
+from .actions import resolveAction as _resolve_action
+from .actions import runAction as _run_action
 from .binding import bind as _bind_fields
 from . import buttons as _buttons
 from . import view as _view
@@ -227,6 +229,16 @@ class Generator:
     def createRowKey() -> Any:
         """A thirteen-character hexadecimal row key."""
         return createRowKey()
+
+    @staticmethod
+    def resolveAction(source: Any) -> Any:
+        """The target `{name, path?, key?}` of an action button, or None for an unknown action (CURT-081)."""
+        return _resolve_action(source)
+
+    @staticmethod
+    def runAction(form: Any, target: Any) -> Any:
+        """Run a resolved action on a form instance and return its focus target (CURT-082 to CURT-090)."""
+        return _run_action(form, target)
 
 
 def _display_checks(spec: Any, entry: Any, options: Mapping[str, Any]) -> Any:
