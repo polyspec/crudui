@@ -1103,6 +1103,10 @@
           "implementation": "rust",
           "test": "packages/validator/rust/tests/text_validity_conformance.rs",
           "symbol": "value_graph_limits"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_text_validity.py"
         }
       ],
       "requirements": [

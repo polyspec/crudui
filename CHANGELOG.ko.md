@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: dfc2f13b7c595ee142941308da31da2b7cb5b00ee3d540fa553d838ccb713a52 -->
+<!-- source-sha256: 67f9178a6d7b9988c8a71ec9b6b2705fe96b19d96f30cfd26941c0958d526e35 -->
 
 ## Unreleased
 
@@ -13,6 +13,10 @@
 - render와 outline 제품군은 자기 case가 실행하는 런타임 operation을 인용합니다. `tests/fixtures/form-complete`는 CURP-013(`renderForm`), `tests/fixtures/list-render`는 CURP-015(`renderList`), `tests/fixtures/detail-render`는 CURP-017(`renderDetail`), `tests/fixtures/form-outline`은 CURP-006(`compileForm`), CURP-007(`bindForm`), CURP-021(바인딩이 record에 대해 field를 평가함)을 인용합니다. form state 세션(`form-view`, `form-history`, `form-actions`)은 각 세션이 record와 row 작업을 소유하는 instance를 만들므로 CURP-020을 인용합니다. `config/parity.json`의 unit도 같은 id를 인용합니다.
 - 확장된 제품군의 모든 runner가 한 번씩 통과합니다. TypeScript, Go, Python, Rust, PHP library runner와 PHP extension runner입니다.
 - 아직 인용하지 않은 id와 그 이유입니다. CURP-001부터 CURP-005까지는 각각 네 가지 기능을 명시하는 언어별 행입니다. validation과 composition 부분은 validate 제품군이 시험하지만, 다섯 런타임에서 모든 기능을 함께 실행하는 제품군은 없으며, 기능별 인용에 대한 판정이 필요합니다. CURP-008과 CURP-009(`bindButtons`, `formButtonsHtml`)는 실행하는 제품군이 없고, 추가하려면 여섯 runner에 새 operation이 필요합니다. CURP-014와 CURP-016(`buildList`, `buildDetail`)은 text-validity case만 실행하며, 그 파일은 C16.111을 기다립니다. CURP-019(컴파일된 template의 직렬화와 캐시)는 직렬화된 컴파일 출력을 비교하는 제품군이 없습니다. CURP-023(브라우저 바인딩)은 JavaScript 브라우저 런타임만 가지는 단일 구현 요구사항이므로 판정을 기다립니다. CURP-024(한 런타임이 컴파일한 template을 다른 런타임이 바인딩함)는 그런 제품군이 없으며 C16.111을 기다립니다. CURP-025(ordered JSON 전송)는 ordered-json 저장소에서 시험합니다. CURP-026(PHP 배열이 객체인지 목록인지)은 C16.57-13이 main에 들어간 뒤 form state 세션의 PHP root case가 인용합니다.
+
+### 2026-10-21 — Python validator가 text-validity의 value-graph case를 binding한다 (C16.57-15-1)
+
+- `config/parity.json`: unit `text-validity-value-graphs`가 Python runner `packages/validator/python/tests/test_text_validity.py`를 binding합니다. 그 `test_value_graph_cases`는 `value-graphs.json`의 12개 case를 public validator로 실행하므로 parity check가 Python binding 부재(R2)를 더 이상 보고하지 않습니다(C16.57-15-1). Python runner는 binding 전에 모든 case를 통과했으므로 Python 결함은 없습니다. Red: 기본 상태에서 `make item-red ID=C16.57-15-1`, R2 grep이 exit 1입니다. Green: 같은 grep이 exit 0; `python -m unittest tests.test_text_validity` 4 OK(value graph case 포함); `make lint-python` exit 0입니다.
 
 ### 2026-10-21 — input-text limit의 text-validity unit이 그 case의 id를 인용한다 (C16.57-15)
 
