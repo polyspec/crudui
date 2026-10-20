@@ -251,11 +251,13 @@ final class FormTest extends TestCase
         foreach (
             [fn () => $form->addRow('tags', ['key' => 'two']), fn () => $form->removeRow('tags', 'one')] as $operation
         ) {
+            $rejection = null;
             try {
                 $operation();
-                self::fail('Row count limit must fail');
-            } catch (FormError) {
+            } catch (FormError $error) {
+                $rejection = $error;
             }
+            self::assertInstanceOf(FormError::class, $rejection, 'Row count limit must fail');
             self::assertSame('{"tags":{"one":"A"}}', json_encode($form->getData()));
             self::assertSame(0, $form->getRevision());
         }

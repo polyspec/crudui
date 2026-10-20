@@ -88,12 +88,9 @@ final class Design
             return $value === null ? '' : Value::string($value);
         }
         if (is_string($value)) {
-            try {
-                if (Expression::parse($value) instanceof TernaryNode) {
-                    $result = Expression::evaluateValue($value, $data, $path, $rows);
-                    return $result === null ? '' : Value::string($result);
-                }
-            } catch (\InvalidArgumentException | \RuntimeException $error) {
+            if (self::parses($value) && Expression::parse($value) instanceof TernaryNode) {
+                $result = Expression::evaluateValue($value, $data, $path, $rows);
+                return $result === null ? '' : Value::string($result);
             }
             if (
                 Expression::isConditionExpression($value)

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d4262afc9760fa8b97882fb00e79d1bc4985569744a3ddfc64ab32f23b0a6d48 -->
+<!-- source-sha256: 9a040afb0b1397e1bcecbf9e0870b229a4a0f6fcbd04687575922157cbacec2a -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP generator의 빈 catch 제거 (C16.6)
+
+- `Design::appearance`는 `Design::parses`가 받아들이는 문자열에만 `Expression::parse`를 호출하므로, expression이 아닌 문자열은 삼킨 예외 없이 literal text로 남습니다. `FormTest`의 row 한도 test는 검증하려는 거부를 조용히 catch하는 대신 기록하여 assert합니다 (C16.6). Red: `make lint-php` exit 2 (`Design.php:96`과 `FormTest.php:257`의 `Generic.CodeAnalysis.EmptyStatement.DetectedCatch`), green: `make lint-php` exit 0, FormTest 22건, DisplayRulesTest 21건, ButtonsTest 18건, RenderingTest 3건 통과.
 
 ### 2026-10-20 — .site 없는 docs 폴더 (C16.5)
 

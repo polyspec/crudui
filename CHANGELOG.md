@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — No empty catch in the PHP generator (C16.6)
+
+- `Design::appearance` calls `Expression::parse` only for a string that `Design::parses` accepts, so a string that is not an expression stays literal text without a swallowed exception, and the row-limit test of `FormTest` records the rejection it asserts instead of catching it silently (C16.6). Red: `make lint-php` exit 2 (`Generic.CodeAnalysis.EmptyStatement.DetectedCatch` at `Design.php:96` and `FormTest.php:257`); green: `make lint-php` exit 0, and FormTest (22), DisplayRulesTest (21), ButtonsTest (18) and RenderingTest (3) pass.
+
 ### 2026-10-20 — The docs folder without .site (C16.5)
 
 - `docs/` holds only the folders K245 allows: the orphaned `docs/.site/` build output is removed together with its exclusions in `scripts/docs-web/build.mts` and `watch.mts`, their tests and `docs/operations/documentation.md` (C16.5). Red: `make layout-check` exit 2 (`docs/.site: docs-folders: K245`), and the two docs tests failed with the exclusions removed; green: `make layout-check` exit 0, 17 docs tests passed.
