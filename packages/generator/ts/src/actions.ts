@@ -47,19 +47,42 @@ export interface ActionResult {
   focus?: FocusTarget;
 }
 
-/**
- * Resolve a button: the path is the nearest `[data-field-path]` at or above it;
- * the key is the nearest `[data-crudui-row-key]` inside that path element.
- */
-export function resolveAction(button: Element): ActionTarget | undefined {
-  const declared = button.getAttribute('data-crudui-action');
-  const name = ACTIONS.find(action => action === declared);
-  if (!name) return undefined;
+/** The values a button declares: its action, collection path and row key (CURT-081). */
+export interface ActionInput {
+  /** Requested operation name. */
+  action?: string | null;
+  /** Collection path of the nearest `[data-field-path]`. */
+  path?: string | null;
+  /** Row key of the nearest `[data-crudui-row-key]` inside that path element. */
+  key?: string | null;
+}
+
+/** Whether `source` is a DOM element rather than the values of a button. */
+function isElement(source: Element | ActionInput): source is Element {
+  return 'getAttribute' in source && typeof source.getAttribute === 'function';
+}
+
+/** The values a button declares, read from its attributes and from the elements around it. */
+function readAction(button: Element): ActionInput {
   const scope = button.closest('[data-field-path]');
-  const path = scope?.getAttribute('data-field-path') ?? undefined;
   const row = button.closest('[data-crudui-row-key]');
   // A row outside the path element belongs to an ancestor collection.
-  const key = scope && row && scope.contains(row) ? row.getAttribute('data-crudui-row-key') ?? undefined : undefined;
+  return {
+    action: button.getAttribute('data-crudui-action'),
+    path: scope?.getAttribute('data-field-path'),
+    key: scope && row && scope.contains(row) ? row.getAttribute('data-crudui-row-key') : undefined,
+  };
+}
+
+/**
+ * Resolve an action target from the values a button declares (CURT-081). A DOM element is read by the browser binding:
+ * the action is its `data-crudui-action` attribute, the path the nearest `[data-field-path]` at or above it and the key
+ * the nearest `[data-crudui-row-key]` inside that path element.
+ */
+export function resolveAction(source: Element | ActionInput): ActionTarget | undefined {
+  const { action, path, key } = isElement(source) ? readAction(source) : source;
+  const name = ACTIONS.find(candidate => candidate === action);
+  if (!name) return undefined;
   return { name, ...(path ? { path } : {}), ...(key ? { key } : {}) };
 }
 

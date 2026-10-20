@@ -12,6 +12,7 @@
     "tests/build/public-types-svelte.mts": "tests/build/public-packages.test.mts compiles it with tsc by path",
     "tests/build/module-only-require.cts": "tests/build/public-packages.test.mts compiles it with tsc by path",
     "tests/fixtures/{detail-render,form-outline,list-render}/generate.mts": "writes the cases.json of its fixture directory; its header names the command (`node tests/fixtures/<name>/generate.mts`)",
+    "tests/fixtures/form-state/generate.mts": "writes the cases.json of the five form state fixture directories; its header names the command (`node tests/fixtures/form-state/generate.mts`)",
     "tests/fixtures/form-complete/generate.mts": "writes tests/fixtures/form-complete/cases.json; its header names the command (`node tests/fixtures/form-complete/generate.mts`)",
     "tests/native-generators/run.mts": "make crudui-test-native-generators and make crudui-test-php-api run it, and scripts/check-conformance.mts runs it as the native generators suite",
     "packages/validator/php/tests/Values/number-text.generate.mjs": "writes number-text.json, which NumberTextTest.php reads; its header names the command (`node number-text.generate.mjs > number-text.json`) and NumberTextTest.php names it",

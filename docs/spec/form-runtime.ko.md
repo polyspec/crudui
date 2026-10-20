@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: e55ccbcbb22b144dab74d848f6bdeefd1a1eac8ff2baef2e9f43514cd7c04be6 -->
+<!-- source-sha256: 87e3ffc31b225eddc7438f3f330e9c02787fd8028ec53034741bde4f1b6b8a44 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -158,20 +158,48 @@ form[companies][__0000000000001__][stores][__0000000000042__][name]
 - **CURT-011** `undo()`: 마지막 데이터 변경 이전 레코드로 복원하고 되돌린 레코드를 실행복귀 대상으로 만들며, 되돌릴 이력이 없으면 실패합니다.
 - **CURT-012** `redo()`: 가장 최근에 실행취소한 데이터 변경을 다시 적용하며, 실행복귀할 이력이 없으면 실패합니다.
 
-스냅샷은 `canUndo`와 `canRedo`를 제공합니다. 이력은 양방향에 각각 최대 100개
-레코드를 보관합니다. 같은 경로에 연속한 `setValue` 호출은 한 항목을 공유합니다.
-`undo()` 뒤에 새 데이터 변경이 발생하면 실행복귀 이력을 지웁니다. `setData`는 이력과 접힌 행을 새로
-시작합니다. 행을 제거하면 그 행의 뷰 상태를 지우고, 행 키를 바꾸면 새 키로 옮깁니다.
-뷰 변경은 `revision`을 바꾸지 않습니다. 서버 렌더링은 모든 행이 펼쳐진 초기 뷰를
-사용합니다. 구조 맵과 현재 데이터 보기는 [폼 마크업](form-markup.ko.md)에서 정의합니다.
+- **CURT-061** 스냅샷은 `canUndo`와 `canRedo`를 제공합니다. `undo()`와 `redo()`가 복원할 레코드가 있는지입니다.
+- **CURT-062** 이력은 양방향에 각각 최대 100개 레코드를 보관하고 그보다 오래된 레코드는 버립니다.
+- **CURT-063** 같은 경로에 연속한 `setValue` 호출은 이력 레코드 하나를 공유하고, 그 밖의 데이터 변경은 레코드 하나를 추가합니다.
+- **CURT-064** `undo()` 뒤의 데이터 변경은 실행복귀 레코드를 지웁니다.
+- **CURT-065** `setData`는 이력을 새로 시작하고 모든 행을 펼칩니다.
+- **CURT-066** 행을 제거하면 그 행과 그 안의 행의 뷰 상태를 버리고, 행 키를 바꾸면 그 상태를 새 키로 옮깁니다.
+- **CURT-067** 뷰 변경은 `revision`을 바꾸지 않고, 데이터 변경과 `undo()`, `redo()`는 바꿉니다.
+- **CURT-068** 서버 렌더링이 쓰는 초기 뷰는 모든 행이 펼쳐져 있습니다. 알 수 없는 행의 `toggleRow`는 `INVALID_FORM_INPUT`과 `Unknown row: {key}`로 실패합니다.
+- **CURT-069** `bindForm` 옵션 `collapsed`는 행 경로 `{collection}.{key}`의 목록이며, 그 접을 수 있는 행을 접힌 상태(`expanded: false`)로, 나머지 행을 펼친 상태로 렌더링합니다.
 
-generator-core는 이 규칙을 불변 값에 대한 순수 함수로 export합니다. 뷰 상태는
-`initialView`, `toggleRowView`, `setAllExpandedView`, `removeRowView`,
-`rekeyRowView`, `collapsibleRows`이고, 이력은 `emptyHistory`, `recordChange`,
-`canUndo`, `canRedo`, `undoChange`, `redoChange`입니다. `bindForm`으로 데이터를 직접 관리하는
-응용 프로그램도 같은 함수를 사용합니다.
-`resolveAction(button)`은 `data-crudui-action` 버튼의 작업, 컬렉션 경로, 행 키를 읽고,
-`runAction(form, target)`은 그 대상을 폼 인스턴스에 적용합니다.
+구조 맵과 현재 데이터 보기는 [폼 마크업](form-markup.ko.md)에서 정의합니다.
+
+뷰는 중복 없이 행을 접은 순서대로 둔 행 경로의 순서 있는 목록 `collapsed`이고, 이력은 오래된 것부터 둔 레코드
+`entries`와 `redoEntries`, 그리고 마지막 값 편집이 있으면 그 경로 `lastPath`입니다.
+모든 구현은 이 규칙을 받은 값을 바꾸지 않는 함수로 export합니다.
+
+- **CURT-070** `initialView()`는 접은 행이 없는 뷰를 반환합니다.
+- **CURT-071** `toggleRowView(view, rowPath)`는 접은 행을 펼치고 펼친 행을 접으며, 접은 행은 맨 뒤에 추가합니다.
+- **CURT-072** `collapsibleRows(nodes)`는 평가된 노드에서 접을 수 있는 모든 행의 행 경로 `{collection}.{key}`를 노드 순서의 깊이 우선으로 반환합니다.
+- **CURT-073** `setAllExpandedView(nodes, expanded)`는 `expanded`가 참이면 접은 행이 없는 뷰를, 아니면 `collapsibleRows(nodes)`를 접은 뷰를 반환합니다.
+- **CURT-074** `removeRowView(view, rowPath)`는 그 행 경로와 그 행 안의 경로를 버립니다.
+- **CURT-075** `rekeyRowView(view, oldPath, newPath)`는 행 경로와 그 행 안의 경로의 접두사 `oldPath`를 `newPath`로 바꾸고 순서를 유지합니다.
+- **CURT-076** `emptyHistory()`는 레코드가 없는 이력을 반환합니다.
+- **CURT-077** `recordChange(history, previous, path?)`는 `path`가 `lastPath`와 같지 않으면 `previous`를 entries에 추가하고, 마지막 100개 entry만 유지하며, `redoEntries`를 비우고, `path`가 있으면 `lastPath`를 `path`로 설정합니다.
+- **CURT-078** `canUndo(history)`는 이력에 entry가 있으면, `canRedo(history)`는 redo entry가 있으면 참입니다.
+- **CURT-079** `undoChange(history, current)`는 마지막 entry를 뺀 이력, `current`를 `redoEntries`에 추가한(마지막 100개) 이력, `lastPath` 없음, 그리고 그 마지막 entry를 레코드로 반환하며, 빈 이력은 `INVALID_FORM_INPUT`과 `Nothing to undo`로 실패합니다.
+- **CURT-080** `redoChange(history, current)`는 `current`를 entries에 추가하고(마지막 100개) 마지막 redo entry를 뺀 이력과 그 redo entry를 레코드로 반환하며, redo entry가 없는 이력은 `INVALID_FORM_INPUT`과 `Nothing to redo`로 실패합니다.
+
+작업은 `move-up`, `move-down`, `add-row`, `copy-row`, `remove-row`, `toggle-row`, `select-row`,
+`expand-all`, `collapse-all`, `undo`, `redo` 중 하나입니다. 대상은 `{ name, path?, key? }`이며 `path`는 컬렉션 경로,
+`key`는 행 키입니다. 포커스는 `{ path, key? }`이고 결과는 `{ focus? }`입니다.
+
+- **CURT-081** `resolveAction({ action, path?, key? })`는 `name`이 `action`인 대상을 반환하며 `path`와 `key`는 비어 있지 않을 때만 담고, `action`이 열한 작업 중 하나가 아니면 대상이 없습니다. 브라우저 바인딩은 버튼의 `data-crudui-action` 속성에서 `action`을, 가장 가까운 `data-field-path` 속성을 가진 요소에서 `path`를, 그 요소 안에서 가장 가까운 `data-crudui-row-key` 속성을 가진 요소에서 `key`를 읽습니다.
+- **CURT-082** `runAction(form, target)`는 `expand-all`과 `collapse-all`을 `setAllExpanded(true)`와 `setAllExpanded(false)`로, `undo`와 `redo`를 `undo()`와 `redo()`로 실행하고 각각 포커스 없는 결과를 반환합니다.
+- **CURT-083** 그 밖의 작업은 `path`가 없으면 결과가 없고 아무것도 바꾸지 않으며, `add-row`를 제외한 모든 작업은 `key`가 없을 때도 같습니다.
+- **CURT-084** `add-row`는 `key`가 있으면 그 행 뒤에 `addRow(path)`를 실행하고 새 행의 포커스를 반환합니다.
+- **CURT-085** `copy-row`는 `copyRow(path, key)`를 실행하고 새 행의 포커스를 반환합니다.
+- **CURT-086** `remove-row`는 `removeRow(path, key)`를 실행하고 이전 행, 다음 행, 컬렉션(`key` 없는 `path`) 순서로 포커스를 반환합니다.
+- **CURT-087** `toggle-row`는 `toggleRow(path, key)`를 실행하고 포커스 없는 결과를 반환합니다.
+- **CURT-088** `select-row`는 아무것도 바꾸지 않고 행 `key`의 포커스를 반환합니다.
+- **CURT-089** `move-up`과 `move-down`은 행의 한 칸 앞 또는 뒤 인덱스로 `moveRow(path, key, index)`를 실행하고 이동한 행의 포커스를 반환합니다.
+- **CURT-090** 작업이 실행하는 연산이 실패하면 그 연산의 오류로 실패하고 인스턴스는 그대로입니다.
 
 ## 렌더링과 검증
 

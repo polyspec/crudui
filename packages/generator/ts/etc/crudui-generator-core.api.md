@@ -10,6 +10,13 @@ import { FormInputError } from '@polyspec/crudui-validator';
 import type { PathContext } from '@polyspec/crudui-validator';
 
 // @public
+export interface ActionInput {
+    action?: string | null;
+    key?: string | null;
+    path?: string | null;
+}
+
+// @public
 export interface ActionResult {
     focus?: FocusTarget;
 }
@@ -570,7 +577,7 @@ export function rekeyRowView(view: ViewState, oldPath: string, newPath: string):
 export function removeRowView(view: ViewState, rowPath: string): ViewState;
 
 // @public
-export function resolveAction(button: Element): ActionTarget | undefined;
+export function resolveAction(source: Element | ActionInput): ActionTarget | undefined;
 
 // @public
 export interface ResolvedDesign {

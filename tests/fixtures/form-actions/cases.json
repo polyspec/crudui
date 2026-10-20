@@ -1,0 +1,2323 @@
+[
+  {
+    "name": "resolve-action-names",
+    "note": "An action resolves to a target with a non-empty path and key; an unknown or empty action resolves to nothing.",
+    "requirements": [
+      "CURT-081"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "resolveAction",
+        "args": [
+          {
+            "action": "add-row",
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "resolveAction",
+        "args": [
+          {
+            "action": "undo"
+          }
+        ]
+      },
+      {
+        "op": "resolveAction",
+        "args": [
+          {
+            "action": "move-up",
+            "path": "",
+            "key": ""
+          }
+        ]
+      },
+      {
+        "op": "resolveAction",
+        "args": [
+          {
+            "action": "rename-row",
+            "path": "teams"
+          }
+        ]
+      },
+      {
+        "op": "resolveAction",
+        "args": [
+          {
+            "action": ""
+          }
+        ]
+      },
+      {
+        "op": "resolveAction",
+        "args": [
+          {}
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": {
+          "name": "add-row",
+          "path": "teams",
+          "key": "__0000000000001__"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "name": "undo"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "name": "move-up"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "run-action-view-and-history",
+    "note": "Expand all, collapse all, undo and redo return a result without focus; toggle-row collapses a row.",
+    "requirements": [
+      "CURT-082",
+      "CURT-087",
+      "CURT-011",
+      "CURT-012"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "collapse-all"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "expand-all"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "toggle-row",
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "undo"
+          }
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "note",
+          "x"
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "undo"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "redo"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "redo"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": {},
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": [
+          "teams.__0000000000001__",
+          "teams.__0000000000001__.members.__0000000000011__",
+          "teams.__0000000000001__.members.__0000000000012__",
+          "teams.__0000000000002__",
+          "teams.__0000000000002__.members.__0000000000013__"
+        ]
+      },
+      {
+        "result": {},
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {},
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": [
+          "teams.__0000000000001__"
+        ]
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Nothing to undo"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": [
+          "teams.__0000000000001__"
+        ]
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": "x"
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": [
+          "teams.__0000000000001__"
+        ]
+      },
+      {
+        "result": {},
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": false,
+        "canRedo": true,
+        "collapsed": [
+          "teams.__0000000000001__"
+        ]
+      },
+      {
+        "result": {},
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": "x"
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": [
+          "teams.__0000000000001__"
+        ]
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Nothing to redo"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": "x"
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": [
+          "teams.__0000000000001__"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "run-action-without-path-or-key",
+    "note": "A path or key that an action needs is missing: no result and no change; add-row needs no key.",
+    "requirements": [
+      "CURT-083"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "add-row"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "copy-row",
+            "path": "teams"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "remove-row",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "toggle-row",
+            "path": "teams"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "select-row",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "move-up",
+            "path": "teams"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": null,
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "run-action-add-and-copy-row",
+    "note": "Adding focuses the new row after the given row or last, and copying focuses the copy right after the original.",
+    "requirements": [
+      "CURT-084",
+      "CURT-085"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "add-row",
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "copy-row",
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "add-row",
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "copy-row",
+            "path": "teams.__0000000000001__.members",
+            "key": "__0000000000011__"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "$1"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "$1": {
+              "members": {
+                "$2": {}
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "$3"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "$1": {
+              "members": {
+                "$2": {}
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "$3": {
+              "name": "Beta",
+              "members": {
+                "$4": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "$5"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "$5": {
+              "members": {
+                "$6": {}
+              }
+            },
+            "$1": {
+              "members": {
+                "$2": {}
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "$3": {
+              "name": "Beta",
+              "members": {
+                "$4": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams.__0000000000001__.members",
+            "key": "$7"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "$7": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "$5": {
+              "members": {
+                "$6": {}
+              }
+            },
+            "$1": {
+              "members": {
+                "$2": {}
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "$3": {
+              "name": "Beta",
+              "members": {
+                "$4": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 4,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "run-action-remove-row-focus",
+    "note": "Removing focuses the previous row, then the next row, then the collection.",
+    "requirements": [
+      "CURT-086"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "remove-row",
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "remove-row",
+            "path": "teams.__0000000000001__.members",
+            "key": "__0000000000011__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "remove-row",
+            "path": "teams.__0000000000001__.members",
+            "key": "__0000000000012__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "remove-row",
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams.__0000000000001__.members",
+            "key": "__0000000000012__"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams.__0000000000001__.members"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {}
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Minimum row count reached: teams"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {}
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "run-action-select-row",
+    "note": "Selecting changes nothing and focuses the row, also a row that does not exist.",
+    "requirements": [
+      "CURT-088"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "select-row",
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "select-row",
+            "path": "teams",
+            "key": "__0000000000009__"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "__0000000000001__"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "__0000000000009__"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "run-action-move-row",
+    "note": "Moving up or down focuses the moved row; moving past an end fails and changes nothing.",
+    "requirements": [
+      "CURT-089",
+      "CURT-090"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "move-up",
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "move-up",
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "move-down",
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "move-down",
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Invalid row position: -1"
+        },
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": {
+          "focus": {
+            "path": "teams",
+            "key": "__0000000000002__"
+          }
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Invalid row position: 2"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "run-action-errors",
+    "note": "An operation that fails fails the action: an unknown row, a path that is no keyed collection, an unknown collection, nothing to undo.",
+    "requirements": [
+      "CURT-090",
+      "CURT-082"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "remove-row",
+            "path": "teams",
+            "key": "__0000000000009__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "toggle-row",
+            "path": "teams",
+            "key": "__0000000000009__"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "add-row",
+            "path": "note"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "add-row",
+            "path": "missing"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "undo"
+          }
+        ]
+      },
+      {
+        "op": "runAction",
+        "args": [
+          {
+            "name": "redo"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Unknown row: __0000000000009__"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Unknown row: __0000000000009__"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Not a keyed collection: note"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Unknown collection: missing"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Nothing to undo"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Nothing to redo"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  }
+]

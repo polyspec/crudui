@@ -642,6 +642,10 @@
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
     },
+    "tests/fixtures/form-state/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
     "tests/fixtures/list-render/generate.mts": {
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"

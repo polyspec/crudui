@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Neutral rules and shared cases of view state, history and actions (C16.51-1)
+
+- `docs/spec/form-runtime.md` defines `CURT-061` to `CURT-090`: the snapshot flags, the history limit and merge rules, the view rules, the option `collapsed` of `bindForm`, the view and history functions, `resolveAction({ action, path?, key? })` and the eleven actions of `runAction`. The fixture families `form-view`, `form-history`, `form-actions`, `view-functions` and `history-functions` hold the cases that `tests/fixtures/form-state/generate.mts` writes from the TypeScript reference, with generated row keys named `$1`, `$2`. `resolveAction` of TypeScript takes the values of the neutral rule or a DOM button. Red: `src/form-state.test.ts` failed with `ENOENT` for `tests/fixtures/form-view/cases.json`. Green: its 40 cases pass in the TypeScript package.
+
 ### 2026-10-20 — The go.work of scripts/go is ignored by Git (C16.63-1)
 
 - `.gitignore` ignores the `go.work` that `make link` writes beside the Go module `scripts/go`, which C16.58-5 added (C16.63-1). Red: `node node_modules/@polyspec/kit/dist/link.mjs link . ../kit ../ordered-json` exited 1 with `scripts/go/go.work is not ignored by Git in its repository`; green: it exits 0 and links every polyspec package.
@@ -22,6 +26,7 @@
 ### 2026-10-20 — The cross-check console shares its JSON parser, its download, its matrix column and its request reader (C16.58-6)
 
 - `parseJsonText`, `downloadJson`, `matrixColumn` of `client/app.js` and `readBodyAndSpec` of `server/server.mjs` replace the copies of the data and record parsers, of the two fixture downloads, of the validate and render columns, and of the body and specification reading of six endpoints (C16.58-6). Red: `make duplication-check` reported 40 clones before; green: 37 clones after, and the targeted check passes (24 passed).
+
 ### 2026-10-20 — buildOutline in every implementation (C16.49-7)
 
 - The feature contract declares buildOutline passing in the PHP, Go, Rust, php-native and Python implementations, with their tests. (C16.49-7)
@@ -49,6 +54,7 @@
 ### 2026-10-20 — The structure map cases carry the rows of buildOutline, and Rust has build_outline (C16.49-1)
 
 - The cases of `tests/fixtures/form-outline/cases.json` carry `expected_outline_rows`, the rows that `buildOutline(bindForm(compileForm(spec), data, options))` returns, written by the generator of the fixture, and the Rust generator provides `build_outline(nodes)`, which returns the same rows for the nodes of its own `bind_form` (C16.49-1). Red: `native_outline_fixture` did not compile, `build_outline` being missing; green: it passes for the 5 cases, and `make lint-rust` passes.
+
 ### 2026-10-20 — The PHP and Go table generators share one reader of a contract and one writer of a generated source (C16.58-5)
 
 - `scripts/generator-contract.php` is the reader and writer of the PHP generators and the module `scripts/go` (`tablegen`, `interfacemessages`, `unicodedata`) replaces `interface_messages_generate.go` and `unicode_data_generate.go`, which `go generate` runs through the workspace; the generated interface message tables of PHP and Python are excluded from `duplication-check` as `generated:`; the S9 exceptions, the rebuild classes, the owner rule and the release note of `scripts/go` are in the configuration (C16.58-5). Red: `make duplication-check` reported 44 clones before; green: 40 clones after, and the targeted check passes (generated tables identical).
@@ -444,6 +450,7 @@
 - The PHP server of the form comparison reports a failure to stop, such as a socket directory it cannot remove, and exits with status 1; the rejection was unhandled and crashed the process.
 - The Svelte adapters of the form comparison wait for `unmount` of each component when they are disposed; dispose returned before the unmount finished.
 - The browser binding of generator-core writes the value of a text, date, checkbox or radio control as the server render does, the PHP string of the value: `true` is `1`, and `false`, an array and an object are empty, where it wrote `true`, `false` and `[object Object]`.
+
 ### 2026-10-15 — Svelte component exports (C14.12)
 
 - `@polyspec/crudui-generator-core` exports the types `Translate` and `SourceAttrs`, which its public types `NodeVM` and `WidgetModel` already named, and documents `DetailFieldVM`; the TSDoc of the validator and the form binding parses as TSDoc (C14.12).
@@ -619,6 +626,7 @@
 
 - C13.1-38: the dependencies are at their latest stable release (puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4), their install scripts are approved by exact version, and the review record is written again.
 - C13.1-37: the npm lock records the repository packages at 0.0.4 in its dependency entries, as the version bump requires.
+
 ### 2026-10-09 — Dependency review record of the 0.0.4 locks (C13.1-36)
 
 - `config/dependency-review.json` records the sha256 of the eight locks that the version bump changed, with no advisory. The review reports four newer stable releases without an exception (`puppeteer`, `playwright` and `vite`); they are raised in a separate change.

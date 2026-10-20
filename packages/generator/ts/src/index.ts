@@ -23,7 +23,7 @@ export { connectForm, connectOutline, connectStickyHeaders } from './dom';
 export { patchContent } from './patch';
 export type { FormConnection } from './dom';
 export { resolveAction, runAction } from './actions';
-export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';
+export type { FormActionName, ActionInput, ActionTarget, ActionResult, FocusTarget } from './actions';
 export { buildOutline } from './outline';
 export type { OutlineRow, OutlineState } from './outline';
 

@@ -169,22 +169,48 @@ record. View state is never submitted or serialized with the data.
 - **CURT-011** `undo()`: Restore the record before the last data change and make the reverted record redoable; fails when nothing can be undone.
 - **CURT-012** `redo()`: Reapply the most recently undone data change; fails when nothing can be redone.
 
-The snapshot reports `canUndo` and `canRedo`. History keeps up to 100 records in each
-direction. Consecutive `setValue` calls on the same path share one entry. A new data
-change after `undo()` clears the redo records. `setData` restarts history and
-collapsed rows. Removing a row drops its view state; rekeying a row moves it to the
-new key. View changes do not change `revision`. Server rendering uses the initial
-view: every row expanded. The [form markup](form-markup.md) defines the structure
-map and data view.
+- **CURT-061** The snapshot reports `canUndo` and `canRedo`: whether `undo()` and `redo()` have a record to restore.
+- **CURT-062** History keeps up to 100 records in each direction and drops the oldest record beyond that.
+- **CURT-063** Consecutive `setValue` calls on the same path share one history record; every other data change adds one.
+- **CURT-064** A data change after `undo()` clears the redo records.
+- **CURT-065** `setData` restarts history and expands every row.
+- **CURT-066** Removing a row drops the view state of the row and of the rows inside it; rekeying a row moves that state to the new key.
+- **CURT-067** View changes do not change `revision`; data changes, `undo()` and `redo()` do.
+- **CURT-068** The initial view, which server rendering uses, has every row expanded. `toggleRow` of an unknown row fails with `INVALID_FORM_INPUT` and `Unknown row: {key}`.
+- **CURT-069** The `bindForm` option `collapsed`, a list of row paths `{collection}.{key}`, renders those collapsible rows collapsed (`expanded: false`) and every other row expanded.
 
-generator-core exports these rules as pure functions over immutable values:
-`initialView`, `toggleRowView`, `setAllExpandedView`, `removeRowView`,
-`rekeyRowView` and `collapsibleRows` for view state, and
-`emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange` and `redoChange` for history. Data
-owned through `bindForm` takes the same functions.
-`resolveAction(button)` reads the operation, collection path and row key of a
-`data-crudui-action` button, and `runAction(form, target)` applies that target to
-a form instance.
+The [form markup](form-markup.md) defines the structure map and data view.
+
+A view is the ordered list `collapsed` of row paths without duplicates, in the order the rows were collapsed; a history is
+`entries` and `redoEntries`, the records oldest first, and the path `lastPath` of the last value edit when it has one.
+Every implementation exports these rules as functions over values that they do not change:
+
+- **CURT-070** `initialView()` returns the view with no collapsed row.
+- **CURT-071** `toggleRowView(view, rowPath)` expands a collapsed row and collapses an expanded one, appending a collapsed row last.
+- **CURT-072** `collapsibleRows(nodes)` returns the row paths `{collection}.{key}` of every collapsible row of the evaluated nodes, depth first in node order.
+- **CURT-073** `setAllExpandedView(nodes, expanded)` returns the view with no collapsed row when `expanded` is true, and otherwise the view that collapses `collapsibleRows(nodes)`.
+- **CURT-074** `removeRowView(view, rowPath)` drops the row path and the paths inside that row.
+- **CURT-075** `rekeyRowView(view, oldPath, newPath)` replaces the prefix `oldPath` of the row path and of the paths inside that row with `newPath`, keeping the order.
+- **CURT-076** `emptyHistory()` returns the history with no record.
+- **CURT-077** `recordChange(history, previous, path?)` appends `previous` to the entries unless `path` equals `lastPath`, keeps the last 100 entries, clears `redoEntries` and sets `lastPath` to `path` when it is given.
+- **CURT-078** `canUndo(history)` is true when the history has an entry, and `canRedo(history)` when it has a redo entry.
+- **CURT-079** `undoChange(history, current)` returns the history without its last entry, with `current` appended to `redoEntries` (the last 100) and without `lastPath`, and the last entry as the record; an empty history fails with `INVALID_FORM_INPUT` and `Nothing to undo`.
+- **CURT-080** `redoChange(history, current)` returns the history with `current` appended to the entries (the last 100) and without its last redo entry, and that redo entry as the record; a history without a redo entry fails with `INVALID_FORM_INPUT` and `Nothing to redo`.
+
+An action is one of `move-up`, `move-down`, `add-row`, `copy-row`, `remove-row`, `toggle-row`, `select-row`,
+`expand-all`, `collapse-all`, `undo` and `redo`. A target is `{ name, path?, key? }`, with the collection path `path` and
+the row key `key`; a focus is `{ path, key? }`, and a result is `{ focus? }`.
+
+- **CURT-081** `resolveAction({ action, path?, key? })` returns the target whose `name` is `action`, with `path` and `key` only when they are not empty, and no target when `action` is none of the eleven actions. A browser binding reads `action` from the attribute `data-crudui-action` of a button, `path` from the attribute `data-field-path` of its nearest element that has one and `key` from the attribute `data-crudui-row-key` of its nearest element that has one inside that element.
+- **CURT-082** `runAction(form, target)` runs `expand-all` and `collapse-all` as `setAllExpanded(true)` and `setAllExpanded(false)`, and `undo` and `redo` as `undo()` and `redo()`, each returning a result without focus.
+- **CURT-083** Every other action returns no result and changes nothing when `path` is missing; every action except `add-row` does the same when `key` is missing.
+- **CURT-084** `add-row` runs `addRow(path)`, after the row `key` when it is given, and returns the focus on the new row.
+- **CURT-085** `copy-row` runs `copyRow(path, key)` and returns the focus on the new row.
+- **CURT-086** `remove-row` runs `removeRow(path, key)` and returns the focus on the previous row, then on the next row, then on the collection (`path` without `key`).
+- **CURT-087** `toggle-row` runs `toggleRow(path, key)` and returns a result without focus.
+- **CURT-088** `select-row` changes nothing and returns the focus on the row `key`.
+- **CURT-089** `move-up` and `move-down` run `moveRow(path, key, index)` with the index one before or after the row and return the focus on the moved row.
+- **CURT-090** An action whose operation fails fails with the error of that operation and leaves the instance as it was.
 
 ## Rendering and validation
 

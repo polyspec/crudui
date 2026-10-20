@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 349c76ca543ae8c611eae2462f13671e69314b6bde938119691e3866e3a7a019 -->
+<!-- source-sha256: 42b73debd8fa260556ef28b7fb8e85cda0af0d8533604f9a6470bf98c3492d39 -->
 
 ## Unreleased
+
+### 2026-10-20 — 뷰 상태, 이력, 작업의 중립 규칙과 공유 case (C16.51-1)
+
+- `docs/spec/form-runtime.ko.md`는 `CURT-061`부터 `CURT-090`을 정의합니다: 스냅샷 flag, 이력 한도와 병합 규칙, 뷰 규칙, `bindForm`의 옵션 `collapsed`, 뷰와 이력 함수, `resolveAction({ action, path?, key? })`, `runAction`의 열한 작업입니다. 고정 데이터 family `form-view`, `form-history`, `form-actions`, `view-functions`, `history-functions`는 `tests/fixtures/form-state/generate.mts`가 TypeScript reference에서 쓰는 case를 담고, 생성된 행 키는 `$1`, `$2`로 부릅니다. TypeScript `resolveAction`은 중립 규칙의 값 또는 DOM 버튼을 받습니다. Red: `src/form-state.test.ts`가 `tests/fixtures/form-view/cases.json`의 `ENOENT`로 실패했습니다. Green: TypeScript package에서 40개 case가 통과합니다.
 
 ### 2026-10-20 — scripts/go의 go.work는 Git이 무시한다 (C16.63-1)
 
@@ -447,6 +451,7 @@
 - form comparison의 PHP 서버는 지울 수 없는 socket 디렉터리 같은 중지 실패를 보고하고 상태 1로 끝난다. 그 rejection은 처리되지 않아 process를 중단시켰다.
 - form comparison의 Svelte adapter는 dispose될 때 각 컴포넌트의 `unmount`를 기다린다. dispose가 unmount가 끝나기 전에 반환했다.
 - generator-core의 브라우저 binding은 text, date, checkbox, radio control의 값을 서버 render처럼 값의 PHP 문자열로 쓴다. `true`는 `1`이고 `false`, 배열, 객체는 빈 값이며, 이전에는 `true`, `false`, `[object Object]`를 썼다.
+
 ### 2026-10-15 — Svelte component exports (C14.12)
 
 - `@polyspec/crudui-generator-core`는 공개 타입 `NodeVM`과 `WidgetModel`이 이미 이름 짓던 타입 `Translate`와 `SourceAttrs`를 내보내고 `DetailFieldVM`을 문서화한다. validator와 form binding의 TSDoc은 TSDoc으로 해석된다(C14.12).
@@ -622,6 +627,7 @@
 
 - C13.1-38: 의존성이 최신 stable release(puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4)이고, install 스크립트는 정확한 version으로 승인되었으며, 리뷰 기록을 다시 썼습니다.
 - C13.1-37: npm lock이 저장소 패키지를 dependency 항목에서도 0.0.4로 기록합니다. version bump가 요구하는 대로입니다.
+
 ### 2026-10-09 — 0.0.4 lock의 dependency review 기록 (C13.1-36)
 
 - `config/dependency-review.json`이 version bump로 바뀐 lock 8개의 sha256을 advisory 없이 기록한다. review는 exception이 없는 newer stable release 4개(`puppeteer`, `playwright`, `vite`)를 보고하며, 이들은 별도 변경에서 올린다.
