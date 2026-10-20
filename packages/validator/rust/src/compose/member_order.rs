@@ -22,7 +22,11 @@ fn array_index(name: &str) -> Option<u64> {
     {
         return None;
     }
-    name.parse::<u64>().ok().filter(|n| *n <= MAX_ARRAY_INDEX)
+    // The checks above leave at most ten ASCII digits, which always fit a u64.
+    let index = name
+        .parse::<u64>()
+        .expect("ten ASCII digits always fit a u64");
+    (index <= MAX_ARRAY_INDEX).then_some(index)
 }
 
 /// A copy of a specification value with every object, at every depth, in

@@ -33,7 +33,7 @@ pub fn resolve(
         if expr == DEFAULT_KEY {
             continue;
         }
-        if Expression::evaluate(expr, form_data, current_path, row_keys).unwrap_or(false) {
+        if key_holds(expr, form_data, current_path, row_keys) {
             return Some(value.clone());
         }
     }
@@ -45,4 +45,15 @@ pub fn resolve(
     }
 
     None
+}
+
+/// Whether a non-default key holds. A key that does not parse is a literal, not a
+/// condition, so it does not hold: the JS reference `evaluateCondition` catches the
+/// parse error and returns false (packages/validator/ts/src/validate/validator.ts).
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a key that does not parse is a literal, not a condition, so it does not hold; the JS reference evaluateCondition catches the parse error and returns false"
+)]
+fn key_holds(expr: &str, form_data: &Value, current_path: &[String], row_keys: &[usize]) -> bool {
+    Expression::evaluate(expr, form_data, current_path, row_keys).unwrap_or(false)
 }

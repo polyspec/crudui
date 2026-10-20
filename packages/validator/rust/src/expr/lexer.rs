@@ -141,7 +141,7 @@ impl Lexer {
 
         // Number: leading digit, or leading '-' directly followed by a digit
         if is_digit(ch) || (ch == b'-' && is_digit(self.peek_next())) {
-            return Ok(self.read_number());
+            return self.read_number();
         }
 
         // Keyword / identifier
@@ -191,7 +191,7 @@ impl Lexer {
         Ok(Token::new(TokenType::String, raw, Literal::Str(value)))
     }
 
-    fn read_number(&mut self) -> Token {
+    fn read_number(&mut self) -> Result<Token, ParseError> {
         let start = self.position;
 
         if self.peek() == b'-' {
@@ -228,15 +228,17 @@ impl Lexer {
         // Keep integers as integers so fixture integer literals stay integers;
         // fractional/exponent forms become floats.
         let literal = if is_float {
-            Literal::Float(raw.parse::<f64>().unwrap_or(0.0))
+            Literal::Float(parse_float(&raw)?)
         } else {
             match raw.parse::<i64>() {
                 Ok(n) => Literal::Int(n),
-                Err(_) => Literal::Float(raw.parse::<f64>().unwrap_or(0.0)),
+                // An integer beyond i64 is a float, as in JS; the float parse below
+                // cannot fail for digits alone, and it reports the error if it does.
+                Err(_) => Literal::Float(parse_float(&raw)?),
             }
         };
 
-        Token::new(TokenType::Number, raw, literal)
+        Ok(Token::new(TokenType::Number, raw, literal))
     }
 
     fn read_identifier(&mut self) -> Token {
@@ -316,6 +318,12 @@ impl Lexer {
     fn is_at_end(&self) -> bool {
         self.position >= self.input.len()
     }
+}
+
+/// The float value of number text; text such as a bare exponent `1e` is an error.
+fn parse_float(raw: &str) -> Result<f64, ParseError> {
+    raw.parse::<f64>()
+        .map_err(|error| ParseError::new(format!("invalid number `{raw}`: {error}")))
 }
 
 fn is_digit(c: u8) -> bool {

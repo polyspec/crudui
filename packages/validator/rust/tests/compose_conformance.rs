@@ -53,10 +53,14 @@ fn normalize(v: &Value) -> Value {
 
 fn load_cases() -> Vec<Value> {
     let path = fixture_path();
-    let raw =
-        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {:?}: {}", path, e));
-    let parsed: Value =
-        serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse fixture {:?}: {}", path, e));
+    let raw = match std::fs::read_to_string(&path) {
+        Ok(raw) => raw,
+        Err(e) => panic!("read fixture {:?}: {}", path, e),
+    };
+    let parsed: Value = match serde_json::from_str(&raw) {
+        Ok(parsed) => parsed,
+        Err(e) => panic!("parse fixture {:?}: {}", path, e),
+    };
     parsed
         .as_array()
         .unwrap_or_else(|| panic!("fixture root is not an array"))

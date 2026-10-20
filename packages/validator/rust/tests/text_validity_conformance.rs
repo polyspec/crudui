@@ -16,7 +16,10 @@ fn fixture(feature: &str) -> (String, Vec<JsonText>) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../..")
         .join(&relative);
-    let source = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
+    let source = match std::fs::read_to_string(&path) {
+        Ok(source) => source,
+        Err(e) => panic!("read {path:?}: {e}"),
+    };
     assert!(
         serde_json::from_str::<Value>(&source).is_err(),
         "the fixture carries unpaired surrogate escapes"
@@ -182,7 +185,10 @@ fn value_graph_limits() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../..")
         .join(relative);
-    let source = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
+    let source = match fs::read_to_string(&path) {
+        Ok(source) => source,
+        Err(e) => panic!("read {path:?}: {e}"),
+    };
 
     let cases = match JsonText::parse(&source).expect("value-graphs.json") {
         JsonText::Array(cases) => cases,
@@ -253,7 +259,7 @@ fn value_graph_limits() {
         let size = graph
             .get("size")
             .and_then(|s| match s {
-                JsonText::Number(n) => n.parse::<usize>().ok(),
+                JsonText::Number(n) => Some(n.parse::<usize>().expect("a fixture size is a usize")),
                 _ => None,
             })
             .unwrap_or(0);

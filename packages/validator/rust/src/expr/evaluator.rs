@@ -487,6 +487,10 @@ fn json_equals(a: &Value, b: &Value) -> bool {
 /// JS `Number(value)` for equality: numbers pass; a string is numeric only when
 /// the WHOLE string parses (JS `Number('12abc')` is NaN; `Number('')` is 0);
 /// booleans → 1/0. Returns `None` for a non-numeric string.
+#[allow(
+    clippy::disallowed_methods,
+    reason = "JS Number of a string that does not parse is NaN, which this function expresses as None"
+)]
 fn js_number(value: &Value) -> Option<f64> {
     match value {
         Value::Number(n) => n.as_f64(),
@@ -571,7 +575,13 @@ fn parse_float_prefix(value: &str) -> Option<f64> {
         }
     }
 
-    value[start..i].parse::<f64>().ok()
+    // A sign, digits with an optional fraction and a well-formed exponent: Rust parses
+    // every such prefix, and the check above guarantees at least one digit.
+    Some(
+        value[start..i]
+            .parse::<f64>()
+            .expect("a numeric prefix with a digit parses as f64"),
+    )
 }
 
 /// JS `String(value)`: null→"", strings pass, booleans→"true"/"false", integral

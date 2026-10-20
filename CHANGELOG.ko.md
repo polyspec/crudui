@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 57c4a91227fba3f8138947f0d5b996f1c249f6845a2ddef960c0590a44d763a8 -->
+<!-- source-sha256: 3d9281c2862ca08bfb63ac025c390540805b3830135a634e9cf78a095e63a86f -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust validator는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-6)
+
+- `packages/validator/rust`는 `Result::ok`, `Result::unwrap_or`, `Result::unwrap_or_else`, `map_err_ignore` clippy finding을 처리합니다. `expr/lexer.rs`는 파싱되지 않는 number text(예: `1e`)를 0으로 읽는 대신 오류로 반환하고, `text.rs`는 hex digit을 읽기 전에 검사하며 JSON 문자열의 expression을 invariant 메시지와 함께 읽고, `validate/rules.rs`와 `validate/numeric.rs`는 digit과 numeric text를 invariant 메시지와 함께 읽으며, `validate/visibility.rs`는 이미 파싱한 node를 평가하고, conformance test와 unit test는 fixture의 read 또는 parse 오류로 실패합니다(C16.67-6). JS reference가 정의한 fallback은 이유를 적은 채 가장 작은 item에 남깁니다. 파싱되지 않는 condition은 false(`expr/condition_map.rs`의 `key_holds`, `validate/validator.rs`, `validate/rules.rs`의 `item_passes_condition`), 파싱되지 않는 value는 false(`validate/validator.rs`의 `evaluate_expression_value`), 숫자가 아닌 문자열은 None(`expr/evaluator.rs`의 `js_number`), serde_json이 거부하는 JSON number는 invalid input(`text.rs`의 `number_value`)입니다. Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`가 library와 unit test에서 finding 23건(`Result::ok` 7, `Result::unwrap_or` 10, `Result::unwrap_or_else` 5, `map_err_ignore` 1)으로 exit 101이었고, integration test에는 finding 18건이 더 있었으나 cargo는 library가 컴파일된 뒤에 보고합니다. Green: exit 0이며, filter `expr`, `text`, `compose`, `validate`, `types`의 test(1, 12, 23, 46, 23 passed)와 변경한 conformance test binary 7개가 통과합니다.
 
 ### 2026-10-20 — config/generated.json이 생성 경로를 선언하고, pre-commit hook이 그 검사를 실행한다 (C16.68)
 

@@ -650,9 +650,10 @@ fn is_valid_date_iso(value: &Value) -> bool {
     if !ok_shape {
         return false;
     }
-    let year: i64 = s[0..4].parse().unwrap_or(-1);
-    let month: i64 = s[5..7].parse().unwrap_or(-1);
-    let day: i64 = s[8..10].parse().unwrap_or(-1);
+    // The shape check above admits only ASCII digits in these ranges.
+    let year: i64 = s[0..4].parse().expect("four ASCII digits parse as i64");
+    let month: i64 = s[5..7].parse().expect("two ASCII digits parse as i64");
+    let day: i64 = s[8..10].parse().expect("two ASCII digits parse as i64");
     if !(1..=12).contains(&month) {
         return false;
     }
@@ -1155,6 +1156,12 @@ fn are_all_unique(values: &[&Value]) -> bool {
     true
 }
 
+/// A condition that does not parse is false: the JS reference `evaluateCondition`
+/// catches the parse error and returns false (packages/validator/ts/src/validate/validator.ts).
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a condition that does not parse is false: the JS reference evaluateCondition catches the parse error and returns false"
+)]
 fn item_passes_condition(
     condition: &str,
     item_field_path: &[String],

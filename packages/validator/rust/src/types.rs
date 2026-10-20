@@ -1098,10 +1098,14 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../../contracts/schema/crudui.schema.json"
         );
-        let text =
-            std::fs::read_to_string(path).unwrap_or_else(|error| panic!("read {path}: {error}"));
-        let schema: Value =
-            serde_json::from_str(&text).unwrap_or_else(|error| panic!("parse {path}: {error}"));
+        let text = match std::fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(error) => panic!("read {path}: {error}"),
+        };
+        let schema: Value = match serde_json::from_str(&text) {
+            Ok(schema) => schema,
+            Err(error) => panic!("parse {path}: {error}"),
+        };
         let samples = serde_json::json!({
             "type": "button", "name": "n", "default": 1, "properties": {}, "items": {"model": "m"},
             "multiple": true, "lang": true, "label": "l", "description": "d", "placeholder": "p",

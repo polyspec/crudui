@@ -26,9 +26,8 @@ pub fn show(value: Option<&Value>, data: &Value, path: &[String], row_keys: &[us
             Ok(node @ Node::Ternary { .. }) => {
                 Evaluator::new(data, path, row_keys).evaluate_value(&node)
             }
-            Ok(_) if is_condition_expression(expression) && !has_ternary_regex(expression) => {
-                Expression::evaluate_value(expression, data, path, row_keys)
-                    .unwrap_or(Value::Bool(false))
+            Ok(node) if is_condition_expression(expression) && !has_ternary_regex(expression) => {
+                Evaluator::new(data, path, row_keys).evaluate_value(&node)
             }
             _ => return true,
         },

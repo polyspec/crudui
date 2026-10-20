@@ -230,10 +230,11 @@ impl Parser<'_> {
             .bytes
             .get(self.pos..self.pos + 4)
             .ok_or(JsonTextError { offset: self.pos })?;
-        let text = std::str::from_utf8(digits).map_err(|_| JsonTextError { offset: self.pos })?;
-        if !text.bytes().all(|b| b.is_ascii_hexdigit()) {
+        if !digits.iter().all(u8::is_ascii_hexdigit) {
             return self.error();
         }
+        // Hex digits are ASCII, so the four bytes are valid UTF-8.
+        let text = std::str::from_utf8(digits).expect("ASCII hex digits are UTF-8");
         self.pos += 4;
         Ok(u16::from_str_radix(text, 16).expect("hex digits"))
     }
@@ -284,8 +285,9 @@ impl Parser<'_> {
                         _ => 4,
                     };
                     let character = std::str::from_utf8(&self.bytes[self.pos..self.pos + length])
-                        .ok()
-                        .and_then(|text| text.chars().next())
+                        .expect("the input is a str, so each character is whole")
+                        .chars()
+                        .next()
                         .ok_or(JsonTextError { offset: self.pos })?;
                     let mut buffer = [0u16; 2];
                     units.extend_from_slice(character.encode_utf16(&mut buffer));
@@ -337,7 +339,7 @@ impl JsonText {
         Some(match self {
             JsonText::Null => Value::Null,
             JsonText::Bool(value) => Value::Bool(*value),
-            JsonText::Number(text) => Value::Number(serde_json::from_str::<Number>(text).ok()?),
+            JsonText::Number(text) => number_value(text)?,
             JsonText::String(text) => Value::String(text.as_str()?.to_owned()),
             JsonText::Array(items) => Value::Array(
                 items
@@ -520,6 +522,16 @@ pub fn check_inputs(inputs: &[(&str, Option<&JsonText>)]) -> Result<(), FormInpu
     Ok(())
 }
 
+/// The value of a JSON number. A number that `serde_json` does not accept (out of its
+/// range) is invalid input: the callers return `None`, and the text checks report it.
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a number serde_json does not accept is invalid input: the callers return None, and json_text_to_value's caller reports it as invalid text"
+)]
+fn number_value(text: &str) -> Option<Value> {
+    serde_json::from_str::<Number>(text).ok().map(Value::Number)
+}
+
 /// Convert JsonText to serde_json::Value with iterative approach to handle 512+ levels.
 /// Invalid text (already checked) becomes None; invalid numbers become None.
 fn json_text_to_value(value: &JsonText) -> Option<Value> {
@@ -541,10 +553,7 @@ fn json_text_to_value(value: &JsonText) -> Option<Value> {
                 match val {
                     JsonText::Null => result_stack.push(Value::Null),
                     JsonText::Bool(b) => result_stack.push(Value::Bool(*b)),
-                    JsonText::Number(text) => {
-                        let num = serde_json::from_str::<Number>(text).ok()?;
-                        result_stack.push(Value::Number(num));
-                    }
+                    JsonText::Number(text) => result_stack.push(number_value(text)?),
                     JsonText::String(s) => {
                         let text = s.as_str()?;
                         result_stack.push(Value::String(text.to_owned()));

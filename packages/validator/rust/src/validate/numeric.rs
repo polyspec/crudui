@@ -30,7 +30,9 @@ pub(crate) fn numeric_text_value(text: &str) -> Option<f64> {
     if !is_numeric_text(text) {
         return None;
     }
-    text.parse::<f64>().ok().filter(|value| value.is_finite())
+    // `is_numeric_text` admits only the grammar that Rust's `f64` parser reads.
+    let value = text.parse::<f64>().expect("numeric text parses as f64");
+    value.is_finite().then_some(value)
 }
 
 /// The value of a numeric value: a finite number, or a string that after trimming

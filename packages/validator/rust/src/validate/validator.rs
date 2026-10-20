@@ -732,6 +732,13 @@ pub(crate) fn is_group_with_properties(field: &Value) -> Option<&Map<String, Val
 // expression engine adapters (JS evaluateCondition / evaluateExpressionValue).
 // ---------------------------------------------------------------------------
 
+/// A condition that does not parse is not a condition: the JS reference
+/// `evaluateCondition` catches the parse error and returns false
+/// (packages/validator/ts/src/validate/validator.ts).
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a condition that does not parse is false: the JS reference evaluateCondition catches the parse error and returns false"
+)]
 fn evaluate_condition(
     expression: &str,
     form_data: &Value,
@@ -741,6 +748,13 @@ fn evaluate_condition(
     Expression::evaluate(expression, form_data, current_path, row_keys).unwrap_or(false)
 }
 
+/// A value expression that does not parse is false: the JS reference
+/// `evaluateExpressionValue` catches the parse error and returns false
+/// (packages/validator/ts/src/validate/validator.ts).
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a value expression that does not parse is false: the JS reference evaluateExpressionValue catches the parse error and returns false"
+)]
 fn evaluate_expression_value(
     expression: &str,
     form_data: &Value,
