@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 7b52093c13578831b6d9f254b8759cbf41e5a5dd4d43986a8a963188ed8e370a -->
+<!-- source-sha256: b5dfbb040d4f3e4582e97e7470610c0d1ce76c658b31dae6edac1e722e720d4b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -27,6 +27,7 @@
 | C16.13 | contracts/unicode-properties.json은 @unicode/unicode-16.0.0에서 얻는다 (scripts/generate-unicode-properties.mts와 contracts/unicode를 대체) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [ ] |
 | C16.14 | config/duplication.json은 생성된 Unicode table과 test를 각각의 이유와 함께 제외한다 | config/duplication.json | `make duplication-check` | [o] |
 | C16.15 | PHP validator는 ef와 atch member를 하나의 module로 조합한다 (Compose clone) | packages/validator/php/src/Compose/Members.php, Compose.php, Ref.php, Patch.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/ComposeConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/PatchTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/RefTest.php`, `make lint-php` | [o] |
+| C16.15-1 | CHANGELOG는 C16.15가 제거한 src/Compose의 clone 7건을 기록한다 | CHANGELOG.md, CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
 | C16.16 | PHP expression parser는 literal을 하나의 method로 읽는다 | packages/validator/php/src/Expr/Parser.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Expr/ExprConformanceTest.php`, `make lint-php` | [o] |
 | C16.17 | PHP validator는 list와 detail composition을 하나의 method로 검증한다 | packages/validator/php/src/Public/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ListValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/DetailValidateConformanceTest.php`, `make lint-php` | [o] |
 | C16.18 | PHP validator는 range parameter의 pair를 하나의 method로 읽는다 | packages/validator/php/src/Values/Numeric.php, packages/validator/php/src/Values/LengthLimit.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Values/NumericTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |

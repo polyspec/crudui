@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The clone count of C16.15 (C16.15-1)
+
+- The entry of C16.15 says that `make duplication-check` listed 7 clones in `src/Compose`, not 9: four started in `Compose.php` and three in `Patch.php` (C16.15-1). Red: the entry said 9 where the first run of the item listed 7 rows; green: the entry says 7.
+
 ### 2026-10-20 — The online targets in the offline-checks test (C16.7-8)
 
 - `tests/build/offline-checks.test.mts` expects the targets that run with `$(ONLINE)` as the `kit.mk` of kit 0.0.54 defines them: `php-ext-arginfo` and `unlink` run online, `release-tools` and `release-backend` no longer do (C16.7-8). Red: `the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it` failed with those four names; green: all 4 tests of the file pass.
@@ -53,7 +57,7 @@
 
 ### 2026-10-20 — One module for the composition members (C16.15)
 
-- `Compose\Members` holds the layering of the members of a node (`$ref` base, later members, `$patch`), the shallow merge, the plain-object test, the `UNDEFINED` sentinel and the shape-keeping rebuild of a member, which `Compose`, `Ref` and `Patch` each held a copy of (C16.15). Red: `make duplication-check` listed 9 clones in `src/Compose` (`Compose`/`Ref`/`Patch`); green: 1 remains (the docblock and signature of `setDeepPath` and `removeDeepPath`), and `ComposeConformanceTest` (20), `PatchTest` (17), `RefTest` (7) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+- `Compose\Members` holds the layering of the members of a node (`$ref` base, later members, `$patch`), the shallow merge, the plain-object test, the `UNDEFINED` sentinel and the shape-keeping rebuild of a member, which `Compose`, `Ref` and `Patch` each held a copy of (C16.15). Red: `make duplication-check` listed 7 clones in `src/Compose` (`Compose`/`Ref`/`Patch`); green: 1 remains (the docblock and signature of `setDeepPath` and `removeDeepPath`), and `ComposeConformanceTest` (20), `PatchTest` (17), `RefTest` (7) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
 
 ### 2026-10-20 — The owner check without rerun-failed (C16.7-1)
 

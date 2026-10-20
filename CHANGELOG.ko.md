@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1d309cfb70864d2aa7e4c62a17dbf6de570b62a0ebbed9124b4e3d9f5d59d28e -->
+<!-- source-sha256: 7f92b3386ca9b2f9980c93f42a16b05eb1de19b2a0d7bc3fb30260b160d9b101 -->
 
 ## Unreleased
+
+### 2026-10-20 — C16.15의 clone 수 (C16.15-1)
+
+- C16.15의 항목은 `make duplication-check`가 `src/Compose`에서 9건이 아니라 7건을 나열했다고 적습니다. 4건은 `Compose.php`에서, 3건은 `Patch.php`에서 시작했습니다 (C16.15-1). Red: 항목은 9라고 적었으나 그 item의 첫 실행은 7줄을 나열했고, green: 항목이 7을 적습니다.
 
 ### 2026-10-20 — offline-checks test의 online target (C16.7-8)
 
@@ -54,7 +58,7 @@
 
 ### 2026-10-20 — 조합 member를 위한 하나의 module (C16.15)
 
-- `Compose\Members`는 node member의 layering(`$ref` base, 이후 member, `$patch`), shallow merge, plain-object 판별, `UNDEFINED` sentinel, member의 shape 유지 rebuild를 담습니다. 이전에는 `Compose`, `Ref`, `Patch`가 각각 사본을 가졌습니다 (C16.15). Red: `make duplication-check`가 `src/Compose`의 clone 9건(`Compose`/`Ref`/`Patch`)을 나열했고, green: 1건이 남으며(`setDeepPath`와 `removeDeepPath`의 docblock과 signature), `ComposeConformanceTest`(20), `PatchTest`(17), `RefTest`(7), `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
+- `Compose\Members`는 node member의 layering(`$ref` base, 이후 member, `$patch`), shallow merge, plain-object 판별, `UNDEFINED` sentinel, member의 shape 유지 rebuild를 담습니다. 이전에는 `Compose`, `Ref`, `Patch`가 각각 사본을 가졌습니다 (C16.15). Red: `make duplication-check`가 `src/Compose`의 clone 7건(`Compose`/`Ref`/`Patch`)을 나열했고, green: 1건이 남으며(`setDeepPath`와 `removeDeepPath`의 docblock과 signature), `ComposeConformanceTest`(20), `PatchTest`(17), `RefTest`(7), `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — rerun-failed 없는 owner 검사 (C16.7-1)
 
