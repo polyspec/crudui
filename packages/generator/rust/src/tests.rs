@@ -1694,27 +1694,6 @@ fn descriptions_and_detail_actions() {
     );
 }
 
-/// `buildOutline` reproduces the rows of the shared structure map cases for the nodes that `bind_form` returns.
-#[test]
-fn native_outline_fixture() {
-    let cases: Vec<Value> = serde_json::from_str(include_str!(
-        "../../../../tests/fixtures/form-outline/cases.json"
-    ))
-    .unwrap();
-    assert!(!cases.is_empty(), "form-outline cases are empty");
-    for case in cases {
-        let template = compile_form(&case["spec"], &CompileOptions::default()).unwrap();
-        let bind: BindOptions = serde_json::from_value(case["options"].clone()).unwrap();
-        let fields = bind_form(&template, &case["data"], &bind).unwrap();
-        assert_eq!(
-            Value::Array(crate::build_outline(&fields)),
-            case["expected_outline_rows"],
-            "{}",
-            case["name"]
-        );
-    }
-}
-
 #[test]
 fn pagination_per_page_that_is_no_integer_is_an_error() {
     let spec = json!({"columns":{"n":{"field":"number"}},"pagination":{"per_page":"ten"}});

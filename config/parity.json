@@ -1435,7 +1435,7 @@
         },
         {
           "implementation": "rust",
-          "test": "packages/generator/rust/src/tests.rs",
+          "test": "packages/generator/rust/tests/form_outline.rs",
           "symbol": "native_outline_fixture"
         },
         {

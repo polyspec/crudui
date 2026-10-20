@@ -45,6 +45,10 @@ name = "buttons"
 harness = false
 
 [[test]]
+name = "form_outline"
+harness = false
+
+[[test]]
 name = "form_complete"
 harness = false
 

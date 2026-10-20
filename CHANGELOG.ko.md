@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: bf6119afe082929d2912673b9982257a035ec12e32e1582ba68026bfae95b369 -->
+<!-- source-sha256: 499f7c64701e8268b5c46d6e45e3be80d3ca789afac4161e19437fac9635ce99 -->
 
 ## Unreleased
 
@@ -91,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — Rust outline fixture가 사례마다 trial 하나로 통합 test에서 실행된다 (C16.156-1-4)
+
+- Rust 생성기의 outline fixture 검사를 라이브러리 unit test(`packages/generator/rust/src/tests.rs`의 `native_outline_fixture`)에서 통합 test `packages/generator/rust/tests/form_outline.rs`로 옮긴다. `packages/generator/rust/Cargo.toml`의 `harness = false` target이며, 사례마다 `native_outline_fixture::<case>` 이름의 trial 하나를 쓴다. config/parity.json의 form-outline 바인딩이 이 파일을 가리킨다. 사례의 검사는 바뀌지 않으며, `src/tests.rs`의 다른 unit test는 그대로 남는다 (C16.156-1-4). Red: `make -s parity-check UNITS="form-outline"` 54b82580에서 종료 코드 1, rust 바인딩의 다섯 사례가 not executed; green: rust 바인딩의 종료 코드 0, 5/5 사례 통과, rust R3 줄 없음.
 
 ### 2026-10-21 — 여덟 Rust text unit이 각자의 symbol로 실행된다 (C16.156-1-2)
 
