@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 56e7cba43efb8c44ba041657e790a295cee9ca7dd24cbbc7adbe714746567e9d -->
+<!-- source-sha256: 7127196ba242ad31e125de71e2cf42f6625610064612654226b7afb7669d8d80 -->
 
 ## Unreleased
 
@@ -31,6 +31,10 @@ C16.141이 보고한 인수 기준 여섯 개(CURT-050부터 CURT-056까지)에 
 
 - template-shape fixture에 한 직렬화 템플릿에서 레코드를 바인드하는 case 두 개를 더했습니다: `create-two-records-from-serialized-template`, `create-three-records-independent`. compile된 템플릿은 레코드가 생기기 전에 구성 파일(반복 그룹의 `$ref`)을 풀고, JSON으로 직렬화되며, 각 레코드는 구성 파일을 주지 않고 그 템플릿만으로 바인드합니다. 각 레코드는 자기 값을 읽고, 세 레코드 case에서는 세 번째 바인드가 첫 번째가 읽은 값을 읽습니다. CURT-050은 두 case와 unit `template-shape`에 인용됩니다.
 - 여섯 runner가 두 case를 모두 실행합니다. TypeScript, Go, Rust, PHP(확장 포함), Python runner는 각 바인드가 읽은 값을 TypeScript 기준 구현이 계산한 기대값과 비교합니다.
+
+### 2026-10-21 — Python form state runner가 validate 단계를 실행한다 (C16.148-3)
+
+- `packages/generator/python/tests/test_form_state.py`가 form state 세션의 `validate` 단계를 실행합니다. 검증기는 세션의 명세와 현재 record로 실행되며, 각 오류의 경로, 필드, 규칙, 메시지가 검증기 순서대로 관찰됩니다.
 
 ### 2026-10-21 — Go form state runner가 validate 단계를 실행한다 (C16.148-2)
 

@@ -13,6 +13,7 @@ import re
 import unittest
 
 from polyspec.crudui.generator import FormError, Generator
+from polyspec.crudui.validator import validate as _validate
 
 from .conformance import cases_of
 
@@ -67,8 +68,23 @@ def _collapsed_rows(nodes):
 _ACTION_STEPS = ("runAction", "resolveAction")
 
 
-def _perform(form, op, args):
+def _perform(form, op, args, spec):
     """Run one step on the form and return what the step returned."""
+    if op == "validate":
+        # The errors of the validator for the specification and the current record, in the validator's order.
+        result = _validate(spec, form.getData(), {})
+        return {
+            "valid": result["valid"],
+            "errors": [
+                {
+                    "path": e["path"],
+                    "field": e["field"],
+                    "rule": e["rule"],
+                    "message": e["message"],
+                }
+                for e in result["errors"]
+            ],
+        }
     if op == "addRow":
         return form.addRow(args[0], args[1] if len(args) > 1 else {})
     if op == "copyRow":
@@ -99,7 +115,7 @@ def _assert_sessions(test, family, history):
             for index, step in enumerate(case["steps"]):
                 observed = {}
                 try:
-                    result = _perform(form, step["op"], step["args"])
+                    result = _perform(form, step["op"], step["args"], case["spec"])
                     # An action reports its target or its outcome, null when it has none.
                     if result is not None or step["op"] in _ACTION_STEPS:
                         observed["result"] = name.walk(result)
