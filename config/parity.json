@@ -414,6 +414,170 @@
         "CURT-074",
         "CURT-075"
       ]
+    },
+    {
+      "id": "text-validity-validate",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/validate/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testInputTextMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testInputTextMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/text_conformance_test.go",
+          "symbol": "TestInputTextMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/text_validity_conformance.rs",
+          "symbol": "input_text_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_text_validity.py"
+        }
+      ],
+      "requirements": [
+        "CUIT-001",
+        "CUIT-002",
+        "CUIT-003",
+        "CUIT-004",
+        "CUIT-005",
+        "CUIT-006",
+        "CUIT-007",
+        "CUIT-008",
+        "CUIT-023",
+        "CUIT-024",
+        "CUIT-025",
+        "CUIT-026",
+        "CUIT-027",
+        "CUIT-028",
+        "CUIT-037",
+        "CUIT-038",
+        "CUIT-039",
+        "CUIT-040"
+      ]
+    },
+    {
+      "id": "text-validity-validate-list",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/validateList/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testInputTextMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testInputTextMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/text_conformance_test.go",
+          "symbol": "TestInputTextMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/text_validity_conformance.rs",
+          "symbol": "input_text_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_text_validity.py"
+        }
+      ],
+      "requirements": [
+        "CUIT-001",
+        "CUIT-002",
+        "CUIT-003",
+        "CUIT-004",
+        "CUIT-007",
+        "CUIT-009",
+        "CUIT-023",
+        "CUIT-024",
+        "CUIT-025",
+        "CUIT-026",
+        "CUIT-027",
+        "CUIT-028",
+        "CUIT-037",
+        "CUIT-038",
+        "CUIT-039",
+        "CUIT-040"
+      ]
+    },
+    {
+      "id": "text-validity-validate-detail",
+      "kind": "suite",
+      "file": "tests/fixtures/text-validity/validateDetail/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/validator/ts/src/text/text-validity.conformance.test.ts"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testInputTextMatchesFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/validator/php/tests/Validate/TextValidityConformanceTest.php",
+          "symbol": "Polyspec\\Crudui\\Validator\\Tests\\Validate\\TextValidityConformanceTest::testInputTextMatchesFixture"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/validator/go/validator/validate/text_conformance_test.go",
+          "symbol": "TestInputTextMatchesFixture"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/validator/rust/tests/text_validity_conformance.rs",
+          "symbol": "input_text_matches_fixture"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/validator/python/tests/test_text_validity.py"
+        }
+      ],
+      "requirements": [
+        "CUIT-001",
+        "CUIT-002",
+        "CUIT-003",
+        "CUIT-004",
+        "CUIT-007",
+        "CUIT-009",
+        "CUIT-023",
+        "CUIT-024",
+        "CUIT-025",
+        "CUIT-026",
+        "CUIT-027",
+        "CUIT-028",
+        "CUIT-037",
+        "CUIT-038",
+        "CUIT-039",
+        "CUIT-040"
+      ]
     }
   ],
   "tools": [

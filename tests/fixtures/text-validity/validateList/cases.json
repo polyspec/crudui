@@ -2,6 +2,17 @@
   {
     "name": "pass-paired-surrogates",
     "note": "a surrogate pair is valid text in a column label.",
+    "requirements": [
+      "CUIT-001",
+      "CUIT-002",
+      "CUIT-003",
+      "CUIT-004",
+      "CUIT-009",
+      "CUIT-037",
+      "CUIT-038",
+      "CUIT-039",
+      "CUIT-040"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -18,6 +29,20 @@
   {
     "name": "spec-lone-high-in-label",
     "note": "a lone high surrogate in a column label is a load failure.",
+    "requirements": [
+      "CUIT-001",
+      "CUIT-002",
+      "CUIT-003",
+      "CUIT-004",
+      "CUIT-009",
+      "CUIT-023",
+      "CUIT-024",
+      "CUIT-025",
+      "CUIT-037",
+      "CUIT-038",
+      "CUIT-039",
+      "CUIT-040"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -35,6 +60,20 @@
   {
     "name": "spec-member-name",
     "note": "an invalid column name is reported at the columns object.",
+    "requirements": [
+      "CUIT-001",
+      "CUIT-002",
+      "CUIT-003",
+      "CUIT-004",
+      "CUIT-009",
+      "CUIT-023",
+      "CUIT-024",
+      "CUIT-025",
+      "CUIT-037",
+      "CUIT-038",
+      "CUIT-039",
+      "CUIT-040"
+    ],
     "spec": {
       "columns": {
         "\udc00\ud800": {
@@ -51,6 +90,20 @@
   {
     "name": "spec-before-forbidden-key",
     "note": "text is checked before the forbidden-key scan.",
+    "requirements": [
+      "CUIT-001",
+      "CUIT-002",
+      "CUIT-003",
+      "CUIT-004",
+      "CUIT-009",
+      "CUIT-023",
+      "CUIT-024",
+      "CUIT-025",
+      "CUIT-037",
+      "CUIT-038",
+      "CUIT-039",
+      "CUIT-040"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -69,6 +122,20 @@
   {
     "name": "file-document",
     "note": "invalid text in a file is located at the file name and path.",
+    "requirements": [
+      "CUIT-001",
+      "CUIT-002",
+      "CUIT-003",
+      "CUIT-004",
+      "CUIT-009",
+      "CUIT-023",
+      "CUIT-024",
+      "CUIT-025",
+      "CUIT-037",
+      "CUIT-038",
+      "CUIT-039",
+      "CUIT-040"
+    ],
     "spec": {
       "columns": {
         "name": {
@@ -95,6 +162,21 @@
   {
     "name": "basepath",
     "note": "an invalid base path is an input failure naming the option.",
+    "requirements": [
+      "CUIT-001",
+      "CUIT-002",
+      "CUIT-003",
+      "CUIT-004",
+      "CUIT-007",
+      "CUIT-009",
+      "CUIT-026",
+      "CUIT-027",
+      "CUIT-028",
+      "CUIT-037",
+      "CUIT-038",
+      "CUIT-039",
+      "CUIT-040"
+    ],
     "spec": {
       "columns": {
         "name": {

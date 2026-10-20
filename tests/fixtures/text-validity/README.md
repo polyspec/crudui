@@ -14,7 +14,8 @@ surrogate and the reversed pair `"\udc00\ud800"`, in string values, member names
 rows, composition files and options. A decoder that replaces or refuses these escapes cannot read
 the files; each test reads them with the decoder the specification names for its runtime.
 
-A case has `name`, `note` and `expect`, and the inputs of its operation:
+A case has `name`, `note` and `expect`, and the inputs of its operation; a case that tests a requirement of
+[input text](../../../docs/spec/input-text.md) lists its ids in `requirements`:
 
 - `spec`, and `files` for the validation operations;
 - `data` (validation, binding and instances), `rows` (lists) or `record` (details);

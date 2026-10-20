@@ -1,6 +1,6 @@
 # 입력 텍스트 픽스처
 <!-- doc-id: tests-fixtures-text-validity-readme -->
-<!-- source-sha256: 593ef993eaf4bdd01ecc7b8fc9f3b2acd6e42c513b195d63dc709b60ed713d5d -->
+<!-- source-sha256: 05e3fdb91e4699714d092ce64592b8c1155391b23622453595f8434bccada127 -->
 
 [English](README.md).
 
@@ -15,7 +15,7 @@
 있습니다. 이 이스케이프를 바꾸거나 거부하는 디코더로는 파일을 읽을 수 없으므로, 각 테스트는 명세가
 해당 런타임에 지정한 디코더로 읽습니다.
 
-케이스는 `name`, `note`, `expect`와 연산의 입력을 가집니다.
+케이스는 `name`, `note`, `expect`와 연산의 입력을 가집니다. [입력 텍스트](../../../docs/spec/input-text.ko.md)의 requirement를 시험하는 케이스는 `requirements`에 id를 나열합니다.
 
 - `spec`, 그리고 검증 연산의 `files`
 - `data`(검증, 바인딩, 인스턴스), `rows`(목록), `record`(상세)
