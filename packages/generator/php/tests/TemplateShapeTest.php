@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Polyspec\Crudui\Generator\Tests;
+
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator\Support\JsonText;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use stdClass;
+
+/**
+ * The form template shape (CURT-092) against tests/fixtures/template-shape: each case's template is the decoded
+ * JSON text, and its operation (`bindForm`, `bindButtons` or `createForm`) refuses a shape that is not the
+ * compiled one with
+ * `INVALID_FORM_INPUT`, `Unsupported form template` and an empty location. One PHPUnit case per fixture case.
+ */
+final class TemplateShapeTest extends TestCase
+{
+    private const CASES = 42;
+
+    /**
+     * @return iterable<string, array{string, stdClass}>
+     */
+    public static function shapeCases(): iterable
+    {
+        $root = \dirname(__DIR__, 4);
+        $cases = JsonText::decode(
+            (string) \file_get_contents($root . '/tests/fixtures/template-shape/cases.json')
+        );
+        self::assertCount(self::CASES, $cases, 'The template shape fixture holds 42 cases');
+        foreach ($cases as $case) {
+            yield $case->name => [$case->operation, $case];
+        }
+    }
+
+    #[DataProvider('shapeCases')]
+    public function testTheOperationAcceptsOrRefusesTheTemplate(string $operation, stdClass $case): void
+    {
+        $expected = \is_string($case->expect) ? $case->expect : (array) $case->expect;
+        self::assertSame($expected, self::outcome($operation, $case));
+    }
+
+    /** @return array<string, mixed>|string The outcome in the expect shape of the fixture. */
+    private static function outcome(string $operation, stdClass $case): array|string
+    {
+        $data = $case->data ?? [];
+        $options = (array) ($case->options ?? []);
+        try {
+            match ($operation) {
+                'bindForm' => Generator::bindForm($case->template, $data, $options),
+                'bindButtons' => Generator::bindButtons($case->template, $data, $options),
+                'createForm' => new Form($case->template, $data, $options),
+                default => self::fail('unknown template operation ' . $operation),
+            };
+        } catch (FormError $error) {
+            return ['code' => $error->getErrorCode(), 'message' => $error->getMessage(), 'at' => ''];
+        }
+        return 'pass';
+    }
+}
