@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 961cf40d39a502928e6d690a8a5c5526d3215e6334adf31ca432016bafb31200 -->
+<!-- source-sha256: 924c2e1ef2358794d76ee990f8a9bda454c01736ee10bb13e4f9369f15c242f3 -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust form instance는 undo 이력을 가진다 (C16.52-9)
+
+- `packages/generator/rust/src/instance.rs`의 `Form`은 `history.rs`의 순수 함수로 record의 undo 이력을 가진다: `undo`와 `redo`(CURT-011, CURT-012), `can_undo`와 `can_redo`(CURT-061). `set_value`는 path와 함께 변경을 기록하고, `add_row`, `copy_row`, `move_row`, `remove_row`, `rekey_row`는 path 없이 기록하며, `set_data`는 이력을 다시 시작합니다(C16.52-9). `packages/generator/rust/tests/form_state.rs`는 history flag와 함께 `form-history` session을 실행합니다(C16.52-9). Red: `cargo test --test form_state`가 컴파일되지 않았고(`no method named undo`, E0599 4건: undo, redo, can_undo, can_redo), exit 1; green: `form_state`와 `history_functions`가 test 16개를 통과하며 그중 `form_history_sessions_equal_the_recorded_observations`도 통과, exit 0.
 
 ### 2026-10-20 — Go form instance는 undo 이력을 가진다 (C16.52-7)
 

@@ -1,4 +1,8 @@
 use crate::binding::bind_ordered;
+use crate::history::{
+    can_redo, can_undo, empty_history, record_change, redo_change, undo_change, History,
+    HistoryResult,
+};
 use crate::template::member_ordered_template;
 use crate::template::{data_only, repeats};
 use crate::util::{segments, value_at};
@@ -217,6 +221,7 @@ pub struct Form {
     options: BindOptions,
     revision: u64,
     view: ViewState,
+    history: History<Value>,
 }
 
 impl Form {
@@ -233,6 +238,7 @@ impl Form {
             options,
             revision: 0,
             view: initial_view(),
+            history: empty_history(),
         })
     }
 
@@ -261,11 +267,12 @@ impl Form {
         self.data.clone()
     }
 
-    /// Replace record data and reevaluate the form atomically.
+    /// Replace record data, restart the history and reevaluate the form atomically.
     pub fn set_data(&mut self, data: &Value) -> FormResult<()> {
         self.commit_view(
             normalize_fields(&self.template.fields, Some(data), "")?,
             initial_view(),
+            empty_history(),
         )
     }
 
@@ -277,8 +284,48 @@ impl Form {
 
     /// Update one data path and reevaluate the form atomically.
     pub fn set_value(&mut self, path: &str, value: Value) -> FormResult<()> {
-        let data = put_at(&self.data, &checked_segments(path)?, value);
-        self.commit(normalize_fields(&self.template.fields, Some(&data), "")?)
+        let segments = checked_segments(path)?;
+        let data = put_at(&self.data, &segments, value);
+        self.commit(
+            normalize_fields(&self.template.fields, Some(&data), "")?,
+            Some(&segments.join(".")),
+        )
+    }
+
+    /// Restore the record before the last data change; the reverted record can be redone (CURT-011).
+    pub fn undo(&mut self) -> FormResult<()> {
+        let result = undo_change(&self.history, self.data.clone())?;
+        self.restore(result)
+    }
+
+    /// Reapply the most recently undone data change (CURT-012).
+    pub fn redo(&mut self) -> FormResult<()> {
+        let result = redo_change(&self.history, self.data.clone())?;
+        self.restore(result)
+    }
+
+    /// Whether `undo` can restore an earlier record (CURT-061).
+    pub fn can_undo(&self) -> bool {
+        can_undo(&self.history)
+    }
+
+    /// Whether `redo` can reapply a reverted change (CURT-061).
+    pub fn can_redo(&self) -> bool {
+        can_redo(&self.history)
+    }
+
+    /// Replace the record and the history of an undo or a redo and keep the view; the revision advances.
+    fn restore(&mut self, result: HistoryResult<Value>) -> FormResult<()> {
+        let fields = bind_ordered(
+            &self.template,
+            &result.value,
+            &self.bind_options(&self.view),
+        )?;
+        self.history = result.history;
+        self.data = result.value;
+        self.fields = fields;
+        self.revision += 1;
+        Ok(())
     }
 
     /// The options of the form with the collapsed rows of a view.
@@ -294,18 +341,31 @@ impl Form {
         options
     }
 
-    /// Replace the record and keep the view; a failure leaves the record and the view unchanged.
-    fn commit(&mut self, data: Value) -> FormResult<()> {
+    /// Replace the record and keep the view; `path` is the path of a value edit, if the change is one.
+    /// A failure leaves the record, the view and the history unchanged.
+    fn commit(&mut self, data: Value, path: Option<&str>) -> FormResult<()> {
         let view = self.view.clone();
-        self.commit_view(data, view)
+        let history = self.recorded(path);
+        self.commit_view(data, view, history)
     }
 
-    /// Replace the record and the view together.
-    fn commit_view(&mut self, data: Value, view: ViewState) -> FormResult<()> {
+    /// The history after a change of the record: the record before the change is kept (CURT-063).
+    fn recorded(&self, path: Option<&str>) -> History<Value> {
+        record_change(&self.history, self.data.clone(), path)
+    }
+
+    /// Replace the record, the view and the history together.
+    fn commit_view(
+        &mut self,
+        data: Value,
+        view: ViewState,
+        history: History<Value>,
+    ) -> FormResult<()> {
         let fields = bind_ordered(&self.template, &data, &self.bind_options(&view))?;
         self.data = data;
         self.fields = fields;
         self.view = view;
+        self.history = history;
         self.revision += 1;
         Ok(())
     }
@@ -415,11 +475,14 @@ impl Form {
                 normalize_row(field, options.value.as_ref(), &row_path)?,
             ),
         );
-        self.commit(put_at(
-            &self.data,
-            &checked_segments(path)?,
-            Value::Object(entries.into_iter().collect()),
-        ))?;
+        self.commit(
+            put_at(
+                &self.data,
+                &checked_segments(path)?,
+                Value::Object(entries.into_iter().collect()),
+            ),
+            None,
+        )?;
         Ok(key)
     }
 
@@ -462,7 +525,8 @@ impl Form {
         rows.shift_remove(key);
         let segments = checked_segments(path)?;
         let view = remove_row_view(&self.view, &row_path(&segments, key));
-        self.commit_view(put_at(&self.data, &segments, rows.into()), view)
+        let history = self.recorded(None);
+        self.commit_view(put_at(&self.data, &segments, rows.into()), view, history)
     }
 
     /// Move a row without changing its identity or values.
@@ -484,11 +548,14 @@ impl Form {
         }
         let row = entries.remove(from);
         entries.insert(index, row);
-        self.commit(put_at(
-            &self.data,
-            &checked_segments(path)?,
-            Value::Object(entries.into_iter().collect()),
-        ))
+        self.commit(
+            put_at(
+                &self.data,
+                &checked_segments(path)?,
+                Value::Object(entries.into_iter().collect()),
+            ),
+            None,
+        )
     }
 
     /// Apply a saved sequence key to one row and update its descendant paths.
@@ -525,6 +592,7 @@ impl Form {
             &row_path(&segments, old_key),
             &row_path(&segments, new_key),
         );
-        self.commit_view(put_at(&self.data, &segments, rows.into()), view)
+        let history = self.recorded(None);
+        self.commit_view(put_at(&self.data, &segments, rows.into()), view, history)
     }
 }

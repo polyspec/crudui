@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust form instance keeps its undo history (C16.52-9)
+
+- `Form` in `packages/generator/rust/src/instance.rs` keeps the undo history of its record with the pure functions of `history.rs`: `undo` and `redo` (CURT-011, CURT-012), `can_undo` and `can_redo` (CURT-061). `set_value` records a change with its path, `add_row`, `copy_row`, `move_row`, `remove_row` and `rekey_row` record one without a path, and `set_data` restarts the history (C16.52-9). `packages/generator/rust/tests/form_state.rs` runs the `form-history` sessions with the history flags (C16.52-9). Red: `cargo test --test form_state` did not compile, `no method named undo` (four E0599 errors: undo, redo, can_undo, can_redo), exit 1; green: `form_state` and `history_functions` pass 16 tests, `form_history_sessions_equal_the_recorded_observations` among them, exit 0.
+
 ### 2026-10-20 — The Go form instance keeps its undo history (C16.52-7)
 
 - `Form` in `packages/generator/go/instance.go` keeps a `History` of records in the field `history` and has `Undo`, `Redo`, `CanUndo` and `CanRedo`; `commitView` records every data change with the path of a value edit, `SetData` restarts the history, and `TestFormHistory` in `packages/generator/go/form_state_test.go` runs the `form-history` sessions with the history flags (C16.52-7). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory|TestFormView|TestHistoryFunctions' .` exit 1, 18 passed and 6 failed, the history sessions fail with `unknown step undo`; green: exit 0, 24 passed, 0 failed.

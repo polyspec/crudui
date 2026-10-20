@@ -147,13 +147,16 @@ fn perform(form: &mut Form, op: &str, args: &[Value]) -> FormResult<Option<Value
         "setData" => form.set_data(&args[0]).map(|()| None),
         "toggleRow" => form.toggle_row(text(args, 0), text(args, 1)).map(|()| None),
         "setAllExpanded" => form.set_all_expanded(args[0] == true).map(|()| None),
+        "undo" => form.undo().map(|()| None),
+        "redo" => form.redo().map(|()| None),
         other => panic!("unknown step {other}"),
     }
 }
 
-#[test]
-fn form_view_sessions_equal_the_recorded_observations() {
-    for case in cases("form-view") {
+/// Run the sessions of a family on forms and compare each observation with the recorded one; `history` adds the undo
+/// flags of the form to the observation.
+fn observe_sessions(family: &str, history: bool) {
+    for case in cases(family) {
         let steps = case["steps"].as_array().unwrap();
         let mut namer = Namer::new(&[
             case["spec"].to_string(),
@@ -182,6 +185,10 @@ fn form_view_sessions_equal_the_recorded_observations() {
             }
             observed.insert("data".into(), namer.walk(&form.get_data()));
             observed.insert("revision".into(), json!(form.revision()));
+            if history {
+                observed.insert("canUndo".into(), json!(form.can_undo()));
+                observed.insert("canRedo".into(), json!(form.can_redo()));
+            }
             observed.insert(
                 "collapsed".into(),
                 namer.walk(&Value::Array(collapsed_rows(form.fields()))),
@@ -194,6 +201,16 @@ fn form_view_sessions_equal_the_recorded_observations() {
             );
         }
     }
+}
+
+#[test]
+fn form_view_sessions_equal_the_recorded_observations() {
+    observe_sessions("form-view", false);
+}
+
+#[test]
+fn form_history_sessions_equal_the_recorded_observations() {
+    observe_sessions("form-history", true);
 }
 
 fn view_of(value: &Value) -> ViewState {
