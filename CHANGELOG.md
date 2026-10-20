@@ -11,6 +11,10 @@
 
 - `config/generated.json`: the exceptions `packages/generator/go/interface_messages.go` and `packages/validator/go/validator/validate/unicode_data.go` declare the two Go tables that `go generate` writes from `contracts/interface-messages.json` and `contracts/unicode-properties.json` (C16.136). A Go module ships them, because `go get` runs no generator (S6), so they are tracked on purpose. The other languages' generated tables carry no generated-file header, and so are not flagged. The schema allows globs only, so the reason is recorded here. Red: `make layout-check` exit 2 on 2bf1b1b5, `has a generated-file header (Code generated ... DO NOT EDIT)` for both files. Green: `make layout-check` exit 0, `no tracked file is generated`.
 
+### 2026-10-21 — The PHP and Go generators assert the error type of each generation failure (C16.138)
+
+- The PHP runner of the input text cases asserts that each generation failure is a `ComposeLoadError` for invalid text and a `FormError` for a refused input (CUIT-034); the PHP extension runs the same test. The Go runner asserts that a failure of invalid text is a `*compose.ComposeLoadError` and that no other failure is (CUIT-035). The Rust generator returns `FormError` for every generation failure, so its type is fixed by the signature; the Rust runner is unchanged.
+
 ### 2026-10-21 — The compiled templates of the form template shape cite CURP-019 and CURP-024 (C16.137)
 
 - The `compiled` cases of `tests/fixtures/template-shape` cite CURP-024 (a template compiled by one runtime is bound by another) and CURP-019 (a compiled template serializes): the reference's serialized compiled template is bound by every runtime. The unit `template-shape` cites both ids; each runner names them.

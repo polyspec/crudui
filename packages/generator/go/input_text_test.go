@@ -387,3 +387,34 @@ func TestInputTextCases(t *testing.T) {
 		}
 	}
 }
+
+// TestInputTextFailureTypes checks CUIT-035: a generation failure of invalid text is a *compose.ComposeLoadError, and an
+// input failure is an error with its message that is not a load failure. The type is checked, not only the code.
+func TestInputTextFailureTypes(t *testing.T) {
+	for _, feature := range []string{"compileForm", "bindForm", "createForm", "buildList", "buildDetail"} {
+		run := textOperations[feature]
+		for _, c := range loadTextFixture(t, feature) {
+			name, ok := c.members["name"].(string)
+			if !ok {
+				t.Fatalf("a %s case has no name", feature)
+			}
+			err := run(t, c)
+			if c.members["expect"] == "pass" {
+				if err != nil {
+					t.Errorf("%s/%s: a passing case returned %v", feature, name, err)
+				}
+				continue
+			}
+			want, ok := c.members["expect"].(*Object)
+			if !ok {
+				t.Fatalf("%s/%s: the expectation is not a failure", feature, name)
+			}
+			code := textOptionString(t, want, "code")
+			var load *compose.ComposeLoadError
+			isLoad := errors.As(err, &load)
+			if (code == "INVALID_TEXT") != isLoad {
+				t.Errorf("%s/%s: code %s needs the load failure type of its class, got %T", feature, name, code, err)
+			}
+		}
+	}
+}

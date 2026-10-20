@@ -162,6 +162,28 @@ final class InputTextTest extends TestCase
         return $options;
     }
 
+    /**
+     * CUIT-034: a generation failure is a ComposeLoadError when its input text is invalid and a FormError when an
+     * input is refused, and each case that passes throws nothing. The type is checked, not only the code.
+     */
+    public function testGenerationFailuresHaveTheRuleTypes(): void
+    {
+        foreach (self::textCases() as $name => [$feature, $case]) {
+            $expect = $case->expect;
+            $code = \is_string($expect) ? 'pass' : $expect->code;
+            try {
+                self::runOperation($feature, $case);
+            } catch (ComposeLoadError) {
+                self::assertSame('INVALID_TEXT', $code, $name . ': a load failure is a ComposeLoadError');
+                continue;
+            } catch (FormError) {
+                self::assertSame('INVALID_FORM_INPUT', $code, $name . ': an input failure is a FormError');
+                continue;
+            }
+            self::assertSame('pass', $code, $name . ': a case that throws nothing passes');
+        }
+    }
+
     private static function runOperation(string $feature, stdClass $case): void
     {
         $spec = $case->spec ?? new stdClass();
