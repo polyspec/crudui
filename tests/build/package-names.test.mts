@@ -60,7 +60,7 @@ test('every package of packages/ has the name of the polyspec convention', () =>
     const prefixes = [...Object.keys(composer.autoload['psr-4']), ...Object.keys(composer['autoload-dev']?.['psr-4'] ?? {})];
     assert.deepEqual(prefixes.filter(prefix => !prefix.startsWith('Polyspec\\Crudui\\')), [], `${directory}: PSR-4 prefixes`);
   }
-  const namespaces = [...read('packages/php-ext/crudui.stub.php').matchAll(/^namespace ([^ {;]+)/gm)].map(match => group(match, 1));
+  const namespaces = [...read('packages/php-ext/src/polyspec_crudui.stub.php').matchAll(/^namespace ([^ {;]+)/gm)].map(match => group(match, 1));
   assert.ok(namespaces.length > 0);
   assert.deepEqual(namespaces.filter(name => name !== 'Polyspec\\Crudui' && !name.startsWith('Polyspec\\Crudui\\')), []);
 
@@ -110,7 +110,7 @@ const OLD_NAMES: [string, RegExp][] = [
   ['PHP namespace CRUDUI', /\bCRUDUI\\/g],
   // phpDocumentor writes the page of a class as its namespace joined by hyphens: classes/CRUDUI-Generator.html.
   ['PHP API page CRUDUI-', /\bCRUDUI-(?:\$\{|Generator\b|Validator\b|Form)/g],
-  ['Composer package crudui/', /(?<![@\w])crudui\\?\/(?:validator|generator)\b/g],
+  ['Composer package crudui/', /(?<![@\w/])crudui\\?\/(?:validator|generator)\b/g],
   ['Rust crate crudui-', /(?<![\w/-])crudui-(?:validator|generator)\b/g],
   ['Rust library crudui_', /(?<!\w)crudui_(?:validator|generator)(?!_ce)\b/g],
 ];

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — A path is no Composer package name (C16.7-13)
+
+- The pattern of `tests/build/package-names.test.mts` for the old Composer package names `crudui/validator` and `crudui/generator` no longer matches the same words inside a path such as `polyspec/crudui/validator/...` (C16.7-13). Red: `no maintained file names a package by a form before the convention` failed with 3 names, in `config/duplication.json` and in the rows of the kit-standard checklist, which name Python files under `polyspec/crudui/validator/`; green: the test passes.
+
 ### 2026-10-20 — The gates of kit in CHECK_TARGETS (C16.7-12)
 
 - `CHECK_TARGETS` of the Makefile lists the 21 gates of `kit-gates` that this checkout runs (kit K289), and `make kit-sync` brought `PRINCIPLES.md` and `PRINCIPLES.ko.md` to the text of the installed kit (the S10 text for a repository with more than one PHP library, `make plan-split`, and the requirements of a directory suite) (C16.7-12). Red: `make kit-check` exit 1 with 22 findings (20 gates missing from `CHECK_TARGETS`, 2 principle files differing); green: exit 0.

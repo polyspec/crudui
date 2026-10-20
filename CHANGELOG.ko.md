@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cbba449810aef69f11c9b1af92c475cc102a08c60974bdae216193d9495f08ea -->
+<!-- source-sha256: 0d19d42aab1a5f82680371e4494f4f05900e59148785c9b4b382ca25810036ff -->
 
 ## Unreleased
+
+### 2026-10-20 — path는 Composer package 이름이 아니다 (C16.7-13)
+
+- `tests/build/package-names.test.mts`의 옛 Composer package 이름 `crudui/validator`와 `crudui/generator`에 대한 pattern은 `polyspec/crudui/validator/...` 같은 path 안의 같은 단어와 더는 맞지 않습니다 (C16.7-13). Red: `no maintained file names a package by a form before the convention`이 `config/duplication.json`과, `polyspec/crudui/validator/` 아래 Python file을 적은 kit-standard checklist의 행에서 이름 3건으로 실패했고, green: test가 통과합니다.
 
 ### 2026-10-20 — CHECK_TARGETS의 kit gate (C16.7-12)
 
