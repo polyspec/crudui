@@ -35,7 +35,8 @@ array is compared in order. Go, Rust and PHP compare numbers by value, so `5` an
 The [PHP extension runner](../../../packages/php-ext/tests/ValidateReport.php) compares JSON text, so
 member order is compared there as well. A failure case compares `code`, `message` and `at`
 exactly, and every case must declare exactly one of `expected` and `expectFailure`. A case that tests a requirement of
-[empty collections](../../../docs/spec/empty-collections.md) lists its ids in `requirements`; `generate.mts` names those
+[empty collections](../../../docs/spec/empty-collections.md) or of [validation rules](../../../docs/spec/validation-rules.md)
+lists its ids in `requirements`; `generate.mts` names those
 cases in its `REQUIREMENTS` map, which is how they are added.
 
 The cross-check console's validator processes receive each case on standard input. A result case

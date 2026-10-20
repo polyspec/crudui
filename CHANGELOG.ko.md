@@ -1,12 +1,15 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4c1ca750f60883c428ffc7971ef6de6c050af7be3e6baedf8f6ca929ced8266f -->
+<!-- source-sha256: 0ece5a49d7e7f4b3cb8a30b400d794d1a58b88a425798378384dc08343eabe19 -->
 
 ## Unreleased
 
 ### 2026-10-20 — PHP extension이 form action을 실행한다: resolveAction과 runAction (C16.50-5)
 
 - `packages/php-ext/src/actions.c`(새 파일)는 PHP library의 action 11개 이름으로 `ps_resolve_action`과 `ps_run_action`을 구현한다. 실행은 각 연산을 `ps_form_apply`로 적용하므로(`add-row`, `copy-row`, `remove-row`, `toggle-row`, `move-up`, `move-down`, `expand-all`, `collapse-all`, `undo`, `redo`) 실패한 연산은 form을 바꾸지 않는다. `crudui.c`는 `Generator::resolveAction`과 `Generator::runAction`을 추가하며, `polyspec_crudui.stub.php`와 `polyspec_crudui_arginfo.h`가 이를 선언한다(C16.50-5). Red: `make test-php-ext CASES='FormStateTest'`가 선언 단계에서 exit 2로 실패했고, `Generator::resolveAction`과 `Generator::runAction`이 누락("extension none")되어 있었다. Green: `make lint-php-ext`가 exit 0이고, `make test-php-ext CASES='FormStateTest'`도 exit 0이다. generator suite는 extension 위에서 28개 test를 실행하며, form action session 9개(`resolve-action-names`부터 `run-action-unknown-name`까지)를 포함해 통과한다. validator와 php-ext library에는 CASES가 고른 case가 없다(C16.50-5).
+### 2026-10-20 — validate suite는 검증 규칙 requirement CUVR-001부터 CUVR-011, CUVR-013부터 CUVR-057까지를 인용한다 (C16.57-4)
+
+- `tests/fixtures/validate/generate.mts`는 `REQUIREMENTS` map에서 `cases.json`의 case 270건에 `requirements`를 씁니다. case는 기대 error가 그 규칙을 보고하면 CUVR-001부터 CUVR-011, CUVR-013부터 CUVR-016을, 명세의 parameter 메시지나 error code이면 CUVR-041부터 CUVR-057을, 숨겨진 필드이면 CUVR-017을 인용하며, 이름과 note가 시험하는 구성을 밝히는 case는 CUVR-018부터 CUVR-040을 인용합니다. map은 CUEC-003, CUEC-005, CUEC-006도 유지합니다(C16.57-4). `config/parity.json`은 인용한 id 56건을 `validate` unit의 requirements에 추가합니다. CUVR-012(`date`, `dateISO`)는 어느 suite에도 case가 없어 인용하지 않았고, CUVR-002는 `url` case가 없어 `email` case만 인용합니다. list-validity, detail-validity, spec-validity suite는 규칙이 아니라 명세의 형태(key, 금지 member, 배치)를 시험하므로 아무것도 인용하지 않으며 여기서 unit을 선언하지 않습니다. Red: `make parity-declarations-check`가 exit 2이며 finding 603건, 그중 CUVR-001부터 CUVR-057까지의 R13 57건이었습니다. Green: exit 2이며 finding 547건, R13은 CUVR-012 1건, validate unit의 R14와 R15는 0건입니다. CUEC-001, CUEC-002, CUEC-004, CUEC-007의 R13과 다른 row의 R2, R6 finding은 그대로입니다. Owner test: ts vitest `validate.conformance.test.ts` 319 passed, rust `validate_matches_fixture` 1 passed, python `tests.test_validate` 3 passed, PHP 라이브러리 `ValidateConformanceTest` 318 passed, go `TestValidateMatchesFixture`는 packages/validator/go에서 `mise exec -- go test -v`로 실행하여 subtest 318건과 상위 test가 통과했습니다. php-extension binding은 C16.70이 main에 들어온 뒤 실행해야 하므로 여기서 실행하지 않았습니다.
 
 ### 2026-10-20 — validate suite는 빈 collection requirement CUEC-003, CUEC-005, CUEC-006을 인용한다 (C16.57-2)
 

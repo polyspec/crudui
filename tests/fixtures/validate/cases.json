@@ -39,7 +39,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-013"
+    ]
   },
   {
     "name": "enddate-relative-path-2026-01-02",
@@ -140,7 +143,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "composed-member-order",
@@ -204,7 +210,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "enddate-parent-path",
@@ -246,7 +255,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-013"
+    ]
   },
   {
     "name": "enddate-field-path-2026-01-01",
@@ -288,7 +300,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-013"
+    ]
   },
   {
     "name": "enddate-field-path-2026-01-02",
@@ -457,7 +472,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006"
+    ]
   },
   {
     "name": "ternary-field-limit-true-8",
@@ -566,7 +584,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006"
+    ]
   },
   {
     "name": "items-langmap-4lang-membership-valid",
@@ -646,7 +667,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011"
+    ]
   },
   {
     "name": "items-4lang-null-label-slot-membership",
@@ -770,7 +794,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "keyed-scalar-email-errors",
@@ -812,7 +839,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-002"
+    ]
   },
   {
     "name": "keyed-scalar-unique",
@@ -850,7 +880,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "keyed-scalar-mincount",
@@ -886,7 +919,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-014"
+    ]
   },
   {
     "name": "keyed-group-unique-filter",
@@ -985,7 +1021,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "conditional-required-true",
@@ -1020,7 +1059,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "conditional-required-false",
@@ -1085,7 +1127,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006"
+    ]
   },
   {
     "name": "condition-map-min-default",
@@ -1150,7 +1195,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006"
+    ]
   },
   {
     "name": "ternary-min-nonpremium",
@@ -1215,7 +1263,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-002"
+    ]
   },
   {
     "name": "compose-unresolved-ref-load-error",
@@ -1267,7 +1318,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "nested-group-digits",
@@ -1306,7 +1360,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-005",
+      "CUVR-026"
+    ]
   },
   {
     "name": "multiple-collection-level-unique",
@@ -1345,7 +1403,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "multiple-collection-level-mincount",
@@ -1382,7 +1443,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-014"
+    ]
   },
   {
     "name": "multiple-group-row-key-path",
@@ -1426,7 +1490,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "object-key-multiple-sorted-path",
@@ -1477,7 +1544,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "type-number-implicit",
@@ -1508,7 +1578,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-005"
+    ]
   },
   {
     "name": "unique-filter-condition-pass",
@@ -1598,7 +1671,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "match-regex-verbatim",
@@ -1629,7 +1705,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "accept-literal-verbatim",
@@ -1660,7 +1739,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-016"
+    ]
   },
   {
     "name": "first-error-per-field",
@@ -1692,7 +1774,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "empty-skips-email",
@@ -1715,7 +1800,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-020"
+    ]
   },
   {
     "name": "message-override-required",
@@ -1749,7 +1837,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "validate-slot-off",
@@ -1805,7 +1896,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-010"
+    ]
   },
   {
     "name": "equalto-match",
@@ -1867,7 +1961,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "items-langmap-in-membership-valid",
@@ -1939,7 +2036,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011"
+    ]
   },
   {
     "name": "items-string-label-in-membership-valid",
@@ -2035,7 +2135,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "input-root-data-not-object",
@@ -2700,7 +2803,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-019"
+    ]
   },
   {
     "name": "value-required-not-whitespace",
@@ -2772,7 +2879,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-019"
+    ]
   },
   {
     "name": "value-empty-skips-other-rules",
@@ -2866,7 +2976,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-003",
+      "CUVR-020"
+    ]
   },
   {
     "name": "value-length-canonical-text",
@@ -3042,7 +3156,11 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-021",
+      "CUVR-022"
+    ]
   },
   {
     "name": "value-length-limits",
@@ -3154,7 +3272,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-003",
+      "CUVR-004"
+    ]
   },
   {
     "name": "value-length-fraction-limit",
@@ -3177,7 +3299,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-negative-limit",
@@ -3200,7 +3325,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-unsafe-limit",
@@ -3223,7 +3351,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-condition-map-limit",
@@ -3253,7 +3384,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-ternary-limit",
@@ -3280,7 +3414,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-data-limit-selected",
@@ -3311,7 +3448,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-data-limit-unselected",
@@ -3350,7 +3490,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-003"
+    ]
   },
   {
     "name": "value-length-data-limit-valid",
@@ -3389,7 +3532,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-003"
+    ]
   },
   {
     "name": "value-length-condition-true",
@@ -3416,7 +3562,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-condition-false",
@@ -3466,7 +3615,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid minlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-length-reversed-range",
@@ -3492,7 +3644,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-043"
+    ]
   },
   {
     "name": "value-length-fraction-range",
@@ -3518,7 +3673,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-043"
+    ]
   },
   {
     "name": "value-in-comma-string",
@@ -3670,7 +3828,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-029"
+    ]
   },
   {
     "name": "value-in-list",
@@ -3773,7 +3935,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-029"
+    ]
   },
   {
     "name": "value-in-map",
@@ -3854,7 +4020,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-029"
+    ]
   },
   {
     "name": "value-in-array-elements",
@@ -3961,7 +4131,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-029"
+    ]
   },
   {
     "name": "value-in-member-order",
@@ -3991,7 +4165,11 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must be strings, numbers or booleans",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-029",
+      "CUVR-051"
+    ]
   },
   {
     "name": "value-in-member-emptiness-first",
@@ -4019,7 +4197,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must not be empty",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-052"
+    ]
   },
   {
     "name": "value-in-empty-list",
@@ -4117,7 +4298,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-020"
+    ]
   },
   {
     "name": "value-in-empty-map",
@@ -4176,7 +4361,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-020"
+    ]
   },
   {
     "name": "value-in-empty-list-required",
@@ -4223,7 +4412,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-011",
+      "CUVR-020"
+    ]
   },
   {
     "name": "value-in-choice-list",
@@ -4386,7 +4580,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011"
+    ]
   },
   {
     "name": "value-in-choice-list-items",
@@ -4462,7 +4659,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011"
+    ]
   },
   {
     "name": "value-in-choice-groups",
@@ -4806,7 +5006,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011"
+    ]
   },
   {
     "name": "value-in-choice-groups-only",
@@ -4872,7 +5075,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011"
+    ]
   },
   {
     "name": "value-in-choice-groups-empty",
@@ -4900,7 +5106,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-groups-choices-text",
@@ -4932,7 +5141,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-groups-nested",
@@ -4970,7 +5182,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-groups-extra-member",
@@ -5004,7 +5219,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-groups-without-label",
@@ -5036,7 +5254,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-groups-duplicate",
@@ -5073,7 +5294,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-extra-member",
@@ -5102,7 +5326,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-missing-label",
@@ -5129,7 +5356,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-mixed",
@@ -5158,7 +5388,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-boolean",
@@ -5186,7 +5419,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-duplicate",
@@ -5218,7 +5454,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-shape-first",
@@ -5250,7 +5489,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-050"
+    ]
   },
   {
     "name": "value-in-choice-list-empty-value",
@@ -5282,7 +5524,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must not be empty",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-052"
+    ]
   },
   {
     "name": "value-in-blank-string",
@@ -5305,7 +5550,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must not be empty",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-052"
+    ]
   },
   {
     "name": "value-in-empty-item",
@@ -5328,7 +5576,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must not be empty",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-052"
+    ]
   },
   {
     "name": "value-in-blank-element",
@@ -5354,7 +5605,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must not be empty",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-052"
+    ]
   },
   {
     "name": "value-in-nested-list",
@@ -5381,7 +5635,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must be strings, numbers or booleans",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-051"
+    ]
   },
   {
     "name": "value-in-null-member",
@@ -5407,7 +5664,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: members must be strings, numbers or booleans",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-051"
+    ]
   },
   {
     "name": "value-in-number-parameter",
@@ -5430,7 +5690,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected a list, a comma-separated string or a map",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-049"
+    ]
   },
   {
     "name": "value-in-true-parameter",
@@ -5453,7 +5716,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid in parameter: expected a list, a comma-separated string or a map",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-049"
+    ]
   },
   {
     "name": "pattern-whole-alternation",
@@ -5526,7 +5792,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-038"
+    ]
   },
   {
     "name": "pattern-whole-trailing-newline",
@@ -5578,7 +5848,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "pattern-anchors",
@@ -5616,7 +5889,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-039"
+    ]
   },
   {
     "name": "pattern-shorthand-ascii",
@@ -5689,7 +5966,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-032"
+    ]
   },
   {
     "name": "pattern-shorthand-space",
@@ -5762,7 +6043,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-032"
+    ]
   },
   {
     "name": "pattern-complements",
@@ -5828,7 +6113,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-032"
+    ]
   },
   {
     "name": "pattern-any-character",
@@ -5901,7 +6190,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-033"
+    ]
   },
   {
     "name": "pattern-escapes",
@@ -5939,7 +6232,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-031"
+    ]
   },
   {
     "name": "pattern-classes",
@@ -5991,7 +6288,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-034"
+    ]
   },
   {
     "name": "pattern-properties",
@@ -6057,7 +6358,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-018",
+      "CUVR-035"
+    ]
   },
   {
     "name": "pattern-groups-quantifiers",
@@ -6116,7 +6422,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-036",
+      "CUVR-037"
+    ]
   },
   {
     "name": "pattern-class-members",
@@ -6154,7 +6465,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-034"
+    ]
   },
   {
     "name": "pattern-script-complement",
@@ -6213,7 +6528,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-018",
+      "CUVR-035"
+    ]
   },
   {
     "name": "pattern-empty-alternatives",
@@ -6265,7 +6585,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-038"
+    ]
   },
   {
     "name": "pattern-anchors-only",
@@ -6310,7 +6634,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-020",
+      "CUVR-039"
+    ]
   },
   {
     "name": "pattern-array-value",
@@ -6363,7 +6692,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "pattern-size-limit",
@@ -6408,7 +6740,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-040"
+    ]
   },
   {
     "name": "pattern-depth-limit",
@@ -6446,7 +6782,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-036"
+    ]
   },
   {
     "name": "pattern-linear-alternation",
@@ -6484,7 +6824,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-038"
+    ]
   },
   {
     "name": "pattern-linear-repetition",
@@ -6522,7 +6866,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "pattern-large-property-repetition",
@@ -6574,7 +6921,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "pattern-unicode-data",
@@ -6612,7 +6962,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-018"
+    ]
   },
   {
     "name": "pattern-class-literals",
@@ -6664,7 +7018,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-034"
+    ]
   },
   {
     "name": "pattern-leading-zero-bounds",
@@ -6702,7 +7060,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-037"
+    ]
   },
   {
     "name": "pattern-single-anchor",
@@ -6740,7 +7102,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-039"
+    ]
   },
   {
     "name": "pattern-integer-canonical-text",
@@ -6770,7 +7136,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-021"
+    ]
   },
   {
     "name": "pattern-delimiters-are-text",
@@ -6822,7 +7191,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009",
+      "CUVR-030"
+    ]
   },
   {
     "name": "pattern-canonical-text",
@@ -6873,7 +7246,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-021"
+    ]
   },
   {
     "name": "pattern-match-name",
@@ -6911,7 +7287,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "pattern-invalid-empty",
@@ -6934,7 +7313,10 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: empty pattern at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-open-group",
@@ -6957,7 +7339,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unterminated group at 3",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-open-class",
@@ -6980,7 +7366,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unterminated class at 3",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-close-group",
@@ -7003,7 +7393,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unexpected character at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-close-class",
@@ -7026,7 +7420,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unexpected character at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-brace",
@@ -7049,7 +7447,10 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-bare-brace",
@@ -7072,7 +7473,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-leading-quantifier",
@@ -7095,7 +7500,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-stacked-quantifier",
@@ -7118,7 +7527,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 2",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-possessive",
@@ -7141,7 +7554,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 2",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-reversed-bounds",
@@ -7164,7 +7581,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-large-bound",
@@ -7187,7 +7608,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-open-bound",
@@ -7210,7 +7635,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid quantifier at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-037",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-inner-anchor",
@@ -7233,7 +7662,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unexpected character at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-039",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-leading-end",
@@ -7256,7 +7689,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unexpected character at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-039",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-unknown-escape",
@@ -7279,7 +7716,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-word-boundary",
@@ -7302,7 +7743,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-backreference",
@@ -7325,7 +7770,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 3",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-short-unicode",
@@ -7348,7 +7797,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-surrogate",
@@ -7371,7 +7824,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-large-code-point",
@@ -7394,7 +7851,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-hex",
@@ -7417,7 +7878,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-031",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-inline-flag",
@@ -7440,7 +7905,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unsupported construct at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-lookahead",
@@ -7463,7 +7932,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unsupported construct at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-lookbehind",
@@ -7486,7 +7959,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unsupported construct at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-group-name",
@@ -7509,7 +7986,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid group name at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-duplicate-name",
@@ -7532,7 +8013,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: duplicate group name at 7",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-empty-class",
@@ -7555,7 +8040,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid class at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-class-bracket",
@@ -7578,7 +8067,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid class at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-posix-class",
@@ -7601,7 +8094,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid class at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-reversed-range",
@@ -7624,7 +8121,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid range at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-shorthand-range",
@@ -7647,7 +8148,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid range at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-class-complement",
@@ -7670,7 +8175,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid class at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-nested-size",
@@ -7693,7 +8202,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: pattern too large at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-040",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-unknown-script",
@@ -7716,7 +8229,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid property at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-035",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-property",
@@ -7739,7 +8256,10 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid property at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-short-property",
@@ -7762,7 +8282,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid property at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-035",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-class-dash",
@@ -7785,7 +8309,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid class at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-set-range-end",
@@ -7808,7 +8336,10 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid range at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-outer-size",
@@ -7831,7 +8362,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: pattern too large at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-040",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-size",
@@ -7854,7 +8389,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: pattern too large at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-040",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-plus-size",
@@ -7877,7 +8416,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: pattern too large at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-040",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-size-after-syntax",
@@ -7900,7 +8443,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: unterminated group at 15",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-040",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-depth",
@@ -7923,7 +8470,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: nesting too deep at 100",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-036",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-class-shorthand-end",
@@ -7946,7 +8497,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid class at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-class-escape",
@@ -7969,7 +8524,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid escape at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-class-property",
@@ -7992,7 +8551,12 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid property at 1",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-034",
+      "CUVR-035",
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-unclosed-name",
@@ -8015,7 +8579,10 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid group name at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-surrogate-category",
@@ -8038,7 +8605,11 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid pattern pattern: invalid property at 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-035",
+      "CUVR-057"
+    ]
   },
   {
     "name": "value-parameter-order",
@@ -8071,7 +8642,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "outer"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "value-parameter-row-path",
@@ -8104,7 +8678,10 @@
       "code": "INVALID_RULE_PATTERN",
       "message": "Invalid match pattern: unterminated group at 2",
       "at": "rows.name"
-    }
+    },
+    "requirements": [
+      "CUVR-057"
+    ]
   },
   {
     "name": "pattern-invalid-number-parameter",
@@ -8127,7 +8704,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid pattern parameter: expected a pattern string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-053"
+    ]
   },
   {
     "name": "pattern-invalid-true-parameter",
@@ -8150,7 +8730,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid match parameter: expected a pattern string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-053"
+    ]
   },
   {
     "name": "reference-equalto-true-parameter",
@@ -8173,7 +8756,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid equalTo parameter: expected a field reference string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-054"
+    ]
   },
   {
     "name": "reference-equalto-number-parameter",
@@ -8196,7 +8782,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid equalTo parameter: expected a field reference string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-054"
+    ]
   },
   {
     "name": "reference-enddate-list-parameter",
@@ -8221,7 +8810,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid enddate parameter: expected a field reference string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-054"
+    ]
   },
   {
     "name": "reference-enddate-object-parameter",
@@ -8246,7 +8838,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid enddate parameter: expected a field reference string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-054"
+    ]
   },
   {
     "name": "reference-notequal-list-parameter",
@@ -8271,7 +8866,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid notEqual parameter: expected a string, number or boolean",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-055"
+    ]
   },
   {
     "name": "reference-notequal-object-parameter",
@@ -8296,7 +8894,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid notEqual parameter: expected a string, number or boolean",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-055"
+    ]
   },
   {
     "name": "reference-unique-number-parameter",
@@ -8319,7 +8920,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid unique parameter: expected true, false or a string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-056"
+    ]
   },
   {
     "name": "reference-unique-list-parameter",
@@ -8344,7 +8948,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid unique parameter: expected true, false or a string",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-056"
+    ]
   },
   {
     "name": "reference-parameters-accepted",
@@ -8411,7 +9018,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: no_such_rule",
       "at": "x"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-disabled-rejected",
@@ -8434,7 +9044,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: requried",
       "at": "x"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-case-rejected",
@@ -8461,7 +9074,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: equalto",
       "at": "b"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-row-path",
@@ -8505,7 +9121,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: minLenght",
       "at": "companies.stores.name"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-hidden-field",
@@ -8530,7 +9149,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: maxcont",
       "at": "rows"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-after-parameter",
@@ -8554,7 +9176,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "x"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "unregistered-rule-before-parameter",
@@ -8578,7 +9203,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: no_such_rule",
       "at": "x"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-field-order",
@@ -8625,7 +9253,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: mincunt",
       "at": "outer"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-message",
@@ -8651,7 +9282,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: requierd",
       "at": "x"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-message-order",
@@ -8688,7 +9322,10 @@
       "code": "UNKNOWN_RULE",
       "message": "Unknown rule: typo",
       "at": "outer"
-    }
+    },
+    "requirements": [
+      "CUVR-041"
+    ]
   },
   {
     "name": "unregistered-rule-message-after-parameter",
@@ -8714,7 +9351,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxlength parameter: expected an integer from 0 to 9007199254740991",
       "at": "x"
-    }
+    },
+    "requirements": [
+      "CUVR-042"
+    ]
   },
   {
     "name": "pattern-message-declared-name",
@@ -8783,7 +9423,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-009"
+    ]
   },
   {
     "name": "unique-text-same",
@@ -8823,7 +9466,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "unique-text-case",
@@ -8906,7 +9552,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-020"
+    ]
   },
   {
     "name": "unique-number-same",
@@ -8946,7 +9595,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "unique-number-and-text",
@@ -9060,7 +9712,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "unique-list-order",
@@ -9153,7 +9808,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "unique-number-precision",
@@ -9287,7 +9945,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "unique-object-and-list",
@@ -9383,7 +10044,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-015"
+    ]
   },
   {
     "name": "registered-rule-message-undeclared",
@@ -9415,7 +10079,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-005"
+    ]
   },
   {
     "name": "input-choice-list",
@@ -9789,7 +10456,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "visibility-literal-string-show",
@@ -9823,7 +10493,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "visibility-show-literal-identifier",
@@ -9890,7 +10563,11 @@
       "hidden": [
         "off"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-hidden-data-shape",
@@ -10018,7 +10695,10 @@
         "contact",
         "tags"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-shown-field-validates",
@@ -10148,7 +10828,15 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-002",
+      "CUVR-003",
+      "CUVR-005",
+      "CUVR-009",
+      "CUVR-014"
+    ]
   },
   {
     "name": "visibility-literal-show",
@@ -10208,7 +10896,11 @@
       "hidden": [
         "hidden"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-condition-map",
@@ -10278,7 +10970,11 @@
         "defaulted",
         "matched"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-hidden-group-descendants",
@@ -10387,7 +11083,8 @@
       ]
     },
     "requirements": [
-      "CUEC-006"
+      "CUEC-006",
+      "CUVR-017"
     ]
   },
   {
@@ -10454,7 +11151,12 @@
       "hidden": [
         "items.__a__.note"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-003",
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-row-parent-a",
@@ -10538,7 +11240,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-010"
+    ]
   },
   {
     "name": "visibility-row-parent-7",
@@ -10622,7 +11328,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-010"
+    ]
   },
   {
     "name": "visibility-row-parent-r1",
@@ -10706,7 +11416,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-010"
+    ]
   },
   {
     "name": "reference-nested-group",
@@ -10759,7 +11473,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-010"
+    ]
   },
   {
     "name": "visibility-row-parent-off",
@@ -10823,7 +11540,10 @@
       "hidden": [
         "items.__a__.note"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-017"
+    ]
   },
   {
     "name": "switch-group-subtree-off",
@@ -10876,7 +11596,10 @@
       "hidden": [
         "details"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-017"
+    ]
   },
   {
     "name": "switch-group-subtree-on",
@@ -10942,7 +11665,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "switch-nested-levels-off",
@@ -10992,7 +11718,10 @@
         "outer",
         "outer.inner"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-017"
+    ]
   },
   {
     "name": "switch-nested-levels-on",
@@ -11041,7 +11770,10 @@
       "hidden": [
         "outer.inner"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-017"
+    ]
   },
   {
     "name": "switch-nested-levels-deep",
@@ -11096,7 +11828,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "switch-rows-strict",
@@ -11190,7 +11925,11 @@
       "hidden": [
         "rows.r2.extra"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-017"
+    ]
   },
   {
     "name": "switch-rows-loose",
@@ -11279,7 +12018,11 @@
         "rows.r2.extra",
         "rows.r2.extra.flag"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-hidden-value-still-read",
@@ -11338,7 +12081,10 @@
       ]
     },
     "requirements": [
-      "CUEC-006"
+      "CUEC-006",
+      "CUVR-001",
+      "CUVR-010",
+      "CUVR-017"
     ]
   },
   {
@@ -11433,7 +12179,10 @@
       "hidden": [
         "display"
       ]
-    }
+    },
+    "requirements": [
+      "CUVR-017"
+    ]
   },
   {
     "name": "visibility-toggle-step-3-shown-invalid",
@@ -11494,7 +12243,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-009"
+    ]
   },
   {
     "name": "multiple-only-rows-validated",
@@ -11553,7 +12306,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001",
+      "CUVR-006"
+    ]
   },
   {
     "name": "multiple-only-missing-data-valid",
@@ -11638,7 +12395,8 @@
       "hidden": []
     },
     "requirements": [
-      "CUEC-005"
+      "CUEC-005",
+      "CUVR-001"
     ]
   },
   {
@@ -11685,7 +12443,8 @@
       "hidden": []
     },
     "requirements": [
-      "CUEC-005"
+      "CUEC-005",
+      "CUVR-014"
     ]
   },
   {
@@ -11730,7 +12489,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "multiple-missing-data-mincount",
@@ -11774,7 +12536,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-014"
+    ]
   },
   {
     "name": "multiple-only-empty-required",
@@ -11820,7 +12585,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-001"
+    ]
   },
   {
     "name": "number-text-accepted",
@@ -11913,7 +12681,11 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-023",
+      "CUVR-024"
+    ]
   },
   {
     "name": "number-text-rejected",
@@ -12176,7 +12948,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-005",
+      "CUVR-023",
+      "CUVR-024"
+    ]
   },
   {
     "name": "number-empty-skipped",
@@ -12212,7 +12989,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-020"
+    ]
   },
   {
     "name": "number-underflow",
@@ -12235,7 +13015,10 @@
       "valid": true,
       "errors": [],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-023"
+    ]
   },
   {
     "name": "min-inclusive",
@@ -12301,7 +13084,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-025"
+    ]
   },
   {
     "name": "max-inclusive",
@@ -12353,7 +13140,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-025"
+    ]
   },
   {
     "name": "range-inclusive",
@@ -12424,7 +13215,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-007",
+      "CUVR-025"
+    ]
   },
   {
     "name": "bounds-fail-non-numeric",
@@ -12498,7 +13293,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-025"
+    ]
   },
   {
     "name": "max-reads-exponent",
@@ -12529,7 +13328,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-023"
+    ]
   },
   {
     "name": "bounds-negative-zero-and-fractions",
@@ -12573,7 +13376,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-007",
+      "CUVR-025"
+    ]
   },
   {
     "name": "range-field-values",
@@ -12742,7 +13549,12 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-007",
+      "CUVR-008",
+      "CUVR-020"
+    ]
   },
   {
     "name": "step-exact-decimal",
@@ -12829,7 +13641,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-008"
+    ]
   },
   {
     "name": "step-small-and-large",
@@ -12867,7 +13682,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-008"
+    ]
   },
   {
     "name": "step-large",
@@ -12912,7 +13730,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-008"
+    ]
   },
   {
     "name": "step-fails-non-numeric",
@@ -12950,7 +13771,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-008"
+    ]
   },
   {
     "name": "step-quarter",
@@ -12988,7 +13812,10 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-008"
+    ]
   },
   {
     "name": "digits-values",
@@ -13152,7 +13979,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-005",
+      "CUVR-026"
+    ]
   },
   {
     "name": "count-values",
@@ -13284,7 +14115,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-014",
+      "CUVR-027"
+    ]
   },
   {
     "name": "in-numeric-text",
@@ -13376,7 +14211,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-029"
+    ]
   },
   {
     "name": "message-parameter-text",
@@ -13421,7 +14260,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-028"
+    ]
   },
   {
     "name": "message-large-parameter",
@@ -13452,7 +14295,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-028"
+    ]
   },
   {
     "name": "message-every-placeholder",
@@ -13489,7 +14336,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-007",
+      "CUVR-028"
+    ]
   },
   {
     "name": "message-missing-placeholder",
@@ -13523,7 +14374,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006",
+      "CUVR-028"
+    ]
   },
   {
     "name": "in-member-as-written",
@@ -13572,7 +14427,11 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-011",
+      "CUVR-029"
+    ]
   },
   {
     "name": "number-parameter-number",
@@ -13595,7 +14454,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid number parameter: expected true or false",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-044"
+    ]
   },
   {
     "name": "digits-parameter-number",
@@ -13618,7 +14480,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid digits parameter: expected true or false",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-044"
+    ]
   },
   {
     "name": "min-parameter-true",
@@ -13641,7 +14506,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid min parameter: expected a finite number",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-045"
+    ]
   },
   {
     "name": "max-parameter-list",
@@ -13666,7 +14534,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid max parameter: expected a finite number",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-045"
+    ]
   },
   {
     "name": "min-parameter-object",
@@ -13692,7 +14563,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid min parameter: expected a finite number",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-045"
+    ]
   },
   {
     "name": "range-parameter-reversed",
@@ -13718,7 +14592,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-046"
+    ]
   },
   {
     "name": "range-parameter-short",
@@ -13743,7 +14620,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-046"
+    ]
   },
   {
     "name": "range-parameter-long",
@@ -13770,7 +14650,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-046"
+    ]
   },
   {
     "name": "range-parameter-null-bound",
@@ -13796,7 +14679,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-046"
+    ]
   },
   {
     "name": "step-parameter-zero",
@@ -13819,7 +14705,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid step parameter: expected a finite number above 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-047"
+    ]
   },
   {
     "name": "step-parameter-negative",
@@ -13842,7 +14731,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid step parameter: expected a finite number above 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-047"
+    ]
   },
   {
     "name": "step-parameter-true",
@@ -13865,7 +14757,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid step parameter: expected a finite number above 0",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-047"
+    ]
   },
   {
     "name": "mincount-parameter-fraction",
@@ -13888,7 +14783,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid mincount parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-048"
+    ]
   },
   {
     "name": "maxcount-parameter-negative",
@@ -13911,7 +14809,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxcount parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-048"
+    ]
   },
   {
     "name": "maxcount-parameter-true",
@@ -13934,7 +14835,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid maxcount parameter: expected an integer from 0 to 9007199254740991",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-048"
+    ]
   },
   {
     "name": "min-parameter-from-data",
@@ -13965,7 +14869,10 @@
       "code": "INVALID_RULE_PARAMETER",
       "message": "Invalid min parameter: expected a finite number",
       "at": "value"
-    }
+    },
+    "requirements": [
+      "CUVR-045"
+    ]
   },
   {
     "name": "min-parameter-from-data-numeric",
@@ -14004,6 +14911,9 @@
         }
       ],
       "hidden": []
-    }
+    },
+    "requirements": [
+      "CUVR-006"
+    ]
   }
 ]
