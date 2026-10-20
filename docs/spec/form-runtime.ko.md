@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 82d6fea79806ffff4bb0fe9f176f3a0a541a65ab64c0bff1a2a60b2160a75fcc -->
+<!-- source-sha256: 58bd1e4f72ad64fff3e30702771fbaeabb057b03acdc1195ac782d45a9c9c141 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -18,17 +18,17 @@
 로드하지 않습니다. 평가한 값과 표시 조건은 인스턴스 상태이므로 공용 템플릿
 캐시에 저장하면 안 됩니다.
 
-`bindForm`, `bindButtons`, `createForm`은 `compileForm`이 만드는 형태와 정확히 같은
-템플릿만 받습니다. 그 밖의 값은 `INVALID_FORM_INPUT`, 메시지
-`Unsupported form template`, 빈 위치로 실패합니다. 템플릿은 `kind`
-(`crudui/form-template`), `fields`(필드 템플릿 목록), `buttons`(객체 목록), 선택
-항목인 `keyPrefix`(문자열), `action`(객체), `description`(모든 값)만 멤버로 갖는 객체이며,
-`version` 멤버는 없습니다. `compileForm`은 멤버를 `kind`, `keyPrefix`, `fields`, `buttons`,
-`action`, `description` 순서로 쓰며, 루트가 `description`을 선언하면 그 값을 `description`으로
-씁니다. 각 필드 템플릿은 문자열 `name`, 객체 `spec`, 필드 템플릿 목록
-`children`만 정확히 갖습니다. `spec`과 버튼의 내용은 다시 검사하지 않습니다.
-JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 연관 배열은
-객체, 빈 배열과 리스트 배열은 목록입니다. 노드 모델은 [폼 마크업](form-markup.ko.md)이
+- **CURT-092** `bindForm`, `bindButtons`, `createForm`은 `compileForm`이 만드는 형태와 정확히 같은
+  템플릿만 받습니다. 그 밖의 값은 `INVALID_FORM_INPUT`, 메시지
+  `Unsupported form template`, 빈 위치로 실패합니다. 템플릿은 `kind`
+  (`crudui/form-template`), `fields`(필드 템플릿 목록), `buttons`(객체 목록), 선택
+  항목인 `keyPrefix`(문자열), `action`(객체), `description`(모든 값)만 멤버로 갖는 객체이며,
+  `version` 멤버는 없습니다. `compileForm`은 멤버를 `kind`, `keyPrefix`, `fields`, `buttons`,
+  `action`, `description` 순서로 쓰며, 루트가 `description`을 선언하면 그 값을 `description`으로
+  씁니다. 각 필드 템플릿은 문자열 `name`, 객체 `spec`, 필드 템플릿 목록
+  `children`만 정확히 갖습니다. `spec`과 버튼의 내용은 다시 검사하지 않습니다.
+  JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 연관 배열은
+  객체, 빈 배열과 리스트 배열은 목록입니다. 노드 모델은 [폼 마크업](form-markup.ko.md)이
 정한 멤버 순서를 지키며, 모든 런타임에서 위젯 모델의 멤버는 `kind`, `layout`,
 `tag`, `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`,
 `script`, `styleChrome`, `prepend`, `append`, `extra` 순서이고

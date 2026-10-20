@@ -17,18 +17,18 @@ without modifying the template or data.
 It does not load composition files. Evaluated values and display conditions are
 instance state and must not be stored in a shared template cache.
 
-`bindForm`, `bindButtons` and `createForm` accept only a template that has exactly
-the shape `compileForm` produces; any other value fails with `INVALID_FORM_INPUT`,
-message `Unsupported form template` and an empty location. The template is an
-object whose only members are `kind` (`crudui/form-template`), `fields` (a list
-of field templates), `buttons` (a list of objects), an optional `keyPrefix`
-(a string), an optional `action` (an object) and an optional `description` (any
-value); a template has no `version` member. `compileForm` writes the members in the
-order `kind`, `keyPrefix`, `fields`, `buttons`, `action`, `description`, and writes
-`description` with the root's declared `description` when the root declares one. Each field template has exactly a string `name`, an object `spec` and a
-field template list `children`. The contents of `spec` and of the buttons are
-not checked again. In JavaScript a member whose value is `undefined` is absent;
-in PHP an associative array is an object and an empty or list array is a list.
+- **CURT-092** `bindForm`, `bindButtons` and `createForm` accept only a template that has exactly
+  the shape `compileForm` produces; any other value fails with `INVALID_FORM_INPUT`,
+  message `Unsupported form template` and an empty location. The template is an
+  object whose only members are `kind` (`crudui/form-template`), `fields` (a list
+  of field templates), `buttons` (a list of objects), an optional `keyPrefix`
+  (a string), an optional `action` (an object) and an optional `description` (any
+  value); a template has no `version` member. `compileForm` writes the members in the
+  order `kind`, `keyPrefix`, `fields`, `buttons`, `action`, `description`, and writes
+  `description` with the root's declared `description` when the root declares one. Each field template has exactly a string `name`, an object `spec` and a
+  field template list `children`. The contents of `spec` and of the buttons are
+  not checked again. In JavaScript a member whose value is `undefined` is absent;
+  in PHP an associative array is an object and an empty or list array is a list.
 Node models keep the member order the [form markup](form-markup.md) defines, and
 every widget model lists its members in the order `kind`, `layout`, `tag`,
 `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`, `script`,

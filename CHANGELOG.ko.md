@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5de2c5740f1083cca125b350f3d8b4a4b42d2f56050f6a62ec3c161346da9871 -->
+<!-- source-sha256: bd64b9d53615e090095cac58521072455d8f585820a1c614a60caaee968cd5dc -->
 
 ## Unreleased
 
@@ -26,6 +26,11 @@
 
 - `tests/fixtures/form-render/cases.json`에 case 두 개가 `packages/react/scripts/scenario-form-render-cases.ts`를 거쳐 React reference로 렌더링되어 추가되었습니다: `nested-empty-collections-keep-sibling-order`(명시적으로 빈 중첩 collection, 형제 행은 키와 데이터 순서를 유지함; CUEC-001, CURP-027)와 `scalar-multiple-empty-object-has-no-rows`(반복되는 scalar의 명시적 빈 객체는 행 0개; CUEC-001, CUEC-004)입니다. Go, Python, Rust runner는 새 결과 case를 셉니다. `config/parity.json`의 form-render unit은 CURP-027을 인용합니다.
 - `packages/generator/ts/src/empty-collections.test.ts`는 아직 undeclared 상태입니다. 객체가 아닌 데이터의 `bindForm` 거부(CUEC-003)와 데이터를 바꾸지 않는 visibility 단언(CUEC-006)에 인용된 case가 없으므로, 파일을 internal로 선언하지 않았습니다.
+
+### 2026-10-21 — 폼 템플릿 형태는 requirement CURT-092이다 (C16.127)
+
+- `docs/spec/form-runtime.md`는 `bindForm`, `bindButtons`, `createForm`이 받는 형태를 requirement CURT-092로 정합니다. 한국어 문서도 같은 규칙을 정합니다.
+- `tests/fixtures/template-shape`는 TypeScript 기준 구현이 생성한 case 42개를 담습니다. 세 operation마다 `compileForm`의 템플릿, 선택 멤버가 있는 템플릿, 형태 위반 12개를 두며, 각 위반은 `INVALID_FORM_INPUT`, `Unsupported form template`, 빈 위치로 거부됩니다.
 
 ### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
 

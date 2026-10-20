@@ -638,6 +638,10 @@
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
     },
+    "tests/fixtures/template-shape/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixture of the form template shape that every port must reproduce (S6); no ecosystem tool defines the fixture"
+    },
     "scripts/json-schema.mts": {
       "kind": "ecosystem",
       "tool": "ajv (the JSON Schema validator of the repository, which packages/validator/ts and packages/cli use)"
