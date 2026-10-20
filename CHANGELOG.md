@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Rust native generator program builds with the i64 row index (C16.50-3-1)
+
+- The `moveRow` operation of `tests/native-generators/programs/rust/src/main.rs` reads its index as an `i64` and keeps refusing a negative or non-integer index with `Row position must be a nonnegative integer`, since C16.50-3 changed `Form::move_row` to take an `i64` (C16.50-3-1). Red: `cargo build --locked --manifest-path tests/native-generators/programs/rust/Cargo.toml` exited 101 with `error[E0308]: mismatched types` (expected `i64`, found `usize`) at `main.rs:147`; green: exit 0.
+
 ### 2026-10-20 — The Rust generator has resolveAction and runAction (C16.50-3)
 
 - `packages/generator/rust/src/actions.rs` adds `resolve_action`, `run_action` and the types `ActionName`, `ActionInput`, `ActionTarget`, `ActionResult` and `FocusTarget` over the eleven form actions of CURT-081 to CURT-090, `packages/generator/rust/src/instance.rs` takes a signed position in `move_row` so that a position before the first row fails with the reference message, and `packages/generator/rust/tests/form_state.rs` runs the `form-actions` sessions with the history flags in `form_actions_sessions_equal_the_recorded_observations`, whose `perform` handles `resolveAction` and `runAction` (C16.50-3). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` exit 1, 3 passed and 1 failed; the `form-actions` session `resolve-action-names` fails at step 0 with the API stubbed to zero values; green: exit 0, 4 passed, 0 failed.

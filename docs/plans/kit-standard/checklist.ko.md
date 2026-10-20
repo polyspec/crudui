@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 69599735be8e7de39e1f3e01abb672c24f5c8c23f8a51ee3a15ce1c09d50509b -->
+<!-- source-sha256: ddd911f88fbc702728362b8d40d5222aa329ed18950348576af9bb10dec37996 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -81,6 +81,7 @@
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.50-1 | Go generator는 resolveAction과 runAction을 공유 form-actions session과 함께 가진다 | packages/generator/go/actions.go packages/generator/go/form_state_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions\|TestFormHistory\|TestFormView' .` | [o] |
 | C16.50-3 | Rust generator는 resolveAction과 runAction을 공유 form-actions session과 함께 가진다 | packages/generator/rust/src/actions.rs packages/generator/rust/src/lib.rs packages/generator/rust/src/instance.rs packages/generator/rust/tests/form_state.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
+| C16.50-3-1 | native generator protocol의 Rust program은 Form::move_row의 i64 row index로 빌드된다 | tests/native-generators/programs/rust/src/main.rs | `cargo build --locked --manifest-path tests/native-generators/programs/rust/Cargo.toml` | [o] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.51-1 | 뷰 상태, 이력, 작업의 중립 규칙과 공유 case 를 쓴다: docs/spec/form-runtime.md 의 CURT-061 부터 CURT-090, TypeScript reference 가 생성하는 고정 데이터 family form-view, form-history, form-actions, view-functions, history-functions, 그리고 중립 입력을 받는 TypeScript resolveAction | docs/spec/form-runtime.md, tests/fixtures/form-state, form-view, form-history, form-actions, view-functions, history-functions, packages/generator/ts/src/actions.ts, form-state.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |
 | C16.51-2 | form-view 세션에서 canUndo 와 canRedo 를 뺀다. 이력이 없는 구현도 실행할 수 있게 한다 | tests/fixtures/form-state, tests/fixtures/form-view, packages/generator/ts/src/form-state.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |

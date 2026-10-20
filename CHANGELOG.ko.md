@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c2a63214f451f130b65b678fb6848fa2b28a41ee04b67c36efbdebc39add98fa -->
+<!-- source-sha256: 5faa480aa930a5bf1cb6cc00eca52cf4c5b2a9d30dff363e91abd5e54e618e3c -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust native generator program은 i64 row index로 빌드된다 (C16.50-3-1)
+
+- C16.50-3이 `Form::move_row`가 `i64`를 받게 바꾸었으므로, `tests/native-generators/programs/rust/src/main.rs`의 `moveRow` 연산은 index를 `i64`로 읽고 음수나 정수가 아닌 index는 계속 `Row position must be a nonnegative integer`로 거부합니다(C16.50-3-1). Red: `cargo build --locked --manifest-path tests/native-generators/programs/rust/Cargo.toml`이 `main.rs:147`에서 `error[E0308]: mismatched types`(expected `i64`, found `usize`)로 exit 101이었고, green: exit 0입니다.
 
 ### 2026-10-20 — Rust generator는 resolveAction과 runAction을 가진다 (C16.50-3)
 

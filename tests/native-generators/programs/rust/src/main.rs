@@ -141,8 +141,8 @@ fn action(form: &mut Form, action: &Value, text: Option<&JsonText>) -> FormResul
         "moveRow" => {
             let index = args
                 .get(2)
-                .and_then(Value::as_u64)
-                .and_then(|index| usize::try_from(index).ok())
+                .and_then(Value::as_i64)
+                .filter(|index| *index >= 0)
                 .ok_or_else(|| input("Row position must be a nonnegative integer"))?;
             form.move_row(string_arg(args, 0)?, string_arg(args, 1)?, index)?;
         }
