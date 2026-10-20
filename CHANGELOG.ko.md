@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 82286c6f71ae0b86ebd6bc6d62fe5e71c20cfd4fda8096bc317a21f2bf0bacaf -->
+<!-- source-sha256: d10d897d6a8fff64803bb04caf1be92701a7a9abdcdab55b8314af0068539d8d -->
 
 ## Unreleased
 
@@ -13,6 +13,10 @@
 - render와 outline 제품군은 자기 case가 실행하는 런타임 operation을 인용합니다. `tests/fixtures/form-complete`는 CURP-013(`renderForm`), `tests/fixtures/list-render`는 CURP-015(`renderList`), `tests/fixtures/detail-render`는 CURP-017(`renderDetail`), `tests/fixtures/form-outline`은 CURP-006(`compileForm`), CURP-007(`bindForm`), CURP-021(바인딩이 record에 대해 field를 평가함)을 인용합니다. form state 세션(`form-view`, `form-history`, `form-actions`)은 각 세션이 record와 row 작업을 소유하는 instance를 만들므로 CURP-020을 인용합니다. `config/parity.json`의 unit도 같은 id를 인용합니다.
 - 확장된 제품군의 모든 runner가 한 번씩 통과합니다. TypeScript, Go, Python, Rust, PHP library runner와 PHP extension runner입니다.
 - 아직 인용하지 않은 id와 그 이유입니다. CURP-001부터 CURP-005까지는 각각 네 가지 기능을 명시하는 언어별 행입니다. validation과 composition 부분은 validate 제품군이 시험하지만, 다섯 런타임에서 모든 기능을 함께 실행하는 제품군은 없으며, 기능별 인용에 대한 판정이 필요합니다. CURP-008과 CURP-009(`bindButtons`, `formButtonsHtml`)는 실행하는 제품군이 없고, 추가하려면 여섯 runner에 새 operation이 필요합니다. CURP-014와 CURP-016(`buildList`, `buildDetail`)은 text-validity case만 실행하며, 그 파일은 C16.111을 기다립니다. CURP-019(컴파일된 template의 직렬화와 캐시)는 직렬화된 컴파일 출력을 비교하는 제품군이 없습니다. CURP-023(브라우저 바인딩)은 JavaScript 브라우저 런타임만 가지는 단일 구현 요구사항이므로 판정을 기다립니다. CURP-024(한 런타임이 컴파일한 template을 다른 런타임이 바인딩함)는 그런 제품군이 없으며 C16.111을 기다립니다. CURP-025(ordered JSON 전송)는 ordered-json 저장소에서 시험합니다. CURP-026(PHP 배열이 객체인지 목록인지)은 C16.57-13이 main에 들어간 뒤 form state 세션의 PHP root case가 인용합니다.
+
+### 2026-10-21 — input-text case가 시험하는 limit와 오류 타입 요구를 인용한다 (C16.57-15)
+
+- `tests/fixtures/text-validity/value-graphs.json`의 case는 `requirements` 배열을 가집니다. 노드와 중첩 limit CUIT-021과 CUIT-022, limit을 넘는 value의 실패 CUIT-029 ~ CUIT-031, 그리고 TypeScript, PHP, Go runner가 각 실패를 class로 대조하는 검증 오류 class CUIT-032, CUIT-033, CUIT-035입니다(C16.57-15). `validate`, `validateList`, `validateDetail`의 실패 case도 같은 이유로 CUIT-032, CUIT-033, CUIT-035를 인용합니다(C16.57-15). Red: CUIT-021, CUIT-022, CUIT-029 ~ CUIT-033, CUIT-035를 인용한 case가 없었습니다. Green: `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/text/text-validity.conformance.test.ts` 53 passed; PHP validator `TextValidityConformanceTest.php` 45 passed; `make test-php-ext CASES=TextValidityConformanceTest` exit 0, 45 passed; Python `tests.test_text_validity` 4 OK; Go `validator/validate`의 text fixture 48 passed; Rust `text_validity_conformance` 5 passed. 인용하지 않았고 보고합니다: CUIT-034(PHP 생성 오류)와 CUIT-035, CUIT-036의 생성 부분(native generator runner는 생성 실패의 code, message, location을 검사하며 class는 검사하지 않음). CUIT-036은 검증 부분도 인용하지 않았습니다(Rust runner는 실패를 code로 대조하고, load class는 한 case에서만 검사함). CUIT-029 ~ CUIT-031은 options와 rows 인수에 대해 인용하지 않았습니다(value-graph case는 `spec`, `files`, `data` 아래에만 graph를 둘 수 있음).
 
 ### 2026-10-21 — layout check가 native program의 Go test와 Composer vendor folder를 받아들인다 (C16.115)
 
