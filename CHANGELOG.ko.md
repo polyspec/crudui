@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f667648a380a1f5b5dd4be58320d4ddd27ce82c4c254989c6437f3236f064ce8 -->
+<!-- source-sha256: 4a5c6ce3f4a5dd349c9281931bdd24047c9446cc261e24cac5d867a692bb3716 -->
 
 ## Unreleased
+
+### 2026-10-20 — CHECK_TARGETS의 link-check gate (C16.42)
+
+- `CHECK_TARGETS`는 kit이 `kit-gates`에 더한 gate `link-check`를 나열하고, `make kit-sync`는 principle file을 kit의 현재 text로 맞췄습니다 (C16.42). Red: `make kit-check` exit 1(`CHECK_TARGETS runs no link-check`, 두 principle file이 다름), green: exit 0.
 
 ### 2026-10-20 — phpize로 빌드하는 PHP extension (C16.9)
 

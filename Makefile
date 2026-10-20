@@ -502,6 +502,7 @@ CHECK_TARGETS = \
 	parity-declarations-check \
 	parity-check \
 	commits-check \
+	link-check \
 	lint-ts \
 	lint-php \
 	lint-python \
