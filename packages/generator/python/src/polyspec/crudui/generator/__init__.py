@@ -23,6 +23,7 @@ from .input_text import inputs as _check_inputs
 from .input_text import specification as _check_specification
 from .lists import build_public as _list_build
 from .lists import render as _list_render
+from .outline import build as _outline_build
 from .rendering import form as _render_form
 from .template import compile as _template_compile
 
@@ -144,6 +145,11 @@ class Generator:
         options = options or {}
         _display_checks(spec, ("record", record if record is not None else {}), options)
         return _detail_build(spec, record, options)
+
+    @staticmethod
+    def buildOutline(nodes: Any) -> Any:
+        """The structure map of evaluated nodes: the form's rows, nested as in the form."""
+        return _outline_build(nodes)
 
     @staticmethod
     def sequenceRowKey(sequence: Any) -> Any:

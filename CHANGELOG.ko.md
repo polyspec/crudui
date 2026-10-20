@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a7cbddb7cb643a70a791a7a32ef936e513cd126cea1adfe7c4ac2070c0f4254b -->
+<!-- source-sha256: e5f2a81e25ec78719f3b0724d0beed9b56b53b6d11f0084118fd60f779353107 -->
 
 ## Unreleased
 
