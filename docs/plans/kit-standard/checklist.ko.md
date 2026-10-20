@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3437c385e0957683f253dc46de5bb68be33e232b45b1aa51334c3f6c452b4c51 -->
+<!-- source-sha256: 8ccea6d55c361d3e90aed9d8d6e44785e59c5411aecdbb520e1cf07ebedf450e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -21,6 +21,7 @@
 | C16.7-8 | offline-checks test는 kit 0.0.54가 정의한 대로 online target을 나열한다 | tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/offline-checks.test.mts` | [o] |
 | C16.7-9 | config/rebuild.json은 모든 도구 source를 다룬다. Go와 Rust generator, fixture와 benchmark generator, example의 build script | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-10 | config/rebuild.json은 kit이 layout으로 찾는 모든 도구 source를 paths 없이 분류한다 | config/rebuild.json | `make rebuild-check` | [o] |
+| C16.7-11 | kit에 local 전체 실행이 없으므로 config/owner-checks.json은 fullSuite target을 적지 않는다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체). kit export를 기다린다 | scripts, config/rebuild.json | `make rebuild-check` | [ ] |

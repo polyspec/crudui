@@ -5,9 +5,6 @@
     "tests/build/test-commands.test.mts",
     "tests/build/package-names.test.mts"
   ],
-  "fullSuite": [
-    "ci"
-  ],
   "owners": [
     {
       "paths": [

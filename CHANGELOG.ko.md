@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0081d021dfab147ab374a6a64996c6028b5120be0b5baef3a7c5c21baeffbebb -->
+<!-- source-sha256: d51baf752d9c7036a61a1210445f42eb4f6ad47718ee69c39e9b0984725d28e3 -->
 
 ## Unreleased
+
+### 2026-10-20 — owner 검사에 fullSuite target 없음 (C16.7-11)
+
+- `config/owner-checks.json`은 `fullSuite`를 제거합니다. 유일한 항목 `ci`를 local 전체 실행과 함께 Makefile에서 제거했으므로(C16.7-3), owner 검사는 더는 없는 target을 이름으로 부르지 않습니다 (C16.7-11). Red: `make owner-validate` exit 1(`fullSuite names ci, which is not a target`), green: exit 0(`owns every tracked path`).
 
 ### 2026-10-20 — Rust generator의 공유 helper (C16.39)
 

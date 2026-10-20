@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — No fullSuite target in the owner checks (C16.7-11)
+
+- `config/owner-checks.json` drops `fullSuite`, whose only entry `ci` I removed from the Makefile with the local full run (C16.7-3), so the owner check no longer names a target that does not exist (C16.7-11). Red: `make owner-validate` exit 1 (`fullSuite names ci, which is not a target`); green: exit 0 (`owns every tracked path`).
+
 ### 2026-10-20 — Shared helpers in the Rust generator (C16.39)
 
 - `bindable_language` checks the record and the template and reads the language for `bind_buttons` and `bind_ordered`; the fixture test calls `settled` for the form and the list cases; `generateTable` writes both message tables of the Rust generator tool; and the `written` helper of the tests builds the ordered object with `Map::from_iter` (C16.39). Red: `make duplication-check` listed 5 clones in the Rust generator and the validator's compose tests; green: the generator clones are gone, 1 remains between `tests.rs` and `compose.rs` of the validator (the one-line `written` helper of two crates, which share no test crate); `native_fixture_records`, `bind`, the two generator tool tests and `make lint-rust` pass. The behaviour is unchanged, so the red is the clone list.
