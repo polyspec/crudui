@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 60387933e159ecef58b1f62db7ef39a0bd8e9d7baa3f69fa7b70b7f5ce3d78e3 -->
+<!-- source-sha256: 498e09abcc1a029b51bd10b9097d9dc7aa5ab24bd757042c7046df9e077c8e5b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -97,3 +97,4 @@
 | C16.61 | 중립 규칙은 각 implementation이 폼 값 모델을 네이티브 타입으로 옮기는 방식을 서술한다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md | `make parity-declarations-check` defines CURP-026 and `check-documents` passes | [o] |
 | C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [ ] |
 | C16.63 | make link가 Go module 옆에 쓰는 go.work와 go.work.sum file은 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` writes the Go links without refusing | [o] |
+| C16.64 | 계약 manifest는 @polyspec/crudui-generator-core의 internal export를 선언하거나, 해당 entry가 export하지 않도록 하여 make manifest-check가 통과합니다 | `contracts/`, `packages/generator/ts/src/internal.ts` | `make manifest-check` | [ ] |
