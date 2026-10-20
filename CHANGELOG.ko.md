@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5a1048188afdec798eab22cb101b66f56dec8c113dfa50f18e3cb77b8505a69f -->
+<!-- source-sha256: 31c9d30ad6a4c9c3712c94d2b2f94c7c50eb047d18ae41a3b1c5ffd9e202b095 -->
 
 ## Unreleased
+
+### 2026-10-21 — 설치 검사가 링크된 checkout의 kit를 받아들인다 (C16.162)
+
+- `tests/build/runtime-version-policy.test.mts`("make installs nothing on its own and make install installs the Rust toolchain")가 `make install`의 install-tools 단계를 `node_modules/@polyspec/kit/dist` 또는 `../kit/dist` 아래에서 찾는다 (C16.162): kit가 형제 checkout에 링크된(make link) checkout에서는 KIT가 `../kit/dist`이므로, make install이 kit의 install-tools를 실행했는데도 링크된 모든 checkout에서 테스트가 실패했다. Red: 테스트 파일이 53d11cac에서 exit 1; green: exit 0.
 
 ### 2026-10-21 — CI 도구 규칙이 setup-php의 phpize와 php-config를 허용한다 (C16.161)
 

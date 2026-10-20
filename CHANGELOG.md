@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The install check accepts the kit of a linked checkout (C16.162)
+
+- `tests/build/runtime-version-policy.test.mts` ("make installs nothing on its own and make install installs the Rust toolchain") finds the install-tools step of `make install` under `node_modules/@polyspec/kit/dist` or `../kit/dist` (C16.162): in a checkout whose kit is linked to its sibling checkout (make link), KIT is `../kit/dist`, so the test failed in every linked checkout although make install ran kit's install-tools. Red: the test file exit 1 on 53d11cac; green: exit 0.
+
 ### 2026-10-21 — The CI toolchain rule admits the phpize and php-config of setup-php (C16.161)
 
 - `tests/build/runtime-version-policy.test.mts` ("every CI job sets up the recorded toolchains and checks the tools it set up") accepts the setup-php input `tools: phpize, php-config` beside `tools: none` (C16.161). C16.9 builds the extension with phpize and gave five CI jobs that build it `tools: phpize, php-config`, the build tools of the PHP that setup-php installs, but kept the rule that setup-php installs no tool, so the test failed on main. setup-php still installs no Composer: make install-tools installs the Composer of mise.toml. Red: that test exit 1 on 77c77235 naming the five jobs; green: exit 0.

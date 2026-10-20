@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ce913977a1e331017920df4c608d197a2a4f18ad378baabc3149ccf83abf693f -->
+<!-- source-sha256: b433e2cb91a20643e441d6dc456fd4367245c4480207d5e4a7cdf3645e652252 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -283,3 +283,4 @@
 | C16.151 | docs/spec/runtime-packages.md의 브라우저 바인딩 항목 CURP-023을 TypeScript 폼 바인딩 패키지 README로 옮기고, 그 동작을 시험하는 테스트를 내부 테스트로 선언 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md, packages/form-binding/README.md, packages/form-binding/README.ko.md, config/parity.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-023," var/pd-C16.151.log'`, `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
 | C16.160 | make crudui-test-php-engine이 C16.57-3-1과 C16.57-3-2가 어느 프로젝트 명령에도 넣지 않은 packages/php-ext/tests/contract의 PHP 확장 계약 테스트를 실행한다 | Makefile | `var/tools/bin/node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="every node:test file runs in a project command" tests/build/test-commands.test.mts` | [o] |
 | C16.161 | tests/build/runtime-version-policy.test.mts의 CI 도구 규칙이 확장의 phpize 빌드(C16.9)가 필요로 하는 setup-php의 phpize와 php-config를 허용한다; setup-php는 여전히 Composer를 설치하지 않는다 | tests/build/runtime-version-policy.test.mts | `var/tools/bin/node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="every CI job sets up the recorded toolchains" tests/build/runtime-version-policy.test.mts` | [o] |
+| C16.162 | tests/build/runtime-version-policy.test.mts의 설치 검사가 링크된 checkout의 kit를 받아들인다: make install은 KIT의 install-tools를 실행하며, kit가 형제 checkout에 링크되면 KIT는 ../kit/dist이다 | tests/build/runtime-version-policy.test.mts | `var/tools/bin/node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/runtime-version-policy.test.mts` | [o] |
