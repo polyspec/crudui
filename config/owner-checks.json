@@ -535,6 +535,16 @@
     },
     {
       "paths": [
+        "scripts/generator-contract.php",
+        "scripts/go/**"
+      ],
+      "targets": [
+        "crudui-test-validators",
+        "lint-go"
+      ]
+    },
+    {
+      "paths": [
         "scripts/check-doc-coverage*.mts",
         "scripts/php-doc-coverage.*",
         "scripts/gen-api-docs*.mts",

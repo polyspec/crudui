@@ -370,10 +370,6 @@
       "kind": "ecosystem",
       "tool": "the tsx loader runs the TypeScript command entries"
     },
-    "packages/generator/go/interface_messages_generate.go": {
-      "kind": "policy",
-      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
-    },
     "packages/generator/php/scripts/generate-interface-messages.php": {
       "kind": "policy",
       "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
@@ -417,10 +413,6 @@
     "packages/svelte/tools/eslint.config.js": {
       "kind": "ecosystem",
       "tool": "ESLint with eslint-plugin-svelte and typescript-eslint lints the Svelte components"
-    },
-    "packages/validator/go/validator/validate/unicode_data_generate.go": {
-      "kind": "policy",
-      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
     },
     "packages/validator/php/scripts/generate-unicode-data.php": {
       "kind": "policy",
@@ -581,6 +573,22 @@
     "scripts/package-outputs.mts": {
       "kind": "record",
       "record": "docs/rebuild/build-stamp.md"
+    },
+    "scripts/go/interfacemessages/main.go": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "scripts/go/tablegen/tablegen.go": {
+      "kind": "policy",
+      "reason": "the Go table generators of the contracts share one reader of a contract and one writer of a generated source (S6), and no ecosystem tool defines the contracts"
+    },
+    "scripts/go/unicodedata/main.go": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "scripts/generator-contract.php": {
+      "kind": "policy",
+      "reason": "the PHP table generators of the contracts share one reader of a contract and one writer of a generated source (S6), and no ecosystem tool defines the contracts"
     },
     "scripts/php-doc-coverage.php": {
       "kind": "ecosystem",

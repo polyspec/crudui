@@ -1,22 +1,17 @@
-//go:build ignore
-
-// Command unicode_data_generate writes unicode_data.go from
-// contracts/unicode-properties.json, the Unicode data every CRUDUI runtime embeds.
-// Run it with `go generate` in this directory.
+// Command unicodedata writes unicode_data.go from contracts/unicode-properties.json, the Unicode data every CRUDUI
+// runtime embeds. Run it with `go generate` in packages/validator/go/validator/validate.
 package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"go/format"
-	"os"
-	"path/filepath"
 	"sort"
+
+	"github.com/polyspec/crudui/scripts/go/tablegen"
 )
 
-// contractPath is the Unicode data contract relative to this directory.
-var contractPath = filepath.Join("..", "..", "..", "..", "..", "contracts", "unicode-properties.json")
+// program names the generator in its messages.
+const program = "unicodedata"
 
 // contract is the part of the contract the validator embeds.
 type contract struct {
@@ -27,16 +22,10 @@ type contract struct {
 }
 
 func main() {
-	raw, err := os.ReadFile(contractPath)
-	if err != nil {
-		fail(err)
-	}
 	var data contract
-	if err := json.Unmarshal(raw, &data); err != nil {
-		fail(err)
-	}
+	output := tablegen.Run(program, &data)
 	var b bytes.Buffer
-	b.WriteString("// Code generated from contracts/unicode-properties.json by `go generate` (unicode_data_generate.go). DO NOT EDIT.\n\n")
+	b.WriteString("// Code generated from contracts/unicode-properties.json by `go generate` (scripts/go/unicodedata). DO NOT EDIT.\n\n")
 	b.WriteString("package validate\n\n")
 	fmt.Fprintf(&b, "// unicodeDataVersion is the Unicode version of the embedded data.\nconst unicodeDataVersion = %q\n\n", data.UnicodeVersion)
 	b.WriteString("// unicodeWhiteSpace lists the White_Space code points as inclusive ranges.\nvar unicodeWhiteSpace = []codeRange{\n")
@@ -48,13 +37,7 @@ func main() {
 	b.WriteString("// unicodeScripts maps each script (Script property) to its inclusive ranges.\nvar unicodeScripts = map[string][]codeRange{\n")
 	writeMap(&b, data.Scripts)
 	b.WriteString("}\n")
-	source, err := format.Source(b.Bytes())
-	if err != nil {
-		fail(err)
-	}
-	if err := os.WriteFile("unicode_data.go", source, 0o644); err != nil {
-		fail(err)
-	}
+	tablegen.WriteSource(program, &b, output)
 }
 
 // writeMap writes named range lists in name order.
@@ -81,10 +64,4 @@ func writeRanges(b *bytes.Buffer, ranges [][2]int) {
 			b.WriteByte(' ')
 		}
 	}
-}
-
-// fail reports an error and exits.
-func fail(err error) {
-	fmt.Fprintln(os.Stderr, "unicode_data_generate:", err)
-	os.Exit(1)
 }

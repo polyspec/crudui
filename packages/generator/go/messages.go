@@ -1,6 +1,6 @@
 package generator
 
-//go:generate go run interface_messages_generate.go
+//go:generate go run github.com/polyspec/crudui/scripts/go/interfacemessages -contract ../../../contracts/interface-messages.json -out interface_messages.go
 
 import (
 	"fmt"

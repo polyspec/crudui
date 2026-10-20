@@ -1,4 +1,4 @@
-// Code generated from contracts/unicode-properties.json by `go generate` (unicode_data_generate.go). DO NOT EDIT.
+// Code generated from contracts/unicode-properties.json by `go generate` (scripts/go/unicodedata). DO NOT EDIT.
 
 package validate
 

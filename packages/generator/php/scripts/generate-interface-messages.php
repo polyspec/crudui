@@ -9,16 +9,9 @@
 
 declare(strict_types=1);
 
-$root = dirname(__DIR__, 4);
-$contract = json_decode(
-    (string) file_get_contents($root . '/contracts/interface-messages.json'),
-    true,
-    512,
-    JSON_THROW_ON_ERROR
-);
-if (($contract['format'] ?? null) !== 'crudui/interface-messages') {
-    throw new RuntimeException('Unexpected contract format');
-}
+require dirname(__DIR__, 4) . '/scripts/generator-contract.php';
+
+$contract = crudui_read_contract(dirname(__DIR__, 4), 'interface-messages');
 
 /** Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit. */
 $crudui_language_table = static function (array $messages): string {
@@ -86,8 +79,4 @@ $source .= <<<'PHP'
 
 PHP;
 
-if (in_array('--stdout', $argv, true)) {
-    echo $source;
-} else {
-    file_put_contents(dirname(__DIR__) . '/src/Internal/InterfaceMessages.php', $source);
-}
+crudui_emit_source($source, dirname(__DIR__) . '/src/Internal/InterfaceMessages.php', $argv);

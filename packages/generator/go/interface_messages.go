@@ -1,4 +1,4 @@
-// Code generated from contracts/interface-messages.json by `go generate` (interface_messages_generate.go). DO NOT EDIT.
+// Code generated from contracts/interface-messages.json by `go generate` (scripts/go/interfacemessages). DO NOT EDIT.
 
 package generator
 

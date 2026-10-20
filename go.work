@@ -5,6 +5,7 @@ use (
 	./examples/form-comparison/servers/go
 	./packages/generator/go
 	./packages/validator/go
+	./scripts/go
 	./tests/native-generators/programs/go
 	./benchmarks/validators/go
 )

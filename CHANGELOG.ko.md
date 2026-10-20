@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4ed3709d6ec43cb97e543a802f8718fc8d3d756c37d4aea1dcbaa90a4a40b23e -->
+<!-- source-sha256: 2e55d969bbab23aee97c0542710f380f0cb0e3783496602e3181eeeba1b03a51 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP와 Go table generator는 contract reader와 생성 source writer를 하나씩 공유한다 (C16.58-5)
+
+- `scripts/generator-contract.php`가 PHP generator의 reader와 writer이고, module `scripts/go`(`tablegen`, `interfacemessages`, `unicodedata`)가 `go generate`가 workspace로 실행하는 `interface_messages_generate.go`와 `unicode_data_generate.go`를 대신하며, PHP와 Python의 생성된 interface message table은 `generated:`로 `duplication-check`에서 제외하고, `scripts/go`의 S9 예외, rebuild 분류, owner 규칙, release 메모는 설정에 있습니다 (C16.58-5). Red: `make duplication-check`는 이전에 중복 44건을 보고했고, green: 이후 40건이며 대상 검사가 통과합니다(generated tables identical).
 
 ### 2026-10-20 — React form render case의 scenario는 반복되는 specification을 공유한다 (C16.58-3)
 

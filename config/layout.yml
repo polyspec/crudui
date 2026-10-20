@@ -75,6 +75,8 @@ rules:
   # - tests/php/PhpProcess.php: the child PHP process of the PHPUnit tests of the form comparison and the PHP extension;
   # - tests/conformance/php/Evidence.php and the package of tests/conformance/python: the conformance evidence that the PHP
   #   and Python suites record in their own language;
+  # - scripts/generator-contract.php and scripts/go: the shared steps of the table generators that run in their own
+  #   language (`php` and `go generate`), which several packages of that language use;
   # - tests/native-generators/python.py and programs/{go,php,rust}: the programs of the native generator runner, one per
   #   language, which drive the generator of that language;
   - id: layout-infrastructure-typescript
@@ -85,6 +87,8 @@ rules:
       - "!tests/docs/php/DocCoverage.php"
       - "!tests/php/PhpProcess.php"
       - "!scripts/php-doc-coverage.php"
+      - "!scripts/generator-contract.php"
+      - "!scripts/go/**"
       - "!tests/conformance/php/Evidence.php"
       - "!tests/conformance/python/**"
       - "!tests/native-generators/python.py"

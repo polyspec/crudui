@@ -1,22 +1,17 @@
-//go:build ignore
-
-// Command interface_messages_generate writes interface_messages.go from
-// contracts/interface-messages.json, the interface text every CRUDUI runtime embeds.
-// Run it with `go generate` in this directory.
+// Command interfacemessages writes interface_messages.go from contracts/interface-messages.json, the interface text
+// every CRUDUI runtime embeds. Run it with `go generate` in packages/generator/go.
 package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"go/format"
-	"os"
-	"path/filepath"
 	"sort"
+
+	"github.com/polyspec/crudui/scripts/go/tablegen"
 )
 
-// contractPath is the interface messages contract relative to this directory.
-var contractPath = filepath.Join("..", "..", "..", "contracts", "interface-messages.json")
+// program names the generator in its messages.
+const program = "interfacemessages"
 
 // contract is the part of the contract the generator embeds.
 type contract struct {
@@ -25,14 +20,8 @@ type contract struct {
 }
 
 func main() {
-	raw, err := os.ReadFile(contractPath)
-	if err != nil {
-		fail(err)
-	}
 	var data contract
-	if err := json.Unmarshal(raw, &data); err != nil {
-		fail(err)
-	}
+	output := tablegen.Run(program, &data)
 
 	// Collect all form keys from all languages
 	formKeySet := make(map[string]bool)
@@ -61,7 +50,7 @@ func main() {
 	sort.Strings(listKeys)
 
 	var b bytes.Buffer
-	b.WriteString("// Code generated from contracts/interface-messages.json by `go generate` (interface_messages_generate.go). DO NOT EDIT.\n\n")
+	b.WriteString("// Code generated from contracts/interface-messages.json by `go generate` (scripts/go/interfacemessages). DO NOT EDIT.\n\n")
 	b.WriteString("package generator\n\n")
 
 	// Write the messageTables variable for form messages
@@ -93,17 +82,5 @@ func main() {
 	}
 	b.WriteString("}\n")
 
-	source, err := format.Source(b.Bytes())
-	if err != nil {
-		fail(err)
-	}
-	if err := os.WriteFile("interface_messages.go", source, 0o644); err != nil {
-		fail(err)
-	}
-}
-
-// fail reports an error and exits.
-func fail(err error) {
-	fmt.Fprintln(os.Stderr, "interface_messages_generate:", err)
-	os.Exit(1)
+	tablegen.WriteSource(program, &b, output)
 }

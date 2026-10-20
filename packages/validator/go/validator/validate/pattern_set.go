@@ -1,6 +1,6 @@
 package validate
 
-//go:generate go run unicode_data_generate.go
+//go:generate go run github.com/polyspec/crudui/scripts/go/unicodedata -contract ../../../../../contracts/unicode-properties.json -out unicode_data.go
 
 // Code-point sets of the pattern matcher: sorted, disjoint, inclusive ranges
 // built when a pattern is compiled, with membership by binary search.

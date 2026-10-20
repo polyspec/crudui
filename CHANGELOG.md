@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The PHP and Go table generators share one reader of a contract and one writer of a generated source (C16.58-5)
+
+- `scripts/generator-contract.php` is the reader and writer of the PHP generators and the module `scripts/go` (`tablegen`, `interfacemessages`, `unicodedata`) replaces `interface_messages_generate.go` and `unicode_data_generate.go`, which `go generate` runs through the workspace; the generated interface message tables of PHP and Python are excluded from `duplication-check` as `generated:`; the S9 exceptions, the rebuild classes, the owner rule and the release note of `scripts/go` are in the configuration (C16.58-5). Red: `make duplication-check` reported 44 clones before; green: 40 clones after, and the targeted check passes (generated tables identical).
+
 ### 2026-10-20 — The scenarios of the React form render cases share their repeated specifications (C16.58-3)
 
 - `emailShownBySubscribe` and `groupClassByItems` hold the specifications that four and two scenarios of `packages/react/scripts/scenario-form-render-cases.ts` repeated; the generated `cases.json` is unchanged (C16.58-3). Red: `make duplication-check` reported 53 clones before; green: 50 clones after, and the targeted check passes (generator output unchanged).
