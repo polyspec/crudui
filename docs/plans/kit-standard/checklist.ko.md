@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 966174d78aa21e060846c8943d5aacb4d035b9180c76964162b774e595a35ee2 -->
+<!-- source-sha256: 01ccf020b933e1dd00c2e8446eb0d117ad8e895818a8b988532b68f505235d62 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -151,3 +151,4 @@
 | C16.77 | Rust generator는 appearance ternary나 condition expression을 조용한 값으로 바꾸지 않는다(P8, Python과 Go처럼) | packages/generator/rust/src/design.rs packages/generator/rust/src/tests.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml appearance`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
 | C16.78 | 이름이 열한 개 작업 중 어느 것도 아닌 runAction은 모든 generator에서 INVALID_FORM_INPUT으로 실패한다 (CURT-091) | docs/spec/form-runtime.md, docs/spec/form-runtime.ko.md, packages/generator/ts/src/actions.ts, packages/generator/rust/src/actions.rs, packages/generator/rust/tests/form_state.rs, tests/fixtures/form-state/generate.mts, tests/fixtures/form-actions/cases.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |
 | C16.79 | Go native program은 잘못된 타입의 member를 Rust program처럼 거부한다(P8) | tests/native-generators/programs/go (main.go, main_test.go) | `cd tests/native-generators/programs/go && ../../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../../.golangci.yml ./...`, `cd tests/native-generators/programs/go && ../../../../var/tools/bin/mise exec -- go build -o /dev/null ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd tests/native-generators/programs/go -- -run Test ./...` | [o] |
+| C16.80 | crudui는 f7c1f10c의 kit 사본을 받는다(K354 K394 K386 K348-1 K360-2 K349-2 K390-1 K392-1 K393) | scripts/kit/kit-bootstrap.mk, .gitattributes and the other copies that make kit-sync and make hooks write | `make kit-check` | [o] |

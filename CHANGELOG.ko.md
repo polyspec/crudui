@@ -1,12 +1,15 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d722c6d649fcda0f04827fcfaca489d9946fad16cfd8f6f8fbba926b11dfef73 -->
+<!-- source-sha256: fa4e04ca3aa6c7d2ac5f559c55901dd1e4510bf6a5efe679356e76dbba4eea51 -->
 
 ## Unreleased
 
 ### 2026-10-20 — Go native program은 타입이 잘못된 member를 거부한다 (C16.79)
 
 - `tests/native-generators/programs/go`는 요청 member를 Rust program과 같이 읽습니다(C16.79). `compileOptions`와 `optionText`는 `basepath`, `keyPrefix`, `language`와 `files` object가 text 또는 object가 아니면 입력 오류로 반환하고, 없는 member는 없는 채로 둡니다. `stringArg`와 `addOptions`는 타입이 잘못되었거나 없는 action 인자를 보고하며, `main_test.go`(신규)가 각 경우를 보입니다. Red: `go test -run Test ./...`가 exit 1이며, 잘못된 `basepath`, `keyPrefix`, `files`, `language`가 오류 없이 지나갔고 `getValue` 인자는 `Invalid form path: `로 보고되었습니다; green: exit 0, `go build` exit 0, `golangci-lint run` exit 0이며 `0 issues`.
+### 2026-10-20 — kit 사본은 kit f7c1f10c를 따른다 (C16.80)
+
+- `scripts/kit/kit-bootstrap.mk`와 `scripts/kit/bootstrap/install-mise.mts`는 `make kit-sync`가 쓴 0b74e988(f7c1f10c 포함)의 kit 사본이며(K354, K394, K386, K348-1, K360-2, K349-2, K390-1, K392-1, K393), `make hooks`가 hook과 그 merge 설정을 설치합니다(C16.80). Red: `make kit-check`가 다른 사본 1개(`scripts/kit/kit-bootstrap.mk`)로 exit 2였고, green: 통과합니다.
 
 ### 2026-10-20 — native generator Go 프로그램은 숨은 오류를 처리한다 (C16.67-5)
 

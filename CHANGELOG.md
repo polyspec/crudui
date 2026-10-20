@@ -6,6 +6,9 @@
 ### 2026-10-20 — The Go native program rejects a wrong-typed member (C16.79)
 
 - `tests/native-generators/programs/go` reads the request members as the Rust program does (C16.79): `compileOptions` and `optionText` return `basepath`, `keyPrefix`, `language` and the `files` object as an input error when they are not text or an object, an absent member stays absent, `stringArg` and `addOptions` report a wrong-typed or missing action argument, and `main_test.go` (new) shows each case. Red: `go test -run Test ./...` exit 1, the wrong-typed `basepath`, `keyPrefix`, `files` and `language` returned no error, and the `getValue` argument reported `Invalid form path: `; green: exit 0, `go build` exit 0, and `golangci-lint run` exit 0 with `0 issues`.
+### 2026-10-20 — The copies of kit follow kit f7c1f10c (C16.80)
+
+- `scripts/kit/kit-bootstrap.mk` and `scripts/kit/bootstrap/install-mise.mts` are the copies of kit at 0b74e988, which holds f7c1f10c (K354, K394, K386, K348-1, K360-2, K349-2, K390-1, K392-1, K393), written by `make kit-sync`; `make hooks` installs the hooks and their merge settings (C16.80). Red: `make kit-check` exited 2 with 1 copy that differs (`scripts/kit/kit-bootstrap.mk`); green: it passes.
 
 ### 2026-10-20 — The native generator Go program handles its hidden errors (C16.67-5)
 
