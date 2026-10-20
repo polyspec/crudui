@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — runAction holds in every implementation (C16.50)
+
+- With the support values reduced to pass (C16.54), `make divergence-check` exits 0 and names no runAction entry, so runAction is implemented in php, go, rust, php-native and python as `contracts/features.json` declares (C16.50). Red: before C16.54 the check failed on the supportValues entry; green: exit 0.
+
 ### 2026-10-20 — contracts/features.json has no partial and unsupported support values (C16.54)
 
 - `contracts/features.json` declares `supportValues` as `pass` only, and `contracts/features.schema.json` accepts only `pass` for a `supportValues` entry and for a feature `support` value (C16.54). `scripts/features-manifest.mts` types `SupportValue` as `pass`; `scripts/check-conformance.mts` requires the cases of each `pass` runtime and no longer has the partial branch or the unsupported reason; `tests/build/conformance-evidence.test.mts` drops the partial-runtime test and reads an undeclared runtime in place of an unsupported one; `tests/build/contract-manifest.test.mts` uses the new manifest values. The feature `status` enum keeps `partial`, which is a different field. Red: `make divergence-check` exit 2, with `contracts/features.json` naming the `partial` and `unsupported` supportValues (lines 408-409); green: exit 0, with no supportValues entry named, and the two build tests and `make manifest-docs-check` exit 0 (14 and 9 tests passed).

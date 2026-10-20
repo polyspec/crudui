@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3204218e5f63f4029ae518e73f5eaea5496ef0cf8e27f98545d7ef898d30c5dd -->
+<!-- source-sha256: 6eb409f3ec1480a404d0108534bf95e45fc2987fc0be27921e23f7791ad939b6 -->
 
 ## Unreleased
+
+### 2026-10-20 — runAction은 모든 implementation에서 성립한다 (C16.50)
+
+- support value가 pass만 남은 뒤(C16.54) `make divergence-check`는 exit 0이고 runAction 항목을 보고하지 않으므로, `contracts/features.json`이 선언한 대로 runAction은 php, go, rust, php-native, python에 구현되어 있습니다(C16.50). Red: C16.54 이전에는 supportValues 항목에서 실패했고, green: exit 0입니다.
 
 ### 2026-10-20 — contracts/features.json에는 partial과 unsupported support 값이 없다 (C16.54)
 

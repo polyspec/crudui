@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 618a26cd1da75c39d4fd36e86fc88a84d180f20a7a669d07214ab1103c6a3cdc -->
+<!-- source-sha256: 30d6c7c811c11683bae238cdfaf67be1beedfc4771fb5a673bd48329d5864cce -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -79,7 +79,7 @@
 | C16.49-5 | php-native 확장은 C 엔진이 만드는 Polyspec\Crudui\Generator::buildOutline을 가집니다 | `packages/php-ext/src/outline.c`, `packages/php-ext/src/crudui.c`, `packages/php-ext/src/crudui_engine.h`, `packages/php-ext/src/config.m4`, `packages/php-ext/src/polyspec_crudui.stub.php`, `packages/php-ext/src/polyspec_crudui_arginfo.h`, `CHANGELOG.md`(.ko) | `node tests/native-generators/run.mts --extension "$PWD/var/php-ext/polyspec_crudui.so" --target php-native --check outline` | [o] |
 | C16.49-6 | Python 생성기는 Generator.buildOutline과 공유 form-outline fixture 테스트를 가집니다 | `packages/generator/python/src/polyspec/crudui/generator/`, `packages/generator/python/tests/`, `CHANGELOG.md`(.ko) | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_outline` | [o] |
 | C16.49-7 | 기능 계약은 buildOutline이 모든 구현에서 통과한다고 선언하고, divergence-check는 buildOutline 차이를 찾지 않습니다 | `contracts/features.json`, `docs/operations/feature-contracts.md`(.ko), `tests/fixtures/form-outline/README.md`(.ko), `packages/generator/php/README.md`(.ko), `packages/generator/python/README.md`(.ko), `CHANGELOG.md`(.ko) | `make manifest-docs-check` | [o] |
-| C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/contract-manifest.test.mts`, `make manifest-docs-check`; `make divergence-check` names no unsupported entry of runAction | [~] |
+| C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/contract-manifest.test.mts`, `make manifest-docs-check`; `make divergence-check` names no unsupported entry of runAction | [o] |
 | C16.50-1 | Go generator는 resolveAction과 runAction을 공유 form-actions session과 함께 가진다 | packages/generator/go/actions.go packages/generator/go/form_state_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions\|TestFormHistory\|TestFormView' .` | [o] |
 | C16.50-3 | Rust generator는 resolveAction과 runAction을 공유 form-actions session과 함께 가진다 | packages/generator/rust/src/actions.rs packages/generator/rust/src/lib.rs packages/generator/rust/src/instance.rs packages/generator/rust/tests/form_state.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
 | C16.50-3-1 | native generator protocol의 Rust program은 Form::move_row의 i64 row index로 빌드된다 | tests/native-generators/programs/rust/src/main.rs | `cargo build --locked --manifest-path tests/native-generators/programs/rust/Cargo.toml` | [o] |
