@@ -583,6 +583,7 @@
     {
       "name": "python",
       "runner": "python",
+      "command": "var/python/bin/python",
       "prose": [
         "Python"
       ],
@@ -682,7 +683,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_validate.py"
+          "test": "packages/validator/python/tests/test_validate.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_validate.TestValidateConformance"]
         }
       ],
       "requirements": [
@@ -777,7 +779,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_form_state.py"
+          "test": "packages/generator/python/tests/test_form_state.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_form_state.TestFormView"]
         },
         {
           "implementation": "rust",
@@ -830,7 +833,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_form_state.py"
+          "test": "packages/generator/python/tests/test_form_state.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_form_state.TestFormHistory"]
         },
         {
           "implementation": "rust",
@@ -883,7 +887,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_form_state.py"
+          "test": "packages/generator/python/tests/test_form_state.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_form_state.TestFormActions"]
         },
         {
           "implementation": "rust",
@@ -951,7 +956,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_form_state.py"
+          "test": "packages/generator/python/tests/test_form_state.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_form_state.TestViewFunctions"]
         },
         {
           "implementation": "rust",
@@ -1464,6 +1470,7 @@
         {
           "implementation": "python",
           "test": "packages/generator/python/tests/test_form_render.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_form_render.TestFormRenderConformance"],
           "symbol": "TestFormRenderConformance"
         },
         {
@@ -2175,7 +2182,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_expr.py"
+          "test": "packages/validator/python/tests/test_expr.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_expr.TestExprConformance"]
         },
         {
           "implementation": "rust",

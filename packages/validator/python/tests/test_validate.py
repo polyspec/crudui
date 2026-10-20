@@ -9,21 +9,51 @@ import unittest
 
 
 from polyspec.crudui import validator
-from .conformance import cases_of, failure_record
+from .conformance import add_case_tests, cases_of, failure_record
 from polyspec.crudui.conformance import Proving
 
 
 class TestValidateConformance(unittest.TestCase):
     """Result cases reproduce {valid, errors, hidden}; failures throw the exact record."""
 
+    def run_case(self, case):
+        options = {"files": case["files"]} if case.get("files") else {}
+        return validator.validate(case["spec"], case["data"], options)
+
+    def check_case(self, case):
+        if "expected" in case:
+            with Proving(
+                ["validate"], "tests/fixtures/validate/cases.json", case["name"]
+            ) as proof:
+                self.assertEqual(self.run_case(case), case["expected"])
+                proof.passed = True
+            return
+        with Proving(
+            ["validate"], "tests/fixtures/validate/cases.json", case["name"]
+        ) as proof:
+            thrown = None
+            try:
+                self.run_case(case)
+            except Exception as error:  # noqa: BLE001 - the record names the failure
+                thrown = error
+            self.assertIsNotNone(
+                failure_record(thrown),
+                f"{case['name']} must throw a validation failure",
+            )
+            self.assertEqual(failure_record(thrown), case["expectFailure"])
+            proof.passed = True
+
+
+add_case_tests(TestValidateConformance, "validate", TestValidateConformance.check_case)
+
+
+class TestValidateFixtureCounts(unittest.TestCase):
+    """The shape of the validation fixture: one expectation per case, and the counts of each kind."""
+
     def setUp(self):
         self.cases = cases_of("validate")
         self.result_cases = [case for case in self.cases if "expected" in case]
         self.failure_cases = [case for case in self.cases if "expectFailure" in case]
-
-    def run_case(self, case):
-        options = {"files": case["files"]} if case.get("files") else {}
-        return validator.validate(case["spec"], case["data"], options)
 
     def test_every_case_declares_exactly_one_expectation(self):
         for case in self.cases:
@@ -34,39 +64,12 @@ class TestValidateConformance(unittest.TestCase):
             )
         self.assertGreater(len(self.cases), 0)
 
-    def test_result_cases_reproduce_the_expected_result(self):
+    def test_result_case_count(self):
         self.assertEqual(len(self.cases), 341)
         self.assertEqual(len(self.result_cases), 202)
-        for case in self.result_cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validate"], "tests/fixtures/validate/cases.json", case["name"]
-                ) as proof,
-            ):
-                self.assertEqual(self.run_case(case), case["expected"])
-                proof.passed = True
 
-    def test_load_and_input_failures_throw_the_exact_record(self):
+    def test_failure_case_count(self):
         self.assertEqual(len(self.failure_cases), 139)
-        for case in self.failure_cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validate"], "tests/fixtures/validate/cases.json", case["name"]
-                ) as proof,
-            ):
-                thrown = None
-                try:
-                    self.run_case(case)
-                except Exception as error:  # noqa: BLE001 - the record names the failure
-                    thrown = error
-                self.assertIsNotNone(
-                    failure_record(thrown),
-                    f"{case['name']} must throw a validation failure",
-                )
-                self.assertEqual(failure_record(thrown), case["expectFailure"])
-                proof.passed = True
 
 
 if __name__ == "__main__":

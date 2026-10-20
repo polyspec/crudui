@@ -9,17 +9,12 @@ Binding the same template twice writes the same fields.
 import unittest
 import unittest.mock
 
-from .conformance import cases_of, failure_record, html_tree
+from .conformance import add_case_tests, cases_of, failure_record, html_tree
 from polyspec.crudui.conformance import Proving
 
 
 class TestFormRenderConformance(unittest.TestCase):
     """The layout of the rendered form matches the shared fixture."""
-
-    def setUp(self):
-        self.cases = cases_of("form-render")
-        self.results = [case for case in self.cases if "expected_html" in case]
-        self.failures = [case for case in self.cases if "expectError" in case]
 
     def render(self, case):
         from polyspec.crudui.generator import Generator
@@ -30,19 +25,15 @@ class TestFormRenderConformance(unittest.TestCase):
         fields = Generator.bindForm(template, data, options)
         return template, fields, options, data
 
-    def test_result_cases_reproduce_the_normalized_layout(self):
-        self.assertEqual(len(self.results), 150)
+    def check_case(self, case):
         from polyspec.crudui.generator import Generator
 
-        for case in self.results:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["compileForm", "bindForm", "renderForm"],
-                    "tests/fixtures/form-render/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
+        if "expected_html" in case:
+            with Proving(
+                ["compileForm", "bindForm", "renderForm"],
+                "tests/fixtures/form-render/cases.json",
+                case["name"],
+            ) as proof:
                 options = case.get("options") or {}
                 template = Generator.compileForm(case["spec"], options)
                 data = case.get("data") or {}
@@ -55,28 +46,41 @@ class TestFormRenderConformance(unittest.TestCase):
                 )
                 self.assertEqual(actual, again)
                 proof.passed = True
+            return
+        with Proving(
+            ["compileForm", "bindForm", "renderForm"],
+            "tests/fixtures/form-render/cases.json",
+            case["name"],
+        ) as proof:
+            thrown = None
+            try:
+                self.render(case)
+            except Exception as error:  # noqa: BLE001 - the record names the failure
+                thrown = error
+            record = failure_record(thrown)
+            self.assertIsNotNone(record, f"{case['name']} must fail")
+            self.assertEqual(record["code"], case["expectError"]["code"])
+            proof.passed = True
 
-    def test_failure_cases_raise_the_recorded_code(self):
+
+add_case_tests(
+    TestFormRenderConformance, "form-render", TestFormRenderConformance.check_case
+)
+
+
+class TestFormRenderFixtureCounts(unittest.TestCase):
+    """The shape of the form render fixture: one expectation per case, and the counts of each kind."""
+
+    def setUp(self):
+        self.cases = cases_of("form-render")
+        self.results = [case for case in self.cases if "expected_html" in case]
+        self.failures = [case for case in self.cases if "expectError" in case]
+
+    def test_result_case_count(self):
+        self.assertEqual(len(self.results), 150)
+
+    def test_failure_case_count(self):
         self.assertEqual(len(self.failures), 51)
-
-        for case in self.failures:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["compileForm", "bindForm", "renderForm"],
-                    "tests/fixtures/form-render/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                thrown = None
-                try:
-                    self.render(case)
-                except Exception as error:  # noqa: BLE001 - the record names the failure
-                    thrown = error
-                record = failure_record(thrown)
-                self.assertIsNotNone(record, f"{case['name']} must fail")
-                self.assertEqual(record["code"], case["expectError"]["code"])
-                proof.passed = True
 
     def test_every_case_declares_exactly_one_expectation(self):
         for case in self.cases:

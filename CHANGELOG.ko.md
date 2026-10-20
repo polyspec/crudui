@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 179b728df759eb5fccd1fe693bbc7d4a060bf03ca6cd63aee946d753386eb793 -->
+<!-- source-sha256: 27b72fde19650ecd069c83dce70f8888bc14958ff36216577fdfa56205922e31 -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-21 — text-validity 단위의 PHP 바인딩이 모든 사례를 보고한다 (C16.159)
 
 - text-validity 단위 여덟 개의 PHP 테스트를 단위별로 나눈다 (C16.159): `packages/validator/php/tests/Validate/TextValidityConformanceTest.php`는 `testValidateInputTextMatchesFixture`, `testValidateListInputTextMatchesFixture`, `testValidateDetailInputTextMatchesFixture`를 실행하고, `packages/generator/php/tests/InputTextTest.php`는 `testCompileFormCase`, `testBindFormCase`, `testCreateFormCase`, `testBuildListCase`, `testBuildDetailCase`를 실행하며, 데이터 제공자는 각 데이터 세트를 사례 이름으로 키 짓는다. `config/parity.json`에서 단위들의 php와 php-extension 바인딩 열여섯 개가 이 메서드를 명명한다. 데이터 세트 88개(21, 6, 5, 7, 17, 15, 11, 6 사례)와 그 단언은 바뀌지 않는다. Red: Verification이 d68d71c6에서 실패하며, 단위의 모든 php와 php-extension 바인딩이 R3 줄과 함께 `0 of N cases passed`를 보고한다; green: exit 0, 모든 php와 php-extension 바인딩이 `N of N cases passed`를 보고한다.
+
+### 2026-10-21 — python 바인딩이 각 단위의 케이스를 이름으로 보고한다 (C16.157)
+
+- buttons, validate, form-render, form-view, form-history, form-actions, view-functions, expr 단위의 python 바인딩이 각 케이스를 이름으로 보고한다 (C16.157): `packages/generator/python/tests/conformance.py`와 `packages/validator/python/tests/conformance.py`의 `add_case_tests`가 클래스마다 케이스당 테스트 메서드 `test_<case>` 하나를 만들고, `test_buttons.py`, `test_form_render.py`, `test_form_state.py`, `test_expr.py`, `test_validate.py`가 케이스마다 같은 검증을 실행하며 픽스처 개수는 별도 테스트 클래스에 둔다. `config/parity.json`은 python 구현을 `var/python/bin/python`(패키지의 venv)으로 실행하고 각 바인딩의 테스트 클래스를 지정한다 (C16.157). Red: d68d71c6에서 `make -s parity-check UNITS="buttons validate form-render form-view expr form-history form-actions view-functions"`가 exit 1로 끝나며 각 단위의 python R3 `not executed` 줄이 남는다 (예: `R3 not-executed validate python ... exited with 1`); green: exit 0, 모든 python 단위가 자기 케이스를 전부 통과로 보고하고 (validate 341 of 341, form-render 201 of 201, buttons 22 of 22, expr 74 of 74, form-view 3 of 3, form-history 5 of 5, form-actions 20 of 20, view-functions 11 of 11) `R3 not-executed <단위> python` 줄이 없다.
 
 ### 2026-10-21 — CURP-001의 합성과 표현식 부분이 인용된다 (C16.150-1)
 

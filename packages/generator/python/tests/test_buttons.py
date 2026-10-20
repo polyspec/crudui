@@ -10,7 +10,7 @@ import unittest
 
 from polyspec.crudui.generator import FormError, Generator
 
-from .conformance import cases_of
+from .conformance import add_case_tests
 
 
 def _text(value):
@@ -35,17 +35,19 @@ def _bind(case):
     )
 
 
+def _check(test, case):
+    if case["operation"] == "bindButtons":
+        observed = _observe(lambda: _bind(case))
+    else:
+        observed = _observe(lambda: Generator.formButtonsHtml(case["buttons"]))
+    test.assertEqual(_text(observed), _text(case["expected"]))
+
+
 class TestButtonsSuite(unittest.TestCase):
-    def test_every_case_reproduces_its_expectation(self):
-        for case in cases_of("buttons"):
-            with self.subTest(case=case["name"]):
-                if case["operation"] == "bindButtons":
-                    observed = _observe(lambda case=case: _bind(case))
-                else:
-                    observed = _observe(
-                        lambda case=case: Generator.formButtonsHtml(case["buttons"])
-                    )
-                self.assertEqual(_text(observed), _text(case["expected"]))
+    """Each case of the buttons fixture reproduces its expectation."""
+
+
+add_case_tests(TestButtonsSuite, "buttons", _check)
 
 
 if __name__ == "__main__":

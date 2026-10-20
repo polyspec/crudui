@@ -15,7 +15,7 @@ import unittest
 from polyspec.crudui.generator import FormError, Generator
 from polyspec.crudui.validator import validate as _validate
 
-from .conformance import cases_of
+from .conformance import add_case_tests
 
 _GENERATED_KEY = re.compile(r"__[0-9A-Za-z]{13}__")
 
@@ -102,46 +102,46 @@ def _perform(form, op, args, spec):
     raise AssertionError(f"unknown step {op}")
 
 
-def _assert_sessions(test, family, history):
-    """Run the sessions of a family; `history` adds the history flags to each observation."""
-    for case in cases_of(family):
-        with test.subTest(case=case["name"]):
-            name = _Namer(
-                _text(case["spec"]), _text(case["data"]), _text(case["steps"])
-            )
-            form = Generator.createForm(
-                Generator.compileForm(case["spec"]), case["data"]
-            )
-            for index, step in enumerate(case["steps"]):
-                observed = {}
-                try:
-                    result = _perform(form, step["op"], step["args"], case["spec"])
-                    # An action reports its target or its outcome, null when it has none.
-                    if result is not None or step["op"] in _ACTION_STEPS:
-                        observed["result"] = name.walk(result)
-                except FormError as error:
-                    observed["error"] = {"code": error.code, "message": str(error)}
-                observed["data"] = name.walk(form.getData())
-                observed["revision"] = form.getRevision()
-                if history:
-                    observed["canUndo"] = form.canUndo()
-                    observed["canRedo"] = form.canRedo()
-                observed["collapsed"] = name.walk(_collapsed_rows(form.getFields()))
-                test.assertEqual(_text(observed), _text(case["expected"][index]), step)
+def _check_session(test, case, history):
+    """Run one session; `history` adds the history flags to each observation."""
+    name = _Namer(_text(case["spec"]), _text(case["data"]), _text(case["steps"]))
+    form = Generator.createForm(Generator.compileForm(case["spec"]), case["data"])
+    for index, step in enumerate(case["steps"]):
+        observed = {}
+        try:
+            result = _perform(form, step["op"], step["args"], case["spec"])
+            # An action reports its target or its outcome, null when it has none.
+            if result is not None or step["op"] in _ACTION_STEPS:
+                observed["result"] = name.walk(result)
+        except FormError as error:
+            observed["error"] = {"code": error.code, "message": str(error)}
+        observed["data"] = name.walk(form.getData())
+        observed["revision"] = form.getRevision()
+        if history:
+            observed["canUndo"] = form.canUndo()
+            observed["canRedo"] = form.canRedo()
+        observed["collapsed"] = name.walk(_collapsed_rows(form.getFields()))
+        test.assertEqual(_text(observed), _text(case["expected"][index]), step)
 
 
 class TestFormView(unittest.TestCase):
-    """The sessions of the view state fixtures."""
+    """Each session of the view state fixtures equals its recorded observations."""
 
-    def test_sessions_equal_the_recorded_observations(self):
-        _assert_sessions(self, "form-view", history=False)
+    def check_case(self, case):
+        _check_session(self, case, history=False)
+
+
+add_case_tests(TestFormView, "form-view", TestFormView.check_case)
 
 
 class TestFormHistory(unittest.TestCase):
-    """The sessions of the undo history fixtures, with the history flags of the form."""
+    """Each session of the undo history fixtures equals its recorded observations, with the history flags."""
 
-    def test_sessions_equal_the_recorded_observations(self):
-        _assert_sessions(self, "form-history", history=True)
+    def check_case(self, case):
+        _check_session(self, case, history=True)
+
+
+add_case_tests(TestFormHistory, "form-history", TestFormHistory.check_case)
 
 
 def _nodes(spec, data, collapsed=None):
@@ -169,19 +169,23 @@ def _call(op, args):
 
 
 class TestFormActions(unittest.TestCase):
-    """The sessions of the action fixtures: resolveAction and runAction, with the history flags."""
+    """Each session of the action fixtures, resolveAction and runAction, equals its recorded observations."""
 
-    def test_sessions_equal_the_recorded_observations(self):
-        _assert_sessions(self, "form-actions", history=True)
+    def check_case(self, case):
+        _check_session(self, case, history=True)
+
+
+add_case_tests(TestFormActions, "form-actions", TestFormActions.check_case)
 
 
 class TestViewFunctions(unittest.TestCase):
-    """The calls of the view function fixtures."""
+    """Each call of the view function fixtures equals its recorded result."""
 
-    def test_calls_equal_the_recorded_results(self):
-        for case in cases_of("view-functions"):
-            with self.subTest(case=case["name"]):
-                self.assertEqual(
-                    _text({"result": _call(case["op"], case["args"])}),
-                    _text(case["expected"]),
-                )
+    def check_case(self, case):
+        self.assertEqual(
+            _text({"result": _call(case["op"], case["args"])}),
+            _text(case["expected"]),
+        )
+
+
+add_case_tests(TestViewFunctions, "view-functions", TestViewFunctions.check_case)

@@ -37,3 +37,19 @@ def failure_record(error):
     if isinstance(error, FormInputError):
         return {"code": error.code, "message": str(error), "at": ""}
     return None
+
+
+def add_case_tests(cls, group, check):
+    """Give cls one test method per case of the fixture group, test_<case>, that calls check(test, case).
+
+    The parity check reads each case by the name of its test method, and a test method that names no
+    case is reported as not in the suite, so every case has a method of its own that runs the one
+    assertion path of check.
+    """
+    for case in cases_of(group):
+
+        def test(self, case=case):
+            check(self, case)
+
+        test.__name__ = f"test_{case['name']}"
+        setattr(cls, test.__name__, test)
