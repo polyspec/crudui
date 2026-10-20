@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8dad235f1ac98a8bb3bcd9d2af4b1576cbd58669e436182862db04d62f9603d8 -->
+<!-- source-sha256: b7b87cea5aaf6a1172cf8a59d5dc2e7b97925491fc93fd66f3687a8ea44b5b6f -->
 
 ## Unreleased
+
+### 2026-10-20 — Python generator의 뷰 상태 (C16.51-4)
+
+- Python generator는 `Generator`의 뷰 함수 `initialView`, `toggleRowView`, `collapsibleRows`, `setAllExpandedView`, `removeRowView`, `rekeyRowView`, `bindForm` 옵션 `collapsed`, `Form.toggleRow`, `Form.setAllExpanded`를 가지며, `removeRow`, `rekeyRow`, `setData`는 뷰를 바꾸고 뷰 변경은 revision을 바꾸지 않습니다. `contracts/features.json`에서 Python의 `viewState`는 `pass`입니다. Red: 변경 전에 `tests.test_form_state`가 `form-view`와 `view-functions`의 모든 case에서 실패했습니다. Green: 두 test가 통과하고 `make lint-python`도 통과합니다.
 
 ### 2026-10-20 — Go generator의 뷰 상태 (C16.51-3)
 

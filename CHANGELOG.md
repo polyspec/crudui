@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — View state in the Python generator (C16.51-4)
+
+- The Python generator has the view functions `initialView`, `toggleRowView`, `collapsibleRows`, `setAllExpandedView`, `removeRowView` and `rekeyRowView` on `Generator`, the `bindForm` option `collapsed`, `Form.toggleRow` and `Form.setAllExpanded`; `removeRow`, `rekeyRow` and `setData` change the view and a view change leaves the revision. `viewState` is `pass` for Python in `contracts/features.json`. Red: `tests.test_form_state` failed in every case of `form-view` and `view-functions` before the change. Green: its two tests pass, with `make lint-python`.
+
 ### 2026-10-20 — View state in the Go generator (C16.51-3)
 
 - The Go generator has `ViewState`, `InitialView`, `ToggleRowView`, `CollapsibleRows`, `SetAllExpandedView`, `RemoveRowView` and `RekeyRowView`, the `BindOptions` member `Collapsed`, `Form.ToggleRow` and `Form.SetAllExpanded`; `RemoveRow`, `RekeyRow` and `SetData` change the view and a view change leaves the revision. `collection` no longer rejects a data-only collection; `editableCollection` does for the row operations. `viewState` is `pass` for Go in `contracts/features.json`. Red: `TestFormView` and `TestViewFunctions` did not compile (`form.ToggleRow undefined`, `undefined: ViewState`). Green: the 16 cases pass.

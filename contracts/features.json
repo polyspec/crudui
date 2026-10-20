@@ -1196,7 +1196,7 @@
         "go": "pass",
         "rust": "unsupported",
         "php-native": "unsupported",
-        "python": "unsupported"
+        "python": "pass"
       },
       "status": "implemented",
       "state": "view state owned by a form instance or a bindForm controller",
@@ -1204,7 +1204,8 @@
         "packages/generator/ts/src/node.test.ts",
         "examples/form-comparison/src/bind-form-controller.test.mjs",
         "packages/generator/ts/src/form-state.test.ts",
-        "packages/generator/go/form_state_test.go"
+        "packages/generator/go/form_state_test.go",
+        "packages/generator/python/tests/test_form_state.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md"
@@ -1221,6 +1222,10 @@
         {
           "id": "test-3",
           "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormView|TestViewFunctions'"
+        },
+        {
+          "id": "test-4",
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
         }
       ]
     },

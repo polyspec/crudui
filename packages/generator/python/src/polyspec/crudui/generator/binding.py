@@ -479,7 +479,7 @@ def _row(
             "header": header,
             "body": body,
             "collapsible": True,
-            "expanded": True,
+            "expanded": row_path not in (state.get("collapsed") or ()),
             "toggleLabel": state_messages["toggleRow"],
             "children": children,
         }

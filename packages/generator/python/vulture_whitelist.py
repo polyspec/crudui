@@ -14,6 +14,9 @@ _.removeRow
 _.moveRow
 _.rekeyRow
 
+# The view operation of Form that the form-view fixture test (tests/test_form_state.py) calls by the name of its step.
+_.toggleRow
+
 # The handlers of html.parser.HTMLParser that the HTML tree of tests/conformance.py overrides; HTMLParser.feed calls them.
 _.handle_starttag
 _.handle_startendtag

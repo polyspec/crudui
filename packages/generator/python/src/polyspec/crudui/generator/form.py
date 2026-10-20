@@ -13,6 +13,7 @@ from typing import Any, NoReturn
 from .binding import bind as bind_fields
 from .binding import language as bind_language
 from . import buttons as buttons_module
+from . import view as view_module
 from .errors import FormError
 from .input_text import inputs as check_inputs
 from .messages import for_language
@@ -69,7 +70,10 @@ class Form:
         self._data = self._normalize_fields(
             self._template["fields"], object_value(data if data is not None else {})
         )
-        self._fields = bind_fields(self._template, self._data, options)
+        self._view = view_module.initial()
+        self._fields = bind_fields(
+            self._template, self._data, self._bind_options(self._view)
+        )
         self._buttons = buttons_module.bind(
             self._template, self._data, self._language()
         )
@@ -120,7 +124,8 @@ class Form:
         if not isinstance(data, dict):
             raise FormError("INVALID_FORM_INPUT", "Form data must be an object")
         self._commit(
-            self._normalize_fields(self._template["fields"], object_value(data))
+            self._normalize_fields(self._template["fields"], object_value(data)),
+            view_module.initial(),
         )
 
     def setValue(self, path: Any, value: Any) -> None:
@@ -191,7 +196,12 @@ class Form:
             self._fail(f"Minimum row count reached: {path}")
         following = dict(rows)
         del following[key]
-        self._commit(self._put(self._data, self._checked_path(path), following))
+        self._commit(
+            self._put(self._data, self._checked_path(path), following),
+            view_module.remove_row(
+                self._view, ".".join([*self._checked_path(path), key])
+            ),
+        )
 
     def moveRow(self, path: Any, key: Any, index: Any) -> None:
         """Change row order without changing row identity."""
@@ -226,13 +236,42 @@ class Form:
         following = {
             (new_key if key == old_key else key): value for key, value in rows.items()
         }
-        self._commit(self._put(self._data, self._checked_path(path), following))
+        parts = self._checked_path(path)
+        self._commit(
+            self._put(self._data, parts, following),
+            view_module.rekey_row(
+                self._view, ".".join([*parts, old_key]), ".".join([*parts, new_key])
+            ),
+        )
+
+    def toggleRow(self, path: Any, key: Any) -> None:
+        """Expand or collapse one row; the record and the revision do not change."""
+        check_inputs([("path", path), ("key", key)])
+        _field, rows = self._collection(path)
+        if key not in rows:
+            self._fail(f"Unknown row: {key}")
+        self._refresh_view(
+            view_module.toggle(self._view, ".".join([*self._checked_path(path), key]))
+        )
+
+    def setAllExpanded(self, expanded: Any) -> None:
+        """Expand every row, or collapse every collapsible row."""
+        self._refresh_view(view_module.set_all_expanded(self._fields, expanded is True))
 
     # -- Internals -----------------------------------------------------------
 
-    def _commit(self, data: Any) -> None:
-        fields = bind_fields(self._template, data, self._options)
+    def _bind_options(self, view: Any) -> Any:
+        return {**self._options, "collapsed": list(view["collapsed"])}
+
+    def _refresh_view(self, view: Any) -> None:
+        self._fields = bind_fields(self._template, self._data, self._bind_options(view))
+        self._view = view
+
+    def _commit(self, data: Any, view: Any = None) -> None:
+        view = self._view if view is None else view
+        fields = bind_fields(self._template, data, self._bind_options(view))
         buttons = buttons_module.bind(self._template, data, self._language())
+        self._view = view
         self._data = data
         self._fields = fields
         self._buttons = buttons

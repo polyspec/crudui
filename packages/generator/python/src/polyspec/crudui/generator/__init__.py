@@ -14,6 +14,7 @@ from polyspec.crudui.validator.jsvalue import JsonValue
 
 from .binding import bind as _bind_fields
 from . import buttons as _buttons
+from . import view as _view
 from .details import build as _detail_build
 from .details import render as _detail_render
 from .errors import FormError
@@ -47,7 +48,10 @@ class Generator:
         data: JsonValue | None = None,
         options: Mapping[str, Any] | None = None,
     ) -> Any:
-        """Evaluated fields without modifying the template or the record data."""
+        """Evaluated fields without modifying the template or the record data.
+
+        The option `collapsed` lists the row paths `{collection}.{key}` rendered collapsed.
+        """
         options = options or {}
         _check_inputs(
             [("template", template), ("data", data if data is not None else {})],
@@ -55,6 +59,36 @@ class Generator:
             ("idPrefix", "keyPrefix", "language", "unsupported"),
         )
         return _bind_fields(template, data if data is not None else {}, options)
+
+    @staticmethod
+    def initialView() -> Any:
+        """The view with no collapsed row; a view is `{"collapsed": [row paths]}`."""
+        return _view.initial()
+
+    @staticmethod
+    def toggleRowView(view: Any, rowPath: str) -> Any:
+        """Expand a collapsed row or collapse an expanded one."""
+        return _view.toggle(view, rowPath)
+
+    @staticmethod
+    def collapsibleRows(nodes: Any) -> Any:
+        """The row paths `{collection}.{key}` of every collapsible row of the evaluated nodes."""
+        return _view.collapsible_rows(nodes)
+
+    @staticmethod
+    def setAllExpandedView(nodes: Any, expanded: bool) -> Any:
+        """The view with no collapsed row, or with every collapsible row collapsed."""
+        return _view.set_all_expanded(nodes, expanded)
+
+    @staticmethod
+    def removeRowView(view: Any, rowPath: str) -> Any:
+        """Drop the collapsed state of a removed row and of the rows inside it."""
+        return _view.remove_row(view, rowPath)
+
+    @staticmethod
+    def rekeyRowView(view: Any, oldPath: str, newPath: str) -> Any:
+        """Move the collapsed state of a rekeyed row and of the rows inside it."""
+        return _view.rekey_row(view, oldPath, newPath)
 
     @staticmethod
     def bindButtons(
