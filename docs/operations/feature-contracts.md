@@ -11,7 +11,7 @@ This page is generated from [contracts/features.json](../../contracts/features.j
 | `bindForm` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
 | `bindButtons` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 1 command(s) |
 | `formButtonsHtml` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 1 command(s) |
-| `createForm` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: partial | 3 command(s) |
+| `createForm` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
 | `renderForm` | implemented | `@polyspec/crudui-generator-html` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 4 command(s) |
 | `renderList` | implemented | `@polyspec/crudui-generator-html` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 2 command(s) |
 | `buildList` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 2 command(s) |

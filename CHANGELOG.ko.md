@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6030a4196e3b6d1f10fa2cf6bf8541fcd7186eda6ab9f64fea61ed62360a5121 -->
+<!-- source-sha256: 9eeecaf85b8dbea8c7fa529d270a85d1e3ffafa898c6e6f315a75aa4ec0fbef7 -->
 
 ## Unreleased
+
+### 2026-10-20 — python의 createForm은 `pass`이다 (C16.53)
+
+- `contracts/features.json`은 `python`의 `createForm`을 `pass`로 선언합니다. Python target의 native generator 검사는 `tests/fixtures/text-validity/createForm/cases.json`의 15개 case와 `tests/native-generators/cases.mts`의 14개 case를 모두 기록하고, `scripts/check-conformance.mts`는 `pass`인 python의 `createForm`에서 빠진 case를 보고하지 않으며, 생성된 feature 페이지가 따라갑니다(C16.53). Red: `make divergence-check`가 `partial` 항목을 보고했고, green: 보고하지 않습니다.
 
 ### 2026-10-20 — php-ext 실행은 php 실행의 모든 test를 실행한다 (C16.55)
 

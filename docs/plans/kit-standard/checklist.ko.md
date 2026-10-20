@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: efa72dbd7792a5e75c6dea6913ee41e9fdded22ee41c3855b5b8bdc95a060782 -->
+<!-- source-sha256: 29b8b21dbc33e128e4c3cc6fe01937f2472d3c2bd80461e46e19046c384ec1ec -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -74,7 +74,7 @@
 | C16.50 | runAction은 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of runAction | [ ] |
 | C16.51 | viewState는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of viewState | [ ] |
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
-| C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [ ] |
+| C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [o] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
 | C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [o] |
 | C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [o] |

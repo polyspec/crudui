@@ -582,7 +582,7 @@
         "go": "pass",
         "rust": "pass",
         "php-native": "pass",
-        "python": "partial"
+        "python": "pass"
       },
       "status": "implemented",
       "state": "instance data, view state and undo history",

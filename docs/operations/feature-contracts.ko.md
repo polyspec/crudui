@@ -1,6 +1,6 @@
 # 기능 계약
 <!-- doc-id: docs-operations-feature-contracts -->
-<!-- source-sha256: c399a1d5b7eeaa253e23b30fb26b15f330ae04904b59cb6d9cdc803c5950b055 -->
+<!-- source-sha256: 785ab03ea655bc36b1b229c5ea2db7ffe0f0a1f315c9e1f0abf7112dcb3d337a -->
 
 [English](feature-contracts.md).
 
@@ -12,7 +12,7 @@
 | `bindForm` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
 | `bindButtons` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 1 command(s) |
 | `formButtonsHtml` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 1 command(s) |
-| `createForm` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: partial | 3 command(s) |
+| `createForm` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
 | `renderForm` | implemented | `@polyspec/crudui-generator-html` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 4 command(s) |
 | `renderList` | implemented | `@polyspec/crudui-generator-html` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 2 command(s) |
 | `buildList` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 2 command(s) |

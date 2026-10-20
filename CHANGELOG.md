@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — createForm is `pass` in python (C16.53)
+
+- `contracts/features.json` declares `createForm` as `pass` for `python`: the native generator checks of the Python target record all 15 cases of `tests/fixtures/text-validity/createForm/cases.json` and all 14 cases of `tests/native-generators/cases.mts`, and `scripts/check-conformance.mts` reports no missing case of `createForm` for python with `pass`; the generated feature pages follow (C16.53). Red: `make divergence-check` reported the `partial` entry; green: it reports none.
+
 ### 2026-10-20 — The php-ext run executes every test of the php run (C16.55)
 
 - The two tests of `examples/form-comparison/servers/php/tests/FormGenerationTest.php` that constructed the PHP library under `#[Group('php')]` construct it in a child PHP process without the extensions, so they run in the php mode and in the php-ext mode; `local-verification.mjs` and `check-verification.test.mjs` no longer pass `--exclude-group php` (C16.55). Red: the php-ext leg left 2 of the 9 tests out; green: the suite runs 9 tests and 75 assertions in the php mode and 9 tests and 75 assertions in the php-ext mode, `check-verification.test.mjs` passes (8) and `make divergence-check` reports no `--exclude-group`.
