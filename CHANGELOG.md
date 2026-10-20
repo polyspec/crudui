@@ -4,7 +4,9 @@
 ## Unreleased
 
 ### 2026-10-21 — The build cases and the form state root case cite their runtime requirements (C16.57-16)
+### 2026-10-21 — make install-link links the Python packages of the repository without a hand-set environment (C16.135)
 
+- `Makefile`: `install-link` (kit's recipe, which runs `link.mjs link --siblings`) gets `UV_PROJECT_ENVIRONMENT := $(PYTHON_VENV)` as a target-specific export, the variable that kit's link reads for the Python environment (`link.mjs` line 563), so `make install` links the packages of `var/python` made by `crudui-install-python` (C16.135). Red: `env -u UV_PROJECT_ENVIRONMENT make install-link` exit 2, `NOT linked python ... no environment`. Green: the same command exit 0 and `make link-state-check` exit 0.
 - The link state after the fresh `make install-packages` of C16.134 is restored by `make install-link` with `UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV)`, which exits 0; `make link-state-check` exits 0 after it (C16.134).
 - The buildList cases of `tests/fixtures/text-validity/buildList` (11 cases) cite CURP-014 (`buildList`), and the buildDetail cases of `tests/fixtures/text-validity/buildDetail` (6 cases) cite CURP-016 (`buildDetail`): every case runs its operation. The form state root case `set-data-rejects-a-root-that-is-not-an-object` cites CURP-026, since its list root is no object in PHP (the caller states the type, and the list fails explicitly).
 - `tests/fixtures/form-actions/cases.json` is regenerated from its generator. Besides CURP-026, the session cases that the C16.57-14 generator already cites with CURP-020 now carry that id in the committed file. The units of `config/parity.json` cite the three ids.

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 9ea85dd57fe5d9a52f74b35263e7fb7419c3288548fe6157b06dc8d41fc58920 -->
+<!-- source-sha256: 87db4f7606b931ec9fffa3c3b9bee17b3716a8b39dd58d3cdded8113aaa3f6b6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -236,3 +236,4 @@
 | C16.124 | form 버튼 case는 parity manifest의 suite다. buttons unit은 CURP-008과 CURP-009를 여섯 runner와 함께 인용하고, bindButtons와 formButtonsHtml의 feature 계약은 case와 runner를 적는다 | config/parity.json, contracts/features.json, docs/operations/feature-contracts.md, docs/operations/feature-contracts.ko.md | `sh -c 'make -s parity-declarations-check > var/pd-C16.124.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-(008\|009)," var/pd-C16.124.log'` | [o] |
 | C16.114 | TypeScript validator의 choice groups와 hidden paths unit test는 각 assertion을 validate suite의 fixture로 덮으므로 TypeScript의 internal로 선언한다 | config/parity.json (two ts internal entries) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16114-pd.log 2>&1; ! grep -E 'R5 undeclared-test ts packages/validator/ts/src/(choice-groups\|hidden-paths)\.test\.ts:' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16114-pd.log` | [o] |
 | C16.134 | make install-packages는 npm ci 뒤 INSTALL_PACKAGES_EXTRA로 svelte 도구를 실행하고 link를 실행하지 않는다 | Makefile, scripts/kit/kit-bootstrap.mk, scripts/kit/bootstrap/install-npm.mts, .github/workflows/ci.yml, .github/workflows/dependency-review.yml, .github/workflows/pages.yml, .github/workflows/push-gate.yml, tests/build/ci-local.test.mts | `make link-state-check`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts` | [o] |
+| C16.135 | make install-link가 저장소의 Python 환경으로 link하므로 make install은 손으로 준 환경 없이 link한다 | Makefile | `make install-link`, `make link-state-check` | [o] |

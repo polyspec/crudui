@@ -1,11 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 375c86a9f35c3f3ff5afa8cc39345a37ca42935275c07ab71beaf189222b1838 -->
+<!-- source-sha256: b07707270f04b1bd4369a200c53e7908e080064ce5f10347797fa5899397d148 -->
 
 ## Unreleased
 
 ### 2026-10-21 — build case와 form state root case가 런타임 요구사항을 인용한다 (C16.57-16)
+### 2026-10-21 — make install-link가 손으로 준 환경 없이 저장소의 Python 패키지를 link한다 (C16.135)
 
+- `Makefile`: `install-link`(kit의 recipe, `link.mjs link --siblings` 실행)에 `UV_PROJECT_ENVIRONMENT := $(PYTHON_VENV)`를 target별 export로 줍니다. kit의 link가 Python 환경으로 읽는 변수이며(`link.mjs` 563행), 따라서 `make install`은 `crudui-install-python`이 만든 `var/python`의 패키지를 link합니다(C16.135). Red: `env -u UV_PROJECT_ENVIRONMENT make install-link`가 exit 2이며 `NOT linked python ... no environment`를 보고합니다. Green: 같은 명령 exit 0, `make link-state-check` exit 0입니다.
 - C16.134의 새 `make install-packages` 뒤의 link 상태는 `UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV)`를 준 `make install-link`로 복구되며 exit 0입니다. 그 뒤 `make link-state-check`가 exit 0입니다(C16.134).
 - `tests/fixtures/text-validity/buildList`의 buildList case 11개는 CURP-014(`buildList`)를, `tests/fixtures/text-validity/buildDetail`의 buildDetail case 6개는 CURP-016(`buildDetail`)을 인용합니다. 모든 case가 자기 operation을 실행합니다. form state root case `set-data-rejects-a-root-that-is-not-an-object`는 CURP-026을 인용합니다. 목록 root는 PHP에서 객체가 아니므로(호출자가 타입을 밝히며, 목록은 명시적으로 실패합니다) 이 case가 그 대응을 시험합니다.
 - `tests/fixtures/form-actions/cases.json`은 generator에서 다시 생성했습니다. CURP-026 외에, C16.57-14 generator가 이미 CURP-020으로 인용하는 session case들이 커밋된 파일에도 그 id를 갖게 됩니다. `config/parity.json`의 unit은 세 id를 인용합니다.

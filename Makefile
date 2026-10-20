@@ -52,6 +52,9 @@ CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-e
 # python-venv of kit and syncs the uv workspace of the root pyproject.toml into it, so the suites, the native generator
 # program and the cross-check console import the installed packages and change no sys.path.
 PYTHON_VENV := $(CURDIR)/var/python
+# install-link (kit) links the Python packages in the environment that crudui-install-python makes: kit's link reads
+# UV_PROJECT_ENVIRONMENT, and without it the link finds no environment of the repository and fails (K360-2).
+install-link: export UV_PROJECT_ENVIRONMENT := $(PYTHON_VENV)
 UV := $(CURDIR)/var/tools/mise/shims/uv
 # The go and Composer of mise.toml, by the absolute paths of their shims: make 3.81 runs a recipe line without shell syntax
 # from the PATH that make started with (kit K171).

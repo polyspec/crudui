@@ -492,3 +492,11 @@ test('install-packages installs the svelte tools after its npm ci and runs no li
   assert.match(svelte.stdout, /npm ci --prefix packages\/svelte\/tools/);
   assert.doesNotMatch(svelte.stdout, /link\.mjs|--no-print-directory link/, 'the svelte tools link nothing themselves');
 });
+
+// install-link (kit) links the Python packages in the environment that crudui-install-python makes: kit's link reads
+// UV_PROJECT_ENVIRONMENT, so the Makefile gives install-link the venv of var/python (C16.135).
+test('install-link links into the venv of var/python', () => {
+  // The make database names the target-specific variables of each target: `make -p` shows the one of install-link.
+  const database = execFileSync('make', ['-p', '-n', 'install-link'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  assert.match(database, /^# UV_PROJECT_ENVIRONMENT := .*\/var\/python$/m, 'install-link has the venv of the repository as its environment');
+});
