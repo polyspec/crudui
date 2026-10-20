@@ -25,6 +25,10 @@ name = "expr_conformance"
 harness = false
 
 [[test]]
+name = "text_validity_conformance"
+harness = false
+
+[[test]]
 name = "list_validity_conformance"
 harness = false
 

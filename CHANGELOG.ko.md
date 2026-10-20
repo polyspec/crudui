@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c5745bdc868160841f6d81cff4740172dae7339fcdf5e7da0ac5a7075bdd1633 -->
+<!-- source-sha256: bf6119afe082929d2912673b9982257a035ec12e32e1582ba68026bfae95b369 -->
 
 ## Unreleased
 
@@ -91,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — 여덟 Rust text unit이 각자의 symbol로 실행된다 (C16.156-1-2)
+
+- 여덟 text unit의 Rust 바인딩이 unit마다 자기 symbol을 가져, 각 바인딩의 filter가 자기 unit의 test만 고른다. validate 세 unit(validate, validateList, validateDetail)은 `input_text_validate`, `input_text_validate_list`, `input_text_validate_detail`로 실행되고(`packages/validator/rust/tests/text_validity_conformance.rs`, 각 family의 사례마다 `<symbol>::<case>` 이름의 trial 하나), 다섯 text-form unit은 `text_compile_form`, `text_bind_form`, `text_create_form`, `text_build_list`, `text_build_detail`로 실행된다(`packages/generator/rust/tests/input_text.rs`). config/parity.json의 여덟 `symbol`이 그 이름을 적는다. `text_validity_conformance.rs`는 `packages/validator/rust/Cargo.toml`의 `harness = false` target이 되며, 그 unit test(json_text_*, value_graph_limits)는 trial로 남고 단언은 바뀌지 않는다 (C16.156-1-2). Red: `make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-compile-form text-bind-form text-create-form text-build-list text-build-detail"` 종료 코드 2, 그 unit들의 rust 바인딩이 모두 `not executed`(공유 symbol은 "not in the suite") 보고; green: 종료 코드 0, rust R3 줄 없음, 21/21, 6/6, 5/5, 7/7, 17/17, 15/15, 11/11, 6/6 사례 통과.
 
 ### 2026-10-21 — 일곱 unit의 Rust 바인딩이 각 사례를 이름으로 보고한다 (C16.156-1-1)
 

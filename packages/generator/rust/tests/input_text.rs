@@ -17,12 +17,13 @@ use polyspec_crudui_validator::text::JsonText;
 use serde_json::{json, Map, Value};
 use std::path::Path;
 
-const FEATURES: [&str; 5] = [
-    "compileForm",
-    "bindForm",
-    "createForm",
-    "buildList",
-    "buildDetail",
+/// The fixture families of the text units, each with the symbol that its binding in config/parity.json names.
+const FEATURES: [(&str, &str); 5] = [
+    ("compileForm", "text_compile_form"),
+    ("bindForm", "text_bind_form"),
+    ("createForm", "text_create_form"),
+    ("buildList", "text_build_list"),
+    ("buildDetail", "text_build_detail"),
 ];
 
 fn cases(feature: &str) -> Vec<JsonText> {
@@ -241,7 +242,7 @@ fn outcome(result: FormResult<()>) -> Value {
 
 fn main() {
     let mut trials = Vec::new();
-    for feature in FEATURES {
+    for (feature, symbol) in FEATURES {
         for case in cases(feature) {
             let name = case
                 .get("name")
@@ -249,7 +250,7 @@ fn main() {
                 .and_then(|value| value.as_str().map(str::to_owned))
                 .expect("a case has a name");
             trials.push(Trial::test(
-                format!("input_text::{feature}/{name}"),
+                format!("{symbol}::{name}"),
                 move || {
                     let expected = case
                         .get("expect")

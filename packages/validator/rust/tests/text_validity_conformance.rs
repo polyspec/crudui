@@ -5,6 +5,7 @@
 
 mod common;
 
+use libtest_mimic::{Arguments, Failed, Trial};
 use std::path::PathBuf;
 
 use serde_json::{json, Value};
@@ -56,48 +57,36 @@ fn outcome(result: Result<Value, polyspec_crudui_validator::ValidateError>) -> V
     }
 }
 
-#[test]
-fn input_text_matches_fixture() {
+/// One case of a validation family: its failure messages, empty when the case passes.
+fn check_text_case(feature: &str, case: &JsonText, name: &str) -> Vec<String> {
     let clean = || json!({"valid": true, "errors": []});
-    let mut ran = 0;
-    let mut failures = Vec::new();
-    for feature in ["validate", "validateList", "validateDetail"] {
-        let (relative, cases) = fixture(feature);
-        assert!(!cases.is_empty());
-        for case in &cases {
-            let name = case.get("name").and_then(|n| match n {
-                JsonText::String(JsonString::Text(name)) => Some(name.clone()),
-                _ => None,
-            });
-            let name = name.expect("case name");
-            ran += 1;
-            failures.extend(common::prove_case(feature, &relative, &name, || {
-                let spec = case.get("spec").expect("spec");
-                let files = case.get("files");
-                let basepath = case.get("options").and_then(|options| options.get("basepath"));
-                let result = match feature {
-                    "validate" => text::validate_text(spec, case.get("data"), files, basepath).map(|result| {
-                        json!({"valid": result.valid, "errors": result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": result.hidden})
-                    }),
-                    "validateList" => text::validate_list_text(spec, files, basepath).map(|()| clean()),
-                    _ => text::validate_detail_text(spec, files, basepath).map(|()| clean()),
-                };
-                let native = native_type(&result);
-                let actual = outcome(result);
-                let expected = case.get("expect").and_then(JsonText::to_value).expect("expect");
-                if actual == expected && native == expected_type(&expected) {
-                    Vec::new()
-                } else {
-                    vec![format!("{feature}/{name}: got {actual} ({native}), want {expected} ({})", expected_type(&expected))]
-                }
-            }));
-        }
+    let spec = case.get("spec").expect("spec");
+    let files = case.get("files");
+    let basepath = case.get("options").and_then(|options| options.get("basepath"));
+    let result = match feature {
+        "validate" => text::validate_text(spec, case.get("data"), files, basepath).map(|result| {
+            json!({"valid": result.valid, "errors": result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": result.hidden})
+        }),
+        "validateList" => text::validate_list_text(spec, files, basepath).map(|()| clean()),
+        _ => text::validate_detail_text(spec, files, basepath).map(|()| clean()),
+    };
+    let native = native_type(&result);
+    let actual = outcome(result);
+    let expected = case.get("expect").and_then(JsonText::to_value).expect("expect");
+    if actual == expected && native == expected_type(&expected) {
+        Vec::new()
+    } else {
+        vec![format!("{feature}/{name}: got {actual} ({native}), want {expected} ({})", expected_type(&expected))]
     }
-    assert!(ran > 0);
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
-#[test]
+/// The fixture families of the validate trio, each with the symbol that its binding in config/parity.json names.
+const FAMILIES: [(&str, &str); 3] = [
+    ("validate", "input_text_validate"),
+    ("validateList", "input_text_validate_list"),
+    ("validateDetail", "input_text_validate_detail"),
+];
+
 fn json_text_reads_what_serde_json_reads() {
     for source in [
         r#"{"a":[1,-2.5e3,0,true,false,null,{"b":"\u00e9\ud83d\ude00\n\/"}],"c":"中"}"#,
@@ -138,7 +127,6 @@ fn json_text_reads_what_serde_json_reads() {
     assert!(JsonText::parse(&nested(513)).is_err());
 }
 
-#[test]
 fn json_text_preserves_object_member_values_for_validation() {
     let spec = JsonText::parse(
         r#"{"type":"group","properties":{"title":{"type":"text","validate":{"required":true}},"body":{"type":"text","validate":{"maxlength":2}}}}"#,
@@ -152,7 +140,6 @@ fn json_text_preserves_object_member_values_for_validation() {
     assert!(!result.valid, "a body beyond maxlength must fail");
 }
 
-#[test]
 fn json_text_locates_invalid_text() {
     let parsed =
         JsonText::parse(r#"{"z":["ok","\udc00\ud800"],"\uffff":{"x":"\ud800"},"😀":"\ud800"}"#)
@@ -196,7 +183,6 @@ fn json_text_locates_invalid_text() {
     );
 }
 
-#[test]
 fn value_graph_limits() {
     use std::fs;
     use std::path::PathBuf;
@@ -347,4 +333,46 @@ fn value_graph_limits() {
     if !failures.is_empty() {
         panic!("{}", failures.join("\n"));
     }
+}
+
+fn main() {
+    let mut trials = Vec::new();
+    for (feature, symbol) in FAMILIES {
+        let (relative, cases) = fixture(feature);
+        for case in cases {
+            let relative = relative.clone();
+            let name = case
+                .get("name")
+                .and_then(|n| match n {
+                    JsonText::String(JsonString::Text(name)) => Some(name.clone()),
+                    _ => None,
+                })
+                .expect("case name");
+            trials.push(Trial::test(format!("{symbol}::{name}"), move || {
+                let failures = common::prove_case(feature, &relative, &name, || check_text_case(feature, &case, &name));
+                if failures.is_empty() {
+                    Ok(())
+                } else {
+                    Err(Failed::from(format!("\n{}", failures.join("\n"))))
+                }
+            }));
+        }
+    }
+    trials.push(Trial::test("json_text_reads_what_serde_json_reads", || {
+        json_text_reads_what_serde_json_reads();
+        Ok(())
+    }));
+    trials.push(Trial::test("json_text_preserves_object_member_values_for_validation", || {
+        json_text_preserves_object_member_values_for_validation();
+        Ok(())
+    }));
+    trials.push(Trial::test("json_text_locates_invalid_text", || {
+        json_text_locates_invalid_text();
+        Ok(())
+    }));
+    trials.push(Trial::test("value_graph_limits", || {
+        value_graph_limits();
+        Ok(())
+    }));
+    libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }

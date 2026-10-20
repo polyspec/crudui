@@ -1022,7 +1022,7 @@
         {
           "implementation": "rust",
           "test": "packages/validator/rust/tests/text_validity_conformance.rs",
-          "symbol": "input_text_matches_fixture"
+          "symbol": "input_text_validate"
         },
         {
           "implementation": "python",
@@ -1079,7 +1079,7 @@
         {
           "implementation": "rust",
           "test": "packages/validator/rust/tests/text_validity_conformance.rs",
-          "symbol": "input_text_matches_fixture"
+          "symbol": "input_text_validate_list"
         },
         {
           "implementation": "python",
@@ -1134,7 +1134,7 @@
         {
           "implementation": "rust",
           "test": "packages/validator/rust/tests/text_validity_conformance.rs",
-          "symbol": "input_text_matches_fixture"
+          "symbol": "input_text_validate_detail"
         },
         {
           "implementation": "python",
@@ -1948,7 +1948,7 @@
         {
           "implementation": "rust",
           "test": "packages/generator/rust/tests/input_text.rs",
-          "symbol": "input_text"
+          "symbol": "text_compile_form"
         },
         {
           "implementation": "php",
@@ -1988,7 +1988,7 @@
         {
           "implementation": "rust",
           "test": "packages/generator/rust/tests/input_text.rs",
-          "symbol": "input_text"
+          "symbol": "text_bind_form"
         },
         {
           "implementation": "php",
@@ -2029,7 +2029,7 @@
         {
           "implementation": "rust",
           "test": "packages/generator/rust/tests/input_text.rs",
-          "symbol": "input_text"
+          "symbol": "text_create_form"
         },
         {
           "implementation": "php",
@@ -2075,7 +2075,7 @@
         {
           "implementation": "rust",
           "test": "packages/generator/rust/tests/input_text.rs",
-          "symbol": "input_text"
+          "symbol": "text_build_list"
         },
         {
           "implementation": "php",
@@ -2115,7 +2115,7 @@
         {
           "implementation": "rust",
           "test": "packages/generator/rust/tests/input_text.rs",
-          "symbol": "input_text"
+          "symbol": "text_build_detail"
         },
         {
           "implementation": "php",
