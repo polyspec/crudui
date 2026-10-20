@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The link-metadata-check gate in CHECK_TARGETS (C16.43)
+
+- `CHECK_TARGETS` lists `link-metadata-check`, the gate that kit K305 added to `kit-gates`, and the principle files follow the current text of kit (C16.43). Red: `make kit-check` exit 1 (`CHECK_TARGETS runs no link-metadata-check`); green: exit 0.
+
 ### 2026-10-20 — The link-check gate in CHECK_TARGETS (C16.42)
 
 - `CHECK_TARGETS` lists `link-check`, a gate that kit added to `kit-gates`, and `make kit-sync` brought the principle files to the current text of kit (C16.42). Red: `make kit-check` exit 1 (`CHECK_TARGETS runs no link-check`, and the two principle files differ); green: exit 0.

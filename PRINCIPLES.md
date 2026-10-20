@@ -130,7 +130,7 @@ repository.
 - P30 During 0.0.x development a repository consumes the packages of the others only through links, and the installed metadata
   of a linked package (its version, requirements and platform) equals the source it is linked to; a link whose record still
   describes the released package misleads every tool that reads it (K305).
-  Enforced by: `make link-check`
+  Enforced by: `make link-metadata-check`
 
 ## Repository standards
 

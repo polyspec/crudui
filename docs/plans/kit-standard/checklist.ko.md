@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ef7ee92fd8e3a9db0cf9ae7b594af7acc5e47fe14e2625a66cfaa854f717b9d2 -->
+<!-- source-sha256: 4a26fbc7facbb2a5d26b00808c8d9df2ea3721131bc510cb853734ce83f243ba -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -61,3 +61,4 @@
 | C16.40 | PHP library가 둘인 저장소의 PHP extension은 S10의 layout과 이름을 따른다. polyspec_crudui, src/의 하나뿐인 stub, composer.json, config.m4 | packages/php-ext (composer.json, src/config.m4, src/polyspec_crudui.stub.php, src/polyspec_crudui_arginfo.h, src/crudui.c), config/layout.yml, the module name in the Makefile, the examples, the tests and the documents | `make lint-php-ext`, `make layout-check`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext -- tests/ApiTest.php` | [o] |
 | C16.41 | run-rust-command.mts는 mise shim이 pin한 cargo를 쓰고 scripts/tool-resolution.mts는 제거한다 | scripts/run-rust-command.mts, scripts/tool-resolution.mts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
+| C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |

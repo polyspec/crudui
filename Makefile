@@ -503,6 +503,7 @@ CHECK_TARGETS = \
 	parity-check \
 	commits-check \
 	link-check \
+	link-metadata-check \
 	lint-ts \
 	lint-php \
 	lint-python \

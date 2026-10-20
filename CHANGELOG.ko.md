@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4a5c6ce3f4a5dd349c9281931bdd24047c9446cc261e24cac5d867a692bb3716 -->
+<!-- source-sha256: b9a2af26767186faf78380c63669f5fed265e8a357666d8e71567d65effd70c9 -->
 
 ## Unreleased
+
+### 2026-10-20 — CHECK_TARGETS의 link-metadata-check gate (C16.43)
+
+- `CHECK_TARGETS`는 kit K305가 `kit-gates`에 더한 gate `link-metadata-check`를 나열하고, principle file은 kit의 현재 text를 따릅니다 (C16.43). Red: `make kit-check` exit 1(`CHECK_TARGETS runs no link-metadata-check`), green: exit 0.
 
 ### 2026-10-20 — CHECK_TARGETS의 link-check gate (C16.42)
 
