@@ -987,35 +987,64 @@ func (i *Items) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// orderedRawObject token-walks a JSON object into ordered keys and raw values.
-func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error) {
+// objectEntry is one member of a JSON object: its key and raw value, in document order.
+type objectEntry struct {
+	key   string
+	value json.RawMessage
+}
+
+// objectOpen reads the first token of data. It returns the decoder and whether data opens an object.
+func objectOpen(data []byte) (*json.Decoder, bool, error) {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	tok, err := dec.Token()
 	if err != nil {
-		return nil, nil, err
+		return nil, false, err
 	}
-	if d, ok := tok.(json.Delim); !ok || d != '{' {
-		return nil, nil, fmt.Errorf("model: items must be an array, a value→label map, or a dynamic source object")
-	}
-	var keys []string
-	values := map[string]json.RawMessage{}
+	d, ok := tok.(json.Delim)
+	return dec, ok && d == '{', nil
+}
+
+// objectEntries reads the members of the object that dec has opened, in document order, up to its closing brace.
+func objectEntries(dec *json.Decoder) ([]objectEntry, error) {
+	var entries []objectEntry
 	for dec.More() {
 		keyTok, err := dec.Token()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		key, ok := keyTok.(string)
 		if !ok {
-			return nil, nil, fmt.Errorf("model: expected an object key, got %T", keyTok)
+			return nil, fmt.Errorf("model: expected an object key, got %T", keyTok)
 		}
 		var rv json.RawMessage
 		if err := dec.Decode(&rv); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		if _, dup := values[key]; !dup {
-			keys = append(keys, key)
+		entries = append(entries, objectEntry{key: key, value: rv})
+	}
+	return entries, nil
+}
+
+// orderedRawObject token-walks a JSON object into ordered keys and raw values; a repeated key keeps its first place and its last value.
+func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error) {
+	dec, isObject, err := objectOpen(data)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !isObject {
+		return nil, nil, fmt.Errorf("model: items must be an array, a value→label map, or a dynamic source object")
+	}
+	entries, err := objectEntries(dec)
+	if err != nil {
+		return nil, nil, err
+	}
+	var keys []string
+	values := map[string]json.RawMessage{}
+	for _, entry := range entries {
+		if _, dup := values[entry.key]; !dup {
+			keys = append(keys, entry.key)
 		}
-		values[key] = rv
+		values[entry.key] = entry.value
 	}
 	if _, err := dec.Token(); err != nil { // consume '}'
 		return nil, nil, err
@@ -1318,31 +1347,22 @@ func rejectUnknownKeys(data []byte, where string, allowed []string) error {
 // objectMembers returns the keys and raw values of a JSON object in declaration
 // order. Non-object input yields no members.
 func objectMembers(data []byte) ([]string, []json.RawMessage, error) {
-	dec := json.NewDecoder(bytes.NewReader(data))
-	tok, err := dec.Token()
+	dec, isObject, err := objectOpen(data)
 	if err != nil {
 		return nil, nil, err
 	}
-	if d, ok := tok.(json.Delim); !ok || d != '{' {
+	if !isObject {
 		return nil, nil, nil
+	}
+	entries, err := objectEntries(dec)
+	if err != nil {
+		return nil, nil, err
 	}
 	var keys []string
 	var values []json.RawMessage
-	for dec.More() {
-		keyTok, err := dec.Token()
-		if err != nil {
-			return nil, nil, err
-		}
-		var value json.RawMessage
-		if err := dec.Decode(&value); err != nil {
-			return nil, nil, err
-		}
-		key, ok := keyTok.(string)
-		if !ok {
-			return nil, nil, fmt.Errorf("model: expected an object key, got %T", keyTok)
-		}
-		keys = append(keys, key)
-		values = append(values, value)
+	for _, entry := range entries {
+		keys = append(keys, entry.key)
+		values = append(values, entry.value)
 	}
 	return keys, values, nil
 }

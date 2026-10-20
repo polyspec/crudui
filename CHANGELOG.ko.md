@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 50afc5a76709be0a11c2b64b41bdf104a12d2be6d1044c8a3c3c6525b2a0d9cd -->
+<!-- source-sha256: bcda67ea6e0aa948eb39a6a3cb8f2512cd8f804ee9298897e7f863e31d04a0f6 -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-20 — ci-local test는 PHP engine 명령의 engine과 comparison 경로를 기대한다 (C16.95)
 
 - `tests/build/ci-local.test.mts`는 `make crudui-test-native`의 PHP engine 명령이 engine test 분리(C16.48) 이후 recipe가 실행하는 `packages/php-ext/tests/engine/engine.test.mjs`와 `packages/php-ext/tests/comparison/comparison.test.mjs`를 실행한다고 기대하며, 정확한 명령 검사는 유지합니다. 그 뒤의 두 정규식은 그대로이며 통과합니다(C16.95). Red: `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/ci-local.test.mts`가 exit 1이었고, 한 경로만 기대하는 정규식 때문에 `the native suites run in three jobs, each once, and make crudui-test-native runs all three`가 실패했습니다. Green: 같은 명령 exit 0입니다.
+
+### 2026-10-21 — validator가 JSON object의 member를 하나의 walker로 디코딩한다 (C16.58-12)
+
+- `packages/validator/go/validator/types.go`에 `objectOpen`, `objectEntries`, `objectEntry`를 더했습니다. 이들은 JSON object를 문서 순서의 member로 token 단위 순회합니다. `orderedRawObject`(반복된 key는 첫 자리와 마지막 값을 갖고, object가 아니면 오류)와 `objectMembers`(object가 아니면 member가 없고, 모든 member를 유지)가 이것을 쓰며 각자의 규칙을 그대로 둡니다(C16.58-12). duplication check는 두 함수 사이의 clone을 없앴습니다. Red: `make duplication-check` exit 2, 35 clone(`types.go` 991-998 행과 1320-1327 행의 clone 포함); green: validator의 선택된 owner test(`TestRoundTrip`, `TestForbidden`, `TestXComment`, `TestNonCanonical`, `TestClosed`, `TestDesign`, `TestValidateExtra`, `TestNested`, `TestRule`, `TestTopLevel`, `TestOptions`, 19 passed) exit 0; `go vet ./validator` exit 0; `gofmt -l`은 아무것도 보고하지 않습니다.
 
 ### 2026-10-21 — form-comparison Rust server가 lock 열기와 test fixture를 공유한다 (C16.58-10)
 
