@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d3bdc7c67c295c9f6114b30b7af8490b20eacd5a62a1e4c8ed242c6492ece9d4 -->
+<!-- source-sha256: d112e19f4c3f2a496a8d578b4610590572dfddb6a133277acf571ecd956e33a1 -->
 
 ## Unreleased
 
@@ -11,6 +11,10 @@
 ### 2026-10-21 — 생성된 Go table은 생성 파일 예외로 선언한다 (C16.136)
 
 - `config/generated.json`: 예외 `packages/generator/go/interface_messages.go`와 `packages/validator/go/validator/validate/unicode_data.go`는 `go generate`가 `contracts/interface-messages.json`과 `contracts/unicode-properties.json`에서 쓰는 두 Go table을 선언합니다(C16.136). `go get`은 generator를 실행하지 않으므로(S6) Go module이 이 파일들을 배포하며, 그래서 추적합니다. 다른 언어의 생성 table에는 생성 파일 header가 없어 표시되지 않습니다. schema는 glob만 허용하므로 이유는 여기에 기록합니다. Red: 2bf1b1b5에서 `make layout-check` exit 2, 두 파일 모두 `has a generated-file header (Code generated ... DO NOT EDIT)`. Green: `make layout-check` exit 0, `no tracked file is generated`.
+
+### 2026-10-21 — form template shape의 compiled template은 CURP-019와 CURP-024를 인용한다 (C16.137)
+
+- `tests/fixtures/template-shape`의 `compiled` case는 CURP-024(한 runtime이 compile한 template을 다른 runtime이 bind한다)와 CURP-019(compile된 template은 직렬화된다)를 인용합니다. reference가 직렬화한 compile 결과를 모든 runtime이 bind하기 때문입니다. unit `template-shape`은 두 id를 인용하며 각 runner가 그 id를 이름으로 적습니다.
 
 ### 2026-10-21 — Go validator의 benchmark driver는 tools root이다 (C16.126)
 

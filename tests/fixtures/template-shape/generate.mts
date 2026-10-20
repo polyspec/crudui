@@ -84,11 +84,12 @@ function observe(run: () => unknown): unknown {
 const DATA = { name: 'a' };
 const cases: Case[] = [];
 for (const [operation, run] of Object.entries(runners)) {
-  const add = (name: string, note: string, template: unknown) => {
-    cases.push({ name: `${operation}-${name}`, note, requirements: [REQUIREMENT], operation, template, data: DATA, options: {},
+  const add = (name: string, note: string, template: unknown, requirements: string[] = [REQUIREMENT]) => {
+    cases.push({ name: `${operation}-${name}`, note, requirements, operation, template, data: DATA, options: {},
       expect: observe(() => run(template, DATA, {})) });
   };
-  add('compiled', 'a template that compileForm writes is accepted.', compiled());
+  // A template that the reference compiled and serialized, which each runtime binds: CURP-024 (one runtime's compiled template bound by another) and CURP-019 (the output serializes).
+  add('compiled', 'a template that compileForm writes is accepted.', compiled(), [REQUIREMENT, 'CURP-019', 'CURP-024']);
   const optional = compiled();
   optional.keyPrefix = 'p';
   optional.action = { url: '/save' };

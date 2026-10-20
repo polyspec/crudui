@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// The cases of tests/fixtures/template-shape (CURT-092). A template is decoded from its JSON text first, which refuses a
+// The compiled cases of tests/fixtures/template-shape also test CURP-019 and CURP-024 (a serialized compiled template is bound). A template is decoded from its JSON text first, which refuses a
 // shape that is not the compiled one; the operation of the case then runs on the decoded template.
 func TestTemplateShapeCases(t *testing.T) {
 	const want = 42

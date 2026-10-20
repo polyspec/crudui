@@ -2083,7 +2083,9 @@
         }
       ],
       "requirements": [
-        "CURT-092"
+        "CURT-092",
+        "CURP-019",
+        "CURP-024"
       ]
     }
   ],

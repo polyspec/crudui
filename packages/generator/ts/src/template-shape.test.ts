@@ -33,7 +33,7 @@ const cases: ShapeCase[] = (() => {
 })();
 
 describe('form template shape', () => {
-  // The cases of tests/fixtures/template-shape, written by the TypeScript reference (CURT-092).
+  // The compiled cases of tests/fixtures/template-shape also test CURP-019 and CURP-024: a serialized compiled template is bound.
   for (const item of cases) {
     it(item.name, () => {
       const run = OPERATIONS[item.operation];

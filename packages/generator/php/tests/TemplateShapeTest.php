@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use stdClass;
 
 /**
+ * The compiled cases also test CURP-019 and CURP-024 (a serialized compiled template is bound).
  * The form template shape (CURT-092) against tests/fixtures/template-shape: each case's template is the decoded
  * JSON text, and its operation (`bindForm`, `bindButtons` or `createForm`) refuses a shape that is not the
  * compiled one with

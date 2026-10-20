@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 8a39a7b00e28ba4a9fbdecf9ff37b41f57259e132fe87b8c1085a7df95171c43 -->
+<!-- source-sha256: b9e775157255328fd748408196c6d82d873c93561aabc5e0808e931c991458b4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -249,3 +249,4 @@
 | C16.126-1 | PHP extension의 API test는 php-extension의 internal이다. API와 value-limit test는 PHP만 가진 것을 검사하고, fixture 비교는 validate와 text-validity unit이 덮는다 | config/parity.json (php-extension internal entry) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16126-1-pd.log 2>&1; ! grep -E 'R5 undeclared-test php-extension packages/php-ext/tests/ApiTest\.php:' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16126-1-pd.log` | [o] |
 | C16.136 | interface message와 Unicode data의 생성된 Go table을 Go module이 배포하므로 생성 파일 예외로 선언한다 | config/generated.json | `make layout-check` | [o] |
 | C16.139 | kit copy는 kit에만 있는 check를 이름으로 대지 않는다(K359-2): PRINCIPLES는 tests/kit 파일을 이름으로 대지 않는다 | PRINCIPLES.md, PRINCIPLES.ko.md | `make rules-check`, `make kit-check`, `make layout-check`, `make link-state-check` | [o] |
+| C16.137 | template-shape fixture의 compiled case는 reference가 compile하고 직렬화한 template이며, CURP-024(한 runtime이 compile한 template을 다른 runtime이 bind)와 CURP-019(compile된 template은 직렬화된다)를 검사하고 unit은 두 id를 인용한다 | tests/fixtures/template-shape (compiled cases), config/parity.json (unit template-shape cites CURP-019 and CURP-024), six runner files | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16137-pd.log 2>&1; grep -q 'check the units against the tree' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16137-pd.log && ! grep -E 'defines CURP-019\|defines CURP-024' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16137-pd.log` | [o] |

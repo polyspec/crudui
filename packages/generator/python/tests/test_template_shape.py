@@ -1,5 +1,7 @@
 """The form template shape (CURT-092) of the Python generator.
 
+The compiled cases also test CURP-019 and CURP-024: a serialized compiled template is bound.
+
 Every case of `tests/fixtures/template-shape` runs through its operation: `bindForm`, `bindButtons` or `createForm`
 takes the case's template, data and options. A refusal is the `FormError` with the code, the message and the empty location
 that the case records; a passing case returns without a failure. The fixture holds 42 cases.

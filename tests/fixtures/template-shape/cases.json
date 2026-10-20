@@ -3,7 +3,9 @@
     "name": "bindForm-compiled",
     "note": "a template that compileForm writes is accepted.",
     "requirements": [
-      "CURT-092"
+      "CURT-092",
+      "CURP-019",
+      "CURP-024"
     ],
     "operation": "bindForm",
     "template": {
@@ -452,7 +454,9 @@
     "name": "bindButtons-compiled",
     "note": "a template that compileForm writes is accepted.",
     "requirements": [
-      "CURT-092"
+      "CURT-092",
+      "CURP-019",
+      "CURP-024"
     ],
     "operation": "bindButtons",
     "template": {
@@ -901,7 +905,9 @@
     "name": "createForm-compiled",
     "note": "a template that compileForm writes is accepted.",
     "requirements": [
-      "CURT-092"
+      "CURT-092",
+      "CURP-019",
+      "CURP-024"
     ],
     "operation": "createForm",
     "template": {

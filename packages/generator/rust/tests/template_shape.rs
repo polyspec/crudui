@@ -1,3 +1,4 @@
+//! The compiled cases also test CURP-019 and CURP-024 (a serialized compiled template is bound).
 //! The form template shape of the Rust generator against tests/fixtures/template-shape (CURT-092): each case's template
 //! is decoded with `FormTemplate::from_json` first, which refuses a shape that is not the compiled one; the case's
 //! operation then runs on the decoded template, one trial per case.
