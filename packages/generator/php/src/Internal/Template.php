@@ -23,7 +23,7 @@ final class Template
         }
         self::checkFormDeclarations($spec);
         // The form root takes no layout; a group field declares it.
-        if (self::isObject($spec->design ?? null) && array_key_exists('layout', (array) $spec->design)) {
+        if (Value::isObject($spec->design ?? null) && array_key_exists('layout', (array) $spec->design)) {
             throw new FormError('INVALID_FORM_INPUT', 'Invalid design.layout at form: unknown key');
         }
         $properties = Compose::properties(
@@ -36,7 +36,7 @@ final class Template
             'keyPrefix' => $options['keyPrefix'] ?? Missing::Value,
             'fields' => self::fields($properties),
             'buttons' => Value::copy(property_exists($spec, 'buttons') ? $spec->buttons : Buttons::DEFAULT),
-            'action' => self::isObject($spec->action ?? null) ? Value::copy($spec->action) : Missing::Value,
+            'action' => Value::isObject($spec->action ?? null) ? Value::copy($spec->action) : Missing::Value,
             'description' => property_exists($spec, 'description') ? Value::copy($spec->description) : Missing::Value,
         ]);
     }
@@ -78,29 +78,23 @@ final class Template
         return $out;
     }
 
-    /** Objects are stdClass values or non-list associative arrays. */
-    private static function isObject(mixed $value): bool
-    {
-        return $value instanceof stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
-    }
-
     /** A string, or a condition map: a non-empty object. */
     private static function conditionValue(mixed $value): bool
     {
-        return is_string($value) || (self::isObject($value) && (array) $value !== []);
+        return is_string($value) || (Value::isObject($value) && (array) $value !== []);
     }
 
     /** A child that renders one scalar value: not repeated, not a group and not a language field. */
     private static function scalarChild(mixed $child): bool
     {
-        if (!self::isObject($child)) {
+        if (!Value::isObject($child)) {
             return false;
         }
         $child = (array) $child;
         $repeated = ($child['multiple'] ?? null) === true
             || ($child['multiple'] ?? null) === 'only'
-            || self::isObject($child['multiple'] ?? null);
-        $lang = ($child['lang'] ?? null) === true || self::isObject($child['lang'] ?? null);
+            || Value::isObject($child['multiple'] ?? null);
+        $lang = ($child['lang'] ?? null) === true || Value::isObject($child['lang'] ?? null);
         return ($child['type'] ?? null) !== 'group' && !array_key_exists('properties', $child) && !$repeated && !$lang;
     }
 
@@ -111,7 +105,7 @@ final class Template
             throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at form: expected %s', $key, $expected));
         };
         if (property_exists($spec, 'action')) {
-            if (!self::isObject($spec->action)) {
+            if (!Value::isObject($spec->action)) {
                 $fail('action', 'an object');
             }
             $action = (array) $spec->action;
@@ -131,7 +125,7 @@ final class Template
         $texts = Messages::forLanguage('ko');
         foreach ($spec->buttons as $index => $button) {
             $key = 'buttons.' . $index;
-            if (!self::isObject($button)) {
+            if (!Value::isObject($button)) {
                 $fail($key, 'an object');
             }
             $declared = (array) $button;
@@ -170,10 +164,10 @@ final class Template
         }
         if (array_key_exists('multiple', $spec)) {
             $multiple = $spec['multiple'];
-            if (!is_bool($multiple) && $multiple !== 'only' && !self::isObject($multiple)) {
+            if (!is_bool($multiple) && $multiple !== 'only' && !Value::isObject($multiple)) {
                 $fail('multiple', 'a boolean, only or an object');
             }
-            if (self::isObject($multiple)) {
+            if (Value::isObject($multiple)) {
                 $settings = (array) $multiple;
                 self::closed(
                     'multiple',
@@ -202,7 +196,7 @@ final class Template
                     if (($spec['type'] ?? null) !== 'group') {
                         $fail('multiple.title', 'a repeated group');
                     }
-                    $properties = self::isObject($spec['properties'] ?? null) ? (array) $spec['properties'] : [];
+                    $properties = Value::isObject($spec['properties'] ?? null) ? (array) $spec['properties'] : [];
                     if (
                         !is_string($settings['title'])
                         || !array_key_exists($settings['title'], $properties)
@@ -228,10 +222,10 @@ final class Template
                 }
             }
         }
-        if (array_key_exists('lang', $spec) && !is_bool($spec['lang']) && !self::isObject($spec['lang'])) {
+        if (array_key_exists('lang', $spec) && !is_bool($spec['lang']) && !Value::isObject($spec['lang'])) {
             $fail('lang', 'a boolean or an object');
         }
-        if (self::isObject($spec['lang'] ?? null)) {
+        if (Value::isObject($spec['lang'] ?? null)) {
             $lang = (array) $spec['lang'];
             self::closed('lang', $lang, ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'], $path);
             if (array_key_exists('only', $lang)) {
@@ -239,7 +233,7 @@ final class Template
                 $codes = is_array($only)
                     && array_is_list($only)
                     && array_filter($only, static fn ($code) => !is_string($code)) === [];
-                if (!$codes && !self::isObject($only)) {
+                if (!$codes && !Value::isObject($only)) {
                     $fail('lang.only', 'a list of language codes or an object');
                 }
             }
@@ -247,7 +241,7 @@ final class Template
         if (array_key_exists('design', $spec)) {
             self::checkDesignDeclaration($spec['design'], $path, $field, $field ? self::groupLayouts($spec) : null);
         }
-        if (self::isObject($spec['behavior'] ?? null)) {
+        if (Value::isObject($spec['behavior'] ?? null)) {
             self::closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload'], $path);
         }
         if ($field && is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'range') {
@@ -261,7 +255,7 @@ final class Template
      */
     private static function checkRangeDeclaration(array $spec, string $path): void
     {
-        $validate = self::isObject($spec['validate'] ?? null) ? (array) $spec['validate'] : [];
+        $validate = Value::isObject($spec['validate'] ?? null) ? (array) $spec['validate'] : [];
         try {
             [$minimum] = Numeric::range($validate['range'] ?? null);
         } catch (InvalidRuleParameter) {
@@ -289,7 +283,7 @@ final class Template
             return null;
         }
         $multiple = $spec['multiple'] ?? null;
-        $repeated = $multiple === true || $multiple === 'only' || self::isObject($multiple);
+        $repeated = $multiple === true || $multiple === 'only' || Value::isObject($multiple);
         return $repeated ? ['stacked', 'inline'] : ['stacked', 'inline', 'line'];
     }
 
@@ -328,7 +322,7 @@ final class Template
     /** Reject declared attributes at $key that are not an object of permitted names to strings; names first. */
     public static function checkDeclaredAttributes(mixed $attributes, string $key, string $path): void
     {
-        if (!self::isObject($attributes)) {
+        if (!Value::isObject($attributes)) {
             self::invalid($key, $path, 'an object');
         }
         $attributes = (array) $attributes;
@@ -356,10 +350,10 @@ final class Template
         bool $field = false,
         ?array $layouts = null
     ): void {
-        if (!is_bool($design) && !self::isObject($design)) {
+        if (!is_bool($design) && !Value::isObject($design)) {
             self::invalid('design', $path, 'a boolean or an object');
         }
-        if (!self::isObject($design)) {
+        if (!Value::isObject($design)) {
             return;
         }
         $design = (array) $design;
@@ -400,7 +394,7 @@ final class Template
             if (!array_key_exists($node, $design)) {
                 continue;
             }
-            if (!self::isObject($design[$node])) {
+            if (!Value::isObject($design[$node])) {
                 self::invalid('design.' . $node, $path, 'an object');
             }
             $values = (array) $design[$node];

@@ -52,11 +52,11 @@ final class DisplayDeclaration
             }
             return;
         }
-        if (property_exists($spec, 'search') && !is_bool($spec->search) && !self::isObject($spec->search)) {
+        if (property_exists($spec, 'search') && !is_bool($spec->search) && !Value::isObject($spec->search)) {
             self::expected('search', $own, 'a boolean or an object');
         }
         if (property_exists($spec, 'sort')) {
-            if (!self::isObject($spec->sort)) {
+            if (!Value::isObject($spec->sort)) {
                 self::expected('sort', $own, 'an object');
             }
             $sort = (array) $spec->sort;
@@ -85,7 +85,7 @@ final class DisplayDeclaration
     /** Check the actions declaration of a list or detail at $own, each action in member order. */
     private static function actions(mixed $actions, string $own): void
     {
-        if (!self::isObject($actions)) {
+        if (!Value::isObject($actions)) {
             self::expected('actions', $own, 'an object');
         }
         foreach ((array) $actions as $name => $action) {
@@ -98,19 +98,13 @@ final class DisplayDeclaration
         }
     }
 
-    /** A stdClass, or a non-empty PHP array that is not a list. */
-    private static function isObject(mixed $value): bool
-    {
-        return $value instanceof stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
-    }
-
     /** A string, a language map (a non-empty object of strings or null) or null. */
     private static function isContent(mixed $value): bool
     {
         if ($value === null || is_string($value)) {
             return true;
         }
-        if (!self::isObject($value)) {
+        if (!Value::isObject($value)) {
             return false;
         }
         foreach ((array) $value as $entry) {
@@ -124,7 +118,7 @@ final class DisplayDeclaration
     /** A condition map: an object with at least one member. */
     private static function isConditionMap(mixed $value): bool
     {
-        return self::isObject($value) && (array) $value !== [];
+        return Value::isObject($value) && (array) $value !== [];
     }
 
     private static function expected(string $key, string $path, string $expected): never
@@ -153,7 +147,7 @@ final class DisplayDeclaration
         if (is_bool($format) || is_string($format)) {
             return;
         }
-        if (!self::isObject($format)) {
+        if (!Value::isObject($format)) {
             self::expected('format', $path, 'a boolean, a string or an object');
         }
         foreach ((array) $format as $key => $value) {
@@ -167,7 +161,7 @@ final class DisplayDeclaration
                     self::expected('format.' . $key, $path, self::CONTENT);
                 }
             } elseif ($key === 'map') {
-                if (!self::isObject($value)) {
+                if (!Value::isObject($value)) {
                     self::expected('format.map', $path, 'an object');
                 }
                 foreach ((array) $value as $name => $label) {
@@ -193,7 +187,7 @@ final class DisplayDeclaration
     /** Check one column or field declaration. */
     private static function member(string $name, mixed $member, string $own, string $members): void
     {
-        if (!self::isObject($member)) {
+        if (!Value::isObject($member)) {
             self::expected($name, $members, 'an object');
         }
         $path = $members . '.' . $name;
@@ -225,7 +219,7 @@ final class DisplayDeclaration
         if (is_string($entry)) {
             return;
         }
-        if (!self::isObject($entry)) {
+        if (!Value::isObject($entry)) {
             self::expected('behavior.' . $event, $path, 'a script or an object');
         }
         $entry = (array) $entry;
@@ -244,7 +238,7 @@ final class DisplayDeclaration
         if (is_string($action)) {
             return;
         }
-        if (!self::isObject($action)) {
+        if (!Value::isObject($action)) {
             self::expected($name, 'actions', 'a script or an object');
         }
         $path = 'actions.' . $name;
@@ -268,10 +262,10 @@ final class DisplayDeclaration
         }
         if (array_key_exists('behavior', $action)) {
             $behavior = $action['behavior'];
-            if (!is_bool($behavior) && !self::isObject($behavior)) {
+            if (!is_bool($behavior) && !Value::isObject($behavior)) {
                 self::expected('behavior', $path, 'a boolean or an object');
             }
-            if (self::isObject($behavior)) {
+            if (Value::isObject($behavior)) {
                 self::closed((array) $behavior, 'behavior.', self::BEHAVIOR_KEYS, $path);
                 foreach ((array) $behavior as $event => $entry) {
                     self::behaviorEntry((string) $event, $entry, $path);
@@ -286,10 +280,10 @@ final class DisplayDeclaration
     /** Reject a wrong value type or an unknown key in the pagination declaration at $path. */
     private static function pagination(mixed $pagination, string $path): void
     {
-        if (!is_bool($pagination) && !self::isObject($pagination)) {
+        if (!is_bool($pagination) && !Value::isObject($pagination)) {
             self::expected('pagination', $path, 'a boolean or an object');
         }
-        if (!self::isObject($pagination)) {
+        if (!Value::isObject($pagination)) {
             return;
         }
         $pagination = (array) $pagination;

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 09845fbd028bacf177a8f96c82341ba62b0f64f759628bbc22d1a4c485f8fba7 -->
+<!-- source-sha256: 81797f3bc9e853ba4c3a6d07ff49540d155b5473af70fda44711742f6bfe297e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -51,3 +51,4 @@
 | C16.34 | Python validator는 composition member를 하나의 함수로 layering하고 모든 진입점에서 null atch를 거부한다 | packages/validator/python/src/polyspec/crudui/validator/compose.py, validator.py, tests/test_compose.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity`, `make lint-python` | [o] |
 | C16.35 | TypeScript generator core는 action click handler, declaration 검사, path suffix, file widget, choice option, registry probe를 공유한다 | packages/generator/ts/src (dom.ts, form.ts, util.ts, widget.ts) | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src`, `make lint-ts` | [o] |
 | C16.36 | Go generator는 binding 검사, image preload, row suffix, declaration 오류, number 읽기를 공유한다 | packages/generator/go (bind.go, buttons.go, detail.go, list.go, image_preloads.go, value.go, template.go, display_declaration.go) | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test .`, `make lint-go` | [o] |
+| C16.37 | PHP generator는 image preload link와 object 판별을 공유한다 | packages/generator/php/src/Internal (Rendering.php, Value.php, Details.php, Lists.php, DisplayDeclaration.php, Template.php) | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/RenderingConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/DocCoverageTest.php`, `make lint-php` | [o] |

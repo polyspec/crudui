@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6293deb9e3b2d322c2d38d94a96c411623daa7d4762457fcdfb1ae432c875b71 -->
+<!-- source-sha256: 038821c2a106476f7a9908af6f9cfe301928c9ccfcfbd856bbfba51079b98164 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP generator의 공유 preload link와 object 판별 (C16.37)
+
+- `Rendering::imagePreload`는 `Details`와 `Lists`를 위해 image display의 preload link를 쓰고, `Value::isObject`는 `DisplayDeclaration`과 `Template`이 각자 두던, declaration이 object로 보는 것에 대한 하나의 판별입니다 (C16.37). Red: `make duplication-check`가 generator script를 제외한 `packages/generator/php`의 clone 2건을 나열했고, green: 없음. `RenderingConformanceTest`(188), `DetailTest`(10), `DisplayRulesTest`(21), `FormTest`(22), `DocCoverageTest`, `make lint-php`가 통과합니다. 출력은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — Go generator의 공유 helper (C16.36)
 

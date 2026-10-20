@@ -476,18 +476,7 @@ final class Lists
         $html = '';
         foreach ($vm->rows as $row) {
             foreach ($row->cells as $cell) {
-                $display = $cell->display;
-                if (!$display instanceof stdClass || $display->kind !== 'image') {
-                    continue;
-                }
-                $source = $display->src;
-                if ($source === '' || str_starts_with(strtolower($source), 'data:') || isset($seen[$source])) {
-                    continue;
-                }
-                $seen[$source] = true;
-                $html .= '<link'
-                    . Rendering::attrs(['rel' => 'preload', 'as' => 'image', 'href' => Rendering::url($source)])
-                    . '/>';
+                $html .= Rendering::imagePreload($cell->display, $seen);
             }
         }
         return $html;

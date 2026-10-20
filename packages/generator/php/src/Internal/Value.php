@@ -31,6 +31,12 @@ final class Value
         }
     }
 
+    /** A stdClass, or a non-empty PHP array that is not a list: what a declaration takes for an object. */
+    public static function isObject(mixed $value): bool
+    {
+        return $value instanceof stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
+    }
+
     /** Return a detached JSON value while preserving object and array types. */
     public static function copy(mixed $value): mixed
     {

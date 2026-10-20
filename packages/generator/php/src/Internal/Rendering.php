@@ -35,6 +35,25 @@ final class Rendering
         return $value;
     }
 
+    /**
+     * The preload link of an image display, or '' for a display that is no image, has no source, a data URL as its
+     * source, or a source that `$seen` already holds; the link's source is added to `$seen`.
+     *
+     * @param array<string, true> $seen the sources that have a link
+     */
+    public static function imagePreload(mixed $display, array &$seen): string
+    {
+        if (!$display instanceof stdClass || ($display->kind ?? '') !== 'image') {
+            return '';
+        }
+        $source = $display->src ?? '';
+        if ($source === '' || str_starts_with(strtolower($source), 'data:') || isset($seen[$source])) {
+            return '';
+        }
+        $seen[$source] = true;
+        return '<link' . self::attrs(['rel' => 'preload', 'as' => 'image', 'href' => self::url($source)]) . '/>';
+    }
+
     /** Escape attributes and serialize ordinary or explicit raw styles. */
     public static function attrs(array|stdClass $attrs, bool $raw = false): string
     {

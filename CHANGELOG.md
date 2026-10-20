@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared preload link and object test in the PHP generator (C16.37)
+
+- `Rendering::imagePreload` writes the preload link of an image display for `Details` and `Lists`, and `Value::isObject` is the one test of what a declaration takes for an object, which `DisplayDeclaration` and `Template` each held (C16.37). Red: `make duplication-check` listed 2 clones in `packages/generator/php` outside the generator script; green: none; `RenderingConformanceTest` (188), `DetailTest` (10), `DisplayRulesTest` (21), `FormTest` (22), `DocCoverageTest` and `make lint-php` pass. The output is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Shared helpers in the Go generator (C16.36)
 
 - `checkedBinding` checks the template, the record and the options of `BindForm` and `BindButtons`; `preloadLinks` writes the image preload links of a list and a detail; `splitRowSuffix` serves `leafName` and `ruleName`; `invalidMember` and `unknownMember` serve the declaration checks; `checkLabelAndFormat` serves the display and action declarations; and `asNumber` calls `expr.NumberValue` of the validator instead of holding its type switch (C16.36). Red: `make duplication-check` listed 7 clones in `packages/generator/go`; green: 1 remains, the generator program `interface_messages_generate.go` against the one of the validator (shared generator code, a later item); the 112 package tests and `make lint-go` pass. The behaviour is unchanged (`asNumber` also reads `uintptr`, as `expr.NumberValue` does), so the red is the clone list.
