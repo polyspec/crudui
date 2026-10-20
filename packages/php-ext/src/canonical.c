@@ -1,4 +1,5 @@
 #include "engine_internal.h"
+#include "bignum_internal.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -40,16 +41,7 @@ static void big_normalize(big *value)
 
 static void big_mul_small(big *value, uint32_t factor)
 {
-    uint64_t carry = 0;
-    for (size_t i = 0; i < value->used; ++i) {
-        uint64_t product = (uint64_t)value->words[i] * factor + carry;
-        value->words[i] = (uint32_t)product;
-        carry = product >> 32;
-    }
-    if (carry) {
-        if (value->used == BIG_WORDS) { value->overflow = true; return; }
-        value->words[value->used++] = (uint32_t)carry;
-    }
+    if (!bignum_mul_add(value->words, &value->used, BIG_WORDS, factor, 0)) value->overflow = true;
 }
 
 static void big_shift_left(big *value, unsigned bits)
@@ -77,10 +69,7 @@ static void big_mul_pow10(big *value, unsigned exponent)
 
 static int big_compare(const big *left, const big *right)
 {
-    if (left->used != right->used) return left->used < right->used ? -1 : 1;
-    for (size_t i = left->used; i-- > 0;)
-        if (left->words[i] != right->words[i]) return left->words[i] < right->words[i] ? -1 : 1;
-    return 0;
+    return bignum_compare(left->words, left->used, right->words, right->used);
 }
 
 static void big_add(const big *left, const big *right, big *sum)

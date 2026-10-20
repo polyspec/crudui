@@ -1,4 +1,5 @@
 #include "engine_internal.h"
+#include "bignum_internal.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -31,16 +32,10 @@ static void big_from(number_big *value, uint32_t number)
     value->words[0] = number;
 }
 
-/* value = value * factor + addend; the bounds above keep every product inside the words. */
+/* value = value * factor + addend; the bounds above keep every product inside the words, so no carry is left over. */
 static void big_mul_add(number_big *value, uint32_t factor, uint32_t addend)
 {
-    uint64_t carry = addend;
-    for (size_t i = 0; i < value->used; ++i) {
-        uint64_t product = (uint64_t)value->words[i] * factor + carry;
-        value->words[i] = (uint32_t)product;
-        carry = product >> 32;
-    }
-    if (carry && value->used < NUMBER_WORDS) value->words[value->used++] = (uint32_t)carry;
+    (void)bignum_mul_add(value->words, &value->used, NUMBER_WORDS, factor, addend);
 }
 
 static void big_mul_pow10(number_big *value, uint64_t exponent)
@@ -77,10 +72,7 @@ static void big_shift_left(const number_big *value, size_t bits, number_big *out
 
 static int big_compare(const number_big *left, const number_big *right)
 {
-    if (left->used != right->used) return left->used < right->used ? -1 : 1;
-    for (size_t i = left->used; i-- > 0;)
-        if (left->words[i] != right->words[i]) return left->words[i] < right->words[i] ? -1 : 1;
-    return 0;
+    return bignum_compare(left->words, left->used, right->words, right->used);
 }
 
 /* left -= right, with left >= right. */
