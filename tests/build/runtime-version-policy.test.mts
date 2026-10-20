@@ -237,6 +237,8 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
 const MISE_TOOLS = ['go', 'python', 'composer'] as const;
 // make install-tools of kit installs the tools of mise.toml and the Rust toolchain of rust-toolchain.toml (kit K151).
 const INSTALL_TOOLS: readonly string[] = [...MISE_TOOLS, 'rust'];
+// The tools input of setup-php: none, or the build tools of the PHP it installs (C16.9).
+const SETUP_PHP_TOOLS: readonly string[] = ['none', 'phpize, php-config'];
 
 test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
   const recorded = await recordedToolchain(repository);
@@ -256,7 +258,9 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         if (uses.startsWith('actions/setup-python@')) violations.push(`${file} ${id}: setup-python installs a Python; make install-tools installs the Python of mise.toml`);
         if (uses.startsWith('shivammathur/setup-php@')) {
           tools.push('php');
-          if (step.with?.tools !== 'none') violations.push(`${file} ${id}: setup-php installs ${String(step.with?.tools)}; it installs PHP alone, and make install-tools installs the Composer of mise.toml`);
+          // setup-php installs PHP with no tool of its own, or with the phpize and php-config of that PHP, which the phpize build
+          // of the extension (make build-php-ext) needs; make install-tools installs the Composer of mise.toml.
+          if (!SETUP_PHP_TOOLS.includes(String(step.with?.tools))) violations.push(`${file} ${id}: setup-php installs ${String(step.with?.tools)}; it installs PHP alone or with its phpize and php-config, and make install-tools installs the Composer of mise.toml`);
         }
         if (/^make install-tools$/m.test(run)) tools.push(...INSTALL_TOOLS);
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);

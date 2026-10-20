@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The CI toolchain rule admits the phpize and php-config of setup-php (C16.161)
+
+- `tests/build/runtime-version-policy.test.mts` ("every CI job sets up the recorded toolchains and checks the tools it set up") accepts the setup-php input `tools: phpize, php-config` beside `tools: none` (C16.161). C16.9 builds the extension with phpize and gave five CI jobs that build it `tools: phpize, php-config`, the build tools of the PHP that setup-php installs, but kept the rule that setup-php installs no tool, so the test failed on main. setup-php still installs no Composer: make install-tools installs the Composer of mise.toml. Red: that test exit 1 on 77c77235 naming the five jobs; green: exit 0.
+
 ### 2026-10-21 — make crudui-test-php-engine runs the contract tests of the PHP extension (C16.160)
 
 - `crudui-test-php-engine` of the Makefile runs `packages/php-ext/tests/contract/*.test.mjs` with the engine and comparison tests (C16.160). C16.57-3-1 and C16.57-3-2 added `compose.test.mjs` and `expr.test.mjs` there as the php-extension bindings of the units `compose` and `expr`, but no project command ran them, which `tests/build/test-commands.test.mts` ("every node:test file runs in a project command") refuses. Red: that test exit 1 on d68d71c6 naming the two files; green: exit 0.

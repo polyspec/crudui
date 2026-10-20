@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c2b1cb3b7bf785b4ea2f6c5164d8ef0e2cac205a8478f0438e38dcb5c968023f -->
+<!-- source-sha256: 5a1048188afdec798eab22cb101b66f56dec8c113dfa50f18e3cb77b8505a69f -->
 
 ## Unreleased
+
+### 2026-10-21 — CI 도구 규칙이 setup-php의 phpize와 php-config를 허용한다 (C16.161)
+
+- `tests/build/runtime-version-policy.test.mts`("every CI job sets up the recorded toolchains and checks the tools it set up")가 `tools: none` 외에 setup-php 입력 `tools: phpize, php-config`를 받아들인다 (C16.161). C16.9는 확장을 phpize로 빌드하며 그것을 빌드하는 CI job 다섯에 setup-php가 설치하는 PHP의 빌드 도구 `tools: phpize, php-config`를 주었지만, setup-php가 도구를 설치하지 않는다는 규칙은 그대로 두어 main에서 테스트가 실패했다. setup-php는 여전히 Composer를 설치하지 않는다: make install-tools가 mise.toml의 Composer를 설치한다. Red: 그 테스트가 77c77235에서 다섯 job을 명명하며 exit 1; green: exit 0.
 
 ### 2026-10-21 — make crudui-test-php-engine이 PHP 확장의 계약 테스트를 실행한다 (C16.160)
 
