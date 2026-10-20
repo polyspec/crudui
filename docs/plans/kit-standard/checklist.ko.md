@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: fa0d8a2b4d6a0ba74b05e821c85bd834ba6069fa4d8519ae778c7cba8b7b4db6 -->
+<!-- source-sha256: 36221ba7dfad160195bdf1bc6a576c2691e7f2a5aace3c22de75f135d0aa836f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -216,3 +216,4 @@
 | C16.109 | PHP generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 실행하며, unpaired surrogate를 보존하는 reader로 case를 읽고 PHP extension 아래에서도 통과한다 | packages/generator/php/tests/InputTextTest.php | `make test-php-ext CASES=InputTextTest` | [o] |
 | C16.110 | Rust generator test가 tests/fixtures/text-validity의 generator fixture 다섯 개의 모든 case를 public API로 trial 하나씩 실행하며, 각 operation은 generator text 검사와 validator JsonText로 JSON text를 먼저 검사한다 | packages/generator/rust/tests/input_text.rs, packages/generator/rust/Cargo.toml | `cd packages/generator/rust && cargo test --locked --test input_text` | [o] |
 | C16.111 | text-validity generator case에 검사하는 requirement id를 적고, case 파일 다섯 개를 suite unit 다섯 개로 묶어 TypeScript, Python, Go, PHP, PHP extension, Rust의 여섯 구현에 binding한다 | tests/fixtures/text-validity (five generator case files), config/parity.json (five suite units) | `make -s parity-declarations-check > /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16111-pd.log 2>&1; ! grep -E 'R4 undeclared-suite tests/fixtures/text-validity/(compileForm\|bindForm\|createForm\|buildList\|buildDetail)/cases\.json\|R5 undeclared-test (ts\|python\|go\|rust\|php) packages/generator/(ts/src/input-text\.test\.ts\|python/tests/test_text_validity\.py\|go/input_text_test\.go\|rust/tests/input_text\.rs\|php/tests/InputTextTest\.php)\|R13 untraced-requirement: docs/spec/input-text\.md defines CUIT-0(1[0-9]\|20),' /private/tmp/claude-501/-Users-maxkwon-ai-test-test/a1dd914b-7b06-4490-b00e-b3a7acb21990/scratchpad/c16111-pd.log` | [o] |
+| C16.118 | form 버튼 case를 TypeScript reference가 쓴다. bindButtons는 선언된, 기본, 지역화된, 잘못된 버튼을, formButtonsHtml은 마크업과 그 거부를 시험한다 | tests/fixtures/buttons/generate.mts, tests/fixtures/buttons/cases.json, tests/fixtures/buttons/README.md, tests/fixtures/buttons/README.ko.md, config/rebuild.json, config/knip-entries.json | `sh -c 'node tests/fixtures/buttons/generate.mts && git diff --exit-code -- tests/fixtures/buttons/cases.json'` | [o] |

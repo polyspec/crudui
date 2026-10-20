@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 67f9178a6d7b9988c8a71ec9b6b2705fe96b19d96f30cfd26941c0958d526e35 -->
+<!-- source-sha256: b20c08b0a83558118e078bb7c3f391f115ee62867821227be2798c559c2fc5ca -->
 
 ## Unreleased
 
@@ -25,6 +25,11 @@
 ### 2026-10-21 — input-text case가 시험하는 limit와 오류 타입 요구를 인용한다 (C16.57-15)
 
 - `tests/fixtures/text-validity/value-graphs.json`의 case는 `requirements` 배열을 가집니다. 노드와 중첩 limit CUIT-021과 CUIT-022, limit을 넘는 value의 실패 CUIT-029 ~ CUIT-031, 그리고 TypeScript, PHP, Go runner가 각 실패를 class로 대조하는 검증 오류 class CUIT-032, CUIT-033, CUIT-035입니다(C16.57-15). `validate`, `validateList`, `validateDetail`의 실패 case도 같은 이유로 CUIT-032, CUIT-033, CUIT-035를 인용합니다(C16.57-15). Red: CUIT-021, CUIT-022, CUIT-029 ~ CUIT-033, CUIT-035를 인용한 case가 없었습니다. Green: `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/validator/ts -- src/text/text-validity.conformance.test.ts` 53 passed; PHP validator `TextValidityConformanceTest.php` 45 passed; `make test-php-ext CASES=TextValidityConformanceTest` exit 0, 45 passed; Python `tests.test_text_validity` 4 OK; Go `validator/validate`의 text fixture 48 passed; Rust `text_validity_conformance` 5 passed. 인용하지 않았고 보고합니다: CUIT-034(PHP 생성 오류)와 CUIT-035, CUIT-036의 생성 부분(native generator runner는 생성 실패의 code, message, location을 검사하며 class는 검사하지 않음). CUIT-036은 검증 부분도 인용하지 않았습니다(Rust runner는 실패를 code로 대조하고, load class는 한 case에서만 검사함). CUIT-029 ~ CUIT-031은 options와 rows 인수에 대해 인용하지 않았습니다(value-graph case는 `spec`, `files`, `data` 아래에만 graph를 둘 수 있음).
+
+### 2026-10-21 — form 버튼 case를 TypeScript reference가 쓴다 (C16.118)
+
+- `tests/fixtures/buttons`는 `bindButtons`(CURP-008)와 `formButtonsHtml`(CURP-009)의 case 22개를 가집니다. 기본 submit 버튼, 네 언어의 선언된 버튼, 그대로 유지되는 link href, 지역화된 text, template, 버튼 타입, 언어 옵션의 거부, 속성이 순서대로 있는 버튼 마크업, 그 이스케이프, 목록, 항목, tag, 속성, class의 거부를 다룹니다. `generate.mts`가 TypeScript reference에서 `cases.json`을 쓰며, README가 명령을 적습니다.
+- `config/rebuild.json`과 `config/knip-entries.json`은 다른 fixture generator와 같은 방식으로 generator를 등록합니다.
 
 ### 2026-10-21 — layout check가 native program의 Go test와 Composer vendor folder를 받아들인다 (C16.115)
 

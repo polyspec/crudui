@@ -19,6 +19,7 @@
     "packages/validator/rust/tools/generate-number-text.mjs": "writes tests/data/number-text.tsv, which the crate test numbers_match_the_ecmascript_table (src/validate/canonical.rs) reads and names as its writer",
     "packages/validator/rust/tools/generate-unicode-properties.mjs": "writes src/validate/unicode/data.rs; the crate test embedded_data_matches_the_contract names `node tools/generate-unicode-properties.mjs` as its fix",
     "tests/fixtures/validate/generate.mts": "writes tests/fixtures/validate/cases.json; its README names the command (`node tests/fixtures/validate/generate.mts > tests/fixtures/validate/cases.json`)",
+    "tests/fixtures/buttons/generate.mts": "writes tests/fixtures/buttons/cases.json; its README names the command (`node tests/fixtures/buttons/generate.mts`)",
     "examples/form-comparison/benchmark/benchmark.css": "examples/form-comparison/benchmark/index.html links it as its stylesheet; build.mjs copies benchmark/ into the public directory",
     "examples/form-comparison/build.mjs": "src/local-servers.mjs runs it by path (`node build.mjs <public directory>`) to build the public directory of the local stack",
     "examples/form-comparison/check-servers.mjs": "local-verification.mjs (npm run test:form-comparison:checks) runs it by path as its persistence check",

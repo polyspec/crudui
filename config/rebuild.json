@@ -634,6 +634,10 @@
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
     },
+    "tests/fixtures/buttons/generate.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
     "scripts/json-schema.mts": {
       "kind": "ecosystem",
       "tool": "ajv (the JSON Schema validator of the repository, which packages/validator/ts and packages/cli use)"
