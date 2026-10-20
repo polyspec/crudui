@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cee265e4de251e4a8f563232ec1624c79a90e55bb952b71c6d2212afdadb617b -->
+<!-- source-sha256: 924cfd06ced4dfd733d01c77095d6cabcc92a4e09730671b82c914acad3b9303 -->
 
 ## Unreleased
+
+### 2026-10-20 — native Rust generator program은 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-9)
+
+- `tests/native-generators/programs/rust/src/main.rs`의 `main`은 표준 입력을 읽는 오류를 버리지 않습니다. `std::io::ErrorKind::InvalidData` 오류(UTF-8이 아닌 입력)는 `Request must be valid JSON` 메시지를 유지하고, 그 밖의 읽기 실패는 `Cannot read the request: <error>`로 반환합니다(C16.67-9). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`가 finding 1건(src/main.rs:340의 `map_err` wildcard pattern)으로 exit 101이었습니다. Green: exit 0, crate의 `cargo build --locked`도 exit 0이며, UTF-8이 아닌 표준 입력은 같은 오류 메시지와 exit 1을 유지합니다.
 
 ### 2026-10-20 — benchmark validator driver는 숨은 오류를 처리한다 (C16.67-3)
 

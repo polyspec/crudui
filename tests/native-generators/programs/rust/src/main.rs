@@ -337,7 +337,11 @@ fn main() {
     let mut source = String::new();
     let result = io::stdin()
         .read_to_string(&mut source)
-        .map_err(|_| input("Request must be valid JSON"))
+        .map_err(|error| match error.kind() {
+            // Standard input that is not UTF-8 is not JSON text (the comment above).
+            io::ErrorKind::InvalidData => input("Request must be valid JSON"),
+            _ => input(format!("Cannot read the request: {error}")),
+        })
         .and_then(|_| match serde_json::from_str::<Value>(&source) {
             Ok(request) => generate(&request, None),
             Err(_) => match JsonText::parse(&source) {

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The native Rust generator program handles the hidden error that the kit lint reports (C16.67-9)
+
+- `tests/native-generators/programs/rust/src/main.rs` `main` no longer discards the error of reading standard input: a `std::io::ErrorKind::InvalidData` error (input that is not UTF-8) keeps the message `Request must be valid JSON`, and any other read failure is returned as `Cannot read the request: <error>` (C16.67-9). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason` exit 101 with 1 finding (`map_err` wildcard pattern at src/main.rs:340); green: exit 0, `cargo build --locked` of the crate exits 0, and non-UTF-8 standard input still prints the same error with exit 1.
+
 ### 2026-10-20 — The benchmark validator driver handles its hidden errors (C16.67-3)
 
 - `benchmarks/validators/go` returns the errors of `loadFixture` and `benchSpec` (a fixture that is not JSON, a spec that is not a JSON object, a spec without properties) instead of panicking, and `main` prints them and exits 1; the JSON encoding of a report in `main` is an invariant with its message; `main_test.go` checks the wrong-input cases (C16.67-3). Red: `golangci-lint run` exited 1 with `3 issues` (errcheck 3), and `go test -run Test ./...` did not build: `assignment mismatch: 3 variables but loadFixture returns 2 values`; green: exit 0 with `0 issues`, and `go test -run Test ./...` gave `5 passed, 0 failed`.

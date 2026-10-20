@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a941e3e5c323e04ea95e7b6b5ff03720ed442c859518d6c2506b48b24d6d7b79 -->
+<!-- source-sha256: 1541d65715867dfecc61122c97b62fda884515f2bb2aa7a8572f1daa11b840d2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -132,5 +132,6 @@
 | C16.67-8 | examples/cross-check-console/validators/rust는 숨은 오류를 보고하지 않는다: kit lint의 clippy finding을 처리한다(K334, P8) | examples/cross-check-console/validators/rust (the changed files) | `cd examples/cross-check-console/validators/rust && cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`, `cargo build --locked --manifest-path examples/cross-check-console/validators/rust/Cargo.toml` | [o] |
 | C16.67-12 | generator(Go)는 숨은 오류를 보고하지 않는다: kit lint의 Go generator(errcheck, errorlint) finding을 처리한다(K334, P8) | packages/generator/go (the changed files) | `cd packages/generator/go && ../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../.golangci.yml ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run Test ./...` | [o] |
 | C16.67-3 | benchmarks/validators/go은 숨은 오류를 보고하지 않는다: kit lint의 errcheck finding을 처리한다(K334, P8) | benchmarks/validators/go (main.go, main_test.go) | `cd benchmarks/validators/go && ../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../.golangci.yml ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd benchmarks/validators/go -- -run Test ./...` | [o] |
+| C16.67-9 | tests/native-generators/programs/rust는 숨은 오류를 보고하지 않는다: kit lint의 clippy finding을 처리한다(K334, P8) | tests/native-generators/programs/rust (the changed files) | `cd tests/native-generators/programs/rust && cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`, `cargo build --locked --manifest-path tests/native-generators/programs/rust/Cargo.toml` | [o] |
 | C16.68 | config/generated.json은 crudui의 생성 경로를 선언하고, kit의 pre-commit hook이 생성 파일 검사를 실행한다(kit K362) | config/generated.json, config/owner-checks.json, .githooks/pre-commit, AGENTS.md, AGENTS.ko.md | `make hooks-check`, `make owner-validate` | [o] |
 | C16.71 | crudui는 f9eb43dd의 kit 사본을 받는다(K348 K385 K384 K360-1 K383 K380 K382 K375) | scripts/kit/kit-bootstrap.mk, config/layout.kit.yml, .githooks/commit-msg and the other copies that make kit-sync writes | `make kit-check` | [o] |
