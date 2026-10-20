@@ -13,9 +13,20 @@
  * display RAW, script/style chrome, and behavior on* attrs pass through `{@html}`.
  */
 
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/crudui-generator-core';
-import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
-import { rawVoid, rawElement, rawOptions, serializeAttrs, escAttr, escText } from './raw.js';
+import type { WidgetModel, UnsupportedVM } from '@polyspec/crudui-generator-core';
+import {
+  affixHtml,
+  choicesHtml,
+  escAttr,
+  escText,
+  hasEventAttr,
+  rawControl,
+  rawElement,
+  rawVoid,
+  searchHtml,
+} from '@polyspec/crudui-generator-core/internal';
+
+export { affixHtml };
 
 export type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -23,65 +34,10 @@ export function isUnsupported(w: AnyWidget): w is UnsupportedVM {
   return 'unsupported' in w && w.unsupported;
 }
 
-/** Return whether a control contains browser-executed behavior attributes. */
-function hasEventAttr(attrs: Attrs): boolean {
-  return Object.keys(attrs).some(name => name.startsWith('on'));
-}
-
 /** Keep an ordinary editable control as one DOM element across value updates. */
 export function usesStableControl(w: WidgetModel): boolean {
   return (w.layout === 'widget' || w.layout === 'bare')
     && (w.tag === 'input' || w.tag === 'textarea') && !hasEventAttr(w.attrs);
-}
-
-/** Raw prepend/append affix span html. */
-export function affixHtml(affix?: Affix): string {
-  if (!affix) return '';
-  const cls = affix.class ? ` class="${escAttr(affix.class)}"` : '';
-  const style = affix.style ? ` style="${escAttr(affix.style)}"` : '';
-  return `<span${cls}${style}>${escText(affix.text)}</span>`;
-}
-
-/** Raw serialization of one main control (input/select/textarea). */
-function rawControl(w: WidgetModel, selectedAttr: 'empty' | 'selected' = 'empty'): string {
-  if (w.tag === 'select') {
-    return rawElement('select', w.attrs, rawOptions(w.options ?? [], selectedAttr));
-  }
-  if (w.tag === 'textarea') {
-    return rawElement('textarea', w.attrs, escText(w.text ?? ''));
-  }
-  return rawVoid('input', w.attrs);
-}
-
-/** The label class of a choice: the label classes, then the class the choice declares, as single-spaced tokens. */
-function choiceLabelClass(labelClass: string, o: OptionModel): string {
-  return [labelClass, o.className ?? ''].join(' ').split(/\s+/).filter(Boolean).join(' ');
-}
-
-/** Raw serialization of one choice (input + label). */
-function groupButtonHtml(
-  o: OptionModel,
-  type: 'radio' | 'checkbox',
-  shared: Attrs,
-  declared: Attrs,
-  labelClass: string
-): string {
-  const attrs: Attrs = {
-    ...shared,
-    type,
-    value: o.value,
-    autocomplete: 'off',
-    class: 'valid-target crudui-choices__input',
-    ...(o.id ? { id: o.id } : {}),
-  };
-  if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
-  const checked = o.selected ? ' checked=""' : '';
-  const input = `<input${serializeAttrs(attrs)}${checked}${serializeAttrs({ ...declared, ...o.attributes })}>`;
-  const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
-  return (
-    input +
-    `<label${forAttr} class="${escAttr(choiceLabelClass(labelClass, o))}"${o.style ? ` style="${escAttr(o.style)}"` : ''}><span>${escText(o.label)}</span></label>`
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -91,18 +47,6 @@ function groupButtonHtml(
 /** widget body: prepend? + control + append?. */
 export function widgetBody(w: WidgetModel): string {
   return affixHtml(w.prepend) + rawControl(w) + affixHtml(w.append);
-}
-
-/** choices full html: `<div {attrs}>` + per-item input/label pairs. */
-function choicesHtml(w: WidgetModel): string {
-  const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared: Attrs = w.extra?.input ?? {};
-  const declared: Attrs = w.extra?.option ?? {};
-  const labelClass = w.itemLabelClass ?? '';
-  const body = (w.options ?? [])
-    .map((o) => groupButtonHtml(o, type, shared, declared, labelClass))
-    .join('');
-  return `<div${serializeAttrs(w.attrs)}>${body}</div>`;
 }
 
 /** range body: prepend? + range input + output + append?, inside .crudui-widget--range. */
@@ -124,23 +68,6 @@ export function fileGroupBody(w: WidgetModel): string {
       ? `<button class="crudui-widget__button" type="button">&nbsp;</button>`
       : '')
   );
-}
-
-/**
- * search full html: style?/script chrome (`nonce=""`, verbatim) + the select2
- * host `<select>` inside `.crudui-widget--search`. The host select needs
- * `selected="selected"` (select2 contract), so the whole search body is raw.
- */
-function searchHtml(w: WidgetModel): string {
-  const fieldSearch =
-    `<div class="crudui-widget crudui-widget--search">` +
-    affixHtml(w.prepend) +
-    rawElement('select', w.attrs, rawOptions(w.options ?? [], 'selected')) +
-    affixHtml(w.append) +
-    `</div>`;
-  const style = w.styleChrome ? `<style nonce="">${w.styleChrome}</style>` : '';
-  const script = `<script nonce="">${w.script ?? ''}</script>`;
-  return style + script + fieldSearch;
 }
 
 /**

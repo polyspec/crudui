@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The raw control markup in the core (C16.27)
+
+- `@polyspec/crudui-generator-core/internal` exports the raw control markup that the React, Vue and Svelte adapters each held a copy of: `escAttr`, `escText`, `serializeAttrs`, `rawVoid`, `rawElement`, `rawOptions`, `affixHtml`, `rawControl`, `choiceLabelClass`, `groupButtonHtml`, `choicesHtml`, `searchHtml` and `hasEventAttr` (`src/raw-markup.ts`); the adapters import them (C16.27). The Svelte test for an event attribute is now the `on` plus a letter of the other two adapters, not any name that starts with `on`. Red: `make duplication-check` listed 12 clones among the `raw.ts` and widget files of the three adapters; green: those are gone (118 clones remain in total), the Vue and Svelte form rendering conformance tests (463 each) and the other conformance tests of both pass, and `make lint-ts` passes. The output is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — Shared composition layering, literal reader and rule shapes in the TypeScript validator (C16.26)
 
 - `layerMembers` (`compose/layer.ts`) layers the members of a node for `composeProperties`, `composeSpec`, `composeRoot` and `expandNestedRefs`; `ConditionParser.matchLiteral` reads a literal token; `parameterRule`, `flagRule` and `formatRule` (`rules/factories.ts`) hold the parameter check, the empty-value skip and the message choice that `max`, `min`, `range`, `step`, `maxlength`, `minlength`, `rangelength`, `maxcount`, `mincount`, `digits`, `number`, `date`, `dateISO`, `url`, `email`, `enddate` and `equalTo` each spelled out (C16.26). Red: `make duplication-check` listed 10 clones in `packages/validator/ts`; green: none; 465 conformance and unit tests and `make lint-ts` pass. The behaviour is unchanged, so the red is the clone list.

@@ -11,3 +11,17 @@ export type { OptionSection } from './widget';
 export { CELL_FORMAT_DEFAULT, CELL_FORMATS, CELL_RENDERERS } from './cell';
 export { formRenderModel } from './form-render';
 export type { FormRenderModel, FormElementAttributes } from './form-render';
+export {
+  affixHtml,
+  choiceLabelClass,
+  choicesHtml,
+  groupButtonHtml,
+  hasEventAttr,
+  rawControl,
+  rawElement,
+  rawOptions,
+  rawVoid,
+  searchHtml,
+  serializeAttrs,
+} from './raw-markup';
+export { escAttr, escText } from './util';

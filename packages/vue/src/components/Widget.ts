@@ -27,18 +27,20 @@
  */
 
 import { h, type VNode } from 'vue';
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/crudui-generator-core';
+import type { WidgetModel } from '@polyspec/crudui-generator-core';
 import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import { plainProps } from './attrs.js';
+import { rawContainer } from './raw.js';
 import {
-  rawVoid,
-  rawElement,
-  rawOptions,
-  rawContainer,
-  serializeAttrs,
+  affixHtml,
+  choicesHtml,
   escAttr,
   escText,
-} from './raw.js';
+  rawControl,
+  rawElement,
+  rawVoid,
+  searchHtml,
+} from '@polyspec/crudui-generator-core/internal';
 
 /** Widget model accepted by the renderer, including unsupported markers. */
 export type AnyWidget = WidgetModel | UnsupportedVM;
@@ -50,56 +52,6 @@ function isUnsupported(w: AnyWidget): w is UnsupportedVM {
 // ---------------------------------------------------------------------------
 // raw control / affix serialization (control bytes only)
 // ---------------------------------------------------------------------------
-
-/** Raw prepend/append affix span html. */
-function affixHtml(affix?: Affix): string {
-  if (!affix) return '';
-  const cls = affix.class ? ` class="${escAttr(affix.class)}"` : '';
-  const style = affix.style ? ` style="${escAttr(affix.style)}"` : '';
-  return `<span${cls}${style}>${escText(affix.text)}</span>`;
-}
-
-/** Raw serialization of one main control (input/select/textarea). */
-function rawControl(w: WidgetModel, selectedAttr: 'empty' | 'selected' = 'empty'): string {
-  if (w.tag === 'select') {
-    return rawElement('select', w.attrs, rawOptions(w.options ?? [], selectedAttr));
-  }
-  if (w.tag === 'textarea') {
-    return rawElement('textarea', w.attrs, escText(w.text ?? ''));
-  }
-  return rawVoid('input', w.attrs);
-}
-
-/** The label class of a choice: the label classes, then the class the choice declares, as single-spaced tokens. */
-function choiceLabelClass(labelClass: string, o: OptionModel): string {
-  return [labelClass, o.className ?? ''].join(' ').split(/\s+/).filter(Boolean).join(' ');
-}
-
-/** Raw serialization of one choice (input + label). */
-function groupButtonHtml(
-  o: OptionModel,
-  type: 'radio' | 'checkbox',
-  shared: Attrs,
-  declared: Attrs,
-  labelClass: string
-): string {
-  const attrs: Attrs = {
-    ...shared,
-    type,
-    value: o.value,
-    autocomplete: 'off',
-    class: 'valid-target crudui-choices__input',
-    ...(o.id ? { id: o.id } : {}),
-  };
-  if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
-  const checked = o.selected ? ' checked=""' : '';
-  const input = `<input${serializeAttrs(attrs)}${checked}${serializeAttrs({ ...declared, ...o.attributes })}>`;
-  const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
-  return (
-    input +
-    `<label${forAttr} class="${escAttr(choiceLabelClass(labelClass, o))}"${o.style ? ` style="${escAttr(o.style)}"` : ''}><span>${escText(o.label)}</span></label>`
-  );
-}
 
 // ---------------------------------------------------------------------------
 // container vnodes (real) with raw control bodies
@@ -117,24 +69,6 @@ function rangeVNode(w: WidgetModel): VNode {
   const output = `<output class="crudui-widget__output"${forAttr}>${escText(w.text ?? '')}</output>`;
   const html = affixHtml(w.prepend) + rawVoid('input', w.attrs) + output + affixHtml(w.append);
   return rawContainer('div', { class: 'crudui-widget crudui-widget--range' }, html);
-}
-
-/**
- * choices layout raw html: `<div {attrs}>` + per-item input/label pairs. The
- * container is serialized raw (not a vnode) because its own `w.attrs` may carry
- * empty-valued attributes (`data-source-method=""` on a dynamic stub) that Vue
- * would coerce to bare; the per-item inputs carry `data-is-default=""`/`checked=""`
- * the same way. The node renderer injects this into the node body.
- */
-function choicesHtml(w: WidgetModel): string {
-  const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared: Attrs = w.extra?.input ?? {};
-  const declared: Attrs = w.extra?.option ?? {};
-  const labelClass = w.itemLabelClass ?? '';
-  const body = (w.options ?? [])
-    .map((o) => groupButtonHtml(o, type, shared, declared, labelClass))
-    .join('');
-  return `<div${serializeAttrs(w.attrs)}>${body}</div>`;
 }
 
 /** file layout: image/file (display+file+button) or cover (single file). */
@@ -160,26 +94,6 @@ function displayVNode(w: WidgetModel): VNode {
   // RAW html display (dummy/image-viewer) — unescaped content, on a
   // real container vnode (the sanctioned verbatim-content boundary).
   return h('div', { ...plainProps(w.attrs), innerHTML: w.rawHtml ?? '' });
-}
-
-/**
- * search layout raw html: style?/script chrome (`nonce=""`, verbatim) + the
- * select2 host `<select>` inside `.crudui-widget--search`. Serialized raw (not
- * vnodes) because the chrome's `nonce=""` and the select's `data-default=""` are
- * empty-valued, and the host select needs `selected="selected"` (select2
- * contract) — all of which Vue's serializer would coerce. The node renderer
- * injects this into the node body.
- */
-function searchHtml(w: WidgetModel): string {
-  const fieldSearch =
-    `<div class="crudui-widget crudui-widget--search">` +
-    affixHtml(w.prepend) +
-    rawElement('select', w.attrs, rawOptions(w.options ?? [], 'selected')) +
-    affixHtml(w.append) +
-    `</div>`;
-  const style = w.styleChrome ? `<style nonce="">${w.styleChrome}</style>` : '';
-  const script = `<script nonce="">${w.script ?? ''}</script>`;
-  return style + script + fieldSearch;
 }
 
 // ---------------------------------------------------------------------------

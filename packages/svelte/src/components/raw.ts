@@ -22,55 +22,7 @@
 
 import { untrack } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
-import { patchContent, type Attrs, type OptionModel } from '@polyspec/crudui-generator-core';
-import { optionSections } from '@polyspec/crudui-generator-core/internal';
-
-function escAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
-
-function escText(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/** Serialize an attribute map to ` k="v"` pairs; normalization compares order. */
-function serializeAttrs(attrs: Attrs): string {
-  let out = '';
-  for (const [k, v] of Object.entries(attrs)) {
-    out += ` ${k}="${escAttr(v)}"`;
-  }
-  return out;
-}
-
-/** Serialize one void control (input). */
-function rawVoid(tag: string, attrs: Attrs): string {
-  return `<${tag}${serializeAttrs(attrs)}>`;
-}
-
-/** Serialize one container control (textarea/select) with raw inner html. */
-function rawElement(tag: string, attrs: Attrs, innerHtml: string): string {
-  return `<${tag}${serializeAttrs(attrs)}>${innerHtml}</${tag}>`;
-}
-
-/** Serialize <option> markup, the options of each group inside an <optgroup> (search/select via raw path). */
-function rawOptions(
-  options: OptionModel[],
-  selectedAttr: 'empty' | 'selected'
-): string {
-  const option = (o: OptionModel) => {
-    const sel = o.selected
-      ? selectedAttr === 'selected'
-        ? ' selected="selected"'
-        : ' selected=""'
-      : '';
-    return `<option value="${escAttr(o.value)}"${sel}>${escText(o.label)}</option>`;
-  };
-  return optionSections(options)
-    .map((section) => section.group
-      ? `<optgroup label="${escAttr(section.group.label)}">${section.options.map(option).join('')}</optgroup>`
-      : section.options.map(option).join(''))
-    .join('');
-}
+import { patchContent } from '@polyspec/crudui-generator-core';
 
 /**
  * The raw markup a container's `{@html}` writes once: server rendering writes it and hydration
@@ -98,5 +50,3 @@ export function patched(html: string): Attachment<HTMLElement> {
 }
 
 const mounted = new WeakSet<Element>();
-
-export { escAttr, escText, serializeAttrs, rawVoid, rawElement, rawOptions };

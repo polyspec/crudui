@@ -19,20 +19,22 @@
  */
 
 import * as React from 'react';
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/crudui-generator-core';
-import { optionSections } from '@polyspec/crudui-generator-core/internal';
-import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
-import { inputProps, plainProps, resolvedStyleProps, styleObject } from './attrs';
+import type { Affix, Attrs, OptionModel, UnsupportedVM, WidgetModel } from '@polyspec/crudui-generator-core';
 import {
-  hasEventAttr,
-  rawVoid,
-  rawElement,
-  rawOptions,
-  RawContainer,
-  RawText,
+  affixHtml,
+  choiceLabelClass,
   escAttr,
   escText,
-} from './raw';
+  groupButtonHtml,
+  hasEventAttr,
+  optionSections,
+  rawControl,
+  rawElement,
+  rawOptions,
+  rawVoid,
+} from '@polyspec/crudui-generator-core/internal';
+import { inputProps, plainProps, resolvedStyleProps, styleObject } from './attrs';
+import { RawContainer, RawText } from './raw';
 
 /** Widget model accepted by the renderer, including unsupported markers. */
 export type AnyWidget = WidgetModel | UnsupportedVM;
@@ -55,14 +57,6 @@ function AffixSpan({ affix }: { affix: Affix }): React.ReactElement {
   );
 }
 
-/** Raw affix span html (for raw-path containers). */
-function affixHtml(affix?: Affix): string {
-  if (!affix) return '';
-  const cls = affix.class ? ` class="${escAttr(affix.class)}"` : '';
-  const style = affix.style ? ` style="${escAttr(affix.style)}"` : '';
-  return `<span${cls}${style}>${escText(affix.text)}</span>`;
-}
-
 /** A real <select> driven by defaultValue; selected only when an option is. */
 function SelectControl({ w }: { w: WidgetModel }): React.ReactElement {
   const selected = (w.options ?? []).filter((o) => o.selected).map(o => o.value);
@@ -77,17 +71,6 @@ function SelectControl({ w }: { w: WidgetModel }): React.ReactElement {
       ) : section.options.map((o, j) => <option key={`${i}:${j}`} value={o.value}>{o.label}</option>))}
     </select>
   );
-}
-
-/** Raw serialization of a control (input/textarea/select) carrying on* attrs. */
-function rawControl(w: WidgetModel): string {
-  if (w.tag === 'select') {
-    return rawElement('select', w.attrs, rawOptions(w.options ?? [], 'empty'));
-  }
-  if (w.tag === 'textarea') {
-    return rawElement('textarea', w.attrs, escText(w.text ?? ''));
-  }
-  return rawVoid('input', w.attrs);
 }
 
 /** widget layout: prepend? + control + append? inside .crudui-widget. */
@@ -177,44 +160,6 @@ function HostScript({ w }: { w: WidgetModel }): React.ReactElement {
       <RawText tag="script" nonce="" text={w.script ?? ''} />
     </>
   );
-}
-
-/** The label class of a choice: the label classes, then the class the choice declares, as single-spaced tokens. */
-function choiceLabelClass(labelClass: string, o: OptionModel): string {
-  return [labelClass, o.className ?? ''].join(' ').split(/\s+/).filter(Boolean).join(' ');
-}
-
-/** Raw serialization of a single choice (input + label). */
-function groupButtonHtml(
-  o: OptionModel,
-  type: 'radio' | 'checkbox',
-  shared: Attrs,
-  declared: Attrs,
-  labelClass: string
-): string {
-  const attrs: Attrs = {
-    ...shared,
-    type,
-    value: o.value,
-    autocomplete: 'off',
-    class: 'valid-target crudui-choices__input',
-    ...(o.id ? { id: o.id } : {}),
-  };
-  if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
-  const checked = o.selected ? ' checked=""' : '';
-  // Insert checked manually (serializeAttrs has no boolean form).
-  const input = `<input${serializeBtn(attrs)}${checked}${serializeBtn({ ...declared, ...o.attributes })}>`;
-  const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
-  return (
-    input +
-    `<label${forAttr} class="${escAttr(choiceLabelClass(labelClass, o))}"${o.style ? ` style="${escAttr(o.style)}"` : ''}><span>${escText(o.label)}</span></label>`
-  );
-}
-
-function serializeBtn(attrs: Attrs): string {
-  let out = '';
-  for (const [k, v] of Object.entries(attrs)) out += ` ${k}="${escAttr(v)}"`;
-  return out;
 }
 
 /** A single radio/checkbox button as JSX (no behavior). */

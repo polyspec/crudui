@@ -27,7 +27,8 @@ import type {
 } from '@polyspec/crudui-generator-core';
 import { Cell } from './Cell';
 import { resolvedStyleProps, styleObject } from './attrs';
-import { escAttr, escText, RawContainer } from './raw';
+import { escAttr, escText } from '@polyspec/crudui-generator-core/internal';
+import { RawContainer } from './raw';
 
 /** Merge a base class with a resolved design class ('' dropped) → className/undefined. */
 function nodeClass(base: string, cls: string): string | undefined {

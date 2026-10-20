@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 58b36caf789a829c6231ada51265c6bed25f197c69bb4292473ecdb428e37dc8 -->
+<!-- source-sha256: 15f362beb3ca7c365fc91f495d76cfc0a96716c21ce3c00b780b8abc152fd720 -->
 
 ## Unreleased
+
+### 2026-10-20 — core의 raw control markup (C16.27)
+
+- `@polyspec/crudui-generator-core/internal`은 React, Vue, Svelte adapter가 각자 사본을 두던 raw control markup인 `escAttr`, `escText`, `serializeAttrs`, `rawVoid`, `rawElement`, `rawOptions`, `affixHtml`, `rawControl`, `choiceLabelClass`, `groupButtonHtml`, `choicesHtml`, `searchHtml`, `hasEventAttr`(`src/raw-markup.ts`)를 export하고, adapter가 이를 import합니다 (C16.27). Svelte의 event attribute 판별은 `on`으로 시작하는 모든 이름이 아니라 다른 두 adapter와 같이 `on` 뒤에 글자가 오는 이름입니다. Red: `make duplication-check`가 세 adapter의 `raw.ts`와 widget file 사이의 clone 12건을 나열했고, green: 없어지며(전체 clone 118건이 남음), Vue와 Svelte의 form rendering conformance test(각 463건)와 두 package의 다른 conformance test, `make lint-ts`가 통과합니다. 출력은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — TypeScript validator의 공유 composition layering, literal reader, rule 형태 (C16.26)
 
