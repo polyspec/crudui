@@ -1351,5 +1351,187 @@
       "message": "Unsupported form template",
       "at": ""
     }
+  },
+  {
+    "name": "create-two-records-from-serialized-template",
+    "note": "two records bound from one serialized template each read their own values.",
+    "requirements": [
+      "CURT-050"
+    ],
+    "operation": "createRecords",
+    "template": {
+      "kind": "crudui/form-template",
+      "fields": [
+        {
+          "name": "name",
+          "spec": {
+            "type": "text"
+          },
+          "children": []
+        },
+        {
+          "name": "items",
+          "spec": {
+            "type": "group",
+            "multiple": true
+          },
+          "children": [
+            {
+              "name": "title",
+              "spec": {
+                "type": "text",
+                "label": "Title"
+              },
+              "children": []
+            }
+          ]
+        }
+      ],
+      "buttons": [
+        {
+          "type": "submit"
+        }
+      ]
+    },
+    "data": [
+      {
+        "name": "a",
+        "items": {
+          "__0000000000001__": {
+            "title": "x"
+          }
+        }
+      },
+      {
+        "name": "b",
+        "items": {
+          "__0000000000002__": {
+            "title": "y"
+          }
+        }
+      }
+    ],
+    "options": {},
+    "paths": [
+      [
+        "name",
+        "items.__0000000000001__.title"
+      ],
+      [
+        "name",
+        "items.__0000000000002__.title"
+      ]
+    ],
+    "expect": {
+      "results": [
+        {
+          "name": "a",
+          "items.__0000000000001__.title": "x"
+        },
+        {
+          "name": "b",
+          "items.__0000000000002__.title": "y"
+        }
+      ]
+    }
+  },
+  {
+    "name": "create-three-records-independent",
+    "note": "a record bound again after another one reads the same values as its first binding.",
+    "requirements": [
+      "CURT-050"
+    ],
+    "operation": "createRecords",
+    "template": {
+      "kind": "crudui/form-template",
+      "fields": [
+        {
+          "name": "name",
+          "spec": {
+            "type": "text"
+          },
+          "children": []
+        },
+        {
+          "name": "items",
+          "spec": {
+            "type": "group",
+            "multiple": true
+          },
+          "children": [
+            {
+              "name": "title",
+              "spec": {
+                "type": "text",
+                "label": "Title"
+              },
+              "children": []
+            }
+          ]
+        }
+      ],
+      "buttons": [
+        {
+          "type": "submit"
+        }
+      ]
+    },
+    "data": [
+      {
+        "name": "a",
+        "items": {
+          "__0000000000001__": {
+            "title": "x"
+          }
+        }
+      },
+      {
+        "name": "b",
+        "items": {
+          "__0000000000002__": {
+            "title": "y"
+          }
+        }
+      },
+      {
+        "name": "a",
+        "items": {
+          "__0000000000001__": {
+            "title": "x"
+          }
+        }
+      }
+    ],
+    "options": {},
+    "paths": [
+      [
+        "name",
+        "items.__0000000000001__.title"
+      ],
+      [
+        "name",
+        "items.__0000000000002__.title"
+      ],
+      [
+        "name",
+        "items.__0000000000001__.title"
+      ]
+    ],
+    "expect": {
+      "results": [
+        {
+          "name": "a",
+          "items.__0000000000001__.title": "x"
+        },
+        {
+          "name": "b",
+          "items.__0000000000002__.title": "y"
+        },
+        {
+          "name": "a",
+          "items.__0000000000001__.title": "x"
+        }
+      ]
+    }
   }
 ]

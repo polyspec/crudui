@@ -21,7 +21,7 @@ use stdClass;
  */
 final class TemplateShapeTest extends TestCase
 {
-    private const CASES = 42;
+    private const CASES = 44;
 
     /**
      * @return iterable<string, array{string, stdClass}>
@@ -41,6 +41,20 @@ final class TemplateShapeTest extends TestCase
     #[DataProvider('shapeCases')]
     public function testTheOperationAcceptsOrRefusesTheTemplate(string $operation, stdClass $case): void
     {
+        if ($operation === 'createRecords') {
+            // CURT-050: each record is bound from the serialized template alone, and reads its own values.
+            $results = [];
+            foreach ($case->data as $index => $record) {
+                $form = new Form($case->template, $record, []);
+                $read = [];
+                foreach ($case->paths[$index] as $path) {
+                    $read[$path] = $form->getValue($path);
+                }
+                $results[] = $read;
+            }
+            self::assertSame(['results' => $results], (array) (json_decode(json_encode($case->expect), true)));
+            return;
+        }
         $expected = \is_string($case->expect) ? $case->expect : (array) $case->expect;
         self::assertSame($expected, self::outcome($operation, $case));
     }

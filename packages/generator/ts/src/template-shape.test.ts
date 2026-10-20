@@ -6,7 +6,7 @@ import { bindButtons, bindForm, compileForm, createForm } from './index';
 import { isRecord } from './util';
 
 /** A case of tests/fixtures/template-shape: the operation takes the template, the data and the options of the case. */
-interface ShapeCase { name: string; operation: string; template: unknown; data: unknown; options: unknown; expect: unknown }
+interface ShapeCase { name: string; operation: string; template: unknown; data: unknown; options: unknown; expect: unknown; paths?: unknown }
 
 /** Calls a function with the case values, which the shape check at run time takes as they are. */
 function call(fn: (...args: never[]) => unknown, args: unknown[]): unknown {
@@ -21,9 +21,9 @@ const OPERATIONS: Record<string, (template: unknown, data: unknown, options: unk
 
 function caseOf(item: unknown): ShapeCase {
   assert(isRecord(item), 'a case is an object');
-  const { name, operation, template, data, options, expect } = item;
+  const { name, operation, template, data, options, expect, paths } = item;
   assert(typeof name === 'string' && typeof operation === 'string', 'a case has a name and an operation');
-  return { name, operation, template, data, options, expect };
+  return { name, operation, template, data, options, expect, ...(paths === undefined ? {} : { paths }) };
 }
 
 const cases: ShapeCase[] = (() => {
@@ -32,10 +32,39 @@ const cases: ShapeCase[] = (() => {
   return raw.map(caseOf);
 })();
 
+/** An instance of `createForm`, which reads the value at a path. */
+function hasGetValue(value: unknown): value is { getValue(path: string): unknown } {
+  return typeof value === 'object' && value !== null && 'getValue' in value && typeof value.getValue === 'function';
+}
+
+/** The paths of one record of a case: a list of text (CURT-050). */
+function pathsOf(paths: unknown, index: number): string[] {
+  const list: unknown = Array.isArray(paths) ? paths[index] : undefined;
+  assert(Array.isArray(list) && list.every(path => typeof path === 'string'), 'the paths of a record are a list of text');
+  return list;
+}
+
+/** The values at `paths` of the instance that `createForm` makes from the template and one record (CURT-050). */
+function readPaths(template: unknown, record: unknown, paths: string[]): Record<string, unknown> {
+  const form: unknown = Reflect.apply(createForm, undefined, [template, record, {}]);
+  assert(hasGetValue(form), 'createForm makes an instance with getValue');
+  const out: Record<string, unknown> = {};
+  for (const path of paths) out[path] = form.getValue(path);
+  return out;
+}
+
 describe('form template shape', () => {
   // The compiled cases of tests/fixtures/template-shape also test CURP-019 and CURP-024: a serialized compiled template is bound.
+// The record cases test CURT-050: records bound from one serialized template are independent.
   for (const item of cases) {
     it(item.name, () => {
+      if (item.operation === 'createRecords') {
+        // CURT-050: each record is bound from the serialized template alone, and reads its own values.
+        assert(Array.isArray(item.data) && item.paths, 'the records and their paths are lists');
+        const results = item.data.map((record, index) => readPaths(item.template, record, pathsOf(item.paths, index)));
+        expect({ results }).toStrictEqual(item.expect);
+        return;
+      }
       const run = OPERATIONS[item.operation];
       assert(run, `${item.operation} is a template operation`);
       let caught: unknown;

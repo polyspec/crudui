@@ -30,13 +30,23 @@ class TestGeneratorTemplateShape(unittest.TestCase):
         from polyspec.crudui.generator import Generator
 
         cases = cases_of("template-shape")
-        self.assertEqual(len(cases), 42)
+        self.assertEqual(len(cases), 44)
         for case in cases:
             with self.subTest(case=case["name"]):
                 template = case["template"]
                 data = case.get("data", {})
                 options = case.get("options", {})
                 operation = case["operation"]
+                if operation == "createRecords":
+                    # CURT-050: each record is bound from the serialized template alone, and reads its own values.
+                    results = []
+                    for index, record in enumerate(data):
+                        form = Generator.createForm(template, record, {})
+                        results.append(
+                            {path: form.getValue(path) for path in case["paths"][index]}
+                        )
+                    self.assertEqual({"results": results}, case["expect"])
+                    continue
 
                 def run():
                     if operation == "bindForm":

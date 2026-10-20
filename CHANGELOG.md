@@ -28,6 +28,10 @@ Decision table for the six acceptance criteria that C16.141 reported (CURT-050 t
 The added sessions are the only new cases: `tests/fixtures/form-actions/cases.json` grows by three, and no existing case
 changes. The form-actions unit cites CURT-053, CURT-054 and CURT-055. Every runner of the form state suites passes once
 (TypeScript, Go, Python, Rust, PHP, the PHP extension and its engine test).
+### 2026-10-21 — Records bound from one serialized template are independent (C16.147)
+
+- The template-shape fixture gets two cases that bind records from one serialized template: `create-two-records-from-serialized-template` and `create-three-records-independent`. The compiled template resolves a composition file (`$ref` in a repeated group) before any record exists, serializes to JSON, and each record is bound from that template alone, with no composition file given to the binding. Each record reads its own values; in the three-record case the third binding reads what the first one read. CURT-050 is cited on both cases and in the unit `template-shape`.
+- All six runners run the two cases: the TypeScript, Go, Rust, PHP (with the extension) and Python runners compare the values that each binding reads with the expectation, which the TypeScript reference computed.
 
 ### 2026-10-21 — CUIT-041 has a Python entry (C16.140-2)
 

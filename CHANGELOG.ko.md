@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 51b991a1e0a9a4aa9d389e0bca67b4b45f5cf6b6b9b66afbb3a9686c558abfd2 -->
+<!-- source-sha256: 90ba658d85ba65247c3f902ec294202ffef90ad3817b09d71443faf3f4ad3e5c -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@ C16.141이 보고한 인수 기준 여섯 개(CURT-050부터 CURT-056까지)에 
 | CURT-056 (공용 검증 case를 네 언어로 실행하고 하나의 멱등 서명) | 경로 2(설명) | 명세, 번호 없는 문단 | 시험 절차이며 테스트가 요구사항으로 검사할 수 없습니다 |
 
 추가된 세션이 유일한 새 case입니다. `tests/fixtures/form-actions/cases.json`은 세 개만 늘고 기존 case는 바뀌지 않습니다. form-actions unit은 CURT-053, CURT-054, CURT-055를 인용합니다. form state 제품군의 모든 runner(TypeScript, Go, Python, Rust, PHP, PHP extension과 engine 테스트)가 한 번씩 통과합니다.
+### 2026-10-21 — 한 직렬화 템플릿에서 바인드한 레코드는 서로 독립이다 (C16.147)
+
+- template-shape fixture에 한 직렬화 템플릿에서 레코드를 바인드하는 case 두 개를 더했습니다: `create-two-records-from-serialized-template`, `create-three-records-independent`. compile된 템플릿은 레코드가 생기기 전에 구성 파일(반복 그룹의 `$ref`)을 풀고, JSON으로 직렬화되며, 각 레코드는 구성 파일을 주지 않고 그 템플릿만으로 바인드합니다. 각 레코드는 자기 값을 읽고, 세 레코드 case에서는 세 번째 바인드가 첫 번째가 읽은 값을 읽습니다. CURT-050은 두 case와 unit `template-shape`에 인용됩니다.
+- 여섯 runner가 두 case를 모두 실행합니다. TypeScript, Go, Rust, PHP(확장 포함), Python runner는 각 바인드가 읽은 값을 TypeScript 기준 구현이 계산한 기대값과 비교합니다.
 
 ### 2026-10-21 — CUIT-041에 Python 항목이 있다 (C16.140-2)
 

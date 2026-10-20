@@ -14,7 +14,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as core from '@polyspec/crudui-generator-core';
 
-interface Case { name: string; note: string; requirements: string[]; operation: string; template: unknown; data: unknown; options: unknown; expect: unknown }
+interface Case { name: string; note: string; requirements: string[]; operation: string; template: unknown; data: unknown; options: unknown; expect: unknown; paths?: string[][] }
 type Runner = (template: unknown, data: unknown, options: unknown) => unknown;
 
 const REQUIREMENT = 'CURT-092';
@@ -29,7 +29,21 @@ const runners: Record<string, Runner> = {
   bindButtons: (template, data, options) => call(core.bindButtons, [template, data, options]),
   createForm: (template, data, options) => call(core.createForm, [template, data, options]),
 };
-const compileForm = (spec: unknown): unknown => call(core.compileForm, [spec]);
+const compileForm = (spec: unknown, options?: unknown): unknown => call(core.compileForm, options === undefined ? [spec] : [spec, options]);
+
+/** A form instance with the read method of the reference (CURT-050: a record is bound from the template alone). */
+function hasGetValue(value: unknown): value is { getValue(path: string): unknown } {
+  return typeof value === 'object' && value !== null && 'getValue' in value && typeof value.getValue === 'function';
+}
+
+/** The values at `paths` of the form that `createForm` makes from the template and one record. */
+function readPaths(template: unknown, record: unknown, paths: string[]): Record<string, unknown> {
+  const form = call(core.createForm, [template, record, {}]);
+  if (!hasGetValue(form)) throw new Error('createForm makes an instance with getValue');
+  const out: Record<string, unknown> = {};
+  for (const path of paths) out[path] = form.getValue(path);
+  return out;
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const output = resolve(here, 'cases.json');
@@ -101,6 +115,22 @@ for (const [operation, run] of Object.entries(runners)) {
     add(name, 'a template with this shape violation is refused with the message of the shape rule, and no location.', template);
   }
 }
+
+// CURT-050: the composition files are resolved before any record exists, the template serializes, and records bound from
+// it are independent. `options.files` is given to the compile only; each record is bound from the serialized template alone.
+const FILES = { 'part.yml': { properties: { title: { type: 'text', label: 'Title' } } } };
+const composed: unknown = compileForm({ type: 'group', properties: { name: { type: 'text' }, items: { type: 'group', multiple: true, properties: { $ref: 'part.yml' } } } }, { files: FILES });
+const serialized: unknown = JSON.parse(JSON.stringify(composed));
+const RECORD_A = { name: 'a', items: { __0000000000001__: { title: 'x' } } };
+const RECORD_B = { name: 'b', items: { __0000000000002__: { title: 'y' } } };
+const PATHS_A = ['name', 'items.__0000000000001__.title'];
+const PATHS_B = ['name', 'items.__0000000000002__.title'];
+const shared = (name: string, note: string, records: unknown[], paths: string[][]) => cases.push({
+  name, note, requirements: ['CURT-050'], operation: 'createRecords', template: serialized, data: records, options: {}, paths,
+  expect: { results: records.map((record, index) => readPaths(serialized, record, paths[index] ?? [])) },
+});
+shared('create-two-records-from-serialized-template', 'two records bound from one serialized template each read their own values.', [RECORD_A, RECORD_B], [PATHS_A, PATHS_B]);
+shared('create-three-records-independent', 'a record bound again after another one reads the same values as its first binding.', [RECORD_A, RECORD_B, RECORD_A], [PATHS_A, PATHS_B, PATHS_A]);
 
 // The reference writes every expectation of these cases: the result of the reference on each case is the expectation.
 writeFileSync(output, `${JSON.stringify(cases, null, 2)}\n`);

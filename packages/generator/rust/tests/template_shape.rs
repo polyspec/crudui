@@ -53,9 +53,33 @@ fn outcome(result: FormResult<()>) -> Value {
     }
 }
 
+/// CURT-050: each record is bound from the serialized template alone, and the values of its paths are its own.
+fn check_records(case: &JsonText, expected: &Value) -> Result<(), Failed> {
+    let template_value = member(case, "template");
+    let records = member(case, "data");
+    let paths = member(case, "paths");
+    let mut results = Vec::new();
+    for (index, record) in records.as_array().expect("the records are a list").iter().enumerate() {
+        let template = FormTemplate::from_json(&template_value).expect("the serialized template decodes");
+        let form = Form::new(template, record, BindOptions::default()).expect("the record binds");
+        let mut read = serde_json::Map::new();
+        for path in paths[index].as_array().expect("the paths of a record are a list") {
+            let path = path.as_str().expect("a path is text");
+            read.insert(path.to_string(), form.get_value(path).expect("the path reads"));
+        }
+        results.push(Value::Object(read));
+    }
+    let observed = json!({"results": results});
+    if &observed == expected {
+        Ok(())
+    } else {
+        Err(Failed::from(format!("\n got {observed}\nwant {expected}")))
+    }
+}
+
 fn main() {
     let cases = cases();
-    assert_eq!(cases.len(), 42, "the template shape fixture holds 42 cases");
+    assert_eq!(cases.len(), 44, "the template shape fixture holds 44 cases");
     let trials = cases
         .into_iter()
         .map(|case| {
@@ -63,6 +87,9 @@ fn main() {
             let name = name.as_str().expect("a case has a name").to_string();
             Trial::test(format!("template_shape::{name}"), move || {
                 let expected = member(&case, "expect");
+                if member(&case, "operation").as_str() == Some("createRecords") {
+                    return check_records(&case, &expected);
+                }
                 let observed = outcome(run_case(&case));
                 if observed == expected {
                     Ok(())

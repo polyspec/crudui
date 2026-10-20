@@ -2092,7 +2092,8 @@
       "requirements": [
         "CURT-092",
         "CURP-019",
-        "CURP-024"
+        "CURP-024",
+        "CURT-050"
       ]
     }
   ],
