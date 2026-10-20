@@ -738,35 +738,46 @@ size_t ps_relative_base(const bool *row_keys, size_t path_length, size_t levels_
     return base;
 }
 
-/* Tokenize and parse an expression; *parsed reports whether it parsed. The caller frees the tokens and the tree. */
-static expression_node *parse_source(ps_text expression, lexer_output *tokens, bool *parsed)
+/* A parsed expression: its tokens and its tree, which free_parsed_source releases. */
+typedef struct {
+    lexer_output tokens;
+    expression_node *node;
+} parsed_source;
+
+/* Tokenize and parse an expression; *parsed reports whether it parsed. The caller releases it with free_parsed_source. */
+static parsed_source parse_source(ps_text expression, bool *parsed)
 {
-    *tokens = tokenize(expression);
-    expression_node *node = parse_expression(tokens);
-    if (parsed) *parsed = node != NULL;
-    return node;
+    parsed_source source;
+    source.tokens = tokenize(expression);
+    source.node = parse_expression(&source.tokens);
+    if (parsed) *parsed = source.node != NULL;
+    return source;
+}
+
+static void free_parsed_source(parsed_source *source)
+{
+    free_node(source->node);
+    free_tokens(&source->tokens);
 }
 
 ps_value *ps_expression_value(ps_text expression, const ps_value *data,
                               const ps_text *current_path, const bool *row_keys, size_t path_length,
                               bool *parsed)
 {
-    lexer_output tokens;
-    expression_node *node = parse_source(expression, &tokens, parsed);
+    parsed_source source = parse_source(expression, parsed);
     evaluator eval = {data, current_path, row_keys, path_length};
-    ps_value *value = node ? evaluate_value_node(node, &eval) : NULL;
-    free_node(node); free_tokens(&tokens); return value;
+    ps_value *value = source.node ? evaluate_value_node(source.node, &eval) : NULL;
+    free_parsed_source(&source); return value;
 }
 
 bool ps_expression_truth(ps_text expression, const ps_value *data,
                          const ps_text *current_path, const bool *row_keys, size_t path_length,
                          bool *parsed)
 {
-    lexer_output tokens;
-    expression_node *node = parse_source(expression, &tokens, parsed);
+    parsed_source source = parse_source(expression, parsed);
     evaluator eval = {data, current_path, row_keys, path_length};
-    bool value = node ? evaluate_node(node, &eval) : false;
-    free_node(node); free_tokens(&tokens); return value;
+    bool value = source.node ? evaluate_node(source.node, &eval) : false;
+    free_parsed_source(&source); return value;
 }
 
 /* Append the literal values a branch can return; a path or a computed value is not a literal. */
