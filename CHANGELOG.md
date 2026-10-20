@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The gates workflow in the ci-local test (C16.7-6)
+
+- `tests/build/ci-local.test.mts` expects `.github/workflows/gates.yml`, the workflow that `make kit-sync` copies from `@polyspec/kit`, with its triggers (pull requests, pushes to `main`, a manual run) (C16.7-6). Red: `each workflow declares exactly its triggers` failed because `gates.yml` was an unexpected file; green: it passes.
+
 ### 2026-10-20 — The install targets in the ci-local test (C16.7-5)
 
 - The preparation pattern of `tests/build/ci-local.test.mts` accepts a `make` line of `install-` and `crudui-install-` targets, the names that K246 gave the install targets of the Makefile and the workflow (C16.7-5). Red: 4 tests failed because every `make crudui-install-*` step counted as a checking command (`make ci runs every checking command`, `every job runs its checks through make ci-targets`, `every checking step of the CI workflow runs after an earlier failure`, `a workflow command missing from make ci is reported`); green: the same 4 tests pass.

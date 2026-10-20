@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0d843cbca54032a795a794daf55ff416c388f76f03f8a4d2ee9be158b1cbaa6a -->
+<!-- source-sha256: 9ea56f5fb2522aec681b25b6a70996ebb043a09fb0773bf93378bf9417e658c8 -->
 
 ## Unreleased
+
+### 2026-10-20 — ci-local test의 gates workflow (C16.7-6)
+
+- `tests/build/ci-local.test.mts`는 `make kit-sync`가 `@polyspec/kit`에서 복사하는 `.github/workflows/gates.yml`을 trigger(pull request, `main`으로의 push, 수동 실행)와 함께 기대합니다 (C16.7-6). Red: `gates.yml`이 예상하지 못한 file이어서 `each workflow declares exactly its triggers`가 실패했고, green: 통과합니다.
 
 ### 2026-10-20 — ci-local test의 install target (C16.7-5)
 
