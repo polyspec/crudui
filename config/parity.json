@@ -16,6 +16,10 @@
       ],
       "internal": [
     {
+      "glob": "packages/generator/ts/src/input-text.test.ts",
+      "reason": "test: the unit tests of the input text of the form buttons and of a custom loader document (docs/spec/input-text.md), which the shared text-validity cases do not cover; they read no shared suite fixture; the shared cases of tests/fixtures/text-validity are bound to their units by the files text-compile-form, text-bind-form, text-create-form, text-build-list and text-build-detail"
+    },
+    {
       "glob": "packages/validator/ts/src/text/text-validity.conformance.test.ts",
       "reason": "test: the unit tests of the input text helpers of the validator (isScalarText, compareCodePoints, valueFailure and the loader check of a custom document); they read no shared suite fixture; the shared cases of tests/fixtures/text-validity are bound to their units by the files text-validity-validate, text-validity-validate-list, text-validity-validate-detail and text-validity-value-graphs"
     },
@@ -1930,7 +1934,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/input-text.test.ts"
+          "test": "packages/generator/ts/src/text-compile-form.test.ts"
         },
         {
           "implementation": "go",
@@ -1970,7 +1974,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/input-text.test.ts"
+          "test": "packages/generator/ts/src/text-bind-form.test.ts"
         },
         {
           "implementation": "go",
@@ -2011,7 +2015,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/input-text.test.ts"
+          "test": "packages/generator/ts/src/text-create-form.test.ts"
         },
         {
           "implementation": "go",
@@ -2057,7 +2061,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/input-text.test.ts"
+          "test": "packages/generator/ts/src/text-build-list.test.ts"
         },
         {
           "implementation": "go",
@@ -2097,7 +2101,7 @@
       "bindings": [
         {
           "implementation": "ts",
-          "test": "packages/generator/ts/src/input-text.test.ts"
+          "test": "packages/generator/ts/src/text-build-detail.test.ts"
         },
         {
           "implementation": "go",
