@@ -741,8 +741,10 @@
         }
       ],
       "requirements": [
+        "CUMK-057",
         "CURP-010",
         "CURP-012",
+        "CURP-020",
         "CURP-027",
         "CURT-006",
         "CURT-008",
@@ -753,8 +755,7 @@
         "CURT-068",
         "CURT-073",
         "CURT-074",
-        "CURT-075",
-        "CURP-020"
+        "CURT-075"
       ]
     },
     {
@@ -793,9 +794,11 @@
         }
       ],
       "requirements": [
+        "CUMK-061",
         "CURP-010",
         "CURP-011",
         "CURP-012",
+        "CURP-020",
         "CURP-027",
         "CURT-004",
         "CURT-011",
@@ -805,8 +808,7 @@
         "CURT-063",
         "CURT-064",
         "CURT-065",
-        "CURT-067",
-        "CURP-020"
+        "CURT-067"
       ]
     },
     {
@@ -1425,6 +1427,10 @@
         "CUEC-001",
         "CUEC-002",
         "CUEC-004",
+        "CUEC-006",
+        "CUMK-001",
+        "CUMK-002",
+        "CUMK-003",
         "CUMK-004",
         "CUMK-005",
         "CUMK-006",
@@ -1462,6 +1468,7 @@
         "CUMK-062",
         "CUMK-063",
         "CUMK-064",
+        "CURP-027",
         "CURT-025",
         "CUSC-008",
         "CUSC-009",
@@ -1475,9 +1482,7 @@
         "CUSC-023",
         "CUSC-024",
         "CUSC-025",
-        "CUSC-026",
-        "CURP-027",
-        "CUEC-006"
+        "CUSC-026"
       ]
     },
     {

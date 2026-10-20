@@ -3,12 +3,13 @@
     "name": "toggle-row-collapses-and-expands",
     "note": "A toggle collapses a row, a second toggle expands it again, a nested row collapses after its parent, and an unknown row fails; the revision does not change.",
     "requirements": [
-      "CURT-009",
-      "CURT-067",
-      "CURT-068",
+      "CUMK-057",
       "CURP-010",
       "CURP-012",
-      "CURP-020"
+      "CURP-020",
+      "CURT-009",
+      "CURT-067",
+      "CURT-068"
     ],
     "spec": {
       "type": "group",
@@ -273,11 +274,12 @@
     "name": "set-all-expanded-collapses-every-collapsible-row",
     "note": "Collapsing every row lists the collapsible rows depth first; expanding all clears the view.",
     "requirements": [
-      "CURT-010",
-      "CURT-073",
+      "CUMK-057",
       "CURP-010",
       "CURP-012",
-      "CURP-020"
+      "CURP-020",
+      "CURT-010",
+      "CURT-073"
     ],
     "spec": {
       "type": "group",
@@ -505,15 +507,16 @@
     "name": "row-removal-drops-and-rekey-moves-view",
     "note": "Removing a row drops the collapsed state of the row and of its rows; rekeying moves it to the new key.",
     "requirements": [
-      "CURT-066",
-      "CURT-075",
-      "CURT-074",
-      "CURT-006",
-      "CURT-008",
+      "CUMK-057",
       "CURP-010",
       "CURP-012",
       "CURP-020",
-      "CURP-027"
+      "CURP-027",
+      "CURT-006",
+      "CURT-008",
+      "CURT-066",
+      "CURT-074",
+      "CURT-075"
     ],
     "spec": {
       "type": "group",

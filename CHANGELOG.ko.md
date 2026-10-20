@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 83758b33afa2795dd2b09fbb4a3df56c9b44e77a6351d4f7662af9f47b7c919b -->
+<!-- source-sha256: 32f471a6a7f648c4fac53d2087a12a3e9ea8cf53cf41c172b0307b9590a3ce32 -->
 
 ## Unreleased
 
@@ -18,6 +18,18 @@
 - case와 unit: validate, validateList, validateDetail, value-graphs fixture와 validator unit 네 개는 CUIT-032, CUIT-033, CUIT-035 대신 CUIT-041을 인용합니다.
 - runner(각각 모든 실패의 native class를 검사하며 통과합니다): TypeScript validator와 generator(`ComposeLoadError`, `FormInputError`); PHP validator, generator, PHP extension(검증에서 `ComposeLoadError`, `FormInputError`, 생성에서 `FormError`); Go validator(`*compose.ComposeLoadError`, `*FormInputError`)와 generator(잘못된 text의 로드 타입); Rust validator(`ValidateError::Load`, `ValidateError::Input`); Python validator(`ComposeLoadError`, `FormInputError`)와 generator(생성의 `FormError`).
 - Rust generator: 바뀌지 않았고 요구사항을 충족하지 않습니다. 생성 operation은 모든 실패에 `FormError`를 돌려주며, `From<ComposeLoadError>` 구현은 로드 종류를 code `INVALID_TEXT`에만 남기므로 Rust generator에서 로드 실패와 입력 실패는 서로 다른 오류 타입이 아닙니다. 중립 요구사항은 로드 실패용 두 번째 오류 타입이나 명시된 예외를 요구하며, 어느 쪽인지는 소유자가 정합니다.
+### 2026-10-21 — 클래스 이름 짓기, 뷰 상태, 기록 요구사항을 해당 사례가 인용합니다 (C16.145)
+
+추적되지 않은 CUMK id의 결정표입니다(결정은 요구사항을 검증하고 인용하는 사례):
+
+| 요구사항 | 결정 | 검증하는 사례 |
+|---|---|---|
+| CUMK-001 `crudui-{block}`, CUMK-002 `crudui-{block}__{element}`, CUMK-003 `crudui-{block}--{modifier}` (클래스 이름 짓기) | 인용 | 기대 마크업에 클래스 이름이 있는 form-render 사례 144개(블록, 요소, 수정자를 모두 가짐). `packages/react/scripts/generate-form-render-cases.mts`가 목록을 관리하며, `tests/fixtures/form-render/cases.json`은 `requirements` 멤버만 바뀐 상태로 다시 생성됩니다. 유닛 `form-render`가 세 id를 나열합니다. |
+| CUMK-057 (펼침은 레코드 데이터가 아닌 뷰 상태) | 인용 | form-view 사례 3개: `toggle-row-collapses-and-expands`, `set-all-expanded-collapses-every-collapsible-row`, `row-removal-drops-and-rekey-moves-view`. 유닛 `form-view`가 id를 나열합니다. |
+| CUMK-061 (실행 취소는 모든 데이터 변경을 기록하고 한 경로의 연속 편집을 합칩니다) | 인용 | form-history 사례 4개: `undo-and-redo-restore-the-record`, `same-path-edits-share-one-record`, `a-change-after-undo-clears-redo`, `history-keeps-100-records`. 유닛 `form-history`가 id를 나열합니다. |
+
+빨강: a3ef53a5에서 `make item-red ID=C16.145`, 수정 전에는 이 id들의 R13 grep이 실패합니다. 초록: 수정 후 같은 grep이 비어 있습니다(parity 결과가 115에서 77로 줄어듭니다). `make lint-ts`가 통과합니다. form-render, form-view, form-history의 변경된 픽스처에 대해 TypeScript 소유자 테스트를 실행합니다.
+
 ### 2026-10-21 — 검사할 수 없는 두 스키마 요구사항은 평문입니다 (C16.143)
 
 `docs/spec/schema.md`의 추적되지 않은 CUSC id 결정표입니다(결정은 해당 텍스트가 가는 곳):

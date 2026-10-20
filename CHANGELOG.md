@@ -17,6 +17,18 @@
 - Cases and units: the validate, validateList, validateDetail and value-graphs fixtures and the four validator units cite CUIT-041 in place of CUIT-032, CUIT-033 and CUIT-035.
 - Runners (each asserts the native class of every failure, and passes): the TypeScript validator and generator (`ComposeLoadError`, `FormInputError`); the PHP validator and generator and the PHP extension (`ComposeLoadError`, `FormInputError` in validation and `FormError` in generation); the Go validator (`*compose.ComposeLoadError`, `*FormInputError`) and generator (the load type of invalid text); the Rust validator (`ValidateError::Load`, `ValidateError::Input`); the Python validator (`ComposeLoadError`, `FormInputError`) and generator (`FormError` in generation).
 - Rust generator: unchanged, and not fulfilled. Its generation operations return `FormError` for every failure, and the `From<ComposeLoadError>` impl keeps the load kind only in the code `INVALID_TEXT`, so a load failure and an input failure are not distinct error types of the Rust generator. The neutral rule requires either a second error type for load failures or a documented exception; the owner decides which.
+### 2026-10-21 — The class naming, view-state and history requirements are cited by their cases (C16.145)
+
+Decision table for the untraced CUMK ids (decision = the cases that test the requirement and cite it):
+
+| Requirement | Decision | Cases that test it |
+|---|---|---|
+| CUMK-001 `crudui-{block}`, CUMK-002 `crudui-{block}__{element}`, CUMK-003 `crudui-{block}--{modifier}` (class naming) | cited | The 144 form-render cases whose expected markup carries the class names (all of them carry blocks, elements and modifiers). `packages/react/scripts/generate-form-render-cases.mts` lists them, and `tests/fixtures/form-render/cases.json` is regenerated with only the `requirements` members changed. The unit `form-render` lists the three ids. |
+| CUMK-057 (expansion is view state, not record data) | cited | The three form-view cases: `toggle-row-collapses-and-expands`, `set-all-expanded-collapses-every-collapsible-row`, `row-removal-drops-and-rekey-moves-view`. The unit `form-view` lists the id. |
+| CUMK-061 (undo records every data change and merges consecutive edits of one path) | cited | The four form-history cases: `undo-and-redo-restore-the-record`, `same-path-edits-share-one-record`, `a-change-after-undo-clears-redo`, `history-keeps-100-records`. The unit `form-history` lists the id. |
+
+Red: `make item-red ID=C16.145` on a3ef53a5, the R13 grep for these ids fails before the fix. Green: the same grep is empty after the fix (the parity findings go from 115 to 77). `make lint-ts` passes. The TypeScript owner tests of form-render, form-view and form-history run on the changed fixtures.
+
 ### 2026-10-21 — The two schema requirements that state no check are prose (C16.143)
 
 Decision table for the untraced CUSC ids of `docs/spec/schema.md` (path = where the text goes):
