@@ -83,3 +83,12 @@ docs/public/api/
 test-results/
 playwright-report/
 coverage/
+
+# The workspace files that make link writes beside each Go module; the go.work of the repository root is tracked
+go.work.sum
+/benchmarks/validators/go/go.work
+/tests/native-generators/programs/go/go.work
+/examples/cross-check-console/validators/go/go.work
+/examples/form-comparison/servers/go/go.work
+/packages/validator/go/go.work
+/packages/generator/go/go.work

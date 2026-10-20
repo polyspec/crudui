@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 307ff612ca8f06a98a1bc108dd6e63ae47336fdb83f895a8ce076f476947c1e1 -->
+<!-- source-sha256: 568c785d0861301ad05ca2cdf187be338a9f7ab3a2e6b84e675ed3b0d4d42dd3 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -84,3 +84,4 @@
 | C16.60 | record server 준비는 OrderedJSON extension source의 내용을 복사하므로 phpize가 config.m4를 찾는다 | examples/form-comparison/src/local-servers.mjs, examples/form-comparison/src/local-servers.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C16.61 | 중립 규칙은 각 implementation이 폼 값 모델을 네이티브 타입으로 옮기는 방식을 서술한다 | docs/spec/runtime-packages.md, docs/spec/runtime-packages.ko.md | `make parity-declarations-check` defines CURP-026 and `check-documents` passes | [o] |
 | C16.62 | php-ext record server는 module을 빌드한 PHP의 php-fpm으로 실행된다 | examples/form-comparison/servers/php/main.mjs, examples/form-comparison/src/local-servers.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/record-stores.test.mjs` passes the php-ext record store | [ ] |
+| C16.63 | make link가 Go module 옆에 쓰는 go.work와 go.work.sum file은 Git이 무시한다 | .gitignore | `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` writes the Go links without refusing | [o] |

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The go.work files of make link are ignored (C16.63)
+
+- `.gitignore` ignores `go.work.sum` and the `go.work` beside each Go module of the repository (`benchmarks/validators/go`, `tests/native-generators/programs/go`, `examples/cross-check-console/validators/go`, `examples/form-comparison/servers/go`, `packages/validator/go`, `packages/generator/go`); the `go.work` of the root stays tracked (C16.63). Red: `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json` stopped at `benchmarks/validators/go/go.work is not ignored by Git`; green: the Go link of `github.com/polyspec/ordered-json/packages/go` is written to `examples/form-comparison/servers/go/go.work` and `git status` shows no new file.
+
 ### 2026-10-20 — createForm is `pass` in python (C16.53)
 
 - `contracts/features.json` declares `createForm` as `pass` for `python`: the native generator checks of the Python target record all 15 cases of `tests/fixtures/text-validity/createForm/cases.json` and all 14 cases of `tests/native-generators/cases.mts`, and `scripts/check-conformance.mts` reports no missing case of `createForm` for python with `pass`; the generated feature pages follow (C16.53). Red: `make divergence-check` reported the `partial` entry; green: it reports none.

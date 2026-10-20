@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9eeecaf85b8dbea8c7fa529d270a85d1e3ffafa898c6e6f315a75aa4ec0fbef7 -->
+<!-- source-sha256: 4cbc559216e63b879ceae7a24097c435d83010a98d22b66ba205cedd54930ef2 -->
 
 ## Unreleased
+
+### 2026-10-20 — make link의 go.work file은 무시한다 (C16.63)
+
+- `.gitignore`는 `go.work.sum`과 저장소의 각 Go module 옆 `go.work`(`benchmarks/validators/go`, `tests/native-generators/programs/go`, `examples/cross-check-console/validators/go`, `examples/form-comparison/servers/go`, `packages/validator/go`, `packages/generator/go`)를 무시하고, root의 `go.work`는 계속 추적합니다(C16.63). Red: `node node_modules/@polyspec/kit/dist/link.mjs link ../ordered-json`이 `benchmarks/validators/go/go.work is not ignored by Git`에서 멈췄고, green: `github.com/polyspec/ordered-json/packages/go`의 Go link가 `examples/form-comparison/servers/go/go.work`에 쓰이고 `git status`에 새 file이 없습니다.
 
 ### 2026-10-20 — python의 createForm은 `pass`이다 (C16.53)
 
