@@ -48,25 +48,27 @@ pub(crate) fn appearance(
                 js_string(&result)
             }
         }
-        Some(Value::String(s)) => {
-            if let Ok(node @ Node::Ternary { .. }) = Expression::parse(s) {
+        // A string that does not parse is literal text. A parsed expression is evaluated by the evaluator, which
+        // reports no error: a path that the data lacks gives null, as the reference evaluates it.
+        Some(Value::String(s)) => match Expression::parse(s) {
+            Ok(node @ Node::Ternary { .. }) => {
                 let result = Evaluator::new(data, path, rows).evaluate_value(&node);
-                return if result.is_null() {
+                if result.is_null() {
                     String::new()
                 } else {
                     js_string(&result)
-                };
+                }
             }
-            if Expression::parse(s).is_ok() && is_condition_expression(s) && !has_ternary_text(s) {
-                let result = expression_value(s, data, path, rows);
-                return if result.is_null() || result == false {
+            Ok(node) if is_condition_expression(s) && !has_ternary_text(s) => {
+                let result = Evaluator::new(data, path, rows).evaluate_value(&node);
+                if result.is_null() || result == false {
                     String::new()
                 } else {
                     js_string(&result)
-                };
+                }
             }
-            s.clone()
-        }
+            _ => s.clone(),
+        },
         Some(v) => js_string(v),
     }
 }
@@ -78,15 +80,6 @@ pub(crate) fn appearance(
 )]
 fn expression_flag(text: &str, data: &Value, path: &[String], rows: &[usize]) -> bool {
     Expression::evaluate(text, data, path, rows).unwrap_or(false)
-}
-
-/// A condition expression value that does not evaluate is false, as the TypeScript reference reads it (expr.ts).
-#[allow(
-    clippy::disallowed_methods,
-    reason = "the reference defines an expression that does not evaluate as false"
-)]
-fn expression_value(text: &str, data: &Value, path: &[String], rows: &[usize]) -> Value {
-    Expression::evaluate_value(text, data, path, rows).unwrap_or(Value::Bool(false))
 }
 
 fn has_ternary_text(s: &str) -> bool {

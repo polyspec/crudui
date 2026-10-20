@@ -1763,3 +1763,25 @@ fn pagination_per_page_that_is_no_integer_is_an_error() {
         "Invalid pagination.per_page at list: expected a positive integer"
     );
 }
+
+#[test]
+fn appearance_string_that_does_not_parse_stays_literal_text() {
+    let text = "(1 / 0) > 0 ? 'btn-a' : 'btn-b'";
+    let data = json!({});
+    let path = vec!["tier".to_owned()];
+    assert_eq!(
+        crate::design::appearance(Some(&json!(text)), &data, &path, &[]),
+        text
+    );
+}
+
+#[test]
+fn appearance_ternary_gives_the_branch_value() {
+    let data = json!({"tier": 2});
+    let path = vec!["tier".to_owned()];
+    let class = json!("tier == 2 ? 'btn-a' : 'btn-b'");
+    assert_eq!(
+        crate::design::appearance(Some(&class), &data, &path, &[]),
+        "btn-a"
+    );
+}

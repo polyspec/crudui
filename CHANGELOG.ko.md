@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 39fbed53ea86229fc42789d6eb560619688b81d16af2fc7433a5409a15dffc74 -->
+<!-- source-sha256: 594d630da1f696af517526bdc5c9e94bb1a9640a42e8ea6be5b791aa3d7c8e4c -->
 
 ## Unreleased
 
@@ -20,6 +20,10 @@
 ### 2026-10-20 — PHP extension이 view state와 history 함수를 등록한다 (C16.51-7)
 
 - PHP extension은 `Generator::initialView`, `collapsibleRows`, `setAllExpandedView`, `toggleRowView`, `removeRowView`, `rekeyRowView`, `emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange`, `redoChange`(`packages/php-ext/src/crudui.c`, `view.c`, `history.c`), `Form::toggleRow`, `Form::setAllExpanded`(`form.c`, `crudui.c`), form instance의 view(`form.c`), `bindForm` 옵션 `collapsed`(`binding.c`)를 등록하며, extension의 stub과 arginfo를 맞춘다(C16.51-7). Red: `make test-php-ext CASES='FormStateTest|HistoryFunctionsTest'`가 extension과 PHP library의 차이를 보고했다: method 14개 누락(`Form::setAllExpanded`, `Form::toggleRow`, `Generator`의 view와 history method 12개). Green: `make lint-php-ext`가 exit 0이고, `make test-php-ext CASES='FormStateTest|HistoryFunctionsTest'`가 exit 0이다. 선언 단계가 통과하고, generator suite는 extension 위에서 27개 test(FormStateTest 14, HistoryFunctionsTest 13)를 실행해 통과하며, validator와 php-ext library는 CASES가 test를 고르지 않아 건너뛴다(K390)(C16.51-7). 앞선 실행에서 generator의 `FormTest|OutlineTest|RenderingConformanceTest`는 215개 test를 통과했다(C16.51-7).
+### 2026-10-20 — Rust appearance는 expression을 한 번 파싱하고 fallback 없이 평가한다 (C16.77)
+
+- `packages/generator/rust/src/design.rs`의 `appearance`는 문자열의 파싱을 한 번만 대조합니다. ternary와 condition expression은 파싱된 node를 `Evaluator::evaluate_value`로 평가하고, 파싱되지 않는 문자열은 literal text로 남으며, `unwrap_or(false)`를 가진 헬퍼 `expression_value`는 제거됩니다. `packages/generator/rust/src/tests.rs`에 `appearance_string_that_does_not_parse_stays_literal_text`와 `appearance_ternary_gives_the_branch_value`가 추가됩니다(C16.77). Rust evaluator는 오류를 보고하지 않으므로(데이터에 없는 path는 null), Python과 Go(b396f53e, 9e4be128)와 달리 되돌려 줄 평가 오류가 없습니다. 실패 주입은 validator crate의 변경이 필요하며 이 row의 범위가 아닙니다. Red: main에서 `appearance` test는 변경 전후 모두 통과(3 passed, 기존 test 포함)하므로 red를 기록할 수 없습니다. Green: exit 0, `appearance` 3 passed, `--test form_state --test history_functions` 17 passed, crate clippy exit 0입니다.
+
 ### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
 
 - `packages/generator/php/src/Internal/History.php`는 `record`, `undo`, `redo`의 docblock을 120열에 맞추어 다시 줄을 나누고, `examples/form-comparison/servers/php`는 `api.php`와 `src/ApiServer.php`의 docblock과 `tests/FormGenerationTest.php`의 주석을 다시 줄을 나누며, 코드는 바꾸지 않습니다(C16.75). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php`가 exit 2이며 phpcs에서 Generic.Files.LineLength.TooLong 경고 8건(History.php 11, 12, 27, 57, 78; api.php 5; ApiServer.php 17; FormGenerationTest.php 291)이었습니다. Green: exit 0이며, phpunit `tests/HistoryFunctionsTest.php` 13 passed, form-comparison `tests/FormGenerationTest.php` 9 passed입니다.
