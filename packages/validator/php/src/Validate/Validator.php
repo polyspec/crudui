@@ -207,13 +207,7 @@ final class Validator
                 throw new FormInputError('Unknown form data field: ' . implode('.', [...$currentPath, (string) $name]));
             }
         }
-        foreach ($properties as $propertyKey => $field) {
-            if (!is_array($field) && !$field instanceof \stdClass) {
-                continue;
-            }
-
-            $field = (array) $field;
-            $fieldName = (string) $propertyKey;
+        foreach ($this->fieldsOf($properties) as $fieldName => $field) {
             $isMultiple = $this->isMultiple($field);
             $fieldPath = [...$currentPath, $fieldName];
             $fieldDeclaration = [...$declarationPath, $fieldName];
@@ -347,12 +341,7 @@ final class Validator
         array $allData,
         array &$hidden
     ): void {
-        foreach ($properties as $propertyKey => $field) {
-            if (!is_array($field) && !$field instanceof \stdClass) {
-                continue;
-            }
-            $field = (array) $field;
-            $fieldName = (string) $propertyKey;
+        foreach ($this->fieldsOf($properties) as $fieldName => $field) {
             $fieldPath = [...$currentPath, $fieldName];
             if (!Visibility::shown(Visibility::declared($field), $allData, $fieldPath, $rowKeys)) {
                 $hidden[] = implode('.', $fieldPath);
@@ -480,70 +469,12 @@ final class Validator
         $messages = $this->fieldMessages($field);
 
         // 1. Array-level rules in declaration order; first error wins for field.
-        if ($rules !== null) {
-            foreach ($rules as $ruleName => $ruleValue) {
-                if (!in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
-                    continue;
-                }
-                $error = $this->runRule(
-                    $ruleName,
-                    $ruleValue,
-                    $values,
-                    $fieldPath,
-                    $rowKeys,
-                    $declarationPath,
-                    $messages,
-                    $allData
-                );
-                if ($error !== null) {
-                    $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $values);
-                    return;
-                }
-            }
-        }
-
-        // 2. Row rules in sorted row-key order (the cross-runtime error-order contract).
-        $values = (array) $values;
-        ksort($values, SORT_STRING);
-        foreach ($values as $i => $value) {
-            $this->validateElementRules(
-                $field,
-                $value,
-                [...$fieldPath, (string) $i],
-                [...$rowKeys, \count($fieldPath)],
-                $declarationPath,
-                $allData,
-                $errors
-            );
-        }
-    }
-
-    /**
-     * Element-level rules for one element of a `multiple` field (no array-level).
-     *
-     * @param list<string> $itemPath
-     * @param list<string> $declarationPath
-     * @param array<string, mixed> $allData
-     * @param array<int, array<string, mixed>> $errors
-     */
-    private function validateElementRules(
-        array $field,
-        mixed $value,
-        array $itemPath,
-        array $rowKeys,
-        array $declarationPath,
-        array $allData,
-        array &$errors,
-    ): void {
-        $messages = $this->fieldMessages($field);
-        $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
-
         if (
-            $this->runImplicitNumber(
-                $field,
-                $rules,
-                $value,
-                $itemPath,
+            $rules !== null
+            && $this->applyRules(
+                self::rulesAt($rules, true),
+                $values,
+                $fieldPath,
                 $rowKeys,
                 $declarationPath,
                 $messages,
@@ -553,32 +484,27 @@ final class Validator
         ) {
             return;
         }
-        if ($rules === null) {
-            return;
-        }
-        foreach ($rules as $ruleName => $ruleValue) {
-            if (in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
-                continue;
-            }
-            $error = $this->runRule(
-                $ruleName,
-                $ruleValue,
+
+        // 2. Row rules in sorted row-key order (the cross-runtime error-order contract).
+        $values = (array) $values;
+        ksort($values, SORT_STRING);
+        foreach ($values as $i => $value) {
+            $this->validateFieldRules(
+                $field,
                 $value,
-                $itemPath,
-                $rowKeys,
+                [...$fieldPath, (string) $i],
+                [...$rowKeys, \count($fieldPath)],
                 $declarationPath,
-                $messages,
-                $allData
+                $allData,
+                $errors,
+                true
             );
-            if ($error !== null) {
-                $errors[$this->pathKey($itemPath)] = $this->makeError($itemPath, $ruleName, $error, $value);
-                break;
-            }
         }
     }
 
     /**
-     * All rules for a single (scalar or group-as-whole) field.
+     * All rules for a single (scalar or group-as-whole) field, or, with `$elementLevel`, the
+     * element-level rules of one element of a `multiple` field (no array-level rule).
      *
      * @param list<string> $fieldPath
      * @param list<string> $declarationPath
@@ -593,6 +519,7 @@ final class Validator
         array $declarationPath,
         array $allData,
         array &$errors,
+        bool $elementLevel = false,
     ): void {
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
@@ -615,22 +542,10 @@ final class Validator
         if ($rules === null) {
             return;
         }
-        foreach ($rules as $ruleName => $ruleValue) {
-            $error = $this->runRule(
-                $ruleName,
-                $ruleValue,
-                $value,
-                $fieldPath,
-                $rowKeys,
-                $declarationPath,
-                $messages,
-                $allData
-            );
-            if ($error !== null) {
-                $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $value);
-                break;
-            }
+        if ($elementLevel) {
+            $rules = self::rulesAt($rules, false);
         }
+        $this->applyRules($rules, $value, $fieldPath, $rowKeys, $declarationPath, $messages, $allData, $errors);
     }
 
     /**
@@ -662,17 +577,93 @@ final class Validator
         if ($rules !== null && array_key_exists('number', $rules)) {
             return false;
         }
-        $error = $this->runRule('number', true, $value, $path, $rowKeys, $declarationPath, $messages, $allData);
-        if ($error !== null) {
-            $errors[$this->pathKey($path)] = $this->makeError($path, 'number', $error, $value);
-            return true;
-        }
-        return false;
+        return $this->applyRules(
+            ['number' => true],
+            $value,
+            $path,
+            $rowKeys,
+            $declarationPath,
+            $messages,
+            $allData,
+            $errors
+        );
     }
 
     // =========================================================================
     // Conditional rule value (G1) — expression / condition map → effective param.
     // =========================================================================
+
+    /**
+     * The rules that judge the collection of a `multiple` field as a whole (`$arrayLevel`), or the
+     * rules that judge each element, in declaration order.
+     *
+     * @param array<string, mixed> $rules
+     * @return array<string, mixed>
+     */
+    private static function rulesAt(array $rules, bool $arrayLevel): array
+    {
+        return array_filter(
+            $rules,
+            static fn (string|int $name): bool => in_array($name, self::ARRAY_LEVEL_RULES, true) === $arrayLevel,
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
+    /**
+     * The field declarations of a properties map in declaration order, each as an array under its
+     * name; a member that is not an object is not a field.
+     *
+     * @param array<array-key, mixed> $properties
+     * @return \Generator<string, array<string, mixed>>
+     */
+    private function fieldsOf(array $properties): \Generator
+    {
+        foreach ($properties as $name => $field) {
+            if (is_array($field) || $field instanceof \stdClass) {
+                yield (string) $name => (array) $field;
+            }
+        }
+    }
+
+    /**
+     * Run the rules in order until one fails, record that error under the path of the value and
+     * return whether one failed.
+     *
+     * @param array<string, mixed> $rules
+     * @param list<string> $path
+     * @param list<string> $declarationPath
+     * @param array<string, string>|null $messages
+     * @param array<string, mixed> $allData
+     * @param array<int, array<string, mixed>> $errors
+     */
+    private function applyRules(
+        array $rules,
+        mixed $value,
+        array $path,
+        array $rowKeys,
+        array $declarationPath,
+        ?array $messages,
+        array $allData,
+        array &$errors,
+    ): bool {
+        foreach ($rules as $ruleName => $ruleValue) {
+            $error = $this->runRule(
+                $ruleName,
+                $ruleValue,
+                $value,
+                $path,
+                $rowKeys,
+                $declarationPath,
+                $messages,
+                $allData
+            );
+            if ($error !== null) {
+                $errors[$this->pathKey($path)] = $this->makeError($path, $ruleName, $error, $value);
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Run one rule: evaluate its (possibly conditional) value to an effective

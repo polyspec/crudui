@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b747f03c1997e359106690b2924a2513d2e3df30f8242dbfda8b00619d678b33 -->
+<!-- source-sha256: aa77ada9c2be0bf2341570919e7ace409abe3174101c3a4f7fe69e1b865d5699 -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP data validator의 공유 rule 적용 (C16.19)
+
+- `Validate\Validator::applyRules`는 하나가 실패할 때까지 rule을 실행하고 그 error를 기록합니다. array-level, element-level, field, 암묵 `number` rule이 모두 이를 쓰며, `validateFieldRules`는 두 번째 사본(`validateElementRules`) 대신 `elementLevel` flag를 받고, `fieldsOf`는 properties map의 field 선언을 한 번만 yield합니다 (C16.19). Red: `make duplication-check`가 `Validate/Validator.php`의 clone 4건을 나열했고, green: 1건이 남으며(`runImplicitNumber`와 `applyRules`의 docblock과 signature), `ValidateConformanceTest`(318), `PublicApiTest`(8), `MessagePlaceholderTest`(6), `make lint-php`가 통과합니다. 동작은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — range parameter의 pair를 읽는 하나의 reader (C16.18)
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b25a0c32e8152a6d1d44237d5bbfd1b7fabe793e2c71a4ebf8ed472dfdd3d6d8 -->
+<!-- source-sha256: fcc90e7ae33ae5bed2497672889350b4b074aa6f92e3b89c998c09e89ddeef8a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -24,3 +24,4 @@
 | C16.16 | PHP expression parser는 literal을 하나의 method로 읽는다 | packages/validator/php/src/Expr/Parser.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Expr/ExprConformanceTest.php`, `make lint-php` | [o] |
 | C16.17 | PHP validator는 list와 detail composition을 하나의 method로 검증한다 | packages/validator/php/src/Public/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ListValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/DetailValidateConformanceTest.php`, `make lint-php` | [o] |
 | C16.18 | PHP validator는 range parameter의 pair를 하나의 method로 읽는다 | packages/validator/php/src/Values/Numeric.php, packages/validator/php/src/Values/LengthLimit.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Values/NumericTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/RuleParametersTest.php`, `make lint-php` | [o] |
+| C16.19 | PHP data validator는 rule 적용과 field 순회를 공유 method로 수행한다 | packages/validator/php/src/Validate/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/PublicApiTest.php`, `make lint-php` | [o] |

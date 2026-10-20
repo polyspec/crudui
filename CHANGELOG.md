@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared rule application in the PHP data validator (C16.19)
+
+- `Validate\Validator::applyRules` runs rules until one fails and records its error; the array-level, element-level, field and implicit `number` rules all use it, `validateFieldRules` takes an `elementLevel` flag instead of a second copy (`validateElementRules`), and `fieldsOf` yields the field declarations of a properties map once (C16.19). Red: `make duplication-check` listed 4 clones in `Validate/Validator.php`; green: 1 remains (the docblock and signature of `runImplicitNumber` and `applyRules`), and `ValidateConformanceTest` (318), `PublicApiTest` (8), `MessagePlaceholderTest` (6) and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — One reader for the pair of a range parameter (C16.18)
 
 - `Numeric::orderedPair` reads a `[minimum, maximum]` parameter with the reader of its members; `Numeric::range` and `LengthLimit::range` pass `finite` and `integer` (C16.18). Red: `make duplication-check` listed 1 clone between `Values/LengthLimit.php` and `Values/Numeric.php`; green: none, `NumericTest` (31), `ValuesTest` (34), `RuleParametersTest` and `make lint-php` pass. The behaviour is unchanged, so the red is the clone list.
