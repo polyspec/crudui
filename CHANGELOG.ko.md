@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 513a6e913a5018740a52ea12540cc471c9e8760511bf61568c466bdd719b5753 -->
+<!-- source-sha256: b9440c244f1dadd0f659549784c1f79898d7f2514e171f3cc4104de364876de5 -->
 
 ## Unreleased
 
@@ -8,6 +8,10 @@
 
 - `tests/fixtures/text-validity/buildList`의 buildList case 11개는 CURP-014(`buildList`)를, `tests/fixtures/text-validity/buildDetail`의 buildDetail case 6개는 CURP-016(`buildDetail`)을 인용합니다. 모든 case가 자기 operation을 실행합니다. form state root case `set-data-rejects-a-root-that-is-not-an-object`는 CURP-026을 인용합니다. 목록 root는 PHP에서 객체가 아니므로(호출자가 타입을 밝히며, 목록은 명시적으로 실패합니다) 이 case가 그 대응을 시험합니다.
 - `tests/fixtures/form-actions/cases.json`은 generator에서 다시 생성했습니다. CURP-026 외에, C16.57-14 generator가 이미 CURP-020으로 인용하는 session case들이 커밋된 파일에도 그 id를 갖게 됩니다. `config/parity.json`의 unit은 세 id를 인용합니다.
+
+### 2026-10-21 — make install-packages는 npm ci 뒤 svelte 도구를 설치하고 link를 실행하지 않는다 (C16.134)
+
+- kit K428(kit 76e340de)은 `install-packages`의 npm ci 뒤에 `INSTALL_PACKAGES_EXTRA`의 target을 실행합니다. `Makefile`은 `INSTALL_PACKAGES_EXTRA := crudui-install-svelte-tools`를 두며, `make install`은 그 뒤에 `install-link`로 link합니다. svelte recipe는 더 이상 `make link`(와 `UV_PROJECT_ENVIRONMENT`)를 실행하지 않고, `crudui-install`은 더 이상 `crudui-install-svelte-tools`를 이름으로 두지 않으며(`install-packages`의 extra로만 남음), C16.117이 추가한 CI step(Python 설치와 svelte step)은 job에서 제거되어 그 job들은 `make install-packages`로 svelte 도구를 받습니다. kit copy는 `make kit-sync`로 kit 0.0.54에서 동기화했습니다(`scripts/kit/kit-bootstrap.mk`의 extra target, `install-npm.mts`의 comment, 그 kit의 PRINCIPLES P10과 P36 ~ P38). `tests/build/ci-local.test.mts`의 `install-packages installs the svelte tools after its npm ci and runs no link` test가 C16.117의 test를 대체합니다(C16.134). Red: 새 test가 03403a2f에서 실패합니다(install-packages dry run에 svelte 도구가 없음). Green: `make link-state-check` exit 0, ci-local test 18 passed, `make kit-check` exit 0, 새 worktree의 fresh `make install-packages`가 exit 0이고 svelte 도구가 설치됩니다.
 
 ### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
 

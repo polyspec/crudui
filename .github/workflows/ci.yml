@@ -44,11 +44,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       # The runtime checks compare every running tool with the version that the checkout records.
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
@@ -98,11 +93,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -145,11 +135,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -199,11 +184,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Download the modules that the Go workspace requires
@@ -248,11 +228,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -301,11 +276,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       # The suites and programs import the Python packages installed in var/python (S3).
@@ -352,11 +322,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -409,11 +374,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -472,11 +432,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -514,11 +469,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -567,11 +517,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -619,11 +564,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -692,11 +632,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -769,11 +704,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -841,11 +771,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -887,11 +812,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -937,11 +857,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       # The benchmark drivers include the PHP driver, which loads the Composer packages of validator-php.
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
@@ -1027,11 +942,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -1091,11 +1001,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions

@@ -480,14 +480,15 @@ test('only the release workflow starts on a tag push', async () => {
   assert.deepEqual(checks, ['push-gate', 'ci-passed']);
 });
 
-// make install-packages only installs (kit K246-2, C16.117): its dry run runs no link, and the svelte tools of packages/svelte
-// are installed by crudui-install-svelte-tools, which links after its install, so that no fresh install links before kit.
-test('install-packages only installs; the svelte tools link after their install', () => {
+// make install-packages runs the svelte tools after its npm ci (INSTALL_PACKAGES_EXTRA, kit K428) and links nothing: make
+// install links after install-packages through install-link. The tools of packages/svelte then install without a link of their own.
+test('install-packages installs the svelte tools after its npm ci and runs no link', () => {
   const run = makeDryRun(ROOT, 'install-packages');
   assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /crudui-install-svelte-tools/, 'install-packages runs the svelte tools');
   assert.doesNotMatch(run.stdout, /link\.mjs|--no-print-directory link/, 'install-packages runs no link');
   const svelte = makeDryRun(ROOT, 'crudui-install-svelte-tools');
   assert.equal(svelte.status, 0, svelte.stderr);
   assert.match(svelte.stdout, /npm ci --prefix packages\/svelte\/tools/);
-  assert.match(svelte.stdout, /--no-print-directory link/, 'the svelte tools link after their install');
+  assert.doesNotMatch(svelte.stdout, /link\.mjs|--no-print-directory link/, 'the svelte tools link nothing themselves');
 });

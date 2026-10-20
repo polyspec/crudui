@@ -43,11 +43,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The link of crudui-install-svelte-tools needs the Python environment of var/python (kit's link checks it).
-      - name: Install the Python packages of the uv workspace into var/python
-        run: make crudui-install-python
-      - name: Install the tools of packages/svelte
-        run: make crudui-install-svelte-tools
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
       - name: Check the recorded toolchain versions
