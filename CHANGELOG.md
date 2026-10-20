@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The cross-check console Rust validator handles the hidden error that the kit lint reports (C16.67-8)
+
+- `examples/cross-check-console/validators/rust/src/main.rs` `write_line` serializes the JSON line with `expect` and an invariant message, instead of `Result::unwrap_or_else` with a fallback `"{}"` that would print a wrong line (C16.67-8). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason` exit 101 with 1 finding (`Result::unwrap_or_else` at src/main.rs:210); green: exit 0, and `cargo build --locked` of the crate exits 0.
+
 ### 2026-10-20 — The form-comparison Go server handles its hidden errors (C16.67-2)
 
 - `examples/form-comparison/servers/go` checks or returns every error that the kit lint reports (C16.67-2): `repository.go` returns an error when the stored form state has another type (`storedRows`, `sortedRows`, `owned`, `checkParent`, `allocate`, `loadData`, `save`) instead of an unchecked assertion; `records.go` returns the errors of `submission`, `submittedForm`, `saveRecord`, `formText` and `recordView`, and `storedRecord` states the invariant that `checkRecords` establishes; `form.go` compares the end of a multipart body with `errors.Is` and checks the member names of `fieldsOf`; `json.go` checks the errors of `Members`, `Items`, `NumberLiteral` and the `Atoi` of `numberText`; `main.go` and `generator.go` log a failed response write and find the form input error with `errors.As`; the tests use the `objectOf`, `arrayOf`, `textOf`, `mustEncode` and `mustRead` helpers, which fail with `t.Fatal`. Red: `golangci-lint run --config=../../../../.golangci.yml ./...` exited 1 with `66 issues` (errcheck 64, errorlint 2); green: exit 0 with `0 issues`, and `go test -run Test ./...` gave `16 passed, 0 failed`.

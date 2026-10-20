@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1bb6f618d3a06eb60e1b5a90278b424a413c30f1b9d890f9cf14e4dc46c6bc3f -->
+<!-- source-sha256: a23a9581a91741c3876c29ebb5ea30c096301bfc46e25eba5d3b5e58e1594663 -->
 
 ## Unreleased
+
+### 2026-10-20 — cross-check console Rust validator는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-8)
+
+- `examples/cross-check-console/validators/rust/src/main.rs`의 `write_line`은 JSON 줄을 직렬화할 때 `Result::unwrap_or_else`와 잘못된 줄을 출력할 fallback `"{}"` 대신 invariant 메시지를 담은 `expect`를 사용합니다(C16.67-8). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`가 finding 1건(src/main.rs:210의 `Result::unwrap_or_else`)으로 exit 101이었습니다. Green: exit 0이며, crate의 `cargo build --locked`도 exit 0입니다.
 
 ### 2026-10-20 — form-comparison Go 서버는 숨은 오류를 처리한다 (C16.67-2)
 

@@ -207,7 +207,7 @@ fn failure(message: &str, code: &str, at: &str) -> ! {
 
 /// Write one JSON line to stdout (a trailing newline; serde never fails here).
 fn write_line(obj: &Value) {
-    let s = serde_json::to_string(obj).unwrap_or_else(|_| "{}".to_string());
+    let s = serde_json::to_string(obj).expect("a serde_json Value serializes to a string");
     let stdout = io::stdout();
     let mut handle = stdout.lock();
     writeln!(handle, "{}", s).expect("write the JSON line to stdout");
