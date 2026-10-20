@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The classes of the tools of the repository (C16.7)
+
+- `config/rebuild.json` gives each tool of `scripts/`, `packages/*/scripts` and `packages/php-ext/tools` its class: 13 tools are `ecosystem`, 17 `policy` (single-source table generators, fixture generators and polyspec contract checks), 6 `record` with the rebuild records `docs/rebuild/test-commands.md`, `build-stamp.md`, `install-lock.md` and `install-phpdocumentor.md`, and 14 `replaced`, whose replacement items are C16.8 (VitePress), C16.9 (phpize, held for S10), C16.10 (the process-group runner of kit), C16.11 (ajv schemas), C16.12 (the CSS layer import) and C16.13 (`@unicode/unicode-16.0.0`) (C16.7). Red: `make rebuild-check` exit 2 (`config/rebuild.json does not exist`); green: exit 0.
+
 ### 2026-10-20 — No empty catch in the PHP generator (C16.6)
 
 - `Design::appearance` calls `Expression::parse` only for a string that `Design::parses` accepts, so a string that is not an expression stays literal text without a swallowed exception, and the row-limit test of `FormTest` records the rejection it asserts instead of catching it silently (C16.6). Red: `make lint-php` exit 2 (`Generic.CodeAnalysis.EmptyStatement.DetectedCatch` at `Design.php:96` and `FormTest.php:257`); green: `make lint-php` exit 0, and FormTest (22), DisplayRulesTest (21), ButtonsTest (18) and RenderingTest (3) pass.

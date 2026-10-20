@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9a040afb0b1397e1bcecbf9e0870b229a4a0f6fcbd04687575922157cbacec2a -->
+<!-- source-sha256: 1dee1bc812a67d316e57ef38253da1c7eb129b11e90f0fbf7120318c5d4b6e0a -->
 
 ## Unreleased
+
+### 2026-10-20 — 저장소 도구의 class (C16.7)
+
+- `config/rebuild.json`은 `scripts/`, `packages/*/scripts`, `packages/php-ext/tools`의 각 도구에 class를 지정합니다. `ecosystem` 13개, `policy` 17개(single-source table generator, fixture generator, polyspec contract 검사), `record` 6개(rebuild record `docs/rebuild/test-commands.md`, `build-stamp.md`, `install-lock.md`, `install-phpdocumentor.md`), `replaced` 14개이며, 대체 item은 C16.8(VitePress), C16.9(phpize, S10 때문에 보류), C16.10(kit의 process-group runner), C16.11(ajv schema), C16.12(CSS layer import), C16.13(`@unicode/unicode-16.0.0`)입니다 (C16.7). Red: `make rebuild-check` exit 2 (`config/rebuild.json does not exist`), green: exit 0.
 
 ### 2026-10-20 — PHP generator의 빈 catch 제거 (C16.6)
 

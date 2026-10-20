@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "comment": "The class of each tool of crudui (S1): ecosystem names the tool it uses, replaced the ecosystem tool that replaces it and the item that registers the replacement, record the rebuild record that weighs the tools, policy the reason no ecosystem tool applies. The tools below scripts/kit are copies of kit and are classed in kit. Test files and fixtures are not tools.",
+  "paths": [
+    "scripts/!(*.test).mts",
+    "scripts/*.php",
+    "scripts/docs-web/*.mts",
+    "packages/*/scripts/*",
+    "packages/*/*/scripts/*",
+    "packages/php-ext/tools/*.mjs"
+  ],
+  "tools": {
+    "packages/generator/php/scripts/generate-interface-messages.php": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/generator/python/scripts/generate_interface_messages.py": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/generator/ts/scripts/generate-interface-messages.mjs": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/generator/ts/scripts/write-tailwind-styles.mjs": {
+      "kind": "replaced",
+      "reason": "replaced by the CSS import of crudui.css with layer(components), which CSS and Tailwind CSS 4 provide natively; item C16.12 registers the replacement"
+    },
+    "packages/php-ext/tools/generate-interface-messages.mjs": {
+      "kind": "policy",
+      "reason": "one contract (contracts/interface-messages.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/php-ext/tools/generate-unicode-data.mjs": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/react/scripts/generate-form-render-cases.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/react/scripts/scenario-form-render-cases.ts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/react/scripts/written-form-render-cases.ts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/validator/php/scripts/generate-unicode-data.php": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/validator/python/scripts/generate_unicode_data.py": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "packages/validator/ts/scripts/generate-compose-cases.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/validator/ts/scripts/generate-expr-cases.mts": {
+      "kind": "policy",
+      "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/validator/ts/scripts/generate-unicode-properties.mjs": {
+      "kind": "policy",
+      "reason": "one contract (contracts/unicode-properties.json) feeds the tables of several languages (S6), and no ecosystem tool defines that contract"
+    },
+    "scripts/build-crudui-php-extension.mts": {
+      "kind": "replaced",
+      "reason": "replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
+    },
+    "scripts/build-ordered-json-php-extension.mts": {
+      "kind": "replaced",
+      "reason": "replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
+    },
+    "scripts/check-ci-browser.mts": {
+      "kind": "ecosystem",
+      "tool": "puppeteer opens chrome://sandbox"
+    },
+    "scripts/check-conformance.mts": {
+      "kind": "policy",
+      "reason": "checks the evidence of contracts/features.json, the polyspec feature contract (S6); no ecosystem tool defines it"
+    },
+    "scripts/check-contract-manifest.mts": {
+      "kind": "ecosystem",
+      "tool": "es-module-lexer reads the exports of each built module"
+    },
+    "scripts/check-doc-coverage.mts": {
+      "kind": "ecosystem",
+      "tool": "API Extractor, cargo doc, go doc and phpDocumentor, run through scripts/gen-api-docs.mts and scripts/php-doc-coverage.php"
+    },
+    "scripts/check-packages.mts": {
+      "kind": "ecosystem",
+      "tool": "npm packs and installs the packages, and puppeteer loads them in a browser"
+    },
+    "scripts/check-schema.mts": {
+      "kind": "ecosystem",
+      "tool": "ajv and ajv-formats validate the schemas and their examples; yaml reads the YAML ones"
+    },
+    "scripts/docs-web/build.mts": {
+      "kind": "replaced",
+      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+    },
+    "scripts/docs-web/cli.mts": {
+      "kind": "replaced",
+      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+    },
+    "scripts/docs-web/paths.mts": {
+      "kind": "replaced",
+      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+    },
+    "scripts/docs-web/server.mts": {
+      "kind": "replaced",
+      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+    },
+    "scripts/docs-web/watch.mts": {
+      "kind": "replaced",
+      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+    },
+    "scripts/documentation-links.mts": {
+      "kind": "replaced",
+      "reason": "the markdown-it rule that rewrites repository links for scripts/docs-web goes with it; replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+    },
+    "scripts/features-manifest.mts": {
+      "kind": "ecosystem",
+      "tool": "ajv reads contracts/features.json through contracts/features.schema.json"
+    },
+    "scripts/gen-api-docs.mts": {
+      "kind": "ecosystem",
+      "tool": "API Extractor, cargo doc, go doc and phpDocumentor write the API references"
+    },
+    "scripts/generate-feature-contract-docs.mts": {
+      "kind": "policy",
+      "reason": "writes docs from contracts/features.json, the polyspec feature contract"
+    },
+    "scripts/generate-form-template-validator.mts": {
+      "kind": "ecosystem",
+      "tool": "ajv/dist/standalone writes the validation code of the form template schema"
+    },
+    "scripts/generate-unicode-properties.mts": {
+      "kind": "replaced",
+      "reason": "replaced by the property ranges that the npm package @unicode/unicode-16.0.0 publishes; item C16.13 registers the replacement"
+    },
+    "scripts/install-browsers.mts": {
+      "kind": "ecosystem",
+      "tool": "the install commands of puppeteer and playwright, at the builds that the locked packages pin"
+    },
+    "scripts/install-lock.mts": {
+      "kind": "record",
+      "record": "docs/rebuild/install-lock.md"
+    },
+    "scripts/install-phpdocumentor.mts": {
+      "kind": "record",
+      "record": "docs/rebuild/install-phpdocumentor.md"
+    },
+    "scripts/package-dist.mts": {
+      "kind": "ecosystem",
+      "tool": "npm pack, run under the holder-lock of @polyspec/kit"
+    },
+    "scripts/package-install-pack.mts": {
+      "kind": "ecosystem",
+      "tool": "npm pack --json: it reads the report of the archive"
+    },
+    "scripts/package-outputs.mts": {
+      "kind": "record",
+      "record": "docs/rebuild/build-stamp.md"
+    },
+    "scripts/php-doc-coverage.php": {
+      "kind": "ecosystem",
+      "tool": "PHP Reflection, through tests/docs/php/DocCoverage.php, reads the public API and its docblocks"
+    },
+    "scripts/php-extension-builder.mts": {
+      "kind": "replaced",
+      "reason": "replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
+    },
+    "scripts/repeat-build.mts": {
+      "kind": "record",
+      "record": "docs/rebuild/build-stamp.md"
+    },
+    "scripts/repository-files.mts": {
+      "kind": "ecosystem",
+      "tool": "checkedFiles of @polyspec/kit/tracked-files"
+    },
+    "scripts/require-current-build.mts": {
+      "kind": "record",
+      "record": "docs/rebuild/build-stamp.md"
+    },
+    "scripts/run-command.mts": {
+      "kind": "replaced",
+      "reason": "replaced by the process-group runner of @polyspec/kit once kit exports it (kit item: export process-group.mts and process.mts); item C16.10 registers the replacement"
+    },
+    "scripts/run-contract-tests.mts": {
+      "kind": "policy",
+      "reason": "runs the test commands that the polyspec feature contract declares, each to its end"
+    },
+    "scripts/run-rust-command.mts": {
+      "kind": "policy",
+      "reason": "refuses a CARGO_TARGET_DIR outside the checkout, a polyspec rule (Cargo judges freshness by modification time, so a shared target directory reuses the outputs of another checkout)"
+    },
+    "scripts/test-commands.mts": {
+      "kind": "record",
+      "record": "docs/rebuild/test-commands.md"
+    },
+    "scripts/tool-resolution.mts": {
+      "kind": "replaced",
+      "reason": "it only serves the PHP extension builders (executable discovery and version checks); replaced by phpize, which S10 names for the build of a PHP extension; item C16.9 registers the replacement and is held until kit settles S10 for component repositories"
+    },
+    "scripts/values.mts": {
+      "kind": "replaced",
+      "reason": "replaced by JSON schemas read with ajv (kit K157, K158); item C16.11 registers the replacement for its 21 callers"
+    }
+  }
+}
