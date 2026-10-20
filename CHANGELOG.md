@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — Shared helpers in the TypeScript generator core (C16.35)
+
+- `actionClick` builds the click handler of the action buttons for `connectForm` and `connectOutline`; `has`, `fail` and `closed` check the declarations of a form, a field and a design; `splitRowSuffix` serves `leafName` and `ruleNameForPath`; `fileWidget` builds `image`, `file` and `cover`; `choiceOptions` builds the options of `choice` and `multichoice`; and `probeRegistry` reads `WIDGET_LAYOUTS` and `WIDGET_CANONICAL` (C16.35). Red: `make duplication-check` listed 6 clones in `packages/generator/ts`; green: none; the 305 tests of the package, the Vue and Svelte conformance tests on the rebuilt core, and `make lint-ts` pass. The output is unchanged, so the red is the clone list.
+
 ### 2026-10-20 — One layering function in the Python validator and a null patch rejected everywhere (C16.34)
 
 - `_layer_members` layers the members of a node for `compose_properties`, `compose_spec`, `compose_root` and the nested expansion of a `$ref`, and `_validate_structure` serves `validateList` and `validateDetail` (C16.34). The copies disagreed about `{"$patch": null}`: `compose_properties` raised `PATCH_SHAPE` as the TypeScript, PHP and Rust engines do at every entry, while `compose_spec` and `compose_root` ignored it; now every entry raises it. Red: `tests.test_compose.TestNullPatch` failed for `compose_spec` and `compose_root` (2 of 3 sub-tests) and `make duplication-check` listed 3 clones in `packages/validator/python`; green: the test and the 4 compose, 9 structure validity and 3 validate tests pass, no clone remains, and `make lint-python` passes.

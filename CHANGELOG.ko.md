@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8041776f302bb9297b256b959c74c4628278c560f720d189cb87a4c3fc0b7b8d -->
+<!-- source-sha256: 949188679ef1813ea61d9bea27d2732d5d51aa7afc2d7ba28abb8e97b1040718 -->
 
 ## Unreleased
+
+### 2026-10-20 — TypeScript generator core의 공유 helper (C16.35)
+
+- `actionClick`은 `connectForm`과 `connectOutline`을 위한 action button의 click handler를 만들고, `has`, `fail`, `closed`는 form, field, design의 declaration을 검사하며, `splitRowSuffix`는 `leafName`과 `ruleNameForPath`를, `fileWidget`은 `image`, `file`, `cover`를, `choiceOptions`는 `choice`와 `multichoice`의 option을, `probeRegistry`는 `WIDGET_LAYOUTS`와 `WIDGET_CANONICAL`을 처리합니다 (C16.35). Red: `make duplication-check`가 `packages/generator/ts`의 clone 6건을 나열했고, green: 없음. package의 test 305건, 다시 build한 core 위의 Vue와 Svelte conformance test, `make lint-ts`가 통과합니다. 출력은 바뀌지 않으므로 red는 clone 목록입니다.
 
 ### 2026-10-20 — Python validator의 하나의 layering 함수와 모든 곳에서 거부되는 null patch (C16.34)
 

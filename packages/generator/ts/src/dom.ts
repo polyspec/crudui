@@ -135,6 +135,27 @@ export function connectStickyHeaders(element: HTMLElement): FormConnection {
   };
 }
 
+/**
+ * The click handler of the action buttons inside `element`: a click on an available button runs
+ * its action on the session, and a click that ran one is handled (default prevented) before
+ * `after` receives the action and its result.
+ */
+function actionClick(
+  element: HTMLElement,
+  session: FormInstance,
+  after: (target: NonNullable<ReturnType<typeof resolveAction>>, result: NonNullable<ReturnType<typeof runAction>>) => void
+): (event: Event) => void {
+  return (event: Event) => {
+    const button = isElement(event.target) ? event.target.closest<HTMLButtonElement>('button[data-crudui-action]') : null;
+    if (!button || !element.contains(button) || unavailable(button)) return;
+    const target = resolveAction(button);
+    const result = target && runAction(session, target);
+    if (!target || !result) return;
+    event.preventDefault();
+    after(target, result);
+  };
+}
+
 /** Browser event delegation for all adapters, including raw leaf controls. */
 export function connectForm(element: HTMLElement, session: FormInstance): FormConnection {
   let focus: {
@@ -244,18 +265,12 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     captureFocus();
     session.setValue(path, value);
   };
-  const onClick = (event: Event) => {
-    const button = isElement(event.target) ? event.target.closest<HTMLButtonElement>('button[data-crudui-action]') : null;
-    if (!button || !element.contains(button) || unavailable(button)) return;
-    const target = resolveAction(button);
-    const result = target && runAction(session, target);
-    if (!result) return;
-    event.preventDefault();
+  const onClick = actionClick(element, session, (_target, result) => {
     if (!result.focus) return;
     // A renderer that synchronizes inside the commit has already rendered the row.
     if (synced) moveFocus(result.focus);
     else destination = result.focus;
-  };
+  });
   const sync = () => {
     // React's SSR-compatible controls use defaultValue. Injection must update
     // live DOM properties too, including inputs that the user has already edited.
@@ -344,19 +359,13 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
  * and the footer.
  */
 export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
-  const onClick = (event: Event) => {
-    const button = isElement(event.target) ? event.target.closest<HTMLButtonElement>('button[data-crudui-action]') : null;
-    if (!button || !element.contains(button) || unavailable(button)) return;
-    const target = resolveAction(button);
-    const result = target && runAction(session, target);
-    if (!result) return;
-    event.preventDefault();
+  const onClick = actionClick(element, session, (target, result) => {
     if (target.name === 'select-row' && result.focus?.key !== undefined) {
       const row = rowElement(formElement, result.focus.path, result.focus.key);
       const control = row && firstRowControl(row);
       if (control) revealControl(control);
     }
-  };
+  });
   element.addEventListener('click', onClick);
   return {
     sync() {},

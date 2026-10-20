@@ -527,6 +527,26 @@ function choicesAttrs(ctx: WidgetCtx, base: string): Attrs {
   return { class: joinClass(base, ctx.design.group.class), ...(style ? { style } : {}) };
 }
 
+/** The options of a choice from its items: the label of each item, its appearance and the id, selection and default that `of` gives it. */
+function choiceOptions(
+  items: unknown,
+  ctx: EvaluatorContext,
+  of: { id: (index: number) => string; selected: (value: string) => boolean; isDefault: (value: string) => boolean }
+): OptionModel[] {
+  const appearances = isChoiceList(items) ? choiceAppearances(items, ctx.path) : [];
+  return itemEntries(items).map(([key, label], index) => {
+    const value = String(key);
+    return {
+      value,
+      label: ctx.t(label) || phpString(label),
+      selected: of.selected(value),
+      isDefault: of.isDefault(value),
+      id: of.id(index),
+      ...appearances[index],
+    };
+  });
+}
+
 const choice: Evaluator = (ctx) => {
   const name = bracketName(ctx);
   const items = ctx.spec.items;
@@ -565,18 +585,10 @@ const choice: Evaluator = (ctx) => {
     return ctx.value === undefined ? defaultStr ?? '' : v;
   })();
   const idPrefix = elementId('choice', ctx.path);
-  const appearances = isChoiceList(items) ? choiceAppearances(items, ctx.path) : [];
-
-  const options: OptionModel[] = itemEntries(items).map(([key, label], index) => {
-    const value = String(key);
-    return {
-      value,
-      label: ctx.t(label) || phpString(label),
-      selected: effectiveValue === value,
-      isDefault: defaultStr !== null && defaultStr === value,
-      id: `${idPrefix}-${index + 1}`,
-      ...appearances[index],
-    };
+  const options = choiceOptions(items, ctx, {
+    id: (index) => `${idPrefix}-${index + 1}`,
+    selected: (value) => effectiveValue === value,
+    isDefault: (value) => defaultStr !== null && defaultStr === value,
   });
 
   return {
@@ -636,17 +648,10 @@ const multichoice: Evaluator = (ctx) => {
   }
 
   const idPrefix = `mchoice-${cleanStr(name)}`;
-  const appearances = isChoiceList(items) ? choiceAppearances(items, ctx.path) : [];
-  const options: OptionModel[] = itemEntries(items).map(([key, label], index) => {
-    const value = String(key);
-    return {
-      value,
-      label: ctx.t(label) || phpString(label),
-      selected: selectedValues.includes(value),
-      isDefault: false,
-      id: `${idPrefix}${index + 1}`,
-      ...appearances[index],
-    };
+  const options = choiceOptions(items, ctx, {
+    id: (index) => `${idPrefix}${index + 1}`,
+    selected: (value) => selectedValues.includes(value),
+    isDefault: () => false,
   });
 
   return {
@@ -756,91 +761,41 @@ const dummyInput: Evaluator = (ctx) => {
   };
 };
 
-const image: Evaluator = (ctx) => {
+/**
+ * The file widgets: the file control with the accepted types, behind a read-only display control and a button for
+ * `image` and `file`, alone for `cover`, whose file name is the `name` member of its bracket name.
+ */
+function fileWidget(ctx: EvaluatorContext, kind: 'image' | 'file' | 'cover', acceptDefault: string, display: boolean): WidgetModel {
   const name = bracketName(ctx);
-  const accept = acceptAttr(ctx, 'image/*');
+  const accept = acceptAttr(ctx, acceptDefault);
   const fileClass = joinClass('valid-target crudui-input crudui-input--file', ctx.design.main.class);
   return {
-    kind: 'image',
+    kind,
     layout: 'file',
     attrs: {},
     prepend: prependAffix(ctx),
     extra: {
-      display: {
-        type: 'text',
-        class: 'crudui-input',
-        value: '',
-        readonly: '',
-      },
+      ...(display ? { display: { type: 'text', class: 'crudui-input', value: '', readonly: '' } } : {}),
       file: {
         type: 'file',
         class: fileClass,
         ...sizeAttrs(ctx),
-        name,
+        name: display ? name : `${name}[name]`,
         'data-name': leafName(ctx.path, ctx.rowSegments),
         'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
         ...behaviorAttrs(ctx),
-        value: '',
+        ...(display ? { value: '' } : {}),
         accept,
       },
     },
   };
-};
+}
 
-const file: Evaluator = (ctx) => {
-  const name = bracketName(ctx);
-  const accept = acceptAttr(ctx, '*/*');
-  const fileClass = joinClass('valid-target crudui-input crudui-input--file', ctx.design.main.class);
-  return {
-    kind: 'file',
-    layout: 'file',
-    attrs: {},
-    prepend: prependAffix(ctx),
-    extra: {
-      display: {
-        type: 'text',
-        class: 'crudui-input',
-        value: '',
-        readonly: '',
-      },
-      file: {
-        type: 'file',
-        class: fileClass,
-        ...sizeAttrs(ctx),
-        name,
-        'data-name': leafName(ctx.path, ctx.rowSegments),
-        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
-        ...behaviorAttrs(ctx),
-        value: '',
-        accept,
-      },
-    },
-  };
-};
+const image: Evaluator = (ctx) => fileWidget(ctx, 'image', 'image/*', true);
 
-const cover: Evaluator = (ctx) => {
-  const name = bracketName(ctx);
-  const accept = acceptAttr(ctx, 'image/*');
-  const fileClass = joinClass('valid-target crudui-input crudui-input--file', ctx.design.main.class);
-  return {
-    kind: 'cover',
-    layout: 'file',
-    attrs: {},
-    prepend: prependAffix(ctx),
-    extra: {
-      file: {
-        type: 'file',
-        class: fileClass,
-        ...sizeAttrs(ctx),
-        name: `${name}[name]`,
-        'data-name': leafName(ctx.path, ctx.rowSegments),
-        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
-        ...behaviorAttrs(ctx),
-        accept,
-      },
-    },
-  };
-};
+const file: Evaluator = (ctx) => fileWidget(ctx, 'file', '*/*', true);
+
+const cover: Evaluator = (ctx) => fileWidget(ctx, 'cover', 'image/*', false);
 
 const imageViewer: Evaluator = (ctx) => {
   const height = optWith(ctx, 'height', '');
@@ -1146,13 +1101,8 @@ export const WIDGET_COUNT = Object.keys(REGISTRY).length;
  */
 export const WIDGET_KINDS: readonly string[] = Object.keys(REGISTRY);
 
-/**
- * `kind → layout family`, derived by running each registry evaluator once with a
- * neutral context and reading the `layout` it returns (a per-evaluator literal,
- * input-independent). This is a projection of the registry, not a hand table:
- * a new evaluator's layout is picked up automatically (drift 0).
- */
-export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (() => {
+/** What `pick` reads from the model that each registry evaluator returns for a neutral context. */
+function probeRegistry<T>(pick: (model: WidgetModel) => T): Record<string, T> {
   const node = { class: '', style: '' };
   const probeCtx: EvaluatorContext = {
     controlId: 'crudui:probe',
@@ -1169,11 +1119,21 @@ export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (
     },
     t: (v: unknown) => (typeof v === 'string' ? v : ''),
   };
-  const out: Record<string, WidgetModel['layout']> = {};
-  for (const [kind, evaluator] of Object.entries(REGISTRY)) {
-    out[kind] = evaluator(probeCtx).layout;
+  const out: Record<string, T> = {};
+  for (const [key, evaluator] of Object.entries(REGISTRY)) {
+    out[key] = pick(evaluator(probeCtx));
   }
   return out;
+}
+
+/**
+ * `kind → layout family`, derived by running each registry evaluator once with a
+ * neutral context and reading the `layout` it returns (a per-evaluator literal,
+ * input-independent). This is a projection of the registry, not a hand table:
+ * a new evaluator's layout is picked up automatically (drift 0).
+ */
+export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (() => {
+  return probeRegistry((model) => model.layout);
 })();
 
 /**
@@ -1184,27 +1144,7 @@ export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (
  * the registry — new aliases surface automatically (drift 0).
  */
 export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
-  const node = { class: '', style: '' };
-  const probeCtx: EvaluatorContext = {
-    controlId: 'crudui:probe',
-    spec: { type: 'probe' },
-    value: undefined,
-    path: 'probe',
-    design: {
-      show: true,
-      main: { ...node },
-      label: { ...node },
-      wrapper: { ...node },
-      group: { ...node },
-      prepend: { ...node },
-    },
-    t: (v: unknown) => (typeof v === 'string' ? v : ''),
-  };
-  const out: Record<string, string> = {};
-  for (const [key, evaluator] of Object.entries(REGISTRY)) {
-    out[key] = evaluator(probeCtx).kind;
-  }
-  return out;
+  return probeRegistry((model) => model.kind);
 })();
 
 /** Widget model members in their output order (docs/spec/form-runtime.md). */

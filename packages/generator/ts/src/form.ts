@@ -112,33 +112,41 @@ const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
 /** Keys `multiple` accepts beside `only: true`. */
 const ONLY_MULTIPLE_KEYS: readonly string[] = ['only', 'title', 'header'];
 
+/** Whether an object has its own member. */
+function has(object: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+/** Fail a declaration at `path` for an invalid member. */
+function fail(path: string, key: string, expected: string): never {
+  throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
+}
+
+/** Fail a declaration at `path` for a member of `object` that `allowed` does not list. */
+function closed(path: string, object: Record<string, unknown>, name: string, allowed: readonly string[]): void {
+  for (const key of Object.keys(object)) {
+    if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
+  }
+}
+
 /**
  * Reject an unknown key or a wrong value type in one field's `multiple`, `lang`, `design` and
  * `behavior` declarations. Within a bucket, unknown keys are checked in declaration order before
  * the values.
  */
 function checkDeclarations(spec: Record<string, unknown>, path: string, field = true): void {
-  const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
-  function fail(key: string, expected: string): never {
-    throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
-  }
-  const closed = (object: Record<string, unknown>, name: string, allowed: readonly string[]) => {
-    for (const key of Object.keys(object)) {
-      if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
-    }
-  };
   // Buttons and the submission target belong to the form, not to a field.
   for (const key of ['buttons', 'action']) {
-    if (has(spec, key)) fail(key, 'the form root');
+    if (has(spec, key)) fail(path, key, 'the form root');
   }
   if (has(spec, 'multiple')) {
     const multiple = spec.multiple;
     if (typeof multiple !== 'boolean' && multiple !== 'only' && !isRecord(multiple)) {
-      fail('multiple', 'a boolean, only or an object');
+      fail(path, 'multiple', 'a boolean, only or an object');
     }
     if (isRecord(multiple)) {
-      closed(multiple, 'multiple', CLOSED_BUCKET_KEYS.multiple);
-      if (has(multiple, 'only') && typeof multiple.only !== 'boolean') fail('multiple.only', 'a boolean');
+      closed(path, multiple, 'multiple', CLOSED_BUCKET_KEYS.multiple);
+      if (has(multiple, 'only') && typeof multiple.only !== 'boolean') fail(path, 'multiple.only', 'a boolean');
       // Rows of a data-only collection come from the data: row limits and row controls do not apply.
       if (multiple.only === true) {
         for (const key of Object.keys(multiple)) {
@@ -146,37 +154,37 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
         }
       }
       for (const key of ['min', 'max']) {
-        if (has(multiple, key) && typeof multiple[key] !== 'number') fail(`multiple.${key}`, 'a number');
+        if (has(multiple, key) && typeof multiple[key] !== 'number') fail(path, `multiple.${key}`, 'a number');
       }
       for (const key of ['copy', 'sortable']) {
-        if (has(multiple, key) && typeof multiple[key] !== 'boolean') fail(`multiple.${key}`, 'a boolean');
+        if (has(multiple, key) && typeof multiple[key] !== 'boolean') fail(path, `multiple.${key}`, 'a boolean');
       }
       if (has(multiple, 'title')) {
-        if (spec.type !== 'group') fail('multiple.title', 'a repeated group');
+        if (spec.type !== 'group') fail(path, 'multiple.title', 'a repeated group');
         const properties = isRecord(spec.properties) ? spec.properties : {};
         if (typeof multiple.title !== 'string' || !has(properties, multiple.title) || !scalarChild(properties[multiple.title])) {
-          fail('multiple.title', 'the name of a direct child field without multiple, properties or lang');
+          fail(path, 'multiple.title', 'the name of a direct child field without multiple, properties or lang');
         }
       }
       if (has(multiple, 'controls') && !(typeof multiple.controls === 'string' && ['header', 'footer', 'outline'].includes(multiple.controls))) {
-        fail('multiple.controls', 'header, footer or outline');
+        fail(path, 'multiple.controls', 'header, footer or outline');
       }
       if (has(multiple, 'header') && !(typeof multiple.header === 'string' && ['static', 'sticky'].includes(multiple.header))) {
-        fail('multiple.header', 'static or sticky');
+        fail(path, 'multiple.header', 'static or sticky');
       }
     }
   }
   if (has(spec, 'lang') && typeof spec.lang !== 'boolean' && !isRecord(spec.lang)) {
-    fail('lang', 'a boolean or an object');
+    fail(path, 'lang', 'a boolean or an object');
   }
-  if (isRecord(spec.lang)) closed(spec.lang, 'lang', CLOSED_BUCKET_KEYS.lang);
+  if (isRecord(spec.lang)) closed(path, spec.lang, 'lang', CLOSED_BUCKET_KEYS.lang);
   if (isRecord(spec.lang) && has(spec.lang, 'only')) {
     const only = spec.lang.only;
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
-    if (!codes && !isRecord(only)) fail('lang.only', 'a list of language codes or an object');
+    if (!codes && !isRecord(only)) fail(path, 'lang.only', 'a list of language codes or an object');
   }
   if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field, field ? groupLayouts(spec) : undefined);
-  if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior);
+  if (isRecord(spec.behavior)) closed(path, spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior);
   if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'range') checkRangeDeclaration(spec, path);
 }
 
@@ -212,38 +220,29 @@ function groupLayouts(spec: Record<string, unknown>): readonly string[] | undefi
  * accepts `layout`, one of `layouts`.
  */
 export function checkDesignDeclaration(design: unknown, path: string, field = false, layouts?: readonly string[]): void {
-  const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
-  function fail(key: string, expected: string): never {
-    throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
-  }
-  const closed = (object: Record<string, unknown>, name: string, allowed: readonly string[]) => {
-    for (const key of Object.keys(object)) {
-      if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
-    }
-  };
-  if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
+  if (typeof design !== 'boolean' && !isRecord(design)) fail(path, 'design', 'a boolean or an object');
   if (isRecord(design)) {
     const keys = layouts ? CLOSED_BUCKET_KEYS.groupDesign : field ? CLOSED_BUCKET_KEYS.fieldDesign : CLOSED_BUCKET_KEYS.design;
-    closed(design, 'design', keys);
+    closed(path, design, 'design', keys);
     if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
-      fail('design.show', 'an expression, a boolean or a condition map');
+      fail(path, 'design.show', 'an expression, a boolean or a condition map');
     }
     for (const key of ['class', 'style']) {
-      if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
+      if (has(design, key) && !conditionValue(design[key])) fail(path, `design.${key}`, 'a string or a condition map');
     }
     if (has(design, 'attributes')) checkDeclaredAttributes(design.attributes, 'design.attributes', path);
     if (layouts && has(design, 'layout') && !(typeof design.layout === 'string' && layouts.includes(design.layout))) {
-      fail('design.layout', layouts.length === 3 ? 'stacked, inline or line' : 'stacked or inline');
+      fail(path, 'design.layout', layouts.length === 3 ? 'stacked, inline or line' : 'stacked or inline');
     }
     for (const node of ['label', 'wrapper', 'group', 'prepend']) {
       if (!has(design, node)) continue;
       const value = design[node];
-      if (!isRecord(value)) fail(`design.${node}`, 'an object');
+      if (!isRecord(value)) fail(path, `design.${node}`, 'an object');
       const nodeKeys = field && node === 'wrapper' ? CLOSED_BUCKET_KEYS.fieldWrapper : CLOSED_BUCKET_KEYS.node;
-      closed(value, `design.${node}`, nodeKeys);
+      closed(path, value, `design.${node}`, nodeKeys);
       for (const key of ['class', 'style']) {
         if (has(value, key) && !conditionValue(value[key])) {
-          fail(`design.${node}.${key}`, 'a string or a condition map');
+          fail(path, `design.${node}.${key}`, 'a string or a condition map');
         }
       }
       if (has(value, 'attributes')) {
@@ -255,35 +254,31 @@ export function checkDesignDeclaration(design: unknown, path: string, field = fa
 
 /** Reject a wrong root `action` or `buttons` declaration. */
 function checkFormDeclarations(spec: Record<string, unknown>): void {
-  const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
-  function fail(key: string, expected: string): never {
-    throw new FormInputError(`Invalid ${key} at form: expected ${expected}`);
-  }
   if (has(spec, 'action')) {
     const action = spec.action;
-    if (!isRecord(action)) fail('action', 'an object');
+    if (!isRecord(action)) fail('form', 'action', 'an object');
     for (const key of ['method', 'url', 'enctype']) {
       if (has(action, key) && typeof action[key] !== 'string') {
-        fail(`action.${key}`, 'a string');
+        fail('form', `action.${key}`, 'a string');
       }
     }
   }
   if (!has(spec, 'buttons')) return;
   const buttons: unknown = spec.buttons;
-  if (!Array.isArray(buttons)) fail('buttons', 'a list of buttons');
+  if (!Array.isArray(buttons)) fail('form', 'buttons', 'a list of buttons');
   // A button type without interface text needs declared text.
   const texts = formMessages('ko');
   buttons.forEach((button: unknown, index) => {
     const key = `buttons.${index}`;
-    if (!isRecord(button)) fail(key, 'an object');
+    if (!isRecord(button)) fail('form', key, 'an object');
     const declared = button;
     const type = FORM_BUTTON_TYPES.find(name => name === declared.type);
-    if (type === undefined) fail(`${key}.type`, 'submit, reset, button or link');
+    if (type === undefined) fail('form', `${key}.type`, 'submit, reset, button or link');
     for (const name of ['name', 'value', 'href']) {
-      if (has(declared, name) && typeof declared[name] !== 'string') fail(`${key}.${name}`, 'a string');
+      if (has(declared, name) && typeof declared[name] !== 'string') fail('form', `${key}.${name}`, 'a string');
     }
-    if (!has(texts, type) && !has(declared, 'text')) fail(`${key}.text`, 'content for this button type');
-    if (declared.type === 'link' && !has(declared, 'href')) fail(`${key}.href`, 'a link target');
+    if (!has(texts, type) && !has(declared, 'text')) fail('form', `${key}.text`, 'content for this button type');
+    if (declared.type === 'link' && !has(declared, 'href')) fail('form', `${key}.href`, 'a link target');
     checkDeclarations(declared, `form.${key}`, false);
   });
 }

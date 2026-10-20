@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 8fd684ed980ed5371516a4b72888cd61fb4aff280f5addd2aec0ff2d0d1bca2a -->
+<!-- source-sha256: f3b0fd4f3296699951427a6380f0035b14852318be6ec69c46d6e91bc2e2c32e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -49,3 +49,4 @@
 | C16.32 | PHP validator는 쌍을 이루는 method마다 자기 계약을 문서화하고 list와 detail을 map 이름으로 검증한다 | packages/validator/php/src/Expr/Expression.php, Patterns/WholeMatchPattern.php, Public/Validator.php, Compose/Patch.php, Validate/Validator.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/ListValidateConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Validate/DetailValidateConformanceTest.php`, `make lint-php` | [o] |
 | C16.33 | Rust validator는 ef 해석, JSON type 이름, structure text 읽기를 공유 함수로 수행한다 | packages/validator/rust/src (compose/compose.rs, compose/members.rs, expr/evaluator.rs, json_type.rs, text.rs, lib.rs) | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml text`, `make lint-rust` | [o] |
 | C16.34 | Python validator는 composition member를 하나의 함수로 layering하고 모든 진입점에서 null atch를 거부한다 | packages/validator/python/src/polyspec/crudui/validator/compose.py, validator.py, tests/test_compose.py | `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_compose`, `node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity`, `make lint-python` | [o] |
+| C16.35 | TypeScript generator core는 action click handler, declaration 검사, path suffix, file widget, choice option, registry probe를 공유한다 | packages/generator/ts/src (dom.ts, form.ts, util.ts, widget.ts) | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src`, `make lint-ts` | [o] |

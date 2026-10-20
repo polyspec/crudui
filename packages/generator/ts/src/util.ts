@@ -163,15 +163,16 @@ function pathSegmentsLoose(path: string): string[] {
     .filter((s) => s !== '');
 }
 
+/** A path without its trailing `[]` (`p`), that suffix and the loose segments of the path without it. */
+function splitRowSuffix(path: string): { p: string; suffix: string; segments: string[] } {
+  const suffix = path.endsWith('[]') ? '[]' : '';
+  const p = suffix ? path.slice(0, -2) : path;
+  return { p, suffix, segments: pathSegmentsLoose(p) };
+}
+
 /** Leaf data-name for a dot path. A repeated row segment collapses to `name[]`. */
 export function leafName(path: string, rowSegments: readonly number[] = []): string {
-  let suffix = '';
-  let p = path;
-  if (p.endsWith('[]')) {
-    suffix = '[]';
-    p = p.slice(0, -2);
-  }
-  const segments = pathSegmentsLoose(p);
+  const { p, suffix, segments } = splitRowSuffix(path);
   const last = segments[segments.length - 1] ?? p;
   if (rowSegments.includes(segments.length - 1)) {
     return (segments[segments.length - 2] ?? '') + '[]';
@@ -181,13 +182,7 @@ export function leafName(path: string, rowSegments: readonly number[] = []): str
 
 /** data-rule-name for a dot path: bracket notation relative to the form root. */
 export function ruleNameForPath(path: string, rowSegments: readonly number[] = []): string {
-  let suffix = '';
-  let p = path;
-  if (p.endsWith('[]')) {
-    suffix = '[]';
-    p = p.slice(0, -2);
-  }
-  const segments = pathSegmentsLoose(p);
+  const { p, suffix, segments } = splitRowSuffix(path);
   if (segments.length <= 1) return (segments[0] ?? p) + suffix;
   return (
     segments[0] +
