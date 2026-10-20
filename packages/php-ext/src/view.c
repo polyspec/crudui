@@ -141,28 +141,51 @@ static bool row_input(const ps_value *view, const ps_value *row_path, const ps_v
     return true;
 }
 
+/* Copies the collapsed rows into a new list, leaving out each item that drop reports for the row; *dropped reports
+ * whether one was left out when dropped is not NULL. The caller frees the list. NULL when the copy fails. */
+static ps_value *rows_without(const ps_value *collapsed, ps_text row, bool (*drop)(ps_text row, ps_text item),
+                              bool *dropped)
+{
+    ps_value *rows = ps_array_value();
+    if (!rows) return NULL;
+    for (size_t i = 0; i < ps_size(collapsed); ++i) {
+        ps_text item = text_of(ps_at(collapsed, i));
+        if (drop(row, item)) {
+            if (dropped) *dropped = true;
+            continue;
+        }
+        if (!ps_append(rows, copy_text(item))) {
+            ps_value_free(rows);
+            return NULL;
+        }
+    }
+    return rows;
+}
+
+static bool drops_same_row(ps_text row, ps_text item)
+{
+    return ps_text_equal(item, row);
+}
+
+static bool drops_row_inside(ps_text row, ps_text item)
+{
+    return inside(row, item);
+}
+
 ps_result ps_toggle_row_view(const ps_value *view, const ps_value *row_path)
 {
     const ps_value *collapsed = NULL;
     ps_text row;
     ps_result failure;
     if (!row_input(view, row_path, &collapsed, &row, &failure)) return failure;
-    ps_value *rows = ps_array_value();
     bool found = false;
+    ps_value *rows = rows_without(collapsed, row, drops_same_row, &found);
     if (!rows) return internal_failure();
-    for (size_t i = 0; i < ps_size(collapsed); ++i) {
-        ps_text item = text_of(ps_at(collapsed, i));
-        if (ps_text_equal(item, row)) {
-            found = true;
-            continue;
-        }
-        if (!ps_append(rows, copy_text(item))) goto fail;
+    if (!found && !ps_append(rows, copy_text(row))) {
+        ps_value_free(rows);
+        return internal_failure();
     }
-    if (!found && !ps_append(rows, copy_text(row))) goto fail;
     return view_result(rows);
-fail:
-    ps_value_free(rows);
-    return internal_failure();
 }
 
 ps_result ps_set_all_expanded_view(const ps_value *nodes, const ps_value *expanded)
@@ -180,17 +203,8 @@ ps_result ps_remove_row_view(const ps_value *view, const ps_value *row_path)
     ps_text row;
     ps_result failure;
     if (!row_input(view, row_path, &collapsed, &row, &failure)) return failure;
-    ps_value *rows = ps_array_value();
-    if (!rows) return internal_failure();
-    for (size_t i = 0; i < ps_size(collapsed); ++i) {
-        ps_text item = text_of(ps_at(collapsed, i));
-        if (inside(row, item)) continue;
-        if (!ps_append(rows, copy_text(item))) {
-            ps_value_free(rows);
-            return internal_failure();
-        }
-    }
-    return view_result(rows);
+    ps_value *rows = rows_without(collapsed, row, drops_row_inside, NULL);
+    return rows ? view_result(rows) : internal_failure();
 }
 
 ps_result ps_rekey_row_view(const ps_value *view, const ps_value *old_path, const ps_value *new_path)

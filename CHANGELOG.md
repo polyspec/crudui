@@ -78,6 +78,10 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001 to CURP-005 | 1 (native integration) | every implementation has the same four capabilities in its own form, so one neutral item replaces the five per-implementation items |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, five R13 lines (CURP-001 to CURP-005 defined and cited by no unit), 61 findings; green: exit 0, no line with CURP-001 to CURP-005 remains, 56 findings, and `check-documents` passes (C16.150).
+### 2026-10-21 — The C row view operations toggle and remove rows through one list copy (C16.58-29)
+
+- packages/php-ext/src/view.c: `rows_without` copies the collapsed rows and leaves out those a predicate names (`drops_same_row` for the toggle, `drops_row_inside` for the removal), so `ps_toggle_row_view` and `ps_remove_row_view` share the copy (C16.58-29). The toggle still appends the row when it was not in the list, and the failures are unchanged. Red: `make duplication-check` lists view.c [144:29 - 150:39] = [177:29 - 183:39] (item-red exit 0, the grep of the Verification fails on main); green: that grep exit 0, `make test-php-ext` with the CASES of the row 544 passed (FormStateTest covers both operations).
+
 ### 2026-10-21 — The C expression values share the parse and release steps (C16.58-28)
 
 - packages/php-ext/src/expression.c: `parsed_source` holds the tokens and the tree of an expression; `parse_source` returns it and `free_parsed_source` releases it, so `ps_expression_value` and `ps_expression_truth` share their parse and release steps (C16.58-28). Red: `make duplication-check` lists expression.c [750:30 - 756:66] = [761:25 - 767:66] (item-red exit 0, the grep of the Verification fails on main); green: that grep exit 0, `make test-php-ext` with the CASES of the row 544 passed. The CASES of the Verification use `|` as the alternation: the escaped `\|` of the earlier sub-rows selects no test in this runner.

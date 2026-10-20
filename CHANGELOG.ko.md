@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 108f13651ca0d75b2147a55cab20b1fbe5d66b167b72bc047d67550e7670ed24 -->
+<!-- source-sha256: 0812e1a7f470e03ec23b8c5706450ace2823a904a8df3bd929c5454c4377438c -->
 
 ## Unreleased
 
@@ -79,6 +79,10 @@ Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.151.log 2>&1; ! grep
 | CURP-001부터 CURP-005까지 | 1 (native 통합) | 모든 구현이 같은 네 능력을 자기 형태로 가지므로, 구현별 다섯 항목을 중립 항목 하나로 대체한다 |
 
 Red: `sh -c 'make -s parity-declarations-check > var/pd-C16.150.log 2>&1; ! grep -E "R13 untraced-requirement: .* defines CURP-00[1-5]," var/pd-C16.150.log'` exit 1, R13 줄 다섯 개(CURP-001부터 CURP-005까지 정의되고 어떤 단위도 인용하지 않음), 61 findings; green: exit 0, CURP-001부터 CURP-005까지의 줄이 남지 않음, 56 findings, `check-documents` 통과 (C16.150).
+### 2026-10-21 — C row view 연산이 하나의 list 복사로 row를 toggle하고 remove한다 (C16.58-29)
+
+- packages/php-ext/src/view.c: `rows_without`가 접힌 row들을 복사하면서 predicate가 지정한 항목을 뺀다(toggle은 `drops_same_row`, 제거는 `drops_row_inside`). 그래서 `ps_toggle_row_view`와 `ps_remove_row_view`가 복사를 공유한다(C16.58-29). toggle은 list에 없던 row를 여전히 덧붙이고, 실패 경로는 그대로다. Red: `make duplication-check`가 view.c [144:29 - 150:39] = [177:29 - 183:39]를 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, CASES 조건의 `make test-php-ext`가 544 passed(FormStateTest가 두 연산을 다룬다).
+
 ### 2026-10-21 — C expression value 함수들이 parse와 release 단계를 공유한다 (C16.58-28)
 
 - packages/php-ext/src/expression.c: `parsed_source`가 expression의 token과 tree를 담는다. `parse_source`가 이를 돌려주고 `free_parsed_source`가 해제하므로, `ps_expression_value`와 `ps_expression_truth`가 parse와 해제 단계를 공유한다(C16.58-28). Red: `make duplication-check`가 expression.c [750:30 - 756:66] = [761:25 - 767:66]을 나열한다(item-red exit 0, main에서 Verification의 grep이 실패). Green: 그 grep exit 0, CASES 조건의 `make test-php-ext`가 544 passed. Verification의 CASES는 대안(alternation)으로 `|`를 쓴다: 앞 sub-row들의 `\|`는 이 runner에서 test를 하나도 고르지 않는다.
