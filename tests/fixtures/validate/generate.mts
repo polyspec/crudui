@@ -904,7 +904,25 @@ const SPECS: CaseSpec[] = [
       rows: { type: 'group', multiple: true, properties: { code: { type: 'text' } } },
     } },
     data: { rows: { row1: { code: 'C', extra: 1 } } },
+  },  {
+    name: 'date-rule-rejects-text-that-is-no-date',
+    note: 'The date rule enables the date format check: text that is no date is rejected (CUVR-012).',
+    spec: { type: 'group', properties: { day: { type: 'text', validate: { date: true } } } },
+    data: { day: 'not a date' },
   },
+  {
+    name: 'dateiso-rule-accepts-iso-date',
+    note: 'The dateISO rule enables the ISO date format check: 2026-02-28 is an ISO date (CUVR-012).',
+    spec: { type: 'group', properties: { day: { type: 'text', validate: { dateISO: true } } } },
+    data: { day: '2026-02-28' },
+  },
+  {
+    name: 'dateiso-rule-rejects-other-format',
+    note: 'The dateISO rule rejects a day-first date (CUVR-012).',
+    spec: { type: 'group', properties: { day: { type: 'text', validate: { dateISO: true } } } },
+    data: { day: '28/02/2026' },
+  },
+
 ];
 
 // ---------------------------------------------------------------------------
@@ -1258,6 +1276,9 @@ const REQUIREMENTS: Record<string, string[]> = {
   'maxcount-parameter-true': ['CUVR-048'],
   'min-parameter-from-data': ['CUVR-045'],
   'min-parameter-from-data-numeric': ['CUVR-006'],
+  "date-rule-rejects-text-that-is-no-date": ["CUVR-012"],
+  "dateiso-rule-accepts-iso-date": ["CUVR-012"],
+  "dateiso-rule-rejects-other-format": ["CUVR-012"],
 };
 
 const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written)];

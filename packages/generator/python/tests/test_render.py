@@ -79,7 +79,7 @@ class TestListRenderConformance(unittest.TestCase):
         )
 
     def test_every_case_reproduces_its_expectation(self):
-        self.assertEqual(len(self.cases), 157)
+        self.assertEqual(len(self.cases), 165)
         for case in self.cases:
             with (
                 self.subTest(case=case["name"]),
@@ -126,7 +126,7 @@ class TestDetailRenderConformance(unittest.TestCase):
         )
 
     def test_every_case_reproduces_its_expectation(self):
-        self.assertEqual(len(self.cases), 62)
+        self.assertEqual(len(self.cases), 68)
         for case in self.cases:
             with (
                 self.subTest(case=case["name"]),

@@ -2546,5 +2546,110 @@
         "collapsed": []
       }
     ]
+  },
+  {
+    "name": "explicit-empty-collection-gets-keyed-rows",
+    "note": "An explicit empty object has zero rows, and a row that an operation adds to it is a keyed object (CUEC-007, CUEC-001).",
+    "requirements": [
+      "CUEC-007",
+      "CURT-004",
+      "CURP-010",
+      "CURP-012",
+      "CURP-027"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {}
+    },
+    "steps": [
+      {
+        "op": "addRow",
+        "args": [
+          "teams",
+          {
+            "key": "__0000000000001__"
+          }
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "note",
+          "added"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "result": "__0000000000001__",
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          }
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": "added"
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
   }
 ]

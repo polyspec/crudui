@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 46f4ebec233026fd921d652a35614a16784d58bd7f1798afb3c25172b6f5ce2d -->
+<!-- source-sha256: 0c471636df4fa6e72e622197de2956bf9812942fd90d3642276f0a1752106477 -->
 
 ## Unreleased
 
@@ -80,6 +80,10 @@
 ### 2026-10-20 — 공유 suite를 시험하지 않는 PHP test 파일은 internal로 선언한다 (C16.104)
 
 - `config/parity.json`은 `php` implementation의 PHP test 파일 24개를 `internal`로 선언합니다. 공유 suite가 다루는 규칙이나 렌더링을 시험하는 16개는 이유에 그 suite와 unit(form-render, list-render, validate, form-view, form-history, form-actions)을 밝히고, PHP 내부나 문서 gate만 시험하는 8개는 그 사실을 밝힙니다(C16.104). internal 파일은 requirement id를 명시하지 않으므로 R16은 깨끗합니다. 남긴 파일: Compose/PatchTest.php와 Compose/RefTest.php(공유 suite인 compose에 unit이 아직 없음, C16.81), ComposeConformanceTest.php와 ExprConformanceTest.php(C16.81), Internal/InterfaceMessagesTest.php(C16.100), InputTextTest.php와 Values/UnicodeDataTest.php(gap), packages/php-ext/tests/ApiTest.php(라이브러리와의 API 동등성 검사에 공유 suite가 없어 부분 gap으로 보고). Red: `make parity-declarations-check`가 exit 2이며 finding 303건, 그중 `R5 undeclared-test php` 31건이었습니다. Green: exit 2이며 finding 279건입니다. 선언한 R5 줄 24건이 빠졌고 새 줄은 없습니다. verification cell은 선언한 경로가 R5 php 줄에 나오지 않음을 검사합니다.
+
+### 2026-10-20 — 시험하지 않던 display, date, session 규칙을 case로 작성한다 (C16.57-12)
+
+- 렌더링 suite가 생성기를 통해 case를 얻습니다(C16.57-12). `tests/fixtures/list-render`는 `field-path-dotted`(CUDF-001), `format-true-and-false-are-text`(CUDF-004), `format-string-type-date`(CUDF-005), `format-link-href-condition`(CUDF-020), `format-link-javascript-url`(CUDF-023), `reject-root-sort-before-pagination`(CUDF-036), `reject-column-unknown-key-before-format`(CUDF-038), `reject-search-before-sort`(CUDF-039)를, `tests/fixtures/detail-render`는 같은 display case와 `reject-field-unknown-key-before-format`(CUDF-038)을 얻습니다. `tests/fixtures/validate`는 `date-rule-rejects-text-that-is-no-date`, `dateiso-rule-accepts-iso-date`, `dateiso-rule-rejects-other-format`(CUVR-012)을, `tests/fixtures/form-actions`는 `explicit-empty-collection-gets-keyed-rows`(CUEC-007, 확장된 `tests/fixtures/form-state/generate.mts`의 session helper로 명시적 빈 객체에 행을 추가하는 session)를 얻습니다. 각 case는 자신의 id를 인용하며, CUDF-037을 시험하는 기존 case(`reject-list-design-before-columns`, `reject-design-before-actions`)와 CUDF-036을 시험하는 `reject-root-key-before-design`도 인용합니다. Runner의 총계를 갱신했습니다: list 165, detail 68, validate 321(Python result case 182). Owner test: list와 detail: ts 233, Go 235, Python 3, Rust 2, PHP 라이브러리 235, PHP extension 235(`make test-php-ext`); validate: ts 322, Go 322, Python 3, PHP 라이브러리 321, PHP extension 355; Rust validate는 case 하나에서 실패합니다(아래); form-actions: ts 29, Go 11, Python 4, Rust 4, PHP 29. Red: main의 `make parity-declarations-check`는 R13 줄 155개를 보고합니다; green: R13 줄 143개이며 새 finding 줄은 없습니다. 결함: Rust validator는 `date-rule-rejects-text-that-is-no-date`를 valid로 보고하지만, reference는 `not a date`에 대해 `date` 규칙 실패를 보고합니다(`packages/validator/rust/src/validate/rules.rs`의 `is_valid_date`가 JavaScript Date parser가 거부하는 문자열을 받아들임); C16.57-12-1로 등록했으며 이 row에서 고치지 않습니다. CUDF-003은 cases의 출력으로 보일 수 없는 "renderer는 display model로만 markup을 씀"이므로 인용하지 않은 채 둡니다.
 
 ### 2026-10-20 — PHP extension은 public API만으로 rendering conformance suite를 실행한다 (C16.97)
 

@@ -2617,6 +2617,106 @@
     ]
   },
   {
+    "name": "date-rule-rejects-text-that-is-no-date",
+    "note": "The date rule enables the date format check: text that is no date is rejected (CUVR-012).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "day": {
+          "type": "text",
+          "validate": {
+            "date": true
+          }
+        }
+      }
+    },
+    "data": {
+      "day": "not a date"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "day",
+          "field": "day",
+          "rule": "date",
+          "message": "Please enter a valid date.",
+          "value": "not a date"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-012",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "dateiso-rule-accepts-iso-date",
+    "note": "The dateISO rule enables the ISO date format check: 2026-02-28 is an ISO date (CUVR-012).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "day": {
+          "type": "text",
+          "validate": {
+            "dateISO": true
+          }
+        }
+      }
+    },
+    "data": {
+      "day": "2026-02-28"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-012",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "dateiso-rule-rejects-other-format",
+    "note": "The dateISO rule rejects a day-first date (CUVR-012).",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "day": {
+          "type": "text",
+          "validate": {
+            "dateISO": true
+          }
+        }
+      }
+    },
+    "data": {
+      "day": "28/02/2026"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "day",
+          "field": "day",
+          "rule": "dateISO",
+          "message": "Please enter a valid date in ISO format (YYYY-MM-DD).",
+          "value": "28/02/2026"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-012",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
     "name": "value-required-whitespace",
     "note": "every White_Space code point alone, and mixed, is empty for required.",
     "spec": {

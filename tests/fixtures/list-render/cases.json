@@ -2842,6 +2842,7 @@
     "name": "reject-list-design-before-columns",
     "note": "the list's own design is checked before its columns.",
     "requirements": [
+      "CUDF-037",
       "CUDF-040"
     ],
     "spec": {
@@ -4723,5 +4724,241 @@
       "layout": null
     },
     "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "field-path-dotted",
+    "note": "a column field path reads the nested record value at the dotted path (CUDF-001).",
+    "requirements": [
+      "CUDF-001",
+      "CUDF-044",
+      "CUDF-047"
+    ],
+    "spec": {
+      "columns": {
+        "company": {
+          "field": "company.name",
+          "label": "Company"
+        }
+      }
+    },
+    "rows": [
+      {
+        "company": {
+          "name": "Acme"
+        }
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"company.name\"><span class=\"crudui-list__heading-label\">Company</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Acme</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-true-and-false-are-text",
+    "note": "a format of true or false is the text display (CUDF-004).",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-004",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-083"
+    ],
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "format": true
+        },
+        "status": {
+          "field": "status",
+          "label": "Status",
+          "format": false
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada",
+        "status": "active"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th><th class=\"crudui-list__heading\" data-field=\"status\"><span class=\"crudui-list__heading-label\">Status</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td><td class=\"crudui-list__cell crudui-value crudui-value--text\">active</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-string-type-date",
+    "note": "a format given as a string is that display type with no settings (CUDF-005): the date display.",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-005",
+      "CUDF-008",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-083"
+    ],
+    "spec": {
+      "columns": {
+        "joined": {
+          "field": "joined",
+          "label": "Joined",
+          "format": "date"
+        }
+      }
+    },
+    "rows": [
+      {
+        "joined": "2026-01-02"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"joined\"><span class=\"crudui-list__heading-label\">Joined</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--date\">2026-01-02</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-link-href-condition",
+    "note": "an href condition map selects the link by the first true condition (CUDF-020).",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-011",
+      "CUDF-020",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-053",
+      "CUDF-085"
+    ],
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "format": {
+            "type": "link",
+            "href": {
+              "name == \"Ada\"": "/ada",
+              "true": "/other"
+            }
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      },
+      {
+        "name": "Lin"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--link\"><a href=\"/ada\">Ada</a></td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--link\"><a href=\"/other\">Lin</a></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "format-link-javascript-url",
+    "note": "a javascript: href is replaced with a URL that throws (CUDF-023).",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-011",
+      "CUDF-023",
+      "CUDF-044",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-085"
+    ],
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "format": {
+            "type": "link",
+            "href": "javascript:alert(1)"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--link\"><a href=\"javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')\">Ada</a></td></tr></tbody></table></div>"
+  },
+  {
+    "name": "reject-root-sort-before-pagination",
+    "note": "root members are checked in member order: sort before pagination (CUDF-036).",
+    "requirements": [
+      "CUDF-036",
+      "CUDF-058"
+    ],
+    "spec": {
+      "sort": 1,
+      "pagination": "x",
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort at list: expected an object"
+    }
+  },
+  {
+    "name": "reject-column-unknown-key-before-format",
+    "note": "a column checks its unknown keys in member order before its known members (CUDF-038).",
+    "requirements": [
+      "CUDF-038",
+      "CUDF-044"
+    ],
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": 1,
+          "color": "x"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid color at columns.name: unknown key"
+    }
+  },
+  {
+    "name": "reject-search-before-sort",
+    "note": "a list checks search, sort, actions, empty, description and pagination in that order (CUDF-039).",
+    "requirements": [
+      "CUDF-039",
+      "CUDF-057"
+    ],
+    "spec": {
+      "search": 5,
+      "sort": 1,
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid search at list: expected a boolean or an object"
+    }
   }
 ]

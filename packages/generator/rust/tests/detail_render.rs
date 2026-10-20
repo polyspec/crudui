@@ -29,7 +29,7 @@ fn options(case: &Value) -> DetailOptions<'static> {
 #[test]
 fn detail_render_cases_reproduce_the_normalized_layout_or_the_failure() {
     let cases = support::cases("detail-render");
-    assert_eq!(cases.len(), 62, "detail-render holds 62 cases");
+    assert_eq!(cases.len(), 68, "detail-render holds 68 cases");
     for case in &cases {
         let name = case["name"].as_str().unwrap();
         let record = case.get("record").cloned().unwrap_or(json!({}));

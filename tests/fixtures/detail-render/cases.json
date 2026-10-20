@@ -2449,6 +2449,7 @@
     "name": "reject-design-before-actions",
     "note": "the own design is checked before the actions.",
     "requirements": [
+      "CUDF-037",
       "CUDF-041"
     ],
     "spec": {
@@ -2526,6 +2527,7 @@
     "name": "reject-root-key-before-design",
     "note": "root members are checked before the own design.",
     "requirements": [
+      "CUDF-036",
       "CUDF-041"
     ],
     "spec": {
@@ -2560,6 +2562,202 @@
     "expectError": {
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid empty at detail: unknown key"
+    }
+  },
+  {
+    "name": "field-path-dotted",
+    "note": "a field path reads the nested record value at the dotted path (CUDF-001).",
+    "requirements": [
+      "CUDF-001",
+      "CUDF-045",
+      "CUDF-047"
+    ],
+    "spec": {
+      "fields": {
+        "company": {
+          "field": "company.name",
+          "label": "Company"
+        }
+      }
+    },
+    "record": {
+      "company": {
+        "name": "Acme"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Company</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">Acme</dd></div></dl>"
+  },
+  {
+    "name": "format-true-and-false-are-text",
+    "note": "a format of true or false is the text display (CUDF-004).",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-004",
+      "CUDF-045",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-083"
+    ],
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "format": true
+        },
+        "status": {
+          "field": "status",
+          "label": "Status",
+          "format": false
+        }
+      }
+    },
+    "record": {
+      "name": "Ada",
+      "status": "active"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">Ada</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Status</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">active</dd></div></dl>"
+  },
+  {
+    "name": "format-string-type-date",
+    "note": "a format given as a string is that display type with no settings (CUDF-005): the date display.",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-005",
+      "CUDF-008",
+      "CUDF-045",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-083"
+    ],
+    "spec": {
+      "fields": {
+        "joined": {
+          "field": "joined",
+          "label": "Joined",
+          "format": "date"
+        }
+      }
+    },
+    "record": {
+      "joined": "2026-01-02"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Joined</dt><dd class=\"crudui-detail__value crudui-value crudui-value--date\">2026-01-02</dd></div></dl>"
+  },
+  {
+    "name": "format-link-href-condition",
+    "note": "an href condition map selects the link by the first true condition (CUDF-020).",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-011",
+      "CUDF-020",
+      "CUDF-045",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-053",
+      "CUDF-085"
+    ],
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "format": {
+            "type": "link",
+            "href": {
+              "name == \"Ada\"": "/ada",
+              "true": "/other"
+            }
+          }
+        }
+      }
+    },
+    "record": {
+      "name": "Ada"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/ada\">Ada</a></dd></div></dl>"
+  },
+  {
+    "name": "format-link-javascript-url",
+    "note": "a javascript: href is replaced with a URL that throws (CUDF-023).",
+    "requirements": [
+      "CUDF-002",
+      "CUDF-011",
+      "CUDF-023",
+      "CUDF-045",
+      "CUDF-047",
+      "CUDF-048",
+      "CUDF-085"
+    ],
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name",
+          "format": {
+            "type": "link",
+            "href": "javascript:alert(1)"
+          }
+        }
+      }
+    },
+    "record": {
+      "name": "Ada"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')\">Ada</a></dd></div></dl>"
+  },
+  {
+    "name": "reject-field-unknown-key-before-format",
+    "note": "a field checks its unknown keys in member order before its known members (CUDF-038).",
+    "requirements": [
+      "CUDF-038",
+      "CUDF-045"
+    ],
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "format": 1,
+          "color": "x"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid color at fields.name: unknown key"
     }
   }
 ]

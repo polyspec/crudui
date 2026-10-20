@@ -417,7 +417,49 @@ const SCENARIOS: DetailFixtureCase[] = [
     spec: spec,
     record: ADA,
     expectError: { code: 'INVALID_FORM_INPUT', message },
-  })),
+  })),  {
+    name: 'field-path-dotted',
+    note: 'a field path reads the nested record value at the dotted path (CUDF-001).',
+    spec: { fields: { company: { field: 'company.name', label: 'Company' } } },
+    record: { company: { name: 'Acme' } },
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-true-and-false-are-text',
+    note: 'a format of true or false is the text display (CUDF-004).',
+    spec: { fields: { name: { field: 'name', label: 'Name', format: true }, status: { field: 'status', label: 'Status', format: false } } },
+    record: { name: 'Ada', status: 'active' },
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-string-type-date',
+    note: 'a format given as a string is that display type with no settings (CUDF-005): the date display.',
+    spec: { fields: { joined: { field: 'joined', label: 'Joined', format: 'date' } } },
+    record: { joined: '2026-01-02' },
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-link-href-condition',
+    note: 'an href condition map selects the link by the first true condition (CUDF-020).',
+    spec: { fields: { name: { field: 'name', label: 'Name', format: { type: 'link', href: { 'name == "Ada"': '/ada', true: '/other' } } } } },
+    record: { name: 'Ada' },
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-link-javascript-url',
+    note: 'a javascript: href is replaced with a URL that throws (CUDF-023).',
+    spec: { fields: { name: { field: 'name', label: 'Name', format: { type: 'link', href: 'javascript:alert(1)' } } } },
+    record: { name: 'Ada' },
+    options: { language: 'en' },
+  },
+  {
+    name: 'reject-field-unknown-key-before-format',
+    note: 'a field checks its unknown keys in member order before its known members (CUDF-038).',
+    spec: { fields: { name: { field: 'name', format: 1, color: 'x' } } },
+    record: ADA,
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid color at fields.name: unknown key' },
+  },
+
 ];
 
 const cases = SCENARIOS.map((scenario) => {
@@ -481,9 +523,15 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "reject-action-behavior-entry": ["CUDF-072"],
   "reject-action-design": ["CUDF-065", "CUDF-066", "CUDF-076"],
   "reject-fields-before-actions": ["CUDF-043"],
-  "reject-design-before-actions": ["CUDF-041"],
+  "reject-design-before-actions": ["CUDF-037", "CUDF-041"],
   "reject-list-description": ["CUDF-041"],
-  "reject-root-key-before-design": ["CUDF-041"],
+  "reject-root-key-before-design": ["CUDF-036", "CUDF-041"],
+  "field-path-dotted": ["CUDF-001", "CUDF-045", "CUDF-047"],
+  "format-true-and-false-are-text": ["CUDF-002", "CUDF-004", "CUDF-045", "CUDF-047", "CUDF-048", "CUDF-083"],
+  "format-string-type-date": ["CUDF-002", "CUDF-005", "CUDF-008", "CUDF-045", "CUDF-047", "CUDF-048", "CUDF-083"],
+  "format-link-href-condition": ["CUDF-002", "CUDF-011", "CUDF-020", "CUDF-045", "CUDF-047", "CUDF-048", "CUDF-053", "CUDF-085"],
+  "format-link-javascript-url": ["CUDF-002", "CUDF-011", "CUDF-023", "CUDF-045", "CUDF-047", "CUDF-048", "CUDF-085"],
+  "reject-field-unknown-key-before-format": ["CUDF-038", "CUDF-045"],
 };
 
 /** The requirement ids that each case tests (docs/spec); a case that tests none keeps no requirements member. */

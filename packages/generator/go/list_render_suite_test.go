@@ -32,8 +32,8 @@ func TestListRenderSuite(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := readSuite(t, "list-render")
-	if len(cases) != 157 {
-		t.Fatalf("list-render has %d cases, want 157", len(cases))
+	if len(cases) != 165 {
+		t.Fatalf("list-render has %d cases, want 165", len(cases))
 	}
 	var results, failures []*Object
 	for _, c := range cases {

@@ -32,8 +32,8 @@ func TestDetailRenderSuite(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := readSuite(t, "detail-render")
-	if len(cases) != 62 {
-		t.Fatalf("detail-render has %d cases, want 62", len(cases))
+	if len(cases) != 68 {
+		t.Fatalf("detail-render has %d cases, want 68", len(cases))
 	}
 	var results, failures []*Object
 	for _, c := range cases {

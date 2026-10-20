@@ -29,7 +29,7 @@ fn options(case: &Value) -> ListOptions<'static> {
 #[test]
 fn list_render_cases_reproduce_the_normalized_layout_or_the_failure() {
     let cases = support::cases("list-render");
-    assert_eq!(cases.len(), 157, "list-render holds 157 cases");
+    assert_eq!(cases.len(), 165, "list-render holds 165 cases");
     for case in &cases {
         let name = case["name"].as_str().unwrap();
         let rows = list_rows(case.get("rows"));

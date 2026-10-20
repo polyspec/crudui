@@ -40,10 +40,10 @@ final class ListRenderConformanceTest extends TestCase
         return $out;
     }
 
-    /** The shared suite holds 157 cases; a repeated name would hide one of them from the data provider. */
+    /** The shared suite holds 165 cases; a repeated name would hide one of them from the data provider. */
     public function testEveryCaseIsProvided(): void
     {
-        self::assertCount(157, self::cases());
+        self::assertCount(165, self::cases());
     }
 
     #[DataProvider('cases')]

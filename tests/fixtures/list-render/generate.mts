@@ -891,7 +891,63 @@ const SCENARIOS: ListFixtureCase[] = [
     spec: { columns: { name: { field: 'name', label: 'Name' } } },
     rows: PEOPLE,
     options: { language: 'en', layout: null },
+  },  {
+    name: 'field-path-dotted',
+    note: 'a column field path reads the nested record value at the dotted path (CUDF-001).',
+    spec: { columns: { company: { field: 'company.name', label: 'Company' } } },
+    rows: [{ company: { name: 'Acme' } }],
+    options: { language: 'en' },
   },
+  {
+    name: 'format-true-and-false-are-text',
+    note: 'a format of true or false is the text display (CUDF-004).',
+    spec: { columns: { name: { field: 'name', label: 'Name', format: true }, status: { field: 'status', label: 'Status', format: false } } },
+    rows: [{ name: 'Ada', status: 'active' }],
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-string-type-date',
+    note: 'a format given as a string is that display type with no settings (CUDF-005): the date display.',
+    spec: { columns: { joined: { field: 'joined', label: 'Joined', format: 'date' } } },
+    rows: [{ joined: '2026-01-02' }],
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-link-href-condition',
+    note: 'an href condition map selects the link by the first true condition (CUDF-020).',
+    spec: { columns: { name: { field: 'name', label: 'Name', format: { type: 'link', href: { 'name == "Ada"': '/ada', true: '/other' } } } } },
+    rows: [{ name: 'Ada' }, { name: 'Lin' }],
+    options: { language: 'en' },
+  },
+  {
+    name: 'format-link-javascript-url',
+    note: 'a javascript: href is replaced with a URL that throws (CUDF-023).',
+    spec: { columns: { name: { field: 'name', label: 'Name', format: { type: 'link', href: 'javascript:alert(1)' } } } },
+    rows: [{ name: 'Ada' }],
+    options: { language: 'en' },
+  },
+  {
+    name: 'reject-root-sort-before-pagination',
+    note: 'root members are checked in member order: sort before pagination (CUDF-036).',
+    spec: { sort: 1, pagination: 'x', columns: { name: { field: 'name' } } },
+    rows: [],
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid sort at list: expected an object' },
+  },
+  {
+    name: 'reject-column-unknown-key-before-format',
+    note: 'a column checks its unknown keys in member order before its known members (CUDF-038).',
+    spec: { columns: { name: { field: 'name', format: 1, color: 'x' } } },
+    rows: [],
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid color at columns.name: unknown key' },
+  },
+  {
+    name: 'reject-search-before-sort',
+    note: 'a list checks search, sort, actions, empty, description and pagination in that order (CUDF-039).',
+    spec: { search: 5, sort: 1, columns: { name: { field: 'name' } } },
+    rows: [],
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid search at list: expected a boolean or an object' },
+  },
+
 ];
 
 function build(): ListFixtureCase[] {
@@ -986,7 +1042,7 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "reject-unknown-layout": ["CUDF-031"],
   "reject-number-layout": ["CUDF-031"],
   "reject-column-design-unknown-key": ["CUDF-044"],
-  "reject-list-design-before-columns": ["CUDF-040"],
+  "reject-list-design-before-columns": ["CUDF-037", "CUDF-040"],
   "action-script-object": ["CUDF-040", "CUDF-044", "CUDF-047", "CUDF-062", "CUDF-064", "CUDF-065", "CUDF-067", "CUDF-068"],
   "reject-missing-columns": ["CUDF-027"],
   "reject-rows-before-columns": ["CUDF-025"],
@@ -1055,6 +1111,14 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "reject-description-before-pagination": ["CUDF-078"],
   "reject-actions-before-description": ["CUDF-062"],
   "layout-null-selects-table": ["CUDF-031", "CUDF-044", "CUDF-047"],
+  "field-path-dotted": ["CUDF-001", "CUDF-044", "CUDF-047"],
+  "format-true-and-false-are-text": ["CUDF-002", "CUDF-004", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-083"],
+  "format-string-type-date": ["CUDF-002", "CUDF-005", "CUDF-008", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-083"],
+  "format-link-href-condition": ["CUDF-002", "CUDF-011", "CUDF-020", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-053", "CUDF-085"],
+  "format-link-javascript-url": ["CUDF-002", "CUDF-011", "CUDF-023", "CUDF-044", "CUDF-047", "CUDF-048", "CUDF-085"],
+  "reject-root-sort-before-pagination": ["CUDF-036", "CUDF-058"],
+  "reject-column-unknown-key-before-format": ["CUDF-038", "CUDF-044"],
+  "reject-search-before-sort": ["CUDF-039", "CUDF-057"],
 };
 
 /** The requirement ids that each case tests (docs/spec); a case that tests none keeps no requirements member. */

@@ -76,9 +76,11 @@ function runtimeRequirements(steps: Step[]): string[] {
   return ids;
 }
 
-function session(entry: { name: string; note: string; requirements: string[]; steps: Step[] }, history = true): Case {
+function session(entry: { name: string; note: string; requirements: string[]; steps: Step[]; spec?: Json; data?: Json }, history = true): Case {
   const steps: Json[] = entry.steps.map(({ op, args }) => ({ op, args }));
-  return { name: entry.name, note: entry.note, requirements: [...entry.requirements, ...runtimeRequirements(entry.steps)], spec, data, steps, expected: observeSession(core, { spec, data, steps: entry.steps }, history) };
+  const caseSpec = entry.spec ?? spec;
+  const caseData = entry.data ?? data;
+  return { name: entry.name, note: entry.note, requirements: [...entry.requirements, ...runtimeRequirements(entry.steps)], spec: caseSpec, data: caseData, steps, expected: observeSession(core, { spec: caseSpec, data: caseData, steps: entry.steps }, history) };
 }
 
 const step = (op: string, ...args: Json[]): Step => ({ op, args });
@@ -272,7 +274,15 @@ const all: Case[] = [
       run({ name: 'rename-row' }),
       run({ name: '' }),
     ],
+  }),  session({
+    name: 'explicit-empty-collection-gets-keyed-rows',
+    note: 'An explicit empty object has zero rows, and a row that an operation adds to it is a keyed object (CUEC-007, CUEC-001).',
+    requirements: ['CUEC-007', 'CURT-004'],
+    spec,
+    data: { teams: {} },
+    steps: [step('addRow', 'teams', { key: k(1) }), step('setValue', 'note', 'added')],
   }),
+
 ];
 
 
