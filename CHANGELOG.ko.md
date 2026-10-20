@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3d9281c2862ca08bfb63ac025c390540805b3830135a634e9cf78a095e63a86f -->
+<!-- source-sha256: 61483db43e2e77ccd28277a5308b9945276131d7a1db97d30e59fbd52ab93c31 -->
 
 ## Unreleased
+
+### 2026-10-20 — Rust benchmark는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-7)
+
+- `benchmarks/validators/rust/main.rs`는 `Result::unwrap_or_else`와 `Result::ok` clippy finding을 처리합니다. `load_fixture`와 `bench_spec`은 같은 read 및 parse 메시지를 담은 `Result<_, String>`을 반환하고, `main`은 그 메시지로 bench를 멈춥니다(잘못된 fixture는 여전히 exit 101). `count_argument`는 filter가 이미 검사한 digit을 invariant 메시지와 함께 파싱합니다(C16.67-7). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`가 finding 3건(main.rs:36과 :38의 `Result::unwrap_or_else`, main.rs:109의 `Result::ok`)으로 exit 101이었습니다. Green: exit 0이며, 잘못된 fixture는 같은 메시지와 exit 101을 유지합니다.
 
 ### 2026-10-20 — Rust validator는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-6)
 

@@ -28,22 +28,21 @@ struct Report {
     field: Option<String>,
 }
 
-fn load_fixture(dir: &str, name: &str) -> (Value, Value) {
+fn load_fixture(dir: &str, name: &str) -> Result<(Value, Value), String> {
     let spec_path = Path::new(dir).join(format!("{}.spec.json", name));
     let input_path = Path::new(dir).join(format!("{}.input.json", name));
-    let read = |path: &Path| -> Value {
+    let read = |path: &Path| -> Result<Value, String> {
         let text = fs::read_to_string(path)
-            .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
-        serde_json::from_str(&text)
-            .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
+            .map_err(|error| format!("read {}: {error}", path.display()))?;
+        serde_json::from_str(&text).map_err(|error| format!("parse {}: {error}", path.display()))
     };
-    let spec = read(&spec_path);
-    let input = read(&input_path);
-    (spec, input)
+    let spec = read(&spec_path)?;
+    let input = read(&input_path)?;
+    Ok((spec, input))
 }
 
-fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
-    let (spec_value, raw_input) = load_fixture(dir, name);
+fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Result<Report, String> {
+    let (spec_value, raw_input) = load_fixture(dir, name)?;
     let validator_input = raw_input;
 
     // Build the validator once; reuse across iterations.
@@ -80,7 +79,7 @@ fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
         (None, None)
     };
 
-    Report {
+    Ok(Report {
         spec: name.to_string(),
         iters,
         ms: (ms * 1000.0).round() / 1000.0,
@@ -89,7 +88,7 @@ fn bench_spec(dir: &str, name: &str, iters: usize, warmup: usize) -> Report {
         valid: result.valid,
         error,
         field,
-    }
+    })
 }
 
 fn json_opt(v: &Option<String>) -> String {
@@ -106,7 +105,8 @@ fn count_argument(flag: &str, value: Option<&String>) -> usize {
     let minimum = if flag == "--iters" { 1 } else { 0 };
     let count = value
         .filter(|text| (1..=8).contains(&text.len()) && text.bytes().all(|b| b.is_ascii_digit()))
-        .and_then(|text| text.parse::<usize>().ok())
+        // Eight ASCII digits at most always parse as usize (the filter above guarantees it).
+        .map(|text| text.parse::<usize>().expect("up to eight ASCII digits parse as usize"))
         .filter(|n| (minimum..=MAX_COUNT).contains(n));
     match count {
         Some(n) => n,
@@ -153,7 +153,11 @@ fn main() {
     };
 
     for name in &specs {
-        let r = bench_spec(&fixtures, name, iters, warmup);
+        let r = match bench_spec(&fixtures, name, iters, warmup) {
+            Ok(r) => r,
+            // A missing or unparsable fixture stops the bench, as it did before the error was returned.
+            Err(message) => panic!("{message}"),
+        };
         println!(
             "{{\"lang\":\"rust\",\"spec\":{:?},\"iters\":{},\"ms\":{},\"opsSec\":{},\"avgUs\":{},\"valid\":{},\"error\":{},\"field\":{}}}",
             r.spec,
