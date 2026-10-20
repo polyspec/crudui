@@ -34,7 +34,34 @@ func obj(v any) *gen.Object {
 	return o
 }
 
-// str reads a value as text; any other value is the empty string, the value of an absent member.
+// optionText reads an optional text member as the Rust program does: an absent member is ("", false), a
+// string is its value, and any other value, null included, is an input error.
+func optionText(o *gen.Object, key string) (string, bool, error) {
+	if o == nil || !o.Has(key) {
+		return "", false, nil
+	}
+	s, ok := val(o, key).(string)
+	if !ok {
+		return "", true, fmt.Errorf("%s must be a string", key)
+	}
+	return s, true, nil
+}
+
+// stringArg reads the positional text argument n of a form action; a missing or non-string argument is an
+// input error, as the Rust program reports it.
+func stringArg(args []any, n int) (string, error) {
+	if n >= len(args) {
+		return "", fmt.Errorf("Argument %d must be a string", n)
+	}
+	s, ok := args[n].(string)
+	if !ok {
+		return "", fmt.Errorf("Argument %d must be a string", n)
+	}
+	return s, nil
+}
+
+// str is the text of a value that names an operation or a method; any other value names none, and the
+// dispatch reports that name as unknown, as the Rust program does.
 func str(v any) string {
 	s, ok := v.(string)
 	if !ok {
@@ -42,14 +69,26 @@ func str(v any) string {
 	}
 	return s
 }
-func compileOptions(o *gen.Object) gen.CompileOptions {
+func compileOptions(o *gen.Object) (gen.CompileOptions, error) {
 	files := map[string]*gen.Object{}
-	if f := obj(val(o, "files")); f != nil {
+	if o != nil && o.Has("files") {
+		f := obj(val(o, "files"))
+		if f == nil {
+			return gen.CompileOptions{}, fmt.Errorf("files must be an object")
+		}
 		for _, k := range f.Keys() {
 			files[k] = obj(val(f, k))
 		}
 	}
-	return gen.CompileOptions{Files: files, Basepath: str(val(o, "basepath")), KeyPrefix: str(val(o, "keyPrefix")), KeyPrefixProvided: o != nil && o.Has("keyPrefix")}
+	basepath, _, e := optionText(o, "basepath")
+	if e != nil {
+		return gen.CompileOptions{}, e
+	}
+	keyPrefix, provided, e := optionText(o, "keyPrefix")
+	if e != nil {
+		return gen.CompileOptions{}, e
+	}
+	return gen.CompileOptions{Files: files, Basepath: basepath, KeyPrefix: keyPrefix, KeyPrefixProvided: provided}, nil
 }
 func bindOptions(o *gen.Object) gen.BindOptions {
 	// Decoded values are passed unchanged; BindForm defaults nil and rejects non-string values.
@@ -83,10 +122,26 @@ func arg(args []any, n int) any {
 	}
 	return args[n]
 }
-func addOptions(v any) gen.AddRowOptions {
-	o := obj(v)
-	provided := o != nil && o.Has("value")
-	return gen.AddRowOptions{Key: str(val(o, "key")), AfterKey: str(val(o, "afterKey")), Value: val(o, "value"), ValueProvided: provided}
+
+// addOptions reads the optional row options at position n; a missing argument is the empty options, and any
+// value that is not an object is an input error.
+func addOptions(args []any, n int) (gen.AddRowOptions, error) {
+	if n >= len(args) {
+		return gen.AddRowOptions{}, nil
+	}
+	o := obj(args[n])
+	if o == nil {
+		return gen.AddRowOptions{}, fmt.Errorf("Row options must be an object")
+	}
+	key, _, e := optionText(o, "key")
+	if e != nil {
+		return gen.AddRowOptions{}, e
+	}
+	afterKey, _, e := optionText(o, "afterKey")
+	if e != nil {
+		return gen.AddRowOptions{}, e
+	}
+	return gen.AddRowOptions{Key: key, AfterKey: afterKey, Value: val(o, "value"), ValueProvided: o.Has("value")}, nil
 }
 func action(f *gen.Form, method string, args []any) (any, error) {
 	switch method {
@@ -99,23 +154,75 @@ func action(f *gen.Form, method string, args []any) (any, error) {
 	case "getData":
 		return f.GetData(), nil
 	case "setValue":
-		return nil, f.SetValue(str(arg(args, 0)), arg(args, 1))
+		path, e := stringArg(args, 0)
+		if e != nil {
+			return nil, e
+		}
+		if len(args) < 2 {
+			return nil, fmt.Errorf("setValue requires a value")
+		}
+		return nil, f.SetValue(path, args[1])
 	case "getValue":
-		return f.GetValue(str(arg(args, 0)))
+		path, e := stringArg(args, 0)
+		if e != nil {
+			return nil, e
+		}
+		return f.GetValue(path)
 	case "addRow":
-		return f.AddRow(str(arg(args, 0)), addOptions(arg(args, 1)))
+		path, e := stringArg(args, 0)
+		if e != nil {
+			return nil, e
+		}
+		options, e := addOptions(args, 1)
+		if e != nil {
+			return nil, e
+		}
+		return f.AddRow(path, options)
 	case "copyRow":
-		return f.CopyRow(str(arg(args, 0)), str(arg(args, 1)), addOptions(arg(args, 2)))
-	case "removeRow":
-		return nil, f.RemoveRow(str(arg(args, 0)), str(arg(args, 1)))
+		path, e := stringArg(args, 0)
+		if e != nil {
+			return nil, e
+		}
+		key, e := stringArg(args, 1)
+		if e != nil {
+			return nil, e
+		}
+		options, e := addOptions(args, 2)
+		if e != nil {
+			return nil, e
+		}
+		return f.CopyRow(path, key, options)
+	case "removeRow", "rekeyRow":
+		path, e := stringArg(args, 0)
+		if e != nil {
+			return nil, e
+		}
+		key, e := stringArg(args, 1)
+		if e != nil {
+			return nil, e
+		}
+		if method == "removeRow" {
+			return nil, f.RemoveRow(path, key)
+		}
+		newKey, e := stringArg(args, 2)
+		if e != nil {
+			return nil, e
+		}
+		return nil, f.RekeyRow(path, key, newKey)
 	case "moveRow":
+		path, e := stringArg(args, 0)
+		if e != nil {
+			return nil, e
+		}
+		key, e := stringArg(args, 1)
+		if e != nil {
+			return nil, e
+		}
 		n, ok := arg(args, 2).(float64)
 		if !ok || float64(int(n)) != n {
 			return nil, fmt.Errorf("Invalid row position")
 		}
-		return nil, f.MoveRow(str(arg(args, 0)), str(arg(args, 1)), int(n))
-	case "rekeyRow":
-		return nil, f.RekeyRow(str(arg(args, 0)), str(arg(args, 1)), str(arg(args, 2)))
+		return nil, f.MoveRow(path, key, int(n))
 	}
 	return nil, fmt.Errorf("Invalid form action")
 }
@@ -130,7 +237,11 @@ func run(request *gen.Object) (any, error) {
 	}
 	switch str(val(request, "operation")) {
 	case "compileForm":
-		return gen.CompileForm(obj(val(request, "spec")), compileOptions(options))
+		c, e := compileOptions(options)
+		if e != nil {
+			return nil, e
+		}
+		return gen.CompileForm(obj(val(request, "spec")), c)
 	case "buildList", "renderList":
 		// List input is checked in the shared order: specification, rows, each row, then options.
 		if obj(val(request, "spec")) == nil {
@@ -148,21 +259,35 @@ func run(request *gen.Object) (any, error) {
 		} else if request.Has("rows") {
 			return nil, fmt.Errorf("List rows must be an array")
 		}
-		c := compileOptions(options)
-		listOptions := gen.ListOptions{Language: str(val(options, "language")), Data: val(options, "data"), Page: val(options, "page"), Total: val(options, "total"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")}
+		c, e := compileOptions(options)
+		if e != nil {
+			return nil, e
+		}
+		language, _, e := optionText(options, "language")
+		if e != nil {
+			return nil, e
+		}
+		listOptions := gen.ListOptions{Language: language, Data: val(options, "data"), Page: val(options, "page"), Total: val(options, "total"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")}
 		if str(val(request, "operation")) == "buildList" {
 			return gen.BuildList(obj(val(request, "spec")), rows, listOptions)
 		}
 		return gen.RenderList(obj(val(request, "spec")), rows, listOptions)
 	case "buildDetail", "renderDetail":
-		c := compileOptions(options)
+		c, e := compileOptions(options)
+		if e != nil {
+			return nil, e
+		}
 		// The record is typed at this JSON boundary; a non-object specification is reported first by the library.
 		spec := obj(val(request, "spec"))
 		record := obj(val(request, "record"))
 		if spec != nil && record == nil && request.Has("record") {
 			return nil, fmt.Errorf("Detail record must be an object")
 		}
-		detailOptions := gen.DetailOptions{Language: str(val(options, "language")), Data: val(options, "data"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")}
+		language, _, e := optionText(options, "language")
+		if e != nil {
+			return nil, e
+		}
+		detailOptions := gen.DetailOptions{Language: language, Data: val(options, "data"), Files: c.Files, Basepath: c.Basepath, Layout: val(options, "layout")}
 		if str(val(request, "operation")) == "buildDetail" {
 			return gen.BuildDetail(spec, record, detailOptions)
 		}

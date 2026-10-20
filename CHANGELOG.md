@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The Go native program rejects a wrong-typed member (C16.79)
+
+- `tests/native-generators/programs/go` reads the request members as the Rust program does (C16.79): `compileOptions` and `optionText` return `basepath`, `keyPrefix`, `language` and the `files` object as an input error when they are not text or an object, an absent member stays absent, `stringArg` and `addOptions` report a wrong-typed or missing action argument, and `main_test.go` (new) shows each case. Red: `go test -run Test ./...` exit 1, the wrong-typed `basepath`, `keyPrefix`, `files` and `language` returned no error, and the `getValue` argument reported `Invalid form path: `; green: exit 0, `go build` exit 0, and `golangci-lint run` exit 0 with `0 issues`.
+
 ### 2026-10-20 — The native generator Go program handles its hidden errors (C16.67-5)
 
 - `tests/native-generators/programs/go/main.go` checks the errors that the kit lint reports (C16.67-5): `obj` and `str` read a value of another type as nil or the empty string through an `ok` check, which each caller already reports or reads as absent, `run` reads the method of an action with `str`, and `errorObject` finds the `ComposeLoadError` and `UnsupportedFieldTypeError` with `errors.As`. Behaviour does not change, because the library returns both error types unwrapped. Red: `golangci-lint run --config=../../../../.golangci.yml ./...` exited 1 with `5 issues` (errcheck 3, errorlint 2); green: exit 0 with `0 issues`, and `go build -o /dev/null ./...` exits 0 (the program has no Go test; the conformance suite runs it).

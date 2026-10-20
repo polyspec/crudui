@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f3047100be6fb5c55a5de20b9afda0786c9ef85e4ebcc699a9b5aa182d7718b8 -->
+<!-- source-sha256: d722c6d649fcda0f04827fcfaca489d9946fad16cfd8f6f8fbba926b11dfef73 -->
 
 ## Unreleased
+
+### 2026-10-20 — Go native program은 타입이 잘못된 member를 거부한다 (C16.79)
+
+- `tests/native-generators/programs/go`는 요청 member를 Rust program과 같이 읽습니다(C16.79). `compileOptions`와 `optionText`는 `basepath`, `keyPrefix`, `language`와 `files` object가 text 또는 object가 아니면 입력 오류로 반환하고, 없는 member는 없는 채로 둡니다. `stringArg`와 `addOptions`는 타입이 잘못되었거나 없는 action 인자를 보고하며, `main_test.go`(신규)가 각 경우를 보입니다. Red: `go test -run Test ./...`가 exit 1이며, 잘못된 `basepath`, `keyPrefix`, `files`, `language`가 오류 없이 지나갔고 `getValue` 인자는 `Invalid form path: `로 보고되었습니다; green: exit 0, `go build` exit 0, `golangci-lint run` exit 0이며 `0 issues`.
 
 ### 2026-10-20 — native generator Go 프로그램은 숨은 오류를 처리한다 (C16.67-5)
 

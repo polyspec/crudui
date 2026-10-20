@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e1a9bc238f0996b2a8625e7816976f291dd62dca659e1f547bf07e9529afe5c5 -->
+<!-- source-sha256: 966174d78aa21e060846c8943d5aacb4d035b9180c76964162b774e595a35ee2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -150,3 +150,4 @@
 | C16.75 | PHP 소스와 예제는 phpcs 줄 길이 규칙(Generic.Files.LineLength.TooLong)을 통과한다 | packages/generator/php/src/Internal/History.php examples/form-comparison/servers/php/api.php examples/form-comparison/servers/php/src/ApiServer.php examples/form-comparison/servers/php/tests/FormGenerationTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php` | [o] |
 | C16.77 | Rust generator는 appearance ternary나 condition expression을 조용한 값으로 바꾸지 않는다(P8, Python과 Go처럼) | packages/generator/rust/src/design.rs packages/generator/rust/src/tests.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml appearance`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test form_state` | [o] |
 | C16.78 | 이름이 열한 개 작업 중 어느 것도 아닌 runAction은 모든 generator에서 INVALID_FORM_INPUT으로 실패한다 (CURT-091) | docs/spec/form-runtime.md, docs/spec/form-runtime.ko.md, packages/generator/ts/src/actions.ts, packages/generator/rust/src/actions.rs, packages/generator/rust/tests/form_state.rs, tests/fixtures/form-state/generate.mts, tests/fixtures/form-actions/cases.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts` | [o] |
+| C16.79 | Go native program은 잘못된 타입의 member를 Rust program처럼 거부한다(P8) | tests/native-generators/programs/go (main.go, main_test.go) | `cd tests/native-generators/programs/go && ../../../../var/tools/bin/mise exec -- golangci-lint run --config=../../../../.golangci.yml ./...`, `cd tests/native-generators/programs/go && ../../../../var/tools/bin/mise exec -- go build -o /dev/null ./...`, `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd tests/native-generators/programs/go -- -run Test ./...` | [o] |
