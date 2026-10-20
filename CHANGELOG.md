@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The moved C engine test runs green (C16.47-1)
+
+- `packages/php-ext/tests/engine/engine.test.mjs` runs from its new folder with the relative paths of C16.47 and passes (C16.47-1). Green: `node --test` reports 38 passed, 0 failed, 0 timed out, 0 skipped.
+
 ### 2026-10-20 — The C engine test moves into its implementation (C16.47)
 
 - `packages/php-ext/tests/engine.test.mjs` moved to `packages/php-ext/tests/engine/engine.test.mjs` and the folder is a comparator of `config/parity.json`, with an owner rule for that file (C16.47). Red: `make parity-declarations-check` reported 1 R6 finding; green: it reports 0.

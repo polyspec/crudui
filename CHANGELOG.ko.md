@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ae59234f3675729452bd392f9f9d995251572dcc630176700bf90b5d06227a00 -->
+<!-- source-sha256: 9d148a0e90d43cfe6627923bf7b10df68e88a03b5386a2e3e180cf2c820650a8 -->
 
 ## Unreleased
+
+### 2026-10-20 — 옮겨진 C engine test가 green이다 (C16.47-1)
+
+- `packages/php-ext/tests/engine/engine.test.mjs`는 C16.47의 상대 path로 새 folder에서 실행되어 통과합니다 (C16.47-1). Green: `node --test`가 통과 38, 실패 0, 시간 초과 0, 건너뜀 0을 보고합니다.
 
 ### 2026-10-20 — C engine test가 구현 안으로 옮겨진다 (C16.47)
 
