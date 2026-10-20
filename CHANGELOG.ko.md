@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d9f130f7802ba9ce494ee21751c2cc5a70d0479a703ab93a580360837a30d4d6 -->
+<!-- source-sha256: 631d444f0e94cfd47c666871d877bb8ddbf41dcebf2e06d83388ef1b741ca21f -->
 
 ## Unreleased
+
+### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
+
+- `packages/generator/php/src/Internal/History.php`는 `record`, `undo`, `redo`의 docblock을 120열에 맞추어 다시 줄을 나누고, `examples/form-comparison/servers/php`는 `api.php`와 `src/ApiServer.php`의 docblock과 `tests/FormGenerationTest.php`의 주석을 다시 줄을 나누며, 코드는 바꾸지 않습니다(C16.75). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php`가 exit 2이며 phpcs에서 Generic.Files.LineLength.TooLong 경고 8건(History.php 11, 12, 27, 57, 78; api.php 5; ApiServer.php 17; FormGenerationTest.php 291)이었습니다. Green: exit 0이며, phpunit `tests/HistoryFunctionsTest.php` 13 passed, form-comparison `tests/FormGenerationTest.php` 9 passed입니다.
 
 ### 2026-10-20 — form comparison Rust server는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-14)
 

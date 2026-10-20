@@ -14,8 +14,8 @@ use TypeError;
 use UnexpectedValueException;
 
 /**
- * The PHP record server of the form comparison (docs/operations/form-comparison.md, "Record servers"): servers/php/api.php
- * answers each request of PHP-FPM through one instance.
+ * The PHP record server of the form comparison (docs/operations/form-comparison.md, "Record servers"):
+ * servers/php/api.php answers each request of PHP-FPM through one instance.
  */
 final class ApiServer
 {

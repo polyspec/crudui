@@ -8,9 +8,9 @@ use Polyspec\Crudui\FormError;
 use stdClass;
 
 /**
- * The undo history rules of form instances (CURT-062, CURT-063, CURT-076 to CURT-080), as pure functions. A history is an
- * object with the lists `entries` and `redoEntries` and, after a value edit, the string `lastPath`; no function changes its
- * argument.
+ * The undo history rules of form instances (CURT-062, CURT-063, CURT-076 to CURT-080), as pure functions. A history
+ * is an object with the lists `entries` and `redoEntries` and, after a value edit, the string `lastPath`; no function
+ * changes its argument.
  */
 final class History
 {
@@ -24,8 +24,8 @@ final class History
     }
 
     /**
-     * The history after a change from `$previous`: the record is appended unless `$path` equals the path of the last value
-     * edit, the last 100 entries stay, the redo entries are cleared and `$path` becomes the last path.
+     * The history after a change from `$previous`: the record is appended unless `$path` equals the path of the last
+     * value edit, the last 100 entries stay, the redo entries are cleared and `$path` becomes the last path.
      */
     public static function record(stdClass $history, mixed $previous, ?string $path = null): stdClass
     {
@@ -54,7 +54,8 @@ final class History
     }
 
     /**
-     * The history without its last entry, with `$current` appended to the redo entries, and the last entry as the record.
+     * The history without its last entry, with `$current` appended to the redo entries, and the last entry as the
+     * record.
      *
      * @throws FormError when the history has no entry
      */
@@ -75,7 +76,8 @@ final class History
     }
 
     /**
-     * The history with `$current` appended to the entries and without its last redo entry, and that redo entry as the record.
+     * The history with `$current` appended to the entries and without its last redo entry, and that redo entry as
+     * the record.
      *
      * @throws FormError when the history has no redo entry
      */

@@ -288,7 +288,8 @@ final class FormGenerationTest extends TestCase
 
     public function testLoadsTheValidatorFromItsSourceDirectory(): void
     {
-        // The PHP library is constructed in a child process without the extensions, so the case is the same in both modes.
+        // The PHP library is constructed in a child process without the extensions, so the case is the same in
+        // both modes.
         $file = PhpProcess::run([], sprintf(
             'echo json_encode((new %s("php", %s, json_decode(%s), null))->provenance()["classes"]'
                 . '->{"Polyspec\\\\Crudui\\\\Validator"}["file"], JSON_THROW_ON_ERROR);',
