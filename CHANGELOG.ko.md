@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e4edbd9e9745aad9cb441a1a2e301e1a2b26cc5851158dc146b9f57d55d5079c -->
+<!-- source-sha256: 6030a4196e3b6d1f10fa2cf6bf8541fcd7186eda6ab9f64fea61ed62360a5121 -->
 
 ## Unreleased
+
+### 2026-10-20 — php-ext 실행은 php 실행의 모든 test를 실행한다 (C16.55)
+
+- `examples/form-comparison/servers/php/tests/FormGenerationTest.php`에서 `#[Group('php')]`로 PHP library를 구성하던 test 두 개는 extension이 없는 자식 PHP process에서 library를 구성하므로 php mode와 php-ext mode에서 모두 실행되며, `local-verification.mjs`와 `check-verification.test.mjs`는 더 이상 `--exclude-group php`를 넘기지 않습니다(C16.55). Red: php-ext 단계는 9개 test 중 2개를 빼놓았고, green: suite가 php mode에서 9 tests, 75 assertions, php-ext mode에서 9 tests, 75 assertions를 실행하며 `check-verification.test.mjs`가 통과하고(8) `make divergence-check`는 `--exclude-group`을 보고하지 않습니다.
 
 ### 2026-10-20 — 네이티브 값 매핑의 중립 규칙 (C16.61)
 

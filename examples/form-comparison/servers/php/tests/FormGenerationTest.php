@@ -8,7 +8,6 @@ use DOMDocument;
 use DOMXPath;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Polyspec\CruduiTestSupport\PhpProcess;
 use Polyspec\Crudui\FormComparison\FormGeneration;
@@ -287,15 +286,17 @@ final class FormGenerationTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/file_get_contents\\s*\\(\\s*\\$[^)]*(archive|module)/i', $code);
     }
 
-    #[Group('php')]
     public function testLoadsTheValidatorFromItsSourceDirectory(): void
     {
-        self::assertSame('php', ServerMode::current(), 'The PHP library runs only in the php mode');
-        $classes = (new FormGeneration('php', self::sourceRoot(), self::source(), null))->provenance()['classes'];
-        self::assertSame(
-            self::sourceRoot() . '/packages/validator/php/src/Public/Validator.php',
-            $classes->{'Polyspec\\Crudui\\Validator'}['file']
-        );
+        // The PHP library is constructed in a child process without the extensions, so the case is the same in both modes.
+        $file = PhpProcess::run([], sprintf(
+            'echo json_encode((new %s("php", %s, json_decode(%s), null))->provenance()["classes"]'
+                . '->{"Polyspec\\\\Crudui\\\\Validator"}["file"], JSON_THROW_ON_ERROR);',
+            '\\' . FormGeneration::class,
+            var_export(self::sourceRoot(), true),
+            var_export(json_encode(self::source(), JSON_THROW_ON_ERROR), true),
+        ), ['FORM_PHP_SERVER' => 'php'])->json();
+        self::assertSame(self::sourceRoot() . '/packages/validator/php/src/Public/Validator.php', $file);
     }
 
     /** @return iterable<string, array{string, stdClass, ?string, string}> */
@@ -319,17 +320,24 @@ final class FormGenerationTest extends TestCase
     }
 
     #[DataProvider('rejectedConstructions')]
-    #[Group('php')]
     public function testRejectsAnIncorrectConstruction(
         string $runtime,
         stdClass $source,
         ?string $moduleSha256,
         string $message
     ): void {
-        self::assertSame('php', ServerMode::current(), 'The cases construct the php runtime');
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage($message);
-        new FormGeneration($runtime, self::sourceRoot(), $source, $moduleSha256);
+        // The cases construct the php runtime in a child process without the extensions, as in both modes.
+        $reported = PhpProcess::run([], sprintf(
+            'try { new %s(%s, %s, json_decode(%s), %s); echo json_encode(null); }'
+                . ' catch (\\RuntimeException $error) { echo json_encode($error->getMessage()); }',
+            '\\' . FormGeneration::class,
+            var_export($runtime, true),
+            var_export(self::sourceRoot(), true),
+            var_export(json_encode($source, JSON_THROW_ON_ERROR), true),
+            var_export($moduleSha256, true),
+        ), ['FORM_PHP_SERVER' => 'php'])->json();
+        self::assertIsString($reported, 'The construction must be rejected');
+        self::assertStringContainsString($message, $reported);
     }
 
     // 500 constructors end within a second; constructors that did deployment-size work, such as reading the library

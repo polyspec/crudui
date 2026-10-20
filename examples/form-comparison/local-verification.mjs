@@ -60,11 +60,11 @@ export function verificationStages({ origin, results, data, prepared, library = 
       FORM_CRUDUI_MODULE: prepared.cruduiModule,
     })],
     // The same suite in the php-ext mode: the run-tests of kit loads the ordered_json and crudui modules into
-    // the PHP of PHPUnit (K165), and the group php, which constructs the PHP library, stays out. It shares the cache
+    // the PHP of PHPUnit (K165), and the suite runs as in the php mode. It shares the cache
     // directory of PHPUnit with the php mode, so it runs after it.
     [check('php-ext-mode', [phpRunTests, 'phpunit',
       '--php-extension', prepared.orderedJsonModule, '--php-extension', prepared.cruduiModule,
-      '--cwd', 'examples/form-comparison/servers/php', '--', '--exclude-group', 'php'], {
+      '--cwd', 'examples/form-comparison/servers/php'], {
       FORM_PHP_SERVER: 'php-ext',
       FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule,
       FORM_CRUDUI_MODULE: prepared.cruduiModule,

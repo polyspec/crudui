@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The php-ext run executes every test of the php run (C16.55)
+
+- The two tests of `examples/form-comparison/servers/php/tests/FormGenerationTest.php` that constructed the PHP library under `#[Group('php')]` construct it in a child PHP process without the extensions, so they run in the php mode and in the php-ext mode; `local-verification.mjs` and `check-verification.test.mjs` no longer pass `--exclude-group php` (C16.55). Red: the php-ext leg left 2 of the 9 tests out; green: the suite runs 9 tests and 75 assertions in the php mode and 9 tests and 75 assertions in the php-ext mode, `check-verification.test.mjs` passes (8) and `make divergence-check` reports no `--exclude-group`.
+
 ### 2026-10-20 — A neutral rule for the native value mapping (C16.61)
 
 - `docs/spec/runtime-packages.md` states in `CURP-026` that each implementation maps the form value model to the native types of its language and back without losing the difference between an empty object and an empty array, between a missing member and `null`, the order of object members or the type of a scalar; the PHP array-or-object mapping is the PHP binding of that rule, and the other paragraphs of the section became the rules `CURP-024`, `CURP-025` and `CURP-027` (C16.61). Red: no requirement stated the mapping; green: `CURP-026` is defined and `check-documents` passes. Its tests in the six implementations are the work of C16.57.

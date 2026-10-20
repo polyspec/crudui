@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 99db6a8f9891c4836baad231e85afae0f19919252abcd11c1cbc30c976ad32c5 -->
+<!-- source-sha256: efa72dbd7792a5e75c6dea6913ee41e9fdded22ee41c3855b5b8bdc95a060782 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -76,7 +76,7 @@
 | C16.52 | formHistory는 php, go, rust, php-native, python에 구현된다 | contracts/features.json, the five implementations | `make divergence-check` reports no unsupported entry of formHistory | [ ] |
 | C16.53 | createForm은 다른 implementation과 같게 python에 구현된다 | contracts/features.json, packages/generator/python | `make divergence-check` reports no partial entry of createForm | [ ] |
 | C16.54 | contracts/features.json에는 partial과 unsupported support 값이 없다 | contracts/features.json, its schema and readers | `make divergence-check` reports no supportValues entry | [ ] |
-| C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [ ] |
+| C16.55 | 어떤 script도 --exclude-group으로 implementation의 실행을 줄이지 않고, php-ext 실행은 php 실행의 모든 test를 실행한다 | examples/form-comparison/check-verification.test.mjs, examples/form-comparison/local-verification.mjs | `make divergence-check` reports no --exclude-group | [o] |
 | C16.56 | docs/spec의 모든 규칙은 접두사 CU의 requirement id를 가지며, 규칙과 표의 행마다 bullet 하나이다 | docs/spec, docs/spec/*.ko.md, config/parity.json | `make parity-declarations-check` reports no R13 or R14 finding and the pattern matches the spec | [o] |
 | C16.57 | docs/spec의 모든 requirement id는 test가 그 id를 이름으로 가진 unit이 인용하고, test가 없는 id는 여섯 implementation 모두에 test를 갖는다 | config/parity.json, tests/fixtures case.json files, the tests of the six implementations | `make parity-declarations-check` reports no R4, R13, R14 or R15 finding | [ ] |
 | C16.58 | 중복은 0이다: generator script, adapter, example, php-ext C code는 각 조각의 사본을 하나만 둔다 | scripts, packages/*/adapters, examples, packages/php-ext/src | `make duplication-check` | [ ] |
