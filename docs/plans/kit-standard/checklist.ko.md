@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 95f770fefd7dcca08e76d8f046115a43ecd0645795de49f5e91b70865305779f -->
+<!-- source-sha256: 433fbe15275a9c2a539487b95007804a05d2220dd1be520ff8325973d8f86f44 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -167,3 +167,4 @@
 | C16.84 | Rust generator는 공유 form-complete suite를 실행한다 | packages/generator/rust/tests/form_complete.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_complete` | [o] |
 | C16.88 | Rust generator는 공유 form-render, list-render, detail-render suite를 실행한다 | packages/generator/rust/tests/form_render.rs packages/generator/rust/tests/list_render.rs packages/generator/rust/tests/detail_render.rs packages/generator/rust/tests/support/mod.rs packages/generator/rust/src/instance.rs | `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml form_render`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml list_render`, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml detail_render` | [o] |
 | C16.86 | Go generator는 공유 form-complete, list-render, detail-render suite를 실행한다 | packages/generator/go/form_complete_suite_test.go, packages/generator/go/list_render_suite_test.go, packages/generator/go/detail_render_suite_test.go, packages/generator/go/form_render_suite_test.go | `node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormCompleteSuite\|TestListRenderSuite\|TestDetailRenderSuite'` | [o] |
+| C16.85 | PHP generator와 PHP extension은 공유 form-complete suite를 실행한다 | packages/generator/php/tests/FormCompleteConformanceTest.php | `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormCompleteConformanceTest.php`, `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make test-php-ext CASES=FormCompleteConformanceTest` | [o] |
