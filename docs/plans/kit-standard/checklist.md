@@ -21,6 +21,7 @@
 | C16.7-9 | config/rebuild.json covers every tool source: the Go and Rust generators, the fixture and benchmark generators and the build scripts of the examples | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-10 | config/rebuild.json classes every tool source that kit finds by layout (K286), without paths | config/rebuild.json | `make rebuild-check` | [o] |
 | C16.7-11 | config/owner-checks.json names no fullSuite target, since kit has no local full run | config/owner-checks.json | `make owner-validate` | [o] |
+| C16.7-12 | make kit-check passes: the Makefile lists every gate of kit in CHECK_TARGETS and PRINCIPLES.md matches kit | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.8 | The documentation site builds with VitePress, and docs/.vitepress/dist is removed (replaces scripts/docs-web and scripts/documentation-links.mts) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [ ] |
 | C16.9 | The PHP extension builds with phpize (replaces scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts and tool-resolution.mts); held until kit settles S10 for component repositories | packages/php-ext, scripts, config/rebuild.json | `make rebuild-check` | [ ] |
 | C16.10 | The commands of scripts run through the process-group runner that kit exports (replaces scripts/run-command.mts); waits for the kit export | scripts, config/rebuild.json | `make rebuild-check` | [ ] |

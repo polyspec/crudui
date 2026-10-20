@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d51baf752d9c7036a61a1210445f42eb4f6ad47718ee69c39e9b0984725d28e3 -->
+<!-- source-sha256: cbba449810aef69f11c9b1af92c475cc102a08c60974bdae216193d9495f08ea -->
 
 ## Unreleased
+
+### 2026-10-20 — CHECK_TARGETS의 kit gate (C16.7-12)
+
+- Makefile의 `CHECK_TARGETS`는 이 checkout이 실행하는 `kit-gates`의 gate 21개를 나열하고(kit K289), `make kit-sync`는 `PRINCIPLES.md`와 `PRINCIPLES.ko.md`를 설치된 kit의 text로 맞췄습니다(PHP library가 둘 이상인 저장소의 S10 text, `make plan-split`, directory suite의 requirement) (C16.7-12). Red: `make kit-check` exit 1, finding 22건(`CHECK_TARGETS`에 빠진 gate 20개, 다른 principle file 2개), green: exit 0.
 
 ### 2026-10-20 — owner 검사에 fullSuite target 없음 (C16.7-11)
 

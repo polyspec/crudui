@@ -494,3 +494,27 @@ CI_TARGETS = \
 	crudui-test-bench \
 	crudui-test-php-api \
 	check-conformance
+
+# The gates of kit that this checkout runs (kit-gates of kit.mk); kit-check fails for a gate that this list leaves out.
+CHECK_TARGETS = \
+	kit-check \
+	toolchain-check \
+	layout-check \
+	docs-check \
+	rules-check \
+	owner-validate \
+	rebuild-check \
+	language-check \
+	test-markers-check \
+	duplication-check \
+	dependency-policy-check \
+	parity-declarations-check \
+	parity-check \
+	commits-check \
+	lint-ts \
+	lint-php \
+	lint-python \
+	lint-go \
+	lint-rust \
+	lint-php-ext \
+	test-php-ext

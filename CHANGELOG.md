@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The gates of kit in CHECK_TARGETS (C16.7-12)
+
+- `CHECK_TARGETS` of the Makefile lists the 21 gates of `kit-gates` that this checkout runs (kit K289), and `make kit-sync` brought `PRINCIPLES.md` and `PRINCIPLES.ko.md` to the text of the installed kit (the S10 text for a repository with more than one PHP library, `make plan-split`, and the requirements of a directory suite) (C16.7-12). Red: `make kit-check` exit 1 with 22 findings (20 gates missing from `CHECK_TARGETS`, 2 principle files differing); green: exit 0.
+
 ### 2026-10-20 — No fullSuite target in the owner checks (C16.7-11)
 
 - `config/owner-checks.json` drops `fullSuite`, whose only entry `ci` I removed from the Makefile with the local full run (C16.7-3), so the owner check no longer names a target that does not exist (C16.7-11). Red: `make owner-validate` exit 1 (`fullSuite names ci, which is not a target`); green: exit 0 (`owns every tracked path`).
