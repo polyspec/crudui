@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e209fe3ad49d5d8ef11a7d0004579bd614427f1b1a7284d6f85fe07b762bb1a9 -->
+<!-- source-sha256: 833220c2e9cd517a4227eaecd9e513187794011e6ffb34e7620a2a6375aa12bb -->
 
 ## Unreleased
 
@@ -56,6 +56,10 @@
 
 - `docs/spec/form-runtime.md`는 `bindForm`, `bindButtons`, `createForm`이 받는 형태를 requirement CURT-092로 정합니다. 한국어 문서도 같은 규칙을 정합니다.
 - `tests/fixtures/template-shape`는 TypeScript 기준 구현이 생성한 case 42개를 담습니다. 세 operation마다 `compileForm`의 템플릿, 선택 멤버가 있는 템플릿, 형태 위반 12개를 두며, 각 위반은 `INVALID_FORM_INPUT`, `Unsupported form template`, 빈 위치로 거부됩니다.
+
+### 2026-10-21 — PHP extension의 API test는 그 extension의 internal이다 (C16.126-1)
+
+- `config/parity.json`은 `packages/php-ext/tests/ApiTest.php`를 php-extension의 internal로 선언합니다. 이 파일의 API 동등성 test와 value-limit test는 PHP만 가진 것을 검사합니다. 즉 extension의 API report와 library의 API report의 비교, 그리고 extension이 거부해야 하는 재귀적 PHP 배열입니다. 그 fixture 비교는 validate와 text-validity unit이 덮습니다. 검사는 이 파일을 R5 undeclared-test로 더 이상 보고하지 않습니다.
 
 ### 2026-10-21 — fresh make install-packages는 더 이상 link를 실행하지 않는다 (C16.117)
 
