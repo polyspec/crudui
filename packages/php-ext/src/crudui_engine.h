@@ -49,6 +49,20 @@ ps_result ps_build_detail(const ps_value *spec, const ps_value *record, const ps
 ps_result ps_render_detail(const ps_value *spec, const ps_value *record, const ps_value *options);
 /* Structure map rows of evaluated nodes: the form rows, each with its nested rows and its controls placed in the map. */
 ps_result ps_build_outline(const ps_value *nodes);
+/* Row view state (view.c): a view is {collapsed: list of row paths}; each function returns a new view or list. */
+ps_result ps_initial_view(void);
+ps_result ps_collapsible_rows(const ps_value *nodes);
+ps_result ps_toggle_row_view(const ps_value *view, const ps_value *row_path);
+ps_result ps_set_all_expanded_view(const ps_value *nodes, const ps_value *expanded);
+ps_result ps_remove_row_view(const ps_value *view, const ps_value *row_path);
+ps_result ps_rekey_row_view(const ps_value *view, const ps_value *old_path, const ps_value *new_path);
+/* Undo history (history.c): a history is {entries, redoEntries} with an optional string lastPath. */
+ps_result ps_empty_history(void);
+ps_result ps_record_change(const ps_value *history, const ps_value *previous, const ps_value *path);
+ps_result ps_can_undo(const ps_value *history);
+ps_result ps_can_redo(const ps_value *history);
+ps_result ps_undo_change(const ps_value *history, const ps_value *current);
+ps_result ps_redo_change(const ps_value *history, const ps_value *current);
 ps_result ps_validate(const ps_value *spec, const ps_value *data, const ps_value *options);
 ps_result ps_validate_list(const ps_value *spec, const ps_value *options);
 /* Detail structure: root and fields composition, then the forbidden-key scan. */

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8f8b07dadb9e82417e9228e9341f49cf401124f7cee0c2a057026329935865df -->
+<!-- source-sha256: 7a43fcddbd2b8125be9f7fd12e0e4481c7b4babffbf775735fa5ea1bf66e2e62 -->
 
 ## Unreleased
 
@@ -14,6 +14,9 @@
 
 - `tests/build/offline-checks.test.mts`는 미사용 import `makeDryRun`을, `packages/php-ext/tests/engine/support.mjs`는 미사용 import `test`를 뺍니다(oxlint). `examples/form-comparison/src/local-servers.mjs`는 상수 `orderedJsonExtensionDirectory`를 모듈 안에만 둡니다(knip, C16.69가 남긴 미사용 export). `config/knip-entries.json`은 `packages/react`의 entry `src/index.ts`와 `src/server.ts`를 선언합니다. `./server` export가 knip이 미사용으로 보고한 타입 `RenderListOptions`를 이름으로 가지며, 이 타입은 공개 `renderList`의 option 타입이고 svelte와 vue entry도 같이 re-export합니다(C16.73). Red: `make lint-ts`가 exit 2이며, `oxlint: failed`는 finding 2건(`tests/build/offline-checks.test.mts:15`와 `packages/php-ext/tests/engine/support.mjs:7`의 `no-unused-vars`), `knip: failed`는 finding 2건(`examples/form-comparison/src/local-servers.mjs:23`의 `orderedJsonExtensionDirectory`, `packages/react/src/server.ts:12`의 `RenderListOptions`)을 보고했습니다. Green: `make lint-ts` exit 0, `packages/php-ext/tests/engine/engine.test.mjs` 27 passed, `examples/form-comparison/src/local-servers.test.mjs` 6 passed, `packages/react` vitest의 `entry-boundary`와 `list-render.conformance` 262 passed.
 
+### 2026-10-20 — PHP extension이 view state와 history 함수를 등록한다 (C16.51-7)
+
+- PHP extension은 `Generator::initialView`, `collapsibleRows`, `setAllExpandedView`, `toggleRowView`, `removeRowView`, `rekeyRowView`, `emptyHistory`, `recordChange`, `canUndo`, `canRedo`, `undoChange`, `redoChange`(`packages/php-ext/src/crudui.c`, `view.c`, `history.c`), `Form::toggleRow`, `Form::setAllExpanded`(`form.c`, `crudui.c`), form instance의 view(`form.c`), `bindForm` 옵션 `collapsed`(`binding.c`)를 등록하며, extension의 stub과 arginfo를 맞춘다(C16.51-7). Red: `make test-php-ext CASES='FormStateTest|HistoryFunctionsTest'`가 extension과 PHP library의 차이를 보고했다: method 14개 누락(`Form::setAllExpanded`, `Form::toggleRow`, `Generator`의 view와 history method 12개). Green: `make lint-php-ext`가 exit 0이고, `make test-php-ext CASES='FormStateTest|HistoryFunctionsTest'`가 exit 0이다. 선언 단계가 통과하고, generator suite는 extension 위에서 27개 test(FormStateTest 14, HistoryFunctionsTest 13)를 실행해 통과하며, validator와 php-ext library는 CASES가 test를 고르지 않아 건너뛴다(K390)(C16.51-7). 앞선 실행에서 generator의 `FormTest|OutlineTest|RenderingConformanceTest`는 215개 test를 통과했다(C16.51-7).
 ### 2026-10-20 — PHP 소스와 예제는 phpcs 줄 길이 규칙을 통과한다 (C16.75)
 
 - `packages/generator/php/src/Internal/History.php`는 `record`, `undo`, `redo`의 docblock을 120열에 맞추어 다시 줄을 나누고, `examples/form-comparison/servers/php`는 `api.php`와 `src/ApiServer.php`의 docblock과 `tests/FormGenerationTest.php`의 주석을 다시 줄을 나누며, 코드는 바꾸지 않습니다(C16.75). Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-php`가 exit 2이며 phpcs에서 Generic.Files.LineLength.TooLong 경고 8건(History.php 11, 12, 27, 57, 78; api.php 5; ApiServer.php 17; FormGenerationTest.php 291)이었습니다. Green: exit 0이며, phpunit `tests/HistoryFunctionsTest.php` 13 passed, form-comparison `tests/FormGenerationTest.php` 9 passed입니다.

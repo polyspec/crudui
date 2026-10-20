@@ -12,6 +12,18 @@ namespace Polyspec\Crudui {
         public static function renderList(array|\stdClass $spec, array $rows, array $options = []): string {}
         public static function buildList(array|\stdClass $spec, array $rows = [], array $options = []): \stdClass {}
         public static function buildOutline(array $nodes): array {}
+        public static function initialView(): array {}
+        public static function collapsibleRows(array $nodes): array {}
+        public static function toggleRowView(array $view, string $rowPath): array {}
+        public static function setAllExpandedView(array $nodes, bool $expanded): array {}
+        public static function removeRowView(array $view, string $rowPath): array {}
+        public static function rekeyRowView(array $view, string $oldPath, string $newPath): array {}
+        public static function emptyHistory(): \stdClass {}
+        public static function recordChange(\stdClass $history, mixed $previous, ?string $path = null): \stdClass {}
+        public static function canUndo(\stdClass $history): bool {}
+        public static function canRedo(\stdClass $history): bool {}
+        public static function undoChange(\stdClass $history, mixed $current): \stdClass {}
+        public static function redoChange(\stdClass $history, mixed $current): \stdClass {}
         public static function renderDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): string {}
         public static function buildDetail(array|\stdClass $spec, array|\stdClass $record = new \stdClass(), array $options = []): \stdClass {}
         public static function sequenceRowKey(int|string $sequence): string {}
@@ -39,6 +51,8 @@ namespace Polyspec\Crudui {
         public function removeRow(string $path, string $key): void {}
         public function moveRow(string $path, string $key, int $index): void {}
         public function rekeyRow(string $path, string $oldKey, string $newKey): void {}
+        public function toggleRow(string $path, string $key): void {}
+        public function setAllExpanded(bool $expanded): void {}
     }
     final class FormError extends \RuntimeException {
         private readonly string $errorCode;

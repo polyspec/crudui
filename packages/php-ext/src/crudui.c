@@ -57,7 +57,7 @@ static zend_object *clone_form_object(zend_object *object)
     return clone;
 }
 
-static const char *const bind_options[] = {"idPrefix", "keyPrefix", "language", "unsupported"};
+static const char *const bind_options[] = {"collapsed", "idPrefix", "keyPrefix", "language", "unsupported"};
 static const char *const display_options[] = {"basepath", "data", "language", "layout"};
 static const char *const basepath_option[] = {"basepath"};
 #define COUNT(items) (sizeof(items) / sizeof(*(items)))
@@ -211,6 +211,171 @@ PHP_METHOD(Polyspec_Crudui_Generator, buildOutline)
     } ZEND_HASH_FOREACH_END();
     ps_value *input = crudui_from_php(nodes, false, true);
     if (input) { crudui_return(ps_build_outline(input), return_value); ps_value_free(input); }
+}
+
+/* A view result as the array of the PHP library: a view is an array, not an object. */
+static void return_view(ps_result result, zval *return_value)
+{
+    crudui_return(result, return_value);
+    if (Z_TYPE_P(return_value) == IS_OBJECT) convert_to_array(return_value);
+}
+
+/* Engine nodes of a view function: a list whose items are evaluated node objects, which must stay objects. */
+static ps_value *node_input(zval *nodes)
+{
+    if (!zend_array_is_list(Z_ARRVAL_P(nodes))) {
+        crudui_invalid_value("View nodes must be a list", true);
+        return NULL;
+    }
+    zval *node;
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(nodes), node) {
+        ZVAL_DEREF(node);
+        if (!standard_object(node)) {
+            crudui_invalid_value("View nodes must be evaluated node objects", true);
+            return NULL;
+        }
+    } ZEND_HASH_FOREACH_END();
+    return crudui_from_php(nodes, false, true);
+}
+
+/* Converts a history or view as an object root and a second value, then runs the operation on both. */
+static void call_root_and_value(zval *root, zval *value, bool view, ps_result (*operation)(const ps_value *, const ps_value *), zval *return_value)
+{
+    ps_value *input = crudui_from_php(root, true, true);
+    ps_value *other = input ? crudui_from_php(value, false, true) : NULL;
+    if (other) {
+        if (view) return_view(operation(input, other), return_value);
+        else crudui_return(operation(input, other), return_value);
+    }
+    ps_value_free(other);
+    ps_value_free(input);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, initialView)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    return_view(ps_initial_view(), return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, collapsibleRows)
+{
+    zval *nodes;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY(nodes) ZEND_PARSE_PARAMETERS_END();
+    ps_value *input = node_input(nodes);
+    if (input) { crudui_return(ps_collapsible_rows(input), return_value); ps_value_free(input); }
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, setAllExpandedView)
+{
+    zval *nodes;
+    bool expanded;
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_ARRAY(nodes) Z_PARAM_BOOL(expanded) ZEND_PARSE_PARAMETERS_END();
+    ps_value *input = node_input(nodes);
+    zval flag;
+    ZVAL_BOOL(&flag, expanded);
+    ps_value *flag_value = input ? crudui_from_php(&flag, false, true) : NULL;
+    if (flag_value) return_view(ps_set_all_expanded_view(input, flag_value), return_value);
+    ps_value_free(flag_value);
+    ps_value_free(input);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, toggleRowView)
+{
+    zval *view;
+    zend_string *row_path;
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_ARRAY(view) Z_PARAM_STR(row_path) ZEND_PARSE_PARAMETERS_END();
+    zval row;
+    ZVAL_STR(&row, row_path);
+    call_root_and_value(view, &row, true, ps_toggle_row_view, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, removeRowView)
+{
+    zval *view;
+    zend_string *row_path;
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_ARRAY(view) Z_PARAM_STR(row_path) ZEND_PARSE_PARAMETERS_END();
+    zval row;
+    ZVAL_STR(&row, row_path);
+    call_root_and_value(view, &row, true, ps_remove_row_view, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, rekeyRowView)
+{
+    zval *view;
+    zend_string *old_path, *new_path;
+    ZEND_PARSE_PARAMETERS_START(3, 3) Z_PARAM_ARRAY(view) Z_PARAM_STR(old_path) Z_PARAM_STR(new_path) ZEND_PARSE_PARAMETERS_END();
+    zval old_value, new_value;
+    ZVAL_STR(&old_value, old_path);
+    ZVAL_STR(&new_value, new_path);
+    ps_value *input = crudui_from_php(view, true, true);
+    ps_value *old_input = input ? crudui_from_php(&old_value, false, true) : NULL;
+    ps_value *new_input = old_input ? crudui_from_php(&new_value, false, true) : NULL;
+    if (new_input) return_view(ps_rekey_row_view(input, old_input, new_input), return_value);
+    ps_value_free(new_input);
+    ps_value_free(old_input);
+    ps_value_free(input);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, emptyHistory)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+    crudui_return(ps_empty_history(), return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, recordChange)
+{
+    zval *history, *previous;
+    zend_string *path = NULL;
+    ZEND_PARSE_PARAMETERS_START(2, 3)
+        Z_PARAM_OBJECT_OF_CLASS(history, zend_standard_class_def)
+        Z_PARAM_ZVAL(previous)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STR_OR_NULL(path)
+    ZEND_PARSE_PARAMETERS_END();
+    zval path_value;
+    if (path) ZVAL_STR(&path_value, path); else ZVAL_NULL(&path_value);
+    ps_value *input = crudui_from_php(history, true, true);
+    ps_value *value = input ? crudui_from_php(previous, false, true) : NULL;
+    ps_value *path_input = value ? crudui_from_php(&path_value, false, true) : NULL;
+    if (path_input) crudui_return(ps_record_change(input, value, path_input), return_value);
+    ps_value_free(path_input);
+    ps_value_free(value);
+    ps_value_free(input);
+}
+
+/* Converts a history and runs a query on it, which returns the result of canUndo or canRedo. */
+static void call_history(zval *history, ps_result (*operation)(const ps_value *), zval *return_value)
+{
+    ps_value *input = crudui_from_php(history, true, true);
+    if (input) { crudui_return(operation(input), return_value); ps_value_free(input); }
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, canUndo)
+{
+    zval *history;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_OBJECT_OF_CLASS(history, zend_standard_class_def) ZEND_PARSE_PARAMETERS_END();
+    call_history(history, ps_can_undo, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, canRedo)
+{
+    zval *history;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_OBJECT_OF_CLASS(history, zend_standard_class_def) ZEND_PARSE_PARAMETERS_END();
+    call_history(history, ps_can_redo, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, undoChange)
+{
+    zval *history, *current;
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_OBJECT_OF_CLASS(history, zend_standard_class_def) Z_PARAM_ZVAL(current) ZEND_PARSE_PARAMETERS_END();
+    call_root_and_value(history, current, false, ps_undo_change, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Generator, redoChange)
+{
+    zval *history, *current;
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_OBJECT_OF_CLASS(history, zend_standard_class_def) Z_PARAM_ZVAL(current) ZEND_PARSE_PARAMETERS_END();
+    call_root_and_value(history, current, false, ps_redo_change, return_value);
 }
 
 PHP_METHOD(Polyspec_Crudui_Generator, renderList)
@@ -427,6 +592,7 @@ PHP_METHOD(Polyspec_Crudui_Form, getMessages)
 
 static const char *const form_arguments[][3] = {
     {"path"}, {"data"}, {"path", "value"}, {"path"}, {"path", "key"}, {"path", "key"}, {"path", "key"}, {"path", "oldKey", "newKey"},
+    {"path", "key"}, {"expanded"},
 };
 
 /* Input text of a form method: its text arguments in order, then the row options. */
@@ -527,6 +693,24 @@ PHP_METHOD(Polyspec_Crudui_Form, rekeyRow)
     ZEND_PARSE_PARAMETERS_START(3, 3) Z_PARAM_STR(path) Z_PARAM_STR(old_key) Z_PARAM_STR(new_key) ZEND_PARSE_PARAMETERS_END();
     ZVAL_STR(&p, path); ZVAL_STR(&o, old_key); ZVAL_STR(&n, new_key);
     apply_form(Z_OBJ_P(ZEND_THIS), 7, 3, (zval *[]){&p, &o, &n}, (bool[]){false, false, false}, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Form, toggleRow)
+{
+    zend_string *path, *key;
+    zval p, k;
+    ZEND_PARSE_PARAMETERS_START(2, 2) Z_PARAM_STR(path) Z_PARAM_STR(key) ZEND_PARSE_PARAMETERS_END();
+    ZVAL_STR(&p, path); ZVAL_STR(&k, key);
+    apply_form(Z_OBJ_P(ZEND_THIS), 8, 2, (zval *[]){&p, &k}, (bool[]){false, false}, return_value);
+}
+
+PHP_METHOD(Polyspec_Crudui_Form, setAllExpanded)
+{
+    bool expanded;
+    zval value;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_BOOL(expanded) ZEND_PARSE_PARAMETERS_END();
+    ZVAL_BOOL(&value, expanded);
+    apply_form(Z_OBJ_P(ZEND_THIS), 9, 1, (zval *[]){&value}, (bool[]){false}, return_value);
 }
 
 PHP_MINIT_FUNCTION(polyspec_crudui)

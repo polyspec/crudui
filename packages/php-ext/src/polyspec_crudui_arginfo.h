@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: e87a91f57540dfa1cec6461d1b424402bb0c8123 */
+ * Stub hash: 5e54fc562e9b20b7dd32d33598769efaaf92dbde */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -39,6 +39,51 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_
 	ZEND_ARG_TYPE_INFO(0, nodes, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_initialView, 0, 0, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Polyspec_Crudui_Generator_collapsibleRows arginfo_class_Polyspec_Crudui_Generator_buildOutline
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_toggleRowView, 0, 2, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, view, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, rowPath, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_setAllExpandedView, 0, 2, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, nodes, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, expanded, _IS_BOOL, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Polyspec_Crudui_Generator_removeRowView arginfo_class_Polyspec_Crudui_Generator_toggleRowView
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_rekeyRowView, 0, 3, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, view, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, oldPath, IS_STRING, 0)
+	ZEND_ARG_TYPE_INFO(0, newPath, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_emptyHistory, 0, 0, stdClass, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_recordChange, 0, 2, stdClass, 0)
+	ZEND_ARG_OBJ_INFO(0, history, stdClass, 0)
+	ZEND_ARG_TYPE_INFO(0, previous, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, path, IS_STRING, 1, "null")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_canUndo, 0, 1, _IS_BOOL, 0)
+	ZEND_ARG_OBJ_INFO(0, history, stdClass, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Polyspec_Crudui_Generator_canRedo arginfo_class_Polyspec_Crudui_Generator_canUndo
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_undoChange, 0, 2, stdClass, 0)
+	ZEND_ARG_OBJ_INFO(0, history, stdClass, 0)
+	ZEND_ARG_TYPE_INFO(0, current, IS_MIXED, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Polyspec_Crudui_Generator_redoChange arginfo_class_Polyspec_Crudui_Generator_undoChange
+
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_renderDetail, 0, 1, IS_STRING, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
 	ZEND_ARG_OBJ_TYPE_MASK(0, record, stdClass, MAY_BE_ARRAY, "new stdClass()")
@@ -74,22 +119,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Polyspec_Crudui_Form___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, options, IS_ARRAY, 0, "[]")
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Form_getTemplate, 0, 0, stdClass, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_Polyspec_Crudui_Form_getTemplate arginfo_class_Polyspec_Crudui_Generator_emptyHistory
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_getFields, 0, 0, IS_ARRAY, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_Polyspec_Crudui_Form_getFields arginfo_class_Polyspec_Crudui_Generator_initialView
 
-#define arginfo_class_Polyspec_Crudui_Form_getButtons arginfo_class_Polyspec_Crudui_Form_getFields
+#define arginfo_class_Polyspec_Crudui_Form_getButtons arginfo_class_Polyspec_Crudui_Generator_initialView
 
-#define arginfo_class_Polyspec_Crudui_Form_getMessages arginfo_class_Polyspec_Crudui_Form_getFields
+#define arginfo_class_Polyspec_Crudui_Form_getMessages arginfo_class_Polyspec_Crudui_Generator_initialView
 
 #define arginfo_class_Polyspec_Crudui_Form_getDescription arginfo_class_Polyspec_Crudui_Generator_createRowKey
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_getRevision, 0, 0, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_Polyspec_Crudui_Form_getData arginfo_class_Polyspec_Crudui_Form_getTemplate
+#define arginfo_class_Polyspec_Crudui_Form_getData arginfo_class_Polyspec_Crudui_Generator_emptyHistory
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_getValue, 0, 1, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO(0, path, IS_STRING, 0)
@@ -132,6 +175,12 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_rekey
 	ZEND_ARG_TYPE_INFO(0, newKey, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
+#define arginfo_class_Polyspec_Crudui_Form_toggleRow arginfo_class_Polyspec_Crudui_Form_removeRow
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Form_setAllExpanded, 0, 1, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, expanded, _IS_BOOL, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Polyspec_Crudui_FormError___construct, 0, 0, 2)
 	ZEND_ARG_TYPE_INFO(0, errorCode, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, message, IS_STRING, 0)
@@ -150,7 +199,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Polyspec_Crudui_Validator_Compose_ComposeLoadError_getErrorCode arginfo_class_Polyspec_Crudui_Generator_createRowKey
 
-#define arginfo_class_Polyspec_Crudui_Validator_Compose_ComposeLoadError_getCompositionTrace arginfo_class_Polyspec_Crudui_Form_getFields
+#define arginfo_class_Polyspec_Crudui_Validator_Compose_ComposeLoadError_getCompositionTrace arginfo_class_Polyspec_Crudui_Generator_initialView
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Polyspec_Crudui_Validator_Compose_ComposeLoadError___get, 0, 1, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
@@ -174,6 +223,18 @@ ZEND_METHOD(Polyspec_Crudui_Generator, renderForm);
 ZEND_METHOD(Polyspec_Crudui_Generator, renderList);
 ZEND_METHOD(Polyspec_Crudui_Generator, buildList);
 ZEND_METHOD(Polyspec_Crudui_Generator, buildOutline);
+ZEND_METHOD(Polyspec_Crudui_Generator, initialView);
+ZEND_METHOD(Polyspec_Crudui_Generator, collapsibleRows);
+ZEND_METHOD(Polyspec_Crudui_Generator, toggleRowView);
+ZEND_METHOD(Polyspec_Crudui_Generator, setAllExpandedView);
+ZEND_METHOD(Polyspec_Crudui_Generator, removeRowView);
+ZEND_METHOD(Polyspec_Crudui_Generator, rekeyRowView);
+ZEND_METHOD(Polyspec_Crudui_Generator, emptyHistory);
+ZEND_METHOD(Polyspec_Crudui_Generator, recordChange);
+ZEND_METHOD(Polyspec_Crudui_Generator, canUndo);
+ZEND_METHOD(Polyspec_Crudui_Generator, canRedo);
+ZEND_METHOD(Polyspec_Crudui_Generator, undoChange);
+ZEND_METHOD(Polyspec_Crudui_Generator, redoChange);
 ZEND_METHOD(Polyspec_Crudui_Generator, renderDetail);
 ZEND_METHOD(Polyspec_Crudui_Generator, buildDetail);
 ZEND_METHOD(Polyspec_Crudui_Generator, sequenceRowKey);
@@ -197,6 +258,8 @@ ZEND_METHOD(Polyspec_Crudui_Form, copyRow);
 ZEND_METHOD(Polyspec_Crudui_Form, removeRow);
 ZEND_METHOD(Polyspec_Crudui_Form, moveRow);
 ZEND_METHOD(Polyspec_Crudui_Form, rekeyRow);
+ZEND_METHOD(Polyspec_Crudui_Form, toggleRow);
+ZEND_METHOD(Polyspec_Crudui_Form, setAllExpanded);
 ZEND_METHOD(Polyspec_Crudui_FormError, __construct);
 ZEND_METHOD(Polyspec_Crudui_FormError, getErrorCode);
 ZEND_METHOD(Polyspec_Crudui_FormError, getPath);
@@ -217,6 +280,18 @@ static const zend_function_entry class_Polyspec_Crudui_Generator_methods[] = {
 	ZEND_ME(Polyspec_Crudui_Generator, renderList, arginfo_class_Polyspec_Crudui_Generator_renderList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, buildList, arginfo_class_Polyspec_Crudui_Generator_buildList, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, buildOutline, arginfo_class_Polyspec_Crudui_Generator_buildOutline, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, initialView, arginfo_class_Polyspec_Crudui_Generator_initialView, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, collapsibleRows, arginfo_class_Polyspec_Crudui_Generator_collapsibleRows, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, toggleRowView, arginfo_class_Polyspec_Crudui_Generator_toggleRowView, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, setAllExpandedView, arginfo_class_Polyspec_Crudui_Generator_setAllExpandedView, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, removeRowView, arginfo_class_Polyspec_Crudui_Generator_removeRowView, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, rekeyRowView, arginfo_class_Polyspec_Crudui_Generator_rekeyRowView, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, emptyHistory, arginfo_class_Polyspec_Crudui_Generator_emptyHistory, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, recordChange, arginfo_class_Polyspec_Crudui_Generator_recordChange, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, canUndo, arginfo_class_Polyspec_Crudui_Generator_canUndo, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, canRedo, arginfo_class_Polyspec_Crudui_Generator_canRedo, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, undoChange, arginfo_class_Polyspec_Crudui_Generator_undoChange, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Polyspec_Crudui_Generator, redoChange, arginfo_class_Polyspec_Crudui_Generator_redoChange, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, renderDetail, arginfo_class_Polyspec_Crudui_Generator_renderDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, buildDetail, arginfo_class_Polyspec_Crudui_Generator_buildDetail, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	ZEND_ME(Polyspec_Crudui_Generator, sequenceRowKey, arginfo_class_Polyspec_Crudui_Generator_sequenceRowKey, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
@@ -248,6 +323,8 @@ static const zend_function_entry class_Polyspec_Crudui_Form_methods[] = {
 	ZEND_ME(Polyspec_Crudui_Form, removeRow, arginfo_class_Polyspec_Crudui_Form_removeRow, ZEND_ACC_PUBLIC)
 	ZEND_ME(Polyspec_Crudui_Form, moveRow, arginfo_class_Polyspec_Crudui_Form_moveRow, ZEND_ACC_PUBLIC)
 	ZEND_ME(Polyspec_Crudui_Form, rekeyRow, arginfo_class_Polyspec_Crudui_Form_rekeyRow, ZEND_ACC_PUBLIC)
+	ZEND_ME(Polyspec_Crudui_Form, toggleRow, arginfo_class_Polyspec_Crudui_Form_toggleRow, ZEND_ACC_PUBLIC)
+	ZEND_ME(Polyspec_Crudui_Form, setAllExpanded, arginfo_class_Polyspec_Crudui_Form_setAllExpanded, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 

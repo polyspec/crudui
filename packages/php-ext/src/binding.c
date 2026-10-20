@@ -11,6 +11,8 @@ typedef struct {
     ps_text language;
     const ps_form_messages *messages;
     bool unsupported_marker;
+    /* The collapsed option: a list of row paths rendered collapsed, NULL when absent. */
+    const ps_value *collapsed;
 } bind_context;
 
 /* Enclosing repeated rows: path segment positions, one-based numbers and sticky headers. */
@@ -459,6 +461,14 @@ static ps_chars row_number(const size_t *numbers, size_t count)
     return ps_html_take(&out);
 }
 
+/* Whether a row path is listed in the collapsed option. */
+static bool row_collapsed(ps_text row_path, const bind_context *context)
+{
+    for (size_t i = 0; context->collapsed && i < ps_size(context->collapsed); ++i)
+        if (ps_text_equal(ps_string(ps_at(context->collapsed, i)), row_path)) return true;
+    return false;
+}
+
 /* Title of a group row: the title child's value, or the untitled message when empty. */
 static ps_chars row_title(ps_text row_path, ps_text title, const bind_context *context)
 {
@@ -546,7 +556,7 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
             attach_body(row, string_member(design_group, "class"),
                         string_member(design_group, "style"), ps_view(body_id)) &&
             ps_set(row, "collapsible", ps_bool_value(true)) &&
-            ps_set(row, "expanded", ps_bool_value(true)) &&
+            ps_set(row, "expanded", ps_bool_value(!row_collapsed(ps_view(row_path), context))) &&
             set_string(row, "toggleLabel", messages->toggle_row) &&
             set_owned(row, "children", &children);
         ps_value_free(children); free(summary.bytes); free(title.bytes);
@@ -707,6 +717,16 @@ static ps_value *build_field(const ps_value *field, ps_text path,
     ps_value_free(design); free(type.bytes); return model;
 }
 
+/* Whether every item of a list is a string. */
+static bool string_list(const ps_value *list)
+{
+    for (size_t i = 0; i < ps_size(list); ++i) {
+        const ps_value *item = ps_at(list, i);
+        if (!item || item->kind != PS_STRING) return false;
+    }
+    return true;
+}
+
 /* A string option; absent or null has NULL bytes. */
 static bool string_option(const ps_value *options, const char *name,
                           ps_text *output, ps_value **error)
@@ -846,6 +866,11 @@ static ps_result bind_form(const ps_value *template, const ps_value *data,
     if (unsupported && unsupported->kind != PS_NULL &&
         !ps_is_string(unsupported, "throw") && !ps_is_string(unsupported, "marker"))
         return ps_fail("form", "INVALID_FORM_INPUT", "unsupported must be throw or marker", "");
+    /* An absent or null collapsed option has no collapsed row; any other value is a list of row paths. */
+    const ps_value *collapsed = member(options, "collapsed");
+    if (collapsed && collapsed->kind == PS_NULL) collapsed = NULL;
+    if (collapsed && (collapsed->kind != PS_ARRAY || !string_list(collapsed)))
+        return ps_fail("form", "INVALID_FORM_INPUT", "collapsed must be a list of strings", "");
     const ps_form_messages *messages = ps_form_messages_for(language);
     if (!messages) return unsupported_language(language);
     if (!key_prefix.bytes) {
@@ -854,7 +879,7 @@ static ps_result bind_form(const ps_value *template, const ps_value *data,
     }
     bind_context context = {
         data, key_prefix, id_prefix.bytes ? id_prefix : PS_TEXT("crudui"), language, messages,
-        ps_is_string(unsupported, "marker")
+        ps_is_string(unsupported, "marker"), collapsed
     };
     row_scope root = {NULL, NULL, 0, 0, false};
     ps_value *fields = ps_array_value();
