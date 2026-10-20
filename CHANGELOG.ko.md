@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 87fd58c54a46367648c71fff8e32d1f51dc11df1fe3b07e0a9604a29cc7eceb3 -->
+<!-- source-sha256: 60a577f1e41a05cdead9f33b1353ba9aec6c9aacee94bc6d998bbe3812db7c67 -->
 
 ## Unreleased
+
+### 2026-10-21 — TypeScript file이 oxlint를 통과한다 (C16.107-1)
+
+- `make lint-ts`가 보고한 TypeScript file을 rule 변경, comment, 제외 없이 코드에서 고쳤습니다(C16.107-1). `scripts/check-doc-coverage.test.mts`, `scripts/php-doc-coverage.test.mts`, `scripts/check-schema.mts`, `scripts/package-install-pack.mts`의 쓰지 않는 선언과 import를 지웠고, `scripts/test-commands.mts`는 `JSON.parse`의 값을 `unknown`으로 적어 shape guard가 좁히게 했으며, `tests/fixtures/form-state/generate.mts`는 step 인수를 type guard로 읽고 행 action 이름을 string으로 비교합니다. generator가 쓰는 fixture는 바뀌지 않습니다. 발견은 `no-unused-vars`(oxlint의 기본 correctness rule, kit이 바꾸지 않음), 복사된 `.oxlintrc.json`의 `no-base-to-string`과 `no-unsafe-type-assertion`(kit K170, 2026-10-15, type-aware rule을 TypeScript에 적용)과, main이 2026-10-21에 합친 scripts(C16.11-3, C16.57-10)에서 왔습니다. Red: `PATH=/opt/homebrew/opt/php@8.4/bin:$PATH make lint-ts` exit 2, oxlint 10 problem(`make crudui-build`를 하지 않은 첫 실행은 빌드되지 않은 package의 typecheck도 실패했습니다). Green: 같은 명령 exit 0; owner test `scripts/check-doc-coverage.test.mts`, `scripts/php-doc-coverage.test.mts`, `scripts/json-schema.test.mts`, `tests/build/package-install-pack.test.mts`가 통과합니다. `tests/build/test-commands.test.mts`는 `no Makefile target takes a target that runs tests as a prerequisite`(`docs-check: crudui-docs-check`) 하나가 실패하며, HEAD scripts에서도 실패합니다.
 
 ### 2026-10-21 — PHP file이 phpcs 줄 길이 규칙을 통과한다 (C16.107)
 

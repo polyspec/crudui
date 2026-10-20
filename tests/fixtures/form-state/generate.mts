@@ -68,8 +68,9 @@ function runtimeRequirements(steps: Step[]): string[] {
   if (steps.some(({ op }) => op === 'setData')) ids.push('CURP-011');
   const rowStep = steps.some(({ op, args }) => {
     if (ROW_OPERATIONS.includes(op)) return true;
-    const target = args[0] as { name?: string } | undefined;
-    return op === 'runAction' && ROW_ACTIONS.includes(String(target?.name));
+    const target = args[0];
+    const name = typeof target === 'object' && target !== null && !Array.isArray(target) ? target.name : undefined;
+    return op === 'runAction' && typeof name === 'string' && ROW_ACTIONS.includes(name);
   });
   if (rowStep) ids.push('CURP-027');
   return ids;

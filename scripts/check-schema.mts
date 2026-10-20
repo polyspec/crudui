@@ -13,7 +13,6 @@ import { checkedShape, shapeOf } from './json-schema.mts';
 const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
 const ARRAY = shapeOf<unknown[]>({ type: 'array' });
 const STRING = shapeOf<string>({ type: 'string' });
-const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 
 // ajv-formats is a CommonJS module: its plugin is the `default` of module.exports.
 const addFormats = ajvFormats.default;

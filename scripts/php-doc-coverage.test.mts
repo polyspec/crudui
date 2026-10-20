@@ -8,9 +8,6 @@ import { test } from 'node:test';
 import { checkedShape, shapeOf } from './json-schema.mts';
 
 // The shapes that the helpers of this script check (kit K157, K158): an object, an array, a string and an array of strings.
-const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
-const ARRAY = shapeOf<unknown[]>({ type: 'array' });
-const STRING = shapeOf<string>({ type: 'string' });
 const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 
 // Polyspec\\Crudui\\Docs\\DocCoverage loads through the autoload-dev of the development root vendor/.
