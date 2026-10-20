@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-20 — The form comparison Rust server handles the hidden errors that the kit lint reports (C16.67-14)
+
+- `examples/form-comparison/servers/rust/src` handles the clippy findings of `Result::ok`, `Result::unwrap_or` and `map_err_ignore`: `main.rs` `media_type` returns an error for a Content-Type that is not text instead of reading it as absent, and `generation.rs` and `records.rs` use it; `records.rs` `positive_decimal` keeps its fallback (text beyond `u64` is beyond every page) on the smallest item with a reason, and `companies` and the spec and score reads return their errors with the cause; `json.rs` names the parse error of a JSON number; `tests.rs` `stored_bytes` treats a missing store file as empty and fails the test on any other read error, so the store-unchanged check no longer passes when the file cannot be read (C16.67-14). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason` exit 101 with 11 findings (6 `Result::ok`, 1 `Result::unwrap_or`, 4 `map_err` wildcards); green: exit 0, and `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo ... tests::` passes 18 of 18. The benchmark test failed on the first run, because the store file it reads is absent in the fixture and `.ok()` had hidden the read error; the test now expects that absence.
+
 ### 2026-10-20 — The cross-check validator process checks the errors it does not check (C16.67-4)
 
 - `examples/cross-check-console/validators/go/main.go` checks the basepath assertion of `parseRequest` and returns the request message `Request basepath must be a string` when it fails, and it states the invariant of the `json.Marshal` calls of `fatal` and `failure` in a panic with its message (C16.67-4). Behaviour does not change: each assertion holds for every request that reaches it. Red: `golangci-lint run --config=../../../../.golangci.yml ./...` exited 1 with `3 issues` (errcheck 3); green: exit 0 with `0 issues`, and `go build -o /dev/null ./...` exits 0 (the module has no test).

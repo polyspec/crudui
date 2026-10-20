@@ -145,16 +145,8 @@ pub async fn handle(
     if action == "ssr" {
         return document(server, rendering_path, framework, request.uri().query());
     }
-    let kind = request
-        .headers()
-        .get("Content-Type")
-        .and_then(|value| value.to_str().ok())
-        .unwrap_or("")
-        .split(';')
-        .next()
-        .unwrap_or("")
-        .trim();
-    if !kind.eq_ignore_ascii_case("application/json") {
+    let kind = crate::media_type(&request)?;
+    if kind != "application/json" {
         return Err(Error {
             status: StatusCode::UNSUPPORTED_MEDIA_TYPE,
             message: "Expected a JSON generation request".into(),

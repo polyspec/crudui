@@ -96,6 +96,12 @@ fn allow(request: &Request, method: Method) -> Result<()> {
 }
 
 /// A decimal integer from 1 without sign or leading zero; a value beyond `u64` is beyond every page.
+// The fallback is needed: digits-only text fails to parse only when it exceeds `u64`, and such a
+// page number is beyond every page.
+#[allow(
+    clippy::disallowed_methods,
+    reason = "digits-only text fails to parse only beyond u64, which is beyond every page"
+)]
 fn positive_decimal(text: &str) -> Option<u64> {
     if text.is_empty() || text.starts_with('0') || !text.bytes().all(|b| b.is_ascii_digit()) {
         return None;
@@ -216,7 +222,8 @@ fn records(bytes: &[u8], name: &str) -> Result<Vec<Value>> {
                 "companies" => {
                     let completed = shaped(value, &COMPANIES, "companies")
                         .map_err(|e| malformed(&e.message))?;
-                    serde_json::to_string(&completed).ok() == serde_json::to_string(value).ok()
+                    serde_json::to_string(&completed).expect("a serde_json Value serializes")
+                        == serde_json::to_string(value).expect("a serde_json Value serializes")
                 }
                 _ => value.is_string(),
             };
@@ -247,7 +254,12 @@ fn page_data(records: &[Value], page: u64) -> Result<Value> {
 
 fn specs(server: &Server) -> Result<Value> {
     let specs = codec::decode(&fs::read(server.public.join(SPECS_FILE))?)
-        .map_err(|_| internal("The record specifications are malformed"))?;
+        .map_err(|error| {
+            internal(format!(
+                "The record specifications are malformed: {}",
+                error.message
+            ))
+        })?;
     if !["list", "detail", "form"]
         .iter()
         .all(|name| specs[name].is_object())
@@ -302,7 +314,7 @@ async fn record(State(server): State<Arc<Server>>, request: Request) -> Result<R
 
 /// The submitted form object of a native or JSON save request.
 pub(crate) async fn submitted(request: Request) -> Result<Value> {
-    let kind = media_type(&request);
+    let kind = media_type(&request)?;
     let mut body = match kind.as_str() {
         "application/json" => {
             let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
@@ -354,7 +366,7 @@ fn score(text: &str) -> Result<Value> {
     let value: f64 = text
         .trim_matches(|c: char| c.is_whitespace() || c == '\u{feff}')
         .parse()
-        .map_err(|_| bad("Expected a numeric score"))?;
+        .map_err(|error| bad(format!("Expected a numeric score: {error}")))?;
     if value.fract() == 0.0 && value.abs() <= SAFE_INTEGER {
         return Ok(json!(value as i64));
     }

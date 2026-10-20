@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 929760e80954959dace539110e965bc51933d6197d2bd404fdc375bb59fe4af2 -->
+<!-- source-sha256: d9f130f7802ba9ce494ee21751c2cc5a70d0479a703ab93a580360837a30d4d6 -->
 
 ## Unreleased
+
+### 2026-10-20 — form comparison Rust server는 kit lint가 보고하는 숨은 오류를 처리한다 (C16.67-14)
+
+- `examples/form-comparison/servers/rust/src`는 `Result::ok`, `Result::unwrap_or`, `map_err_ignore` clippy finding을 처리합니다. `main.rs`의 `media_type`은 텍스트가 아닌 Content-Type을 없는 값으로 읽는 대신 오류를 반환하고, `generation.rs`와 `records.rs`가 이를 사용합니다. `records.rs`의 `positive_decimal`은 fallback(`u64`를 넘는 text는 모든 page 밖이다)을 가장 작은 item에 이유와 함께 남기고, `companies`와 spec, score 읽기는 원인을 담아 오류를 반환합니다. `json.rs`는 JSON number의 parse 오류를 이름 붙여 보고합니다. `tests.rs`의 `stored_bytes`는 없는 store 파일을 빈 store로 보고 다른 읽기 실패는 test를 실패시키므로, 저장되지 않음 검사가 파일을 읽지 못해도 통과하지 않습니다(C16.67-14). Red: `cargo clippy --workspace --all-targets --locked -- -D warnings -D unused_must_use -D clippy::let_underscore_must_use -D clippy::let_underscore_untyped -D clippy::map_err_ignore -D clippy::allow_attributes_without_reason`가 finding 11건(`Result::ok` 6, `Result::unwrap_or` 1, `map_err` wildcard 4)으로 exit 101이었습니다. Green: exit 0이며, `node node_modules/@polyspec/kit/dist/run-tests.mjs cargo ... tests::`가 18건 중 18건 통과합니다. 첫 실행에서 benchmark test가 실패했는데, 그 test가 읽는 store 파일이 fixture에 없었고 `.ok()`가 읽기 오류를 가리고 있었기 때문입니다. 이제 test는 그 부재를 기대합니다.
 
 ### 2026-10-20 — cross-check validator process는 검사하지 않던 오류를 검사한다 (C16.67-4)
 

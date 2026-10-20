@@ -1474,13 +1474,23 @@ fn number_text_matches_ecmascript() {
     }
 }
 
+/// The stored bytes of a record file; a file that does not exist is an empty store, and any other
+/// read failure fails the test.
+fn stored_bytes(file: &std::path::Path) -> Option<Vec<u8>> {
+    match fs::read(file) {
+        Ok(bytes) => Some(bytes),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(error) => panic!("read {}: {error}", file.display()),
+    }
+}
+
 #[tokio::test]
 async fn benchmark_requests_hold_exactly_the_form() {
     let (_directory, server) = fixture();
     let app = application(server.clone());
     let file = server.data.join("rust-createForm-react.json");
     let path = "/api/save/createForm/react";
-    let before = fs::read(&file).ok();
+    let before = stored_bytes(&file);
     for (content_type, body) in [
         ("application/json", r#"{"form":{},"extra":1}"#),
         (
@@ -1495,7 +1505,7 @@ async fn benchmark_requests_hold_exactly_the_form() {
             "{content_type}: {response}"
         );
         assert_eq!(
-            fs::read(&file).ok(),
+            stored_bytes(&file),
             before,
             "{content_type}: the store is unchanged"
         );

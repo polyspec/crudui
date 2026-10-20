@@ -42,9 +42,15 @@ fn from_ordered(value: &Ordered, exact: bool) -> Result<Value> {
         Kind::Null => Value::Null,
         Kind::Number => {
             let literal = value.number_literal().unwrap();
-            let number: f64 = literal.parse().map_err(|_| bad("Invalid JSON number"))?;
+            let number: f64 = literal
+                .parse()
+                .map_err(|error| bad(format!("Invalid JSON number: {error}")))?;
             check_number(number, exact)?;
-            Value::Number(literal.parse().map_err(|_| bad("Invalid JSON number"))?)
+            Value::Number(
+                literal
+                    .parse()
+                    .map_err(|error| bad(format!("Invalid JSON number: {error}")))?,
+            )
         }
     })
 }

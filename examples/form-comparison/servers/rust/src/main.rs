@@ -70,18 +70,21 @@ fn reply(status: StatusCode, mut body: Value) -> Result<Response> {
         .into_response())
 }
 
-/// The lowercase media type of a request without parameters.
-fn media_type(request: &Request) -> String {
-    request
-        .headers()
-        .get("Content-Type")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("")
+/// The lowercase media type of a request without parameters. A Content-Type that is not text is a
+/// bad request, not an absent one.
+pub(crate) fn media_type(request: &Request) -> Result<String> {
+    let text = match request.headers().get("Content-Type") {
+        None => "",
+        Some(value) => value
+            .to_str()
+            .map_err(|error| bad(format!("Content-Type is not text: {error}")))?,
+    };
+    Ok(text
         .split(';')
         .next()
         .unwrap_or("")
         .trim()
-        .to_ascii_lowercase()
+        .to_ascii_lowercase())
 }
 
 struct Server {
@@ -212,7 +215,7 @@ async fn handle(
             .join(format!("rust-{rendering_path}-{framework}.json")),
         fixtures: server.public.join("records.json"),
     };
-    let kind = media_type(&request);
+    let kind = media_type(&request)?;
     if action == "load" || action == "reset" {
         let storage = if action == "load" {
             repo.read()?
