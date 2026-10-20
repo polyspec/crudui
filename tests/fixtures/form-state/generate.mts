@@ -142,6 +142,40 @@ const all: Case[] = [
     steps: [step('setValue', 'visible', ''), step('setValue', 'visible', 'yes'), step('setValue', 'visible', '')],
   }),
   session({
+    name: 'edit-reorder-remove-and-add-rows-keep-no-stale-values',
+    note: 'Editing, moving, removing and adding rows leaves each row with its own values; a row added later starts empty (CURT-053).',
+    requirements: ['CURT-053'],
+    steps: [
+      step('setValue', `teams.${A}.name`, 'Alpha two'),
+      step('moveRow', 'teams', B, 0),
+      step('removeRow', 'teams', A),
+      step('addRow', 'teams', { key: k(5) }),
+    ],
+  }),
+  session({
+    name: 'rekey-moves-the-edits-to-the-new-keys',
+    note: 'Rekeying a row and a member under a rule path keeps their values under the new keys; an edit after the rekey uses the new path (CURT-054).',
+    requirements: ['CURT-054'],
+    steps: [
+      step('rekeyRow', 'teams', A, k(6)),
+      step('rekeyRow', `teams.${k(6)}.members`, M1, k(15)),
+      step('setValue', `teams.${k(6)}.members.${k(15)}.name`, 'Uno'),
+    ],
+  }),
+  session({
+    name: 'invalid-removal-leaves-data-and-adding-continues',
+    note: 'An unknown row and a removal below the minimum row count fail without changing the data; adding a row afterwards is permitted (CURT-055).',
+    requirements: ['CURT-055'],
+    steps: [
+      step('removeRow', 'teams', k(9)),
+      step('addRow', 'teams', { key: k(5) }),
+      step('removeRow', 'teams', A),
+      step('removeRow', 'teams', B),
+      step('removeRow', 'teams', k(5)),
+      step('addRow', 'teams', { key: k(6) }),
+    ],
+  }),
+  session({
     name: 'set-data-rejects-a-root-that-is-not-an-object',
     note: 'Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.',
     requirements: ['CURT-001', 'CURP-026'],

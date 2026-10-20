@@ -1,8 +1,23 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 97bd515bbe3bee839e677815c869581a34a67e5bd768eb25dbb12adc52ec6fe2 -->
+<!-- source-sha256: 9a6dffc957fcac284d90213779814af12c73d9ef65a04bfbea82628e40164655 -->
 
 ## Unreleased
+
+### 2026-10-21 — form state 세션이 인수 기준 세 개를 인용하고, 복사 규칙은 form 비교 예제로 옮겨진다 (C16.146)
+
+C16.141이 보고한 인수 기준 여섯 개(CURT-050부터 CURT-056까지)에 대한 결정입니다.
+
+| 요구사항 | 결정 | 위치 | 이유 |
+| --- | --- | --- | --- |
+| CURT-050 (중첩 필드 준비, 템플릿 직렬화, 독립 레코드 바인딩) | 보고, 미추적 유지 | 없음 | 세션은 인스턴스마다 레코드 하나를 바인딩하며 직렬화한 템플릿을 읽지 않습니다. 한 템플릿에서 레코드 두 개를 바인딩하는 case 형식이 필요합니다 |
+| CURT-052 (스토어 키와 회사 키가 같으면 스토어 복사) | 경로 2 | `examples/form-comparison/README.ko.md`(스토어 복사), 두 언어 | 라이브러리 규칙이 아니라 form 비교 예제의 인수 기준입니다 |
+| CURT-053 (편집·정렬·제거·추가 후 이전 값 없음) | 인용 | `edit-reorder-remove-and-add-rows-keep-no-stale-values`(form-actions) | 관찰된 데이터가 행마다 자기 값을 보이고, 추가한 행은 비어 있습니다 |
+| CURT-054 (저장한 seq 키 적용, 필드 이름과 규칙 경로 갱신) | 인용 | `rekey-moves-the-edits-to-the-new-keys`(form-actions) | 관찰된 데이터가 rekey한 행과 멤버를 새 키 아래에 보이고, 새 경로로 편집한 값을 보입니다. 세션은 필드의 규칙 경로가 아니라 데이터를 관찰하므로 규칙 경로 부분은 관찰되지 않습니다 |
+| CURT-055 (잘못된 작업의 원자적 거부; 모든 행 삭제 뒤 추가 가능) | 인용 | `invalid-removal-leaves-data-and-adding-continues`(form-actions) | 알 수 없는 행과 최소 행 수 아래의 제거가 실패하며 데이터를 바꾸지 않고, 이후 추가가 이어집니다. 공용 명세의 최소는 팀 한 개이므로 세션은 모든 행을 삭제할 수 없습니다 |
+| CURT-056 (공용 검증 case를 네 언어로 실행하고 하나의 멱등 서명) | 경로 2(설명) | 명세, 번호 없는 문단 | 시험 절차이며 테스트가 요구사항으로 검사할 수 없습니다 |
+
+추가된 세션이 유일한 새 case입니다. `tests/fixtures/form-actions/cases.json`은 세 개만 늘고 기존 case는 바뀌지 않습니다. form-actions unit은 CURT-053, CURT-054, CURT-055를 인용합니다. form state 제품군의 모든 runner(TypeScript, Go, Python, Rust, PHP, PHP extension과 engine 테스트)가 한 번씩 통과합니다.
 
 ### 2026-10-21 — CUIT-041에 Python 항목이 있다 (C16.140-2)
 

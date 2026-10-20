@@ -117,6 +117,686 @@
     ]
   },
   {
+    "name": "edit-reorder-remove-and-add-rows-keep-no-stale-values",
+    "note": "Editing, moving, removing and adding rows leaves each row with its own values; a row added later starts empty (CURT-053).",
+    "requirements": [
+      "CURT-053",
+      "CURP-010",
+      "CURP-012",
+      "CURP-020",
+      "CURP-027"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "setValue",
+        "args": [
+          "teams.__0000000000001__.name",
+          "Alpha two"
+        ]
+      },
+      {
+        "op": "moveRow",
+        "args": [
+          "teams",
+          "__0000000000002__",
+          0
+        ]
+      },
+      {
+        "op": "removeRow",
+        "args": [
+          "teams",
+          "__0000000000001__"
+        ]
+      },
+      {
+        "op": "addRow",
+        "args": [
+          "teams",
+          {
+            "key": "__0000000000005__"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha two",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "__0000000000001__": {
+              "name": "Alpha two",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": "__0000000000005__",
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "__0000000000005__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 4,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "rekey-moves-the-edits-to-the-new-keys",
+    "note": "Rekeying a row and a member under a rule path keeps their values under the new keys; an edit after the rekey uses the new path (CURT-054).",
+    "requirements": [
+      "CURT-054",
+      "CURP-010",
+      "CURP-012",
+      "CURP-020",
+      "CURP-027"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "rekeyRow",
+        "args": [
+          "teams",
+          "__0000000000001__",
+          "__0000000000006__"
+        ]
+      },
+      {
+        "op": "rekeyRow",
+        "args": [
+          "teams.__0000000000006__.members",
+          "__0000000000011__",
+          "__0000000000015__"
+        ]
+      },
+      {
+        "op": "setValue",
+        "args": [
+          "teams.__0000000000006__.members.__0000000000015__.name",
+          "Uno"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "data": {
+          "teams": {
+            "__0000000000006__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000006__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000015__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000006__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000015__": {
+                  "name": "Uno"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
+    "name": "invalid-removal-leaves-data-and-adding-continues",
+    "note": "An unknown row and a removal below the minimum row count fail without changing the data; adding a row afterwards is permitted (CURT-055).",
+    "requirements": [
+      "CURT-055",
+      "CURP-010",
+      "CURP-012",
+      "CURP-020",
+      "CURP-027"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "teams": {
+          "type": "group",
+          "label": "Team",
+          "multiple": {
+            "min": 1,
+            "max": 5,
+            "sortable": true,
+            "copy": true,
+            "title": "name"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "members": {
+              "type": "group",
+              "label": "Member",
+              "multiple": {
+                "title": "name"
+              },
+              "properties": {
+                "name": {
+                  "type": "text",
+                  "label": "Name"
+                }
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "teams": {
+        "__0000000000001__": {
+          "name": "Alpha",
+          "members": {
+            "__0000000000011__": {
+              "name": "One"
+            },
+            "__0000000000012__": {
+              "name": "Two"
+            }
+          }
+        },
+        "__0000000000002__": {
+          "name": "Beta",
+          "members": {
+            "__0000000000013__": {
+              "name": "Three"
+            }
+          }
+        }
+      },
+      "note": ""
+    },
+    "steps": [
+      {
+        "op": "removeRow",
+        "args": [
+          "teams",
+          "__0000000000009__"
+        ]
+      },
+      {
+        "op": "addRow",
+        "args": [
+          "teams",
+          {
+            "key": "__0000000000005__"
+          }
+        ]
+      },
+      {
+        "op": "removeRow",
+        "args": [
+          "teams",
+          "__0000000000001__"
+        ]
+      },
+      {
+        "op": "removeRow",
+        "args": [
+          "teams",
+          "__0000000000002__"
+        ]
+      },
+      {
+        "op": "removeRow",
+        "args": [
+          "teams",
+          "__0000000000005__"
+        ]
+      },
+      {
+        "op": "addRow",
+        "args": [
+          "teams",
+          {
+            "key": "__0000000000006__"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Unknown row: __0000000000009__"
+        },
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 0,
+        "canUndo": false,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": "__0000000000005__",
+        "data": {
+          "teams": {
+            "__0000000000001__": {
+              "name": "Alpha",
+              "members": {
+                "__0000000000011__": {
+                  "name": "One"
+                },
+                "__0000000000012__": {
+                  "name": "Two"
+                }
+              }
+            },
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "__0000000000005__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 1,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000002__": {
+              "name": "Beta",
+              "members": {
+                "__0000000000013__": {
+                  "name": "Three"
+                }
+              }
+            },
+            "__0000000000005__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 2,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "data": {
+          "teams": {
+            "__0000000000005__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "error": {
+          "code": "INVALID_FORM_INPUT",
+          "message": "Minimum row count reached: teams"
+        },
+        "data": {
+          "teams": {
+            "__0000000000005__": {
+              "members": {
+                "$1": {}
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 3,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      },
+      {
+        "result": "__0000000000006__",
+        "data": {
+          "teams": {
+            "__0000000000005__": {
+              "members": {
+                "$1": {}
+              }
+            },
+            "__0000000000006__": {
+              "members": {
+                "$2": {}
+              }
+            }
+          },
+          "note": ""
+        },
+        "revision": 4,
+        "canUndo": true,
+        "canRedo": false,
+        "collapsed": []
+      }
+    ]
+  },
+  {
     "name": "set-data-rejects-a-root-that-is-not-an-object",
     "note": "Replacing the record with a text or an array fails with the root message, and the record and the history stay as they were.",
     "requirements": [

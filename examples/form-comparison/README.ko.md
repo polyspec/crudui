@@ -1,6 +1,6 @@
 # CRUDUI 정본 예제와 폼 검증
 <!-- doc-id: examples-form-comparison-readme -->
-<!-- source-sha256: 67dadbcf7b753a9d55d9f5492458b30334de46871bc68edf17d59a3f7e96ef76 -->
+<!-- source-sha256: 0476d707f5e4e1cc20b93ba6a8b4fd8d178fd5738b089059d91dd0e2cf5d68f3 -->
 
 [English](README.md).
 
@@ -41,3 +41,7 @@ make crudui-test-form-comparison-pipeline
 [폼 검사](../../docs/operations/testing.ko.md#폼과-보고서)가 명령을 설명하고,
 [폼 검증 계약](../../docs/operations/form-comparison.ko.md)은 레코드 리소스, 정본 페이지, 정본 흐름 검사를
 정의합니다. [기능 상태](../../docs/features.ko.md)는 코드 검증과 배포를 별도로 기록합니다.
+
+## 스토어 복사
+
+스토어 키와 회사 키가 같을 때 스토어를 복사합니다. 원본 회사·스토어·다른 스토어 값을 유지하고 복사한 하위 행의 키를 새로 생성합니다.

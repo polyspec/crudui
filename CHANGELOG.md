@@ -3,6 +3,23 @@
 
 ## Unreleased
 
+### 2026-10-21 — The form state sessions cite three acceptance criteria; the copy rule moves to the form comparison example (C16.146)
+
+Decision table for the six acceptance criteria that C16.141 reported (CURT-050 to CURT-056):
+
+| Requirement | Decision | Where | Reason |
+| --- | --- | --- | --- |
+| CURT-050 (prepare nested fields, serialize the template, bind independent records) | reported, still untraced | none | the sessions bind one record per instance and read no serialized template; a case needs a format that binds two records from one serialized template |
+| CURT-052 (copy a store when its key equals its company key) | path 2 | `examples/form-comparison/README.md` (Copying a store), both languages | an acceptance of the form comparison example, not a library rule |
+| CURT-053 (edit, reorder, remove and add rows without stale values) | cited | `edit-reorder-remove-and-add-rows-keep-no-stale-values` (form-actions) | the observed data shows each row with its own values and an added row starts empty |
+| CURT-054 (apply a saved sequence key and update field names and rule paths) | cited | `rekey-moves-the-edits-to-the-new-keys` (form-actions) | the observed data shows the rekeyed row and member under the new keys and an edit under the new path; the session observes data, not the rule paths of the fields, so the rule-path part is not observed |
+| CURT-055 (reject invalid operations atomically; permit adding after deleting all rows) | cited | `invalid-removal-leaves-data-and-adding-continues` (form-actions) | an unknown row and a removal below the minimum fail and leave the data unchanged; adding follows. The shared spec keeps one team as its minimum, so the session cannot delete every row |
+| CURT-056 (the shared validation fixture cases through four languages, one idempotent signature) | path 2 (prose) | the spec, as an unnumbered paragraph | the test process, which no test checks as a requirement |
+
+The added sessions are the only new cases: `tests/fixtures/form-actions/cases.json` grows by three, and no existing case
+changes. The form-actions unit cites CURT-053, CURT-054 and CURT-055. Every runner of the form state suites passes once
+(TypeScript, Go, Python, Rust, PHP, the PHP extension and its engine test).
+
 ### 2026-10-21 — CUIT-041 has a Python entry (C16.140-2)
 
 - The table of CUIT-041 gets a Python entry, which names the classes that the Python packages raise, checked in the sources: validation raises `ComposeLoadError` (`compose_errors.py`) for a load failure and `FormInputError` (`errors.py`) for an input failure; generation raises the same `ComposeLoadError` for a load failure, as the validator package does when it composes a specification, and `FormError` (`generator/errors.py`) for an input failure. The owner decided that the spec, not the runners, carried the gap: the Python runners already assert these types.

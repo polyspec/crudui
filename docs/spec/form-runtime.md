@@ -361,16 +361,15 @@ installation.
 
 1. **CURT-050** Prepare all nested fields before record data exists, serialize the template,
    and bind independent records without reloading composition files.
-2. **CURT-052** Copy a store when its key equals its company key; preserve the original
-   company, store and sibling values and regenerate descendant row keys.
-3. **CURT-053** Edit, reorder, remove and add rows without restoring stale values.
-4. **CURT-054** Apply a saved sequence key and update field names and rule paths correctly.
-5. **CURT-055** Reject invalid operations atomically and permit adding after deleting all rows.
-6. **CURT-056** Verify every shared validation fixture case through JavaScript, PHP, Go and Rust and
-   require one idempotent result signature from all four languages. Object member order
-   inside an error value is not semantic; array order remains semantic.
+2. **CURT-053** Edit, reorder, remove and add rows without restoring stale values.
+3. **CURT-054** Apply a saved sequence key and update field names and rule paths correctly.
+4. **CURT-055** Reject invalid operations atomically and permit adding after deleting all rows.
 
 The criteria for the framework views, for the nodes that a re-render keeps, and for the browser binding are in the documentation of their packages ([React](../../packages/react/README.md#framework-views), [Vue](../../packages/vue/README.md#framework-views), [Svelte](../../packages/svelte/README.md#framework-views), [HTML](../../packages/html/README.md#keeping-controls-across-re-renders), [form binding](../../packages/form-binding/README.md#acceptance-of-the-browser-binding)).
+
+Every shared validation fixture case is verified through JavaScript, PHP, Go and Rust, and the four languages must produce one idempotent result signature. Object member order inside an error value is not semantic; array order remains semantic.
+
+The copy rule of the form comparison example is in [its README](../../examples/form-comparison/README.md#copying-a-store).
 
 ## Input labels and selection
 

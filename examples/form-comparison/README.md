@@ -44,3 +44,7 @@ The [form checks](../../docs/operations/testing.md#forms-and-reports) describe t
 the [form verification contract](../../docs/operations/form-comparison.md) defines the record resource,
 the canonical page and the canonical flow check. [Feature status](../../docs/features.md) records
 verified code separately from deployment.
+
+## Copying a store
+
+Copy a store when its key equals its company key; preserve the original company, store and sibling values and regenerate descendant row keys.
