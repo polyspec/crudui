@@ -117,9 +117,15 @@
           "implementation": "php",
           "test": "packages/generator/php/tests/HistoryFunctionsTest.php",
           "symbol": "Polyspec\\Crudui\\Generator\\Tests\\HistoryFunctionsTest::testHistoryFunctionMatchesTheSharedFixture"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/HistoryFunctionsTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\HistoryFunctionsTest::testHistoryFunctionMatchesTheSharedFixture"
         }
       ],
       "requirements": [
+        "CURT-062",
         "CURT-063",
         "CURT-076",
         "CURT-077",
@@ -167,6 +173,190 @@
         "CUEC-003",
         "CUEC-005",
         "CUEC-006"
+      ]
+    },
+    {
+      "id": "form-view",
+      "kind": "suite",
+      "file": "tests/fixtures/form-view/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/form-state.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_state_test.go",
+          "symbol": "TestFormView"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_state.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_state.rs",
+          "symbol": "form_view_sessions_equal_the_recorded_observations"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testViewSessionsEqualTheRecordedObservations"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testViewSessionsEqualTheRecordedObservations"
+        }
+      ],
+      "requirements": [
+        "CURT-009",
+        "CURT-010",
+        "CURT-066",
+        "CURT-067",
+        "CURT-068",
+        "CURT-073",
+        "CURT-074",
+        "CURT-075"
+      ]
+    },
+    {
+      "id": "form-history",
+      "kind": "suite",
+      "file": "tests/fixtures/form-history/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/form-state.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_state_test.go",
+          "symbol": "TestFormHistory"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_state.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_state.rs",
+          "symbol": "form_history_sessions_equal_the_recorded_observations"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testHistorySessionsEqualTheRecordedObservations"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testHistorySessionsEqualTheRecordedObservations"
+        }
+      ],
+      "requirements": [
+        "CURT-011",
+        "CURT-012",
+        "CURT-061",
+        "CURT-062",
+        "CURT-063",
+        "CURT-064",
+        "CURT-065",
+        "CURT-067"
+      ]
+    },
+    {
+      "id": "form-actions",
+      "kind": "suite",
+      "file": "tests/fixtures/form-actions/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/form-state.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_state_test.go",
+          "symbol": "TestFormActions"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_state.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_state.rs",
+          "symbol": "form_actions_sessions_equal_the_recorded_observations"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testActionSessionsEqualTheRecordedObservations"
+        }
+      ],
+      "requirements": [
+        "CURT-011",
+        "CURT-012",
+        "CURT-081",
+        "CURT-082",
+        "CURT-083",
+        "CURT-084",
+        "CURT-085",
+        "CURT-086",
+        "CURT-087",
+        "CURT-088",
+        "CURT-089",
+        "CURT-090",
+        "CURT-091"
+      ]
+    },
+    {
+      "id": "view-functions",
+      "kind": "suite",
+      "file": "tests/fixtures/view-functions/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/form-state.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_state_test.go",
+          "symbol": "TestViewFunctions"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_state.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_state.rs",
+          "symbol": "view_function_calls_equal_the_recorded_results"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testViewFunctionCallsEqualTheRecordedResults"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testViewFunctionCallsEqualTheRecordedResults"
+        }
+      ],
+      "requirements": [
+        "CURT-068",
+        "CURT-069",
+        "CURT-070",
+        "CURT-071",
+        "CURT-072",
+        "CURT-073",
+        "CURT-074",
+        "CURT-075"
       ]
     }
   ],
