@@ -4,7 +4,7 @@
  * the contract fails with the declared code and message. `renderFormView` writes the same
  * markup from `bindForm`, `bindButtons` and `formDescription` for a template without an `action`.
  */
-import { describe, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 import { bindButtons, bindForm, compileForm, createForm, formDescription, formMessages, type Language } from '@polyspec/crudui-generator-core';
 import { renderForm, renderFormView } from './index';
 import fixtureCases from '../../../tests/fixtures/form-complete/cases.json';
@@ -43,27 +43,23 @@ function renderFailingCase(form: ReturnType<typeof createForm>, render: unknown)
   return Reflect.apply(renderForm, undefined, [form, render]);
 }
 
-describe('complete form: the HTML renderer writes the expected bytes or the declared failure', () => {
-  for (const c of cases) {
-    test(c.name, () => provesConformance(
-      { features: ['renderForm'], fixture: 'tests/fixtures/form-complete/cases.json', runtime: 'javascript-html', case: c.name },
-      () => {
-        const form = createForm(compileForm(c.spec), c.data, caseOptions(c));
-        if (c.expectError) expect(failure(() => renderFailingCase(form, c.render))).toMatchObject(c.expectError);
-        else expect(renderForm(form, checked(c.render, renderOptionsSchema, c.name))).toBe(c.expected_html);
-      },
-    ));
-  }
-});
-
-describe('complete form: renderFormView writes the same markup from bound nodes', () => {
-  for (const c of cases.filter((x) => !x.expectError && !('action' in x.spec))) {
-    test(c.name, () => {
-      const template = compileForm(c.spec);
-      const options = caseOptions(c);
-      const html = renderFormView(bindForm(template, c.data, options), bindButtons(template, c.data, options),
-        formMessages(options.language), checked(c.render, renderOptionsSchema, c.name), formDescription(template, options));
-      expect(html).toBe(c.expected_html);
-    });
-  }
-});
+// Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name. A case
+// writes the expected bytes or the declared failure through renderForm; a case without an action also writes the same
+// markup through renderFormView from the bound nodes.
+for (const c of cases) {
+  test(c.name, () => provesConformance(
+    { features: ['renderForm'], fixture: 'tests/fixtures/form-complete/cases.json', runtime: 'javascript-html', case: c.name },
+    () => {
+      const form = createForm(compileForm(c.spec), c.data, caseOptions(c));
+      if (c.expectError) expect(failure(() => renderFailingCase(form, c.render))).toMatchObject(c.expectError);
+      else expect(renderForm(form, checked(c.render, renderOptionsSchema, c.name))).toBe(c.expected_html);
+      if (!c.expectError && !('action' in c.spec)) {
+        const template = compileForm(c.spec);
+        const options = caseOptions(c);
+        const html = renderFormView(bindForm(template, c.data, options), bindButtons(template, c.data, options),
+          formMessages(options.language), checked(c.render, renderOptionsSchema, c.name), formDescription(template, options));
+        expect(html).toBe(c.expected_html);
+      }
+    },
+  ));
+}

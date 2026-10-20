@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 import { renderDetail } from './index';
 // @ts-expect-error shared JavaScript fixture normalizer
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
@@ -32,20 +32,18 @@ function proves(name: string, body: () => void): Promise<void> {
   );
 }
 
-describe('framework-independent detail renderer conformance', () => {
-  for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
-    test(item.name, () => proves(item.name, () => {
-      const record = item.record ?? {};
-      if (!isRecord(item.spec) || !isRecord(record)) throw new Error(`${item.name}: the specification or record of a rendered case is no object`);
-      expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, record, item.options)))).toBe(item.expected_html);
-    }));
-  }
-  for (const item of fixtures) {
-    const expected = item.expectError;
-    if (!expected) continue;
-    test(item.name, () => proves(item.name, () => {
-      // Reflect.apply calls renderDetail as a JavaScript caller does, with a specification or record that its type rejects.
-      expect(() => { Reflect.apply(renderDetail, undefined, [item.spec, item.record ?? {}, item.options]); }).toThrow(expected.message);
-    }));
-  }
-});
+for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
+  test(item.name, () => proves(item.name, () => {
+    const record = item.record ?? {};
+    if (!isRecord(item.spec) || !isRecord(record)) throw new Error(`${item.name}: the specification or record of a rendered case is no object`);
+    expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, record, item.options)))).toBe(item.expected_html);
+  }));
+}
+for (const item of fixtures) {
+  const expected = item.expectError;
+  if (!expected) continue;
+  test(item.name, () => proves(item.name, () => {
+    // Reflect.apply calls renderDetail as a JavaScript caller does, with a specification or record that its type rejects.
+    expect(() => { Reflect.apply(renderDetail, undefined, [item.spec, item.record ?? {}, item.options]); }).toThrow(expected.message);
+  }));
+}

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 import { renderList } from './index';
 // @ts-expect-error shared JavaScript fixture normalizer
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
@@ -32,31 +32,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-describe('framework-independent list renderer conformance', () => {
-  for (const item of fixtures) {
-    if (item.expectError) continue;
-    test(item.name, () => proves(item.name, () => {
-      const rows = item.rows ?? [];
-      if (!isRecord(item.spec) || !Array.isArray(rows) || !rows.every(isRecord)) {
-        throw new Error(`${item.name}: the specification or rows of a rendered case are no object`);
-      }
-      expect(normalizeHtml(withoutPreloadLinks(renderList(item.spec, rows, item.options)))).toBe(item.expected_html);
-    }));
-  }
-  for (const item of fixtures) {
-    const expected = item.expectError;
-    if (!expected) continue;
-    test(item.name, () => proves(item.name, () => {
-      let thrown: unknown;
-      try {
-        // Reflect.apply calls renderList as a JavaScript caller does, with a specification or rows that its type rejects.
-        Reflect.apply(renderList, undefined, [item.spec, item.rows ?? [], item.options]);
-      } catch (error) {
-        thrown = error;
-      }
-      expect(thrown, `${item.name} must throw`).toBeInstanceOf(Error);
-      expect(thrown).toHaveProperty('code', expected.code);
-      if (expected.message) expect(thrown).toHaveProperty('message', expect.stringContaining(expected.message));
-    }));
-  }
-});
+for (const item of fixtures) {
+  if (item.expectError) continue;
+  test(item.name, () => proves(item.name, () => {
+    const rows = item.rows ?? [];
+    if (!isRecord(item.spec) || !Array.isArray(rows) || !rows.every(isRecord)) {
+      throw new Error(`${item.name}: the specification or rows of a rendered case are no object`);
+    }
+    expect(normalizeHtml(withoutPreloadLinks(renderList(item.spec, rows, item.options)))).toBe(item.expected_html);
+  }));
+}
+for (const item of fixtures) {
+  const expected = item.expectError;
+  if (!expected) continue;
+  test(item.name, () => proves(item.name, () => {
+    let thrown: unknown;
+    try {
+      // Reflect.apply calls renderList as a JavaScript caller does, with a specification or rows that its type rejects.
+      Reflect.apply(renderList, undefined, [item.spec, item.rows ?? [], item.options]);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown, `${item.name} must throw`).toBeInstanceOf(Error);
+    expect(thrown).toHaveProperty('code', expected.code);
+    if (expected.message) expect(thrown).toHaveProperty('message', expect.stringContaining(expected.message));
+  }));
+}

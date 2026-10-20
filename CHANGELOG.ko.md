@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c27f8571927c7047b443d743cdf9dabed7806e712688854a79c6d5eb7980734b -->
+<!-- source-sha256: bdf06aa3f812391136d697788dadb4b04a2d45dc11142ea3fa5909ed25900238 -->
 
 ## Unreleased
 
@@ -43,6 +43,9 @@
 ### 2026-10-21 — scripts의 명령은 kit의 runner로 실행한다 (C16.10)
 
 - `scripts/run-command.mts`를 제거한다. 사용처는 `@polyspec/kit/run-command`를 import한다(`scripts/repeat-build.mts`, `scripts/run-contract-tests.mts`, `scripts/gen-api-docs.mts`, `scripts/install-browsers.mts`, `scripts/require-current-build.mts`, `benchmarks/validators/build-drivers.mjs`, `benchmarks/validators/run.js`, `tests/native-generators/run.mts`). 그 테스트 `tests/build/run-command.test.mts`는 `npm run test:build`에서 빠지며, runner와 그 테스트는 kit이 소유한다. `config/rebuild.json`은 `replaced` 항목을 버리고, `config/owner-checks.json`, `tests/build/rust-node-entry-points.test.mts`, `scripts/gen-api-docs.test.mts`는 제거된 파일을 뺀다. 출력 한도 실패는 kit의 메시지 `wrote more than its output limit; stopped its process group`를 쓰며, 더 이상 byte 수를 출력하지 않는다. 호출하는 스크립트 중 byte 수를 출력한 곳은 없었다. Red: HEAD에서 `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` exit 1(파일이 남아 있다); green: 같은 명령 exit 0; `scripts/gen-api-docs.test.mts` 8 passed, `tests/build/rust-node-entry-points.test.mts` 7 passed, `tests/build/offline-checks.test.mts` 2 passed, `tests/build/install-browsers.test.mts` 3 passed.
+### 2026-10-21 — form-outline, form-complete, list-render, detail-render 단위의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158-5): outline.conformance.test.ts, list-conformance.test.ts, detail-conformance.test.ts의 사례 묶음이 사례 이름의 최상위 테스트이며, form-complete.conformance.test.ts는 사례의 renderFormView 검증을 그 사례의 테스트 안에서 실행하여 사례 이름이 겹치지 않는다. Red: `make -s parity-check UNITS="form-outline form-complete list-render detail-render"` exit 1, `R3 not-executed <unit> ts`와 사례 이름; green: exit 0, form-outline 5 of 5, form-complete 28 of 28, list-render 165 of 165, detail-render 68 of 68 사례 통과. (C16.158-5)
+
+- undefined
 
 ### 2026-10-21 — list-validity, detail-validity, spec-validity 단위의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158-4): validate-list.conformance.test.ts, validate-detail.conformance.test.ts, forbidden-scan.conformance.test.ts의 사례 묶음이 사례 이름의 최상위 테스트이며 describe 감싸기가 없어졌고, 각 파일의 메타 검사는 중첩으로 남는다. Red: `make -s parity-check UNITS="list-validity detail-validity spec-validity"` exit 1, `R3 not-executed <unit> ts`와 사례 이름; green: exit 0, list-validity 20 of 20, detail-validity 13 of 13, spec-validity 34 of 34 사례 통과. (C16.158-4)
 

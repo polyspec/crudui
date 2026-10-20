@@ -6,7 +6,7 @@
  * `renderDataPanel` must reproduce it after the shared normalizer.
  */
 
-import { describe, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 import { bindForm, compileForm, formMessages, type Language } from '@polyspec/crudui-generator-core';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
@@ -34,16 +34,14 @@ function caseLanguage(c: OutlineCase): Language {
   throw new Error(`${c.name}: no language of the generator: ${language}`);
 }
 
-describe('structure map and data view: HTML reproduces the fixture', () => {
-  for (const c of cases) {
-    test(c.name, () => provesConformance({
-      features: ['buildOutline'], fixture: 'tests/fixtures/form-outline/cases.json', runtime: 'javascript-html', case: c.name,
-    }, () => {
-      const messages = formMessages(c.options.language);
-      const fields = bindForm(compileForm(c.spec), c.data, { language: caseLanguage(c) });
-      const state = { fields, canUndo: c.canUndo, canRedo: c.canRedo };
-      expect(normalizeHtml(renderOutlineView(state, messages))).toBe(c.expected_outline_html);
-      expect(normalizeHtml(renderDataPanel(c.data, messages))).toBe(c.expected_data_html);
-    }));
-  }
-});
+for (const c of cases) {
+  test(c.name, () => provesConformance({
+    features: ['buildOutline'], fixture: 'tests/fixtures/form-outline/cases.json', runtime: 'javascript-html', case: c.name,
+  }, () => {
+    const messages = formMessages(c.options.language);
+    const fields = bindForm(compileForm(c.spec), c.data, { language: caseLanguage(c) });
+    const state = { fields, canUndo: c.canUndo, canRedo: c.canRedo };
+    expect(normalizeHtml(renderOutlineView(state, messages))).toBe(c.expected_outline_html);
+    expect(normalizeHtml(renderDataPanel(c.data, messages))).toBe(c.expected_data_html);
+  }));
+}
