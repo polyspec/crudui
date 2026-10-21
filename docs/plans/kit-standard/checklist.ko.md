@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a59fda389212f4c5e0fbb05d08d756322a55860d1d1882b64d2d3e8c4ea729dd -->
+<!-- source-sha256: 0b35ba2547c8457024281809ad6d82503e0a24def843ad7a6a0b0b375e586f61 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -69,7 +69,7 @@
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
-| C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [!] 원인: composer.lock이 polyspec/crudui-generator 0.0.7, polyspec/crudui-validator 0.0.7, polyspec/ordered-json 0.0.9를 해석하며, 이들은 php >=8.5를 요구하는데 composer.json은 php 8.4.1을 선언한다. review record에는 packages/php-ext/composer.lock과 Go, Rust lock이 없다; 재시도: PHP 8.4 또는 8.5에 대한 저장소 간 결정 뒤, make dependency-review RECORD=1을 실행한다 |
+| C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [~] |
 | C16.46 | config/parity.json은 crudui의 implementation, tooling root, comparator를 선언한다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.46-1 | config/parity.json은 TypeScript 전용 package와 tooling test를 implementation root 밖에 둔다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.47 | C engine test는 php-ext test folder에 있고 config/parity.json에 선언된다 | packages/php-ext/tests/engine/engine.test.mjs, config/parity.json, config/owner-checks.json | `make parity-declarations-check` | [o] |
