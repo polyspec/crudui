@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The form comparison runs its steps through runCommand of kit (C16.28)
+
+- `runStep` of examples/form-comparison/src/step-runner.mjs runs each step through `runCommand` of `@polyspec/kit/run-command` with its output piped and printed line by line with the step id (`onLine`); the process-group spawn, the output prefixing and `stopStepsOnSignal` (which kit's runCommand replaces) are removed, and local-verification.mjs no longer calls it; `killProcessTree` and the heartbeat stay (C16.28). Red: `make text-absent` of `spawn(step.command` in step-runner.mjs exits 2 with the stale text, and `grep` of `@polyspec/kit/run-command` exits 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exits 0.
+
 ### 2026-10-21 — The parity declaration holds with no finding (C16.3)
 
 - Every unit of config/parity.json holds in every implementation and cites the spec requirements its tests name: no profile, native-only symbol or exclusion is left, and `make parity-declarations-check` reports no finding with kit 0.0.54 linked to its checkout (C16.3).

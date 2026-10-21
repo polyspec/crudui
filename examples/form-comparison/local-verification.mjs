@@ -23,7 +23,7 @@ import { formServers } from './src/runtime-paths.mjs';
 import { runAsEntryPoint } from './src/entry-point.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
-import { formatDuration, runStages, stopStepsOnSignal } from './src/step-runner.mjs';
+import { formatDuration, runStages } from './src/step-runner.mjs';
 import { createProgress } from '@polyspec/kit/test-progress';
 import { verifyEvidence } from './verification-evidence.mjs';
 
@@ -102,7 +102,6 @@ export async function takeBrowserReports(directory, results) {
 }
 
 async function main() {
-  stopStepsOnSignal();
   const { values } = parseArgs({ options: {
     results: { type: 'string' }, servers: { type: 'string' },
     'browser-reports': { type: 'string' },

@@ -340,7 +340,7 @@
     },
     "examples/form-comparison/src/step-runner.mjs": {
       "kind": "replaced",
-      "reason": "replaced by the process-group runner of @polyspec/kit once kit exports it (the kit item of C16.10); it starts a step, prints its progress and stops its process tree; item C16.28 registers the replacement"
+      "reason": "replaced by runCommand of @polyspec/kit, the process-group runner that kit exports (K430, K430-1), which starts and stops each step's process group; the step runner keeps only its progress lines, its heartbeat and the process-tree stop of killProcessTree that kit does not do; item C16.28 registers the replacement"
     },
     "examples/form-comparison/src/storage-lock.mjs": {
       "kind": "ecosystem",

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { execFile, spawn } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+
+import { runCommand } from '@polyspec/kit/run-command';
 
 const execFileAsync = promisify(execFile);
 /** A running step prints one line with its elapsed time at this interval. */
@@ -93,24 +95,6 @@ export async function killProcessTree(child, graceMs = stepTerminationGraceMs) {
   }
 }
 
-function prefixLines(stream, prefix, write) {
-  let pending = '';
-  stream.setEncoding('utf8');
-  function emit(line) {
-    write(`${prefix}${line}\n`);
-  }
-  stream.on('data', chunk => {
-    pending += chunk;
-    const lines = pending.split('\n');
-    pending = lines.pop();
-    for (const line of lines) emit(line);
-  });
-  return new Promise(resolve => stream.once('end', () => {
-    if (pending) emit(pending);
-    resolve();
-  }));
-}
-
 /**
  * Validate one step definition: an id, a command and its arguments. A step is a long operation (a
  * build, a check made of units) and holds no limit, so a step that declares a
@@ -125,12 +109,12 @@ export function assertStep(step) {
   return step;
 }
 
-const running = new Set();
-
 /**
  * Run one step to its end and stream its progress: a start line, a line with the elapsed time at
  * every heartbeat while it runs, its output prefixed with its id, and a pass or fail line with its
- * duration. The step has no time limit; its exit status decides its result.
+ * duration. The step has no time limit; its exit status decides its result. runCommand of kit runs
+ * the step in its own process group and stops the processes it leaves behind, and it stops the step
+ * when this process is interrupted.
  */
 export async function runStep(step, options = {}) {
   assertStep(step);
@@ -140,30 +124,20 @@ export async function runStep(step, options = {}) {
   const started = performance.now();
   const elapsed = () => formatDuration(performance.now() - started);
   write(`[${label}] ${step.id}: started\n`);
-  const child = spawn(step.command, step.args, {
-    cwd: step.cwd, env: { ...process.env, ...step.environment },
-    stdio: ['ignore', 'pipe', 'pipe'], detached: true,
-  });
-  const entry = { child, step };
-  running.add(entry);
-  const output = Promise.all([
-    prefixLines(child.stdout, `[${step.id}] `, write),
-    prefixLines(child.stderr, `[${step.id}] `, write),
-  ]);
-  const heartbeat = setInterval(() => write(`[${label}] ${step.id}: running ${elapsed()}\n`),
-    heartbeatMs);
-  const [code, signalName, error] = await new Promise(resolve => {
-    child.once('error', failure => resolve([null, null, failure]));
-    child.once('exit', (exitCode, exitSignal) => resolve([exitCode, exitSignal, null]));
+  const heartbeat = setInterval(() => write(`[${label}] ${step.id}: running ${elapsed()}\n`), heartbeatMs);
+  const result = await runCommand({
+    command: step.command, args: step.args, cwd: step.cwd, env: { ...process.env, ...step.environment },
+    stdout: 'pipe', stderr: 'pipe',
+    onLine: (_stream, line) => write(`[${step.id}] ${line}\n`),
   });
   clearInterval(heartbeat);
-  running.delete(entry);
-  if (!error) await output;
   const durationMs = performance.now() - started;
-  const status = code === 0 ? 'passed' : 'failed';
-  write(`[${label}] ${step.id}: ${status === 'passed' ? `passed in ${formatDuration(durationMs)}`
-    : `failed (${error?.message ?? signalName ?? `exit ${code}`}) after ${formatDuration(durationMs)}`}\n`);
-  return { id: step.id, status, exitCode: code, signal: signalName, durationMs };
+  const passed = result.error === undefined && result.stopped === undefined && result.status === 0;
+  const reason = result.error?.message ?? (result.stopped === 'output'
+    ? 'wrote more than its output limit' : result.signal ?? `exit ${result.status}`);
+  write(`[${label}] ${step.id}: ${passed ? `passed in ${formatDuration(durationMs)}`
+    : `failed (${reason}) after ${formatDuration(durationMs)}`}\n`);
+  return { id: step.id, status: passed ? 'passed' : 'failed', exitCode: result.status, signal: result.signal, durationMs };
 }
 
 /**
@@ -180,15 +154,4 @@ export async function runStages(stages, options = {}) {
     if (stageResults.some(result => result.status !== 'passed')) break;
   }
   return results;
-}
-
-/** Stop every running step's process tree when this process is asked to stop. */
-export function stopStepsOnSignal({ write = text => process.stderr.write(text) } = {}) {
-  for (const name of ['SIGTERM', 'SIGINT']) {
-    process.once(name, async () => {
-      write(`${name}: stopping ${running.size} running step(s)\n`);
-      await Promise.all([...running].map(({ child }) => killProcessTree(child, 1_000)));
-      process.exit(name === 'SIGINT' ? 130 : 143);
-    });
-  }
 }

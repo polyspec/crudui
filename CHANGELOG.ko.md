@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1c26f619ae90136540987db8c02d07fb6c501720ad32e27d9e48c718c85c0d4b -->
+<!-- source-sha256: 4fc473d813119c67e3c55fe28d85836d0a297a6f5803fba4f3fd409589009490 -->
 
 ## Unreleased
+
+### 2026-10-21 — form comparison은 step을 kit의 runCommand로 실행한다 (C16.28)
+
+- examples/form-comparison/src/step-runner.mjs의 `runStep`은 각 step을 `@polyspec/kit/run-command`의 `runCommand`로 실행하고, 출력을 pipe로 받아 step id를 붙여 한 줄씩 출력한다(`onLine`). process group spawn, 출력 prefix, kit의 runCommand가 대신하는 `stopStepsOnSignal`은 제거되었고 local-verification.mjs는 더 이상 이를 호출하지 않는다. `killProcessTree`와 heartbeat는 남는다 (C16.28). Red: step-runner.mjs의 `spawn(step.command` 존재를 `make text-absent`가 exit 2로 보고하고, `@polyspec/kit/run-command`의 `grep`은 exit 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exit 0.
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.3)
 
