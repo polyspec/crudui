@@ -24,9 +24,7 @@ def check_case(test, case):
         template = Generator.compileForm(case["spec"], options)
         nodes = Generator.bindForm(template, case.get("data") or {}, options)
         actual = Generator.buildOutline(nodes)
-        test.assertEqual(
-            json.dumps(actual), json.dumps(case["expected_outline_rows"])
-        )
+        test.assertEqual(json.dumps(actual), json.dumps(case["expected_outline_rows"]))
         proof.passed = True
 
 

@@ -190,9 +190,7 @@ class TestTextValidityFixtureCounts(unittest.TestCase):
         self.assertEqual(len(cases_of("text-validity", "validateList/cases.json")), 6)
 
     def test_validate_detail_case_count(self):
-        self.assertEqual(
-            len(cases_of("text-validity", "validateDetail/cases.json")), 5
-        )
+        self.assertEqual(len(cases_of("text-validity", "validateDetail/cases.json")), 5)
 
     def test_value_graph_case_count(self):
         self.assertEqual(len(cases_of("text-validity", "value-graphs.json")), 12)

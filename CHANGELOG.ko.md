@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cd03e46a0288ff43cc0c425d724077c045ed2473999fdda8da17e249727be7c3 -->
+<!-- source-sha256: 36fcbb906d46ac5a7ad9d6635a6067178b58045217f98edf14a8d4988ac5378e -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-21 — go input text unit가 케이스를 이름으로 보고한다 (C16.165-1)
 
 - packages/generator/go/input_text_test.go: TestInputTextCases는 다섯 fixture를 하위 테스트로 계속 실행하고, 새 함수 TestInputTextCompileForm, TestInputTextBindForm, TestInputTextCreateForm, TestInputTextBuildList, TestInputTextBuildDetail은 fixture 하나씩을 runTextCases로 실행한다. runTextCases의 하위 테스트는 케이스의 기본 이름이다. config/parity.json은 text-compile-form, text-bind-form, text-create-form, text-build-list, text-build-detail unit을 각자의 함수에 묶는다 (C16.165-1). Red: `make parity-check UNITS="text-compile-form text-bind-form text-create-form text-build-list text-build-detail"` exit 2, go 줄 `R3 not-executed <unit> go packages/generator/go/input_text_test.go: not executed: pass-paired-surrogates, ...; not in the suite: compileForm/pass-paired-surrogates, ...`; green: go 줄 모두 `exit 0`, 케이스 7, 17, 15, 11, 6개 모두 통과, go R3 줄 없음 (같은 unit의 ts와 rust 줄로 exit 2가 남는다).
+
+### 2026-10-21 — case 보고 파일의 python 테스트 파일이 포맷된다 (C16.157-8)
+
+- case 보고 행에서 바뀐 python 테스트 파일이 ruff format이 쓰는 형식으로 맞춰졌다 (C16.157-8): `packages/generator/python/tests/test_outline.py`(outline 행의 `assertEqual`)와 `packages/validator/python/tests/test_text_validity.py`(validateDetail 픽스처 개수)이며, 검사 내용은 바뀌지 않았다. Red: `make lint-python`이 exit 1로 끝나며 `ruff format --check .`이 두 파일을 `would be reformatted`로 보고한다(2 files would be reformatted); green: `make lint-python`이 exit 0이고 모든 단계가 통과한다.
 
 ### 2026-10-21 — 생성기의 python template-shape 바인딩이 케이스를 이름으로 보고한다 (C16.157-7)
 
