@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4fc473d813119c67e3c55fe28d85836d0a297a6f5803fba4f3fd409589009490 -->
+<!-- source-sha256: 733d9bd0b08de2a9dbb27c5677c21a38ffd06ec4fe14a067e35917be13f81740 -->
 
 ## Unreleased
 
 ### 2026-10-21 — form comparison은 step을 kit의 runCommand로 실행한다 (C16.28)
 
 - examples/form-comparison/src/step-runner.mjs의 `runStep`은 각 step을 `@polyspec/kit/run-command`의 `runCommand`로 실행하고, 출력을 pipe로 받아 step id를 붙여 한 줄씩 출력한다(`onLine`). process group spawn, 출력 prefix, kit의 runCommand가 대신하는 `stopStepsOnSignal`은 제거되었고 local-verification.mjs는 더 이상 이를 호출하지 않는다. `killProcessTree`와 heartbeat는 남는다 (C16.28). Red: step-runner.mjs의 `spawn(step.command` 존재를 `make text-absent`가 exit 2로 보고하고, `@polyspec/kit/run-command`의 `grep`은 exit 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exit 0.
+
+### 2026-10-21 — go input text unit가 케이스를 이름으로 보고한다 (C16.165-1)
+
+- packages/generator/go/input_text_test.go: TestInputTextCases는 다섯 fixture를 하위 테스트로 계속 실행하고, 새 함수 TestInputTextCompileForm, TestInputTextBindForm, TestInputTextCreateForm, TestInputTextBuildList, TestInputTextBuildDetail은 fixture 하나씩을 runTextCases로 실행한다. runTextCases의 하위 테스트는 케이스의 기본 이름이다. config/parity.json은 text-compile-form, text-bind-form, text-create-form, text-build-list, text-build-detail unit을 각자의 함수에 묶는다 (C16.165-1). Red: `make parity-check UNITS="text-compile-form text-bind-form text-create-form text-build-list text-build-detail"` exit 2, go 줄 `R3 not-executed <unit> go packages/generator/go/input_text_test.go: not executed: pass-paired-surrogates, ...; not in the suite: compileForm/pass-paired-surrogates, ...`; green: go 줄 모두 `exit 0`, 케이스 7, 17, 15, 11, 6개 모두 통과, go R3 줄 없음 (같은 unit의 ts와 rust 줄로 exit 2가 남는다).
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.3)
 

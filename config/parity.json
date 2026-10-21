@@ -1943,7 +1943,7 @@
         {
           "implementation": "go",
           "test": "packages/generator/go/input_text_test.go",
-          "symbol": "TestInputTextCases"
+          "symbol": "TestInputTextCompileForm"
         },
         {
           "implementation": "python",
@@ -1983,7 +1983,7 @@
         {
           "implementation": "go",
           "test": "packages/generator/go/input_text_test.go",
-          "symbol": "TestInputTextCases"
+          "symbol": "TestInputTextBindForm"
         },
         {
           "implementation": "python",
@@ -2024,7 +2024,7 @@
         {
           "implementation": "go",
           "test": "packages/generator/go/input_text_test.go",
-          "symbol": "TestInputTextCases"
+          "symbol": "TestInputTextCreateForm"
         },
         {
           "implementation": "python",
@@ -2070,7 +2070,7 @@
         {
           "implementation": "go",
           "test": "packages/generator/go/input_text_test.go",
-          "symbol": "TestInputTextCases"
+          "symbol": "TestInputTextBuildList"
         },
         {
           "implementation": "python",
@@ -2110,7 +2110,7 @@
         {
           "implementation": "go",
           "test": "packages/generator/go/input_text_test.go",
-          "symbol": "TestInputTextCases"
+          "symbol": "TestInputTextBuildDetail"
         },
         {
           "implementation": "python",

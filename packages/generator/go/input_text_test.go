@@ -13,7 +13,7 @@ import (
 )
 
 // Byte strings that are not UTF-8 are invalid text in every generator input.
-// The shared cases of tests/fixtures/text-validity run in TestInputTextCases.
+// The shared cases of tests/fixtures/text-validity run in TestInputTextCases and the functions of its units.
 func TestInputTextRejectsInvalidUTF8(t *testing.T) {
 	const bad = "\xed\xa0\x80"
 	message := func(e error) string {
@@ -362,29 +362,51 @@ func outcomeOf(err error) any {
 
 // TestInputTextCases runs every case of the five generator fixtures of
 // tests/fixtures/text-validity (CUIT-010..013 and the form operations of
-// CUIT-011, CUIT-014..020) through the public generator API.
+// CUIT-011, CUIT-014..020) through the public generator API, each fixture as a
+// subtest named by the fixture. The units of the fixtures are bound to the
+// functions below, one each.
 func TestInputTextCases(t *testing.T) {
 	for _, feature := range []string{"compileForm", "bindForm", "createForm", "buildList", "buildDetail"} {
-		run := textOperations[feature]
-		for _, c := range loadTextFixture(t, feature) {
-			name, ok := c.members["name"].(string)
-			if !ok {
-				t.Fatalf("a %s case has no name", feature)
-			}
-			t.Run(feature+"/"+name, func(t *testing.T) {
-				got, err := json.Marshal(outcomeOf(run(t, c)))
-				if err != nil {
-					t.Fatal(err)
-				}
-				want, err := json.Marshal(c.members["expect"])
-				if err != nil {
-					t.Fatal(err)
-				}
-				if string(got) != string(want) {
-					t.Errorf("got %s\nwant %s", got, want)
-				}
-			})
+		t.Run(feature, func(t *testing.T) { runTextCases(t, feature) })
+	}
+}
+
+// TestInputTextCompileForm runs the cases of the compileForm fixture (the unit text-compile-form).
+func TestInputTextCompileForm(t *testing.T) { runTextCases(t, "compileForm") }
+
+// TestInputTextBindForm runs the cases of the bindForm fixture (the unit text-bind-form).
+func TestInputTextBindForm(t *testing.T) { runTextCases(t, "bindForm") }
+
+// TestInputTextCreateForm runs the cases of the createForm fixture (the unit text-create-form).
+func TestInputTextCreateForm(t *testing.T) { runTextCases(t, "createForm") }
+
+// TestInputTextBuildList runs the cases of the buildList fixture (the unit text-build-list).
+func TestInputTextBuildList(t *testing.T) { runTextCases(t, "buildList") }
+
+// TestInputTextBuildDetail runs the cases of the buildDetail fixture (the unit text-build-detail).
+func TestInputTextBuildDetail(t *testing.T) { runTextCases(t, "buildDetail") }
+
+// runTextCases runs every case of one fixture through its operation as a direct subtest named by the case.
+func runTextCases(t *testing.T, feature string) {
+	run := textOperations[feature]
+	for _, c := range loadTextFixture(t, feature) {
+		name, ok := c.members["name"].(string)
+		if !ok {
+			t.Fatalf("a %s case has no name", feature)
 		}
+		t.Run(name, func(t *testing.T) {
+			got, err := json.Marshal(outcomeOf(run(t, c)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			want, err := json.Marshal(c.members["expect"])
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != string(want) {
+				t.Errorf("got %s\nwant %s", got, want)
+			}
+		})
 	}
 }
 

@@ -7,6 +7,10 @@
 
 - `runStep` of examples/form-comparison/src/step-runner.mjs runs each step through `runCommand` of `@polyspec/kit/run-command` with its output piped and printed line by line with the step id (`onLine`); the process-group spawn, the output prefixing and `stopStepsOnSignal` (which kit's runCommand replaces) are removed, and local-verification.mjs no longer calls it; `killProcessTree` and the heartbeat stay (C16.28). Red: `make text-absent` of `spawn(step.command` in step-runner.mjs exits 2 with the stale text, and `grep` of `@polyspec/kit/run-command` exits 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exits 0.
 
+### 2026-10-21 — The go input text units report each case by name (C16.165-1)
+
+- packages/generator/go/input_text_test.go: TestInputTextCases keeps the five fixtures as subtests; the new functions TestInputTextCompileForm, TestInputTextBindForm, TestInputTextCreateForm, TestInputTextBuildList and TestInputTextBuildDetail run one fixture each through runTextCases, whose subtests are the bare case names; config/parity.json binds the units text-compile-form, text-bind-form, text-create-form, text-build-list and text-build-detail to their own function (C16.165-1). Red: `make parity-check UNITS="text-compile-form text-bind-form text-create-form text-build-list text-build-detail"` exit 2, with the go lines `R3 not-executed <unit> go packages/generator/go/input_text_test.go: not executed: pass-paired-surrogates, ...; not in the suite: compileForm/pass-paired-surrogates, ...`; green: the go lines `exit 0`, 7, 17, 15, 11 and 6 of 7, 17, 15, 11 and 6 cases passed, and no go R3 line (exit 2 remains from the ts and rust lines of the same units).
+
 ### 2026-10-21 — The parity declaration holds with no finding (C16.3)
 
 - Every unit of config/parity.json holds in every implementation and cites the spec requirements its tests name: no profile, native-only symbol or exclusion is left, and `make parity-declarations-check` reports no finding with kit 0.0.54 linked to its checkout (C16.3).
