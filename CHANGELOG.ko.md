@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ba3050c2535063506ab0557253b3a6f3c2f73fe38a4119631861db6d13eeb768 -->
+<!-- source-sha256: 4c75e52b536d23a2a2e792004afa191c4caea90bc81c6bc9ef5dad6762554fc7 -->
 
 ## Unreleased
 
 ### 2026-10-21 — form comparison은 step을 kit의 runCommand로 실행한다 (C16.28)
 
 - examples/form-comparison/src/step-runner.mjs의 `runStep`은 각 step을 `@polyspec/kit/run-command`의 `runCommand`로 실행하고, 출력을 pipe로 받아 step id를 붙여 한 줄씩 출력한다(`onLine`). process group spawn, 출력 prefix, kit의 runCommand가 대신하는 `stopStepsOnSignal`은 제거되었고 local-verification.mjs는 더 이상 이를 호출하지 않는다. `killProcessTree`와 heartbeat는 남는다 (C16.28). Red: step-runner.mjs의 `spawn(step.command` 존재를 `make text-absent`가 exit 2로 보고하고, `@polyspec/kit/run-command`의 `grep`은 exit 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exit 0.
+
+### 2026-10-21 — text unit와 expr fixture의 go 바인딩이 케이스를 이름으로 보고한다 (C16.165)
+
+- text-compile-form, text-bind-form, text-create-form, text-build-list, text-build-detail, text-validity-validate, text-validity-validate-list, text-validity-validate-detail unit의 go 바인딩은 각자의 테스트 함수로 실행되고, expr fixture는 항목마다 하위 테스트 하나로 보고하여, `make parity-check`가 go에서 이 unit들의 모든 케이스를 실행된 것으로 보고한다 (C16.165-1, C16.165-2). Red: 094317cc에서 `make parity-check UNITS="text-compile-form text-bind-form text-create-form text-build-list text-build-detail text-validity-validate text-validity-validate-list text-validity-validate-detail expr"`의 go 줄이 케이스를 실행되지 않음 또는 suite에 없음으로 보고; green: 각 go 바인딩이 모든 케이스를 통과하고 go R3 줄이 없다 (C16.165).
 
 ### 2026-10-21 — go validator의 text와 expr unit이 케이스를 이름으로 보고한다 (C16.165-2)
 
