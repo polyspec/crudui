@@ -1442,7 +1442,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_outline.py"
+          "test": "packages/generator/python/tests/test_outline.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_outline.TestOutlineConformance"]
         },
         {
           "implementation": "rust",
