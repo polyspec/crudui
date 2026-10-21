@@ -2277,7 +2277,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_compose.py"
+          "test": "packages/validator/python/tests/test_compose.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_compose.TestComposeConformance"]
         },
         {
           "implementation": "php-extension",
