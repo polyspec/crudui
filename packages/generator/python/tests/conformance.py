@@ -169,3 +169,30 @@ def add_case_tests(cls, group, check):
 
         test.__name__ = f"test_{case['name']}"
         setattr(cls, test.__name__, test)
+
+
+def check_validity(test, case, build):
+    """The outcome of one list or detail validity case through build(spec, files).
+
+    A case with a recorded engine failure is refused with that code and composition trace; a case with expect "fail" and
+    engine "pass" is refused with INVALID_FORM_INPUT (CUDF-036 to CUDF-062); every other case builds.
+    """
+    from polyspec.crudui.generator import FormError
+    from polyspec.crudui.validator import ComposeLoadError, FormInputError
+
+    thrown = None
+    try:
+        build(case["spec"], case.get("files") or {})
+    except (ComposeLoadError, FormError, FormInputError) as error:
+        thrown = error
+    engine = case["engine"]
+    if isinstance(engine, dict):
+        test.assertIsNotNone(thrown, f"{case['name']} must fail with {engine['code']}")
+        test.assertEqual(thrown.code, engine["code"])
+        at = ".".join(thrown.trace) if isinstance(thrown, ComposeLoadError) else ""
+        test.assertEqual(at, engine["at"])
+    elif case["expect"] == "ok":
+        test.assertIsNone(thrown, f"{case['name']} must build")
+    else:
+        test.assertIsNotNone(thrown, f"{case['name']} must be refused")
+        test.assertEqual(thrown.code, "INVALID_FORM_INPUT")

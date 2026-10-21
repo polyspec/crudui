@@ -184,10 +184,6 @@
           "reason": "test: the TypeScript unit test of hiddenPaths; the validate suite (CUVR-017, CUSC-055) covers its hidden member in tests/fixtures/validate, and input-root-data-not-object covers its non-object data error"
         },
         {
-          "glob": "packages/generator/ts/src/display-validity.test.ts",
-          "reason": "test: the render acceptance of the list-validity and detail-validity cases through the TypeScript buildList and buildDetail (a case the validator rejects is refused by the render); the validator bindings of those two suites run the same cases, so this file is a second internal test of them"
-        },
-        {
           "glob": "packages/generator/ts/src/dom-sync.test.ts",
           "reason": "test: the browser runtime behaviour of connectForm, which writes the values of the server render into the live controls (docs/spec/form-runtime.md, the connectForm paragraph), which only the TypeScript browser runtime has"
         },
@@ -1672,6 +1668,144 @@
           "test": "packages/generator/rust/tests/buttons.rs",
           "symbol": "every_case_reproduces_its_expectation"
         }
+      ]
+    },
+    {
+      "id": "list-render-validity",
+      "kind": "suite",
+      "file": "tests/fixtures/list-validity/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/display-validity.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/validity_render_test.go",
+          "symbol": "TestListRenderValidity"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_render_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/validity_render.rs",
+          "symbol": "list_render_validity"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/ListRenderValidityTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\ListRenderValidityTest::testListRefusesOrAcceptsCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/ListRenderValidityTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\ListRenderValidityTest::testListRefusesOrAcceptsCase"
+        }
+      ],
+      "requirements": [
+        "CUDF-027",
+        "CUDF-040",
+        "CUDF-043",
+        "CUDF-044",
+        "CUDF-046",
+        "CUDF-047",
+        "CUDF-048",
+        "CUDF-049",
+        "CUDF-050",
+        "CUDF-051",
+        "CUDF-052",
+        "CUDF-053",
+        "CUDF-054",
+        "CUDF-055",
+        "CUDF-056",
+        "CUDF-057",
+        "CUDF-058",
+        "CUDF-059",
+        "CUDF-060",
+        "CUDF-061",
+        "CUDF-062",
+        "CUDF-064",
+        "CUDF-066",
+        "CUDF-068",
+        "CUDF-069",
+        "CUDF-077",
+        "CUDF-078",
+        "CUDF-079",
+        "CUDF-080",
+        "CUDF-081",
+        "CUDF-082",
+        "CUSC-001",
+        "CUSC-002",
+        "CUSC-007",
+        "CUSC-027",
+        "CUSC-028",
+        "CUSC-029",
+        "CUSC-030",
+        "CUSC-031",
+        "CUSC-032",
+        "CUSC-033",
+        "CUSC-034",
+        "CUSC-035"
+      ]
+    },
+    {
+      "id": "detail-render-validity",
+      "kind": "suite",
+      "file": "tests/fixtures/detail-validity/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/detail-display-validity.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/validity_render_test.go",
+          "symbol": "TestDetailRenderValidity"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_detail_render_validity.py"
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/validity_render.rs",
+          "symbol": "detail_render_validity"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/DetailRenderValidityTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\DetailRenderValidityTest::testDetailRefusesOrAcceptsCase"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/DetailRenderValidityTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\DetailRenderValidityTest::testDetailRefusesOrAcceptsCase"
+        }
+      ],
+      "requirements": [
+        "CUDF-032",
+        "CUDF-034",
+        "CUDF-041",
+        "CUDF-043",
+        "CUDF-045",
+        "CUDF-046",
+        "CUDF-047",
+        "CUDF-048",
+        "CUDF-049",
+        "CUDF-051",
+        "CUDF-052",
+        "CUDF-062",
+        "CUDF-064",
+        "CUDF-066",
+        "CUDF-068",
+        "CUDF-069",
+        "CUSC-001",
+        "CUSC-007",
+        "CUSC-036"
       ]
     },
     {

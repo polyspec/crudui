@@ -60,6 +60,10 @@ harness = false
 name = "detail_render"
 harness = false
 
+[[test]]
+name = "validity_render"
+harness = false
+
 [lints]
 workspace = true
 

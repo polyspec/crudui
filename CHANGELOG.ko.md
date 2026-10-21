@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9bae66744cd0e177266dca06867f063ee787f51df9e725487e22045ee60e28d1 -->
+<!-- source-sha256: 4d8a562170dcf29afc4863286c24c893175329cf01ea4d1cfe92396980381d7b -->
 
 ## Unreleased
 
@@ -52,6 +52,10 @@
 ### 2026-10-21 — 검증기의 python text-validity 바인딩이 케이스를 이름으로 보고한다 (C16.157-1)
 
 - text-validity-validate, text-validity-validate-list, text-validity-validate-detail, text-validity-value-graphs 단위의 python 바인딩이 각 케이스를 그 이름으로 보고한다 (C16.157-1): `packages/validator/python/tests/conformance.py`의 `add_case_tests`가 픽스처 파일 이름을 받고, `packages/validator/python/tests/test_text_validity.py`가 단위마다 케이스당 테스트 메서드 하나를 가진 테스트 클래스를 두어 같은 검증을 실행하며, 픽스처 개수는 `TestTextValidityFixtureCounts`에 둔다. `config/parity.json`은 각 바인딩을 `var/python/bin/python`과 그 클래스로 실행한다. Red: `make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-validity-value-graphs"`가 네 단위에 python R3 `not executed` 줄을 보고한다 (예: `R3 not-executed text-validity-validate python`, 0 of 21 cases); green: 같은 검사가 네 단위의 모든 케이스를 통과로 보고하고 (21 of 21, 6 of 6, 5 of 5, 12 of 12) python R3 줄이 없다.
+
+### 2026-10-21 — validity fixture가 모든 generator에 묶인다 (C16.167)
+
+- config/parity.json은 tests/fixtures/list-validity 위의 list-render-validity와 tests/fixtures/detail-validity 위의 detail-render-validity를 각각 여섯 binding으로 선언한다(C16.167). TypeScript는 display-validity.test.ts와 detail-display-validity.test.ts(validity-outcome.ts 위), Go는 validity_render_test.go, Python은 test_render_validity.py와 test_detail_render_validity.py(conformance.check_validity), Rust는 validity_render.rs, PHP와 native extension은 ListRenderValidityTest.php와 DetailRenderValidityTest.php(ValidityOutcome.php)다. 각 case는 기록된 engine 실패로 거부되거나 INVALID_FORM_INPUT(CUDF-036~062, docs/spec/display-formats.md)으로 거부되거나 build된다. Red: `sh -c 'make -s parity-check UNITS="list-render-validity detail-render-validity" > var/pc-C16.167.log 2>&1'` exit 2(binding이 없다). Green: 같은 명령 exit 0, 198 case 통과. 모든 generator가 이미 이 case들을 거부하므로 구현은 바뀌지 않았다.
 
 ### 2026-10-21 — 검증 fixture를 생성기가 쓴다 (C16.166)
 
