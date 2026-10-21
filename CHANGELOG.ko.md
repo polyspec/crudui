@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 880411ae487150161ffc87ad1bbafa18ae070a69510f39f35af07e0c61f58901 -->
+<!-- source-sha256: 1c26f619ae90136540987db8c02d07fb6c501720ad32e27d9e48c718c85c0d4b -->
 
 ## Unreleased
 
@@ -91,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — 열여덟 unit의 Rust 바인딩이 각 사례를 이름으로 보고한다 (C16.156-1)
+
+- C16.156-1이 닫힌다: 열여덟 unit(text-validity-validate, -list, -detail, value-graphs, list-validity, detail-validity, spec-validity, compose, form-complete, list-render, detail-render, form-outline, interface-messages, 다섯 text-form unit)의 Rust 바인딩이 fixture 사례마다 이름으로 보고하며 rust R3 줄이 없다. 그 Verification이 통과한다 (C16.156-1). 변경은 하위 행 C16.156-1-1부터 C16.156-1-5가 담는다.
 
 ### 2026-10-21 — Rust value graph가 공유 값을 포함해 사례 열두 개를 모두 실행한다 (C16.156-1-3)
 
