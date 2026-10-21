@@ -10,7 +10,7 @@ passes; a `createForm` case runs its recorded action on the created instance.
 
 import unittest
 
-from .conformance import cases_of
+from .conformance import add_case_tests, cases_of
 from polyspec.crudui.conformance import Proving
 
 
@@ -55,129 +55,161 @@ def _native_type(expect):
     return "none"
 
 
-class TestGeneratorTextValidityConformance(unittest.TestCase):
-    """The input text rule holds at the generation operations, in the same order."""
+def check_compile_form(test, case):
+    from polyspec.crudui.generator import Generator
 
-    def test_compile_form_cases(self):
-        from polyspec.crudui.generator import Generator
+    with Proving(
+        ["compileForm"],
+        "tests/fixtures/text-validity/compileForm/cases.json",
+        case["name"],
+    ) as proof:
+        outcome = _outcome(
+            lambda: Generator.compileForm(case["spec"], _options_of(case))
+        )
+        test.assertEqual(outcome, case["expect"])
+        test.assertEqual(_THROWN[0], _native_type(case["expect"]))
+        proof.passed = True
 
-        cases = cases_of("text-validity", "compileForm/cases.json")
-        self.assertEqual(len(cases), 7)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["compileForm"],
-                    "tests/fixtures/text-validity/compileForm/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                outcome = _outcome(
-                    lambda: Generator.compileForm(case["spec"], _options_of(case))
-                )
-                self.assertEqual(outcome, case["expect"])
-                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
-                proof.passed = True
 
-    def test_bind_form_cases(self):
-        from polyspec.crudui.generator import Generator
+def check_bind_form(test, case):
+    from polyspec.crudui.generator import Generator
 
-        cases = cases_of("text-validity", "bindForm/cases.json")
-        self.assertEqual(len(cases), 17)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["bindForm"],
-                    "tests/fixtures/text-validity/bindForm/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                template = (
-                    case["template"]
-                    if "template" in case
-                    else Generator.compileForm(case["spec"])
-                )
-                outcome = _outcome(
-                    lambda: Generator.bindForm(
-                        template, case.get("data", {}), _options_of(case)
-                    )
-                )
-                self.assertEqual(outcome, case["expect"])
-                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
-                proof.passed = True
+    with Proving(
+        ["bindForm"],
+        "tests/fixtures/text-validity/bindForm/cases.json",
+        case["name"],
+    ) as proof:
+        template = (
+            case["template"]
+            if "template" in case
+            else Generator.compileForm(case["spec"])
+        )
+        outcome = _outcome(
+            lambda: Generator.bindForm(
+                template, case.get("data", {}), _options_of(case)
+            )
+        )
+        test.assertEqual(outcome, case["expect"])
+        test.assertEqual(_THROWN[0], _native_type(case["expect"]))
+        proof.passed = True
 
-    def test_create_form_cases(self):
-        from polyspec.crudui.generator import Generator
 
-        cases = cases_of("text-validity", "createForm/cases.json")
-        self.assertEqual(len(cases), 15)
-        for case in cases:
-            with self.subTest(case=case["name"]):
+def check_create_form(test, case):
+    from polyspec.crudui.generator import Generator
 
-                def run():
-                    template = (
-                        case["template"]
-                        if "template" in case
-                        else Generator.compileForm(case["spec"])
-                    )
-                    form = Generator.createForm(
-                        template, case.get("data", {}), _options_of(case)
-                    )
-                    action = case.get("action")
-                    if action is not None:
-                        method = getattr(form, action["method"])
-                        method(*action["args"])
+    def run():
+        template = (
+            case["template"]
+            if "template" in case
+            else Generator.compileForm(case["spec"])
+        )
+        form = Generator.createForm(template, case.get("data", {}), _options_of(case))
+        action = case.get("action")
+        if action is not None:
+            method = getattr(form, action["method"])
+            method(*action["args"])
 
-                self.assertEqual(_outcome(run), case["expect"])
+    test.assertEqual(_outcome(run), case["expect"])
 
-                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
+    test.assertEqual(_THROWN[0], _native_type(case["expect"]))
 
-    def test_build_list_cases(self):
-        from polyspec.crudui.generator import Generator
 
-        cases = cases_of("text-validity", "buildList/cases.json")
-        self.assertEqual(len(cases), 11)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["buildList"],
-                    "tests/fixtures/text-validity/buildList/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                outcome = _outcome(
-                    lambda: Generator.buildList(
-                        case["spec"], case.get("rows", []), _options_of(case)
-                    )
-                )
-                self.assertEqual(outcome, case["expect"])
-                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
-                proof.passed = True
+def check_build_list(test, case):
+    from polyspec.crudui.generator import Generator
 
-    def test_build_detail_cases(self):
-        from polyspec.crudui.generator import Generator
+    with Proving(
+        ["buildList"],
+        "tests/fixtures/text-validity/buildList/cases.json",
+        case["name"],
+    ) as proof:
+        outcome = _outcome(
+            lambda: Generator.buildList(
+                case["spec"], case.get("rows", []), _options_of(case)
+            )
+        )
+        test.assertEqual(outcome, case["expect"])
+        test.assertEqual(_THROWN[0], _native_type(case["expect"]))
+        proof.passed = True
 
-        cases = cases_of("text-validity", "buildDetail/cases.json")
-        self.assertEqual(len(cases), 6)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["buildDetail"],
-                    "tests/fixtures/text-validity/buildDetail/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                outcome = _outcome(
-                    lambda: Generator.buildDetail(
-                        case["spec"], case.get("record", {}), _options_of(case)
-                    )
-                )
-                self.assertEqual(outcome, case["expect"])
-                self.assertEqual(_THROWN[0], _native_type(case["expect"]))
-                proof.passed = True
+
+def check_build_detail(test, case):
+    from polyspec.crudui.generator import Generator
+
+    with Proving(
+        ["buildDetail"],
+        "tests/fixtures/text-validity/buildDetail/cases.json",
+        case["name"],
+    ) as proof:
+        outcome = _outcome(
+            lambda: Generator.buildDetail(
+                case["spec"], case.get("record", {}), _options_of(case)
+            )
+        )
+        test.assertEqual(outcome, case["expect"])
+        test.assertEqual(_THROWN[0], _native_type(case["expect"]))
+        proof.passed = True
+
+
+class TestTextCompileFormConformance(unittest.TestCase):
+    """Each compileForm case keeps the input text rule of the generation operation."""
+
+
+add_case_tests(
+    TestTextCompileFormConformance, "text-validity/compileForm", check_compile_form
+)
+
+
+class TestTextBindFormConformance(unittest.TestCase):
+    """Each bindForm case keeps the input text rule of the generation operation."""
+
+
+add_case_tests(TestTextBindFormConformance, "text-validity/bindForm", check_bind_form)
+
+
+class TestTextCreateFormConformance(unittest.TestCase):
+    """Each createForm case keeps the input text rule, and its recorded action runs on the instance."""
+
+
+add_case_tests(
+    TestTextCreateFormConformance, "text-validity/createForm", check_create_form
+)
+
+
+class TestTextBuildListConformance(unittest.TestCase):
+    """Each buildList case keeps the input text rule of the generation operation."""
+
+
+add_case_tests(
+    TestTextBuildListConformance, "text-validity/buildList", check_build_list
+)
+
+
+class TestTextBuildDetailConformance(unittest.TestCase):
+    """Each buildDetail case keeps the input text rule of the generation operation."""
+
+
+add_case_tests(
+    TestTextBuildDetailConformance, "text-validity/buildDetail", check_build_detail
+)
+
+
+class TestGeneratorTextValidityFixtureCounts(unittest.TestCase):
+    """The text-validity fixture of each generation operation holds the recorded number of cases."""
+
+    def test_compile_form_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "compileForm/cases.json")), 7)
+
+    def test_bind_form_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "bindForm/cases.json")), 17)
+
+    def test_create_form_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "createForm/cases.json")), 15)
+
+    def test_build_list_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "buildList/cases.json")), 11)
+
+    def test_build_detail_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "buildDetail/cases.json")), 6)
 
 
 if __name__ == "__main__":

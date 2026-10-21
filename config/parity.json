@@ -1958,7 +1958,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_text_validity.py"
+          "test": "packages/generator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextCompileFormConformance"]
         },
         {
           "implementation": "rust",
@@ -1998,7 +1999,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_text_validity.py"
+          "test": "packages/generator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextBindFormConformance"]
         },
         {
           "implementation": "rust",
@@ -2039,7 +2041,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_text_validity.py"
+          "test": "packages/generator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextCreateFormConformance"]
         },
         {
           "implementation": "rust",
@@ -2085,7 +2088,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_text_validity.py"
+          "test": "packages/generator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextBuildListConformance"]
         },
         {
           "implementation": "rust",
@@ -2125,7 +2129,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_text_validity.py"
+          "test": "packages/generator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextBuildDetailConformance"]
         },
         {
           "implementation": "rust",
