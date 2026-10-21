@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 0b35ba2547c8457024281809ad6d82503e0a24def843ad7a6a0b0b375e586f61 -->
+<!-- source-sha256: 93022976a9c21a98e03fc0589b1eee79b55e99e4ab1545f24ea362bcaae826fc -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -69,7 +69,7 @@
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
-| C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [~] |
+| C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [!] 원인: 추적되는 composer.lock과 packages/php-ext/composer.lock이 php >=8.5를 요구하는 polyspec/crudui-generator 0.0.7, polyspec/crudui-validator 0.0.7, polyspec/ordered-json 0.0.9를 담고 있으나 플랫폼은 PHP 8.4.1(kit K322)이며, 검토 기록에 packages/php-ext/composer.lock과 Go·Rust lock이 없다; kit K439는 추적 lock이 링크된 provider의 manifest(php >=8.4)를 따르게 한다; 재시도: kit K439가 들어온 뒤: 그것으로 composer.lock과 packages/php-ext/composer.lock을 다시 만들고 make dependency-review RECORD=1 |
 | C16.46 | config/parity.json은 crudui의 implementation, tooling root, comparator를 선언한다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.46-1 | config/parity.json은 TypeScript 전용 package와 tooling test를 implementation root 밖에 둔다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.47 | C engine test는 php-ext test folder에 있고 config/parity.json에 선언된다 | packages/php-ext/tests/engine/engine.test.mjs, config/parity.json, config/owner-checks.json | `make parity-declarations-check` | [o] |
