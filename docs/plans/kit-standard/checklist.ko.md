@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 93022976a9c21a98e03fc0589b1eee79b55e99e4ab1545f24ea362bcaae826fc -->
+<!-- source-sha256: 24582ce0a138a4ebcf065a7ac4195a9883f06f2c4786c821d17a0442787248ef -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -324,3 +324,4 @@
 | C16.165-3 | form-outline의 go binding이 각 case를 subtest TestOutlineFixture/<case>로 보고한다 | packages/generator/go/outline_test.go | `sh -c 'make -s parity-check UNITS=form-outline > var/pc-C16.165-3.log 2>&1; ! grep -E "R3 not-executed [^ ]+ go " var/pc-C16.165-3.log'` | [o] |
 | C16.166 | 공유 validate fixture tests/fixtures/validate/cases.json이 생성기의 출력과 같다: 생성기가 손으로 쓰인 CUSC-038 expression 두 case를 쓴다 | tests/fixtures/validate/generate.mts, tests/fixtures/validate/cases.json | `sh -c 'var/tools/bin/node tests/fixtures/validate/generate.mts > var/validate-cases.json && cmp -s var/validate-cases.json tests/fixtures/validate/cases.json'` | [o] |
 | C16.167 | list와 detail validity fixture가 모든 generator에 묶인다: 각 generator는 spec이 요구하는 선언 case(CUDF-036~062)를 INVALID_FORM_INPUT으로 거부하고 나머지 case는 기록대로 받거나 거부한다 | config/parity.json, packages/generator/ts/src/display-validity.test.ts, packages/generator/go/validity_render_test.go, packages/generator/python/tests/test_render_validity.py, packages/generator/rust/tests/list_render_validity.rs, packages/generator/rust/tests/detail_render_validity.rs, packages/generator/php/tests/ListRenderValidityTest.php, packages/generator/php/tests/DetailRenderValidityTest.php | `sh -c 'make -s parity-check UNITS="list-render-validity detail-render-validity" > var/pc-C16.167.log 2>&1'` | [o] |
+| C16.168 | docs/features.md와 docs/features.ko.md가 검증 실행(표시 선언 검사와 네이티브 패키지 검증)을 PHP 8.5.10이 아니라 고정된 PHP 8.4.1에서 잰 결과로 기록한다; 이 실행은 전체 suite와 benchmark이므로 link-owner가 지시하는 최종 실행에서 다시 잰다 | docs/features.md, docs/features.ko.md | `make text-absent FILE=docs/features.md TEXT="PHP 8.5.10"`, `make text-absent FILE=docs/features.ko.md TEXT="PHP 8.5.10"` | [ ] |
