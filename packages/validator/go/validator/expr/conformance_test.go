@@ -56,8 +56,8 @@ func loadFixture(t *testing.T) []fixtureSpec {
 	return specs
 }
 
-// TestExpressionMatchesFixture runs every fixture entry as one subtest whose
-// stages (tokens, ast, evaluation) are nested subtests, so the recorded
+// TestExpressionMatchesFixture runs every fixture entry as one subtest, which
+// checks its stages (tokens, ast, evaluation) in turn, so the recorded
 // conformance result reflects all three stages of that entry.
 func TestExpressionMatchesFixture(t *testing.T) {
 	for _, spec := range loadFixture(t) {
@@ -65,12 +65,12 @@ func TestExpressionMatchesFixture(t *testing.T) {
 		t.Run(spec.Name, func(t *testing.T) {
 			conformance.Record(t, "validate", "tests/fixtures/expr/cases.json", spec.Name)
 			if spec.Error != "" {
-				t.Run("rejection", func(t *testing.T) { checkRejection(t, spec) })
+				checkRejection(t, spec)
 				return
 			}
-			t.Run("tokens", func(t *testing.T) { checkTokens(t, spec) })
-			t.Run("ast", func(t *testing.T) { checkAST(t, spec) })
-			t.Run("evaluation", func(t *testing.T) { checkEvaluation(t, spec) })
+			checkTokens(t, spec)
+			checkAST(t, spec)
+			checkEvaluation(t, spec)
 		})
 	}
 }
@@ -88,7 +88,8 @@ func checkRejection(t *testing.T, spec fixtureSpec) {
 func checkTokens(t *testing.T, spec fixtureSpec) {
 	toks, err := Tokenize(spec.Expr)
 	if err != nil {
-		t.Fatalf("tokenize error for %q: %v", spec.Expr, err)
+		t.Errorf("tokenize error for %q: %v", spec.Expr, err)
+		return
 	}
 	got := make([]map[string]any, len(toks))
 	for i, tk := range toks {
@@ -104,7 +105,8 @@ func checkTokens(t *testing.T, spec fixtureSpec) {
 func checkAST(t *testing.T, spec fixtureSpec) {
 	ast, err := Parse(spec.Expr)
 	if err != nil {
-		t.Fatalf("parse error for %q: %v", spec.Expr, err)
+		t.Errorf("parse error for %q: %v", spec.Expr, err)
+		return
 	}
 	want := normalize(toAny(spec.AST))
 	got := normalize(toAny(ast.ToMap()))
@@ -117,7 +119,8 @@ func checkEvaluation(t *testing.T, spec fixtureSpec) {
 	for i, c := range spec.Cases {
 		val, err := EvaluateValue(spec.Expr, c.Data, c.CurrentPath, c.RowKeys)
 		if err != nil {
-			t.Fatalf("evaluateValue error [%s] case %d: %v", spec.Expr, i, err)
+			t.Errorf("evaluateValue error [%s] case %d: %v", spec.Expr, i, err)
+			return
 		}
 		if !valueEquals(c.Value, val) {
 			t.Errorf("value mismatch [%s] case %d: expected %#v got %#v", spec.Expr, i, c.Value, val)
@@ -125,7 +128,8 @@ func checkEvaluation(t *testing.T, spec fixtureSpec) {
 
 		truthy, err := Evaluate(spec.Expr, c.Data, c.CurrentPath, c.RowKeys)
 		if err != nil {
-			t.Fatalf("evaluate error [%s] case %d: %v", spec.Expr, i, err)
+			t.Errorf("evaluate error [%s] case %d: %v", spec.Expr, i, err)
+			return
 		}
 		if truthy != c.Truthy {
 			t.Errorf("truthy mismatch [%s] case %d: expected %v got %v", spec.Expr, i, c.Truthy, truthy)

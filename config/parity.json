@@ -1021,7 +1021,7 @@
         {
           "implementation": "go",
           "test": "packages/validator/go/validator/validate/text_conformance_test.go",
-          "symbol": "TestInputTextMatchesFixture"
+          "symbol": "TestInputTextValidate"
         },
         {
           "implementation": "rust",
@@ -1078,7 +1078,7 @@
         {
           "implementation": "go",
           "test": "packages/validator/go/validator/validate/text_conformance_test.go",
-          "symbol": "TestInputTextMatchesFixture"
+          "symbol": "TestInputTextValidateList"
         },
         {
           "implementation": "rust",
@@ -1133,7 +1133,7 @@
         {
           "implementation": "go",
           "test": "packages/validator/go/validator/validate/text_conformance_test.go",
-          "symbol": "TestInputTextMatchesFixture"
+          "symbol": "TestInputTextValidateDetail"
         },
         {
           "implementation": "rust",

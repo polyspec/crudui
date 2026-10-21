@@ -190,7 +190,26 @@ func checkOutcome(t *testing.T, label string, got any, expect json.RawMessage) {
 	}
 }
 
+// TestInputTextMatchesFixture runs the cases of the three validator text-validity fixtures, each under its fixture's name.
+// The units of the fixtures are bound to the functions below, one each.
 func TestInputTextMatchesFixture(t *testing.T) {
+	for _, feature := range []string{"validate", "validateList", "validateDetail"} {
+		t.Run(feature, func(t *testing.T) { runTextFixture(t, feature) })
+	}
+}
+
+// TestInputTextValidate runs the cases of the validate fixture (the unit text-validity-validate).
+func TestInputTextValidate(t *testing.T) { runTextFixture(t, "validate") }
+
+// TestInputTextValidateList runs the cases of the validateList fixture (the unit text-validity-validate-list).
+func TestInputTextValidateList(t *testing.T) { runTextFixture(t, "validateList") }
+
+// TestInputTextValidateDetail runs the cases of the validateDetail fixture (the unit text-validity-validate-detail).
+func TestInputTextValidateDetail(t *testing.T) { runTextFixture(t, "validateDetail") }
+
+// runTextFixture runs every case of one text-validity fixture through the JSON and the value entry points, as a direct subtest
+// named by the case.
+func runTextFixture(t *testing.T, feature string) {
 	type entry struct {
 		json  func(c textCase, files map[string][]byte, basepath string) (any, error)
 		value func(spec *compose.OMap, data any, opts Options) (any, error)
@@ -232,23 +251,21 @@ func TestInputTextMatchesFixture(t *testing.T) {
 			},
 		},
 	}
-	for _, feature := range []string{"validate", "validateList", "validateDetail"} {
-		run := features[feature]
-		fixture := "tests/fixtures/text-validity/" + feature + "/cases.json"
-		for _, c := range loadTextCases(t, feature) {
-			c := c
-			name := c.name(t)
-			t.Run(feature+"/"+name, func(t *testing.T) {
-				conformance.Record(t, feature, fixture, name)
-				files, basepath := c.jsonInputs(t)
-				jsonResult, jsonErr := run.json(c, files, basepath)
-				checkTextOutcome(t, c, "JSON text", textOutcome(t, jsonResult, jsonErr))
-				spec, opts := c.valueInputs(t)
-				_, data := decodeData(t, c)
-				valueResult, valueErr := run.value(spec, data, opts)
-				checkTextOutcome(t, c, "values", textOutcome(t, valueResult, valueErr))
-			})
-		}
+	run := features[feature]
+	fixture := "tests/fixtures/text-validity/" + feature + "/cases.json"
+	for _, c := range loadTextCases(t, feature) {
+		c := c
+		name := c.name(t)
+		t.Run(name, func(t *testing.T) {
+			conformance.Record(t, feature, fixture, name)
+			files, basepath := c.jsonInputs(t)
+			jsonResult, jsonErr := run.json(c, files, basepath)
+			checkTextOutcome(t, c, "JSON text", textOutcome(t, jsonResult, jsonErr))
+			spec, opts := c.valueInputs(t)
+			_, data := decodeData(t, c)
+			valueResult, valueErr := run.value(spec, data, opts)
+			checkTextOutcome(t, c, "values", textOutcome(t, valueResult, valueErr))
+		})
 	}
 }
 

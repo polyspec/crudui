@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 733d9bd0b08de2a9dbb27c5677c21a38ffd06ec4fe14a067e35917be13f81740 -->
+<!-- source-sha256: ba3050c2535063506ab0557253b3a6f3c2f73fe38a4119631861db6d13eeb768 -->
 
 ## Unreleased
 
 ### 2026-10-21 — form comparison은 step을 kit의 runCommand로 실행한다 (C16.28)
 
 - examples/form-comparison/src/step-runner.mjs의 `runStep`은 각 step을 `@polyspec/kit/run-command`의 `runCommand`로 실행하고, 출력을 pipe로 받아 step id를 붙여 한 줄씩 출력한다(`onLine`). process group spawn, 출력 prefix, kit의 runCommand가 대신하는 `stopStepsOnSignal`은 제거되었고 local-verification.mjs는 더 이상 이를 호출하지 않는다. `killProcessTree`와 heartbeat는 남는다 (C16.28). Red: step-runner.mjs의 `spawn(step.command` 존재를 `make text-absent`가 exit 2로 보고하고, `@polyspec/kit/run-command`의 `grep`은 exit 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exit 0.
+
+### 2026-10-21 — go validator의 text와 expr unit이 케이스를 이름으로 보고한다 (C16.165-2)
+
+- packages/validator/go/validator/validate/text_conformance_test.go: TestInputTextMatchesFixture는 세 fixture를 하위 테스트로 계속 실행하고, 새 함수 TestInputTextValidate, TestInputTextValidateList, TestInputTextValidateDetail은 fixture 하나씩을 runTextFixture로 실행한다. 하위 테스트는 케이스의 기본 이름이다. packages/validator/go/validator/expr/conformance_test.go: 각 식 항목은 중첩 하위 테스트 대신 자기 테스트 본문에서 단계(tokens, ast, evaluation)를 차례로 확인하고, 실패한 단계는 t.Errorf로 보고한 뒤 반환하여 뒤 단계가 그대로 실행된다. config/parity.json은 text-validity-validate, text-validity-validate-list, text-validity-validate-detail unit을 각자의 함수에 묶는다 (C16.165-2). Red: `make parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail expr"` 094317cc에서 exit 2, go 줄 `R3 not-executed text-validity-validate go ...: not executed: pass-paired-surrogates, ...`와 `R3 not-executed expr go ...: not in the suite: path-sibling-truthy/tokens, ...`; green: go 줄 모두 `exit 0`, 케이스 21, 6, 5, 74개 모두 통과, go R3 줄 없음.
 
 ### 2026-10-21 — go input text unit가 케이스를 이름으로 보고한다 (C16.165-1)
 
