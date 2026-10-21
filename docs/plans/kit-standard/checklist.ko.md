@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 408be3abc456d82cea9a6943677132c87cab957fdabe5e36f4de23d2fb398b5a -->
+<!-- source-sha256: 28e891a0a7b74ebc0033378e7ab1b64a68fbf0e226d1ee8622e3baa414d46b94 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -330,3 +330,4 @@
 | C16.170 | 루트 package.json의 npm devDependencies가 @polyspec/kit과 @polyspec/ordered-json을 GitHub release tarball에서 가져와 npm ci가 로컬에 설치한다; 대신 make link로 형제 checkout에서 오고 release URL은 없어진다; K448-2를 기다린다 | package.json, package-lock.json | `sh -c '! grep -q "releases/download" package.json && make -s link-state-check > var/lsc-C16.170.log 2>&1'` | [ ] |
 | C16.171 | composer 루트가 polyspec/ordered-json을 release-assets-fetch가 받는 release zip(var/composer-artifacts)에서 가져오고 로컬 경로가 release-assets-fetch를 먼저 실행한다; 대신 make link로 형제 checkout에서 오고 release-assets-fetch는 로컬 경로에서 없어진다; K448-1을 기다린다 | composer.json, composer.lock, Makefile | `sh -c '! grep -q "var/composer-artifacts" composer.json && ! grep -q "release-assets-fetch" Makefile && make -s link-state-check > var/lsc-C16.171.log 2>&1'` | [ ] |
 | C16.172 | Composer 루트는 검토된 목표 버전 13.4.3을 phpunit/phpunit으로 요구하며, hyper와 ordered-json이 선언하는 방식대로 정확한 버전으로 선언하고 13.4.3으로 잠근다 (K435) | composer.json, composer.lock, config/dependency-review.json | `make dependency-policy-check` | [ ] |
+| C16.173 | crudui가 react와 react-dom을 19.3.1, vitest를 5.0.5로 올리고 리뷰 기록을 다시 쓴다. 원인: 기록의 최신 버전이 19.2.8과 5.0.4로 뒤처져 있다. | package.json, package-lock.json, config/dependency-review.json | `make dependency-policy-check` | [ ] |
