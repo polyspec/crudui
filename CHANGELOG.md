@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The unit pool of the form comparison runs its units as node:test tests (C16.28-1)
+
+- Each unit of `check.mjs` (the browser phases) and `check-pipeline.mjs` (the store resets and the 40 combinations) is a node:test test registered by `unitTest` of `src/unit-pool.mjs`, with its own timeout (`browserUnitLimitsMs`, `pipelineUnitLimitMs`); the outcome (`passed`, `failed` or `timed-out`) and the duration are recorded in the report, and `runUnit` and `runUnits` are removed (C16.28-1). Both files are node:test files that `local-verification.mjs` runs with `node --test` and that receive their origin, server and report file through the environment. `pipelineReport` moves to `src/pipeline-flow.mjs`, so that importing the pipeline no longer registers its tests. `src/unit-pool.mjs` keeps `runOperation`, which has no node:test equivalent (the browser start and close keep their start, heartbeat and result lines), and `measuredLimitMs`. The per-unit start and heartbeat lines are dropped, since node:test prints each test's result when it ends; `config/rebuild.json` classes `unit-pool.mjs` as policy. Red: `make text-absent FILE=examples/form-comparison/check.mjs TEXT="runUnit("` exit 2 and the owner tests (`unit-pool.test.mjs`, `check-verification.test.mjs`) exit 1 with 7 failed on the HEAD source; green: the six commands of the Verification exit 0, with 11 node:test tests passing. The browser checks were not run locally; `node --check` and `make lint-ts` pass.
+
 ### 2026-10-21 — The go outline cases are reported by name (C16.165-3)
 
 - `TestOutlineFixture` of `packages/generator/go/outline_test.go` runs each case of `tests/fixtures/form-outline/cases.json` as the subtest `TestOutlineFixture/<case>`, with the same assertions (C16.165-3); C16.165 had left it a loop with no subtest, so `make parity-check UNITS=form-outline` read none of its five cases. Red: that check reports `R3 not-executed form-outline go` (0 of 5) on 14a3b7b2; green: 5 of 5 cases passed and no go R3 line.

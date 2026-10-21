@@ -572,11 +572,7 @@ interaction checks, the frame-document checks and the artifacts took 26.3 second
 together, and until each is measured on its own each gets 80,000. The browser start and close are
 long operations without a limit (`runOperation` of `src/unit-pool.mjs`) that print the same
 progress lines. A server report records the status, duration and limit of these units, and the
-status and duration of the browser start and close, under `units`. While a unit
-runs, the check prints its progress line with its elapsed time every 15 seconds,
-and it prints each completed report with its result and duration. A unit that
-reaches its limit fails the run with that unit's name and its elapsed time, and the
-failure retains the current state and every completed report. The browser check as
+status and duration of the browser start and close, under `units`. A unit is a node:test test: it prints its result when it ends, and the check prints each completed report with its result and duration. A unit that reaches its limit fails its test, which names the unit, and the report records its elapsed time under `units`; the failure retains the current state and every completed report. The browser check as
 a whole has no limit, no summed limit and no duration budget.
 
 A complete server report requires a browser job of 24 reports: 16 scenario

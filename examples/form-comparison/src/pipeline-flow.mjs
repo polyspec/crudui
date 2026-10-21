@@ -317,3 +317,17 @@ export function pipelineUnits({ browser, origin }) {
     run: signal => runPipelineCombination({ browser, origin, combination, signal }),
   }));
 }
+
+/** Summarize the unit results of one run. */
+export function pipelineReport({ origin, source, resets, combinations, startedAt, durationMs }) {
+  const expected = pipelineCombinations().map(({ id }) => id);
+  const failed = [...resets, ...combinations].filter(result => result.status !== 'passed');
+  const passedCombinations = combinations.filter(result => result.status === 'passed').length;
+  return {
+    generatedAt: new Date().toISOString(), startedAt, durationMs, origin, source,
+    servers: [...recordServers], total: expected.length, passedCombinations, failed: failed.length,
+    passed: failed.length === 0 && resets.length === recordServers.length
+      && JSON.stringify(combinations.map(({ id }) => id)) === JSON.stringify(expected),
+    resets, combinations,
+  };
+}

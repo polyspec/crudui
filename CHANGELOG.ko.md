@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6f1769c9d8e6ca4911e7cb18d8bd77dc634ab25633995c29788bd1352f8b2191 -->
+<!-- source-sha256: 01e46216d8e262f3a2f6614fad2e305f1284c562de1360a184625b702851cd9e -->
 
 ## Unreleased
+
+### 2026-10-21 — form comparison의 unit pool은 unit을 node:test test로 실행한다 (C16.28-1)
+
+- `check.mjs`의 browser phase와 `check-pipeline.mjs`의 store reset 및 40개 조합의 각 unit은 `src/unit-pool.mjs`의 `unitTest`가 등록하는 node:test test이며, 각자 제한 시간(`browserUnitLimitsMs`, `pipelineUnitLimitMs`)을 가진다. 결과(`passed`, `failed`, `timed-out`)와 소요 시간을 보고서에 기록하며, `runUnit`과 `runUnits`는 제거했다 (C16.28-1). 두 file은 `local-verification.mjs`가 `node --test`로 실행하는 node:test file이고, origin, server, 보고서 file을 환경 변수로 받는다. `pipelineReport`는 `src/pipeline-flow.mjs`로 옮겨, pipeline을 import해도 test가 등록되지 않게 했다. `src/unit-pool.mjs`에는 node:test에 대응이 없는 `runOperation`(브라우저 시작과 종료는 시작, heartbeat, 결과 줄을 유지한다)과 `measuredLimitMs`만 남겼다. unit별 시작 줄과 heartbeat 줄은 node:test가 각 test의 결과를 끝날 때 출력하므로 없앴고, `config/rebuild.json`은 `unit-pool.mjs`를 policy로 분류한다. Red: `make text-absent FILE=examples/form-comparison/check.mjs TEXT="runUnit("`가 exit 2로 실패하고, owner test(`unit-pool.test.mjs`, `check-verification.test.mjs`)가 HEAD source에서 7개 실패로 exit 1; green: Verification의 여섯 명령이 exit 0이며 node:test test 11개가 통과한다. browser check는 로컬에서 실행하지 않았고, `node --check`와 `make lint-ts`는 통과한다.
 
 ### 2026-10-21 — go outline case를 이름으로 보고한다 (C16.165-3)
 

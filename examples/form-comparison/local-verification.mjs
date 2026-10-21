@@ -47,7 +47,8 @@ function check(id, args, environment = {}) {
  */
 export function verificationStages({ origin, results, data, prepared, library = repositoryRoot, servers, browserReports = false }) {
   const resultsEnvironment = { FORM_COMPARISON_RESULTS: results };
-  const browser = server => check(`browser-${server}`, ['check.mjs', server, origin], resultsEnvironment);
+  const browser = server => check(`browser-${server}`, ['--test', 'check.mjs'],
+    { ...resultsEnvironment, FORM_COMPARISON_SERVER: server, FORM_COMPARISON_ORIGIN: origin });
   if (servers !== undefined) {
     assert.equal(browserReports, false, 'A run checks the browsers of its servers or reads their reports, not both');
     return [selectedServers(servers).map(browser)];
@@ -74,8 +75,9 @@ export function verificationStages({ origin, results, data, prepared, library = 
       '--library', library, '--report', path.join(results, 'generation.json')])],
     [check('persistence', ['check-servers.mjs', '--origin', origin, '--data', data,
       '--report', path.join(results, 'server-report.json')])],
-    [check('pipeline', ['check-pipeline.mjs', '--origin', origin,
-      '--report', path.join(results, 'pipeline.json')])],
+    [check('pipeline', ['--test', 'check-pipeline.mjs'], {
+      FORM_PIPELINE_ORIGIN: origin, FORM_PIPELINE_REPORT: path.join(results, 'pipeline.json'),
+    })],
     ...browserReports ? [] : [formServers.map(browser)],
     [check('browser-summary', ['check-browser-reports.mjs',
       '--results', results, '--origin', origin,

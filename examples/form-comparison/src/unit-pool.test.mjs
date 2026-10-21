@@ -1,61 +1,42 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
-import { measuredLimitMs, runOperation, runUnit, runUnits } from './unit-pool.mjs';
+import { measuredLimitMs, runOperation } from './unit-pool.mjs';
 
-const sleep = (milliseconds, signal) => new Promise((resolve, reject) => {
-  const timer = setTimeout(resolve, milliseconds);
-  signal?.addEventListener('abort', () => { clearTimeout(timer); reject(signal.reason); }, { once: true });
-});
+test('a unit is a node:test test that records its passed, failed and timed-out outcomes', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'unit-pool-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const poolUrl = new URL('./unit-pool.mjs', import.meta.url).href;
+  const outcomes = path.join(directory, 'outcomes.json');
+  // The fixture runs three units under node:test; its failing and timed-out units fail the fixture's own run, so the
+  // run's exit status is not read: the outcomes it records are.
+  const fixture = path.join(directory, 'units.test.mjs');
+  await writeFile(fixture, `import { writeFileSync } from 'node:fs';
+import { after } from 'node:test';
+import { unitTest } from ${JSON.stringify(poolUrl)};
 
-test('a unit reports its start, heartbeat and result with its duration', async () => {
-  const lines = [];
-  const result = await runUnit({ id: 'slow', timeoutMs: 1_000, run: () => sleep(120) },
-    { write: text => lines.push(text), heartbeatMs: 40, label: 'check' });
-  assert.equal(result.status, 'passed');
-  assert.match(lines[0], /^\[check\] slow: started \(timeout 1\.0s\)\n$/);
-  assert.ok(lines.some(line => /^\[check\] slow: running \d+ms\n$/.test(line)), lines.join(''));
-  assert.match(lines.at(-1), /^\[check\] slow: passed in \d+ms\n$/);
-});
-
-test('a unit that outlives its own timeout fails with its id and aborts its action', async () => {
-  const lines = [];
-  let aborted;
-  // The action never settles, so a result proves that the timeout does not wait for it.
-  const result = await runUnit({
-    id: 'stuck', timeoutMs: 80,
-    run: signal => new Promise(() => signal.addEventListener('abort', () => { aborted = signal.reason; })),
-  }, { write: text => lines.push(text), heartbeatMs: 1_000 });
-  assert.equal(result.status, 'timed-out');
-  assert.match(aborted.message, /^stuck ran [\d.]+m?s and exceeded its [\d.]+m?s timeout$/);
-  assert.match(lines.at(-1), /stuck: ran [\d.]+m?s and exceeded its [\d.]+m?s timeout/);
-});
-
-test('a failed unit keeps its error and the pool keeps running the others', async () => {
-  const results = await runUnits([
-    { id: 'a', timeoutMs: 1_000, run: () => { throw new Error('broken'); } },
-    { id: 'b', timeoutMs: 1_000, run: () => 'value' },
-  ], { concurrency: 1, write: () => {} });
-  assert.deepEqual(results.map(result => [result.id, result.status]), [['a', 'failed'], ['b', 'passed']]);
-  assert.match(results[0].error, /broken/);
-  assert.equal(results[1].value, 'value');
-});
-
-test('the pool runs at most its concurrency at a time, in unit order', async () => {
-  let active = 0;
-  let peak = 0;
-  const units = Array.from({ length: 7 }, (_, index) => ({
-    id: `unit-${index}`, timeoutMs: 1_000,
-    run: async () => { active++; peak = Math.max(peak, active); await sleep(20); active--; return index; },
-  }));
-  const results = await runUnits(units, { concurrency: 3, write: () => {} });
-  assert.equal(peak, 3);
-  assert.deepEqual(results.map(result => result.value), [0, 1, 2, 3, 4, 5, 6]);
-});
-
-test('every unit requires its own timeout', async () => {
-  await assert.rejects(runUnit({ id: 'x', run: () => {} }), /own timeout/);
-  await assert.rejects(runUnits([{ id: 'x', timeoutMs: 1, run: () => {} }], {}), /positive concurrency/);
+const results = [];
+unitTest(results, { id: 'passing', timeoutMs: 1_000, run: () => 'value' });
+unitTest(results, { id: 'failing', timeoutMs: 1_000, run: () => { throw new Error('broken'); } });
+unitTest(results, { id: 'stuck', timeoutMs: 80, run: () => new Promise(() => {}) });
+unitTest(results, { id: 'skipped', timeoutMs: 1_000, run: () => 'never', skipWhen: () => 'an earlier unit failed' });
+after(() => writeFileSync(${JSON.stringify(outcomes)}, JSON.stringify(results)));
+`);
+  // A run of node:test sets NODE_TEST_CONTEXT for its children, which would make the fixture's own run a child report.
+  const environment = { ...process.env };
+  delete environment.NODE_TEST_CONTEXT;
+  spawnSync(process.execPath, ['--test', fixture], { encoding: 'utf8', env: environment });
+  const recorded = JSON.parse(await readFile(outcomes, 'utf8'));
+  assert.deepEqual(recorded.map(result => [result.id, result.status]),
+    [['passing', 'passed'], ['failing', 'failed'], ['stuck', 'timed-out']]);
+  assert.equal(recorded[0].value, 'value');
+  assert.match(recorded[1].error, /broken/);
+  assert.match(recorded[2].error, /^stuck ran \d+ms and exceeded its 80ms timeout$/);
+  for (const result of recorded) assert.equal(typeof result.durationMs, 'number', `${result.id}: its duration`);
 });
 
 test('a unit limit is three times its slowest measurement, rounded up to five seconds, at least ten', () => {

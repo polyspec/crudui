@@ -347,8 +347,8 @@
       "tool": "the Web Locks API (navigator.locks.request with ifAvailable) holds the origin lock"
     },
     "examples/form-comparison/src/unit-pool.mjs": {
-      "kind": "replaced",
-      "reason": "replaced by node:test, whose test() runs each independent unit with its own timeout and reports its start, result and duration through the test runner of @polyspec/kit; item C16.28 registers the replacement"
+      "kind": "policy",
+      "reason": "the module (src/unit-pool.mjs) of the form comparison example, an application of CRUDUI, which holds the long operations with their progress lines and the unit limit of the browser report; its units run as node:test tests (unitTest), which give each unit its own timeout and its result, and item C16.28-1 registers that change; it implements no tool of an ecosystem"
     },
     "examples/form-comparison/src/vue-errors.mjs": {
       "kind": "policy",

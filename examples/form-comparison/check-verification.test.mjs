@@ -15,9 +15,7 @@ import { measuredLimitMs } from './src/unit-pool.mjs';
 import { browserReportLimitsMs, browserReportMeasurementsMs } from './src/browser-job.mjs';
 import { expectedTypingResults, typingDelays, verifyEvidence } from './verification-evidence.mjs';
 import * as browserPolicy from './browser-report-policy.mjs';
-import * as pipelineCheck from './check-pipeline.mjs';
-import { pipelineReport } from './check-pipeline.mjs';
-import { pipelineCombinations } from './src/pipeline-flow.mjs';
+import * as pipelineFlow from './src/pipeline-flow.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
 import { selectedServers, takeBrowserReports, verificationStages } from './local-verification.mjs';
 
@@ -76,10 +74,10 @@ function browserSummary() {
 
 function pipelineEvidence(identity = source) {
   const unit = id => ({ id, status: 'passed', durationMs: 10, timeoutMs: 60_000 });
-  return pipelineReport({
+  return pipelineFlow.pipelineReport({
     origin: 'http://127.0.0.1:8080/', source: identity, startedAt: '2026-09-10T00:04:00.000Z', durationMs: 500,
     resets: ['js', 'php', 'php-ext', 'go', 'rust'].map(server => unit(`reset/${server}`)),
-    combinations: pipelineCombinations().map(combination => unit(combination.id)),
+    combinations: pipelineFlow.pipelineCombinations().map(combination => unit(combination.id)),
   });
 }
 
@@ -140,9 +138,14 @@ test('verifies the local stack in stages, against the origin of its public serve
     '--library', '/checkout', '--report', '/run/results/generation.json']);
   assert.deepEqual(byId.persistence.args, ['check-servers.mjs', '--origin', stackOrigin, '--data', '/run/data',
     '--report', '/run/results/server-report.json']);
-  assert.deepEqual(byId.pipeline.args, ['check-pipeline.mjs', '--origin', stackOrigin, '--report', '/run/results/pipeline.json']);
-  assert.deepEqual(byId['browser-php'].args, ['check.mjs', 'php', stackOrigin]);
-  assert.deepEqual(byId['browser-php'].environment, { FORM_COMPARISON_RESULTS: '/run/results' });
+  assert.deepEqual(byId.pipeline.args, ['--test', 'check-pipeline.mjs']);
+  assert.deepEqual(byId.pipeline.environment, {
+    FORM_PIPELINE_ORIGIN: stackOrigin, FORM_PIPELINE_REPORT: '/run/results/pipeline.json',
+  });
+  assert.deepEqual(byId['browser-php'].args, ['--test', 'check.mjs']);
+  assert.deepEqual(byId['browser-php'].environment, {
+    FORM_COMPARISON_RESULTS: '/run/results', FORM_COMPARISON_SERVER: 'php', FORM_COMPARISON_ORIGIN: stackOrigin,
+  });
   assert.deepEqual(byId['browser-summary'].args, ['check-browser-reports.mjs',
     '--results', '/run/results', '--origin', stackOrigin,
     '--source', '/run/results/source.json', '--report', '/run/results/browser-summary.json']);
@@ -203,17 +206,20 @@ test('no browser run has a budget or a summed limit; every unit limit comes from
   // Starting and closing the browser are long operations, not units with a limit.
   assert.deepEqual(Object.keys(browserPolicy.browserUnitLimitsMs).sort(),
     ['artifacts', 'frame-documents', 'interactions', 'main-page']);
-  assert.equal(pipelineCheck.pipelineBrowserLimitMs, undefined, 'the pipeline check has no browser limit');
+  assert.equal(pipelineFlow.pipelineBrowserLimitMs, undefined, 'the pipeline check has no browser limit');
 });
 
 test('every phase of a browser check runs as a unit, and the browser starts and closes as an operation', async () => {
   const check = await readFile(new URL('./check.mjs', import.meta.url), 'utf8');
   assert.match(check, /from '\.\/src\/unit-pool\.mjs'/, 'check.mjs runs its phases as units');
+  assert.match(check, /from 'node:test'/, 'check.mjs runs its phases as node:test tests');
   assert.doesNotMatch(check, /Promise\.race\(\[action\(\)/, 'no phase waits with only a start and an end line');
   for (const id of ['main-page', 'interactions', 'frame-documents', 'artifacts']) {
-    assert.match(check, new RegExp(`(?:runPhase|phase)\\('${id}'`), `${id} runs as a unit`);
+    assert.match(check, new RegExp(`phase\\('${id}'`), `${id} runs as a unit`);
   }
   const pipeline = await readFile(new URL('./check-pipeline.mjs', import.meta.url), 'utf8');
+  assert.match(pipeline, /from 'node:test'/, 'check-pipeline.mjs runs its units as node:test tests');
+  assert.doesNotMatch(pipeline, /runUnits?\(/, 'check-pipeline.mjs runs no unit outside node:test');
   for (const [file, source] of [['check.mjs', check], ['check-pipeline.mjs', pipeline]]) {
     for (const id of ['browser-start', 'browser-close']) {
       assert.match(source, new RegExp(`runOperation\\(\\{\\s*id: '${id}'`), `${file}: ${id} runs as an operation without a limit`);
@@ -255,7 +261,7 @@ test('rejects evidence without a complete pipeline report for the same tree', as
   const directory = await evidenceFixture(t);
   const failed = pipelineEvidence();
   failed.combinations[3] = { ...failed.combinations[3], status: 'timed-out' };
-  await writeFile(path.join(directory, 'pipeline.json'), JSON.stringify(pipelineReport({ ...failed, source })));
+  await writeFile(path.join(directory, 'pipeline.json'), JSON.stringify(pipelineFlow.pipelineReport({ ...failed, source })));
   await assert.rejects(verifyEvidence(directory), /Pipeline report failed/);
   // A report that claims success must still list every combination.
   const partial = pipelineEvidence();
