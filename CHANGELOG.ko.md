@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4d8a562170dcf29afc4863286c24c893175329cf01ea4d1cfe92396980381d7b -->
+<!-- source-sha256: 6f1769c9d8e6ca4911e7cb18d8bd77dc634ab25633995c29788bd1352f8b2191 -->
 
 ## Unreleased
+
+### 2026-10-21 — go outline case를 이름으로 보고한다 (C16.165-3)
+
+- `packages/generator/go/outline_test.go`의 `TestOutlineFixture`가 `tests/fixtures/form-outline/cases.json`의 각 case를 같은 단언으로 subtest `TestOutlineFixture/<case>`로 실행한다 (C16.165-3); C16.165가 subtest 없는 반복으로 남겨 `make parity-check UNITS=form-outline`이 다섯 case 중 하나도 읽지 못했다. Red: 그 검사가 14a3b7b2에서 `R3 not-executed form-outline go`(5개 중 0)를 보고; green: 5개 중 5개 통과, go R3 줄 없음.
 
 ### 2026-10-21 — form comparison은 step을 kit의 runCommand로 실행한다 (C16.28)
 

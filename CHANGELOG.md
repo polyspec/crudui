@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-21 — The go outline cases are reported by name (C16.165-3)
+
+- `TestOutlineFixture` of `packages/generator/go/outline_test.go` runs each case of `tests/fixtures/form-outline/cases.json` as the subtest `TestOutlineFixture/<case>`, with the same assertions (C16.165-3); C16.165 had left it a loop with no subtest, so `make parity-check UNITS=form-outline` read none of its five cases. Red: that check reports `R3 not-executed form-outline go` (0 of 5) on 14a3b7b2; green: 5 of 5 cases passed and no go R3 line.
+
 ### 2026-10-21 — The form comparison runs its steps through runCommand of kit (C16.28)
 
 - `runStep` of examples/form-comparison/src/step-runner.mjs runs each step through `runCommand` of `@polyspec/kit/run-command` with its output piped and printed line by line with the step id (`onLine`); the process-group spawn, the output prefixing and `stopStepsOnSignal` (which kit's runCommand replaces) are removed, and local-verification.mjs no longer calls it; `killProcessTree` and the heartbeat stay (C16.28). Red: `make text-absent` of `spawn(step.command` in step-runner.mjs exits 2 with the stale text, and `grep` of `@polyspec/kit/run-command` exits 1; green: step-runner.test.mjs 9 passed, `make rebuild-check` exits 0.
