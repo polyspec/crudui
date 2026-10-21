@@ -16403,7 +16403,9 @@
       "hidden": []
     },
     "requirements": [
-      "CUSC-038"
+      "CUSC-038",
+      "CURP-018",
+      "CURP-022"
     ]
   },
   {
@@ -16437,7 +16439,9 @@
       "hidden": []
     },
     "requirements": [
-      "CUSC-038"
+      "CUSC-038",
+      "CURP-018",
+      "CURP-022"
     ]
   }
 ]

@@ -1405,9 +1405,30 @@ const REQUIREMENTS: Record<string, string[]> = {
   'dateiso-layout-rejects-slash-form': ['CUVR-059'],
   'dateiso-layout-rejects-number': ['CUVR-059'],
   'dateiso-layout-accepts-trimmed-text': ['CUVR-059'],
+  'expression-scalar-equals-array-is-false': ['CUSC-038'],
+  'expression-zero-equals-empty-array-is-false': ['CUSC-038'],
 };
 
-const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written)];
+/**
+ * The two CUSC-038 cases of an expression that compares with an array: the reference expression parser decides the
+ * condition, and JavaScript loose equality would decide it differently (the expectation is the reference's).
+ */
+const EXPRESSION_CASES: CaseSpec[] = [
+  {
+    name: 'expression-scalar-equals-array-is-false',
+    note: "'a' == .tags is false for tags ['a']: an array compared with a scalar has no text, so the note is not required. JavaScript loose equality gives true there, so this case rejects it (CUSC-038).",
+    spec: { type: 'group', properties: { tags: { type: 'multichoice', items: ['a', 'b'] }, note: { type: 'text', validate: { required: "'a' == .tags" } } } },
+    data: { tags: ['a'], note: '' },
+  },
+  {
+    name: 'expression-zero-equals-empty-array-is-false',
+    note: '0 == .tags is false for an empty array, so the note is not required. JavaScript loose equality gives true (0 == []), so this case rejects it (CUSC-038).',
+    spec: { type: 'group', properties: { tags: { type: 'multichoice', items: ['a', 'b'] }, note: { type: 'text', validate: { required: '0 == .tags' } } } },
+    data: { tags: [], note: '' },
+  },
+];
+
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...EXPRESSION_CASES.map(build)];
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }

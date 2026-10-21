@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 22251e16f9b290a88899ce85c53a98ac73cac71ec50434b18f597d2793b19315 -->
+<!-- source-sha256: 9bae66744cd0e177266dca06867f063ee787f51df9e725487e22045ee60e28d1 -->
 
 ## Unreleased
 
@@ -52,6 +52,10 @@
 ### 2026-10-21 — 검증기의 python text-validity 바인딩이 케이스를 이름으로 보고한다 (C16.157-1)
 
 - text-validity-validate, text-validity-validate-list, text-validity-validate-detail, text-validity-value-graphs 단위의 python 바인딩이 각 케이스를 그 이름으로 보고한다 (C16.157-1): `packages/validator/python/tests/conformance.py`의 `add_case_tests`가 픽스처 파일 이름을 받고, `packages/validator/python/tests/test_text_validity.py`가 단위마다 케이스당 테스트 메서드 하나를 가진 테스트 클래스를 두어 같은 검증을 실행하며, 픽스처 개수는 `TestTextValidityFixtureCounts`에 둔다. `config/parity.json`은 각 바인딩을 `var/python/bin/python`과 그 클래스로 실행한다. Red: `make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-validity-value-graphs"`가 네 단위에 python R3 `not executed` 줄을 보고한다 (예: `R3 not-executed text-validity-validate python`, 0 of 21 cases); green: 같은 검사가 네 단위의 모든 케이스를 통과로 보고하고 (21 of 21, 6 of 6, 5 of 5, 12 of 12) python R3 줄이 없다.
+
+### 2026-10-21 — 검증 fixture를 생성기가 쓴다 (C16.166)
+
+- `tests/fixtures/validate/generate.mts`가 `cases.json`에 손으로 적혀 있던 CUSC-038 expression 두 case(`expression-scalar-equals-array-is-false`, `expression-zero-equals-empty-array-is-false`; `EXPRESSION_CASES`)를 쓴다. 기대값은 reference validator에서 나오며 손으로 쓴 값(valid, 오류 없음)과 같다. 두 case의 citation에 이제 생성된 모든 case와 같이 CURP-018과 CURP-022가 들어가므로 `tests/fixtures/validate/cases.json`은 그 두 citation 목록만 바뀐다(C16.166). Red: `sh -c 'var/tools/bin/node tests/fixtures/validate/generate.mts > var/validate-cases.json && cmp -s var/validate-cases.json tests/fixtures/validate/cases.json'` exit 1(두 case가 출력에 없다); green: 같은 명령이 exit 0.
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.3)
 
