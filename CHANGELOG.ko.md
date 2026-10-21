@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 36fcbb906d46ac5a7ad9d6635a6067178b58045217f98edf14a8d4988ac5378e -->
+<!-- source-sha256: 22251e16f9b290a88899ce85c53a98ac73cac71ec50434b18f597d2793b19315 -->
 
 ## Unreleased
 
@@ -46,6 +46,7 @@
 
 ### 2026-10-21 — 검증기의 python 구조 검증 바인딩이 케이스를 이름으로 보고한다 (C16.157-2)
 
+- C16.157-2를 닫는다: Verification이 그 커밋의 트리에서 통과하며, 그 커밋은 행을 `[~]`로 남겼다 (C16.157-2).
 - list-validity, detail-validity, spec-validity 단위의 python 바인딩이 각 케이스를 그 이름으로 보고한다 (C16.157-2): `packages/validator/python/tests/test_structure_validity.py`가 단위마다 케이스당 테스트 메서드 하나를 가진 테스트 클래스를 두고, 각 메서드는 `assert_load`를 실행한다 (깨끗한 명세는 깨끗한 결과를, 실패하는 명세는 기록된 code와 trace의 오류를 낸다, 이전과 같다). 선언 검사와 픽스처 개수는 `TestStructureValidityFixtureCounts`에 둔다. `config/parity.json`은 각 바인딩을 `var/python/bin/python`과 그 클래스로 실행한다. Red: `make -s parity-check UNITS="list-validity detail-validity spec-validity"`가 세 단위에 python R3 `not executed` 줄을 보고한다 (예: `R3 not-executed spec-validity python`, 0 of 34 cases); green: 같은 검사가 모든 케이스를 통과로 보고한다 (list-validity 20 of 20, detail-validity 13 of 13, spec-validity 34 of 34)과 python R3 줄이 없다.
 
 ### 2026-10-21 — 검증기의 python text-validity 바인딩이 케이스를 이름으로 보고한다 (C16.157-1)
