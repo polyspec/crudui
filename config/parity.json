@@ -1597,7 +1597,8 @@
         {
           "implementation": "python",
           "test": "packages/generator/python/tests/test_render.py",
-          "symbol": "TestFormCompleteConformance.test_every_case_reproduces_its_expectation"
+          "symbol": "TestFormCompleteConformance.test_every_case_reproduces_its_expectation",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_render.TestFormCompleteConformance"]
         },
         {
           "implementation": "php",
@@ -1691,7 +1692,8 @@
         {
           "implementation": "python",
           "test": "packages/generator/python/tests/test_render.py",
-          "symbol": "TestListRenderConformance.test_every_case_reproduces_its_expectation"
+          "symbol": "TestListRenderConformance.test_every_case_reproduces_its_expectation",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_render.TestListRenderConformance"]
         },
         {
           "implementation": "rust",
@@ -1812,7 +1814,8 @@
         {
           "implementation": "python",
           "test": "packages/generator/python/tests/test_render.py",
-          "symbol": "TestDetailRenderConformance.test_every_case_reproduces_its_expectation"
+          "symbol": "TestDetailRenderConformance.test_every_case_reproduces_its_expectation",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_render.TestDetailRenderConformance"]
         },
         {
           "implementation": "rust",
