@@ -1030,7 +1030,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_text_validity.py"
+          "test": "packages/validator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextValidityValidateConformance"]
         }
       ],
       "requirements": [
@@ -1087,7 +1088,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_text_validity.py"
+          "test": "packages/validator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextValidityValidateListConformance"]
         }
       ],
       "requirements": [
@@ -1142,7 +1144,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_text_validity.py"
+          "test": "packages/validator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextValidityValidateDetailConformance"]
         }
       ],
       "requirements": [
@@ -1197,7 +1200,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_text_validity.py"
+          "test": "packages/validator/python/tests/test_text_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_text_validity.TestTextValidityValueGraphsConformance"]
         }
       ],
       "requirements": [

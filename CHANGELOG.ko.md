@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4c75e52b536d23a2a2e792004afa191c4caea90bc81c6bc9ef5dad6762554fc7 -->
+<!-- source-sha256: c75e369c8dc3819c89f4f921d1c57faacbeacf6b325fd827830bd491b8c58814 -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-21 — go input text unit가 케이스를 이름으로 보고한다 (C16.165-1)
 
 - packages/generator/go/input_text_test.go: TestInputTextCases는 다섯 fixture를 하위 테스트로 계속 실행하고, 새 함수 TestInputTextCompileForm, TestInputTextBindForm, TestInputTextCreateForm, TestInputTextBuildList, TestInputTextBuildDetail은 fixture 하나씩을 runTextCases로 실행한다. runTextCases의 하위 테스트는 케이스의 기본 이름이다. config/parity.json은 text-compile-form, text-bind-form, text-create-form, text-build-list, text-build-detail unit을 각자의 함수에 묶는다 (C16.165-1). Red: `make parity-check UNITS="text-compile-form text-bind-form text-create-form text-build-list text-build-detail"` exit 2, go 줄 `R3 not-executed <unit> go packages/generator/go/input_text_test.go: not executed: pass-paired-surrogates, ...; not in the suite: compileForm/pass-paired-surrogates, ...`; green: go 줄 모두 `exit 0`, 케이스 7, 17, 15, 11, 6개 모두 통과, go R3 줄 없음 (같은 unit의 ts와 rust 줄로 exit 2가 남는다).
+
+### 2026-10-21 — 검증기의 python text-validity 바인딩이 케이스를 이름으로 보고한다 (C16.157-1)
+
+- text-validity-validate, text-validity-validate-list, text-validity-validate-detail, text-validity-value-graphs 단위의 python 바인딩이 각 케이스를 그 이름으로 보고한다 (C16.157-1): `packages/validator/python/tests/conformance.py`의 `add_case_tests`가 픽스처 파일 이름을 받고, `packages/validator/python/tests/test_text_validity.py`가 단위마다 케이스당 테스트 메서드 하나를 가진 테스트 클래스를 두어 같은 검증을 실행하며, 픽스처 개수는 `TestTextValidityFixtureCounts`에 둔다. `config/parity.json`은 각 바인딩을 `var/python/bin/python`과 그 클래스로 실행한다. Red: `make -s parity-check UNITS="text-validity-validate text-validity-validate-list text-validity-validate-detail text-validity-value-graphs"`가 네 단위에 python R3 `not executed` 줄을 보고한다 (예: `R3 not-executed text-validity-validate python`, 0 of 21 cases); green: 같은 검사가 네 단위의 모든 케이스를 통과로 보고하고 (21 of 21, 6 of 6, 5 of 5, 12 of 12) python R3 줄이 없다.
 
 ### 2026-10-21 — parity 선언이 발견 없이 성립한다 (C16.3)
 

@@ -15,7 +15,7 @@ failure is a FormInputError, and each case asserts the class it throws.
 import unittest
 
 
-from .conformance import cases_of, failure_record
+from .conformance import add_case_tests, cases_of, failure_record
 from polyspec.crudui.conformance import Proving
 from polyspec.crudui.validator import (
     ComposeLoadError,
@@ -80,81 +80,122 @@ def build_graph(graph):
     return graph["at"], value
 
 
-class TestTextValidityConformance(unittest.TestCase):
-    """The input text rule holds at the same operations, in the same order."""
+def assert_outcome(test, case, entry):
+    """The record of the run is the expectation, and the class it throws is the class that the expectation names."""
+    record, native = run_case(case, entry)
+    test.assertEqual(record, case["expect"])
+    test.assertEqual(native, native_type(case["expect"]))
 
-    def assertOutcome(self, case, entry):
-        """The record of the run is the expectation, and the class it throws is the class that the expectation names."""
-        record, native = run_case(case, entry)
-        self.assertEqual(record, case["expect"])
-        self.assertEqual(native, native_type(case["expect"]))
 
-    def test_validate_cases(self):
-        cases = cases_of("text-validity", "validate/cases.json")
-        self.assertEqual(len(cases), 21)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validate"],
-                    "tests/fixtures/text-validity/validate/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                self.assertOutcome(case, ENTRIES["validate"])
-                proof.passed = True
+def check_validate(test, case):
+    with Proving(
+        ["validate"],
+        "tests/fixtures/text-validity/validate/cases.json",
+        case["name"],
+    ) as proof:
+        assert_outcome(test, case, ENTRIES["validate"])
+        proof.passed = True
 
-    def test_validate_list_cases(self):
-        cases = cases_of("text-validity", "validateList/cases.json")
-        self.assertEqual(len(cases), 6)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validateList"],
-                    "tests/fixtures/text-validity/validateList/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                self.assertOutcome(case, ENTRIES["validateList"])
-                proof.passed = True
 
-    def test_validate_detail_cases(self):
-        cases = cases_of("text-validity", "validateDetail/cases.json")
-        self.assertEqual(len(cases), 5)
-        for case in cases:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validateDetail"],
-                    "tests/fixtures/text-validity/validateDetail/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                self.assertOutcome(case, ENTRIES["validateDetail"])
-                proof.passed = True
+def check_validate_list(test, case):
+    with Proving(
+        ["validateList"],
+        "tests/fixtures/text-validity/validateList/cases.json",
+        case["name"],
+    ) as proof:
+        assert_outcome(test, case, ENTRIES["validateList"])
+        proof.passed = True
 
-    def test_value_graph_cases(self):
-        cases = cases_of("text-validity", "value-graphs.json")
-        self.assertEqual(len(cases), 12)
-        for case in cases:
-            with self.subTest(case=case["name"]):
-                spec = case["spec"]
-                data = case["data"]
-                files = case.get("files")
-                options = {"files": files} if files is not None else {}
-                path, graph = build_graph(case["graph"])
-                member = path[-1]
-                if path[0] == "spec":
-                    spec[member] = graph
-                elif path[0] == "files":
-                    options["files"][path[1]][member] = graph
-                else:
-                    data[member] = graph
-                self.assertOutcome(
-                    {"spec": spec, "data": data, **options, "expect": case["expect"]},
-                    ENTRIES["validate"],
-                )
+
+def check_validate_detail(test, case):
+    with Proving(
+        ["validateDetail"],
+        "tests/fixtures/text-validity/validateDetail/cases.json",
+        case["name"],
+    ) as proof:
+        assert_outcome(test, case, ENTRIES["validateDetail"])
+        proof.passed = True
+
+
+def check_value_graph(test, case):
+    spec = case["spec"]
+    data = case["data"]
+    files = case.get("files")
+    options = {"files": files} if files is not None else {}
+    path, graph = build_graph(case["graph"])
+    member = path[-1]
+    if path[0] == "spec":
+        spec[member] = graph
+    elif path[0] == "files":
+        options["files"][path[1]][member] = graph
+    else:
+        data[member] = graph
+    assert_outcome(
+        test,
+        {"spec": spec, "data": data, **options, "expect": case["expect"]},
+        ENTRIES["validate"],
+    )
+
+
+class TestTextValidityValidateConformance(unittest.TestCase):
+    """Each case of the validate file keeps the input text rule of the validate operation."""
+
+
+add_case_tests(
+    TestTextValidityValidateConformance, "text-validity/validate", check_validate
+)
+
+
+class TestTextValidityValidateListConformance(unittest.TestCase):
+    """Each case of the validateList file keeps the input text rule of the list operation."""
+
+
+add_case_tests(
+    TestTextValidityValidateListConformance,
+    "text-validity/validateList",
+    check_validate_list,
+)
+
+
+class TestTextValidityValidateDetailConformance(unittest.TestCase):
+    """Each case of the validateDetail file keeps the input text rule of the detail operation."""
+
+
+add_case_tests(
+    TestTextValidityValidateDetailConformance,
+    "text-validity/validateDetail",
+    check_validate_detail,
+)
+
+
+class TestTextValidityValueGraphsConformance(unittest.TestCase):
+    """Each shared-container graph of the value graph file keeps the input text rule of validate."""
+
+
+add_case_tests(
+    TestTextValidityValueGraphsConformance,
+    "text-validity",
+    check_value_graph,
+    name="value-graphs.json",
+)
+
+
+class TestTextValidityFixtureCounts(unittest.TestCase):
+    """The text-validity fixture of each operation holds the recorded number of cases."""
+
+    def test_validate_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "validate/cases.json")), 21)
+
+    def test_validate_list_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "validateList/cases.json")), 6)
+
+    def test_validate_detail_case_count(self):
+        self.assertEqual(
+            len(cases_of("text-validity", "validateDetail/cases.json")), 5
+        )
+
+    def test_value_graph_case_count(self):
+        self.assertEqual(len(cases_of("text-validity", "value-graphs.json")), 12)
 
 
 if __name__ == "__main__":
