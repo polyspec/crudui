@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 219c6890a23706c2b0451bf055945a0a34ac2f4fd6df25558a36e4239a00e767 -->
+<!-- source-sha256: 408be3abc456d82cea9a6943677132c87cab957fdabe5e36f4de23d2fb398b5a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -329,3 +329,4 @@
 | C16.169-1 | config/dependency-policy.json의 sprintf-js advisory 예외가 sprintf-js를 들여오는 두 경로를 모두 적는다: scripts/gen-api-docs.mts가 고정 인자로 실행하는 직접 개발 의존성 @microsoft/api-documenter 7.30.18과 @polyspec/kit의 @microsoft/api-extractor | config/dependency-policy.json | `make text-absent FILE=config/dependency-policy.json TEXT="pulls sprintf-js 1.0.3 in only through @polyspec/kit"` | [o] |
 | C16.170 | 루트 package.json의 npm devDependencies가 @polyspec/kit과 @polyspec/ordered-json을 GitHub release tarball에서 가져와 npm ci가 로컬에 설치한다; 대신 make link로 형제 checkout에서 오고 release URL은 없어진다; K448-2를 기다린다 | package.json, package-lock.json | `sh -c '! grep -q "releases/download" package.json && make -s link-state-check > var/lsc-C16.170.log 2>&1'` | [ ] |
 | C16.171 | composer 루트가 polyspec/ordered-json을 release-assets-fetch가 받는 release zip(var/composer-artifacts)에서 가져오고 로컬 경로가 release-assets-fetch를 먼저 실행한다; 대신 make link로 형제 checkout에서 오고 release-assets-fetch는 로컬 경로에서 없어진다; K448-1을 기다린다 | composer.json, composer.lock, Makefile | `sh -c '! grep -q "var/composer-artifacts" composer.json && ! grep -q "release-assets-fetch" Makefile && make -s link-state-check > var/lsc-C16.171.log 2>&1'` | [ ] |
+| C16.172 | Composer 루트는 검토된 목표 버전 13.4.3을 phpunit/phpunit으로 요구하며, hyper와 ordered-json이 선언하는 방식대로 정확한 버전으로 선언하고 13.4.3으로 잠근다 (K435) | composer.json, composer.lock, config/dependency-review.json | `make dependency-policy-check` | [ ] |
