@@ -9,7 +9,7 @@ that the case records; a passing case returns without a failure. The fixture hol
 
 import unittest
 
-from .conformance import cases_of
+from .conformance import add_case_tests, cases_of
 
 
 def _outcome(run):
@@ -23,42 +23,47 @@ def _outcome(run):
     return "pass"
 
 
+def check_case(test, case):
+    from polyspec.crudui.generator import Generator
+
+    template = case["template"]
+    data = case.get("data", {})
+    options = case.get("options", {})
+    operation = case["operation"]
+    if operation == "createRecords":
+        # CURT-050: each record is bound from the serialized template alone, and reads its own values.
+        results = []
+        for index, record in enumerate(data):
+            form = Generator.createForm(template, record, {})
+            results.append({path: form.getValue(path) for path in case["paths"][index]})
+        test.assertEqual({"results": results}, case["expect"])
+        return
+
+    def run():
+        if operation == "bindForm":
+            Generator.bindForm(template, data, options)
+        elif operation == "bindButtons":
+            Generator.bindButtons(template, data, options)
+        elif operation == "createForm":
+            Generator.createForm(template, data, options)
+        else:
+            raise AssertionError(f"unknown template operation {operation}")
+
+    test.assertEqual(_outcome(run), case["expect"])
+
+
 class TestGeneratorTemplateShape(unittest.TestCase):
     """The operations that take a template refuse a shape that is not the compiled one."""
 
-    def test_template_shape_cases(self):
-        from polyspec.crudui.generator import Generator
 
-        cases = cases_of("template-shape")
-        self.assertEqual(len(cases), 44)
-        for case in cases:
-            with self.subTest(case=case["name"]):
-                template = case["template"]
-                data = case.get("data", {})
-                options = case.get("options", {})
-                operation = case["operation"]
-                if operation == "createRecords":
-                    # CURT-050: each record is bound from the serialized template alone, and reads its own values.
-                    results = []
-                    for index, record in enumerate(data):
-                        form = Generator.createForm(template, record, {})
-                        results.append(
-                            {path: form.getValue(path) for path in case["paths"][index]}
-                        )
-                    self.assertEqual({"results": results}, case["expect"])
-                    continue
+add_case_tests(TestGeneratorTemplateShape, "template-shape", check_case)
 
-                def run():
-                    if operation == "bindForm":
-                        Generator.bindForm(template, data, options)
-                    elif operation == "bindButtons":
-                        Generator.bindButtons(template, data, options)
-                    elif operation == "createForm":
-                        Generator.createForm(template, data, options)
-                    else:
-                        raise AssertionError(f"unknown template operation {operation}")
 
-                self.assertEqual(_outcome(run), case["expect"])
+class TestTemplateShapeFixtureCount(unittest.TestCase):
+    """The template-shape fixture holds the recorded number of cases."""
+
+    def test_case_count(self):
+        self.assertEqual(len(cases_of("template-shape")), 44)
 
 
 if __name__ == "__main__":

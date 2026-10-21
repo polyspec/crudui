@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: eb9c17e8e7491e76e7185708ca74854def3504ee97d1bd80654b152408bdb7d6 -->
+<!-- source-sha256: cd03e46a0288ff43cc0c425d724077c045ed2473999fdda8da17e249727be7c3 -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-21 — go input text unit가 케이스를 이름으로 보고한다 (C16.165-1)
 
 - packages/generator/go/input_text_test.go: TestInputTextCases는 다섯 fixture를 하위 테스트로 계속 실행하고, 새 함수 TestInputTextCompileForm, TestInputTextBindForm, TestInputTextCreateForm, TestInputTextBuildList, TestInputTextBuildDetail은 fixture 하나씩을 runTextCases로 실행한다. runTextCases의 하위 테스트는 케이스의 기본 이름이다. config/parity.json은 text-compile-form, text-bind-form, text-create-form, text-build-list, text-build-detail unit을 각자의 함수에 묶는다 (C16.165-1). Red: `make parity-check UNITS="text-compile-form text-bind-form text-create-form text-build-list text-build-detail"` exit 2, go 줄 `R3 not-executed <unit> go packages/generator/go/input_text_test.go: not executed: pass-paired-surrogates, ...; not in the suite: compileForm/pass-paired-surrogates, ...`; green: go 줄 모두 `exit 0`, 케이스 7, 17, 15, 11, 6개 모두 통과, go R3 줄 없음 (같은 unit의 ts와 rust 줄로 exit 2가 남는다).
+
+### 2026-10-21 — 생성기의 python template-shape 바인딩이 케이스를 이름으로 보고한다 (C16.157-7)
+
+- template-shape 단위의 python 바인딩이 각 케이스를 그 이름으로 보고한다 (C16.157-7): `packages/generator/python/tests/test_template_shape.py`가 단위에 케이스당 테스트 메서드 하나를 가진 테스트 클래스를 두며, 각 메서드는 템플릿에 연산을 실행한다(createRecords 케이스는 직렬화된 템플릿에서 각 레코드를 바인딩한다, 이전과 같다). 픽스처 개수는 `TestTemplateShapeFixtureCount`에 둔다. `config/parity.json`은 바인딩을 `var/python/bin/python`과 그 클래스로 실행한다. Red: `make -s parity-check UNITS="template-shape"`가 template-shape에 python R3 `not executed` 줄을 보고한다 (0 of 44 cases passed); green: 같은 검사가 `template-shape python` 44 of 44 cases passed를 보고하고 python R3 줄이 없다.
 
 ### 2026-10-21 — 생성기의 python text-validity 바인딩이 케이스를 이름으로 보고한다 (C16.157-6)
 

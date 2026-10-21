@@ -2185,7 +2185,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/generator/python/tests/test_template_shape.py"
+          "test": "packages/generator/python/tests/test_template_shape.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_template_shape.TestGeneratorTemplateShape"]
         }
       ],
       "requirements": [
