@@ -10,7 +10,7 @@ dotted trace. The list and detail groups run the same contract through
 import unittest
 
 
-from .conformance import cases_of
+from .conformance import add_case_tests, cases_of
 from polyspec.crudui.conformance import Proving
 from polyspec.crudui.validator import (
     ComposeLoadError,
@@ -24,193 +24,138 @@ def options_of(case):
     return {"files": case["files"]} if case.get("files") else {}
 
 
+SPEC_CLEAN = {"valid": True, "errors": [], "hidden": []}
+LOAD_CLEAN = {"valid": True, "errors": []}
+
+
+def assert_load(test, case, run, clean, feature, fixture):
+    """A clean specification returns the clean result; a failing one raises the recorded load failure."""
+    with Proving([feature], fixture, case["name"]) as proof:
+        if case["engine"] == "pass":
+            test.assertEqual(run(case), clean)
+        else:
+            thrown = None
+            try:
+                run(case)
+            except ComposeLoadError as error:
+                thrown = error
+            test.assertIsNotNone(thrown, f"{case['name']} must fail to load")
+            test.assertEqual(thrown.code, case["engine"]["code"])
+            # The depth is load-bearing, so the dotted trace is asserted, not
+            # just the code.
+            test.assertEqual(".".join(thrown.trace), case["engine"]["at"])
+        proof.passed = True
+
+
+def run_spec(case):
+    # Data is irrelevant to the scan; the scan runs in the load path before
+    # any data-driven validation.
+    return validate(case["spec"], {}, options_of(case))
+
+
+def run_list(case):
+    return validateList(case["spec"], options_of(case))
+
+
+def run_detail(case):
+    return validateDetail(case["spec"], options_of(case))
+
+
+def check_spec(test, case):
+    assert_load(
+        test,
+        case,
+        run_spec,
+        SPEC_CLEAN,
+        "validate",
+        "tests/fixtures/spec-validity/cases.json",
+    )
+
+
+def check_list(test, case):
+    assert_load(
+        test,
+        case,
+        run_list,
+        LOAD_CLEAN,
+        "validateList",
+        "tests/fixtures/list-validity/cases.json",
+    )
+
+
+def check_detail(test, case):
+    assert_load(
+        test,
+        case,
+        run_detail,
+        LOAD_CLEAN,
+        "validateDetail",
+        "tests/fixtures/detail-validity/cases.json",
+    )
+
+
 class TestSpecValidityConformance(unittest.TestCase):
     """A forbidden meta key at any depth is a load failure; a clean spec validates empty data."""
 
-    def setUp(self):
-        self.cases = cases_of("spec-validity")
-        self.clean = [case for case in self.cases if case["engine"] == "pass"]
-        self.failing = [case for case in self.cases if isinstance(case["engine"], dict)]
 
-    def run_case(self, case):
-        # Data is irrelevant to the scan; the scan runs in the load path before
-        # any data-driven validation.
-        return validate(case["spec"], {}, options_of(case))
-
-    def test_every_case_declares_an_engine_expectation(self):
-        for case in self.cases:
-            engine = case["engine"]
-            ok = engine == "pass" or (
-                isinstance(engine, dict)
-                and isinstance(engine.get("code"), str)
-                and isinstance(engine.get("at"), str)
-            )
-            self.assertTrue(
-                ok, f"{case['name']} must declare engine: pass or code and at"
-            )
-        self.assertEqual(len(self.cases), 34)
-
-    def test_clean_specs_pass_the_load_path(self):
-        self.assertEqual(len(self.clean), 20)
-        for case in self.clean:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validate"],
-                    "tests/fixtures/spec-validity/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                self.assertEqual(
-                    self.run_case(case), {"valid": True, "errors": [], "hidden": []}
-                )
-                proof.passed = True
-
-    def test_a_forbidden_meta_key_at_any_depth_is_a_load_error(self):
-        self.assertEqual(len(self.failing), 14)
-        for case in self.failing:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validate"],
-                    "tests/fixtures/spec-validity/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                thrown = None
-                try:
-                    self.run_case(case)
-                except ComposeLoadError as error:
-                    thrown = error
-                self.assertIsNotNone(thrown, f"{case['name']} must fail to load")
-                self.assertEqual(thrown.code, case["engine"]["code"])
-                # The depth is load-bearing, so the dotted trace is asserted, not
-                # just the code.
-                self.assertEqual(".".join(thrown.trace), case["engine"]["at"])
-                proof.passed = True
+add_case_tests(TestSpecValidityConformance, "spec-validity", check_spec)
 
 
 class TestListValidityConformance(unittest.TestCase):
     """A list specification loads clean or raises the recorded load failure."""
 
-    def setUp(self):
-        self.cases = cases_of("list-validity")
-        self.clean = [case for case in self.cases if case["engine"] == "pass"]
-        self.failing = [case for case in self.cases if isinstance(case["engine"], dict)]
 
-    def run_case(self, case):
-        return validateList(case["spec"], options_of(case))
-
-    def test_every_case_declares_an_engine_expectation(self):
-        for case in self.cases:
-            engine = case["engine"]
-            ok = engine == "pass" or (
-                isinstance(engine, dict)
-                and isinstance(engine.get("code"), str)
-                and isinstance(engine.get("at"), str)
-            )
-            self.assertTrue(
-                ok, f"{case['name']} must declare engine: pass or code and at"
-            )
-        self.assertEqual(len(self.cases), 20)
-
-    def test_clean_specs_load_without_validating_rows(self):
-        self.assertEqual(len(self.clean), 16)
-        for case in self.clean:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validateList"],
-                    "tests/fixtures/list-validity/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                # A meta-schema-only invalid case (required, enum,
-                # additionalProperties, anyOf) is the meta-schema's job, never
-                # this engine's, so it loads clean here.
-                self.assertEqual(self.run_case(case), {"valid": True, "errors": []})
-                proof.passed = True
-
-    def test_failing_specs_raise_the_recorded_load_failure(self):
-        self.assertEqual(len(self.failing), 4)
-        for case in self.failing:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validateList"],
-                    "tests/fixtures/list-validity/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                thrown = None
-                try:
-                    self.run_case(case)
-                except ComposeLoadError as error:
-                    thrown = error
-                self.assertIsNotNone(thrown, f"{case['name']} must fail to load")
-                self.assertEqual(thrown.code, case["engine"]["code"])
-                self.assertEqual(".".join(thrown.trace), case["engine"]["at"])
-                proof.passed = True
+add_case_tests(TestListValidityConformance, "list-validity", check_list)
 
 
 class TestDetailValidityConformance(unittest.TestCase):
     """A detail specification loads clean or raises the recorded load failure."""
 
-    def setUp(self):
-        self.cases = cases_of("detail-validity")
-        self.clean = [case for case in self.cases if case["engine"] == "pass"]
-        self.failing = [case for case in self.cases if isinstance(case["engine"], dict)]
 
-    def run_case(self, case):
-        return validateDetail(case["spec"], options_of(case))
+add_case_tests(TestDetailValidityConformance, "detail-validity", check_detail)
 
-    def test_every_case_declares_an_engine_expectation(self):
-        for case in self.cases:
-            engine = case["engine"]
-            ok = engine == "pass" or (
-                isinstance(engine, dict)
-                and isinstance(engine.get("code"), str)
-                and isinstance(engine.get("at"), str)
-            )
-            self.assertTrue(
-                ok, f"{case['name']} must declare engine: pass or code and at"
-            )
-        self.assertEqual(len(self.cases), 13)
 
-    def test_clean_specs_load_without_validating_the_record(self):
-        self.assertEqual(len(self.clean), 6)
-        for case in self.clean:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validateDetail"],
-                    "tests/fixtures/detail-validity/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                self.assertEqual(self.run_case(case), {"valid": True, "errors": []})
-                proof.passed = True
+def assert_declares(test, cases):
+    """Each case declares engine: pass, or the code and the trace of a load failure."""
+    for case in cases:
+        engine = case["engine"]
+        ok = engine == "pass" or (
+            isinstance(engine, dict)
+            and isinstance(engine.get("code"), str)
+            and isinstance(engine.get("at"), str)
+        )
+        test.assertTrue(ok, f"{case['name']} must declare engine: pass or code and at")
 
-    def test_failing_specs_raise_the_recorded_load_failure(self):
-        self.assertEqual(len(self.failing), 7)
-        for case in self.failing:
-            with (
-                self.subTest(case=case["name"]),
-                Proving(
-                    ["validateDetail"],
-                    "tests/fixtures/detail-validity/cases.json",
-                    case["name"],
-                ) as proof,
-            ):
-                thrown = None
-                try:
-                    self.run_case(case)
-                except ComposeLoadError as error:
-                    thrown = error
-                self.assertIsNotNone(thrown, f"{case['name']} must fail to load")
-                self.assertEqual(thrown.code, case["engine"]["code"])
-                self.assertEqual(".".join(thrown.trace), case["engine"]["at"])
-                proof.passed = True
+
+class TestStructureValidityFixtureCounts(unittest.TestCase):
+    """Each structure-validity fixture declares an engine expectation per case and holds the recorded counts."""
+
+    def test_spec_validity_counts(self):
+        cases = cases_of("spec-validity")
+        assert_declares(self, cases)
+        self.assertEqual(len(cases), 34)
+        self.assertEqual(len([case for case in cases if case["engine"] == "pass"]), 20)
+        self.assertEqual(
+            len([case for case in cases if isinstance(case["engine"], dict)]), 14
+        )
+
+    def test_list_validity_counts(self):
+        cases = cases_of("list-validity")
+        assert_declares(self, cases)
+        self.assertEqual(len(cases), 20)
+        self.assertEqual(len([case for case in cases if case["engine"] == "pass"]), 16)
+        self.assertEqual(
+            len([case for case in cases if isinstance(case["engine"], dict)]), 4
+        )
+
+    def test_detail_validity_counts(self):
+        cases = cases_of("detail-validity")
+        assert_declares(self, cases)
+        self.assertEqual(len(cases), 13)
+        self.assertEqual(len([case for case in cases if case["engine"] == "pass"]), 6)
+        self.assertEqual(
+            len([case for case in cases if isinstance(case["engine"], dict)]), 7
+        )
 
 
 if __name__ == "__main__":

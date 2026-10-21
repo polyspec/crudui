@@ -1245,7 +1245,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_structure_validity.py"
+          "test": "packages/validator/python/tests/test_structure_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_structure_validity.TestListValidityConformance"]
         }
       ],
       "requirements": [
@@ -1326,7 +1327,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_structure_validity.py"
+          "test": "packages/validator/python/tests/test_structure_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_structure_validity.TestDetailValidityConformance"]
         }
       ],
       "requirements": [
@@ -1383,7 +1385,8 @@
         },
         {
           "implementation": "python",
-          "test": "packages/validator/python/tests/test_structure_validity.py"
+          "test": "packages/validator/python/tests/test_structure_validity.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_structure_validity.TestSpecValidityConformance"]
         }
       ],
       "requirements": [
