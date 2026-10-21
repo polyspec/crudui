@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 01e46216d8e262f3a2f6614fad2e305f1284c562de1360a184625b702851cd9e -->
+<!-- source-sha256: 1658b7e1d5daad8ef6dfc5a67516a5c7b616f18ca23edad806aff1198e47fdc9 -->
 
 ## Unreleased
+
+### 2026-10-21 — sprintf-js advisory 예외가 두 경로를 모두 적는다 (C16.169-1)
+
+- `config/dependency-policy.json`의 sprintf-js advisory 예외(npm advisory 1241202, GHSA-hp3w-g68c-fv3c, medium)가 sprintf-js 1.0.3을 들여오는 두 경로를 모두 적는다 (C16.169-1): `scripts/gen-api-docs.mts`가 고정 인자로 실행하는 직접 개발 의존성 `@microsoft/api-documenter` 7.30.18과 `@polyspec/kit`의 `@microsoft/api-extractor` 7.59.4이며, 둘 다 `@rushstack/ts-command-line` 5.3.17과 argparse 1.0.10을 거친다; 사유는 kit 경로만 있다고 적었다. advisory를 고친 sprintf-js가 없으므로(취약 범위 <= 1.1.3, 최신) 그 제거(C16.169)는 공동 의존성 일괄 갱신에 들어간다. Red: 옛 문장의 `make text-absent`가 e9d3accc에서 exit 2; green: exit 0.
 
 ### 2026-10-21 — form comparison의 unit pool은 unit을 node:test test로 실행한다 (C16.28-1)
 
