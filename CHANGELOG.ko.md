@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8040d7bbd2c845f239eec2bcafa3e2d6d7248f6e99e7b1c43185e106fcc114ab -->
+<!-- source-sha256: 880411ae487150161ffc87ad1bbafa18ae070a69510f39f35af07e0c61f58901 -->
 
 ## Unreleased
 
@@ -91,6 +91,10 @@
 ### 2026-10-21 — 다섯 unit의 ts 바인딩이 각 사례를 이름으로 보고한다 (C16.158)
 
 - unit `buttons`, `validate`, `form-render`, `form-view`, `expr`의 TypeScript 바인딩이 각 사례를 그 이름의 최상위 vitest 테스트로 보고한다 (C16.158): `packages/generator/ts/src/buttons.conformance.test.ts`, `packages/validator/ts/src/validate.conformance.test.ts`, `packages/html/src/conformance.test.ts`, `packages/generator/ts/src/form-state.test.ts`(form-view 사례만; form-history, form-actions, view-functions는 describe 아래에 남는다), `packages/validator/ts/src/expr.conformance.test.ts`가 describe 감싸기를 없앴고, form-render는 한 사례의 view와 framework 검증을 한 테스트에서 실행한다. Red: `make -s parity-check UNITS="buttons validate form-render form-view expr"` exit 1; buttons, validate, form-render, form-view, expr 각각의 `R3 not-executed <unit> ts` (`not executed: default-submit-only, ...`, `not executed: enddate-relative-path-2026-01-01, ...`, `not executed: text-with-nul, ...`, `not executed: toggle-row-collapses-and-expands, ...`, `not executed: path-sibling-truthy, ...`). Green: 같은 명령 exit 0, 다섯 unit의 ts 바인딩 모두 `N of N cases passed` (buttons 22, validate 341, form-render 201, form-view 3, expr 74), `grep "R3 not-executed [^ ]+ ts "`는 아무것도 찾지 않는다.
+
+### 2026-10-21 — Rust value graph가 공유 값을 포함해 사례 열두 개를 모두 실행한다 (C16.156-1-3)
+
+- Rust `JsonText`가 value-graph fixture의 공유 값을 받는다. `JsonText::Shared(Arc<JsonText>)`는 한 값을 여러 부모에 두고, `JsonText::Link(Weak<JsonText>)`는 자기 자신을 담는 값을 만든다(`packages/validator/rust/src/text.rs`, `packages/validator/rust/README.md`와 `README.ko.md`에 기록). 공유 값의 각 방문이 노드 하나로 세어지며, 검사(`check_specification`, `check_inputs`, `to_value`, `shape`, `invalid_path`)는 TypeScript 순회를 따른다. 먼저 빠른 순회를 하고, 첫 실패를 보고하는 순서 순회를 하며, 두 순회 모두 노드 한도와 중첩 한도를 따로 센다. `packages/validator/rust/tests/text_validity_conformance.rs`의 runner는 graph 기술의 형태 네 가지(`doubled`, `Arc::new_cyclic`을 쓰는 `self-twice`, `chain`, `flat`)를 만들어 `spec`, `data`, `files`에 놓는다 (C16.156-1-3). Red: `make -s parity-check UNITS="text-validity-value-graphs"` 7a6f8d25에서 종료 코드 2, 열두 사례 중 여덟이 not executed; green: rust 바인딩 12/12 사례 통과, rust R3 줄 없음, validity 47/47, input_text 56/56, template_shape 44/44 통과.
 
 ### 2026-10-21 — Rust text unit의 고유 symbol이 닫힌다 (C16.156-1-2)
 

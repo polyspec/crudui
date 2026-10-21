@@ -1,6 +1,6 @@
 # CRUDUI Rust 검증기
 <!-- doc-id: packages-validator-rust-readme -->
-<!-- source-sha256: d9790bd353682571ac0729172a2d2781e0a83a26dd75bc76be31aad0875aa55e -->
+<!-- source-sha256: fe400e539ef6bb1865ceb08d91c259fa4d0119556c1c47db41725652752f3331 -->
 
 [English](README.md).
 
@@ -29,6 +29,18 @@ let result = validate(&spec, &data, &ValidateOptions::default())?;
 반환하고, 구조 검사는 `ComposeLoadError`를 `Err`로 반환합니다. 실패는 데이터 검증
 결과가 아닙니다. [검증 절차](../../../docs/operations/validation.ko.md)가 모든 언어의
 사용법을 보여 줍니다.
+
+## 입력 텍스트와 공유 값
+
+`polyspec_crudui_validator::text::JsonText`는 텍스트를 바꾸지 않고 JSON 문서를 읽으므로,
+짝이 없는 surrogate 이스케이프가 검사에 그대로 보입니다. JSON 텍스트가 쓸 수 없는 두
+변형이 있습니다. `JsonText::Shared(Arc<JsonText>)`는 한 값을 여러 부모에 둡니다.
+`JsonText::Link(Weak<JsonText>)`는 자기를 담고 있는 공유 값으로 되돌아가는 링크이며,
+자기 자신을 담는 값을 만듭니다. 공유 값과 링크는 자체 노드가 아닙니다. 그 값이 가리키는
+각 방문이 노드 하나로 세어지므로, 노드 한도(1,000,000)와 중첩 한도(512)가 공유 컨테이너를
+가진 값의 모든 순회를 제한합니다. TypeScript와 Go 런타임이 세는 방식과 같습니다. 값의 첫
+실패가 그 오류를 정하며, 순회는 순서상 먼저 닿는 실패를 보고합니다. 자기 자신을 담는 값은
+fixture의 value-graph 사례처럼 `Arc::new_cyclic`으로 만듭니다.
 
 ## 검사
 

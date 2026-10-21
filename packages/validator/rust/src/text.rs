@@ -11,6 +11,7 @@
 
 use std::collections::HashSet;
 use std::fmt;
+use std::sync::{Arc, Weak};
 
 use serde_json::{Map, Number, Value};
 
@@ -54,7 +55,13 @@ impl JsonString {
 }
 
 /// A JSON document read without replacing any text.
-#[derive(Clone, Debug, PartialEq)]
+///
+/// [`JsonText::Shared`] and [`JsonText::Link`] hold what JSON text cannot write: a value placed in
+/// several parents, and a link back to a shared value that contains it, which makes a value that
+/// contains itself. Neither is a node of its own: a walk counts each visit of the value it denotes,
+/// as the TypeScript and Go runtimes do, so the node and nesting limits bound every walk. A link
+/// must refer to a value that its owner holds; the parser never produces either variant.
+#[derive(Clone, Debug)]
 pub enum JsonText {
     /// `null`.
     Null,
@@ -68,6 +75,26 @@ pub enum JsonText {
     Array(Vec<JsonText>),
     /// An object with unique member names.
     Object(Vec<(JsonString, JsonText)>),
+    /// A value shared by several parents.
+    Shared(Arc<JsonText>),
+    /// A link to a shared value, which makes a cycle when the link is inside that value.
+    Link(Weak<JsonText>),
+}
+
+impl PartialEq for JsonText {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (JsonText::Null, JsonText::Null) => true,
+            (JsonText::Bool(a), JsonText::Bool(b)) => a == b,
+            (JsonText::Number(a), JsonText::Number(b)) => a == b,
+            (JsonText::String(a), JsonText::String(b)) => a == b,
+            (JsonText::Array(a), JsonText::Array(b)) => a == b,
+            (JsonText::Object(a), JsonText::Object(b)) => a == b,
+            (JsonText::Shared(a), JsonText::Shared(b)) => Arc::ptr_eq(a, b) || a == b,
+            (JsonText::Link(a), JsonText::Link(b)) => Weak::ptr_eq(a, b),
+            _ => false,
+        }
+    }
 }
 
 /// JSON text that is not one JSON document.
@@ -314,184 +341,246 @@ impl JsonText {
         Ok(value)
     }
 
-    /// The member `name` of an object.
+    /// The member `name` of an object. A shared object is read through its target; a link is not.
     pub fn get(&self, name: &str) -> Option<&JsonText> {
         match self {
             JsonText::Object(members) => members
                 .iter()
                 .find(|(member, _)| member.as_str() == Some(name))
                 .map(|(_, value)| value),
+            JsonText::Shared(target) => target.get(name),
             _ => None,
         }
     }
 
-    /// The item at `index` of an array.
+    /// The item at `index` of an array. A shared array is read through its target; a link is not.
     pub fn item(&self, index: usize) -> Option<&JsonText> {
         match self {
             JsonText::Array(items) => items.get(index),
+            JsonText::Shared(target) => target.item(index),
             _ => None,
         }
     }
 
-    /// The value as [`Value`], or `None` when it holds invalid text or a number
-    /// `serde_json` does not accept.
+    /// The value as [`Value`], or `None` when it holds invalid text, a number
+    /// `serde_json` does not accept, or a value beyond its limits.
     pub fn to_value(&self) -> Option<Value> {
-        Some(match self {
-            JsonText::Null => Value::Null,
-            JsonText::Bool(value) => Value::Bool(*value),
-            JsonText::Number(text) => number_value(text)?,
-            JsonText::String(text) => Value::String(text.as_str()?.to_owned()),
-            JsonText::Array(items) => Value::Array(
-                items
-                    .iter()
-                    .map(JsonText::to_value)
-                    .collect::<Option<_>>()?,
-            ),
-            JsonText::Object(members) => {
-                let mut map = Map::new();
-                for (name, value) in members {
-                    map.insert(name.as_str()?.to_owned(), value.to_value()?);
-                }
-                Value::Object(map)
-            }
-        })
+        if value_failure(self) == Some(ValueFailure::Limit) {
+            return None;
+        }
+        json_text_to_value(self)
     }
 
     /// The document's shape for request checks that read only kinds and valid
     /// names: invalid text becomes an empty string, an invalid member name a
     /// name no valid request member uses, and a number `serde_json` does not
-    /// accept `null`. The shape is never an operation input; the text checks run
-    /// before any part of it reaches an operation.
+    /// accept `null`. A value beyond its limits has no shape and is `null`. The
+    /// shape is never an operation input; the text checks run before any part of
+    /// it reaches an operation.
     pub fn shape(&self) -> Value {
-        match self {
-            JsonText::Array(items) => Value::Array(items.iter().map(JsonText::shape).collect()),
-            JsonText::Object(members) => {
-                let mut map = Map::new();
-                for (index, (name, value)) in members.iter().enumerate() {
-                    let name = match name {
-                        JsonString::Text(text) => text.clone(),
-                        JsonString::Units(_) => format!("\u{FFFF}{index}"),
-                    };
-                    map.insert(name, value.shape());
-                }
-                Value::Object(map)
-            }
-            JsonText::String(JsonString::Units(_)) => Value::String(String::new()),
-            other => other.to_value().unwrap_or(Value::Null),
+        if value_failure(self) == Some(ValueFailure::Limit) {
+            return Value::Null;
         }
+        shape_of(self)
     }
 
-    /// Whether any string or member name is invalid text.
+    /// Whether the first failure of the value is invalid text (see [`JsonText::invalid_path`]).
     pub fn has_invalid_text(&self) -> bool {
-        match self {
-            JsonText::String(text) => text.as_str().is_none(),
-            JsonText::Array(items) => items.iter().any(JsonText::has_invalid_text),
-            JsonText::Object(members) => members
-                .iter()
-                .any(|(name, value)| name.as_str().is_none() || value.has_invalid_text()),
-            _ => false,
-        }
+        matches!(value_failure(self), Some(ValueFailure::Text(_)))
     }
 
-    /// The path of the first invalid text: the path of a string, or of the
-    /// object whose member name is invalid. Members are visited in code point
-    /// order of their names and array items in index order.
+    /// The path of the first failure when it is invalid text: the path of a string, or of the
+    /// object whose member name is invalid. Members are visited in code point order of their names
+    /// after every member name is checked, and array items in index order.
     pub fn invalid_path(&self) -> Option<Vec<String>> {
-        if !self.has_invalid_text() {
-            return None;
-        }
-        let mut path = Vec::new();
-        self.first_invalid(&mut path).then_some(path)
-    }
-
-    fn first_invalid(&self, path: &mut Vec<String>) -> bool {
-        match self {
-            JsonText::String(text) => text.as_str().is_none(),
-            JsonText::Array(items) => items.iter().enumerate().any(|(index, item)| {
-                path.push(index.to_string());
-                let found = item.first_invalid(path);
-                if !found {
-                    path.pop();
-                }
-                found
-            }),
-            JsonText::Object(members) => {
-                let mut named = Vec::with_capacity(members.len());
-                for (name, value) in members {
-                    match name.as_str() {
-                        Some(text) => named.push((text, value)),
-                        None => return true,
-                    }
-                }
-                // Byte order of UTF-8 is code point order.
-                named.sort_by(|a, b| a.0.cmp(b.0));
-                named.into_iter().any(|(name, value)| {
-                    path.push(name.to_owned());
-                    let found = value.first_invalid(path);
-                    if !found {
-                        path.pop();
-                    }
-                    found
-                })
-            }
-            _ => false,
+        match value_failure(self) {
+            Some(ValueFailure::Text(path)) => Some(path),
+            _ => None,
         }
     }
 
     /// Whether this value holds a limit violation (too many nodes or too deep nesting).
     pub fn has_limit_violation(&self) -> bool {
-        let mut nodes = 0;
-        self.check_limits(&mut nodes, 0)
+        value_failure(self) == Some(ValueFailure::Limit)
     }
+}
 
-    /// Count nodes and check nesting depth; true when limits are exceeded.
-    fn check_limits(&self, nodes: &mut usize, depth: usize) -> bool {
-        *nodes += 1;
-        if *nodes > NODE_LIMIT {
+/// The first failure of a value, which the text and limit checks report.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum ValueFailure {
+    /// Invalid text at this path (the path of its string, or of the object whose member name is invalid).
+    Text(Vec<String>),
+    /// A value beyond its limits, reached before any text failure in the walk order.
+    Limit,
+}
+
+/// The nodes of one walk, counted per visit: a shared value visited twice counts twice.
+#[derive(Default)]
+struct Walk {
+    nodes: usize,
+}
+
+impl Walk {
+    /// Count a node at `depth`; false when it takes the value beyond its limits.
+    fn admit(&mut self, node: &JsonText, depth: usize) -> bool {
+        self.nodes += 1;
+        if self.nodes > NODE_LIMIT {
+            return false;
+        }
+        depth < NESTING_LIMIT || !matches!(node, JsonText::Array(_) | JsonText::Object(_))
+    }
+}
+
+/// Run `f` on the value that `value` denotes: a shared or linked value is its target, which is no
+/// node of its own. A link is followed by upgrading it; its owner holds the target while it is read.
+fn with_node<R>(value: &JsonText, f: impl FnOnce(&JsonText) -> R) -> R {
+    match value {
+        JsonText::Shared(target) => with_node(target, f),
+        JsonText::Link(target) => {
+            let target = target
+                .upgrade()
+                .expect("a link refers to a shared value that its owner holds");
+            with_node(&target, f)
+        }
+        other => f(other),
+    }
+}
+
+/// Whether the value holds a failure, walked in member order: the quick walk that precedes the
+/// ordered one, with its own node count.
+fn holds_failure(value: &JsonText, depth: usize, walk: &mut Walk) -> bool {
+    with_node(value, |node| {
+        if !walk.admit(node, depth) {
             return true;
         }
-        match self {
-            JsonText::Array(items) => {
-                if depth >= NESTING_LIMIT {
-                    return true;
-                }
-                items.iter().any(|item| item.check_limits(nodes, depth + 1))
-            }
-            JsonText::Object(members) => {
-                if depth >= NESTING_LIMIT {
-                    return true;
-                }
-                members
-                    .iter()
-                    .any(|(_, value)| value.check_limits(nodes, depth + 1))
-            }
+        match node {
+            JsonText::String(text) => text.as_str().is_none(),
+            JsonText::Array(items) => items
+                .iter()
+                .any(|item| holds_failure(item, depth + 1, walk)),
+            JsonText::Object(members) => members.iter().any(|(name, member)| {
+                name.as_str().is_none() || holds_failure(member, depth + 1, walk)
+            }),
             _ => false,
         }
+    })
+}
+
+/// The first failure in walk order: array items in index order; for an object, every member name
+/// first, then the members in code point order of their names.
+fn first_failure(
+    value: &JsonText,
+    path: &mut Vec<String>,
+    depth: usize,
+    walk: &mut Walk,
+) -> Option<ValueFailure> {
+    with_node(value, |node| {
+        if !walk.admit(node, depth) {
+            return Some(ValueFailure::Limit);
+        }
+        match node {
+            JsonText::String(text) => text
+                .as_str()
+                .is_none()
+                .then(|| ValueFailure::Text(path.clone())),
+            JsonText::Array(items) => {
+                for (index, item) in items.iter().enumerate() {
+                    path.push(index.to_string());
+                    let found = first_failure(item, path, depth + 1, walk);
+                    path.pop();
+                    if found.is_some() {
+                        return found;
+                    }
+                }
+                None
+            }
+            JsonText::Object(members) => {
+                let mut named = Vec::with_capacity(members.len());
+                for (name, member) in members {
+                    match name.as_str() {
+                        Some(text) => named.push((text, member)),
+                        None => return Some(ValueFailure::Text(path.clone())),
+                    }
+                }
+                // Byte order of UTF-8 is code point order.
+                named.sort_by(|a, b| a.0.cmp(b.0));
+                for (name, member) in named {
+                    path.push(name.to_owned());
+                    let found = first_failure(member, path, depth + 1, walk);
+                    path.pop();
+                    if found.is_some() {
+                        return found;
+                    }
+                }
+                None
+            }
+            _ => None,
+        }
+    })
+}
+
+/// The first failure of `value`: the quick walk finds whether there is one, and the ordered walk
+/// reports it. Each walk counts its own nodes, as the TypeScript runtime does.
+fn value_failure(value: &JsonText) -> Option<ValueFailure> {
+    if !holds_failure(value, 0, &mut Walk::default()) {
+        return None;
     }
+    Some(
+        first_failure(value, &mut Vec::new(), 0, &mut Walk::default())
+            .expect("the ordered walk reports the failure that the quick walk found"),
+    )
+}
+
+/// The shape of a value within its limits, as [`JsonText::shape`] states it.
+fn shape_of(value: &JsonText) -> Value {
+    with_node(value, |node| match node {
+        JsonText::Array(items) => Value::Array(items.iter().map(shape_of).collect()),
+        JsonText::Object(members) => {
+            let mut map = Map::new();
+            for (index, (name, member)) in members.iter().enumerate() {
+                let name = match name {
+                    JsonString::Text(text) => text.clone(),
+                    JsonString::Units(_) => format!("\u{FFFF}{index}"),
+                };
+                map.insert(name, shape_of(member));
+            }
+            Value::Object(map)
+        }
+        JsonText::String(JsonString::Units(_)) => Value::String(String::new()),
+        JsonText::String(JsonString::Text(text)) => Value::String(text.clone()),
+        JsonText::Null => Value::Null,
+        JsonText::Bool(value) => Value::Bool(*value),
+        JsonText::Number(text) => number_value(text).unwrap_or(Value::Null),
+        JsonText::Shared(_) | JsonText::Link(_) => unreachable!("with_node resolves shared values"),
+    })
 }
 
 /// Check a specification and then the composition files an operation reads.
 /// Invalid text is the `INVALID_TEXT` load failure located at its
 /// specification path, or at the file name followed by its path in the file;
 /// an invalid file name is located at the empty path. A value beyond its limits
-/// is `INVALID_FORM_INPUT` naming `spec` or `files`.
+/// is `INVALID_FORM_INPUT` naming `spec` or `files`. Each value is checked in
+/// walk order: the first failure of the value decides its error.
 pub fn check_specification(
     spec: Option<&JsonText>,
     files: Option<&JsonText>,
 ) -> Result<(), ValidateError> {
     for (name, value) in [("spec", spec), ("files", files)] {
         if let Some(value) = value {
-            if value.has_limit_violation() {
-                return Err(ValidateError::Input(FormInputError::new(format!(
-                    "{VALUE_LIMIT_MESSAGE}: {name}"
-                ))));
-            }
-            if let Some(trace) = value.invalid_path() {
-                return Err(ValidateError::Load(ComposeLoadError::with_trace(
-                    ComposeErrorCode::InvalidText,
-                    MESSAGE,
-                    trace,
-                )));
+            match value_failure(value) {
+                Some(ValueFailure::Limit) => {
+                    return Err(ValidateError::Input(FormInputError::new(format!(
+                        "{VALUE_LIMIT_MESSAGE}: {name}"
+                    ))));
+                }
+                Some(ValueFailure::Text(trace)) => {
+                    return Err(ValidateError::Load(ComposeLoadError::with_trace(
+                        ComposeErrorCode::InvalidText,
+                        MESSAGE,
+                        trace,
+                    )));
+                }
+                None => {}
             }
         }
     }
@@ -500,22 +589,25 @@ pub fn check_specification(
 
 /// Check named caller values in order; absent values are skipped. Invalid text
 /// is `INVALID_FORM_INPUT` naming the value and its path, and a value beyond its limits
-/// is `INVALID_FORM_INPUT` naming the value.
+/// is `INVALID_FORM_INPUT` naming the value. Each value's first failure decides its error.
 pub fn check_inputs(inputs: &[(&str, Option<&JsonText>)]) -> Result<(), FormInputError> {
     for (name, value) in inputs {
         if let Some(value) = value {
-            if value.has_limit_violation() {
-                return Err(FormInputError::new(format!(
-                    "{VALUE_LIMIT_MESSAGE}: {name}"
-                )));
-            }
-            if let Some(path) = value.invalid_path() {
-                let mut location = vec![(*name).to_owned()];
-                location.extend(path);
-                return Err(FormInputError::new(format!(
-                    "{MESSAGE}: {}",
-                    location.join(".")
-                )));
+            match value_failure(value) {
+                Some(ValueFailure::Limit) => {
+                    return Err(FormInputError::new(format!(
+                        "{VALUE_LIMIT_MESSAGE}: {name}"
+                    )));
+                }
+                Some(ValueFailure::Text(path)) => {
+                    let mut location = vec![(*name).to_owned()];
+                    location.extend(path);
+                    return Err(FormInputError::new(format!(
+                        "{MESSAGE}: {}",
+                        location.join(".")
+                    )));
+                }
+                None => {}
             }
         }
     }
@@ -529,79 +621,34 @@ fn number_value(text: &str) -> Option<Value> {
     serde_json::from_str::<Number>(text).ok().map(Value::Number)
 }
 
-/// Convert JsonText to serde_json::Value with iterative approach to handle 512+ levels.
-/// Invalid text (already checked) becomes None; invalid numbers become None.
+/// Convert a value to serde_json::Value. Invalid text becomes None, as do numbers serde_json does
+/// not accept. The callers convert only values within their limits, so the nesting is bounded by
+/// the nesting limit and the recursion stays within it.
 fn json_text_to_value(value: &JsonText) -> Option<Value> {
-    enum StackFrame<'a> {
-        // Process a value and push its result
-        Process(&'a JsonText),
-        // Collect array items
-        CollectArray(usize),
-        // Collect object members in their declaration order
-        CollectObject(Vec<&'a JsonString>),
-    }
-
-    let mut stack = vec![StackFrame::Process(value)];
-    let mut result_stack: Vec<Value> = Vec::new();
-
-    while let Some(frame) = stack.pop() {
-        match frame {
-            StackFrame::Process(val) => {
-                match val {
-                    JsonText::Null => result_stack.push(Value::Null),
-                    JsonText::Bool(b) => result_stack.push(Value::Bool(*b)),
-                    JsonText::Number(text) => result_stack.push(number_value(text)?),
-                    JsonText::String(s) => {
-                        let text = s.as_str()?;
-                        result_stack.push(Value::String(text.to_owned()));
-                    }
-                    JsonText::Array(items) => {
-                        // Push a marker to collect results
-                        stack.push(StackFrame::CollectArray(items.len()));
-                        // Push items in reverse order
-                        for item in items.iter().rev() {
-                            stack.push(StackFrame::Process(item));
-                        }
-                    }
-                    JsonText::Object(members) => {
-                        // Verify all member names are valid first
-                        for (name, _) in members {
-                            name.as_str()?;
-                        }
-                        let names: Vec<&JsonString> =
-                            members.iter().map(|(name, _)| name).collect();
-                        // Push a marker to collect results
-                        stack.push(StackFrame::CollectObject(names));
-                        // Push members in reverse order
-                        for (_, val) in members.iter().rev() {
-                            stack.push(StackFrame::Process(val));
-                        }
-                    }
-                }
+    with_node(value, |node| match node {
+        JsonText::Null => Some(Value::Null),
+        JsonText::Bool(b) => Some(Value::Bool(*b)),
+        JsonText::Number(text) => number_value(text),
+        JsonText::String(text) => Some(Value::String(text.as_str()?.to_owned())),
+        JsonText::Array(items) => items
+            .iter()
+            .map(json_text_to_value)
+            .collect::<Option<Vec<_>>>()
+            .map(Value::Array),
+        JsonText::Object(members) => {
+            // Member names are checked before any value is converted.
+            let mut names = Vec::with_capacity(members.len());
+            for (name, _) in members {
+                names.push(name.as_str()?);
             }
-            StackFrame::CollectArray(count) => {
-                let mut items = Vec::with_capacity(count);
-                for _ in 0..count {
-                    items.push(result_stack.pop()?);
-                }
-                items.reverse();
-                result_stack.push(Value::Array(items));
+            let mut object = Map::new();
+            for (name, (_, member)) in names.into_iter().zip(members) {
+                object.insert(name.to_owned(), json_text_to_value(member)?);
             }
-            StackFrame::CollectObject(names) => {
-                let mut values = Vec::with_capacity(names.len());
-                for _ in 0..names.len() {
-                    values.push(result_stack.pop()?);
-                }
-                let mut object = Map::new();
-                for (name, value) in names.into_iter().zip(values.into_iter().rev()) {
-                    object.insert(name.as_str()?.to_owned(), value);
-                }
-                result_stack.push(Value::Object(object));
-            }
+            Some(Value::Object(object))
         }
-    }
-
-    result_stack.pop()
+        JsonText::Shared(_) | JsonText::Link(_) => unreachable!("with_node resolves shared values"),
+    })
 }
 
 /// A JSON text member that is not text, or a number `serde_json` does not

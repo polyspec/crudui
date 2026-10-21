@@ -7,6 +7,7 @@ mod common;
 
 use libtest_mimic::{Arguments, Failed, Trial};
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use serde_json::{json, Value};
 
@@ -183,155 +184,154 @@ fn json_text_locates_invalid_text() {
     );
 }
 
-fn value_graph_limits() {
-    use std::fs;
-    use std::path::PathBuf;
+/// A value graph of the fixture (value-graphs.json): the path of the input it is placed at, its shape, and the size and
+/// leaf of the graph.
+struct Graph {
+    at: Vec<String>,
+    shape: String,
+    size: usize,
+    leaf: JsonString,
+}
 
-    // Load value-graphs.json
+fn graph_of(case: &JsonText) -> Graph {
+    let graph = case.get("graph").expect("a case has a graph");
+    let at = match graph.get("at") {
+        Some(JsonText::Array(names)) => names
+            .iter()
+            .map(|name| match name {
+                JsonText::String(JsonString::Text(text)) => text.clone(),
+                other => panic!("a graph path names text: {other:?}"),
+            })
+            .collect(),
+        _ => panic!("a graph has a path"),
+    };
+    let shape = match graph.get("shape") {
+        Some(JsonText::String(JsonString::Text(text))) => text.clone(),
+        _ => panic!("a graph has a shape"),
+    };
+    let size = match graph.get("size") {
+        Some(JsonText::Number(number)) => number.parse::<usize>().expect("a size is a usize"),
+        None => 0,
+        other => panic!("a graph size is a number: {other:?}"),
+    };
+    let leaf = match graph.get("leaf") {
+        Some(JsonText::String(text)) => text.clone(),
+        None => JsonString::Text("x".to_owned()),
+        other => panic!("a graph leaf is text: {other:?}"),
+    };
+    Graph {
+        at,
+        shape,
+        size,
+        leaf,
+    }
+}
+
+/// The value of a graph. `doubled` places one value twice at each level, `chain` nests it, `flat` lists it, and
+/// `self-twice` is an object whose two members are the object itself. The shared values are one node each in memory.
+fn build_graph(graph: &Graph) -> JsonText {
+    let leaf = JsonText::String(graph.leaf.clone());
+    match graph.shape.as_str() {
+        "self-twice" => JsonText::Shared(Arc::new_cyclic(|this| {
+            JsonText::Object(vec![
+                (JsonString::Text("self".to_owned()), JsonText::Link(this.clone())),
+                (JsonString::Text("again".to_owned()), JsonText::Link(this.clone())),
+            ])
+        })),
+        "flat" => JsonText::Array(vec![leaf; graph.size]),
+        "chain" => (0..graph.size).fold(leaf, |value, _| JsonText::Array(vec![value])),
+        "doubled" => (0..graph.size).fold(leaf, |value, _| {
+            let shared = Arc::new(value);
+            JsonText::Array(vec![
+                JsonText::Shared(Arc::clone(&shared)),
+                JsonText::Shared(shared),
+            ])
+        }),
+        other => panic!("unknown graph shape {other}"),
+    }
+}
+
+/// The member `name` of an object, which the path of a graph reads.
+fn member_mut<'a>(value: &'a mut JsonText, name: &str) -> &'a mut JsonText {
+    match value {
+        JsonText::Object(members) => {
+            let position = members
+                .iter()
+                .position(|(member, _)| member.as_str() == Some(name))
+                .expect("the graph lies in an object member");
+            &mut members[position].1
+        }
+        other => panic!("the graph lies in an object, not {other:?}"),
+    }
+}
+
+/// Place `value` at the path of a graph: its first name is an input (`spec`, `data` or `files`), the rest are the members
+/// of the objects that hold it, and the last member is replaced or added.
+fn place(
+    inputs: [&mut Option<JsonText>; 3],
+    at: &[String],
+    value: JsonText,
+) {
+    let [spec, data, files] = inputs;
+    let root = match at[0].as_str() {
+        "spec" => spec,
+        "data" => data,
+        "files" => files,
+        other => panic!("a graph lies in an input, not {other}"),
+    };
+    let mut target = root.as_mut().expect("the graph lies in an input that the case gives");
+    let (last, holders) = at[1..].split_last().expect("the graph path names a member");
+    for holder in holders {
+        target = member_mut(target, holder);
+    }
+    match target {
+        JsonText::Object(members) => match members
+            .iter()
+            .position(|(member, _)| member.as_str() == Some(last.as_str()))
+        {
+            Some(position) => members[position].1 = value,
+            None => members.push((JsonString::Text(last.clone()), value)),
+        },
+        other => panic!("the graph lies in an object, not {other:?}"),
+    }
+}
+
+/// One value-graph case: its graph is built and placed, and its validation checked against the expectation.
+fn check_graph_case(case: &JsonText, name: &str) -> Vec<String> {
+    let graph = graph_of(case);
+    let mut spec = case.get("spec").cloned();
+    let mut data = case.get("data").cloned();
+    let mut files = case.get("files").cloned();
+    place([&mut spec, &mut data, &mut files], &graph.at, build_graph(&graph));
+    let spec = spec.expect("a graph case has a specification");
+    let basepath = case.get("options").and_then(|options| options.get("basepath"));
+    let result = text::validate_text(&spec, data.as_ref(), files.as_ref(), basepath);
+    let native = native_type(&result);
+    let actual = match result {
+        Ok(result) => json!({"valid": result.valid, "errors": result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": result.hidden}),
+        Err(error) => json!({"code": error.code(), "message": error.message(), "at": error.at()}),
+    };
+    let expected = case.get("expect").and_then(JsonText::to_value).expect("expect");
+    if actual == expected && native == expected_type(&expected) {
+        Vec::new()
+    } else {
+        vec![format!("value-graphs/{name}: got {actual} ({native}), want {expected} ({})", expected_type(&expected))]
+    }
+}
+
+/// The cases of the value-graph fixture, read as JSON text.
+fn value_graph_cases() -> Vec<JsonText> {
     let relative = "tests/fixtures/text-validity/value-graphs.json";
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../..")
         .join(relative);
-    let source = match fs::read_to_string(&path) {
+    let source = match std::fs::read_to_string(&path) {
         Ok(source) => source,
         Err(e) => panic!("read {path:?}: {e}"),
     };
-
-    let cases = match JsonText::parse(&source).expect("value-graphs.json") {
+    match JsonText::parse(&source).expect("value-graphs.json") {
         JsonText::Array(cases) => cases,
         _ => panic!("fixture is not an array"),
-    };
-
-    // Helper to build a chain of nested JsonText arrays
-    fn build_chain_json_text(depth: usize, leaf: &str) -> JsonText {
-        let mut value = JsonText::String(JsonString::Text(leaf.to_string()));
-        for _ in 0..depth {
-            value = JsonText::Array(vec![value]);
-        }
-        value
-    }
-
-    // Helper to build a flat JsonText list
-    fn build_flat_json_text(size: usize, leaf: &str) -> JsonText {
-        let items = vec![JsonText::String(JsonString::Text(leaf.to_string())); size];
-        JsonText::Array(items)
-    }
-
-    let buildable = [
-        "nesting-at-limit",
-        "nesting-beyond-limit",
-        "nodes-at-limit",
-        "nodes-beyond-limit",
-    ];
-    let mut ran = 0;
-    let mut failures = Vec::new();
-
-    for case in &cases {
-        let name = case.get("name").and_then(|n| match n {
-            JsonText::String(JsonString::Text(name)) => Some(name.clone()),
-            _ => None,
-        });
-        let name = name.expect("case name");
-
-        if !buildable.iter().any(|b| b == &name) {
-            continue;
-        }
-
-        ran += 1;
-
-        let spec = case.get("spec").expect("spec");
-        let mut data = case.get("data").cloned().unwrap_or(JsonText::Null);
-        let graph = case.get("graph").expect("graph");
-
-        // Get graph parameters
-        let at = match graph.get("at") {
-            Some(JsonText::Array(path)) => path
-                .iter()
-                .filter_map(|p| match p {
-                    JsonText::String(JsonString::Text(s)) => Some(s.clone()),
-                    _ => None,
-                })
-                .collect::<Vec<_>>(),
-            _ => continue,
-        };
-
-        let shape = graph
-            .get("shape")
-            .and_then(|s| match s {
-                JsonText::String(JsonString::Text(s)) => Some(s.as_str()),
-                _ => None,
-            })
-            .unwrap_or("");
-
-        let size = graph
-            .get("size")
-            .and_then(|s| match s {
-                JsonText::Number(n) => Some(n.parse::<usize>().expect("a fixture size is a usize")),
-                _ => None,
-            })
-            .unwrap_or(0);
-
-        let leaf = graph
-            .get("leaf")
-            .and_then(|l| match l {
-                JsonText::String(JsonString::Text(s)) => Some(s.clone()),
-                _ => None,
-            })
-            .unwrap_or_else(|| "x".to_string());
-
-        // Build the graph value as JsonText
-        let graph_value = match shape {
-            "chain" => build_chain_json_text(size, &leaf),
-            "flat" => build_flat_json_text(size, &leaf),
-            _ => continue, // Skip doubled and self-twice
-        };
-
-        // Place the graph value at the specified path
-        if at.len() == 2 && at[0] == "data" {
-            if let JsonText::Object(ref mut members) = data {
-                let key = JsonString::Text(at[1].clone());
-                if let Some(pos) = members.iter().position(|(n, _)| n == &key) {
-                    members[pos].1 = graph_value;
-                } else {
-                    members.push((key, graph_value));
-                }
-            }
-        } else {
-            continue; // Skip more complex paths for now
-        }
-
-        // Run validation
-        let result = text::validate_text(spec, Some(&data), None, None);
-
-        let native = native_type(&result);
-        let actual = match result {
-            Ok(validation_result) => {
-                json!({"valid": validation_result.valid, "errors": validation_result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": validation_result.hidden})
-            }
-            Err(error) => {
-                json!({"code": error.code(), "message": error.message(), "at": error.at()})
-            }
-        };
-        let expected = case
-            .get("expect")
-            .and_then(JsonText::to_value)
-            .expect("expect");
-
-        if actual != expected || native != expected_type(&expected) {
-            failures.push(format!(
-                "value-graphs/{}: got {} ({}), want {} ({})",
-                name, actual, native, expected, expected_type(&expected)
-            ));
-        }
-    }
-
-    assert_eq!(
-        ran,
-        buildable.len(),
-        "every buildable value-graph case runs"
-    );
-    if !failures.is_empty() {
-        panic!("{}", failures.join("\n"));
     }
 }
 
@@ -370,9 +370,22 @@ fn main() {
         json_text_locates_invalid_text();
         Ok(())
     }));
-    trials.push(Trial::test("value_graph_limits", || {
-        value_graph_limits();
-        Ok(())
-    }));
+    for case in value_graph_cases() {
+        let name = case
+            .get("name")
+            .and_then(|n| match n {
+                JsonText::String(JsonString::Text(name)) => Some(name.clone()),
+                _ => None,
+            })
+            .expect("case name");
+        trials.push(Trial::test(format!("value_graph_limits::{name}"), move || {
+            let failures = check_graph_case(&case, &name);
+            if failures.is_empty() {
+                Ok(())
+            } else {
+                Err(Failed::from(format!("\n{}", failures.join("\n"))))
+            }
+        }));
+    }
     libtest_mimic::run(&Arguments::from_args(), trials).exit();
 }
