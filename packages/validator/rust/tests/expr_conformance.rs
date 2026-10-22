@@ -84,11 +84,14 @@ fn check_case(spec: &Value, name: &str) -> Vec<String> {
     if let Some(error) = spec.get("error").and_then(Value::as_str) {
         match Expression::parse(expr) {
             Ok(_) => failures.push(format!("[{}] parsed; want error {}", name, error)),
-            Err(e) if e.message != error => failures.push(format!(
-                "[{}] error mismatch\n  expected: {}\n  actual:   {}",
-                name, error, e.message
-            )),
-            Err(_) => {}
+            Err(e) => {
+                if e.message != error {
+                    failures.push(format!(
+                        "[{}] error mismatch\n  expected: {}\n  actual:   {}",
+                        name, error, e.message
+                    ));
+                }
+            }
         }
         return failures;
     }

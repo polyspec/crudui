@@ -368,7 +368,8 @@ async function runCheck(target: Target, name: string, operation: () => Promise<J
     controller.abort(expired);
   }, budget);
   const expiry = new Promise<never>((resolve, reject) => controller.signal.addEventListener('abort', () => reject(expired), { once: true }));
-  expiry.catch(() => {});
+  // The race below receives the rejection of expiry; this only observes its settlement when the check ends first.
+  void Promise.allSettled([expiry]);
   try {
     const details = await Promise.race([checkSignal.run(controller.signal, operation), expiry]);
     report.checks.push({ target: target.name, case: name, passed: true, durationMs: Date.now() - started, ...details });

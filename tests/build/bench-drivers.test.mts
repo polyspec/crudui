@@ -15,6 +15,16 @@ import { fileURLToPath } from 'node:url';
 import { BENCH, compiledDrivers } from '../../benchmarks/validators/drivers.mjs';
 import { parseJson, readJson, type JTDSchemaType } from '../json.mts';
 
+/** Kills the process group of `pid` with SIGKILL; a group that has already ended (ESRCH) is the outcome sought, and another error throws. */
+function killGroup(pid: number | undefined): void {
+  if (pid === undefined) return;
+  try {
+    process.kill(-pid, 'SIGKILL');
+  } catch (error) {
+    if (!(error instanceof Error && 'code' in error && error.code === 'ESRCH')) throw error;
+  }
+}
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const FIXTURES = path.join(BENCH, 'fixtures');
 /** benchmarks/validators/iteration-arguments.json: the counts every driver accepts or rejects. */
@@ -62,12 +72,12 @@ function run({ command, args, cwd }: Program, extra: string[], deadlineMs: numbe
     child.stderr.setEncoding('utf8').on('data', chunk => { stderr += chunk; });
     const timer = setTimeout(() => {
       timedOut = true;
-      try { if (child.pid !== undefined) process.kill(-child.pid, 'SIGKILL'); } catch { /* the group already ended */ }
+      killGroup(child.pid);
     }, deadlineMs);
     child.once('error', error => { clearTimeout(timer); reject(error); });
     child.once('close', status => {
       clearTimeout(timer);
-      try { if (child.pid !== undefined) process.kill(-child.pid, 'SIGKILL'); } catch { /* no process of the group is left */ }
+      killGroup(child.pid);
       resolve({ status, stdout, stderr, timedOut, elapsedMs: performance.now() - started });
     });
   });

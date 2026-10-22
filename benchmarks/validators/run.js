@@ -118,8 +118,9 @@ async function runDriver(commands, lang, d) {
     if (!t.startsWith('{')) continue;
     try {
       rows.push(JSON.parse(t));
-    } catch {
-      // ignore non-JSON noise (e.g. cargo build chatter)
+    } catch (error) {
+      // A line of cargo build chatter that starts with { is no row; any other error is a failure of the run.
+      if (!(error instanceof SyntaxError)) throw error;
     }
   }
   if (rows.length === 0) {

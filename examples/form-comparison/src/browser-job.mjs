@@ -128,7 +128,8 @@ export function createBrowserJob(run, options = {}) {
         await publishState();
       }
     })();
-    promise.catch(() => {});
+    // The failure is recorded in status and error above, and whoever awaits the job receives it; this only observes the settlement.
+    void Promise.allSettled([promise]);
     return state();
   }
 

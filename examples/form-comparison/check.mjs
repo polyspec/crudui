@@ -83,7 +83,7 @@ const browser = launch.value;
 for (const name of ['SIGTERM', 'SIGINT']) {
   process.once(name, () => {
     progress('browser-close', `${name}: closing the browser`);
-    browser.close().catch(() => {}).finally(() => process.exit(name === 'SIGINT' ? 130 : 143));
+    browser.close().catch(error => progress('browser-close', `${name}: closing the browser failed: ${error}`)).finally(() => process.exit(name === 'SIGINT' ? 130 : 143));
   });
 }
 let page;

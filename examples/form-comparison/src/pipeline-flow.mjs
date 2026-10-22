@@ -227,7 +227,7 @@ export async function runPipelineCombination({ browser, origin, combination, sig
   const original = await storedRecord(origin, selection.server, recordId, signal);
   const edited = firstStore(original);
   const context = await browser.createBrowserContext();
-  const close = () => context.close().catch(() => {});
+  const close = () => context.close().catch(error => console.error(`closing the browser context on abort failed: ${error}`));
   signal?.addEventListener('abort', close, { once: true });
   try {
     const page = await context.newPage();

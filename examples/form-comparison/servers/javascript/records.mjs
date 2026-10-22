@@ -234,7 +234,8 @@ export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
   /** Run `task` after every earlier store operation of this process. */
   function exclusive(task) {
     const result = queue.then(task);
-    queue = result.catch(() => {});
+    // The caller receives the failure of `task` through `result`; the queue waits only for its settlement.
+    queue = Promise.allSettled([result]);
     return result;
   }
 

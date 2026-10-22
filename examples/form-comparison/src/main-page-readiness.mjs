@@ -4,7 +4,8 @@ export async function subscribeMainPageReadiness(page) {
   let reject;
   let settled = false;
   const readiness = new Promise((ready, fail) => { resolve = ready; reject = fail; });
-  readiness.catch(() => {});
+  // Whoever awaits readiness receives its failure; this only observes the settlement before the first await.
+  void Promise.allSettled([readiness]);
 
   const errorMessage = error => error instanceof Error ? error.message : String(error);
   const removeFailureListeners = () => {

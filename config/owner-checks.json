@@ -637,15 +637,7 @@
         "PRINCIPLES.md",
         "PRINCIPLES.ko.md",
         "config/layout.kit.yml",
-        "ruff.toml",
-        "clippy.toml",
-        "phpcs.xml.dist",
-        "phpstan.dist.neon",
-        ".golangci.yml",
-        ".oxlintrc.json",
-        "knip.json",
         ".editorconfig",
-        "config/api-extractor.kit.json",
         "config/pyproject.schema.json",
         "config/composer.schema.json",
         "config/cargo.schema.json",
@@ -752,6 +744,65 @@
       ],
       "targets": [
         "typecheck"
+      ]
+    },
+    {
+      "paths": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.cts",
+        "**/*.js",
+        "**/*.mjs"
+      ],
+      "targets": [
+        "lint-ts",
+        "duplication-check"
+      ]
+    },
+    {
+      "paths": [
+        "**/*.py"
+      ],
+      "targets": [
+        "lint-python",
+        "duplication-check"
+      ]
+    },
+    {
+      "paths": [
+        "**/*.php"
+      ],
+      "targets": [
+        "lint-php",
+        "duplication-check"
+      ]
+    },
+    {
+      "paths": [
+        "**/*.go"
+      ],
+      "targets": [
+        "lint-go",
+        "duplication-check"
+      ]
+    },
+    {
+      "paths": [
+        "**/*.rs"
+      ],
+      "targets": [
+        "lint-rust",
+        "duplication-check"
+      ]
+    },
+    {
+      "paths": [
+        "packages/php-ext/**"
+      ],
+      "targets": [
+        "lint-php-ext",
+        "duplication-check"
       ]
     }
   ],
