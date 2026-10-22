@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-22 — C16.45 is dropped under the link rule (C16.45)
+
+- C16.45 is dropped (C16.45): the user's link rule keeps the tracked lock as its release record, so the tracked-lock rewrite that the row waited for (K439-3-x) has no work left.
+
 ### 2026-10-21 — The sprintf-js advisory exception names both of its paths (C16.169-1)
 
 - The advisory exception of sprintf-js (npm advisory 1241202, GHSA-hp3w-g68c-fv3c, medium) in `config/dependency-policy.json` names both paths that bring sprintf-js 1.0.3 in (C16.169-1): the direct development dependency `@microsoft/api-documenter` 7.30.18, which `scripts/gen-api-docs.mts` runs with fixed arguments, and `@microsoft/api-extractor` 7.59.4 of `@polyspec/kit`, both through `@rushstack/ts-command-line` 5.3.17 and argparse 1.0.10; the reason said the only path was kit's. No sprintf-js release fixes the advisory (vulnerable <= 1.1.3, the latest), so its removal (C16.169) joins the coordinated dependency batch. Red: `make text-absent` of the old sentence exit 2 on e9d3accc; green: exit 0.

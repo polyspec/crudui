@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 28e891a0a7b74ebc0033378e7ab1b64a68fbf0e226d1ee8622e3baa414d46b94 -->
+<!-- source-sha256: 1df6b5045edcbdc138c3988ff8c0580bfaee4aff564647359f522ab6062ebcf2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -69,7 +69,7 @@
 | C16.42 | kit의 link-check gate를 CHECK_TARGETS에 두고 kit의 principle file과 같게 하여 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.43 | kit의 link-metadata-check gate를 CHECK_TARGETS에 두어 make kit-check가 통과한다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.44 | AGENTS.md는 각 규칙을 Own 또는 principle의 Refines로 적고 principle을 반복하지 않는다 | AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
-| C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [!] 원인: 추적되는 composer.lock과 packages/php-ext/composer.lock이 php >=8.5를 요구하는 polyspec/crudui-generator 0.0.7, polyspec/crudui-validator 0.0.7, polyspec/ordered-json 0.0.9를 담고 있으나 플랫폼은 PHP 8.4.1(kit K322)이며, 검토 기록에 packages/php-ext/composer.lock과 Go·Rust lock이 없다; kit K439는 추적 lock이 링크된 provider의 manifest(php >=8.4)를 따르게 한다; 재시도: kit K439가 들어온 뒤: 그것으로 composer.lock과 packages/php-ext/composer.lock을 다시 만들고 make dependency-review RECORD=1 |
+| C16.45 | dependency policy는 PHP extension의 Composer manifest와 그 lock을 다룬다 | config/dependency-policy.json, packages/php-ext/composer.lock | `make dependency-policy-check` | [-] 원인: 사용자의 링크 규칙은 추적 lock을 릴리스 기록으로 둔다(0.0.x: 추적 재작성이 아니라 링크); 그래서 이 행이 기다리던 추적 lock 재작성(K439-3-x)에는 남은 작업이 없다 |
 | C16.46 | config/parity.json은 crudui의 implementation, tooling root, comparator를 선언한다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.46-1 | config/parity.json은 TypeScript 전용 package와 tooling test를 implementation root 밖에 둔다 | config/parity.json | `make parity-declarations-check` | [o] |
 | C16.47 | C engine test는 php-ext test folder에 있고 config/parity.json에 선언된다 | packages/php-ext/tests/engine/engine.test.mjs, config/parity.json, config/owner-checks.json | `make parity-declarations-check` | [o] |
