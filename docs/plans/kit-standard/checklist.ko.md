@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d9396c9ec1939dcb4538f4ba4d7f4b82508a6b7537babadad5d3a675f2ff9dcd -->
+<!-- source-sha256: 84f33f2e64da6d9589c45cae13ce7e386b530e4cc7400844ff476b7b087c910f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -338,3 +338,4 @@
 | C17.5 | A substring rule: a value must be contained in another field; tests.secrets.canary must occur in its fact's truth (drama story form). | A substring rule in docs/spec/validation-rules.md, implemented in every validator. | `make docs-check` | [ ] |
 | C17.6 | A field whose type follows a sibling: vars.initial and condition value take bool, int or enum per the declared type (drama story form). | A type-follows-sibling rule in docs/spec/schema.md and its validation in docs/spec/validation-rules.md. | `make docs-check` | [ ] |
 | C17.7 | Range bounds read from data, not literals: int vars and relationship dimensions with author-declared min and max (drama story form; citation docs/spec/schema.md:83-85 to be verified). | A data-read bound rule in docs/spec/schema.md, implemented in every validator. | `make docs-check` | [ ] |
+| C17.10 | A bound on the size of the submitted data, which no crudui spec states (drama story form, correctness). | A size-bound rule in docs/spec with a stated limit, implemented in every validator. | `make docs-check` | [ ] |
