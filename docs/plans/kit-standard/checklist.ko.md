@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: bc53349f9dafd12ecf9e903dec0bcc530a194f8aadab083964b978b9a9103928 -->
+<!-- source-sha256: c19531c0776b73881469f8eec8cfa3cd35b4743dc565c264b350fbed8ade1e10 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -333,3 +333,4 @@
 | C16.173 | crudui가 react와 react-dom을 19.3.1, vitest를 5.0.5로 올리고 리뷰 기록을 다시 쓴다. 원인: 기록의 최신 버전이 19.2.8과 5.0.4로 뒤처져 있다. | package.json, package-lock.json, config/dependency-review.json | `make dependency-policy-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
 | C17.1 | A condition that holds conditions at any depth: {all:[...]}, {any:[...]}, {field,op,value}, {judge:text}. Needed by drama's episode pass and opens_when, clue and branch available_when, voice trigger (drama story form, reported by the drama session; citation docs/spec/schema.md:319-331 to be verified in the spec step). | The recursive condition rule of the schema (docs/spec/schema.md) and its validation (docs/spec/validation-rules.md). | `make docs-check` | [ ] |
 | C17.2 | Choices taken from another repeated group of the same form: player_roles.character in the character ids, clues.reveals in the fact ids, tests.secrets.fact_id in the fact ids, condition field targets (drama story form; citation docs/spec/schema.md:210-213 to be verified). | The choice source rule in docs/spec/schema.md and its validation in docs/spec/validation-rules.md. | `make docs-check` | [ ] |
+| C17.3 | A keyed map whose keys must be the ids of another group: facts.holders {character id: stance}, characters.relation_notes {other id: text}. Today multiple: only takes any keys (drama story form; citation docs/spec/schema.md:412-414 to be verified). | A map-key rule in docs/spec/schema.md with the id-of-group check in docs/spec/validation-rules.md. | `make docs-check` | [ ] |
