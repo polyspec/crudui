@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 89ab608d4cdead6ef4c66118f68fc38e5e49c582edd34d0b743dfeb049d265b4 -->
+<!-- source-sha256: bc53349f9dafd12ecf9e903dec0bcc530a194f8aadab083964b978b9a9103928 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -332,3 +332,4 @@
 | C16.172 | Composer 루트는 검토된 목표 버전 13.4.3을 phpunit/phpunit으로 요구하며, hyper와 ordered-json이 선언하는 방식대로 정확한 버전으로 선언하고 13.4.3으로 잠근다 (K435) | composer.json, composer.lock, config/dependency-review.json | `make dependency-policy-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
 | C16.173 | crudui가 react와 react-dom을 19.3.1, vitest를 5.0.5로 올리고 리뷰 기록을 다시 쓴다. 원인: 기록의 최신 버전이 19.2.8과 5.0.4로 뒤처져 있다. | package.json, package-lock.json, config/dependency-review.json | `make dependency-policy-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
 | C17.1 | A condition that holds conditions at any depth: {all:[...]}, {any:[...]}, {field,op,value}, {judge:text}. Needed by drama's episode pass and opens_when, clue and branch available_when, voice trigger (drama story form, reported by the drama session; citation docs/spec/schema.md:319-331 to be verified in the spec step). | The recursive condition rule of the schema (docs/spec/schema.md) and its validation (docs/spec/validation-rules.md). | `make docs-check` | [ ] |
+| C17.2 | Choices taken from another repeated group of the same form: player_roles.character in the character ids, clues.reveals in the fact ids, tests.secrets.fact_id in the fact ids, condition field targets (drama story form; citation docs/spec/schema.md:210-213 to be verified). | The choice source rule in docs/spec/schema.md and its validation in docs/spec/validation-rules.md. | `make docs-check` | [ ] |
