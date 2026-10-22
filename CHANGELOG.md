@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-22 — C16.170 is dropped under the link rule (C16.170)
+
+- C16.170 is dropped (C16.170): the user's link rule keeps the tracked files as they are; the install folders of crudui main are links.
+
 ### 2026-10-22 — C16.45 is dropped under the link rule (C16.45)
 
 - C16.45 is dropped (C16.45): the user's link rule keeps the tracked lock as its release record, so the tracked-lock rewrite that the row waited for (K439-3-x) has no work left.
