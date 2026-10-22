@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e1bb71ef73b1408517e0cf56d6e9a631a81d3068e38501587e07253ef08696ca -->
+<!-- source-sha256: 25dd294ca4c68a3010ae4fd795e0a1a5227c0b0a5e3f618d5802847f1a5d8260 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -339,4 +339,4 @@
 | C17.6 | A field whose type follows a sibling: vars.initial and condition value take bool, int or enum per the declared type (drama story form). | A type-follows-sibling rule in docs/spec/schema.md and its validation in docs/spec/validation-rules.md. | `make docs-check` | [ ] |
 | C17.7 | Range bounds read from data, not literals: int vars and relationship dimensions with author-declared min and max (drama story form; citation docs/spec/schema.md:83-85 to be verified). | A data-read bound rule in docs/spec/schema.md, implemented in every validator. | `make docs-check` | [ ] |
 | C17.10 | A bound on the size of the submitted data, which no crudui spec states (drama story form, correctness). | A size-bound rule in docs/spec with a stated limit, implemented in every validator. | `make docs-check` | [ ] |
-| C17.11 | kit-sync가 kit에서 바뀐 사본을 가져오고 K514 이후 kit이 자기 패키지에서 읽는 lint 설정을 지우며, crudui의 owner 규칙은 lint가 kit-gates의 gate인 언어의 각 source 경로를 그 lint와 duplication-check로 보낸다. 원인: crudui의 kit-bootstrap.mk, install-mise.mts, tool-wrappers.mts, principles, gates.yml 사본은 kit과 다르고, ruff.toml 외 일곱 lint 설정은 kit이 더 이상 쓰지 않는 사본이며(K514), K534 이후 kit-check는 owner가 각 언어의 lint를 선택하는지 확인하는데 crudui의 규칙은 그렇지 않다. 인수 조건: make kit-check, make owner-validate와 lint가 통과한다. red fixture: 지금 make kit-check가 실패한다. | `config/owner-checks.json`, the copies of kit | `make kit-check owner-validate lint-ts lint-python lint-php lint-go lint-rust` | [~] |
+| C17.11 | kit-sync가 kit에서 바뀐 사본을 가져오고 K514 이후 kit이 자기 패키지에서 읽는 lint 설정을 지우며, crudui의 owner 규칙은 lint가 kit-gates의 gate인 언어의 각 source 경로를 그 lint와 duplication-check로 보낸다. 원인: crudui의 kit-bootstrap.mk, install-mise.mts, tool-wrappers.mts, principles, gates.yml 사본은 kit과 다르고, ruff.toml 외 일곱 lint 설정은 kit이 더 이상 쓰지 않는 사본이며(K514), K534 이후 kit-check는 owner가 각 언어의 lint를 선택하는지 확인하는데 crudui의 규칙은 그렇지 않다. 인수 조건: make kit-check, make owner-validate와 lint가 통과한다. red fixture: 지금 make kit-check가 실패한다. | `config/owner-checks.json`, the copies of kit | `make kit-check owner-validate lint-ts lint-python lint-php lint-go lint-rust` | [o] |

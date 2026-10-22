@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e6faaaa80b9547a2d4e422874a18be9a723bbbbc6157ec57dfdd2613758e7a6e -->
+<!-- source-sha256: 38656bbae6791b2176ce51a4b90a03e77cee7a6bccf5831ec7ad115c3ff7ccca -->
 
 ## Unreleased
+
+### 2026-10-23 — C17.11은 kit을 sync하고 source를 lint로 보낸다(C17.11)
+
+- C17.11 완료(C17.11): make kit-sync가 kit의 바뀐 사본을 가져오고 은퇴한 lint 설정을 지운다(kit K514). 각 api-extractor.json은 kit 패키지의 설정을 extends하고, owner 규칙은 각 언어를 그 lint와 duplication-check로 보내며(kit K534) 지워진 파일을 이름 붙이지 않고, 문장이 없던 catch 열한 개(kit K537)는 이제 실패를 좁히거나 보고하거나 관찰한다. red: make kit-check가 실패했고, 변경 뒤 green.
 
 ### 2026-10-22 — 사용자 규칙(버전 고정 작업 없음)에 따라 C16.173를 버린다 (C16.173)
 

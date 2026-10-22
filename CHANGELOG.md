@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-23 — C17.11 syncs kit and routes the sources to their lints (C17.11)
+
+- C17.11 is done (C17.11): make kit-sync brings the changed copies of kit and removes the retired lint configurations (kit K514); each api-extractor.json extends the configuration of the kit package; the owner rules route each language to its lint and duplication-check (kit K534) and name no removed file; the eleven catches without a statement (kit K537) now narrow, report or observe their failure. Red: make kit-check failed; green after the change.
+
 ### 2026-10-22 — C16.173 is dropped under the user's rule of no version-pin work (C16.173)
 
 - C16.173 is dropped (C16.173): user 2026-10-22: no version-pin work; the cross-repository version alignment (S4) is removed in kit K448.
