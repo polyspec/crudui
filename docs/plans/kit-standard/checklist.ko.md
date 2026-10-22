@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: aef7c91cb6dc8cee1aaff0c1ed1544ae582e4e030e8e62073a90772567509bd5 -->
+<!-- source-sha256: 0ff692397b5fc18ba718b7be85dae506764886082980414474bd8e5ea0007454 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -34,7 +34,7 @@
 | C16.11-3 | schema, conformance, test-command, doc-coverage script는 JSON을 ajv 형태로 읽는다 | scripts/check-schema.mts scripts/check-conformance.mts scripts/test-commands.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts Makefile | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts scripts/json-schema.test.mts`, `node scripts/check-schema.mts` | [o] |
 | C16.11-4 | 남은 script는 scripts/values.mts 없이 JSON과 오류를 읽으며, values.mts는 rebuild와 owner-check 항목과 함께 제거된다 | scripts/check-ci-browser.mts scripts/docs-web/cli.mts scripts/docs-web/server.mts scripts/install-browsers.mts tests/build/ci-local.test.mts tests/build/public-packages.test.mts scripts/values.mts config/rebuild.json config/owner-checks.json | `make rebuild-check` | [o] |
 | C16.12 | Tailwind stylesheet는 crudui.css를 components layer로 가져오는 CSS 기본 import이다 (write-tailwind-styles.mjs를 대체) | packages/generator/ts/styles, packages/generator/ts/scripts, docs, config/rebuild.json | `make rebuild-check` | [o] |
-| C16.13 | contracts/unicode-properties.json은 @unicode/unicode-16.0.0에서 얻는다 (scripts/generate-unicode-properties.mts와 contracts/unicode를 대체) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [!] 원인: 이 행은 패키지  추가하며, 추가한 패키지는 새 의존성 검토 기록이 필요하고 그 기록은 모든 lock을 옮긴다; 재시도: link-owner가 지시하는 공동 의존성 일괄 갱신에서 |
+| C16.13 | contracts/unicode-properties.json은 @unicode/unicode-16.0.0에서 얻는다 (scripts/generate-unicode-properties.mts와 contracts/unicode를 대체) | contracts, scripts, config/rebuild.json | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/unicode-properties.test.mts`, `make rebuild-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
 | C16.14 | config/duplication.json은 생성된 Unicode table과 test를 각각의 이유와 함께 제외한다 | config/duplication.json | `make duplication-check` | [o] |
 | C16.15 | PHP validator는 ef와 atch member를 하나의 module로 조합한다 (Compose clone) | packages/validator/php/src/Compose/Members.php, Compose.php, Ref.php, Patch.php | `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/ComposeConformanceTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/PatchTest.php`, `node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- tests/Compose/RefTest.php`, `make lint-php` | [o] |
 | C16.15-1 | CHANGELOG는 C16.15가 제거한 src/Compose의 clone 7건을 기록한다 | CHANGELOG.md, CHANGELOG.ko.md | `node node_modules/@polyspec/kit/dist/check-documents.mjs` | [o] |
