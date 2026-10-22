@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 41e18f7c777bfba62ced5ff2d0dd0810858dee0af505b95dcdc1fd2cef9f1bec -->
+<!-- source-sha256: 89ab608d4cdead6ef4c66118f68fc38e5e49c582edd34d0b743dfeb049d265b4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -331,3 +331,4 @@
 | C16.171 | composer 루트가 polyspec/ordered-json을 release-assets-fetch가 받는 release zip(var/composer-artifacts)에서 가져오고 로컬 경로가 release-assets-fetch를 먼저 실행한다; 대신 make link로 형제 checkout에서 오고 release-assets-fetch는 로컬 경로에서 없어진다; K448-1을 기다린다 | composer.json, composer.lock, Makefile | `sh -c '! grep -q "var/composer-artifacts" composer.json && ! grep -q "release-assets-fetch" Makefile && make -s link-state-check > var/lsc-C16.171.log 2>&1'` | [-] 원인: 사용자의 링크 규칙은 추적 파일을 그대로 둔다(0.0.x: 추적 편집이 아니라 링크); 그래서 이 행이 겨냥한 변경은 하지 않으며, 설치 폴더 목적은 crudui main에서 충족된다(vendor의 polyspec 패키지가 링크) |
 | C16.172 | Composer 루트는 검토된 목표 버전 13.4.3을 phpunit/phpunit으로 요구하며, hyper와 ordered-json이 선언하는 방식대로 정확한 버전으로 선언하고 13.4.3으로 잠근다 (K435) | composer.json, composer.lock, config/dependency-review.json | `make dependency-policy-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
 | C16.173 | crudui가 react와 react-dom을 19.3.1, vitest를 5.0.5로 올리고 리뷰 기록을 다시 쓴다. 원인: 기록의 최신 버전이 19.2.8과 5.0.4로 뒤처져 있다. | package.json, package-lock.json, config/dependency-review.json | `make dependency-policy-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
+| C17.1 | A condition that holds conditions at any depth: {all:[...]}, {any:[...]}, {field,op,value}, {judge:text}. Needed by drama's episode pass and opens_when, clue and branch available_when, voice trigger (drama story form, reported by the drama session; citation docs/spec/schema.md:319-331 to be verified in the spec step). | The recursive condition rule of the schema (docs/spec/schema.md) and its validation (docs/spec/validation-rules.md). | `make docs-check` | [ ] |
