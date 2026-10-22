@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-22 — C16.172 is dropped under the user's rule of no version-pin work (C16.172)
+
+- C16.172 is dropped (C16.172): user 2026-10-22: no version-pin work; the cross-repository version alignment (S4) is removed in kit K448.
+
 ### 2026-10-22 — C16.169 is dropped under the user's rule of no version-pin work (C16.169)
 
 - C16.169 is dropped (C16.169): user 2026-10-22: no version-pin work; the cross-repository version alignment (S4) is removed in kit K448.
