@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 2c7a5efcfbebcbfceb376d9c308519d4c655d3a830cd2adfbec3b75933cc6617 -->
+<!-- source-sha256: d9396c9ec1939dcb4538f4ba4d7f4b82508a6b7537babadad5d3a675f2ff9dcd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -337,3 +337,4 @@
 | C17.4 | A reference rule: the value names an id declared at path X, for every id reference. validation-rules.md has only equalTo and notEqual (drama story form; citation docs/spec/validation-rules.md:12-36 to be verified). | A reference rule in docs/spec/validation-rules.md, implemented in every validator. | `make docs-check` | [ ] |
 | C17.5 | A substring rule: a value must be contained in another field; tests.secrets.canary must occur in its fact's truth (drama story form). | A substring rule in docs/spec/validation-rules.md, implemented in every validator. | `make docs-check` | [ ] |
 | C17.6 | A field whose type follows a sibling: vars.initial and condition value take bool, int or enum per the declared type (drama story form). | A type-follows-sibling rule in docs/spec/schema.md and its validation in docs/spec/validation-rules.md. | `make docs-check` | [ ] |
+| C17.7 | Range bounds read from data, not literals: int vars and relationship dimensions with author-declared min and max (drama story form; citation docs/spec/schema.md:83-85 to be verified). | A data-read bound rule in docs/spec/schema.md, implemented in every validator. | `make docs-check` | [ ] |
