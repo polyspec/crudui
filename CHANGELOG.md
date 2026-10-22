@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-22 — C16.8 is dropped under the user's rule of no version-pin work (C16.8)
+
+- C16.8 is dropped (C16.8): user 2026-10-22: no version-pin work; the cross-repository version alignment (S4) is removed in kit K448.
+
 ### 2026-10-22 — C16.171 is dropped under the link rule (C16.171)
 
 - C16.171 is dropped (C16.171): the user's link rule keeps the tracked composer.json and Makefile as they are; the vendor polyspec packages are links.

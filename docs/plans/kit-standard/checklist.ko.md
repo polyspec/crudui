@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 8f15f86625f856cb123920b5410e7c1c5afb0aef4351a385985bd3e5fc5daaa3 -->
+<!-- source-sha256: aef7c91cb6dc8cee1aaff0c1ed1544ae582e4e030e8e62073a90772567509bd5 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -25,7 +25,7 @@
 | C16.7-11 | kit에 local 전체 실행이 없으므로 config/owner-checks.json은 fullSuite target을 적지 않는다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C16.7-12 | make kit-check가 통과한다. Makefile은 kit의 모든 gate를 CHECK_TARGETS에 나열하고 PRINCIPLES.md는 kit과 같다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.7-13 | package-names test는 path를 Composer package 이름으로 보지 않는다 | tests/build/package-names.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/package-names.test.mts` | [o] |
-| C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [!] 원인: 이 행은 패키지  추가하며, 추가한 패키지는 새 의존성 검토 기록이 필요하고 그 기록은 모든 lock을 옮긴다; 재시도: link-owner가 지시하는 공동 의존성 일괄 갱신에서 |
+| C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make lint-php-ext`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="builds with phpize" packages/php-ext/tests/engine.test.mjs` | [o] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체) | scripts, config/rebuild.json | `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` | [o] |
 | C16.11 | scripts는 JSON을 scripts/values.mts가 아니라 ajv schema로 읽는다 (21개 파일이 호출) | scripts, tests/build, config/rebuild.json | `make rebuild-check` | [o] |
