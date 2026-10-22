@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-22 — C16.171 is dropped under the link rule (C16.171)
+
+- C16.171 is dropped (C16.171): the user's link rule keeps the tracked composer.json and Makefile as they are; the vendor polyspec packages are links.
+
 ### 2026-10-22 — C16.170 is dropped under the link rule (C16.170)
 
 - C16.170 is dropped (C16.170): the user's link rule keeps the tracked files as they are; the install folders of crudui main are links.

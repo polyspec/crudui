@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ad66416bcd193d2e4b6079a06ca5ff6a1fc2177500597b6c8d37e92ee2531a3f -->
+<!-- source-sha256: 7f75046c743aacf7ba3aeefa83f475636f15bcbcf734c4fbd4044806cc4ce231 -->
 
 ## Unreleased
+
+### 2026-10-22 — 링크 규칙에 따라 C16.171을 버린다 (C16.171)
+
+- C16.171을 버린다 (C16.171): 사용자의 링크 규칙은 추적 composer.json과 Makefile을 그대로 둔다; vendor의 polyspec 패키지는 링크다.
 
 ### 2026-10-22 — 링크 규칙에 따라 C16.170을 버린다 (C16.170)
 
