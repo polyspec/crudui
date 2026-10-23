@@ -55,11 +55,11 @@ PYTHON_VENV := $(CURDIR)/var/python
 # install-link (kit) links the Python packages in the environment that crudui-install-python makes: kit's link reads
 # UV_PROJECT_ENVIRONMENT, and without it the link finds no environment of the repository and fails (K360-2).
 install-link: export UV_PROJECT_ENVIRONMENT := $(PYTHON_VENV)
-UV := $(CURDIR)/var/tools/mise/shims/uv
+UV := $(KIT_TOOLS)/mise/shims/uv
 # The go and Composer of mise.toml, by the absolute paths of their shims: make 3.81 runs a recipe line without shell syntax
 # from the PATH that make started with (kit K171).
-GO := $(CURDIR)/var/tools/mise/shims/go
-COMPOSER := $(CURDIR)/var/tools/mise/shims/composer
+GO := $(KIT_TOOLS)/mise/shims/go
+COMPOSER := $(KIT_TOOLS)/mise/shims/composer
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -306,7 +306,7 @@ docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api docs/public/api
 	rm -rf docs/.web
 	rm -rf packages/validator/rust/target/doc
-	rm -rf var/tools/phpdocumentor/cache
+	rm -rf var/phpdocumentor/cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
 
 # Generate twice and compare Markdown, native API assets and the schema. The snapshots and the

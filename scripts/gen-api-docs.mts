@@ -5,9 +5,9 @@
  * time.
  */
 import assert from 'node:assert/strict';
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { basename, dirname, join, relative } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { failureOf, runCommand } from '@polyspec/kit/run-command';
 import { createProgress } from '@polyspec/kit/test-progress';
@@ -113,11 +113,25 @@ async function genRust(): Promise<void> {
     '# Rust API\n\n- [Validator](/api/rust/polyspec_crudui_validator/index.html)\n- [Generator](/api/rust/polyspec_crudui_generator/index.html)\n');
 }
 
+/**
+ * The checkout whose var/tools the checkout `root` runs, as KIT_TOOLS of kit names it (kit K519): a linked worktree, whose .git is a
+ * file naming <main>/.git/worktrees/<name>, runs the tools of its main checkout; a main checkout, and a folder of no repository, its own.
+ */
+function toolsRoot(root: string): string {
+  const marker = join(root, '.git');
+  if (!existsSync(marker) || !lstatSync(marker).isFile()) return root;
+  const gitdir = /^gitdir: (.+)$/m.exec(readFileSync(marker, 'utf8'))?.[1];
+  if (gitdir === undefined) throw new Error(`${marker} names no gitdir`);
+  const linked = /^(.*)\/\.git\/worktrees\/[^/]+$/.exec(resolve(root, gitdir.trim()));
+  return linked?.[1] ?? root;
+}
+
 async function genPhp(): Promise<void> {
-  const phar = join(ROOT, 'var/tools/phpdocumentor/phpDocumentor.phar');
+  // The tools of a linked worktree are those of its main checkout (kit K519); the cache is the checkout's own.
+  const phar = join(toolsRoot(ROOT), 'var/tools/phpdocumentor/phpDocumentor.phar');
   requireOutput(phar);
   const output = join(STATIC_API_DIR, 'php');
-  const cache = join(ROOT, 'var/tools/phpdocumentor/cache');
+  const cache = join(ROOT, 'var/phpdocumentor/cache');
   cleanDirectory(output);
   try {
     await run(process.env.PHP ?? 'php', [phar, 'run', '-d', 'packages/validator/php/src', '-d', 'packages/generator/php/src', '-t', output,

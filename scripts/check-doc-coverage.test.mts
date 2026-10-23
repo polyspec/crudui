@@ -94,7 +94,8 @@ for (const [target, command] of toolTargets) {
   }));
 }
 // The documentation of the public TypeScript API is checked by API Extractor, which make lint-ts of kit runs in every package
-// with an api-extractor.json: ae-undocumented and ae-forgotten-export are errors of the copied config/api-extractor.kit.json.
+// with an api-extractor.json: ae-undocumented and ae-forgotten-export are errors of the config/api-extractor.kit.json of the kit
+// package, which every api-extractor.json extends (kit K514).
 const TS_PACKAGES = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'];
 
 test('every TypeScript package checks its public API with API Extractor and commits its API report', () => {
@@ -103,8 +104,7 @@ test('every TypeScript package checks its public API with API Extractor and comm
     const directory = join(repository, 'packages', pkg);
     let config: Record<string, unknown>;
     try { config = checkedShape(OBJECT, readShape(OBJECT, join(directory, 'api-extractor.json')), `${pkg}/api-extractor.json`); } catch (error) { problems.push(`${pkg}: ${error instanceof Error ? error.message : String(error)}`); continue; }
-    const root = '../'.repeat(pkg.split('/').length + 1);
-    if (config.extends !== `${root}config/api-extractor.kit.json`) problems.push(`${pkg}: extends ${String(config.extends)}`);
+    if (config.extends !== '@polyspec/kit/config/api-extractor.kit.json') problems.push(`${pkg}: extends ${String(config.extends)}`);
     if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${String(config.mainEntryPointFilePath)}`);
     const name = checkedShape(STRING, checkedShape(OBJECT, readShape(OBJECT, join(directory, 'package.json')), `${pkg}/package.json`).name, `name of ${pkg}/package.json`).replace(/^@[^/]+\//, '');
     try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch { problems.push(`${pkg}: etc/${name}.api.md is missing`); }
@@ -112,7 +112,7 @@ test('every TypeScript package checks its public API with API Extractor and comm
   assert.deepEqual(problems, []);
 });
 
-test('API Extractor with the copied configuration fails on an undocumented export', t => {
+test('API Extractor with the configuration of the kit package fails on an undocumented export', t => {
   mkdirSync(join(repository, 'var/tmp'), { recursive: true });
   const directory = mkdtempSync(join(repository, 'var/tmp/crudui-api-extractor-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -121,7 +121,7 @@ test('API Extractor with the copied configuration fails on an undocumented expor
   writeFileSync(join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true }, files: ['dist/index.d.ts'] }));
   writeFileSync(join(directory, 'dist/index.d.ts'), '/** A documented value. */\nexport declare const documented: number;\nexport declare function undocumented(): void;\n');
   writeFileSync(join(directory, 'api-extractor.json'), JSON.stringify({
-    extends: join(repository, 'config/api-extractor.kit.json'), projectFolder: directory, mainEntryPointFilePath: '<projectFolder>/dist/index.d.ts',
+    extends: join(repository, 'node_modules/@polyspec/kit/config/api-extractor.kit.json'), projectFolder: directory, mainEntryPointFilePath: '<projectFolder>/dist/index.d.ts',
   }));
   const result = spawnSync(join(repository, 'node_modules/.bin/api-extractor'), ['run', '--local'], { cwd: directory, encoding: 'utf8' });
   assert.notEqual(result.status, 0, result.stdout + result.stderr);
