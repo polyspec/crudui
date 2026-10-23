@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-23 — C17.11-1 reads the tools of a worktree from its main checkout (C17.11-1)
+
+- C17.11-1 is done (C17.11-1): check-doc-coverage.test requires the extends of the kit package that C17.11 brought; gen-api-docs takes phpDocumentor from the tools of the main checkout and keeps its cache in the checkout; UV, GO and COMPOSER name $(KIT_TOOLS). Red: check-doc-coverage.test failed; green after the change.
+
 ### 2026-10-23 — C17.11 syncs kit and routes the sources to their lints (C17.11)
 
 - C17.11 is done (C17.11): make kit-sync brings the changed copies of kit and removes the retired lint configurations (kit K514); each api-extractor.json extends the configuration of the kit package; the owner rules route each language to its lint and duplication-check (kit K534) and name no removed file; the eleven catches without a statement (kit K537) now narrow, report or observe their failure. Red: make kit-check failed; green after the change.

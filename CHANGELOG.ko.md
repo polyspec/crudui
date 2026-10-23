@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 38656bbae6791b2176ce51a4b90a03e77cee7a6bccf5831ec7ad115c3ff7ccca -->
+<!-- source-sha256: 8f2023d275aea39dc98c274973661e8d5d283644dc69a9591573eeee3b76d4f4 -->
 
 ## Unreleased
+
+### 2026-10-23 — C17.11-1은 worktree의 도구를 main checkout에서 읽는다(C17.11-1)
+
+- C17.11-1 완료(C17.11-1): check-doc-coverage.test가 C17.11이 가져온 kit 패키지의 extends를 요구하고, gen-api-docs는 phpDocumentor를 main checkout의 도구에서 가져오며 cache를 checkout에 두고, UV, GO, COMPOSER는 $(KIT_TOOLS)를 이름 붙인다. red: check-doc-coverage.test가 실패했고, 변경 뒤 green.
 
 ### 2026-10-23 — C17.11은 kit을 sync하고 source를 lint로 보낸다(C17.11)
 
