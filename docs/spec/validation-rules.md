@@ -174,6 +174,16 @@ whitespace, emptiness or text.
   values. List elements and map keys are read as they are, so a member with surrounding whitespace
   is not numeric text. Case, Unicode normalization and text that is not numeric never match.
 
+- **CUVR-060** **Choices from a repeated group.** A field whose `items` is a
+  [group source](schema.md#choices-from-a-repeated-group) runs an implicit `in` check before its
+  declared rules. Its members are the values of the choices that the source gives for the data
+  being validated, and a value matches them as a value matches the members of `in`: an empty value
+  passes, an array value passes when every element passes, and a value that matches no choice
+  fails. The failure is reported with the rule `in` and its message, which `messages.in`
+  overrides. A declared `in` runs as declared after the implicit check. The rows of a hidden group
+  give choices like any other rows, because a hidden field keeps its value
+  ([visibility](#evaluation)).
+
 ## Patterns
 
 `pattern` and `match` require the **whole** canonical text of the value to match,
@@ -237,6 +247,7 @@ without row keys. Every runtime reports the same code and message:
 - **CUVR-055** `notEqual` that is not a string, number or boolean — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** `unique` that is not a boolean or a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-057** `pattern`, `match` outside the language — Code: `INVALID_RULE_PATTERN`; Message: `Invalid {rule} pattern: {reason} at {offset}`
+- **CUVR-061** A [group source](schema.md#choices-from-a-repeated-group) that breaks its rules, checked in the order that compilation checks it and before the field's `validate` rules — Code: `INVALID_RULE_PARAMETER`; Message: the message of compilation (CUSC-064 to CUSC-067), whose `{path}` is the field's declaration path
 
 The pattern `{reason}` is one of `empty pattern`, `unexpected character`,
 `unsupported construct`, `invalid escape`, `invalid class`, `invalid range`,

@@ -19,6 +19,7 @@ import { renderFields } from '../src/internal/renderFields';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 import { SCENARIOS } from './scenario-form-render-cases';
 import { WRITTEN_CASES } from './written-form-render-cases';
+import { GROUP_SOURCE_CASES, GROUP_SOURCE_REQUIREMENTS } from './group-source-form-render-cases';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const casesPath = resolve(__dirname, '../../../tests/fixtures/form-render/cases.json');
@@ -380,7 +381,7 @@ const NEW: FixtureCase[] = [
 ];
 
 // Cases whose expected HTML is written from the specification, not rendered.
-NEW.push(...WRITTEN_CASES);
+NEW.push(...WRITTEN_CASES, ...GROUP_SOURCE_CASES);
 
 void group; // (kept for ad-hoc use)
 
@@ -411,6 +412,7 @@ const cases = new Map(SCENARIOS.map(scenario).map((c) => [c.name, c]));
 for (const c of NEW) cases.set(c.name, c);
 
 const REQUIREMENTS: Record<string, readonly string[]> = {
+  ...GROUP_SOURCE_REQUIREMENTS,
   "design-show-expr-falsy": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-017"],
   "design-show-condmap-non-admin": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-017"],
   "design-node-map-4nodes": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010"],

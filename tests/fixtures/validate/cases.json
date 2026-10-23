@@ -16443,5 +16443,945 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "group-source-select-members",
+    "note": "A field whose items take the ids of the character rows passes a value that is one of them, by canonical text or numeric value, and an empty value; a label, a blank id and an unknown id are no choices.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "roles": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "character": {
+              "type": "select",
+              "items": {
+                "from": "characters.*.id",
+                "label": "name"
+              }
+            }
+          }
+        },
+        "lead": {
+          "type": "radio",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "hero",
+          "name": "Hero"
+        },
+        "c2": {
+          "id": 7,
+          "name": "Seven"
+        },
+        "c3": {
+          "id": " ",
+          "name": "Blank"
+        },
+        "c4": {
+          "id": "hero",
+          "name": "Hero again"
+        }
+      },
+      "roles": {
+        "r1": {
+          "character": "hero"
+        },
+        "r2": {
+          "character": "7.0"
+        },
+        "r3": {
+          "character": "Hero"
+        },
+        "r4": {
+          "character": ""
+        },
+        "r5": {
+          "character": " "
+        }
+      },
+      "lead": "villain"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "roles.r3.character",
+          "field": "character",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "Hero"
+        },
+        {
+          "path": "lead",
+          "field": "lead",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "villain"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-062",
+      "CUSC-063",
+      "CUVR-060",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-multichoice-members",
+    "note": "Every element of a multichoice value is one of the choices.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "cast": {
+          "type": "multichoice",
+          "items": {
+            "from": "characters.*.id"
+          }
+        },
+        "extras": {
+          "type": "checkboxes",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "hero",
+          "name": "Hero"
+        },
+        "c2": {
+          "id": 7,
+          "name": "Seven"
+        },
+        "c3": {
+          "id": " ",
+          "name": "Blank"
+        },
+        "c4": {
+          "id": "hero",
+          "name": "Hero again"
+        }
+      },
+      "cast": [
+        "hero",
+        7
+      ],
+      "extras": [
+        "hero",
+        "villain"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "extras",
+          "field": "extras",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "hero",
+            "villain"
+          ]
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-063",
+      "CUVR-060",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-without-rows",
+    "note": "A group without data has no choices: a value fails and an empty value passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          }
+        },
+        "second": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "lead": "hero",
+      "second": ""
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "lead",
+          "field": "lead",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "hero"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-063",
+      "CUVR-060",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-before-declared-rules",
+    "note": "The implicit in check runs before the declared rules: an empty value passes it and fails required, messages.in replaces its message, and a declared in runs after it.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          },
+          "validate": {
+            "required": true
+          }
+        },
+        "second": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          },
+          "messages": {
+            "in": "Pick a character."
+          }
+        },
+        "third": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          },
+          "validate": {
+            "in": [
+              "hero",
+              "villain"
+            ]
+          }
+        },
+        "fourth": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          },
+          "validate": {
+            "in": [
+              "villain"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "hero",
+          "name": "Hero"
+        },
+        "c2": {
+          "id": 7,
+          "name": "Seven"
+        },
+        "c3": {
+          "id": " ",
+          "name": "Blank"
+        },
+        "c4": {
+          "id": "hero",
+          "name": "Hero again"
+        }
+      },
+      "lead": "",
+      "second": "nobody",
+      "third": "villain",
+      "fourth": "hero"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "lead",
+          "field": "lead",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "second",
+          "field": "second",
+          "rule": "in",
+          "message": "Pick a character.",
+          "value": "nobody"
+        },
+        {
+          "path": "third",
+          "field": "third",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "villain"
+        },
+        {
+          "path": "fourth",
+          "field": "fourth",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "hero"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-060",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-hidden-group",
+    "note": "The rows of a hidden group give choices, because a hidden field keeps its value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          },
+          "design": {
+            "show": ".flag == 1"
+          }
+        },
+        "flag": {
+          "type": "text"
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "flag": "0",
+      "characters": {
+        "c1": {
+          "id": "hero",
+          "name": "Hero"
+        },
+        "c2": {
+          "id": 7,
+          "name": "Seven"
+        },
+        "c3": {
+          "id": " ",
+          "name": "Blank"
+        },
+        "c4": {
+          "id": "hero",
+          "name": "Hero again"
+        }
+      },
+      "lead": "hero"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": [
+        "characters",
+        "characters.c1.id",
+        "characters.c1.name",
+        "characters.c2.id",
+        "characters.c2.name",
+        "characters.c3.id",
+        "characters.c3.name",
+        "characters.c4.id",
+        "characters.c4.name"
+      ]
+    },
+    "requirements": [
+      "CUVR-060",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-unknown-member",
+    "note": "A group source has only from and label, checked in declaration order before the field.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "text",
+          "items": {
+            "from": 5,
+            "labels": "name"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.labels at lead: unknown key",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-064",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-text-field",
+    "note": "Only a choice field takes a group source.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "text",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected a choice field without lang",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-065",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-lang-field",
+    "note": "A choice field with lang takes no group source.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "lang": true,
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected a choice field without lang",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-065",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-from-without-rows",
+    "note": "from names the rows of the group with *.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.id"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected {group}.*.{field} for a field of a repeated group outside repeated groups",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-066",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-from-not-text",
+    "note": "from is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": [
+              "characters",
+              "*",
+              "id"
+            ]
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected {group}.*.{field} for a field of a repeated group outside repeated groups",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-066",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-from-not-repeated",
+    "note": "The group of from is repeated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "meta.*.id"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected {group}.*.{field} for a field of a repeated group outside repeated groups",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-066",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-from-inside-rows",
+    "note": "The group of from is not inside a repeated group, so the form has one set of its rows.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "acts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "scenes": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "id": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "acts.scenes.*.id"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected {group}.*.{field} for a field of a repeated group outside repeated groups",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-066",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-from-missing-field",
+    "note": "The field of from is a direct child of the group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.code"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: expected {group}.*.{field} for a field of a repeated group outside repeated groups",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-066",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-from-repeated-field",
+    "note": "The field of from is not repeated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "roles": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "tags": {
+              "type": "text",
+              "multiple": true
+            },
+            "pick": {
+              "type": "select",
+              "items": {
+                "from": "roles.*.tags"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at roles.pick: expected {group}.*.{field} for a field of a repeated group outside repeated groups",
+      "at": "roles.pick"
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-066",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-label-missing",
+    "note": "label names a direct child field of the group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "title"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.label at lead: expected the name of a direct child field of the group without multiple, properties or lang",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-062",
+      "CUSC-067",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-label-group",
+    "note": "The label field is not a group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "roles": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "meta": {
+              "type": "group",
+              "properties": {
+                "x": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "roles.*.id",
+            "label": "meta"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.label at lead: expected the name of a direct child field of the group without multiple, properties or lang",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-062",
+      "CUSC-067",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
   }
 ]

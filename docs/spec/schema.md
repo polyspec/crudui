@@ -208,7 +208,8 @@ language, with `only`, `frame`, `title` and `group_class` settings. The default
 languages are `ko`, `en`, `ja` and `zh`.
 
 `items` can be a static array whose indexes are the values, a value-to-label map, a
-[choice list](#choice-lists) or a dynamic source descriptor with `model`. Static labels can use
+[choice list](#choice-lists), a [group source](#choices-from-a-repeated-group) with `from` or a
+dynamic source descriptor with `model`. Static labels can use
 language maps. Generators preserve dynamic source settings; fetching records and executing
 external widgets happen outside the generators.
 
@@ -313,6 +314,60 @@ each choice `class`, `style` and then `attributes`, every name before every valu
 - **CUSC-024** `attributes` that is not an object: `Invalid items.{index}.attributes at {path}: expected an object`
 - **CUSC-025** A name outside the rule or a refused name: `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write`
 - **CUSC-026** A value that is not a string: `Invalid items.{index}.attributes.{name} at {path}: expected a string`
+
+### Choices from a repeated group
+
+A choice field (the types `select`, `dropdown`, `selectbox`, `choice`, `radio`, `multichoice`,
+`checkboxes` and `checkcontainer`) without `lang` may take its choices from the rows of a repeated
+group of the same form, for example a role that names one of the characters the form declares.
+Its `items` is then a group source: an object with the member `from` and the optional member
+`label`. An `items` object that has the member `from` is a group source and never a value-to-label
+map; a map that needs the value `from` is written as a [choice list](#choice-lists).
+
+```yaml
+characters:
+  type: group
+  multiple: true
+  properties:
+    id: { type: text, validate: { required: true, unique: true } }
+    name: { type: text }
+roles:
+  type: group
+  multiple: true
+  properties:
+    character:
+      type: select
+      items: { from: characters.*.id, label: name }
+```
+
+- **CUSC-061** `from` is a path `{group}.*.{value}`. `{group}` is the property names from the root
+  to a repeated group, joined with `.`, and no group on that path except the last is repeated, so
+  the group has one set of rows for the whole form. `*` stands for the rows of the group, and
+  `{value}` is the name of a direct child field of the group that is not repeated, not a group and
+  has no `lang`. The field that declares the source may be inside that group or anywhere else in
+  the form.
+- **CUSC-062** `label` is the name of a direct child field of the same group that is not repeated,
+  not a group and has no `lang`. Without `label` the label of a choice is its value.
+- **CUSC-063** The choices are the rows of the group in the order of its data, read when the form is
+  rendered or the data is validated. A row gives the choice whose value is the
+  [canonical text](validation-rules.md#values) of its `{value}` field when that value is a string
+  or a finite number whose canonical text is not empty after trimming; any other row gives no
+  choice, and so does a row whose canonical text is the same as that of an earlier row. The label
+  of a choice is the canonical text of the row's `label` field when that value is a string or a
+  finite number whose canonical text is not empty after trimming, and otherwise the value of the
+  choice. A group without data has no choices. The field lists these choices as it lists a
+  [choice list](#choice-lists) of the same pairs.
+
+Every validator checks a value against these choices
+([choices from a repeated group](validation-rules.md#values)). Compilation checks a group source
+after the other declarations of the field (its `behavior` and a range field's rules included), in
+this order: the members of `items` in declaration order, the field, `from` and then `label`. It
+fails with `INVALID_FORM_INPUT` and an empty location:
+
+- **CUSC-064** A member other than `from` and `label`: `Invalid items.{key} at {path}: unknown key`
+- **CUSC-065** A field that is not a choice field or that has `lang`: `Invalid items.from at {path}: expected a choice field without lang`
+- **CUSC-066** A `from` that is not a string of that form, or whose group or field breaks these rules: `Invalid items.from at {path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`
+- **CUSC-067** A `label` that is not the name of such a field of the group: `Invalid items.label at {path}: expected the name of a direct child field of the group without multiple, properties or lang`
 
 ## Composition and validation
 

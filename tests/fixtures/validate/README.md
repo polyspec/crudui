@@ -24,7 +24,10 @@ visibility cases check that a field hidden by `design.show` (an expression, a co
 `false`, in its row context) skips all of its rules and those of every field it contains, while
 other rules still read its kept value, and a three-step toggle that validates kept values again
 once the field is shown. The `multiple: only` cases check per-row validation of data rows and
-missing data that has no row but still fails `required` and `mincount`. Failure cases use `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
+missing data that has no row but still fails `required` and `mincount`. The group source cases check
+the choices that a field takes from the rows of a repeated group: values that match by canonical text
+or numeric value, rows that give no choice, a group without data, the implicit `in` check before the
+declared rules, the rows of a hidden group and the load failures of a group source. Failure cases use `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
 `UNKNOWN_RULE` and `INVALID_FORM_INPUT`. The
 [test fixture contract](../../../docs/operations/test-fixtures.md) describes the format.
 

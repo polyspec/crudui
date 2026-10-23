@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: df4af3ff7c397b1c987eff8d56e3a5bd9a58d4d2f0b1e750cb31807bbff64331 -->
+<!-- source-sha256: 779de5287ed8055cb9d34bbab710fe206a0122bd617d5ef8b8ed94a683b9ad32 -->
 
 [English](README.md).
 
@@ -20,7 +20,9 @@
 또는 `false`)로 숨긴 필드가 자신과 포함한 모든 필드의 규칙을 건너뛰고, 다른 규칙은 유지한 값을 그대로
 읽으며, 세 단계 전환에서 필드를 다시 보이면 유지한 값을 다시 검증하는지 확인합니다. `multiple: only`
 사례는 데이터 행의 행별 검증과, 행이 없지만 `required`와 `mincount`에는 실패하는 데이터 없음 상태를
-확인합니다. 실패 사례는 `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
+확인합니다. 그룹 소스 사례는 필드가 반복 그룹의 행에서 가져오는 선택지를 확인합니다. 정규 텍스트나 숫자 값으로
+일치하는 값, 선택지가 되지 않는 행, 데이터가 없는 그룹, 선언한 규칙보다 먼저 실행하는 암묵적 `in` 검사,
+숨겨진 그룹의 행, 그룹 소스의 로드 실패를 다룹니다. 실패 사례는 `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
 `UNKNOWN_RULE`, `INVALID_FORM_INPUT`을 사용합니다. [테스트 고정 데이터 계약](../../../docs/operations/test-fixtures.ko.md)이
 형식을 설명합니다.
 

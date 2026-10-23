@@ -7053,5 +7053,369 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid items at terms.answer: expected value and label pairs with distinct string or number values"
     }
+  },
+  {
+    "name": "group-source-select-rows",
+    "note": "A select field lists the rows of the variants group in data order: the name is the option value and the price, a number, its label as canonical text.",
+    "requirements": [
+      "CUSC-061",
+      "CUSC-062",
+      "CUSC-063"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "type": "select",
+          "label": "Pick",
+          "items": {
+            "from": "variants.*.name",
+            "label": "price"
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "__opt_b2__": {
+          "name": "Blue",
+          "price": 2
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": 1
+        }
+      },
+      "pick": "Red"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><option value=\"Blue\">2</option><option selected=\"\" value=\"Red\">1</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "group-source-multichoice-skips-rows",
+    "note": "A row with a blank value and a row that repeats an earlier value give no choice; a number value gives its canonical text, and an empty label falls back to the value.",
+    "requirements": [
+      "CUSC-061",
+      "CUSC-062",
+      "CUSC-063"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "picks": {
+          "type": "multichoice",
+          "label": "Picks",
+          "items": {
+            "from": "variants.*.name",
+            "label": "price"
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "x1": {
+          "name": "Blue",
+          "price": 2
+        },
+        "x2": {
+          "name": " ",
+          "price": 3
+        },
+        "x3": {
+          "name": "Blue",
+          "price": 4
+        },
+        "x4": {
+          "name": 5,
+          "price": ""
+        }
+      },
+      "picks": [
+        "5"
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 4</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"x1\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.x1:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.x1:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x1.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x1.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.x1.name\" name=\"variants[x1][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x1.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x1.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.x1.price\" name=\"variants[x1][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"x2\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.x2:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.x2:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x2.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x2.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.x2.name\" name=\"variants[x2][name]\" type=\"text\" value=\" \"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x2.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x2.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.x2.price\" name=\"variants[x2][price]\" step=\"any\" type=\"number\" value=\"3\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"x3\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.x3:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">3</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.x3:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x3.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x3.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.x3.name\" name=\"variants[x3][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x3.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x3.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.x3.price\" name=\"variants[x3][price]\" step=\"any\" type=\"number\" value=\"4\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"x4\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.x4:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">4</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.x4:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x4.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x4.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.x4.name\" name=\"variants[x4][name]\" type=\"text\" value=\"5\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.x4.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.x4.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.x4.price\" name=\"variants[x4][price]\" step=\"any\" type=\"number\" value=\"\"></div></div></div></div></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"picks\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Picks</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\"><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-name=\"picks\" data-rule-name=\"picks\" id=\"crudui:picks:0\" name=\"picks[]\" type=\"checkbox\" value=\"Blue\"><label class=\"crudui-choices__label\" for=\"crudui:picks:0\"><span>2</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"picks\" data-rule-name=\"picks\" id=\"crudui:picks:1\" name=\"picks[]\" type=\"checkbox\" value=\"5\"><label class=\"crudui-choices__label\" for=\"crudui:picks:1\"><span>5</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "group-source-without-rows",
+    "note": "A group without data has no choices, so the select has no option.",
+    "requirements": [
+      "CUSC-063"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "type": "select",
+          "label": "Pick",
+          "items": {
+            "from": "variants.*.name"
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "group-source-unknown-member",
+    "note": "A group source has only from and label; members are checked in declaration order before the field.",
+    "requirements": [
+      "CUSC-064"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "label": "Pick",
+          "type": "text",
+          "items": {
+            "from": 5,
+            "value": "name"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.value at pick: unknown key"
+    }
+  },
+  {
+    "name": "group-source-text-field",
+    "note": "Only a choice field without lang takes a group source.",
+    "requirements": [
+      "CUSC-065"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "label": "Pick",
+          "type": "text",
+          "items": {
+            "from": "variants.*.name"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.from at pick: expected a choice field without lang"
+    }
+  },
+  {
+    "name": "group-source-from-without-rows",
+    "note": "from names the rows of the group with *.",
+    "requirements": [
+      "CUSC-066"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "label": "Pick",
+          "type": "select",
+          "items": {
+            "from": "variants.name"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.from at pick: expected {group}.*.{field} for a field of a repeated group outside repeated groups"
+    }
+  },
+  {
+    "name": "group-source-from-missing-field",
+    "note": "The field of from is a direct child of the group.",
+    "requirements": [
+      "CUSC-066"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "label": "Pick",
+          "type": "select",
+          "items": {
+            "from": "variants.*.code"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.from at pick: expected {group}.*.{field} for a field of a repeated group outside repeated groups"
+    }
+  },
+  {
+    "name": "group-source-label-missing",
+    "note": "label names a direct child field of the group.",
+    "requirements": [
+      "CUSC-067"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "label": "Pick",
+          "type": "select",
+          "items": {
+            "from": "variants.*.name",
+            "label": "title"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.label at pick: expected the name of a direct child field of the group without multiple, properties or lang"
+    }
   }
 ]

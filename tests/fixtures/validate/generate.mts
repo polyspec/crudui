@@ -37,6 +37,7 @@ import {
 import { AUTHORED_CASES, type AuthoredCase } from './value-rules.mts';
 import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility.mts';
 import { NUMERIC_CASES } from './numeric-rules.mts';
+import { GROUP_SOURCE_CASES, GROUP_SOURCE_REQUIREMENTS } from './group-source.mts';
 import { parseJson } from '../../json.mts';
 
 interface CaseSpec {
@@ -1114,6 +1115,7 @@ function written(c: WrittenCase | FailingCase): Record<string, unknown> {
  * here with the ids it tests, and each named case must be generated, so a renamed case cannot lose its ids silently.
  */
 const REQUIREMENTS: Record<string, string[]> = {
+  ...GROUP_SOURCE_REQUIREMENTS,
   'enddate-relative-path-2026-01-01': ['CUVR-013'],
   'property-member-order': ['CUVR-001', 'CURP-001'],
   'composed-member-order': ['CUVR-001'],
@@ -1428,7 +1430,7 @@ const EXPRESSION_CASES: CaseSpec[] = [
   },
 ];
 
-const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...EXPRESSION_CASES.map(build)];
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written)];
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }

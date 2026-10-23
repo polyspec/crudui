@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: d37a72f8c283da1f560d67bdc5cc4d2524d328a7047759a0e59eec78aabe6ac3 -->
+<!-- source-sha256: 24349b06432ec20e66663bccb74226d1f14098e2ee6bb958b774b4e2ec71543b -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -191,8 +191,8 @@ appearance:
 맵을 사용합니다. `lang`은 설정한 언어별 입력을 생성하며 `only`, `frame`, `title`,
 `group_class`를 설정합니다. 기본 언어는 `ko`, `en`, `ja`, `zh`입니다.
 
-`items`는 인덱스가 값인 정적 배열, 값과 라벨의 맵, [선택 목록](#선택-목록), `model`이 있는 동적
-소스 설정을 사용합니다. 정적 라벨에는 언어 맵을 사용할 수 있습니다. 생성기는 동적 소스 설정을
+`items`는 인덱스가 값인 정적 배열, 값과 라벨의 맵, [선택 목록](#선택-목록), `from`이 있는
+[그룹 소스](#반복-그룹의-선택지), `model`이 있는 동적 소스 설정을 사용합니다. 정적 라벨에는 언어 맵을 사용할 수 있습니다. 생성기는 동적 소스 설정을
 보존합니다. 레코드 조회와 외부 위젯 실행은 생성기 밖에서 처리합니다.
 
 ### 선택 목록
@@ -289,6 +289,53 @@ accent:
 - **CUSC-024** 객체가 아닌 `attributes`: `Invalid items.{index}.attributes at {path}: expected an object`
 - **CUSC-025** 규칙 밖의 이름 또는 거부된 이름: `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write`
 - **CUSC-026** 문자열이 아닌 값: `Invalid items.{index}.attributes.{name} at {path}: expected a string`
+
+### 반복 그룹의 선택지
+
+`lang`이 없는 선택 필드(`select`, `dropdown`, `selectbox`, `choice`, `radio`, `multichoice`,
+`checkboxes`, `checkcontainer` 타입)는 같은 폼의 반복 그룹 행에서 선택지를 가져올 수 있습니다. 예를 들어
+역할 필드는 폼이 선언한 인물 중 하나를 고릅니다. 이때 `items`는 그룹 소스이며, `from` 멤버와 선택 멤버
+`label`을 가진 객체입니다. `from` 멤버가 있는 `items` 객체는 그룹 소스이며 값과 라벨의 맵이 아닙니다. 값
+`from`이 필요한 맵은 [선택 목록](#선택-목록)으로 씁니다.
+
+```yaml
+characters:
+  type: group
+  multiple: true
+  properties:
+    id: { type: text, validate: { required: true, unique: true } }
+    name: { type: text }
+roles:
+  type: group
+  multiple: true
+  properties:
+    character:
+      type: select
+      items: { from: characters.*.id, label: name }
+```
+
+- **CUSC-061** `from`은 `{group}.*.{value}` 경로입니다. `{group}`은 루트에서 반복 그룹까지의 속성 이름을
+  `.`으로 이은 것이며, 그 경로에서 마지막 그룹 말고는 반복 그룹이 없으므로 그룹은 폼 전체에서 행 집합이 하나입니다.
+  `*`는 그룹의 행을 나타내고, `{value}`는 반복되지 않고 그룹이 아니며 `lang`이 없는 그룹의 직계 자식 필드
+  이름입니다. 소스를 선언한 필드는 그 그룹 안에 있어도 되고 폼의 다른 곳에 있어도 됩니다.
+- **CUSC-062** `label`은 같은 그룹에서 반복되지 않고 그룹이 아니며 `lang`이 없는 직계 자식 필드의
+  이름입니다. `label`이 없으면 선택지의 라벨은 그 값입니다.
+- **CUSC-063** 선택지는 폼을 렌더링하거나 데이터를 검증할 때 읽는 그룹의 행이며, 그룹 데이터의 순서를
+  따릅니다. 행의 `{value}` 필드 값이 문자열이나 유한한 숫자이고 그 [정규 텍스트](validation-rules.ko.md#값)가
+  다듬은 뒤 비어 있지 않으면, 그 행은 정규 텍스트를 값으로 하는 선택지가 됩니다. 그 밖의 행과, 앞선 행과
+  정규 텍스트가 같은 행은 선택지가 되지 않습니다. 선택지의 라벨은 행의 `label` 필드 값이 문자열이나
+  유한한 숫자이고 그 정규 텍스트가 다듬은 뒤 비어 있지 않으면 그 정규 텍스트이고, 그렇지 않으면 선택지의
+  값입니다. 데이터가 없는 그룹에는 선택지가 없습니다. 필드는 이 선택지를 같은 쌍의
+  [선택 목록](#선택-목록)처럼 나열합니다.
+
+모든 검증기는 값을 이 선택지와 대조합니다([반복 그룹의 선택지](validation-rules.ko.md#값)). 컴파일은
+필드의 다른 선언(`behavior`와 범위 필드의 규칙 포함) 다음에 그룹 소스를 검사하며, 순서는 `items`의
+멤버(선언 순서), 필드, `from`, `label`입니다. `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
+
+- **CUSC-064** `from`과 `label` 말고 다른 멤버: `Invalid items.{key} at {path}: unknown key`
+- **CUSC-065** 선택 필드가 아니거나 `lang`이 있는 필드: `Invalid items.from at {path}: expected a choice field without lang`
+- **CUSC-066** 그 형식의 문자열이 아니거나 그룹 또는 필드가 이 규칙을 어기는 `from`: `Invalid items.from at {path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`
+- **CUSC-067** 그룹의 그런 필드 이름이 아닌 `label`: `Invalid items.label at {path}: expected the name of a direct child field of the group without multiple, properties or lang`
 
 ## 합성과 검증
 

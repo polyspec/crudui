@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 1b0365f6faec94eea4c04c2f33de972b69c449806e0191cde424c1b7061c4df2 -->
+<!-- source-sha256: 604a7e20f21b64f8544e8de040d00ec79b6231d5f2b7599fe81c6e71c5783595 -->
 
 [English](validation-rules.md).
 
@@ -144,6 +144,13 @@ display:
   공백이 있는 멤버는 숫자 텍스트가 아닙니다. 대소문자, Unicode 정규화, 숫자가 아닌
   텍스트는 일치하지 않습니다.
 
+- **CUVR-060** **반복 그룹의 선택지.** `items`가 [그룹 소스](schema.ko.md#반복-그룹의-선택지)인 필드는
+  선언한 규칙보다 먼저 암묵적인 `in` 검사를 실행합니다. 멤버는 검증하는 데이터에서 소스가 내는 선택지의
+  값이며, 값은 `in`의 멤버와 일치하는 방식으로 이 멤버와 일치합니다. 빈 값은 통과하고, 배열 값은 모든 원소가
+  통과해야 통과하며, 어떤 선택지와도 일치하지 않는 값은 실패합니다. 실패는 규칙 `in`과 그 메시지로 보고하며,
+  `messages.in`이 메시지를 바꿉니다. 선언한 `in`은 암묵적 검사 다음에 선언대로 실행합니다. 숨겨진 필드도
+  값을 유지하므로([표시 여부](#평가)) 숨겨진 그룹의 행도 다른 행처럼 선택지가 됩니다.
+
 ## 패턴
 
 `pattern`과 `match`는 HTML `pattern` 속성처럼 값의 정규 텍스트 **전체**가 일치해야 합니다. 패턴은 CRUDUI
@@ -200,6 +207,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 - **CUVR-055** 문자열·숫자·불리언이 아닌 `notEqual` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** 불리언이나 문자열이 아닌 `unique` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-057** 언어에 속하지 않는 `pattern`, `match` — 코드: `INVALID_RULE_PATTERN`; 메시지: `Invalid {rule} pattern: {reason} at {offset}`
+- **CUVR-061** 규칙을 어기는 [그룹 소스](schema.ko.md#반복-그룹의-선택지). 컴파일과 같은 순서로, 필드의 `validate` 규칙보다 먼저 검사합니다 — 코드: `INVALID_RULE_PARAMETER`; 메시지: 컴파일의 메시지(CUSC-064에서 CUSC-067)이며 `{path}`는 필드의 선언 경로입니다
 
 패턴의 `{reason}`은 `empty pattern`, `unexpected character`, `unsupported construct`,
 `invalid escape`, `invalid class`, `invalid range`, `invalid property`, `invalid quantifier`,
