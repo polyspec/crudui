@@ -179,10 +179,39 @@ static ps_value *check_name(ps_text rule, const ps_text *path, size_t length)
     return error ? error : internal_error();
 }
 
-/* A field's rule names and parameters in declaration order, then its messages keys. */
-static ps_value *check_field(const ps_value *field, const ps_text *path, size_t length,
-                             ps_pattern_cache *patterns)
+/*
+ * The load failure of a field's group source (group_source.c), or NULL: INVALID_RULE_PARAMETER at
+ * the declaration path. An allocation failure is an internal error.
+ */
+static ps_value *check_group_source(const ps_value *field, const ps_text *path, size_t length,
+                                    const ps_value *root)
 {
+    ps_chars location = ps_dotted_path(path, length, (ps_text){NULL, 0});
+    ps_chars message = {NULL, 0};
+    int state = location.bytes ? ps_group_source_failure(field, ps_view(location), root, &message) : -1;
+    ps_value *error = NULL;
+    if (state > 0) {
+        ps_value *trace = ps_array_value();
+        bool ok = trace != NULL;
+        for (size_t i = 0; ok && i < length; ++i) {
+            ps_value *name = ps_text_value(path[i]);
+            ok = name && ps_append(trace, name);
+        }
+        if (ok) error = ps_error_text("compose", "INVALID_RULE_PARAMETER", ps_view(message), ps_view(location), trace);
+        ps_value_free(trace);
+    }
+    free(location.bytes);
+    free(message.bytes);
+    if (state < 0 || (state > 0 && !error)) return internal_error();
+    return error;
+}
+
+/* A field's group source, then its rule names and parameters in declaration order, then its messages keys. */
+static ps_value *check_field(const ps_value *field, const ps_text *path, size_t length,
+                             ps_pattern_cache *patterns, const ps_value *root)
+{
+    ps_value *source_error = check_group_source(field, path, length, root);
+    if (source_error) return source_error;
     const ps_value *rules = ps_get(field, "validate");
     for (size_t i = 0; rules && rules->kind == PS_OBJECT && i < ps_size(rules); ++i) {
         ps_text rule = ps_key(rules, i);
@@ -198,8 +227,8 @@ static ps_value *check_field(const ps_value *field, const ps_text *path, size_t 
     return NULL;
 }
 
-static ps_value *check_properties(const ps_value *properties, ps_text **path, size_t *capacity, size_t length,
-                                  ps_pattern_cache *patterns)
+static ps_value *check_properties(const ps_value *properties, const ps_value *root, ps_text **path,
+                                  size_t *capacity, size_t length, ps_pattern_cache *patterns)
 {
     if (!properties || properties->kind != PS_OBJECT) return NULL;
     for (size_t i = 0; i < ps_size(properties); ++i) {
@@ -213,11 +242,11 @@ static ps_value *check_properties(const ps_value *properties, ps_text **path, si
             *capacity = grown;
         }
         (*path)[length] = ps_key(properties, i);
-        ps_value *error = check_field(field, *path, length + 1, patterns);
+        ps_value *error = check_field(field, *path, length + 1, patterns, root);
         if (error) return error;
         const ps_value *children = ps_get(field, "properties");
         if (ps_is_string(ps_get(field, "type"), "group") && children && children->kind == PS_OBJECT) {
-            error = check_properties(children, path, capacity, length + 1, patterns);
+            error = check_properties(children, root, path, capacity, length + 1, patterns);
             if (error) return error;
         }
     }
@@ -228,7 +257,7 @@ ps_value *ps_check_rule_parameters(const ps_value *properties, ps_pattern_cache 
 {
     ps_text *path = NULL;
     size_t capacity = 0;
-    ps_value *error = check_properties(properties, &path, &capacity, 0, patterns);
+    ps_value *error = check_properties(properties, properties, &path, &capacity, 0, patterns);
     free(path);
     return error;
 }

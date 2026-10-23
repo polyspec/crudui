@@ -7,6 +7,7 @@ namespace Polyspec\Crudui\Generator;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Validator\Compose\Compose;
 use Polyspec\Crudui\Validator\Compose\MemoryLoader;
+use Polyspec\Crudui\Validator\Validate\GroupSource;
 use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
 use Polyspec\Crudui\Validator\Values\Numeric;
 use stdClass;
@@ -34,7 +35,7 @@ final class Template
         return Value::record([
             'kind' => 'crudui/form-template',
             'keyPrefix' => $options['keyPrefix'] ?? Missing::Value,
-            'fields' => self::fields($properties),
+            'fields' => self::fields($properties, $properties),
             'buttons' => Value::copy(property_exists($spec, 'buttons') ? $spec->buttons : Buttons::DEFAULT),
             'action' => Value::isObject($spec->action ?? null) ? Value::copy($spec->action) : Missing::Value,
             'description' => property_exists($spec, 'description') ? Value::copy($spec->description) : Missing::Value,
@@ -55,7 +56,8 @@ final class Template
         return new MemoryLoader($maps);
     }
 
-    private static function fields(array $properties, string $parent = ''): array
+    /** Compile the field templates; $root is the composed root, which a group source reads. */
+    private static function fields(array $properties, array $root, string $parent = ''): array
     {
         $out = [];
         foreach ($properties as $name => $raw) {
@@ -65,13 +67,17 @@ final class Template
             $raw = (array) $raw;
             $path = $parent === '' ? (string) $name : $parent . '.' . $name;
             self::checkDeclarations($raw, $path, true);
+            $sourceFailure = GroupSource::failure($raw, $path, $root);
+            if ($sourceFailure !== null) {
+                throw new FormError('INVALID_FORM_INPUT', $sourceFailure);
+            }
             $children = $raw['properties'] ?? null;
             unset($raw['properties']);
             $out[] = (object) [
                 'name' => (string) $name,
                 'spec' => Value::copy((object) $raw),
                 'children' => $children instanceof stdClass || is_array($children) && !array_is_list($children)
-                    ? self::fields((array) $children, $path)
+                    ? self::fields((array) $children, $root, $path)
                     : [],
             ];
         }

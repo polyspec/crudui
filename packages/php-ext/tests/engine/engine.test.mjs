@@ -53,7 +53,7 @@ const detailCases = JSON.parse(readFileSync(
 
 /* The engine units of rule evaluation, shared by the validation programs. */
 const ruleSources = [
-  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'choice_list.c', 'rule_number.c', 'unicode_data.c',
+  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'choice_list.c', 'group_source.c', 'rule_number.c', 'unicode_data.c',
   'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c',
 ];
 
@@ -1029,7 +1029,7 @@ test('PHP extension engine reports supported widget construction failures as int
       signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1253,7 +1253,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
-        'messages.c', 'interface_messages.c', 'binding.c', 'history.c', 'view.c', 'html.c', 'render.c', 'key.c', 'form.c', 'choice_list.c', 'canonical.c',
+        'messages.c', 'interface_messages.c', 'binding.c', 'history.c', 'view.c', 'html.c', 'render.c', 'key.c', 'form.c', 'choice_list.c', 'group_source.c', 'canonical.c',
         'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c',
       ],
     });

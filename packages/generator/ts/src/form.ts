@@ -1,6 +1,6 @@
 import { FormInputError, type FileLoader } from '@polyspec/crudui-validator';
 import {
-  checkOptionText, checkedComposition, composeProperties, isMultiple, isNumberRange, isStep, MemoryLoader,
+  checkOptionText, checkedComposition, composeProperties, groupSourceFailure, isMultiple, isNumberRange, isStep, MemoryLoader,
 } from '@polyspec/crudui-validator/internal';
 import { checkDeclaredAttributes } from './design';
 import { checkBindText } from './input-text';
@@ -283,16 +283,20 @@ function checkFormDeclarations(spec: Record<string, unknown>): void {
   });
 }
 
-function compileFields(properties: Record<string, unknown>, parent = ''): FormFieldTemplate[] {
+function compileFields(properties: Record<string, unknown>, root: Record<string, unknown>, parent = ''): FormFieldTemplate[] {
   return Object.entries(properties).flatMap(([name, raw]) => {
     if (!isRecord(raw)) return [];
     const path = parent ? `${parent}.${name}` : name;
     checkDeclarations(raw, path);
+    // A group source is checked after the other declarations of the field (docs/spec/schema.md,
+    // Choices from a repeated group).
+    const sourceFailure = groupSourceFailure(raw, path, root);
+    if (sourceFailure !== undefined) throw new FormInputError(sourceFailure);
     const { properties: children, ...spec } = raw;
     return [{
       name,
       spec,
-      children: isRecord(children) ? compileFields(children, path) : [],
+      children: isRecord(children) ? compileFields(children, root, path) : [],
     }];
   });
 }
@@ -325,10 +329,11 @@ export function compileForm(
     checkedLoader ?? new MemoryLoader(options.files ?? {}),
     options.basepath ? { basepath: options.basepath } : {}
   );
+  const root = copyFormRecord(properties);
   return freezeTree({
     kind: 'crudui/form-template' as const,
     keyPrefix: options.keyPrefix,
-    fields: compileFields(copyFormRecord(properties)),
+    fields: compileFields(root, root),
     buttons: formButtons(rootSpec.buttons).map(copyFormRecord),
     ...(isRecord(rootSpec.action) ? { action: copyFormRecord(rootSpec.action) } : {}),
     ...(Object.prototype.hasOwnProperty.call(rootSpec, 'description') ? { description: copyFormValue(rootSpec.description) } : {}),

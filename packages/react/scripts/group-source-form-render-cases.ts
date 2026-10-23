@@ -4,7 +4,7 @@
  * data order, and compilation refuses a group source that breaks its rules. The expected HTML is
  * written by hand from the specification and the form markup; never regenerated from a renderer.
  */
-import { EMPTY_COLLECTION, G, GROUP_ROWS, rows } from './written-form-render-cases';
+import { EMPTY_COLLECTION, GROUP_ROWS, rows } from './written-form-render-cases';
 
 const BODY_END = '</div><div class="crudui-form__footer">';
 

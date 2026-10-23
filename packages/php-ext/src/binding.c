@@ -136,10 +136,10 @@ static bool choice_appearance_valid(const ps_value *items, ps_text path, ps_valu
     return true;
 }
 
-static ps_value *build_widget(const ps_value *spec, const ps_value *value,
-                              ps_text path, const ps_value *design,
-                              const bind_context *context, const row_scope *scope,
-                              ps_value **error)
+static ps_value *build_declared_widget(const ps_value *spec, const ps_value *value,
+                                       ps_text path, const ps_value *design,
+                                       const bind_context *context, const row_scope *scope,
+                                       ps_value **error)
 {
     const ps_value *items = ps_get(spec, "items");
     ps_chars type = field_type(spec);
@@ -177,6 +177,35 @@ static ps_value *build_widget(const ps_value *spec, const ps_value *value,
     return ps_widget(spec, value, value != NULL, path, design,
                      context->key_prefix, context->id_prefix,
                      context->language, scope->segments, scope->count);
+}
+
+/*
+ * A field whose items is a group source takes its choices from the rows of its group in the root
+ * data (group_source.c); the field then renders as a choice list of those pairs. The copy keeps
+ * the declared members in their order and replaces only items.
+ */
+static ps_value *build_widget(const ps_value *spec, const ps_value *value,
+                              ps_text path, const ps_value *design,
+                              const bind_context *context, const row_scope *scope,
+                              ps_value **error)
+{
+    const ps_value *items = ps_get(spec, "items");
+    if (!ps_is_group_source(items))
+        return build_declared_widget(spec, value, path, design, context, scope, error);
+    ps_value *choices = ps_group_source_choices(items, context->data);
+    ps_value *source = ps_object_value();
+    bool ok = choices && source;
+    for (size_t i = 0; ok && i < ps_size(spec); ++i) {
+        ps_text key = ps_key(spec, i);
+        ps_value *member_copy = ps_text_is(key, "items") ? choices : ps_value_clone(ps_at(spec, i));
+        if (ps_text_is(key, "items")) choices = NULL;
+        ok = member_copy && ps_set_text(source, key, member_copy);
+    }
+    ps_value_free(choices);
+    if (!ok) { ps_value_free(source); return NULL; }
+    ps_value *widget = build_declared_widget(source, value, path, design, context, scope, error);
+    ps_value_free(source);
+    return widget;
 }
 
 /* Input failure for present group data, including a repeated group row, that is not an object. */

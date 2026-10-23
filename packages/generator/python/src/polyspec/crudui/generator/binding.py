@@ -9,6 +9,7 @@ numbers; a sticky row header carries its depth.
 from collections.abc import Mapping
 from typing import Any, cast
 
+from polyspec.crudui.validator.group_source import group_choices, is_group_source
 from polyspec.crudui.validator.jsvalue import JsonValue
 
 from . import messages as messages_module
@@ -83,6 +84,11 @@ def bind(
 def field(entry: Mapping[str, Any], path: str, data: Any, state: Any) -> dict[str, Any]:
     """The node for one field and its group, collection or language children."""
     spec = entry["spec"]
+    # A group source lists the rows of its group in the root data as a choice list
+    # (schema.md, "Choices from a repeated group"); compilation has checked the source.
+    if is_group_source(spec.get("items")):
+        choices = group_choices(spec["items"], data)
+        spec = {**spec, "items": choices}
     design = design_resolve(
         spec.get("design"), data, segments(path), state["rowSegments"]
     )

@@ -3,6 +3,7 @@ package generator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator/go/validator/text"
@@ -87,7 +88,7 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if e != nil {
 		return nil, e
 	}
-	fields, e := compileFields(p, "")
+	fields, e := compileFields(p, p, "")
 	if e != nil {
 		return nil, e
 	}
@@ -161,7 +162,10 @@ func checkFormDeclarations(spec *Object) error {
 	}
 	return nil
 }
-func compileFields(p *Object, parent string) ([]FieldTemplate, error) {
+
+// compileFields resolves the fields of p in declaration order, each field's children after it. root is the composed
+// properties of the form, which a group source reads.
+func compileFields(p *Object, root *Object, parent string) ([]FieldTemplate, error) {
 	out := []FieldTemplate{}
 	if p == nil {
 		return out, nil
@@ -178,7 +182,12 @@ func compileFields(p *Object, parent string) ([]FieldTemplate, error) {
 		if e := checkDeclarations(raw, path, true); e != nil {
 			return nil, e
 		}
-		children, e := compileFields(object(read(raw, "properties")), path)
+		// A group source is checked after the other declarations of the field (docs/spec/schema.md, Choices from a
+		// repeated group).
+		if message := validate.GroupSourceFailure(raw, path, root); message != "" {
+			return nil, errors.New(message)
+		}
+		children, e := compileFields(object(read(raw, "properties")), root, path)
 		if e != nil {
 			return nil, e
 		}

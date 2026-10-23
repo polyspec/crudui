@@ -14,6 +14,7 @@ from collections.abc import Mapping
 from typing import Any, NoReturn, TypeGuard
 
 from polyspec.crudui.validator.compose import MemoryLoader, compose_properties
+from polyspec.crudui.validator.group_source import group_source_failure
 from polyspec.crudui.validator.jsvalue import JsonValue
 from polyspec.crudui.validator.values import (
     is_multiple,
@@ -115,7 +116,7 @@ def compile(spec: object, options: Mapping[str, Any]) -> dict[str, Value]:
             "keyPrefix": options.get("keyPrefix", MISSING)
             if "keyPrefix" in options
             else MISSING,
-            "fields": _fields(properties),
+            "fields": _fields(properties, properties),
             "buttons": copy_value(spec["buttons"])
             if "buttons" in spec
             else [dict(button) for button in DEFAULT_BUTTONS],
@@ -142,13 +143,20 @@ def loader(options: Mapping[str, Any]) -> MemoryLoader:
     return MemoryLoader(maps)
 
 
-def _fields(properties: dict[str, Any], parent: str = "") -> list[JsonValue]:
+def _fields(
+    properties: dict[str, Any], root: dict[str, Any], parent: str = ""
+) -> list[JsonValue]:
+    """The field list of `properties`; `root` holds the form's root properties, which a group source reads."""
     out: list[JsonValue] = []
     for name, raw in properties.items():
         if not _is_object(raw):
             continue
         path = name if parent == "" else f"{parent}.{name}"
         _check_declarations(raw, path, True)
+        # A group source is checked after the other declarations of its field (schema.md, "Choices from a repeated group").
+        source_failure = group_source_failure(raw, path, root)
+        if source_failure is not None:
+            raise FormError("INVALID_FORM_INPUT", source_failure)
         children = raw.get("properties")
         raw = {key: value for key, value in raw.items() if key != "properties"}
         out.append(
@@ -156,7 +164,7 @@ def _fields(properties: dict[str, Any], parent: str = "") -> list[JsonValue]:
                 "name": str(name),
                 "spec": copy_value(raw),
                 "children": (
-                    _fields(dict(children), path) if _is_object(children) else []
+                    _fields(dict(children), root, path) if _is_object(children) else []
                 ),
             }
         )

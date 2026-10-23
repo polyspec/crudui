@@ -77,16 +77,16 @@ class TestFormRenderFixtureCounts(unittest.TestCase):
         self.failures = [case for case in self.cases if "expectError" in case]
 
     def test_result_case_count(self):
-        self.assertEqual(len(self.results), 150)
+        self.assertEqual(len(self.results), 153)
 
     def test_failure_case_count(self):
-        self.assertEqual(len(self.failures), 51)
+        self.assertEqual(len(self.failures), 56)
 
     def test_every_case_declares_exactly_one_expectation(self):
         for case in self.cases:
             exclusive = ("expected_html" in case) != ("expectError" in case)
             self.assertTrue(exclusive, f"{case['name']} must declare one expectation")
-        self.assertEqual(len(self.cases), 201)
+        self.assertEqual(len(self.cases), 209)
 
 
 class TestAppearanceErrorsAreNotHidden(unittest.TestCase):

@@ -41,3 +41,4 @@ export {
   isScalarText,
 } from './text/index';
 export { isMultiple, isNumberRange, isStep } from './values/index';
+export { groupChoices, groupSourceFailure, isGroupSource, type GroupChoice } from './group-source';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\Generator;
 
 use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Validator\Validate\GroupSource;
 use stdClass;
 
 /** Read choice lists: `items` arrays of value and label pairs kept in list order. */
@@ -25,6 +26,25 @@ final class ChoiceList
             }
         }
         return false;
+    }
+
+    /**
+     * The spec of a field whose `items` is a group source, with `items` replaced by the choices that
+     * the source gives for the root form data as a choice list of value and label pairs; any other
+     * spec is returned as it is.
+     */
+    public static function resolve(stdClass $spec, stdClass $data): stdClass
+    {
+        if (!GroupSource::isSource($spec->items ?? null)) {
+            return $spec;
+        }
+        $items = [];
+        foreach (GroupSource::choices((array) $spec->items, $data) as [$value, $label]) {
+            $items[] = (object) ['value' => $value, 'label' => $label];
+        }
+        $resolved = clone $spec;
+        $resolved->items = $items;
+        return $resolved;
     }
 
     /** The members a choice of a choice or multichoice field may declare besides value and label. */

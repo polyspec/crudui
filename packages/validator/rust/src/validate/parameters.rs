@@ -16,6 +16,7 @@ use serde_json::{Map, Value};
 use crate::compose::{ComposeErrorCode, ComposeLoadError};
 
 use super::errors::ValidateError;
+use super::group_source::group_source_failure;
 use super::length::{limit, range_limits, MAX_LIMIT};
 use super::membership::{members, Comparable};
 use super::numeric::{number_range, step};
@@ -54,11 +55,12 @@ pub(crate) struct Patterns(HashMap<String, Arc<Program>>);
 /// Check every declared parameter of `properties`; returns the compiled patterns.
 pub(crate) fn check_declared(properties: &Map<String, Value>) -> Result<Patterns, ValidateError> {
     let mut patterns = Patterns::default();
-    check_fields(properties, &mut Vec::new(), &mut patterns)?;
+    check_fields(properties, properties, &mut Vec::new(), &mut patterns)?;
     Ok(patterns)
 }
 
 fn check_fields(
+    root: &Map<String, Value>,
     properties: &Map<String, Value>,
     path: &mut Vec<String>,
     patterns: &mut Patterns,
@@ -68,6 +70,13 @@ fn check_fields(
             continue;
         }
         path.push(key.clone());
+        if let Some(message) = group_source_failure(field, &path.join("."), root) {
+            return Err(ValidateError::Load(ComposeLoadError::with_trace(
+                ComposeErrorCode::InvalidRuleParameter,
+                message,
+                path.clone(),
+            )));
+        }
         if let Some(Value::Object(rules)) = field.get("validate") {
             for (rule, value) in rules {
                 check_name(rule, path)?;
@@ -95,7 +104,7 @@ fn check_fields(
             }
         }
         if let Some(children) = is_group_with_properties(field) {
-            check_fields(children, path, patterns)?;
+            check_fields(root, children, path, patterns)?;
         }
         path.pop();
     }

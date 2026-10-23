@@ -20,16 +20,23 @@ final class DeclarationCheck
     /**
      * @param array<string, mixed> $properties a composed field map
      * @param list<string> $path the declaration path of the map's group
+     * @param array<string, mixed>|null $root the root properties, which a group source reads (null for the root map)
      * @throws ComposeLoadError at the first unknown rule name or invalid parameter
      */
-    public static function run(array $properties, array $path = []): void
+    public static function run(array $properties, array $path = [], ?array $root = null): void
     {
+        $root ??= $properties;
         foreach ($properties as $name => $field) {
             if (!\is_array($field) && !$field instanceof \stdClass) {
                 continue;
             }
             $field = (array) $field;
             $fieldPath = [...$path, (string) $name];
+            // A group source is checked before the rules of its field (schema.md, "Choices from a repeated group").
+            $sourceFailure = GroupSource::failure($field, implode('.', $fieldPath), $root);
+            if ($sourceFailure !== null) {
+                throw new ComposeLoadError('INVALID_RULE_PARAMETER', $sourceFailure, $fieldPath);
+            }
             $rules = $field['validate'] ?? null;
             if ($rules instanceof \stdClass || (\is_array($rules) && !array_is_list($rules))) {
                 foreach ((array) $rules as $rule => $parameter) {
@@ -50,7 +57,7 @@ final class DeclarationCheck
                 ($field['type'] ?? null) === 'group'
                 && ($children instanceof \stdClass || (\is_array($children) && !array_is_list($children)))
             ) {
-                self::run((array) $children, $fieldPath);
+                self::run((array) $children, $fieldPath, $root);
             }
         }
     }

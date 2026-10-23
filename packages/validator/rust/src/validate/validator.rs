@@ -17,9 +17,11 @@ use std::collections::{HashMap, HashSet};
 
 use serde_json::{Map, Value};
 
+use crate::compose::{ComposeErrorCode, ComposeLoadError};
 use crate::expr::{Evaluator, Expression, Node};
 
 use super::choice_data::{check_single_choice_data, is_single_choice};
+use super::group_source::{group_choices, is_group_source};
 use super::errors::{FormInputError, ValidateError};
 use super::parameters::{check, check_declared, Patterns};
 use super::rules::{get_rule, is_condition_expression, RuleContext};
@@ -410,6 +412,11 @@ impl Validator {
         {
             return Ok(Some(error));
         }
+        if let Some(error) =
+            self.run_group_source(field, value, field_path, row_keys, declaration, messages, run)?
+        {
+            return Ok(Some(error));
+        }
         let rules = match rules {
             Some(r) => r,
             None => return Ok(None),
@@ -438,6 +445,50 @@ impl Validator {
             }
         }
         Ok(None)
+    }
+
+    /// A field whose `items` is a group source runs an implicit `in` check against the choices
+    /// that the source gives for the root data, before its declared rules (validation-rules.md,
+    /// "Values"). Returns the error of the check when it fails.
+    #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
+    fn run_group_source(
+        &self,
+        field: &Value,
+        value: &Value,
+        path: &[String],
+        row_keys: &[usize],
+        declaration: &[String],
+        messages: Option<&Value>,
+        run: &Run<'_>,
+    ) -> Result<Option<ValidationError>, ValidateError> {
+        let Some(items) = field.get("items").filter(|items| is_group_source(items)) else {
+            return Ok(None);
+        };
+        let choices = group_choices(items, run.data, &declaration.join(".")).map_err(|message| {
+            ValidateError::Load(ComposeLoadError::with_trace(
+                ComposeErrorCode::InvalidRuleParameter,
+                message,
+                declaration.to_vec(),
+            ))
+        })?;
+        let members = Value::Array(
+            choices
+                .into_iter()
+                .map(|choice| Value::String(choice.value))
+                .collect(),
+        );
+        let Some(message) =
+            self.run_rule("in", &members, value, path, row_keys, declaration, messages, run)?
+        else {
+            return Ok(None);
+        };
+        Ok(Some(ValidationError {
+            path: path_to_string(path),
+            field: field_name(path),
+            rule: "in".to_string(),
+            message,
+            value: value.clone(),
+        }))
     }
 
     /// `type:number` runs an implicit `number` rule first when no explicit

@@ -338,6 +338,10 @@ func (v *Validator) runFieldRules(run fieldRun, value any, errors *[]ValidationE
 			return nil
 		}
 	}
+	failed, err := v.runGroupSource(run, value, errors)
+	if err != nil || failed {
+		return err
+	}
 	if rules == nil {
 		return nil
 	}
@@ -356,6 +360,23 @@ func (v *Validator) runFieldRules(run fieldRun, value any, errors *[]ValidationE
 		}
 	}
 	return nil
+}
+
+// runGroupSource runs the implicit in check of a field whose items is a group source, against the choices that the
+// source gives for the data (validation-rules.md, Values). It reports whether it recorded a failure, which stops the
+// field.
+func (v *Validator) runGroupSource(run fieldRun, value any, errors *[]ValidationError) (bool, error) {
+	items, _ := run.field.Get("items")
+	source, ok := GroupSourceItems(items)
+	if !ok {
+		return false, nil
+	}
+	msg, failed, err := v.runRule(run, "in", groupSourceMembers(source, run.allData), value)
+	if err != nil || !failed {
+		return false, err
+	}
+	run.report(errors, "in", msg, value)
+	return true, nil
 }
 
 // runRule resolves a (possibly conditional) rule value to an effective param,

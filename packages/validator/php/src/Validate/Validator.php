@@ -536,6 +536,16 @@ final class Validator
                 $allData,
                 $errors
             )
+            || $this->runGroupSource(
+                $field,
+                $value,
+                $fieldPath,
+                $rowKeys,
+                $declarationPath,
+                $messages,
+                $allData,
+                $errors
+            )
         ) {
             return;
         }
@@ -546,6 +556,48 @@ final class Validator
             $rules = self::rulesAt($rules, false);
         }
         $this->applyRules($rules, $value, $fieldPath, $rowKeys, $declarationPath, $messages, $allData, $errors);
+    }
+
+    /**
+     * A field whose `items` is a group source runs an implicit `in` check against the choices that
+     * the source gives for the whole form data, after the implicit `number` check and before the
+     * declared rules (validation-rules.md, "Values"). Returns true when it pushed an error (caller
+     * stops the field).
+     *
+     * @param array<string, mixed> $field the field declaration
+     * @param list<string> $path the path of the value that is checked
+     * @param list<string> $declarationPath the path of the declaration of the field in the specification
+     * @param array<string, string>|null $messages the custom messages of the field
+     * @param array<string, mixed> $allData the whole form data, which the choices are read from
+     * @param array<int, array<string, mixed>> $errors the errors found so far, keyed by path; receives the new one
+     */
+    private function runGroupSource(
+        array $field,
+        mixed $value,
+        array $path,
+        array $rowKeys,
+        array $declarationPath,
+        ?array $messages,
+        array $allData,
+        array &$errors,
+    ): bool {
+        if (!GroupSource::isSource($field['items'] ?? null)) {
+            return false;
+        }
+        $members = array_map(
+            static fn (array $choice): string => $choice[0],
+            GroupSource::choices((array) $field['items'], $allData)
+        );
+        return $this->applyRules(
+            ['in' => $members],
+            $value,
+            $path,
+            $rowKeys,
+            $declarationPath,
+            $messages,
+            $allData,
+            $errors
+        );
     }
 
     /**

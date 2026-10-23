@@ -228,7 +228,14 @@ final class Binding
             );
             return Value::record([...$root, 'header' => $header, 'body' => self::body(), 'checkbox' => $checkbox]);
         }
-        $widget = Widget::evaluate($spec, $value, $path, $design, $state, $state['rowSegments']);
+        $widget = Widget::evaluate(
+            ChoiceList::resolve($spec, $data),
+            $value,
+            $path,
+            $design,
+            $state,
+            $state['rowSegments']
+        );
         if ($type === 'hidden') {
             return Value::record([...$root, 'body' => self::body(), 'widget' => $widget]);
         }
@@ -359,7 +366,7 @@ final class Binding
         $number = implode('.', $numbers);
         if ($item === 'field') {
             $widget = Widget::evaluate(
-                $spec,
+                ChoiceList::resolve($spec, $data),
                 Value::path($data, $rowPath),
                 $rowPath,
                 $rowDesign,
@@ -444,7 +451,7 @@ final class Binding
                 'header' => (object) ['className' => '', 'label' => $code],
                 'body' => self::body(),
                 'widget' => Widget::evaluate(
-                    $spec,
+                    ChoiceList::resolve($spec, $data),
                     Value::path($data, $langPath),
                     $langPath,
                     $langDesign,

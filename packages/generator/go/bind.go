@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // boundOptions holds the resolved text options of one binding.
@@ -183,6 +185,11 @@ func multipleSettings(spec *Object) *multiple {
 	return m
 }
 func makeWidget(spec *Object, value any, path string, design *Object, s bindState) (*Object, error) {
+	// A group source lists the rows of its group in the data as a choice list; compilation has checked the source
+	// (docs/spec/schema.md, Choices from a repeated group).
+	if source, ok := validate.GroupSourceItems(read(spec, "items")); ok {
+		spec = withGroupChoices(spec, source, s.data)
+	}
 	if items := read(spec, "items"); isChoiceList(items) {
 		// Only the choices of a choice or multichoice field declare their appearance, and only the
 		// choice list of a select field has groups.
@@ -204,6 +211,19 @@ func makeWidget(spec *Object, value any, path string, design *Object, s bindStat
 		return NewObject("unsupported", true, "type", stringAt(spec, "type")), nil
 	}
 	return nil, &UnsupportedFieldTypeError{Type: stringAt(spec, "type"), Path: path}
+}
+
+// withGroupChoices returns a copy of spec whose items are the choice list of the group source for the record data,
+// one {value, label} pair per choice in data order; the template keeps its group source.
+func withGroupChoices(spec *Object, source *Object, data *Object) *Object {
+	choices := validate.GroupChoices(source, data)
+	items := make([]any, 0, len(choices))
+	for _, choice := range choices {
+		items = append(items, NewObject("value", choice.Value, "label", choice.Label))
+	}
+	copied := copyObject(spec)
+	copied.Set("items", items)
+	return copied
 }
 
 // declaredAttributes returns a copy of the declared control attributes (design.attributes) or,

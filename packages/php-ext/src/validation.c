@@ -640,6 +640,21 @@ static bool array_level_rule(ps_text rule)
         ps_text_is(rule, "mincount") || ps_text_is(rule, "maxcount");
 }
 
+/* The values of a group source's choices for the root data, as an array of strings; NULL on allocation failure. */
+static ps_value *group_members(const ps_value *items, const ps_value *data)
+{
+    ps_value *choices = ps_group_source_choices(items, data);
+    ps_value *members = choices ? ps_array_value() : NULL;
+    bool ok = members != NULL;
+    for (size_t i = 0; ok && i < ps_size(choices); ++i) {
+        ps_value *value = ps_value_clone(ps_get(ps_at(choices, i), "value"));
+        ok = value && ps_append(members, value);
+    }
+    ps_value_free(choices);
+    if (!ok) { ps_value_free(members); return NULL; }
+    return members;
+}
+
 /*
  * The rules of a field. depth is the length of the field's declaration path in
  * context->declaration.
@@ -655,6 +670,16 @@ static bool validate_rules(const ps_value *field, const ps_value *value,
         int pass = rule_passes(PS_TEXT("number"), value, enabled, field, context, path, length);
         bool ok = pass >= 0 && (pass || rule_error(context, path, length, field, PS_TEXT("number"), enabled, value));
         ps_value_free(enabled);
+        if (!ok || !pass) return ok;
+    }
+    /* A group source checks the value against the choices of its rows before the declared rules (validation-rules.md, "Values"). */
+    const ps_value *items = ps_get(field, "items");
+    if (!array_level && ps_is_group_source(items)) {
+        ps_value *members = group_members(items, context->data);
+        if (!members) return false;
+        int pass = rule_passes(PS_TEXT("in"), value, members, field, context, path, length);
+        bool ok = pass >= 0 && (pass || rule_error(context, path, length, field, PS_TEXT("in"), members, value));
+        ps_value_free(members);
         if (!ok || !pass) return ok;
     }
     if (!rules || rules->kind != PS_OBJECT) return true;

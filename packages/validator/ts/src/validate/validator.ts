@@ -43,6 +43,8 @@ import { FormInputError } from './errors';
 import { isRecord } from '../record';
 import { compareCodePoints } from '../text/index';
 import { assertRuleParameter, assertRuleName } from './parameters';
+import { ComposeLoadError } from '../compose/errors';
+import { groupChoices, groupSourceFailure, isGroupSource } from '../group-source';
 import {
   parseCondition,
   isConditionExpression,
@@ -359,6 +361,9 @@ export class Validator {
         continue;
       }
       const path = [...declarationPath, propertyKey];
+      // A group source is checked before the field's rules (validation-rules.md, "Parameter errors").
+      const sourceFailure = groupSourceFailure(field, path.join('.'), this.properties);
+      if (sourceFailure !== undefined) throw new ComposeLoadError('INVALID_RULE_PARAMETER', sourceFailure, path);
       const rules = normalizeValidateSlot(field.validate);
       for (const [ruleName, ruleValue] of Object.entries(rules ?? {})) {
         assertRuleName(ruleName, path);
@@ -589,6 +594,9 @@ export class Validator {
     if (this.runImplicitNumber(field, rules, value, context, declarationPath, messages, itemPath, errors)) {
       return;
     }
+    if (this.runGroupSource(field, value, context, declarationPath, messages, itemPath, errors)) {
+      return;
+    }
     if (!rules) {
       return;
     }
@@ -625,6 +633,9 @@ export class Validator {
     const rules = normalizeValidateSlot(field.validate);
 
     if (this.runImplicitNumber(field, rules, value, context, declarationPath, messages, fieldPath, errors)) {
+      return;
+    }
+    if (this.runGroupSource(field, value, context, declarationPath, messages, fieldPath, errors)) {
       return;
     }
     if (!rules) {
@@ -672,6 +683,38 @@ export class Validator {
         path: pathToString(path),
         field: getFieldName(path),
         rule: 'number',
+        message: error,
+        value: value === undefined ? null : value,
+      });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * A field whose `items` is a group source runs an implicit `in` check against the choices that
+   * the source gives for the data, before its declared rules (validation-rules.md, "Values").
+   * Returns true when it pushed an error (caller must stop the field).
+   */
+  private runGroupSource(
+    field: ComposedField,
+    value: unknown,
+    context: PathContext,
+    declarationPath: string[],
+    messages: MessagesSpec | undefined,
+    path: string[],
+    errors: ValidationError[]
+  ): boolean {
+    if (!isGroupSource(field.items)) {
+      return false;
+    }
+    const members = groupChoices(field.items, context.formData).map((choice) => choice.value);
+    const error = this.runRule('in', members, value, context, declarationPath, field, messages);
+    if (error) {
+      errors.push({
+        path: pathToString(path),
+        field: getFieldName(path),
+        rule: 'in',
         message: error,
         value: value === undefined ? null : value,
       });

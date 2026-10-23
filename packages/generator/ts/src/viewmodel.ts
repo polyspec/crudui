@@ -13,6 +13,7 @@ import {
 import { declaredAttributes, resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
 import { FormInputError } from '@polyspec/crudui-validator';
+import { groupChoices, isGroupSource } from '@polyspec/crudui-validator/internal';
 import { UnsupportedFieldTypeError } from './errors';
 import { CHOICE_LIST_EXPECTED, checkChoiceAppearance, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
@@ -307,12 +308,17 @@ function labelTarget(widget: WidgetModel | UnsupportedVM): string | undefined {
 // ---------------------------------------------------------------------------
 
 function buildWidget(
-  spec: Record<string, unknown>,
+  declared: Record<string, unknown>,
   value: unknown,
   path: string,
   design: ResolvedDesign,
   state: BuildState
 ): WidgetModel | UnsupportedVM {
+  // A group source lists the rows of its group in the data as a choice list (docs/spec/schema.md,
+  // Choices from a repeated group); compilation has checked the source.
+  const spec = isGroupSource(declared.items)
+    ? { ...declared, items: groupChoices(declared.items, state.data) }
+    : declared;
   const type = jsString(spec.type ?? '');
   if (isChoiceList(spec.items)) {
     // Only the choices of a choice or multichoice field declare their appearance, and only the

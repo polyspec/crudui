@@ -1,9 +1,10 @@
 //! Choice lists: `items` arrays of value and label pairs kept in list order.
 
 use crate::template::check_declared_attributes;
+use polyspec_crudui_validator::validate::group_source::group_choices;
 use crate::util::{scalar, style};
 use crate::{FormError, FormResult};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use std::collections::HashSet;
 
 /// The expected-value text of a choice list declaration failure.
@@ -153,4 +154,17 @@ pub(crate) fn choice_appearances(items: &Value) -> Vec<Map<String, Value>> {
             appearance
         })
         .collect()
+}
+
+/// The spec of a field whose `items` is a group source, with the items replaced by the choice
+/// list of the group's rows in the root `data` (schema.md, "Choices from a repeated group").
+pub(crate) fn with_group_choices(spec: &Value, data: &Value, path: &str) -> FormResult<Value> {
+    let choices = group_choices(&spec["items"], data, path).map_err(FormError::input)?;
+    let items: Vec<Value> = choices
+        .into_iter()
+        .map(|choice| json!({"value": choice.value, "label": choice.label}))
+        .collect();
+    let mut grouped = spec.clone();
+    grouped["items"] = Value::Array(items);
+    Ok(grouped)
 }

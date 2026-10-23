@@ -3,6 +3,7 @@ use polyspec_crudui_validator::compose::{
     compose_properties, member_ordered, member_ordered_map, ComposeOptions, FileLoader,
     MemoryLoader,
 };
+use polyspec_crudui_validator::validate::group_source::{group_source_failure, scalar_child};
 use polyspec_crudui_validator::validate::numeric;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -143,19 +144,6 @@ pub struct CompileOptions<'a> {
 /// A string, or a condition map: a non-empty object.
 fn condition_value(value: &Value) -> bool {
     value.is_string() || value.as_object().is_some_and(|map| !map.is_empty())
-}
-
-/// A child that renders one scalar value: not repeated, not a group and not a language field.
-fn scalar_child(child: &Value) -> bool {
-    let Some(child) = child.as_object() else {
-        return false;
-    };
-    let enabled = |key: &str| child.get(key).is_some_and(|v| *v == true || v.is_object());
-    child.get("type").is_none_or(|t| t != "group")
-        && !child.contains_key("properties")
-        && !enabled("multiple")
-        && child.get("multiple").is_none_or(|v| v != "only")
-        && !enabled("lang")
 }
 
 /// Allowed keys of the closed `multiple` bucket.
@@ -583,7 +571,11 @@ fn check_form_declarations(spec: &Map<String, Value>) -> FormResult<()> {
     Ok(())
 }
 
-fn fields(properties: &Map<String, Value>, parent: &str) -> FormResult<Vec<FieldTemplate>> {
+fn fields(
+    root: &Map<String, Value>,
+    properties: &Map<String, Value>,
+    parent: &str,
+) -> FormResult<Vec<FieldTemplate>> {
     let mut out = Vec::new();
     for (name, value) in properties {
         let Some(raw) = value.as_object() else {
@@ -595,9 +587,13 @@ fn fields(properties: &Map<String, Value>, parent: &str) -> FormResult<Vec<Field
             format!("{parent}.{name}")
         };
         check_declarations(raw, &path, true)?;
+        // A group source is checked after the other declarations of the field.
+        if let Some(message) = group_source_failure(value, &path, root) {
+            return Err(FormError::input(message));
+        }
         let mut spec = raw.clone();
         let children = match spec.shift_remove("properties") {
-            Some(Value::Object(children)) => fields(&children, &path)?,
+            Some(Value::Object(children)) => fields(root, &children, &path)?,
             _ => Vec::new(),
         };
         out.push(FieldTemplate {
@@ -659,7 +655,7 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
     Ok(FormTemplate {
         kind: "crudui/form-template".into(),
         key_prefix: options.key_prefix.clone(),
-        fields: fields(&properties, "")?,
+        fields: fields(&properties, &properties, "")?,
         buttons: match spec.get("buttons").and_then(Value::as_array) {
             Some(declared) => declared
                 .iter()

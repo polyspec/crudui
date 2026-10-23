@@ -12,7 +12,7 @@
  * Written by hand; never regenerated from a renderer.
  */
 
-export const G = (properties: Record<string, unknown>) => ({ type: 'group', properties });
+const G = (properties: Record<string, unknown>) => ({ type: 'group', properties });
 export const rows = (multiple: unknown) => G({
   variants: {
     type: 'group', label: 'Variants', multiple,

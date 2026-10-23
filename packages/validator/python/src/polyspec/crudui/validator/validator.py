@@ -39,6 +39,7 @@ from .resolver import evaluate_condition as _eval_condition
 from .resolver import evaluate_expression_value as _eval_value
 from .resolver import Value, get_field_name, path_to_string
 from .rules import get_rule, rule_parameter_failure
+from .group_source import group_choices, group_source_failure, is_group_source
 from .loader import DocumentLoader
 from .text import check_input_text, check_option_text, checked_composition
 
@@ -305,6 +306,10 @@ class Validator:
             if not _is_object(field):
                 continue
             path = [*declaration_path, property_key]
+            # A group source is checked before the field's rules (validation-rules.md, "Parameter errors").
+            failure = group_source_failure(field, ".".join(path), self.properties)
+            if failure is not None:
+                raise ComposeLoadError("INVALID_RULE_PARAMETER", failure, path)
             rules = _normalize_validate_slot(field.get("validate"))
             for rule_name, rule_value in (rules or {}).items():
                 _assert_rule_name(rule_name, path)
@@ -537,6 +542,10 @@ class Validator:
             field, rules, value, context, declaration_path, messages, item_path, errors
         ):
             return
+        if self._run_group_source(
+            field, value, context, declaration_path, messages, item_path, errors
+        ):
+            return
         if not rules:
             return
         for rule_name, rule_value in rules.items():
@@ -575,6 +584,10 @@ class Validator:
             field, rules, value, context, declaration_path, messages, field_path, errors
         ):
             return
+        if self._run_group_source(
+            field, value, context, declaration_path, messages, field_path, errors
+        ):
+            return
         if not rules:
             return
         for rule_name, rule_value in rules.items():
@@ -592,6 +605,44 @@ class Validator:
                     }
                 )
                 break
+
+    def _run_group_source(
+        self,
+        field: dict[str, JsonValue],
+        value: JsonValue,
+        context: dict[str, Any],
+        declaration_path: list[str],
+        messages: dict[str, JsonValue] | None,
+        path: list[str],
+        errors: list[dict[str, Any]],
+    ) -> bool:
+        """A field whose `items` is a group source runs an implicit `in` check first.
+
+        The members are the choice values that the source gives for the data
+        being validated (validation-rules.md, "Values"). It is reported as the
+        rule `in`. Returns True when it pushed an error.
+        """
+        source = field.get("items")
+        if not is_group_source(source):
+            return False
+        members: list[JsonValue] = [
+            choice["value"] for choice in group_choices(source, context["formData"])
+        ]
+        error = self._run_rule(
+            "in", members, value, context, declaration_path, field, messages
+        )
+        if error is not None:
+            errors.append(
+                {
+                    "path": path_to_string(path),
+                    "field": get_field_name(path),
+                    "rule": "in",
+                    "message": error,
+                    "value": None if value is None else value,
+                }
+            )
+            return True
+        return False
 
     def _run_implicit_number(
         self,

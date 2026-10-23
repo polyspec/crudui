@@ -30,25 +30,6 @@ static bool option_string(const ps_value *options, const char *name,
     *value = ps_string(item); return true;
 }
 
-/* A multiple or lang declaration that enables the feature: true or an object (or only, for multiple). */
-static bool enabled_declaration(const ps_value *value)
-{
-    return value && ((value->kind == PS_BOOL && value->data.boolean) || value->kind == PS_OBJECT);
-}
-
-static bool repeated_declaration(const ps_value *value)
-{
-    return enabled_declaration(value) || ps_is_string(value, "only");
-}
-
-/* A child that renders one scalar value: not repeated, not a group and not a language field. */
-static bool scalar_child(const ps_value *child)
-{
-    return child && child->kind == PS_OBJECT && !ps_is_string(ps_get(child, "type"), "group") &&
-        !ps_has(child, "properties") && !repeated_declaration(ps_get(child, "multiple")) &&
-        !enabled_declaration(ps_get(child, "lang"));
-}
-
 /* A string equal to one of the allowed values. */
 static bool one_of(const ps_value *value, const char *const *allowed, size_t count)
 {
@@ -242,7 +223,8 @@ static ps_value *default_buttons(void)
     return buttons;
 }
 
-static ps_value *compile_fields(const ps_value *properties, ps_text parent,
+/* The fields of a properties object; root holds the composed root properties that a group source reads. */
+static ps_value *compile_fields(const ps_value *properties, const ps_value *root, ps_text parent,
                                 ps_value **error)
 {
     ps_value *fields = ps_array_value();
@@ -253,6 +235,13 @@ static ps_value *compile_fields(const ps_value *properties, ps_text parent,
         ps_text name = ps_key(properties, i);
         ps_chars path = parent.length ? PS_CONCAT(parent, PS_TEXT("."), name) : ps_copy(name);
         if (!path.bytes || !declarations_valid(raw, ps_view(path), true, error)) { free(path.bytes); goto fail; }
+        /* A group source is checked after the other declarations of its field (schema.md, "Choices from a repeated group"). */
+        ps_chars source_failure = {NULL, 0};
+        int source_state = ps_group_source_failure(raw, ps_view(path), root, &source_failure);
+        if (source_state != 0) {
+            if (source_state > 0) *error = ps_error_text("form", "INVALID_FORM_INPUT", ps_view(source_failure), PS_TEXT(""), NULL);
+            free(source_failure.bytes); free(path.bytes); goto fail;
+        }
         ps_value *field = ps_object_value();
         ps_value *spec = ps_object_value();
         if (!field || !spec) { free(path.bytes); ps_value_free(field); ps_value_free(spec); goto fail; }
@@ -265,7 +254,7 @@ static ps_value *compile_fields(const ps_value *properties, ps_text parent,
         }
         const ps_value *children_input = ps_get(raw, "properties");
         ps_value *children = children_input && children_input->kind == PS_OBJECT
-            ? compile_fields(children_input, ps_view(path), error) : ps_array_value();
+            ? compile_fields(children_input, root, ps_view(path), error) : ps_array_value();
         free(path.bytes);
         if (!children ||
             !ps_set(field, "name", ps_text_value(name)) ||
@@ -331,7 +320,7 @@ static ps_result compile_form(const ps_value *spec, const ps_value *options)
         return ps_fail("internal", "INTERNAL_ERROR", "C form compilation failed", "");
     }
     ps_value *declaration_failure = NULL;
-    ps_value *fields = compile_fields(properties, PS_TEXT(""), &declaration_failure);
+    ps_value *fields = compile_fields(properties, properties, PS_TEXT(""), &declaration_failure);
     ps_value_free(properties);
     if (!fields && declaration_failure) return (ps_result){NULL, declaration_failure};
     ps_value *template = ps_object_value();

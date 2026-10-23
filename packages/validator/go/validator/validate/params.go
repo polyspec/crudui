@@ -115,6 +115,10 @@ func checkRuleName(rule string, declaration []string) error {
 func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []string) error {
 	for name, field := range fieldDeclarations(properties) {
 		path := appendPath(declaration, name)
+		// A group source is checked before the field's rules (validation-rules.md, Parameter errors).
+		if message := GroupSourceFailure(field, pathToString(path), v.properties); message != "" {
+			return ruleParameterError(message).loadError(path)
+		}
 		if rules := normalizeValidateSlot(field); rules != nil {
 			for _, rule := range rules.Keys() {
 				if err := checkRuleName(rule, path); err != nil {

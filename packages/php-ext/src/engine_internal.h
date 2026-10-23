@@ -392,6 +392,19 @@ int ps_choice_list_valid(const ps_value *items, bool appearance, bool groups);
 ps_chars ps_choice_value_text(const ps_value *choice);
 const ps_value *ps_choice_label(const ps_value *items, ps_text key, bool *failed);
 
+/*
+ * Choices from a repeated group (group_source.c; docs/spec/schema.md, "Choices from a repeated group").
+ * ps_is_group_source: an items object with the member from.
+ * ps_group_source_failure: the declaration check of a field's group source under the root
+ * properties: 0 when valid or not a group source, 1 with the message in *message, -1 on allocation
+ * failure.
+ * ps_group_source_choices: the choices of a checked group source for the root data, an array of
+ * {value, label} objects; NULL on allocation failure.
+ */
+bool ps_is_group_source(const ps_value *items);
+int ps_group_source_failure(const ps_value *field, ps_text path, const ps_value *root, ps_chars *message);
+ps_value *ps_group_source_choices(const ps_value *items, const ps_value *data);
+
 /* Membership (rule_in.c). ps_in_passes: 1, 0, or -1 on allocation failure; the parameter is valid. */
 ps_parameter_problem ps_in_parameter(const ps_value *parameter);
 int ps_in_passes(const ps_value *value, const ps_value *parameter);
@@ -605,6 +618,26 @@ static inline bool bool_member(const ps_value *object, const char *key)
 {
     const ps_value *value = member(object, key);
     return value && value->kind == PS_BOOL && value->data.boolean;
+}
+
+/* Field declaration predicates shared by the declaration checks (template.c, group_source.c). */
+/* A multiple or lang declaration that enables the feature: true or an object (or only, for multiple). */
+static inline bool enabled_declaration(const ps_value *value)
+{
+    return value && ((value->kind == PS_BOOL && value->data.boolean) || value->kind == PS_OBJECT);
+}
+
+static inline bool repeated_declaration(const ps_value *value)
+{
+    return enabled_declaration(value) || ps_is_string(value, "only");
+}
+
+/* A child that renders one scalar value: not repeated, not a group and not a language field. */
+static inline bool scalar_child(const ps_value *child)
+{
+    return child && child->kind == PS_OBJECT && !ps_is_string(ps_get(child, "type"), "group") &&
+        !ps_has(child, "properties") && !repeated_declaration(ps_get(child, "multiple")) &&
+        !enabled_declaration(ps_get(child, "lang"));
 }
 
 /* Set a member to the string of a fixed identifier; NULL is empty. */

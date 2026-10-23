@@ -1,11 +1,12 @@
 use crate::choice_list::{
-    check_choice_appearance, choice_pairs, is_choice_list, CHOICE_LIST_EXPECTED,
+    check_choice_appearance, choice_pairs, is_choice_list, with_group_choices, CHOICE_LIST_EXPECTED,
 };
 use crate::design::resolve_design;
 use crate::messages::{form_messages, format_count, Messages};
 use crate::template::member_ordered_template;
 use crate::util::*;
 use crate::widget::{declared_attributes, evaluate_widget, widget_kind, WidgetContext};
+use polyspec_crudui_validator::validate::group_source::is_group_source;
 use crate::{FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -390,11 +391,16 @@ fn label_target(widget: &Value) -> Option<String> {
 impl Binding<'_> {
     fn widget(
         &self,
-        spec: &Value,
+        declared: &Value,
         path: &str,
         design: &Value,
         row_segments: &[usize],
     ) -> FormResult<Value> {
+        // A group source lists the rows of its group in the data as its choice list.
+        let grouped = is_group_source(&declared["items"])
+            .then(|| with_group_choices(declared, self.data, path))
+            .transpose()?;
+        let spec = grouped.as_ref().unwrap_or(declared);
         let field_type = spec["type"].as_str().unwrap_or("").to_lowercase();
         if is_choice_list(&spec["items"]) {
             // Only the choices of a choice or multichoice field declare their appearance, and
