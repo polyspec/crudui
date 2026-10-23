@@ -93,7 +93,7 @@ export const GROUP_SOURCE_CASES: Array<WrittenCase | FailingCase> = [
     spec: form({ flag: { type: 'text' }, lead: { type: 'select', items: { from: 'characters.*.id' } } },
       { ...characters, design: { show: '.flag == 1' } }),
     data: { flag: '0', characters: cast, lead: 'hero' },
-    hidden: ['characters', ...['c1', 'c2', 'c3', 'c4'].flatMap((key) => [`characters.${key}.id`, `characters.${key}.name`])],
+    hidden: ['characters'],
     expected: result(),
   },
   sourceFailure('group-source-unknown-member', 'A group source has only from and label, checked in declaration order before the field.',

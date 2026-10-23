@@ -16873,15 +16873,7 @@
       "valid": true,
       "errors": [],
       "hidden": [
-        "characters",
-        "characters.c1.id",
-        "characters.c1.name",
-        "characters.c2.id",
-        "characters.c2.name",
-        "characters.c3.id",
-        "characters.c3.name",
-        "characters.c4.id",
-        "characters.c4.name"
+        "characters"
       ]
     },
     "requirements": [

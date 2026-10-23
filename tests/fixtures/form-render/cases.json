@@ -7174,7 +7174,7 @@
   },
   {
     "name": "group-source-without-rows",
-    "note": "A group without data has no choices, so the select has no option.",
+    "note": "A group without data has no choices, so the select lists them as it lists an empty choice list: with the one empty option that an empty select writes.",
     "requirements": [
       "CUSC-063"
     ],
@@ -7209,7 +7209,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><option value=\"\">select</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
     "name": "group-source-unknown-member",

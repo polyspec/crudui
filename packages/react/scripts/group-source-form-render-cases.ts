@@ -64,11 +64,11 @@ export const GROUP_SOURCE_CASES = [
   },
   {
     name: 'group-source-without-rows',
-    note: 'A group without data has no choices, so the select has no option.',
+    note: 'A group without data has no choices, so the select lists them as it lists an empty choice list: with the one empty option that an empty select writes.',
     spec: variantsWith({ pick: { type: 'select', label: 'Pick', items: { from: 'variants.*.name' } } }),
     data: {},
     options: { language: 'en' },
-    expected_html: withNode(EMPTY_COLLECTION, select('')),
+    expected_html: withNode(EMPTY_COLLECTION, select('<option value="">select</option>')),
   },
   sourceError('group-source-unknown-member', 'A group source has only from and label; members are checked in declaration order before the field.',
     { type: 'text', items: { from: 5, value: 'name' } }, 'Invalid items.value at pick: unknown key'),
