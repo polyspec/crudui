@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-25 — C17.16 checks each shared case in the php-ext engine test (C17.16)
+
+- C17.16 is done (C17.16): the shared validation test of packages/php-ext/tests/engine/engine.test.mjs asserts that the engine program reports one result for each case of the validate, spec-validity, list-validity and detail-validity cases.json, instead of the hand-typed totals 318 and 385; a case that the program drops fails the test. The row runs that test, which make test-php-ext CASES=engine does not reach. Red: the test failed with 341 !== 318; green after the change.
+
 ### 2026-10-25 — Catch clauses name the error they handle (C17.13)
 
 - Each of the 33 catch clauses that had no binding now binds the error and narrows it to the error that means its outcome (SyntaxError for JSON parse, TypeError for a malformed URL or form body, ENOENT or exit code 1 for a missing file or command, ParseError for a condition, FORBIDDEN_META_KEY and INVALID_FORM_INPUT where those are the outcome), and rethrows the rest. The catch-check of lint-ts passes.

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5edd84de13e820ee87d171525388060a9a474eead585a3e4ded00eeb7be95503 -->
+<!-- source-sha256: b6cc7aeaf4cd7c9561789487225850bf1bb8968cb85e672073eaf55b0cf57978 -->
 
 ## Unreleased
+
+### 2026-10-25 — C17.16은 php-ext engine test에서 공유 case 각각을 검사한다(C17.16)
+
+- C17.16 완료(C17.16): packages/php-ext/tests/engine/engine.test.mjs의 공유 validation test는 손으로 적은 합계 318과 385 대신, engine program이 validate, spec-validity, list-validity, detail-validity cases.json의 case마다 결과 하나를 보고하는지 assert하고, program이 빠뜨린 case는 test를 실패시킨다. 이 row는 make test-php-ext CASES=engine이 닿지 않는 그 test를 실행한다. red: test가 341 !== 318로 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — catch 절이 처리하는 오류를 명시한다 (C17.13)
 
