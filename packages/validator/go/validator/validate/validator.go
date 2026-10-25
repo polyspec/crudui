@@ -28,7 +28,7 @@ var arrayLevelRules = map[string]bool{
 // pathReferenceRules carry a field-reference param preserved verbatim — never
 // evaluated as a condition expression (PATH-REFERENCE-RULES).
 var pathReferenceRules = map[string]bool{
-	"equalTo": true, "containedIn": true, "typeFrom": true, "notEqual": true, "unique": true, "enddate": true, "reference": true,
+	"equalTo": true, "containedIn": true, "typeFrom": true, "minFrom": true, "maxFrom": true, "notEqual": true, "unique": true, "enddate": true, "reference": true,
 }
 
 // literalParamRules carry a literal param (.jpg must not be read as a relative

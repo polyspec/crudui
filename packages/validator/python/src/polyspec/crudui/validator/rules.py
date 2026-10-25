@@ -444,6 +444,37 @@ def _rule_type_from(context: RuleContext) -> str | None:
     return message
 
 
+def _finite_bound(value: Value) -> float | None:
+    """The finite number of a data value; a boolean is none."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if math.isfinite(value) else None
+
+
+def _bound_from(context: RuleContext, rule: str, fallback: str, below: bool) -> str | None:
+    """A finite number at or above (below is False) or at or below the referenced value (CUVR-079)."""
+    value, rule_param = context["value"], context["ruleParam"]
+    if rule_param is None or is_empty_value(value):
+        return None
+    bound = _resolve_field_param(rule_param, context)
+    number = _finite_bound(value)
+    if number is not None and bound is None:
+        return None
+    limit = _finite_bound(bound)
+    if number is not None and limit is not None and (number <= limit if below else number >= limit):
+        return None
+    message: str = _message(context, rule, fallback)
+    return message
+
+
+def _rule_min_from(context: RuleContext) -> str | None:
+    return _bound_from(context, "minFrom", "Please enter a value at or above the declared minimum.", False)
+
+
+def _rule_max_from(context: RuleContext) -> str | None:
+    return _bound_from(context, "maxFrom", "Please enter a value at or below the declared maximum.", True)
+
+
 def _same_value(left: Value, right: Value) -> bool:
     """The strict equality of two data values: objects and lists by identity."""
     if isinstance(left, (dict, list)) or isinstance(right, (dict, list)):
@@ -980,6 +1011,8 @@ _RULES = {
     "equalTo": _rule_equal_to,
     "containedIn": _rule_contained_in,
     "typeFrom": _rule_type_from,
+    "minFrom": _rule_min_from,
+    "maxFrom": _rule_max_from,
     "notEqual": _rule_not_equal,
     "date": _rule_date,
     "dateISO": _rule_date_iso,
@@ -1011,6 +1044,8 @@ _CHECKED_RULES = {
     "equalTo",
     "containedIn",
     "typeFrom",
+    "minFrom",
+    "maxFrom",
     "enddate",
     "notEqual",
     "unique",
@@ -1087,7 +1122,7 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
     if rule_name == "in":
         members = read_members(param)
         return invalid(members) if isinstance(members, str) else None
-    if rule_name in ("equalTo", "containedIn", "typeFrom", "enddate"):
+    if rule_name in ("equalTo", "containedIn", "typeFrom", "minFrom", "maxFrom", "enddate"):
         return (
             None
             if isinstance(param, str)

@@ -183,8 +183,8 @@ final class Numeric
         return $step;
     }
 
-    /** A JSON number that is finite, as a double. */
-    private static function finite(mixed $value): ?float
+    /** A JSON number that is finite, as a double; a boolean is none. */
+    public static function finite(mixed $value): ?float
     {
         if (\is_int($value)) {
             return (float) $value;

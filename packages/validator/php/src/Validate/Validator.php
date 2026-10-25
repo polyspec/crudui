@@ -18,6 +18,8 @@ use Polyspec\Crudui\Validator\Rules\Number;
 use Polyspec\Crudui\Validator\Rules\Digits;
 use Polyspec\Crudui\Validator\Rules\ContainedIn;
 use Polyspec\Crudui\Validator\Rules\EqualTo;
+use Polyspec\Crudui\Validator\Rules\MaxFrom;
+use Polyspec\Crudui\Validator\Rules\MinFrom;
 use Polyspec\Crudui\Validator\Rules\TypeFrom;
 use Polyspec\Crudui\Validator\Rules\NotEqual;
 use Polyspec\Crudui\Validator\Rules\Date;
@@ -94,6 +96,8 @@ final class Validator
         'equalTo' => 'Please enter the same value again.',
         'containedIn' => 'Please enter a value that the referenced field contains.',
         'typeFrom' => 'Please enter a value of the declared type.',
+        'minFrom' => 'Please enter a value at or above the declared minimum.',
+        'maxFrom' => 'Please enter a value at or below the declared maximum.',
         'notEqual' => 'Please enter a different value.',
         'date' => 'Please enter a valid date.',
         'dateISO' => 'Please enter a valid date in ISO format (YYYY-MM-DD).',
@@ -183,6 +187,8 @@ final class Validator
             'equalTo' => new EqualTo(),
             'containedIn' => new ContainedIn(),
             'typeFrom' => new TypeFrom(),
+            'minFrom' => new MinFrom(),
+            'maxFrom' => new MaxFrom(),
             'notEqual' => new NotEqual(),
             'date' => new Date(),
             'dateISO' => new DateISO(),

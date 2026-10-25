@@ -45,6 +45,10 @@ export interface MessagesSpec {
   containedIn?: string;
   /** Error message shown when the `typeFrom` rule fails. */
   typeFrom?: string;
+  /** Error message shown when the `minFrom` rule fails. */
+  minFrom?: string;
+  /** Error message shown when the `maxFrom` rule fails. */
+  maxFrom?: string;
   /** Error message shown when the `notEqual` rule fails. */
   notEqual?: string;
   /** Error message shown when the `reference` rule fails. */

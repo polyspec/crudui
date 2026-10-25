@@ -207,7 +207,7 @@ pub(crate) fn check(
         "in" => members(parameter)
             .map(Parameter::Members)
             .map_err(|error| invalid(error.message().to_string())),
-        "equalTo" | "containedIn" | "typeFrom" | "enddate" => match parameter {
+        "equalTo" | "containedIn" | "typeFrom" | "minFrom" | "maxFrom" | "enddate" => match parameter {
             Value::String(_) => Ok(Parameter::Unchecked),
             _ => Err(invalid(format!(
                 "Invalid {rule} parameter: expected a field reference string"

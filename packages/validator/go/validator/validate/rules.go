@@ -68,6 +68,8 @@ var builtInRules = map[string]ruleFn{
 	"equalTo":       ruleEqualTo,
 	"containedIn":   ruleContainedIn,
 	"typeFrom":      ruleTypeFrom,
+	"minFrom":       ruleMinFrom,
+	"maxFrom":       ruleMaxFrom,
 	"notEqual":      ruleNotEqual,
 	"date":          ruleDate,
 	"dateISO":       ruleDateISO,
@@ -543,6 +545,41 @@ func hasDeclaredType(value any, declared any) bool {
 		return ok
 	}
 	return false
+}
+
+// ruleMinFrom and ruleMaxFrom: a finite number at or above, or at or below, the value of
+// a referenced field (CUVR-079). Empty skips; a missing or null bound declares none.
+func ruleMinFrom(value any, ruleParam any, ctx ruleContext) (string, bool) {
+	return boundFrom(value, ruleParam, ctx, "minFrom", "Please enter a value at or above the declared minimum.", func(v, b float64) bool { return v >= b })
+}
+
+func ruleMaxFrom(value any, ruleParam any, ctx ruleContext) (string, bool) {
+	return boundFrom(value, ruleParam, ctx, "maxFrom", "Please enter a value at or below the declared maximum.", func(v, b float64) bool { return v <= b })
+}
+
+// boundFrom applies a bound read from a referenced field.
+func boundFrom(value any, ruleParam any, ctx ruleContext, rule string, fallback string, within func(float64, float64) bool) (string, bool) {
+	bound, applies := referencedValue(value, ruleParam, ctx)
+	if !applies {
+		return "", false
+	}
+	number, isNumber := finiteBound(value)
+	if isNumber && bound == nil {
+		return "", false
+	}
+	limit, isLimit := finiteBound(bound)
+	if isNumber && isLimit && within(number, limit) {
+		return "", false
+	}
+	return ctx.msg(rule, fallback), true
+}
+
+// finiteBound reports the finite number of a decoded JSON value; a boolean is none.
+func finiteBound(value any) (float64, bool) {
+	if _, isBool := value.(bool); isBool {
+		return 0, false
+	}
+	return finiteNumber(value)
 }
 
 // strictEquals mirrors JS === over decoded JSON values: same JS type and equal.

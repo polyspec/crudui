@@ -283,9 +283,11 @@ export interface MessagesSpec {
     match?: string;
     max?: string;
     maxcount?: string;
+    maxFrom?: string;
     maxlength?: string;
     min?: string;
     mincount?: string;
+    minFrom?: string;
     minlength?: string;
     notEqual?: string;
     number?: string;
@@ -436,9 +438,11 @@ export interface ValidateSlot {
     match?: string | false | null;
     max?: Evaluated<number | false | null>;
     maxcount?: Evaluated<number | false | null>;
+    maxFrom?: string | false | null;
     maxlength?: Evaluated<number | false | null>;
     min?: Evaluated<number | false | null>;
     mincount?: Evaluated<number | false | null>;
+    minFrom?: string | false | null;
     minlength?: Evaluated<number | false | null>;
     notEqual?: string | number | boolean | null;
     number?: Evaluated<boolean | null>;

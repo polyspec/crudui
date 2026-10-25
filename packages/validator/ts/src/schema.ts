@@ -292,7 +292,7 @@ export interface PatchDirective {
  * value's expression (G1), never a separate key.
  *
  * The named members are every built-in rule, with the parameter shapes the
- * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `containedIn`, `typeFrom`, `notEqual`,
+ * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `containedIn`, `typeFrom`, `minFrom`, `maxFrom`, `notEqual`,
  * `unique`, `enddate`, `reference`, `accept`, `match`, `pattern`, `in` and `conditionTree` receive their
  * parameter unchanged, so they take no condition map. No other rule name exists:
  * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
@@ -340,6 +340,10 @@ export interface ValidateSlot {
   containedIn?: string | false | null;
   /** Field whose value names the type of the value: bool, int or enum (CUVR-077). */
   typeFrom?: string | false | null;
+  /** Field whose value is the inclusive lower bound of the value (CUVR-079). */
+  minFrom?: string | false | null;
+  /** Field whose value is the inclusive upper bound of the value (CUVR-079). */
+  maxFrom?: string | false | null;
   /** Dot-prefixed field reference or literal value the input must differ from. */
   notEqual?: string | number | boolean | null;
   /** Start-date field the end date must not precede. */

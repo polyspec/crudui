@@ -449,6 +449,14 @@ static const unique_rows *duplicate_rows(validation_context *context, const ps_v
     return rows;
 }
 
+/* The finite number of a value for minFrom and maxFrom (CUVR-079); a boolean is none. */
+static bool finite_value(const ps_value *value, double *number)
+{
+    if (value->kind == PS_INT) { *number = (double)value->data.integer; return true; }
+    if (value->kind == PS_FLOAT && isfinite(value->data.number)) { *number = value->data.number; return true; }
+    return false;
+}
+
 /* Whether `needle` occurs in `haystack`, byte for byte (CUVR-075). */
 static bool text_contains(ps_text haystack, ps_text needle)
 {
@@ -463,7 +471,7 @@ static const ps_value *effective_parameter(ps_text rule, const ps_value *declare
                                            const ps_text *path, size_t length, ps_value **owned)
 {
     static const char *const verbatim[] = {
-        "equalTo", "containedIn", "typeFrom", "notEqual", "unique", "enddate", "reference", "accept",
+        "equalTo", "containedIn", "typeFrom", "minFrom", "maxFrom", "notEqual", "unique", "enddate", "reference", "accept",
         "match", "pattern", "in", "conditionTree",
     };
     *owned = NULL;
@@ -517,6 +525,7 @@ static ps_chars message_for(const ps_value *field, ps_text rule, const ps_value 
         {"equalTo", "Please enter the same value again."}, {"notEqual", "Please enter a different value."},
         {"containedIn", "Please enter a value that the referenced field contains."},
         {"typeFrom", "Please enter a value of the declared type."},
+        {"minFrom", "Please enter a value at or above the declared minimum."}, {"maxFrom", "Please enter a value at or below the declared maximum."},
         {"date", "Please enter a valid date."}, {"dateISO", "Please enter a valid date in ISO format (YYYY-MM-DD)."},
         {"enddate", "End date must be after the start date."}, {"url", "Please enter a valid URL."},
         {"accept", "Please upload a file with a valid format."},
@@ -636,6 +645,15 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
         if (ps_text_is(type, "int")) return value->kind == PS_INT || (value->kind == PS_FLOAT && isfinite(value->data.number) && floor(value->data.number) == value->data.number);
         if (ps_text_is(type, "enum")) return value->kind == PS_STRING;
         return 0;
+    }
+    if (ps_text_is(rule, "minFrom") || ps_text_is(rule, "maxFrom")) {
+        /* CUVR-079: a finite number within the bound of the referenced field; a missing or null bound declares none. */
+        double number, limit;
+        if (!finite_value(value, &number)) return 0;
+        const ps_value *bound = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : NULL;
+        if (!bound || bound->kind == PS_NULL) return 1;
+        if (!finite_value(bound, &limit)) return 0;
+        return ps_text_is(rule, "minFrom") ? number >= limit : number <= limit;
     }
     if (ps_text_is(rule, "dateISO")) { int serial; return value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial); }
     if (ps_text_is(rule, "date")) return value->kind == PS_STRING && valid_date_text(ps_trim(ps_string(value)));

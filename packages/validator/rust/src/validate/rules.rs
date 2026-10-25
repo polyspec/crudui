@@ -75,6 +75,8 @@ pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
         "equalTo" => Some(rule_equal_to),
         "containedIn" => Some(rule_contained_in),
         "typeFrom" => Some(rule_type_from),
+        "minFrom" => Some(rule_min_from),
+        "maxFrom" => Some(rule_max_from),
         "notEqual" => Some(rule_not_equal),
         "date" => Some(rule_date),
         "dateISO" => Some(rule_date_iso),
@@ -621,6 +623,38 @@ fn rule_type_from(ctx: &RuleContext) -> Option<String> {
             .unwrap_or("Please enter a value of the declared type.")
             .to_string(),
     )
+}
+
+/// minFrom: a finite number at or above the value of the referenced field; a missing or null bound declares none.
+fn rule_min_from(ctx: &RuleContext) -> Option<String> {
+    bound_from(ctx, "minFrom", "Please enter a value at or above the declared minimum.", |value, bound| value >= bound)
+}
+
+/// maxFrom: a finite number at or below the value of the referenced field; a missing or null bound declares none.
+fn rule_max_from(ctx: &RuleContext) -> Option<String> {
+    bound_from(ctx, "maxFrom", "Please enter a value at or below the declared maximum.", |value, bound| value <= bound)
+}
+
+/// The finite number of a JSON value; a boolean is none.
+fn finite_bound(value: &Value) -> Option<f64> {
+    match value {
+        Value::Number(number) => number.as_f64().filter(|n| n.is_finite()),
+        _ => None,
+    }
+}
+
+fn bound_from(ctx: &RuleContext, rule: &str, fallback: &str, within: fn(f64, f64) -> bool) -> Option<String> {
+    let bound = referenced_value(ctx)?;
+    let number = finite_bound(ctx.value);
+    let holds = match (number, bound) {
+        (Some(_), Value::Null) => true,
+        (Some(value), other) => finite_bound(other).is_some_and(|limit| within(value, limit)),
+        (None, _) => false,
+    };
+    if holds {
+        return None;
+    }
+    Some(message_override(ctx.messages, rule).unwrap_or(fallback).to_string())
 }
 
 /// JS `===` for the equalTo/notEqual comparison. Different JSON types never equal;

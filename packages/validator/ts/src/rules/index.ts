@@ -21,6 +21,7 @@ import { digitsRule } from './digits';
 import { equalToRule } from './equalTo';
 import { containedInRule } from './containedIn';
 import { typeFromRule } from './typeFrom';
+import { maxFromRule, minFromRule } from './boundsFrom';
 import { notEqualRule } from './notEqual';
 import { dateRule } from './date';
 import { dateISORule } from './dateISO';
@@ -55,6 +56,8 @@ const builtInRules: Map<string, RuleDefinition> = new Map([
   ['equalTo', equalToRule],
   ['containedIn', containedInRule],
   ['typeFrom', typeFromRule],
+  ['minFrom', minFromRule],
+  ['maxFrom', maxFromRule],
   ['notEqual', notEqualRule],
   ['date', dateRule],
   ['dateISO', dateISORule],

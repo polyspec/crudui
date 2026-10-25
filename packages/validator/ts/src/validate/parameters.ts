@@ -39,6 +39,8 @@ const CHECKED_RULES = new Set([
   'equalTo',
   'containedIn',
   'typeFrom',
+  'minFrom',
+  'maxFrom',
   'enddate',
   'notEqual',
   'unique',
@@ -82,6 +84,8 @@ function ruleParameterFailure(ruleName: string, param: unknown): ParameterFailur
     case 'equalTo':
     case 'containedIn':
     case 'typeFrom':
+    case 'minFrom':
+    case 'maxFrom':
     case 'enddate':
       return typeof param === 'string'
         ? null
