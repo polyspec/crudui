@@ -609,7 +609,7 @@ pub struct OptionsSlot {
 // Dependency buckets under their structural targets (SPEC §3 C).
 // ============================================================================
 
-/// The `multiple` dimension of a field (docs/spec/schema.md, CUSC-041): `false`,
+/// The `multiple` dimension of a field (docs/spec/schema.md, Acceptance criteria): `false`,
 /// `true`, the keyword `only` or a settings object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
