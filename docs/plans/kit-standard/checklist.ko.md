@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ec320f74039510d114712ca01e0d93cea3ad523869b9b0eca60649b3b05a4954 -->
+<!-- source-sha256: 399a80732cc0a341afc3640198d22d4aa9c6201bbf13a6d086a60df2aa312cf0 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -345,4 +345,4 @@
 | C17.14 | 빈 select의 placeholder는 규칙이다: spec이 placeholder 옵션의 텍스트와 값을 정하고 각 구현은 정확히 그것을 쓴다 | the placeholder rule in docs/spec (schema.md and validation-rules.md, with their .ko), its shared fixture cases, and its implementation in all six implementations with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.15 | 반복 그룹에서 가져온 선택지는 원본 그룹 행이 바뀌면 브라우저에서 새로 고쳐진다: spec이 새로 고침 규칙을 정하고 각 브라우저 바인딩이 구현한다 | the refresh rule in docs/spec (schema.md and validation-rules.md, with their .ko), its shared fixture cases, and its implementation in every browser binding with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.13 | crudui의 모든 catch 절은 바인딩을 가진다: 결과를 뜻하는 오류로 좁히고 나머지는 다시 던지거나, 모든 실패가 결과를 뜻하면 // catch-any -- <이유>로 이유를 밝힌다 (K561) | the 33 catch clauses listed by K561 (examples/cross-check-console, examples/form-comparison, packages/cli, packages/form-binding, packages/generator/ts, packages/php-ext, packages/validator/ts, scripts, tests/build, tests/native-generators), each narrowed or annotated | `make lint-ts` | [ ] |
-| C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `make cli-test` | [ ] |
+| C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `make test-ts CASES=list-describe` | [ ] |
