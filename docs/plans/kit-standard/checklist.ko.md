@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b8932be37f5546a9f920548d52e52b41438e763eb74ba190130d1fe4f7c59101 -->
+<!-- source-sha256: 43cb1caafa4727b7f2dbe75557a8ae2b928ccf0cdaf120f2a73b6999e49657a3 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -354,3 +354,4 @@
 | C17.22 | 검증은 boolean, only, object가 아닌 multiple을 load에서 거부한다: 여섯 검증기 모두 INVALID_RULE_PARAMETER로, 공유 케이스와 함께 | docs/spec (CUSC-041 and its KO twin, with the new refusal sentence and its id from CUSC-081), its shared cases, and the load check in all six validators, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.23 | Go, Rust, Python form-render 테스트와 Python validate 테스트의 수동 입력 케이스 합계는 tests/fixtures cases.json에서 도출한다 | packages/generator/go/form_render_suite_test.go, packages/generator/rust/tests/form_render.rs, packages/generator/python/tests/test_form_render.py, packages/validator/python/tests/test_validate.py | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.24 | php-ext 런타임 작성기는 data-source-relations의 실수를 JSON.stringify와 같은 ECMAScript 수 표기로 쓴다 | packages/php-ext/src/runtime.c (append_json), with a shared case holding a float that renders differently today | `make docs-check`; `make parity-declarations-check` | [ ] |
+| C17.25 | 조건 트리 구조화 편집기: 생성기가 모든 렌더러에 트리 뷰를 그리고, connectForm이 그 동작으로 트리를 다시 쓴다 | the editor rule in docs/spec (with KO, its ids from CUSC-083..086 and CUMK-067..068), its shared cases, the generator in all renderers, and the browser binding | `make docs-check`; `make parity-declarations-check` | [ ] |
