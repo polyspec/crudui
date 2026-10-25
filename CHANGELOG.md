@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — A group source refuses a field that holds a boolean (C17.19)
+
+- C17.19 is done (C17.19): compilation and validation refuse a group source whose from or label names a checkbox or switcher field, whose data is true or false and would give no choice or label, with Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers (CUSC-068), in TypeScript, PHP, Go, Rust, Python and the C engine of the PHP extension. Red: the new validate and form-render cases failed in every implementation; green after the change.
+
 ### 2026-10-26 — The Makefile runs kit tools through $(KIT_EXT) (C17.29)
 
 - The ten recipe lines that ran $(KIT)/<tool>.mjs now run $(KIT)/<tool>.$(KIT_EXT), so the checks follow kit sources as .mts (K613).
@@ -62,10 +66,6 @@
 ### 2026-10-25 — Choices from a repeated group follow the source rows in the browser (C17.15)
 
 - C17.15 is done (C17.15): docs/spec/schema.md states CUSC-071: a form instance lists the choices of a group source from its current data after every change, and listing them changes no value. The new form-state family tests/fixtures/form-choices, whose step `choices` observes the options of a field node, tests it in the TypeScript, Go, Python, Rust, PHP and PHP extension implementations (unit form-choices). The React, Vue, Svelte and HTML renderer forms run the shared module tests/fixtures/form-session/group-source.mts. The browser validation binding of packages/form-binding renders the body of each field with a group source again from the data of its controls with the HTML renderer and patchContent when it binds and after every input or change, keeps each selected value that is still a choice, and takes the options language and idPrefix. The Svelte widget patch selects the options that its markup marks when the patch removed a selected option, so a select whose choice is gone selects none instead of the first option. Red: the form-binding choices test failed 4 of 5 and the Svelte session test showed the first option selected after the selected source row was removed; green after the change.
-
-### 2026-10-25 — A group source refuses a field that holds a boolean (C17.19)
-
-- C17.19 is done (C17.19): compilation and validation refuse a group source whose from or label names a checkbox or switcher field, whose data is true or false and would give no choice or label, with Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers (CUSC-068), in TypeScript, PHP, Go, Rust, Python and the C engine of the PHP extension. Red: the new validate and form-render cases failed in every implementation; green after the change.
 
 ### 2026-10-25 — C17.2 takes the choices of a field from a repeated group (C17.2)
 
