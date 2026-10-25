@@ -37,7 +37,7 @@ func TestTemplateShapeCases(t *testing.T) {
 				checkRecordCase(t, item)
 				return
 			}
-			got, err := json.Marshal(outcomeOf(runTemplateShapeCase(t, item)))
+			got, err := json.Marshal(outcomeOf(t, runTemplateShapeCase(t, item)))
 			if err != nil {
 				t.Fatal(err)
 			}

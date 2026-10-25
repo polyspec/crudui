@@ -3,7 +3,6 @@ package generator
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"github.com/polyspec/crudui/packages/validator/go/validator/text"
 	"math"
 	"regexp"
@@ -19,14 +18,14 @@ func SequenceRowKey(sequence any) (string, error) {
 	switch sequence.(type) {
 	case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
 	default:
-		return "", fmt.Errorf("A sequence must contain 1–13 decimal digits")
+		return "", inputError("A sequence must contain 1–13 decimal digits")
 	}
 	if n, ok := asNumber(sequence); ok && (math.IsNaN(n) || math.IsInf(n, 0) || math.Trunc(n) != n || n < 0 || n > 9999999999999) {
-		return "", fmt.Errorf("A sequence must contain 1–13 decimal digits")
+		return "", inputError("A sequence must contain 1–13 decimal digits")
 	}
 	digits := scalar(sequence)
 	if !sequenceRE.MatchString(digits) {
-		return "", fmt.Errorf("A sequence must contain 1–13 decimal digits")
+		return "", inputError("A sequence must contain 1–13 decimal digits")
 	}
 	return "__" + strings.Repeat("0", 13-len(digits)) + digits + "__", nil
 }
@@ -41,18 +40,18 @@ func CreateRowKey() (string, error) {
 }
 func checkKey(k string) error {
 	if !rowKeyRE.MatchString(k) || numericKeyRE.MatchString(k) || k == "__proto__" || k == "prototype" || k == "constructor" {
-		return fmt.Errorf("Invalid row key: %s; use sequenceRowKey for numeric ids", k)
+		return inputError("Invalid row key: %s; use sequenceRowKey for numeric ids", k)
 	}
 	return nil
 }
 func checkedSegments(path string) ([]string, error) {
 	s := parsePath(path)
 	if len(s) == 0 {
-		return nil, fmt.Errorf("Invalid form path: %s", path)
+		return nil, inputError("Invalid form path: %s", path)
 	}
 	for _, k := range s {
 		if k == "__proto__" || k == "prototype" || k == "constructor" {
-			return nil, fmt.Errorf("Invalid form path: %s", path)
+			return nil, inputError("Invalid form path: %s", path)
 		}
 	}
 	return s, nil
@@ -148,7 +147,7 @@ func (f *Form) SetData(data *Object) error {
 		return e
 	}
 	if data == nil {
-		return fmt.Errorf("Form data must be an object")
+		return inputError("Form data must be an object")
 	}
 	d, e := f.normalizeFields(f.template.Fields, data, "", false)
 	if e != nil {
@@ -225,7 +224,7 @@ func freshKey(used *Object) (string, error) {
 			return k, nil
 		}
 	}
-	return "", fmt.Errorf("Unable to generate an unused row key")
+	return "", inputError("Unable to generate an unused row key")
 }
 
 // initialRowKey is the key of the row that missing repeated data gets; a row that an operation creates gets a fresh
@@ -237,9 +236,9 @@ const initialRowKey = "__0000000000000__"
 func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string, fresh bool) (*Object, error) {
 	if !isAbsent(value) && object(value) == nil {
 		if path == "" {
-			return nil, fmt.Errorf("Form data must be an object")
+			return nil, inputError("Form data must be an object")
 		}
-		return nil, fmt.Errorf("Group data must be an object: %s", path)
+		return nil, inputError("Group data must be an object: %s", path)
 	}
 	data := NewObject()
 	if !isAbsent(value) {
@@ -253,7 +252,7 @@ func (f *Form) normalizeFields(fields []FieldTemplate, value any, path string, f
 		}
 		if repeated(field) {
 			if !isAbsent(raw) && object(raw) == nil {
-				return nil, fmt.Errorf("Repeated data must be a keyed object: %s", fieldPath)
+				return nil, inputError("Repeated data must be a keyed object: %s", fieldPath)
 			}
 			rows := NewObject()
 			if isAbsent(raw) && !dataOnly(field.Spec) {
@@ -323,7 +322,7 @@ func (f *Form) collection(path string) (FieldTemplate, *Object, error) {
 			}
 		}
 		if found == nil {
-			return FieldTemplate{}, nil, fmt.Errorf("Unknown collection: %s", path)
+			return FieldTemplate{}, nil, inputError("Unknown collection: %s", path)
 		}
 		if i == len(segments)-1 {
 			break
@@ -336,7 +335,7 @@ func (f *Form) collection(path string) (FieldTemplate, *Object, error) {
 	}
 	rows := object(getPath(f.data, path))
 	if found == nil || !repeated(*found) || rows == nil {
-		return FieldTemplate{}, nil, fmt.Errorf("Not a keyed collection: %s", path)
+		return FieldTemplate{}, nil, inputError("Not a keyed collection: %s", path)
 	}
 	return *found, rows, nil
 }
@@ -348,7 +347,7 @@ func (f *Form) editableCollection(path string) (FieldTemplate, *Object, error) {
 		return field, rows, e
 	}
 	if dataOnly(field.Spec) {
-		return FieldTemplate{}, nil, fmt.Errorf("Rows of %s come only from data", path)
+		return FieldTemplate{}, nil, inputError("Rows of %s come only from data", path)
 	}
 	return field, rows, nil
 }
@@ -366,7 +365,7 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 		return "", e
 	}
 	if max, ok := asNumber(read(read(field.Spec, "multiple"), "max")); ok && float64(rows.Len()) >= max {
-		return "", fmt.Errorf("Maximum row count reached: %s", path)
+		return "", inputError("Maximum row count reached: %s", path)
 	}
 	key := options.Key
 	if key == "" {
@@ -379,10 +378,10 @@ func (f *Form) AddRow(path string, options AddRowOptions) (string, error) {
 		return "", e
 	}
 	if rows.Has(key) {
-		return "", fmt.Errorf("Row key already exists: %s", key)
+		return "", inputError("Row key already exists: %s", key)
 	}
 	if options.AfterKey != "" && !rows.Has(options.AfterKey) {
-		return "", fmt.Errorf("Unknown row: %s", options.AfterKey)
+		return "", inputError("Unknown row: %s", options.AfterKey)
 	}
 	v := absent
 	if options.ValueProvided || options.Value != nil {
@@ -422,7 +421,7 @@ func (f *Form) CopyRow(path, key string, options AddRowOptions) (string, error) 
 		return "", e
 	}
 	if !rows.Has(key) {
-		return "", fmt.Errorf("Unknown row: %s", key)
+		return "", inputError("Unknown row: %s", key)
 	}
 	v, e := f.copyRowValue(field, read(rows, key))
 	if e != nil {
@@ -443,7 +442,7 @@ func (f *Form) copyRowValue(field FieldTemplate, value any) (any, error) {
 }
 func (f *Form) copyChildren(fields []FieldTemplate, value *Object) (*Object, error) {
 	if value == nil {
-		return nil, fmt.Errorf("Group data must be an object")
+		return nil, inputError("Group data must be an object")
 	}
 	out := copyObject(value)
 	for _, child := range fields {
@@ -485,10 +484,10 @@ func (f *Form) RemoveRow(path, key string) error {
 		return e
 	}
 	if !rows.Has(key) {
-		return fmt.Errorf("Unknown row: %s", key)
+		return inputError("Unknown row: %s", key)
 	}
 	if min, ok := asNumber(read(read(field.Spec, "multiple"), "min")); ok && float64(rows.Len()) <= min {
-		return fmt.Errorf("Minimum row count reached: %s", path)
+		return inputError("Minimum row count reached: %s", path)
 	}
 	out := rows.Clone()
 	out.Delete(key)
@@ -509,10 +508,10 @@ func (f *Form) MoveRow(path, key string, index int) error {
 		return e
 	}
 	if !rows.Has(key) {
-		return fmt.Errorf("Unknown row: %s", key)
+		return inputError("Unknown row: %s", key)
 	}
 	if index < 0 || index >= rows.Len() {
-		return fmt.Errorf("Invalid row position: %d", index)
+		return inputError("Invalid row position: %d", index)
 	}
 	ks := rows.Keys()
 	from := 0
@@ -552,13 +551,13 @@ func (f *Form) RekeyRow(path, oldKey, newKey string) error {
 		return e
 	}
 	if !rows.Has(oldKey) {
-		return fmt.Errorf("Unknown row: %s", oldKey)
+		return inputError("Unknown row: %s", oldKey)
 	}
 	if oldKey == newKey {
 		return nil
 	}
 	if rows.Has(newKey) {
-		return fmt.Errorf("Row key already exists: %s", newKey)
+		return inputError("Row key already exists: %s", newKey)
 	}
 	out := NewObject()
 	for _, k := range rows.Keys() {
@@ -585,7 +584,7 @@ func (f *Form) ToggleRow(path, key string) error {
 		return e
 	}
 	if !rows.Has(key) {
-		return fmt.Errorf("Unknown row: %s", key)
+		return inputError("Unknown row: %s", key)
 	}
 	segs, e := checkedSegments(path)
 	if e != nil {

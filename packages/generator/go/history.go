@@ -1,6 +1,6 @@
 package generator
 
-import "errors"
+import "github.com/polyspec/crudui/packages/validator/go/validator/validate"
 
 // HistoryLimit is the number of records an undo history keeps in each direction (CURT-062).
 const HistoryLimit = 100
@@ -54,7 +54,7 @@ type HistoryResult[T any] struct {
 // as the record; it fails when the history has no entry (CURT-079).
 func UndoChange[T any](history History[T], current T) (HistoryResult[T], error) {
 	if len(history.Entries) == 0 {
-		return HistoryResult[T]{}, errors.New("Nothing to undo")
+		return HistoryResult[T]{}, &validate.FormInputError{Message: "Nothing to undo"}
 	}
 	last := len(history.Entries) - 1
 	return HistoryResult[T]{
@@ -67,7 +67,7 @@ func UndoChange[T any](history History[T], current T) (HistoryResult[T], error) 
 // entry as the record; it fails when the history has no redo entry (CURT-080).
 func RedoChange[T any](history History[T], current T) (HistoryResult[T], error) {
 	if len(history.RedoEntries) == 0 {
-		return HistoryResult[T]{}, errors.New("Nothing to redo")
+		return HistoryResult[T]{}, &validate.FormInputError{Message: "Nothing to redo"}
 	}
 	last := len(history.RedoEntries) - 1
 	return HistoryResult[T]{

@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -69,7 +68,7 @@ func bindLanguage(options BindOptions) (string, error) {
 	}
 	s, ok := options.Language.(string)
 	if !ok {
-		return "", fmt.Errorf("Language must be a string")
+		return "", inputError("Language must be a string")
 	}
 	return s, nil
 }
@@ -81,7 +80,7 @@ func bindButtons(buttons []*Object, data *Object, language string, m formMessage
 	for _, button := range buttons {
 		kind := stringAt(button, "type")
 		if !formButtonTypes[kind] {
-			return nil, fmt.Errorf("Invalid button type: %s", kind)
+			return nil, inputError("Invalid button type: %s", kind)
 		}
 		design, e := resolveDesign(read(button, "design"), lookup, []string{}, nil)
 		if e != nil {
@@ -160,7 +159,7 @@ func FormButtonsHTML(buttons any) (string, error) {
 }
 
 // errNotButtonList rejects form button input that is no list.
-var errNotButtonList = fmt.Errorf("Form buttons must be a list")
+var errNotButtonList = inputError("Form buttons must be a list")
 
 // errNotEvaluatedButtons rejects form button input that bindButtons did not produce.
-var errNotEvaluatedButtons = fmt.Errorf("Form buttons must be evaluated button objects")
+var errNotEvaluatedButtons = inputError("Form buttons must be evaluated button objects")

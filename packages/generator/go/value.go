@@ -34,7 +34,7 @@ func NewObject(pairs ...any) *Object {
 // DecodeJSON preserves object order and rejects malformed or multiple documents.
 func DecodeJSON(data []byte) (any, error) {
 	if !json.Valid(data) {
-		return nil, fmt.Errorf("Invalid JSON document")
+		return nil, inputError("Invalid JSON document")
 	}
 	return compose.DecodeOrdered(data)
 }
@@ -77,7 +77,7 @@ func optionalString(v any, what string) (string, error) {
 	}
 	s, ok := v.(string)
 	if !ok {
-		return "", fmt.Errorf("%s must be a string", what)
+		return "", inputError("%s must be a string", what)
 	}
 	return s, nil
 }
@@ -410,12 +410,12 @@ func checkOrderedValue(value any) error {
 		return nil
 	case float64:
 		if math.IsNaN(v) || math.IsInf(v, 0) {
-			return fmt.Errorf("Form numbers must be finite")
+			return inputError("Form numbers must be finite")
 		}
 		return nil
 	case float32:
 		if math.IsNaN(float64(v)) || math.IsInf(float64(v), 0) {
-			return fmt.Errorf("Form numbers must be finite")
+			return inputError("Form numbers must be finite")
 		}
 		return nil
 	case *Object:
@@ -437,6 +437,6 @@ func checkOrderedValue(value any) error {
 		}
 		return nil
 	default:
-		return fmt.Errorf("Unsupported form value %T; objects must preserve member order", value)
+		return inputError("Unsupported form value %T; objects must preserve member order", value)
 	}
 }

@@ -32,7 +32,7 @@ func resultObject(result HistoryResult[any]) *Object {
 func callHistoryFunction(t *testing.T, op string, args []any) *Object {
 	t.Helper()
 	failed := func(e error) *Object {
-		return NewObject("error", NewObject("code", "INVALID_FORM_INPUT", "message", e.Error()))
+		return NewObject("error", NewObject("code", failureCode(t, e), "message", e.Error()))
 	}
 	switch op {
 	case "emptyHistory":

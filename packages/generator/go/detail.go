@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"github.com/polyspec/crudui/packages/validator/go/validator/text"
 )
 
@@ -19,17 +18,17 @@ func BuildDetail(spec *Object, record any, options DetailOptions) (*Object, erro
 		return nil, e
 	}
 	if spec == nil {
-		return nil, fmt.Errorf("Detail specification must be an object")
+		return nil, inputError("Detail specification must be an object")
 	}
 	obj, ok := record.(*Object)
 	if !ok || obj == nil {
-		return nil, fmt.Errorf("Detail record must be an object")
+		return nil, inputError("Detail record must be an object")
 	}
 	if !has(spec, "fields") {
-		return nil, fmt.Errorf("Detail specification must declare fields")
+		return nil, inputError("Detail specification must declare fields")
 	}
 	if _, ok := optionObject(options.Data); !ok {
-		return nil, fmt.Errorf("Detail context must be an object")
+		return nil, inputError("Detail context must be an object")
 	}
 	// Page and total are list-only options: a detail neither checks nor uses them.
 	options.Page, options.Total = nil, nil

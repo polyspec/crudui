@@ -3,7 +3,6 @@ package generator
 //go:generate go run github.com/polyspec/crudui/scripts/go/interfacemessages -contract ../../../contracts/interface-messages.json -out interface_messages.go
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -27,7 +26,7 @@ type listMessages struct {
 func messagesFor(language string) (formMessages, error) {
 	m, ok := messageTables[language]
 	if !ok {
-		return formMessages{}, fmt.Errorf("Unsupported language: %s", language)
+		return formMessages{}, inputError("Unsupported language: %s", language)
 	}
 	return m, nil
 }

@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -52,7 +51,7 @@ func ResolveAction(input ActionInput) (ActionTarget, bool) {
 // form unchanged (CURT-090).
 func RunAction(form *Form, target ActionTarget) (*ActionResult, error) {
 	if !slices.Contains(formActions, target.Name) {
-		return nil, fmt.Errorf("Unknown action: %s", target.Name)
+		return nil, inputError("Unknown action: %s", target.Name)
 	}
 	switch target.Name {
 	case "expand-all", "collapse-all":
@@ -151,7 +150,7 @@ func rowKeys(form *Form, path string) ([]string, error) {
 	}
 	object, ok := rows.(*Object)
 	if !ok {
-		return nil, fmt.Errorf("Repeated data must be a keyed object: %s", path)
+		return nil, inputError("Repeated data must be a keyed object: %s", path)
 	}
 	return object.Keys(), nil
 }

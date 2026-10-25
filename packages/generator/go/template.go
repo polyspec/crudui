@@ -3,7 +3,6 @@ package generator
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator/go/validator/text"
@@ -75,14 +74,14 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	}
 	spec = orderedObject(spec)
 	if spec == nil || stringAt(spec, "type") != "group" || object(read(spec, "properties")) == nil {
-		return nil, fmt.Errorf("A form spec must be a group with properties")
+		return nil, inputError("A form spec must be a group with properties")
 	}
 	if e := checkFormDeclarations(spec); e != nil {
 		return nil, e
 	}
 	// The form root takes no layout; a group field declares it (docs/spec/schema.md, Layout).
 	if has(read(spec, "design"), "layout") {
-		return nil, fmt.Errorf("Invalid design.layout at form: unknown key")
+		return nil, inputError("Invalid design.layout at form: unknown key")
 	}
 	p, e := compose.ComposeProperties(object(read(spec, "properties")), loader, compose.ComposeOptions{Basepath: options.Basepath})
 	if e != nil {
@@ -114,7 +113,7 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 // checkFormDeclarations rejects a wrong root action or buttons declaration.
 func checkFormDeclarations(spec *Object) error {
 	fail := func(key, expected string) error {
-		return fmt.Errorf("Invalid %s at form: expected %s", key, expected)
+		return inputError("Invalid %s at form: expected %s", key, expected)
 	}
 	if spec.Has("action") {
 		action := object(read(spec, "action"))
@@ -185,7 +184,7 @@ func compileFields(p *Object, root *Object, parent string) ([]FieldTemplate, err
 		// A group source is checked after the other declarations of the field (docs/spec/schema.md, Choices from a
 		// repeated group).
 		if message := validate.GroupSourceFailure(raw, path, root); message != "" {
-			return nil, errors.New(message)
+			return nil, &validate.FormInputError{Message: message}
 		}
 		children, e := compileFields(object(read(raw, "properties")), root, path)
 		if e != nil {
@@ -245,12 +244,12 @@ func unknownKey(o *Object, bucket string) (string, bool) {
 
 // invalidMember is the error for a member of a declaration at path that is not of the expected kind.
 func invalidMember(path, key, expected string) error {
-	return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+	return inputError("Invalid %s at %s: expected %s", key, path, expected)
 }
 
 // unknownMember is the error for a key that a closed declaration at path does not list.
 func unknownMember(path, key string) error {
-	return fmt.Errorf("Invalid %s at %s: unknown key", key, path)
+	return inputError("Invalid %s at %s: unknown key", key, path)
 }
 
 // checkDeclarations rejects a wrong value type or an unknown key in one field's closed declarations.
@@ -368,14 +367,14 @@ func checkRangeDeclaration(spec *Object, path string) error {
 	rules := read(spec, "validate")
 	minimum, _, ok := validate.NumberRange(read(rules, "range"))
 	if !ok {
-		return fmt.Errorf("Invalid validate.range at %s: expected [minimum, maximum] finite numbers with minimum not above maximum", path)
+		return inputError("Invalid validate.range at %s: expected [minimum, maximum] finite numbers with minimum not above maximum", path)
 	}
 	step, ok := validate.StepSize(read(rules, "step"))
 	if !ok {
-		return fmt.Errorf("Invalid validate.step at %s: expected a finite number above 0", path)
+		return inputError("Invalid validate.step at %s: expected a finite number above 0", path)
 	}
 	if !validate.IsStepMultiple(minimum, step) {
-		return fmt.Errorf("Invalid validate.range at %s: expected a minimum that is a multiple of validate.step", path)
+		return inputError("Invalid validate.range at %s: expected a minimum that is a multiple of validate.step", path)
 	}
 	return nil
 }
@@ -425,16 +424,16 @@ func declaredAttributeName(name string) bool {
 func checkDeclaredAttributes(attributes any, key, path string) error {
 	o := object(attributes)
 	if o == nil {
-		return fmt.Errorf("Invalid %s at %s: expected an object", key, path)
+		return inputError("Invalid %s at %s: expected an object", key, path)
 	}
 	for _, name := range o.Keys() {
 		if !declaredAttributeName(name) {
-			return fmt.Errorf("Invalid %s.%s at %s: expected a data-* or aria-* name that crudui does not write", key, name, path)
+			return inputError("Invalid %s.%s at %s: expected a data-* or aria-* name that crudui does not write", key, name, path)
 		}
 	}
 	for _, name := range o.Keys() {
 		if _, ok := read(o, name).(string); !ok {
-			return fmt.Errorf("Invalid %s.%s at %s: expected a string", key, name, path)
+			return inputError("Invalid %s.%s at %s: expected a string", key, name, path)
 		}
 	}
 	return nil
@@ -525,8 +524,14 @@ func checkDesignDeclaration(design any, path string, field bool, layouts []strin
 	return nil
 }
 
+// inputError is the form input error (INVALID_FORM_INPUT) of the generator, with the formatted message; every failure
+// of the generator that is no composition failure and no unsupported field is one.
+func inputError(format string, args ...any) error {
+	return &validate.FormInputError{Message: fmt.Sprintf(format, args...)}
+}
+
 // errTemplateShape rejects a value that is not exactly the compiled template shape.
-var errTemplateShape = fmt.Errorf("Unsupported form template")
+var errTemplateShape = inputError("Unsupported form template")
 
 // onlyMembers reports whether every member of o is one of names.
 func onlyMembers(o *Object, names ...string) bool {
@@ -612,7 +617,7 @@ func decodeFields(a []any) ([]FieldTemplate, error) {
 }
 func cloneTemplate(t *FormTemplate) (*FormTemplate, error) {
 	if t == nil || t.Kind != "crudui/form-template" {
-		return nil, fmt.Errorf("Unsupported form template")
+		return nil, inputError("Unsupported form template")
 	}
 	b, e := json.Marshal(t)
 	if e != nil {

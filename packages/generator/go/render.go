@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -435,7 +434,7 @@ func nodesHTML(nodes []*Object, errors map[*Object][]string) string {
 // action, hidden, formErrors and errors; nil writes the crudui-form block alone.
 func RenderForm(form *Form, options any) (string, error) {
 	if form == nil {
-		return "", fmt.Errorf("Form instance is required")
+		return "", inputError("Form instance is required")
 	}
 	model, e := formRenderModel(form.fields, form.template.Action, options)
 	if e != nil {

@@ -25,7 +25,7 @@ func checkValidityCase(t *testing.T, c *Object, build func(spec *Object, files m
 		if err == nil {
 			t.Fatalf("want the error %s, but the case built", stringAt(engine, "code"))
 		}
-		if got := failureCode(err); got != stringAt(engine, "code") {
+		if got := failureCode(t, err); got != stringAt(engine, "code") {
 			t.Fatalf("code %s, want %s: %v", got, stringAt(engine, "code"), err)
 		}
 		var loadErr *compose.ComposeLoadError
@@ -45,7 +45,7 @@ func checkValidityCase(t *testing.T, c *Object, build func(spec *Object, files m
 		if err == nil {
 			t.Fatal("the case must be refused, but it built")
 		}
-		if got := failureCode(err); got != "INVALID_FORM_INPUT" {
+		if got := failureCode(t, err); got != "INVALID_FORM_INPUT" {
 			t.Fatalf("code %s, want INVALID_FORM_INPUT: %v", got, err)
 		}
 	default:

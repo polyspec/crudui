@@ -7,12 +7,12 @@ import (
 
 // TestButtonsSuite runs the form button cases of tests/fixtures/buttons: BindButtons (CURP-008) and FormButtonsHTML (CURP-009).
 // Each observation is marshalled and compared with its expectation as JSON text, so the attribute order is checked. An error
-// is observed with the code INVALID_FORM_INPUT and its message, as the form state suite does.
+// is observed with the code that it carries and its message, as the form state suite does.
 func TestButtonsSuite(t *testing.T) {
 	for _, c := range fixtureCases(t, "buttons") {
 		c := c
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
-			observed := observeButtonCase(c)
+			observed := observeButtonCase(t, c)
 			if got, want := marshal(t, observed), marshal(t, read(c, "expected")); got != want {
 				t.Fatalf("observed %s, expected %s", got, want)
 			}
@@ -21,21 +21,21 @@ func TestButtonsSuite(t *testing.T) {
 }
 
 // observeButtonCase runs the operation of one case and returns its observation: the result, or the error.
-func observeButtonCase(c any) any {
+func observeButtonCase(t *testing.T, c any) any {
 	if stringAt(c, "operation") == "formButtonsHtml" {
 		html, e := FormButtonsHTML(read(c, "buttons"))
 		if e != nil {
-			return buttonFailure(e)
+			return buttonFailure(t, e)
 		}
 		return NewObject("result", html)
 	}
 	template, e := buttonTemplate(c)
 	if e != nil {
-		return buttonFailure(e)
+		return buttonFailure(t, e)
 	}
 	buttons, e := BindButtons(template, buttonData(c), buttonOptions(c))
 	if e != nil {
-		return buttonFailure(e)
+		return buttonFailure(t, e)
 	}
 	return NewObject("result", buttons)
 }
@@ -70,9 +70,9 @@ func buttonOptions(c any) BindOptions {
 	return options
 }
 
-// buttonFailure is the observation of an error: its code and its message.
-func buttonFailure(e error) any {
-	return NewObject("error", NewObject("code", "INVALID_FORM_INPUT", "message", e.Error()))
+// buttonFailure is the observation of an error: the code that it carries and its message.
+func buttonFailure(t *testing.T, e error) any {
+	return NewObject("error", NewObject("code", failureCode(t, e), "message", e.Error()))
 }
 
 // marshalText encodes a value of a case as JSON text.

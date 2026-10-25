@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // normalizeScript prints the normalized layout of each HTML text of a request, using the shared normalizer of the
@@ -161,19 +162,24 @@ func caseText(options *Object, key string) (string, error) {
 	return s, nil
 }
 
-// failureCode is the code of a generation failure, as the native program reports it: the code of a composition or an
-// unsupported field, and INVALID_FORM_INPUT for every other input error.
-func failureCode(err error) string {
-	code := "INVALID_FORM_INPUT"
+// failureCode is the code that a generation failure carries: the code of a composition failure, of an unsupported field
+// or of a form input error. An error of another type carries no code, and it fails the test.
+func failureCode(t *testing.T, err error) string {
+	t.Helper()
 	var loadErr *compose.ComposeLoadError
 	if errors.As(err, &loadErr) {
-		code = string(loadErr.Code)
+		return string(loadErr.Code)
 	}
 	var fieldErr *UnsupportedFieldTypeError
 	if errors.As(err, &fieldErr) {
-		code = fieldErr.Code()
+		return fieldErr.Code()
 	}
-	return code
+	var inputErr *validate.FormInputError
+	if errors.As(err, &inputErr) {
+		return inputErr.Code()
+	}
+	t.Fatalf("the error %T carries no failure code: %v", err, err)
+	return ""
 }
 
 // failureMessage is the message of a generation failure: the Message of a composition error, whose Error prefixes

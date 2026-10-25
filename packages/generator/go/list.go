@@ -65,7 +65,7 @@ func listRows(rows any) ([]*Object, error) {
 	case []*Object:
 		for _, row := range v {
 			if row == nil {
-				return nil, fmt.Errorf("List rows must be objects")
+				return nil, inputError("List rows must be objects")
 			}
 		}
 		return v, nil
@@ -74,35 +74,35 @@ func listRows(rows any) ([]*Object, error) {
 		for i, item := range v {
 			row, ok := item.(*Object)
 			if !ok || row == nil {
-				return nil, fmt.Errorf("List rows must be objects")
+				return nil, inputError("List rows must be objects")
 			}
 			out[i] = row
 		}
 		return out, nil
 	}
-	return nil, fmt.Errorf("List rows must be an array")
+	return nil, inputError("List rows must be an array")
 }
 
 // checkListInput applies the list input rules in the order every runtime uses and returns the checked rows.
 func checkListInput(spec *Object, rows any, options ListOptions) ([]*Object, error) {
 	if spec == nil {
-		return nil, fmt.Errorf("List specification must be an object")
+		return nil, inputError("List specification must be an object")
 	}
 	records, err := listRows(rows)
 	if err != nil {
 		return nil, err
 	}
 	if !spec.Has("columns") {
-		return nil, fmt.Errorf("List specification must declare columns")
+		return nil, inputError("List specification must declare columns")
 	}
 	if _, ok := optionObject(options.Data); !ok {
-		return nil, fmt.Errorf("List context must be an object")
+		return nil, inputError("List context must be an object")
 	}
 	if _, _, ok := countOption(options.Page, 1); !ok {
-		return nil, fmt.Errorf("List page must be a positive integer")
+		return nil, inputError("List page must be a positive integer")
 	}
 	if _, _, ok := countOption(options.Total, 0); !ok {
-		return nil, fmt.Errorf("List total must be a nonnegative integer")
+		return nil, inputError("List total must be a nonnegative integer")
 	}
 	return records, nil
 }
@@ -171,7 +171,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	}
 	raw := object(read(spec, paths.members))
 	if raw == nil {
-		return nil, fmt.Errorf("Invalid %s at %s: expected an object", paths.members, paths.own)
+		return nil, inputError("Invalid %s at %s: expected an object", paths.members, paths.own)
 	}
 	composeOptions := compose.ComposeOptions{Basepath: options.Basepath}
 	columns, e := compose.ComposeProperties(raw, loader, composeOptions)
@@ -366,7 +366,7 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 		if decimals, ok := asNumber(read(o, "decimals")); ok {
 			decimals = math.Trunc(decimals)
 			if math.IsNaN(decimals) || decimals < 0 || decimals > 100 {
-				return nil, fmt.Errorf("Number decimals must be between 0 and 100")
+				return nil, inputError("Number decimals must be between 0 and 100")
 			}
 			body = fixedNumber(n, int(decimals))
 		}
@@ -687,7 +687,7 @@ var paginationDeclarationKeys = []string{"per_page", "mode"}
 // declaration at path.
 func checkPaginationDeclaration(pagination any, path string) error {
 	fail := func(key, expected string) error {
-		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+		return inputError("Invalid %s at %s: expected %s", key, path, expected)
 	}
 	p := object(pagination)
 	if _, isBool := pagination.(bool); !isBool && p == nil {
@@ -698,7 +698,7 @@ func checkPaginationDeclaration(pagination any, path string) error {
 	}
 	for _, key := range p.Keys() {
 		if !slices.Contains(paginationDeclarationKeys, key) {
-			return fmt.Errorf("Invalid pagination.%s at %s: unknown key", key, path)
+			return inputError("Invalid pagination.%s at %s: unknown key", key, path)
 		}
 	}
 	if p.Has("per_page") {
@@ -835,7 +835,7 @@ func RenderList(spec *Object, rows any, options ListOptions) (string, error) {
 	if options.Layout != nil {
 		s, ok := options.Layout.(string)
 		if !ok || (s != "table" && s != "card") {
-			return "", fmt.Errorf("List layout must be table or card")
+			return "", inputError("List layout must be table or card")
 		}
 		layout = s
 	}

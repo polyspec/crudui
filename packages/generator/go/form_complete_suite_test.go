@@ -56,7 +56,7 @@ func checkRecordedFailure(t *testing.T, c *Object, err error) {
 	if err == nil {
 		t.Fatalf("want the error %s, but the case rendered", stringAt(want, "code"))
 	}
-	if got := failureCode(err); got != stringAt(want, "code") {
+	if got := failureCode(t, err); got != stringAt(want, "code") {
 		t.Fatalf("code %s, want %s: %v", got, stringAt(want, "code"), err)
 	}
 	if got := failureMessage(err); got != stringAt(want, "message") {
@@ -105,7 +105,7 @@ func checkRecordedMessage(t *testing.T, c *Object, err error) {
 	if err == nil {
 		t.Fatalf("want the error %s, but the case rendered", stringAt(want, "code"))
 	}
-	if got := failureCode(err); got != stringAt(want, "code") {
+	if got := failureCode(t, err); got != stringAt(want, "code") {
 		t.Fatalf("code %s, want %s: %v", got, stringAt(want, "code"), err)
 	}
 	if message := stringAt(want, "message"); message != "" && !strings.Contains(err.Error(), message) {

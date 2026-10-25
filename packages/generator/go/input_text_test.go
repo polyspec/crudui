@@ -349,7 +349,7 @@ var textOperations = map[string]func(t *testing.T, c fixtureCase) error{
 
 // outcomeOf returns the case outcome in the fixture's expect shape: "pass", or
 // the failure code, message and path.
-func outcomeOf(err error) any {
+func outcomeOf(t *testing.T, err error) any {
 	if err == nil {
 		return "pass"
 	}
@@ -357,7 +357,7 @@ func outcomeOf(err error) any {
 	if errors.As(err, &load) {
 		return NewObject("code", string(load.Code), "message", load.Message, "at", strings.Join(load.Trace, "."))
 	}
-	return NewObject("code", "INVALID_FORM_INPUT", "message", err.Error(), "at", "")
+	return NewObject("code", failureCode(t, err), "message", err.Error(), "at", "")
 }
 
 // TestInputTextCases runs every case of the five generator fixtures of
@@ -395,7 +395,7 @@ func runTextCases(t *testing.T, feature string) {
 			t.Fatalf("a %s case has no name", feature)
 		}
 		t.Run(name, func(t *testing.T) {
-			got, err := json.Marshal(outcomeOf(run(t, c)))
+			got, err := json.Marshal(outcomeOf(t, run(t, c)))
 			if err != nil {
 				t.Fatal(err)
 			}

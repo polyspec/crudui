@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -58,7 +57,7 @@ func checkedBinding(template *FormTemplate, data *Object, options BindOptions) (
 		return nil, e
 	}
 	if template == nil || template.Kind != "crudui/form-template" {
-		return nil, fmt.Errorf("Unsupported form template")
+		return nil, inputError("Unsupported form template")
 	}
 	if data == nil {
 		data = NewObject()
@@ -88,14 +87,14 @@ func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Obj
 		}
 		s, ok := option.value.(string)
 		if !ok {
-			return nil, fmt.Errorf("%s must be a string", option.name)
+			return nil, inputError("%s must be a string", option.name)
 		}
 		*option.target = s
 	}
 	if options.Unsupported != nil {
 		unsupported, ok := options.Unsupported.(string)
 		if !ok || (unsupported != "throw" && unsupported != "marker") {
-			return nil, fmt.Errorf("unsupported must be throw or marker")
+			return nil, inputError("unsupported must be throw or marker")
 		}
 		bound.Unsupported = unsupported
 	}
@@ -129,7 +128,7 @@ func buildChildren(fields []FieldTemplate, path string, s bindState) ([]*Object,
 // checkGroupData requires present group data, including a repeated group row, to be an object.
 func checkGroupData(value any, path string) error {
 	if !isAbsent(value) && object(value) == nil {
-		return fmt.Errorf("Group data must be an object: %s", path)
+		return inputError("Group data must be an object: %s", path)
 	}
 	return nil
 }
@@ -195,7 +194,7 @@ func makeWidget(spec *Object, value any, path string, design *Object, s bindStat
 		// choice list of a select field has groups.
 		appearance := choicesType(stringAt(spec, "type"))
 		if _, ok := choicePairs(items, appearance, canonicalType(stringAt(spec, "type")) == "select"); !ok {
-			return nil, fmt.Errorf("Invalid items at %s: expected %s", path, choiceListExpected)
+			return nil, inputError("Invalid items at %s: expected %s", path, choiceListExpected)
 		}
 		if appearance {
 			if e := checkChoiceAppearance(items, path); e != nil {
@@ -411,7 +410,7 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 	case object(value) != nil:
 		keys = object(value).Keys()
 	default:
-		return nil, fmt.Errorf("Repeated data must be a keyed object: %s", path)
+		return nil, inputError("Repeated data must be a keyed object: %s", path)
 	}
 	item := "field"
 	if stringAt(f.Spec, "type") == "group" {

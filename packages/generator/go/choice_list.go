@@ -142,7 +142,7 @@ func checkChoiceAppearance(items any, path string) error {
 		choice := object(item)
 		for _, member := range []string{"class", "style"} {
 			if _, ok := read(choice, member).(string); choice.Has(member) && !ok {
-				return fmt.Errorf("Invalid items.%d.%s at %s: expected a string", index, member, path)
+				return inputError("Invalid items.%d.%s at %s: expected a string", index, member, path)
 			}
 		}
 		if choice.Has("attributes") {

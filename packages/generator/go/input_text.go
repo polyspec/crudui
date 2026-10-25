@@ -5,10 +5,9 @@ package generator
 // rejected before any other check of the operation.
 
 import (
-	"errors"
-
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator/go/validator/text"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // checkSpecText checks a specification and the files the operation reads, and
@@ -21,7 +20,7 @@ func checkSpecText(spec *Object, files map[string]*Object, loader compose.FileLo
 	if failure, message := text.CheckSpecification(spec, files); failure != nil {
 		return nil, failure
 	} else if message != "" {
-		return nil, errors.New(message)
+		return nil, &validate.FormInputError{Message: message}
 	}
 	if loader != nil {
 		return text.CheckedLoader(loader), nil
@@ -32,7 +31,7 @@ func checkSpecText(spec *Object, files map[string]*Object, loader compose.FileLo
 // checkInputText checks named caller values in order.
 func checkInputText(inputs ...text.Input) error {
 	if message := text.CheckInputs(inputs...); message != "" {
-		return errors.New(message)
+		return &validate.FormInputError{Message: message}
 	}
 	return nil
 }

@@ -243,7 +243,7 @@ func observeSessions(t *testing.T, family string, history bool) {
 				op := stringAt(step, "op")
 				result, e := performStep(t, form, object(spec), op, list(read(step, "args")))
 				if e != nil {
-					observed.Set("error", NewObject("code", "INVALID_FORM_INPUT", "message", e.Error()))
+					observed.Set("error", NewObject("code", failureCode(t, e), "message", e.Error()))
 				} else if result != nil || op == "runAction" || op == "resolveAction" {
 					observed.Set("result", name.walk(result))
 				}

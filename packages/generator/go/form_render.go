@@ -26,38 +26,38 @@ func formRenderModel(nodes []*Object, templateAction *Object, options any) (*ren
 	}
 	o, ok := options.(*Object)
 	if !ok {
-		return nil, fmt.Errorf("Render options must be an object")
+		return nil, inputError("Render options must be an object")
 	}
 	if o == nil {
 		return model, nil
 	}
 	for _, name := range o.Keys() {
 		if !renderOptionMembers[name] {
-			return nil, fmt.Errorf("Unknown render option: %s", name)
+			return nil, inputError("Unknown render option: %s", name)
 		}
 	}
 	action, hasAction := o.Get("action")
 	actionObject := object(action)
 	if hasAction && (actionObject == nil || !stringMembers(actionObject, renderActionMembers)) {
-		return nil, fmt.Errorf("action must be an object with string method, url and enctype")
+		return nil, inputError("action must be an object with string method, url and enctype")
 	}
 	hidden, hasHidden := o.Get("hidden")
 	hiddenObject := object(hidden)
 	if hasHidden && (hiddenObject == nil || !stringMembers(hiddenObject, nil)) {
-		return nil, fmt.Errorf("hidden must be an object of strings")
+		return nil, inputError("hidden must be an object of strings")
 	}
 	if hasHidden && !hasAction {
-		return nil, fmt.Errorf("hidden requires action")
+		return nil, inputError("hidden requires action")
 	}
 	if formErrors, has := o.Get("formErrors"); has {
 		list, ok := formErrors.([]any)
 		if !ok {
-			return nil, fmt.Errorf("formErrors must be a list of strings")
+			return nil, inputError("formErrors must be a list of strings")
 		}
 		for _, text := range list {
 			s, ok := text.(string)
 			if !ok {
-				return nil, fmt.Errorf("formErrors must be a list of strings")
+				return nil, inputError("formErrors must be a list of strings")
 			}
 			model.formErrors = append(model.formErrors, s)
 		}
@@ -66,13 +66,13 @@ func formRenderModel(nodes []*Object, templateAction *Object, options any) (*ren
 	if errors, has := o.Get("errors"); has {
 		list, ok := errors.([]any)
 		if !ok {
-			return nil, fmt.Errorf("errors must be a list of objects with string path and message")
+			return nil, inputError("errors must be a list of objects with string path and message")
 		}
 		for _, item := range list {
 			path, pathOK := read(item, "path").(string)
 			message, messageOK := read(item, "message").(string)
 			if object(item) == nil || !pathOK || !messageOK {
-				return nil, fmt.Errorf("errors must be a list of objects with string path and message")
+				return nil, inputError("errors must be a list of objects with string path and message")
 			}
 			records = append(records, [2]string{path, message})
 		}
@@ -83,7 +83,7 @@ func formRenderModel(nodes []*Object, templateAction *Object, options any) (*ren
 		for _, record := range records {
 			node := byPath[record[0]]
 			if node == nil {
-				return nil, fmt.Errorf("Unknown error path: %s", record[0])
+				return nil, inputError("Unknown error path: %s", record[0])
 			}
 			model.nodeErrors[node] = append(model.nodeErrors[node], record[1])
 		}
@@ -117,7 +117,7 @@ func formRenderModel(nodes []*Object, templateAction *Object, options any) (*ren
 			v, _ := hiddenObject.Get(name)
 			value, isString := v.(string)
 			if !isString {
-				return nil, fmt.Errorf("hidden must be an object of strings")
+				return nil, inputError("hidden must be an object of strings")
 			}
 			model.hidden = append(model.hidden, [2]string{name, value})
 		}

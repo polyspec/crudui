@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -55,14 +54,14 @@ func isBool(v any) bool   { _, ok := v.(bool); return ok }
 func isArray(v any) bool  { _, ok := v.([]any); return ok }
 
 func expected(key, path, what string) error {
-	return fmt.Errorf("Invalid %s at %s: expected %s", key, path, what)
+	return inputError("Invalid %s at %s: expected %s", key, path, what)
 }
 
 // rejectUnknownKeys rejects the first member of o, in member order, that allowed does not list.
 func rejectUnknownKeys(o *Object, prefix string, allowed []string, path string) error {
 	for _, key := range o.Keys() {
 		if !slices.Contains(allowed, key) {
-			return fmt.Errorf("Invalid %s%s at %s: unknown key", prefix, key, path)
+			return inputError("Invalid %s%s at %s: unknown key", prefix, key, path)
 		}
 	}
 	return nil
@@ -228,7 +227,7 @@ func checkActionsDeclaration(value any, own string) error {
 	for _, name := range actions.Keys() {
 		// Actions are not composed: a composition key is not an action name.
 		if name == "$ref" || name == "$patch" {
-			return fmt.Errorf("Invalid %s at actions: unknown key", name)
+			return inputError("Invalid %s at actions: unknown key", name)
 		}
 		if e := checkActionDeclaration(name, read(actions, name)); e != nil {
 			return e
@@ -251,7 +250,7 @@ func checkDisplayDeclarations(spec *Object, paths displayPaths) error {
 			return expected(key, own, "composition inside "+paths.members)
 		}
 		if !slices.Contains(allowed, key) {
-			return fmt.Errorf("Invalid %s at %s: unknown key", key, own)
+			return inputError("Invalid %s at %s: unknown key", key, own)
 		}
 	}
 	if spec.Has("design") {
