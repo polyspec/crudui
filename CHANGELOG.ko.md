@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 689207adbc6755bc275c48f858ed7e7c6376d3f71b6b64711b745c97a4cadad4 -->
+<!-- source-sha256: 453d966b8ee634982df00f113e9ae39cee4a87985865842f62880b412fef21c4 -->
 
 ## Unreleased
 
@@ -31,6 +31,10 @@
 ### 2026-10-25 — C17.12는 form-render 실패 case의 message를 비교한다(C17.12)
 
 - C17.12 완료(C17.12): form-render 실패 case는 여섯 binding(ts, php, php-extension, go, rust, python) 모두에서 발생한 code와 message를 expectError 기록 전체와 비교하므로, 틀린 message나 message가 없는 기록은 실패한다. Go suite는 Error가 code를 앞에 붙이는 composition 오류의 Message를 읽는다. docs/spec/form-runtime.md는 UNSUPPORTED_FIELD_TYPE의 message `Unsupported field type "{type}" at "{path}"`를 명시하고, fixture 생성기는 모든 오류 case의 message를 기록하고 확인하며 compose-ref-unresolved-load-error와 unsupported-type-throws의 message를 추가한다. red: make parity-check UNITS="form-render"가 message 없는 두 case에서 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — Go 생성기는 코드가 있는 폼 입력 오류를 반환한다(C17.21)
+
+- C17.21 완료(C17.21): 합성 실패도 미지원 필드도 아닌 Go 생성기의 모든 실패는 코드 `INVALID_FORM_INPUT`의 `validate.FormInputError`이고, Go suite는 다른 모든 오류에 `INVALID_FORM_INPUT` 라벨을 붙이는 대신 오류(ComposeLoadError, UnsupportedFieldTypeError, FormInputError)에서 코드를 읽으며 코드가 없는 오류에서 실패한다. red: form-render parity-check가 Go에서 201개 중 152개 case로 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.17은 describe의 grammar token을 token 요구사항에서 읽는다(C17.17)
 
