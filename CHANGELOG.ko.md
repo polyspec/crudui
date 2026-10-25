@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b84df7974f3f14f11e0d50dae17c7f5d3418fe0970ffa33557fc63e98287fce9 -->
+<!-- source-sha256: 1957b38463e1657a3732a31318b182b673253dac48bcb2821bf944b168f772d6 -->
 
 ## Unreleased
+
+### 2026-10-26 — Makefile이 kit 도구를 $(KIT_EXT)로 실행한다 (C17.29)
+
+- $(KIT)/<도구>.mjs를 실행하던 레시피 줄 열 개를 $(KIT)/<도구>.$(KIT_EXT)로 바꿨다. 검사는 이제 kit 소스를 .mts로 따른다 (K613).
 
 ### 2026-10-25 — C17.4는 reference 규칙을 더한다(C17.4)
 

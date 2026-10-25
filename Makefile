@@ -190,7 +190,7 @@ form-template-validator-check: ## Check that the form template validator of pack
 lint: crudui-lint ## Lint the repository: make lint-ts of kit and the Svelte components
 crudui-lint:
 	@status=0; \
-	$(NODE) $(KIT)/lint-ts.mjs || status=1; \
+	$(NODE) $(KIT)/lint-ts.$(KIT_EXT) || status=1; \
 	$(NPM) run lint -w @polyspec/crudui-generator-svelte || status=1; \
 	exit $$status
 # The root tsconfig.json checks the TypeScript of scripts/ and tests/ (S9 of kit) strictly. It sets skipLibCheck: the
@@ -220,7 +220,7 @@ require-build: ## Build the packages when their sources or output changed
 	$(NODE) scripts/require-current-build.mts
 crudui-test-cli: ## The command-line interface suite
 	$(NODE) scripts/require-current-build.mts
-	$(NODE) $(KIT)/run-tests.mjs vitest --cwd packages/cli
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) vitest --cwd packages/cli
 manifest-check: ## The feature contract manifest
 	$(NPM) run manifest:check
 manifest-docs-check: ## The generated feature contract documents
@@ -294,7 +294,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
 	$(MAKE) --no-print-directory records-check || status=1; \
-	$(NODE) $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts scripts/json-schema.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts scripts/json-schema.test.mts || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status
@@ -369,17 +369,17 @@ crudui-test-php-engine:
 crudui-test-native-generators: cargo-downloads-check
 	$(NODE) scripts/require-current-build.mts
 	@status=0; \
-	$(NODE) $(KIT)/run-tests.mjs go --cwd packages/generator/go -- -race ./... || status=1; \
-	$(NODE) $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
-	$(NODE) $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mts || status=1; \
-	$(NODE) $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) go --cwd packages/generator/go -- -race ./... || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node -- tests/native-generators/protocol.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
 	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 crudui-test-php-api: require-build build-php-ext
 	@status=0; \
 	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
-	$(NODE) $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -403,7 +403,7 @@ crudui-test-validators: cargo-downloads-check
 # WebKit. It reads the built validator and renderers.
 crudui-test-form-binding:
 	$(NODE) scripts/require-current-build.mts
-	$(NODE) $(KIT)/run-tests.mjs vitest --cwd packages/form-binding
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) vitest --cwd packages/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/operations/conformance.md). Every suite runs even when an earlier one
@@ -437,7 +437,7 @@ format-check:
 # pushed commit. Both commands run even when the first fails.
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
-	$(NODE) $(KIT)/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mts tests/docs/changelog.test.mts tests/docs/repository-writing.test.mts tests/docs/example-readmes.test.mts tests/docs/fixture-readmes.test.mts || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node --timeout 10 -- scripts/documentation-links.test.mts tests/docs/changelog.test.mts tests/docs/repository-writing.test.mts tests/docs/example-readmes.test.mts tests/docs/fixture-readmes.test.mts || status=1; \
 	exit $$status
 
 # The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
