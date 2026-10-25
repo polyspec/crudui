@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 7f3fdfad497385e75f85eb0c7ece3a63ba334d1ad20dff95fe067614e696faad -->
+<!-- source-sha256: 60c6264696ba1217474fe9e88f58b8873d88c4672238c05ea3964e0d7520530a -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
