@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 26e029163a8cb1d45d775746e2637f3f7841cc4af3075a014a00d2a26e190130 -->
+<!-- source-sha256: 6e0378597580f6a34f5a7ba13cc8fb0af2881c2e4f3637be1ded7594d4d03a3f -->
 
 ## Unreleased
 
 ### 2026-10-25 — C17.17은 describe의 grammar token을 token 요구사항에서 읽는다(C17.17)
 
 - C17.17 완료(C17.17): crudui describe는 docs/spec/expressions.md 1절의 token을 그 절에 더 이상 없는 표 행이 아니라 C16.56이 bullet로 만든 요구사항 CUXP-001부터 CUXP-017에서 읽고, 다른 모양의 줄이나 token이 없는 절은 실패한다. 이 row는 make test-ts가 닿지 않는 packages/cli의 list-describe test를 실행한다. red: list-describe.test가 token 0개로 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — C17.20은 native test의 coverage 개수를 cases.json에서 도출한다(C17.20)
+
+- C17.20 완료(C17.20): packages/php-ext/tests/comparison의 comparison test는 손으로 적은 합계 188, 162, 137, 157, 17, 28, 62 대신, 각 engine program이 form-render, list-render, detail-render cases.json에서 읽은 case를 모두 보고하는지 assert한다. expression과 composition test는 case마다 test 하나를 실행하므로 합계 74, 129, 20을 지운다. tests/native-generators/run.mts는 합계 188, 157, 5, 62를 suite check fixture-coverage로 바꾸고, 이 check는 form-render, list-render, form-outline, detail-render cases.json의 선택된 case에 사용 가능한 target의 check가 없으면 실패한다. program이나 suite가 빠뜨린 case는 실패한다. binding comparison test는 compilation이 code와 관계없이 CRUDUI 오류로 거부하는 case를 모두 compilation test에 맡기고, 그런 case가 모두 오류를 기대하는지 assert한다. red: comparison test가 201 !== 188로, run.mts가 201 !== 188로 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.16은 php-ext engine test에서 공유 case 각각을 검사한다(C17.16)
 

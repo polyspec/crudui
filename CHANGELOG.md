@@ -7,6 +7,10 @@
 
 - C17.17 is done (C17.17): crudui describe reads the tokens of docs/spec/expressions.md section 1 from the requirements CUXP-001 to CUXP-017, which C16.56 made bullets, instead of table rows that the section no longer holds; a line of another shape or a section without a token fails. The row runs the list-describe test of packages/cli, which make test-ts does not reach. Red: list-describe.test failed with 0 tokens; green after the change.
 
+### 2026-10-25 — C17.20 derives the coverage counts of the native tests from cases.json (C17.20)
+
+- C17.20 is done (C17.20): the comparison tests of packages/php-ext/tests/comparison assert that each engine program reports every case it read from the form-render, list-render and detail-render cases.json, instead of the hand-typed totals 188, 162, 137, 157, 17, 28 and 62; the expression and composition tests drop their totals 74, 129 and 20, since they run one test for each case; and tests/native-generators/run.mts replaces its totals 188, 157, 5 and 62 with the suite check fixture-coverage, which fails when a selected case of the form-render, list-render, form-outline or detail-render cases.json has no check of an available target. A case that a program or the suite drops fails. The binding comparison test leaves to the compilation test every case that compilation rejects with a CRUDUI error, of any code, and asserts that each such case expects an error. Red: the comparison test failed with 201 !== 188 and run.mts with 201 !== 188; green after the change.
+
 ### 2026-10-25 — C17.16 checks each shared case in the php-ext engine test (C17.16)
 
 - C17.16 is done (C17.16): the shared validation test of packages/php-ext/tests/engine/engine.test.mjs asserts that the engine program reports one result for each case of the validate, spec-validity, list-validity and detail-validity cases.json, instead of the hand-typed totals 318 and 385; a case that the program drops fails the test. The row runs that test, which make test-php-ext CASES=engine does not reach. Red: the test failed with 341 !== 318; green after the change.
