@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Validator\Validate;
 
+use Polyspec\Crudui\Validator\Support\JsonValue;
 use Polyspec\Crudui\Validator\Values\CanonicalText;
 use Polyspec\Crudui\Validator\Values\Whitespace;
 
@@ -26,7 +27,7 @@ final class GroupSource
     /** Whether `items` is a group source: an object with the member `from`. */
     public static function isSource(mixed $items): bool
     {
-        return self::isObject($items) && array_key_exists('from', (array) $items);
+        return JsonValue::isObject($items) && array_key_exists('from', (array) $items);
     }
 
     /**
@@ -86,18 +87,18 @@ final class GroupSource
         $label = $source['label'] ?? null;
         $rows = $data;
         foreach (array_slice($segments, 0, -2) as $name) {
-            if (!self::isObject($rows) || !array_key_exists($name, (array) $rows)) {
+            if (!JsonValue::isObject($rows) || !array_key_exists($name, (array) $rows)) {
                 return [];
             }
             $rows = ((array) $rows)[$name];
         }
-        if (!self::isObject($rows)) {
+        if (!JsonValue::isObject($rows)) {
             return [];
         }
         $choices = [];
         $seen = [];
         foreach ((array) $rows as $row) {
-            if (!self::isObject($row)) {
+            if (!JsonValue::isObject($row)) {
                 continue;
             }
             $row = (array) $row;
@@ -131,13 +132,13 @@ final class GroupSource
         }
         $properties = $root;
         foreach (array_slice($segments, 0, -2) as $index => $name) {
-            if ($name === '' || !array_key_exists($name, $properties) || !self::isObject($properties[$name])) {
+            if ($name === '' || !array_key_exists($name, $properties) || !JsonValue::isObject($properties[$name])) {
                 return null;
             }
             $field = (array) $properties[$name];
             if (
                 ($field['type'] ?? null) !== 'group'
-                || !self::isObject($field['properties'] ?? null)
+                || !JsonValue::isObject($field['properties'] ?? null)
                 || self::repeated($field) !== ($index === $count - 3)
             ) {
                 return null;
@@ -150,7 +151,7 @@ final class GroupSource
     /** Whether a direct child `name` of a group is a scalar child: not a group, not repeated and without lang. */
     private static function scalarChild(array $properties, mixed $name): bool
     {
-        if (!is_string($name) || !array_key_exists($name, $properties) || !self::isObject($properties[$name])) {
+        if (!is_string($name) || !array_key_exists($name, $properties) || !JsonValue::isObject($properties[$name])) {
             return false;
         }
         $child = (array) $properties[$name];
@@ -164,14 +165,14 @@ final class GroupSource
     private static function repeated(array $field): bool
     {
         $multiple = $field['multiple'] ?? null;
-        return $multiple === true || $multiple === 'only' || self::isObject($multiple);
+        return $multiple === true || $multiple === 'only' || JsonValue::isObject($multiple);
     }
 
     /** Whether a field declares lang: true or an object. */
     private static function hasLang(array $field): bool
     {
         $lang = $field['lang'] ?? null;
-        return $lang === true || self::isObject($lang);
+        return $lang === true || JsonValue::isObject($lang);
     }
 
     /** The canonical text of a string or a finite number that is not empty after trimming, or null. */
@@ -182,11 +183,5 @@ final class GroupSource
         }
         $text = CanonicalText::of($value);
         return $text !== null && Whitespace::trim($text) !== '' ? $text : null;
-    }
-
-    /** A JSON object value: stdClass or a non-empty associative array. */
-    private static function isObject(mixed $value): bool
-    {
-        return $value instanceof \stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
     }
 }

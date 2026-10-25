@@ -538,12 +538,8 @@ class Validator:
         context = {"currentPath": item_path, "rowKeys": row_keys, "formData": all_data}
         messages = _field_messages(field)
         rules = _normalize_validate_slot(field.get("validate"))
-        if self._run_implicit_number(
+        if self._run_implicit_rules(
             field, rules, value, context, declaration_path, messages, item_path, errors
-        ):
-            return
-        if self._run_group_source(
-            field, value, context, declaration_path, messages, item_path, errors
         ):
             return
         if not rules:
@@ -580,12 +576,8 @@ class Validator:
         context = {"currentPath": field_path, "rowKeys": row_keys, "formData": all_data}
         messages = _field_messages(field)
         rules = _normalize_validate_slot(field.get("validate"))
-        if self._run_implicit_number(
+        if self._run_implicit_rules(
             field, rules, value, context, declaration_path, messages, field_path, errors
-        ):
-            return
-        if self._run_group_source(
-            field, value, context, declaration_path, messages, field_path, errors
         ):
             return
         if not rules:
@@ -606,45 +598,7 @@ class Validator:
                 )
                 break
 
-    def _run_group_source(
-        self,
-        field: dict[str, JsonValue],
-        value: JsonValue,
-        context: dict[str, Any],
-        declaration_path: list[str],
-        messages: dict[str, JsonValue] | None,
-        path: list[str],
-        errors: list[dict[str, Any]],
-    ) -> bool:
-        """A field whose `items` is a group source runs an implicit `in` check first.
-
-        The members are the choice values that the source gives for the data
-        being validated (validation-rules.md, "Values"). It is reported as the
-        rule `in`. Returns True when it pushed an error.
-        """
-        source = field.get("items")
-        if not is_group_source(source):
-            return False
-        members: list[JsonValue] = [
-            choice["value"] for choice in group_choices(source, context["formData"])
-        ]
-        error = self._run_rule(
-            "in", members, value, context, declaration_path, field, messages
-        )
-        if error is not None:
-            errors.append(
-                {
-                    "path": path_to_string(path),
-                    "field": get_field_name(path),
-                    "rule": "in",
-                    "message": error,
-                    "value": None if value is None else value,
-                }
-            )
-            return True
-        return False
-
-    def _run_implicit_number(
+    def _run_implicit_rules(
         self,
         field: dict[str, JsonValue],
         rules: dict[str, JsonValue] | None,
@@ -655,29 +609,38 @@ class Validator:
         path: list[str],
         errors: list[dict[str, Any]],
     ) -> bool:
-        """`type: number` runs an implicit `number` rule before everything else.
+        """Run the rules a field implies before its declared rules.
 
-        It runs only when no explicit `number` rule is declared, and is
-        reported as the rule `number`. Returns True when it pushed an error.
+        `type: number` implies a `number` rule unless the field declares one, and
+        an `items` group source implies an `in` rule whose members are the choice
+        values that the source gives for the data being validated
+        (validation-rules.md, "Evaluation" and "Values"). The first failure is
+        recorded under its rule name; returns True when one was recorded.
         """
-        if field.get("type") != "number":
-            return False
-        if rules is not None and "number" in rules:
-            return False
-        error = self._run_rule(
-            "number", True, value, context, declaration_path, field, messages
-        )
-        if error is not None:
-            errors.append(
-                {
-                    "path": path_to_string(path),
-                    "field": get_field_name(path),
-                    "rule": "number",
-                    "message": error,
-                    "value": None if value is None else value,
-                }
+        implied: list[tuple[str, JsonValue]] = []
+        if field.get("type") == "number" and (rules is None or "number" not in rules):
+            implied.append(("number", True))
+        source = field.get("items")
+        if is_group_source(source):
+            members: list[JsonValue] = [
+                choice["value"] for choice in group_choices(source, context["formData"])
+            ]
+            implied.append(("in", members))
+        for rule_name, rule_value in implied:
+            error = self._run_rule(
+                rule_name, rule_value, value, context, declaration_path, field, messages
             )
-            return True
+            if error is not None:
+                errors.append(
+                    {
+                        "path": path_to_string(path),
+                        "field": get_field_name(path),
+                        "rule": rule_name,
+                        "message": error,
+                        "value": None if value is None else value,
+                    }
+                )
+                return True
         return False
 
     def _run_rule(
