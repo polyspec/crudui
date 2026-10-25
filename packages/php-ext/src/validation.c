@@ -463,7 +463,7 @@ static const ps_value *effective_parameter(ps_text rule, const ps_value *declare
                                            const ps_text *path, size_t length, ps_value **owned)
 {
     static const char *const verbatim[] = {
-        "equalTo", "containedIn", "notEqual", "unique", "enddate", "reference", "accept",
+        "equalTo", "containedIn", "typeFrom", "notEqual", "unique", "enddate", "reference", "accept",
         "match", "pattern", "in", "conditionTree",
     };
     *owned = NULL;
@@ -516,6 +516,7 @@ static ps_chars message_for(const ps_value *field, ps_text rule, const ps_value 
         {"number", "Please enter a valid number."}, {"digits", "Please enter only digits."},
         {"equalTo", "Please enter the same value again."}, {"notEqual", "Please enter a different value."},
         {"containedIn", "Please enter a value that the referenced field contains."},
+        {"typeFrom", "Please enter a value of the declared type."},
         {"date", "Please enter a valid date."}, {"dateISO", "Please enter a valid date in ISO format (YYYY-MM-DD)."},
         {"enddate", "End date must be after the start date."}, {"url", "Please enter a valid URL."},
         {"accept", "Please upload a file with a valid format."},
@@ -625,6 +626,16 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
         /* CUVR-075: a string value occurs in the string value of the referenced field. */
         const ps_value *other = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : NULL;
         return value->kind == PS_STRING && other && other->kind == PS_STRING && text_contains(ps_string(other), ps_string(value));
+    }
+    if (ps_text_is(rule, "typeFrom")) {
+        /* CUVR-077: the value has the type that the referenced field names. */
+        const ps_value *declared = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : NULL;
+        if (!declared || declared->kind != PS_STRING) return 0;
+        ps_text type = ps_string(declared);
+        if (ps_text_is(type, "bool")) return value->kind == PS_BOOL;
+        if (ps_text_is(type, "int")) return value->kind == PS_INT || (value->kind == PS_FLOAT && isfinite(value->data.number) && floor(value->data.number) == value->data.number);
+        if (ps_text_is(type, "enum")) return value->kind == PS_STRING;
+        return 0;
     }
     if (ps_text_is(rule, "dateISO")) { int serial; return value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial); }
     if (ps_text_is(rule, "date")) return value->kind == PS_STRING && valid_date_text(ps_trim(ps_string(value)));

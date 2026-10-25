@@ -295,6 +295,7 @@ export interface MessagesSpec {
     reference?: string;
     required?: string;
     step?: string;
+    typeFrom?: string;
     unique?: string;
     url?: string;
 }
@@ -447,6 +448,7 @@ export interface ValidateSlot {
     reference?: string | false | null;
     required?: Evaluated<boolean | null>;
     step?: Evaluated<number | false | null>;
+    typeFrom?: string | false | null;
     unique?: boolean | string | null;
     url?: Evaluated<boolean | null>;
 }

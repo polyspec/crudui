@@ -38,6 +38,7 @@ const CHECKED_RULES = new Set([
   'pattern',
   'equalTo',
   'containedIn',
+  'typeFrom',
   'enddate',
   'notEqual',
   'unique',
@@ -80,6 +81,7 @@ function ruleParameterFailure(ruleName: string, param: unknown): ParameterFailur
       return isStep(param) ? null : invalid('Invalid step parameter: expected a finite number above 0');
     case 'equalTo':
     case 'containedIn':
+    case 'typeFrom':
     case 'enddate':
       return typeof param === 'string'
         ? null

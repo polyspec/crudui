@@ -10,6 +10,7 @@ the value.
 
 import calendar
 import json
+import math
 import re
 import urllib.parse
 from datetime import datetime, timezone
@@ -412,6 +413,34 @@ def _rule_contained_in(context: RuleContext) -> str | None:
         "containedIn",
         "Please enter a value that the referenced field contains.",
     )
+    return message
+
+
+def _has_declared_type(value: Value, declared: Value) -> bool:
+    """Whether the value has the type that `declared` names: bool, int or enum."""
+    if declared == "bool":
+        return isinstance(value, bool)
+    if declared == "int":
+        if isinstance(value, bool):
+            return False
+        if isinstance(value, int):
+            return True
+        return isinstance(value, float) and math.isfinite(value) and value.is_integer()
+    if declared == "enum":
+        return isinstance(value, str)
+    return False
+
+
+def _rule_type_from(context: RuleContext) -> str | None:
+    """The value has the type that the referenced field names (CUVR-077)."""
+    value, rule_param = context["value"], context["ruleParam"]
+    if rule_param is None:
+        return None
+    if is_empty_value(value):
+        return None
+    if _has_declared_type(value, _resolve_field_param(rule_param, context)):
+        return None
+    message: str = _message(context, "typeFrom", "Please enter a value of the declared type.")
     return message
 
 
@@ -950,6 +979,7 @@ _RULES = {
     "digits": _rule_digits,
     "equalTo": _rule_equal_to,
     "containedIn": _rule_contained_in,
+    "typeFrom": _rule_type_from,
     "notEqual": _rule_not_equal,
     "date": _rule_date,
     "dateISO": _rule_date_iso,
@@ -980,6 +1010,7 @@ _CHECKED_RULES = {
     "pattern",
     "equalTo",
     "containedIn",
+    "typeFrom",
     "enddate",
     "notEqual",
     "unique",
@@ -1056,7 +1087,7 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
     if rule_name == "in":
         members = read_members(param)
         return invalid(members) if isinstance(members, str) else None
-    if rule_name in ("equalTo", "containedIn", "enddate"):
+    if rule_name in ("equalTo", "containedIn", "typeFrom", "enddate"):
         return (
             None
             if isinstance(param, str)

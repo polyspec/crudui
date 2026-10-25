@@ -18,7 +18,7 @@ bool ps_registered_rule(ps_text rule)
 {
     static const char *const rules[] = {
         "required", "email", "minlength", "maxlength", "min", "max", "match", "pattern",
-        "unique", "in", "range", "rangelength", "number", "digits", "equalTo", "containedIn", "notEqual",
+        "unique", "in", "range", "rangelength", "number", "digits", "equalTo", "containedIn", "typeFrom", "notEqual",
         "date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
         "conditionTree",
         "reference",
@@ -34,7 +34,7 @@ static bool pattern_rule(ps_text rule)
 }
 
 /*
- * The problem of a parameter of a rule that references a field: equalTo, containedIn and enddate take a field
+ * The problem of a parameter of a rule that references a field: equalTo, containedIn, typeFrom and enddate take a field
  * reference string, notEqual a string, number or boolean, unique true or a string, and reference a
  * string.
  */
@@ -46,6 +46,8 @@ static bool reference_parameter(ps_text rule, const ps_value *parameter, ps_para
         if (kind != PS_STRING) message = "Invalid equalTo parameter: expected a field reference string";
     } else if (ps_text_is(rule, "containedIn")) {
         if (kind != PS_STRING) message = "Invalid containedIn parameter: expected a field reference string";
+    } else if (ps_text_is(rule, "typeFrom")) {
+        if (kind != PS_STRING) message = "Invalid typeFrom parameter: expected a field reference string";
     } else if (ps_text_is(rule, "enddate")) {
         if (kind != PS_STRING) message = "Invalid enddate parameter: expected a field reference string";
     } else if (ps_text_is(rule, "notEqual")) {

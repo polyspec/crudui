@@ -18,6 +18,7 @@ package validate
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -66,6 +67,7 @@ var builtInRules = map[string]ruleFn{
 	"digits":        ruleDigits,
 	"equalTo":       ruleEqualTo,
 	"containedIn":   ruleContainedIn,
+	"typeFrom":      ruleTypeFrom,
 	"notEqual":      ruleNotEqual,
 	"date":          ruleDate,
 	"dateISO":       ruleDateISO,
@@ -508,6 +510,39 @@ func ruleContainedIn(value any, ruleParam any, ctx ruleContext) (string, bool) {
 		return "", false
 	}
 	return ctx.msg("containedIn", "Please enter a value that the referenced field contains."), true
+}
+
+// ruleTypeFrom: the value has the type that a referenced field's value names
+// (CUVR-077): bool a boolean, int a finite number without a fractional part,
+// enum a string. Empty skips; a missing or other type fails.
+func ruleTypeFrom(value any, ruleParam any, ctx ruleContext) (string, bool) {
+	declared, applies := referencedValue(value, ruleParam, ctx)
+	if !applies {
+		return "", false
+	}
+	if hasDeclaredType(value, declared) {
+		return "", false
+	}
+	return ctx.msg("typeFrom", "Please enter a value of the declared type."), true
+}
+
+// hasDeclaredType reports whether value has the type that declared names.
+func hasDeclaredType(value any, declared any) bool {
+	switch declared {
+	case "bool":
+		_, ok := value.(bool)
+		return ok
+	case "int":
+		if _, isBool := value.(bool); isBool {
+			return false
+		}
+		number, ok := finiteNumber(value)
+		return ok && number == math.Trunc(number)
+	case "enum":
+		_, ok := value.(string)
+		return ok
+	}
+	return false
 }
 
 // strictEquals mirrors JS === over decoded JSON values: same JS type and equal.

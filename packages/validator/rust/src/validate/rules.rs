@@ -74,6 +74,7 @@ pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
         "digits" => Some(rule_digits),
         "equalTo" => Some(rule_equal_to),
         "containedIn" => Some(rule_contained_in),
+        "typeFrom" => Some(rule_type_from),
         "notEqual" => Some(rule_not_equal),
         "date" => Some(rule_date),
         "dateISO" => Some(rule_date_iso),
@@ -596,6 +597,28 @@ fn rule_contained_in(ctx: &RuleContext) -> Option<String> {
     Some(
         message_override(ctx.messages, "containedIn")
             .unwrap_or("Please enter a value that the referenced field contains.")
+            .to_string(),
+    )
+}
+
+/// typeFrom: the value has the type that the value of the referenced field names: bool a boolean, int a finite
+/// number without a fractional part, enum a string; a missing or other type fails.
+fn rule_type_from(ctx: &RuleContext) -> Option<String> {
+    let declared = referenced_value(ctx)?;
+    let typed = match (declared, ctx.value) {
+        (Value::String(name), Value::Bool(_)) => name == "bool",
+        (Value::String(name), Value::Number(number)) => {
+            name == "int" && number.as_f64().is_some_and(|n| n.is_finite() && n.fract() == 0.0)
+        }
+        (Value::String(name), Value::String(_)) => name == "enum",
+        _ => false,
+    };
+    if typed {
+        return None;
+    }
+    Some(
+        message_override(ctx.messages, "typeFrom")
+            .unwrap_or("Please enter a value of the declared type.")
             .to_string(),
     )
 }

@@ -365,7 +365,7 @@ type ValidateSlot struct {
 // messages. The validate package's rule registry has exactly these rules.
 var RuleNames = []string{
 	"required", "email", "minlength", "maxlength", "min", "max", "match", "pattern",
-	"unique", "in", "range", "rangelength", "number", "digits", "equalTo", "containedIn", "notEqual",
+	"unique", "in", "range", "rangelength", "number", "digits", "equalTo", "containedIn", "typeFrom", "notEqual",
 	"date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
 	"conditionTree",
 	"reference",
