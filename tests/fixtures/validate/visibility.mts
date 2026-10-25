@@ -32,6 +32,7 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   maxcount: 'Please select no more than {0} items.',
   unique: 'Values must be unique.',
   accept: 'Please upload a file with a valid format.',
+  conditionTree: 'Please enter a valid condition.',
 };
 
 interface ErrorRecord {
