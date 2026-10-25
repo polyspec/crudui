@@ -229,6 +229,10 @@ whitespace, emptiness or text.
   overrides. A declared `in` runs as declared after the implicit check. The rows of a hidden group
   give choices like any other rows, because a hidden field keeps its value
   ([visibility](#evaluation)).
+  The members are read from the data at each validation, so a validation after a change of the
+  source rows checks the choices that the form lists after that change
+  ([choices from a repeated group](schema.md#choices-from-a-repeated-group)); the browser validation
+  binding validates the data of its controls, whose choices are the ones it shows.
 
 ## Condition trees
 

@@ -433,6 +433,21 @@ roles:
   finite number whose canonical text is not empty after trimming, and otherwise the value of the
   choice. A group without data has no choices. The field lists these choices as it lists a
   [choice list](#choice-lists) of the same pairs.
+- **CUSC-071** The choices follow the data. A form instance lists them from its current data after
+  every change of that data (`setValue`, `setData`, `addRow`, `copyRow`, `removeRow`, `moveRow`,
+  `rekeyRow`, `undo` and `redo`), so a change of a row of the source group, of its `{value}` field
+  or of its `label` field changes the choices that the next view of the instance lists. Listing
+  the choices changes no value: a value that no choice matches any more stays in the data, and
+  validation reports it ([choices from a repeated group](validation-rules.md#values)).
+
+A browser binding keeps the choices that the page shows equal to those of the data it holds. The
+React, Vue and Svelte `Form` components and a page of the HTML renderer render every view of the
+instance, so they show the choices of each change. The browser validation binding of a
+server-rendered form ([form binding](../../packages/form-binding/README.md#choices-from-a-repeated-group))
+renders the widget of each field with a group source again from the data of its controls when it
+binds and after every `input` or `change` event, and keeps each selected value that is still a
+choice selected; a value that is no longer a choice is held by no control, so its data lacks it as
+a native submission does.
 
 Every validator checks a value against these choices
 ([choices from a repeated group](validation-rules.md#values)). Compilation checks a group source
