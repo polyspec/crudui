@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dispatch } from '../../../../tests/native-generators/javascript.mts';
 import { contractPath, outputPath, unicodeDataSource } from '../../tools/generate-unicode-data.mjs';
 
-import { cString, cText, cTextInitializer, EngineFixtureSource, caseProgramStart, caseProgramEnd, caseReport, recordCases, fixtureProgram, commaLocaleEnvironment, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, ENGINE_INSPECTION_BUDGET, compileAndRunEngineProgram, compileAndRunEngineFixture } from './support.mjs';
+import { cString, cText, cTextInitializer, EngineFixtureSource, caseProgramStart, caseProgramEnd, caseReport, caseResults, recordCases, fixtureProgram, commaLocaleEnvironment, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, ENGINE_INSPECTION_BUDGET, compileAndRunEngineProgram, compileAndRunEngineFixture } from './support.mjs';
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -149,10 +149,6 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 318,
-    'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 385,
-    'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
   try {
@@ -164,6 +160,10 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
       ],
       onOutput: stdout => { output = stdout; },
     });
+    // The program reports one result for each case of the shared cases.json files, in their order; a case that the
+    // program drops or adds changes the reported ids.
+    assert.deepEqual([...caseResults(output).keys()].sort((a, b) => a - b), validationEvidence.map((_, index) => index + 1),
+      'the extension engine reports a result for each case of the shared validate, spec-validity, list-validity and detail-validity cases.json');
   } finally {
     recordCases(validationEvidence, output);
     await rm(directory, { recursive: true, force: true });
