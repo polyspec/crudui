@@ -315,26 +315,27 @@ function sliceSection(md: string, fromHeader: RegExp, toHeader = /^## /m): strin
   return (end < 0 ? section : section.slice(0, end)).join('\n');
 }
 
-// A row of the token table: three cells, each of characters other than | and of escapes such as \|.
-const TOKEN_ROW = /^\|\s*`(?<token>[^`]+)`\s*\|(?<pattern>(?:[^|\\]|\\.)*)\|(?:[^|\\]|\\.)*\|\s*$/;
+// A token requirement of §1: - **CUXP-<n>** `TOKEN` — Pattern: <pattern>; Example: <example>.
+const TOKEN_ITEM = /^- \*\*CUXP-\d+\*\* `(?<token>[^`]+)` — Pattern: (?<pattern>.+); Example: .+$/;
 const LIST_ITEM = /^\s*\d+\.\s+/;
 
 function collectGrammar(): DescribeResult['grammar'] {
   const md = readFileSync(GRAMMAR_PATH, 'utf-8');
 
-  // §1 token table: | `TOK` | pattern | example |, with a | of a cell escaped as \| (GFM). Every row after the header
-  // and the separator is a token; a row of another shape fails instead of being dropped or cut at an unescaped |.
+  // §1 tokens: every non-empty line of the section is a token requirement; a line of another shape fails instead of
+  // being dropped, and a section without a token fails instead of reading as no tokens.
   const tokenSection = sliceSection(md, /^## 1\. /m);
   const tokens: Array<{ token: string; pattern: string }> = [];
-  for (const row of tokenSection.split('\n').filter((line) => line.startsWith('|')).slice(2)) {
-    const match = TOKEN_ROW.exec(row);
+  for (const line of tokenSection.split('\n').filter((text) => text.trim() !== '')) {
+    const match = TOKEN_ITEM.exec(line);
     const token = match?.groups?.['token'];
-    const cell = match?.groups?.['pattern'];
-    if (token === undefined || cell === undefined) {
-      throw new Error(`docs/spec/expressions.md §1: the row ${row} is not | \`TOKEN\` | pattern | example | with each | of a cell escaped as \\|`);
+    const pattern = match?.groups?.['pattern'];
+    if (token === undefined || pattern === undefined) {
+      throw new Error(`docs/spec/expressions.md §1: the line ${line} is not - **CUXP-<n>** \`TOKEN\` — Pattern: <pattern>; Example: <example>`);
     }
-    tokens.push({ token, pattern: cell.replace(/\\\|/g, '|').replace(/`/g, '').trim() });
+    tokens.push({ token, pattern: pattern.replace(/`/g, '').trim() });
   }
+  if (tokens.length === 0) throw new Error('docs/spec/expressions.md §1: expected at least one token requirement, actual 0');
 
   // §3 precedence: the items of the numbered list; the prose around it ("From lowest to highest:", the example after
   // it) is no level.
