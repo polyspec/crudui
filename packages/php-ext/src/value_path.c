@@ -61,7 +61,8 @@ ps_chars ps_scalar_string(const ps_value *value)
         return ps_copy(PS_TEXT(""));
     if (value->kind == PS_STRING) return ps_copy(ps_string(value));
     if (value->kind == PS_BOOL) return ps_copy(value->data.boolean ? PS_TEXT("1") : PS_TEXT(""));
-    if (value->kind != PS_INT) return ps_format_general(value->data.number, 15);
+    /* A float is finite (ps_value_float); it is written as its canonical text (CUMK-069). */
+    if (value->kind != PS_INT) return ps_number_text(value->data.number);
     char buffer[64];
     snprintf(buffer, sizeof(buffer), "%lld", (long long)value->data.integer);
     return ps_copy(ps_fixed(buffer));
