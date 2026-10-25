@@ -153,6 +153,11 @@ whitespace, emptiness or text.
   collection. Requiredness and collection limits are separate; see
   [empty collections](empty-collections.md).
 
+- **CUVR-080** The value of the [placeholder option](schema.md#choice-lists) of a select or search
+  field with no option ([CUSC-080](schema.md#choice-lists)) is the empty string, an empty value: a
+  submitted placeholder fails `required` when the field declares it, and every other rule except
+  `mincount` and `maxcount` passes it without evaluating it, `in` with an empty member set included.
+
 - **CUVR-021** **Canonical text** of a scalar is: a string itself; `true` as `1` and `false` as
   `0`; a finite number as ECMAScript `Number.prototype.toString` writes its double value (the
   shortest text that reads back as the same double, with an exponent when the

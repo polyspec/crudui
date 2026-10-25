@@ -1187,6 +1187,7 @@ const REQUIREMENTS: Record<string, string[]> = {
   'value-in-empty-list': ['CUVR-011', 'CUVR-020'],
   'value-in-empty-map': ['CUVR-011', 'CUVR-020'],
   'value-in-empty-list-required': ['CUVR-001', 'CUVR-011', 'CUVR-020'],
+  'select-placeholder-empty-value': ['CUVR-001', 'CUVR-020', 'CUVR-080'],
   'value-in-choice-list': ['CUVR-011'],
   'value-in-choice-list-items': ['CUVR-011'],
   'value-in-choice-groups': ['CUVR-011'],

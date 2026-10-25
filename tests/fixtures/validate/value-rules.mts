@@ -248,6 +248,18 @@ export const AUTHORED_CASES: AuthoredCase[] = [
     outcomes: { empty: fail('required'), chosen: fail('in') },
   },
   {
+    name: 'select-placeholder-empty-value',
+    note: 'the placeholder option of a select or search field with no option submits "", an empty value: required fails on it and every other rule passes it.',
+    spec: { type: 'group', properties: {
+      chosen: { type: 'select', validate: { required: true } },
+      found: { type: 'search', validate: { required: true } },
+      open: { type: 'select', items: [], validate: { in: [], minlength: 3 } },
+      size: { type: 'dropdown', items: {}, validate: { in: {}, email: true } },
+    } },
+    data: { chosen: '', found: '', open: '', size: '' },
+    outcomes: { chosen: fail('required'), found: fail('required'), open: null, size: null },
+  },
+  {
     name: 'value-in-choice-list',
     note: 'a choice list contributes the value of each pair; labels are not members and numeric values match by value.',
     ...fields({ one: 1, zero: '0', decimal: '1.0', text: 'b', label: 'Yes', two: 2 }, { in: [{ value: 1, label: 'Yes' }, { value: '0', label: 'No' }, { value: 'b', label: { en: 'Bee' } }] }),

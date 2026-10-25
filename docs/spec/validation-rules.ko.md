@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 1afc47a95399ac774f93b7e6d227ee9a3e87e62a96c327a9b842d2292758eb91 -->
+<!-- source-sha256: 783836a4861c4dbff6813a538771092e5398bed35581d5f46baa598a81b55878 -->
 
 [English](validation-rules.md).
 
@@ -128,6 +128,11 @@ display:
   입력된 값입니다. `required`는 빈 값에서 실패합니다. `mincount`와 `maxcount`를 제외한 다른
   규칙은 빈 값을 평가하지 않고 통과시키며, 컬렉션 개수 규칙은 빈 컬렉션도 평가합니다. 데이터가 없는 반복 필드나 그룹은 빈 컬렉션입니다. 필수 입력과
   컬렉션 제한은 별도입니다. [빈 컬렉션](empty-collections.ko.md)을 참고합니다.
+
+- **CUVR-080** option이 없는 select나 search 필드의 [placeholder option](schema.ko.md#선택-목록)
+  ([CUSC-080](schema.ko.md#선택-목록)) 값은 빈 문자열이며 빈 값입니다. 제출된 placeholder는 필드가
+  `required`를 선언하면 `required`에서 실패하고, `mincount`와 `maxcount`를 제외한 다른 규칙은 빈 멤버
+  집합의 `in`을 포함하여 이 값을 평가하지 않고 통과시킵니다.
 
 - **CUVR-021** **스칼라의 정규 텍스트**는 문자열이면 그 문자열, `true`는 `1`, `false`는 `0`, 유한한 숫자는
   그 double 값을 ECMAScript `Number.prototype.toString`이 쓰는 텍스트입니다. 즉 같은 double로 다시 읽히는 가장

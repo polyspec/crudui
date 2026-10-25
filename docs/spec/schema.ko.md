@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 8d11a3a85494db0dad605b326671ccdedf8daa1b728ea1937d989211b353f7b2 -->
+<!-- source-sha256: 45f97df6fd6e8ae9c4013a8c8efe69721def0847d8658b618effa5ead207dbe7 -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -262,6 +262,16 @@ choice, multichoice, search 필드는 값과 라벨의 맵처럼 쌍을 목록 �
   { "value": 0, "label": "No" }]`는 Yes를 No보다 먼저 표시합니다. 값이 정수 형태이거나 섞여 있고 작성한
   순서가 필요할 때 사용합니다.
 - **CUSC-022** 라벨의 배열은 인덱스 `0`, `1`, …을 값으로 하여 작성한 순서를 유지합니다.
+
+option이 없는 select 필드(`select`, `dropdown`, `selectbox` 타입)나 search 필드(`search`,
+`autocomplete` 타입)는 `select` 요소가 비지 않도록 placeholder option을 씁니다.
+
+- **CUSC-080** `items`가 option을 주지 않는 select나 search 필드(`items` 없음, 빈 배열, 빈 맵, 또는
+  생성기가 레코드를 가져오지 않는 `model`이 있는 동적 소스 설명자)는 값이 빈 문자열이고 텍스트가
+  `select`인 `option` 요소를 정확히 하나 씁니다: `<option value="">select</option>`. 텍스트는 모든 표시
+  언어에서 같고 번역하지 않으며, 필드의 값과 관계없이 이 option은 선택되지 않습니다. option이 하나
+  이상인 필드는 placeholder option을 쓰지 않습니다. placeholder의 값은
+  [빈 값](validation-rules.ko.md#값)입니다([CUVR-080](validation-rules.ko.md#값)).
 
 ### 선택지 그룹
 

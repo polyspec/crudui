@@ -2423,7 +2423,8 @@
       "CUMK-002",
       "CUMK-003",
       "CUMK-010",
-      "CUMK-011"
+      "CUMK-011",
+      "CUSC-080"
     ],
     "spec": {
       "type": "group",
@@ -2487,7 +2488,8 @@
       "CUMK-002",
       "CUMK-003",
       "CUMK-010",
-      "CUMK-011"
+      "CUMK-011",
+      "CUSC-080"
     ],
     "spec": {
       "type": "group",
@@ -3099,7 +3101,8 @@
       "CUMK-001",
       "CUMK-002",
       "CUMK-003",
-      "CUMK-011"
+      "CUMK-011",
+      "CUSC-080"
     ],
     "spec": {
       "type": "group",
@@ -3194,7 +3197,8 @@
       "CUMK-002",
       "CUMK-003",
       "CUMK-010",
-      "CUMK-011"
+      "CUMK-011",
+      "CUSC-080"
     ],
     "spec": {
       "type": "group",
@@ -3302,6 +3306,115 @@
       "language": "ko"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"sc\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:sc\">검색</label></div><div class=\"crudui-node__body\"><style nonce=\"\">[class~=\"crudui:sc_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:sc\"), \"2\", \"250\", \"crudui:sc_select2\");});</script><div class=\"crudui-widget crudui-widget--search\"><select class=\"valid-target crudui-input crudui-input--select valid-target-async\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"sc\" data-rule-name=\"sc\" data-source-method=\"find\" data-source-model=\"Doc\" data-source-relations=\"[&quot;a<b&quot;,&quot;x&amp;y&quot;,&quot;line end&quot;,{&quot;q<&quot;:&quot;<&amp;>&quot;}]\" data-source-table=\"docs\" id=\"crudui:sc\" name=\"sc\"><option value=\"\">select</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+  },
+  {
+    "name": "select-no-items-placeholder",
+    "note": "select without items → one option, value \"\" and text select, untranslated in English; the field value selects nothing.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-011",
+      "CUSC-080"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "s": {
+          "type": "select",
+          "label": "Pick"
+        }
+      }
+    },
+    "data": {
+      "s": "x"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"s\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:s\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"s\" data-rule-name=\"s\" id=\"crudui:s\" name=\"s\"><option value=\"\">select</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "select-empty-array-placeholder",
+    "note": "select with an empty items array → the placeholder option.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-011",
+      "CUSC-080"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "s": {
+          "type": "select",
+          "label": {
+            "ko": "선택"
+          },
+          "items": []
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"s\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:s\">선택</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"s\" data-rule-name=\"s\" id=\"crudui:s\" name=\"s\"><option value=\"\">select</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+  },
+  {
+    "name": "dropdown-empty-map-placeholder",
+    "note": "dropdown with an empty items map → the placeholder option.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-011",
+      "CUSC-080"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "d": {
+          "type": "dropdown",
+          "label": "Size",
+          "items": {}
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"d\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:d\">Size</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"d\" data-rule-name=\"d\" id=\"crudui:d\" name=\"d\"><option value=\"\">select</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "selectbox-one-choice-no-placeholder",
+    "note": "selectbox with one choice → that option and no placeholder option.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-011",
+      "CUSC-080"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "s": {
+          "type": "selectbox",
+          "label": "One",
+          "items": {
+            "a": "A"
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"s\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:s\">One</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"s\" data-rule-name=\"s\" id=\"crudui:s\" name=\"s\"><option value=\"a\">A</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
     "name": "unsupported-type-throws",

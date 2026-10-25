@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: 44d6e075be8e4b662b6aee19d8ea3919ce9fcd4ddea6679fcc4910ca34fa11da -->
+<!-- source-sha256: a577162cecca0d0fb1fa9ff5763a6b9002d203438ff99ca638833d5e52a9936e -->
 
 [English](README.md).
 
@@ -25,7 +25,8 @@ id, id가 없는 form, 매개변수 오류를 확인합니다.
 확인합니다. 그룹 소스 사례는 필드가 반복 그룹의 행에서 가져오는 선택지를 확인합니다. 정규 텍스트나 숫자 값으로
 일치하는 값, 선택지가 되지 않는 행, 데이터가 없는 그룹, 선언한 규칙보다 먼저 실행하는 암묵적 `in` 검사,
 숨겨진 그룹의 행, 그룹 소스의 로드 실패를 다룹니다. multiple 형태 사례는 불리언, `only`, 객체가 아닌 `multiple`이
-필드의 선언 경로에서, 그 규칙보다 먼저 로드에 실패하는지 확인합니다. 실패 사례는 `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
+필드의 선언 경로에서, 그 규칙보다 먼저 로드에 실패하는지 확인합니다. placeholder 사례는 option이 없는 select나 search 필드의 placeholder option이 주는 빈 값이
+`required`에서 실패하고 다른 모든 규칙을 통과하는지 확인합니다. 실패 사례는 `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
 `UNKNOWN_RULE`, `INVALID_FORM_INPUT`을 사용합니다. [테스트 고정 데이터 계약](../../../docs/operations/test-fixtures.ko.md)이
 형식을 설명합니다.
 

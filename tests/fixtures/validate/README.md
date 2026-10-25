@@ -30,7 +30,9 @@ missing data that has no row but still fails `required` and `mincount`. The grou
 the choices that a field takes from the rows of a repeated group: values that match by canonical text
 or numeric value, rows that give no choice, a group without data, the implicit `in` check before the
 declared rules, the rows of a hidden group and the load failures of a group source. The multiple shape cases check that a
-`multiple` that is not a boolean, `only` or an object fails the load at the declaration path of its field, before its rules. Failure cases use `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
+`multiple` that is not a boolean, `only` or an object fails the load at the declaration path of its field, before its rules. The placeholder case checks
+that the empty value of the placeholder option of a select or search field with no option fails
+`required` and passes every other rule. Failure cases use `REF_FILE_NOT_FOUND`, `INVALID_RULE_PARAMETER`, `INVALID_RULE_PATTERN`,
 `UNKNOWN_RULE` and `INVALID_FORM_INPUT`. The
 [test fixture contract](../../../docs/operations/test-fixtures.md) describes the format.
 

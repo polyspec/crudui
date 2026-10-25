@@ -285,6 +285,18 @@ Choose the form by the required order:
   mixed and the written order is required.
 - **CUSC-022** An array of labels keeps the written order with the indexes `0`, `1`, … as the values.
 
+A select field (the types `select`, `dropdown` and `selectbox`) or a search field (the types
+`search` and `autocomplete`) that has no option writes a placeholder option, so that its `select`
+element is never empty:
+
+- **CUSC-080** A select or search field whose `items` give no option (absent `items`, an empty
+  array, an empty map, or a dynamic source descriptor with `model`, whose records the generators do
+  not fetch) writes exactly one `option` element, whose value is the empty string and whose text is
+  `select`: `<option value="">select</option>`. The text is the same in every display language and
+  is not translated, and the option is never selected, whatever the value of the field. A field with
+  at least one option writes no placeholder option. The value of the placeholder is an
+  [empty value](validation-rules.md#values) ([CUVR-080](validation-rules.md#values)).
+
 ### Choice groups
 
 The choice list of a select field (the types `select`, `dropdown` and `selectbox`) may contain group
