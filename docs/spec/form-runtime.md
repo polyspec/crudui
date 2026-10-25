@@ -32,7 +32,7 @@ instance state and must not be stored in a shared template cache.
 Node models keep the member order the [form markup](form-markup.md) defines, and
 every widget model lists its members in the order `kind`, `layout`, `tag`,
 `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`, `script`,
-`styleChrome`, `prepend`, `append`, `extra`, with `display` before
+`styleChrome`, `prepend`, `append`, `extra`, `condition`, with `display` before
 `file` and `input` before `option` in `extra`, in every runtime.
 
 `createForm(template, data, options)` creates an editable instance.

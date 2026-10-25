@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 2b34e69b1ca79a3fe9d959d8dfcdd36793200bd82bcf4379daab929d4bb03062 -->
+<!-- source-sha256: 5500080e4f58a3cb55cda6612c137dc8dc98b56c4c900a6d62346bcfcd396830 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -299,9 +299,10 @@ JSON 텍스트임을 표시합니다([조건 값](form-runtime.ko.md#조건-값)
   `conditionInvalid`의 `<p class="crudui-condition__error" role="alert">`를 쓰고, 편집기는 쓰지 않습니다.
   `{path}`는 필드의 데이터 경로입니다.
 
-구조 필드의 위젯 모델은 `condition`을 더합니다. `{ for, judge, fields, root }`에서 `for`는 textarea id, `judge`는
-판정 텍스트를 제공하는지 여부, `fields`는 `options.fields`의 목록 또는 `null`, `root`는 루트 노드입니다. 또는
-오류 텍스트가 있는 `{ for, error }`입니다. 노드는 `{ kind: "group", path, mode, items }`, 값 텍스트가 있는
+구조 필드의 위젯 모델은 layout `condition`을 가지며 `condition`을 더합니다. `{ for, judge, fields, labels, root }`에서
+`for`는 textarea id, `judge`는 판정 텍스트를 제공하는지 여부, `fields`는 `options.fields`의 목록 또는 `null`,
+`labels`는 컨트롤의 화면 문구 `{ mode, addComparison, addGroup, addJudge, remove }`, `root`는 루트 노드입니다.
+또는 오류 텍스트가 있는 `{ for, error }`입니다. 노드는 `{ kind: "group", path, mode, items }`, 값 텍스트가 있는
 `{ kind: "comparison", path, field, op, value }`, 또는 `{ kind: "judge", path, text }`입니다. `options.fields:
 [clues.size]`이고 데이터가 `{ "all": [{ "field": "clues.size", "op": "ge", "value": 2 }] }`인 필드
 `opens_when`은 영어로 다음을 씁니다.

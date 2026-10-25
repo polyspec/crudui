@@ -325,9 +325,11 @@ the append affix:
   no `hidden`, `<p class="crudui-condition__error" role="alert">` with the interface message
   `conditionInvalid`, whose `{path}` is the data path of the field, and writes no editor.
 
-The widget model of a structured field adds `condition`: `{ for, judge, fields, root }`, where `for`
-is the textarea id, `judge` whether judged text is offered, `fields` the list of `options.fields` or
-`null`, and `root` the root node, or `{ for, error }` with the error text. A node is
+The widget model of a structured field has the layout `condition` and adds `condition`:
+`{ for, judge, fields, labels, root }`, where `for` is the textarea id, `judge` whether judged text is
+offered, `fields` the list of `options.fields` or `null`, `labels` the interface messages
+`{ mode, addComparison, addGroup, addJudge, remove }` of the controls, and `root` the root node, or
+`{ for, error }` with the error text. A node is
 `{ kind: "group", path, mode, items }`, `{ kind: "comparison", path, field, op, value }` with the
 value text, or `{ kind: "judge", path, text }`. A field `opens_when` with `options.fields:
 [clues.size]` and the data `{ "all": [{ "field": "clues.size", "op": "ge", "value": 2 }] }` writes, in

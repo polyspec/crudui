@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 46221a92d6022df8841bef21d351cd160915ac537e7beac1e676e085033aef70 -->
+<!-- source-sha256: 49959b1ad31670d68b8d6842b7ded04fdd01b5cb5d8fc3d25f54ec47045eb4bb -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -31,7 +31,7 @@
   객체, 빈 배열과 리스트 배열은 목록입니다. 노드 모델은 [폼 마크업](form-markup.ko.md)이
 정한 멤버 순서를 지키며, 모든 런타임에서 위젯 모델의 멤버는 `kind`, `layout`,
 `tag`, `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`,
-`script`, `styleChrome`, `prepend`, `append`, `extra` 순서이고
+`script`, `styleChrome`, `prepend`, `append`, `extra`, `condition` 순서이고
 `extra`에서는 `display`가 `file`보다, `input`이 `option`보다 앞섭니다.
 
 `createForm(template, data, options)`는 편집 인스턴스를 생성합니다.
