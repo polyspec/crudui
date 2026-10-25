@@ -54,22 +54,26 @@ func GroupSourceFailure(field *compose.OMap, path string, root *compose.OMap) st
 		return "Invalid items.from at " + path + ": expected a choice field without lang"
 	}
 	from, _ := source.Get("from")
+	// A from that is not a string has no group (sourceGroup), so both conditions give the from failure.
+	fromText, fromIsText := from.(string)
 	group := sourceGroup(from, root)
-	if group == nil {
+	if !fromIsText || group == nil {
 		return "Invalid items.from at " + path + ": expected {group}.*.{field} for a field of a repeated group outside repeated groups"
 	}
-	segments := strings.Split(from.(string), ".")
+	segments := strings.Split(fromText, ".")
 	groupPath := strings.Join(segments[:len(segments)-2], ".")
 	valueName := segments[len(segments)-1]
 	if holdsBoolean(group, valueName) {
 		return booleanFailure("from", path, groupPath+"."+valueName)
 	}
 	label, declared := source.Get("label")
-	if declared && !scalarChild(group, label) {
+	// A label that is not a string is no scalar child (scalarChild), so both conditions give the label failure.
+	labelText, labelIsText := label.(string)
+	if declared && (!labelIsText || !scalarChild(group, label)) {
 		return "Invalid items.label at " + path + ": expected the name of a direct child field of the group without multiple, properties or lang"
 	}
-	if declared && holdsBoolean(group, label) {
-		return booleanFailure("label", path, groupPath+"."+label.(string))
+	if declared && holdsBoolean(group, labelText) {
+		return booleanFailure("label", path, groupPath+"."+labelText)
 	}
 	return ""
 }

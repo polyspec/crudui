@@ -165,9 +165,7 @@ pub fn group_source_failure(
     if holds_boolean(group, value_name) {
         return Some(boolean_message("from", path, &format!("{group_path}.{value_name}")));
     }
-    let Some(label) = members.get("label") else {
-        return None;
-    };
+    let label = members.get("label")?;
     match label.as_str() {
         Some(name) if group.get(name).is_some_and(scalar_child) => holds_boolean(group, name)
             .then(|| boolean_message("label", path, &format!("{group_path}.{name}"))),
