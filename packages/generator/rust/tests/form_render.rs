@@ -68,13 +68,21 @@ fn main() {
         .filter(|case| case.get("expected_html").is_some())
         .cloned()
         .collect();
-    assert_eq!(results.len(), 154, "form-render holds 154 result cases");
     let failures: Vec<Value> = cases
         .iter()
         .filter(|case| case.get("expectError").is_some())
         .cloned()
         .collect();
-    assert_eq!(failures.len(), 59, "form-render holds 59 failure cases");
+    // Every case of cases.json runs, as a result or as a failure, never both: the counts follow the file.
+    assert!(
+        !results.is_empty() && !failures.is_empty(),
+        "form-render holds result and failure cases"
+    );
+    assert_eq!(
+        results.len() + failures.len(),
+        cases.len(),
+        "every form-render case records exactly one of a result and a failure"
+    );
     let trial = |case: Value, check: fn(&Value)| {
         let name = case["name"].as_str().unwrap().to_string();
         Trial::test(

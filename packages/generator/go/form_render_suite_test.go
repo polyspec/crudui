@@ -57,8 +57,9 @@ func TestFormRenderSuite(t *testing.T) {
 			t.Fatalf("form-render case %s records neither a result nor a failure", stringAt(c, "name"))
 		}
 	}
-	if len(results) != 154 || len(failures) != 59 {
-		t.Fatalf("form-render has %d result and %d failure cases, want 154 and 59", len(results), len(failures))
+	// Every case of cases.json runs: the counts follow the file, which every row that adds a case changes.
+	if len(results) == 0 || len(failures) == 0 || len(results)+len(failures) != len(cases) {
+		t.Fatalf("form-render has %d result and %d failure cases of %d, want both kinds and every case", len(results), len(failures), len(cases))
 	}
 
 	actual := make([]string, len(results))

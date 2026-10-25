@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b6b0f3dcac717797d528e0671b10b6ff82041f70fe94749fd72fba19b2048e6b -->
+<!-- source-sha256: 6c94dd4eac25f954ba5008e8380a742609a80283f3c2635ee9514dad08f57015 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-25 — 키가 다른 반복 그룹의 행 키인 키 맵(C17.3)
 
 - C17.3 완료(C17.3): 필드는 `only: true` 옆의 `multiple.keys`로 키 맵을 선언합니다. 값은 `enddate` 매개변수처럼 쓰는 필드 참조이며 폼의 반복 그룹을 가리키고, 그룹의 id는 그 행 키입니다(docs/spec/schema.md, 키 맵, CUSC-076부터 CUSC-078). 모든 validator(TypeScript, PHP, PHP extension, Go, Rust, Python)는 참조가 반복 그룹을 가리키지 않으면 `Invalid multiple.keys at {path}: expected a reference to a repeated group`로 로드에 실패하고(CUVR-070), 데이터의 키가 필드의 행 문맥에서 읽은 그룹의 행 키가 아니면 `Row key is not an id of {reference}: {path}`로 입력에 실패하며 키는 코드 포인트 순서로 검사합니다(CUVR-069). 이전에는 `multiple: only`가 어떤 키든 받았습니다. Rust validator의 typed FieldSpec은 `multiple`을 `false`, `true`, `only` 또는 설정 객체로 읽고 `only: true` 없는 `keys`를 거부하며, TypeScript의 `MultipleSettings`는 행 설정과 데이터 설정의 union입니다. 모든 generator는 `only: true` 옆의 `keys`를 받고, 그 밖의 경우와 문자열이 아닌 값을 거부하며, meta-schema와 TypeScript 타입이 이를 선언합니다. 공유 case는 tests/fixtures/validate/keyed-maps.mts, form-render case 4개, spec-validity의 `ok-multiple-keys`이며, config/parity.json은 unit validate, form-render, spec-validity에서 이 id를 인용합니다. Red: `make parity-check UNITS="validate form-render spec-validity"`가 exit 2이며 모든 implementation에서 validate 387개 중 362개, form-render 213개 중 209개가 통과했습니다. Green: exit 0이며 모든 unit이 모든 implementation에서 성립합니다.
+
+### 2026-10-25 — form-render와 validate 개수 test가 cases.json을 따른다(C17.23)
+
+- C17.23 완료(C17.23): Go, Rust, Python의 form-render suite test와 Python validate test는 공유 case를 추가한 row마다 올려야 했던 손으로 적은 합계 154, 59, 209, 425, 229, 196을 더 이상 assert하지 않는다. 각 test는 두 종류의 case가 모두 있고 결과 case와 실패 case를 합하면 그 cases.json의 모든 case인지 assert하므로, 뒤의 row가 추가한 case에 test를 고칠 필요가 없고 어느 종류도 기록하지 않거나 둘 다 기록한 case는 실패한다. red: make text-absent가 네 파일에서 합계를 찾았고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 
