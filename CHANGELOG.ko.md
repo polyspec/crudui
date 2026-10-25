@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8a69df9fd38bb92ce2ec599171412671278de009837ac05bd99afb031d0626f1 -->
+<!-- source-sha256: a6978d670e647aaa31b5c4b5340fbed77a046469529fdd4eb0da44d776399d66 -->
 
 ## Unreleased
 
@@ -79,6 +79,10 @@
 ### 2026-10-25 — C17.20은 native test의 coverage 개수를 cases.json에서 도출한다(C17.20)
 
 - C17.20 완료(C17.20): packages/php-ext/tests/comparison의 comparison test는 손으로 적은 합계 188, 162, 137, 157, 17, 28, 62 대신, 각 engine program이 form-render, list-render, detail-render cases.json에서 읽은 case를 모두 보고하는지 assert한다. expression과 composition test는 case마다 test 하나를 실행하므로 합계 74, 129, 20을 지운다. tests/native-generators/run.mts는 합계 188, 157, 5, 62를 suite check fixture-coverage로 바꾸고, 이 check는 form-render, list-render, form-outline, detail-render cases.json의 선택된 case에 사용 가능한 target의 check가 없으면 실패한다. program이나 suite가 빠뜨린 case는 실패한다. binding comparison test는 compilation이 code와 관계없이 CRUDUI 오류로 거부하는 case를 모두 compilation test에 맡기고, 그런 case가 모두 오류를 기대하는지 assert한다. red: comparison test가 201 !== 188로, run.mts가 201 !== 188로 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — 조건 필드가 모든 렌더러에서 조건 트리를 편집한다 (C17.18)
+
+- C17.18 완료 (C17.18): `docs/spec/schema.md`가 조건 트리를 담고 리터럴 규칙 `validate.conditionTree` true 또는 judge를 요구하는 `condition` 필드를 정의한다(CUSC-070). `docs/spec/form-markup.md`는 그 컨트롤을 정의한다. textarea 필드의 textarea이며 `crudui-input--condition` 클래스, `data-crudui-value="json"` 표시, 값의 조건 텍스트를 가지고, 문자열이 아닌 값의 조건 텍스트는 JSON.stringify 텍스트다(CUMK-066). `docs/spec/form-runtime.md`는 `connectForm`과 `@polyspec/crudui-form-binding`의 브라우저 검증이 텍스트를 트리로 다시 디코딩하는 방법과 서버가 제출된 텍스트를 읽는 방법을 정한다. TypeScript 생성기와 그것을 쓰는 React, Vue, Svelte, HTML 렌더러, 그리고 Go, PHP, PHP extension, Rust, Python 생성기가 이를 렌더링하고, meta-schema가 그 규칙을 요구한다. form-render case `condition-*`, spec-validity case `ok-condition-field`, validate case `condition-field-values`가 이를 검사하며, form-render, spec-validity, validate unit이 새 requirement를 인용한다. red: 변경 전 모든 구현에서 `make parity-check UNITS="form-render spec-validity validate"`가 새 case에 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.16은 php-ext engine test에서 공유 case 각각을 검사한다(C17.16)
 
