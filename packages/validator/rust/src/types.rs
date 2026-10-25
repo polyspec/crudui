@@ -295,10 +295,10 @@ pub struct FieldSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Items>,
 
-    /// Repeated-row configuration encoded as `false`, an object or `true`. Row
+    /// Repeated-row configuration encoded as `false`, `true`, `only` or an object. Row
     /// identity is supplied by runtime data rather than a specification key.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub multiple: Option<Polymorphic<MultipleSpec>>,
+    pub multiple: Option<Multiple>,
 
     /// Per-language input dimension encoded as `false`, an object or `true`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -609,6 +609,27 @@ pub struct OptionsSlot {
 // Dependency buckets under their structural targets (SPEC §3 C).
 // ============================================================================
 
+/// The `multiple` dimension of a field (docs/spec/schema.md, CUSC-041): `false`,
+/// `true`, the keyword `only` or a settings object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Multiple {
+    /// A Boolean toggle; `true` repeats the field with the default settings.
+    Toggle(bool),
+    /// The keyword `only`: rows that exist only in the data, the same as `{ "only": true }`.
+    Only(OnlyKeyword),
+    /// An explicit settings object.
+    Config(MultipleSpec),
+}
+
+/// The keyword `only` of `multiple`; no other string is a `multiple` value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum OnlyKeyword {
+    /// The text `only`.
+    #[serde(rename = "only")]
+    Only,
+}
+
 /// Repeated-row options stored under `multiple`.
 ///
 /// Row identity is not a field of this structure. Repeated data is an object
@@ -886,7 +907,7 @@ mod tests {
             r#"{ "type": "group", "multiple": { "min": 1, "max": 5, "sortable": true, "title": "name", "controls": "footer", "header": "sticky" } }"#,
         );
         match f.multiple {
-            Some(Polymorphic::Config(m)) => {
+            Some(Multiple::Config(m)) => {
                 assert_eq!(m.min, Some(Value::from(1)));
                 assert_eq!(m.max, Some(Value::from(5)));
                 assert_eq!(m.title, Some(Value::from("name")));
@@ -902,13 +923,15 @@ mod tests {
     fn multiple_keyed_map_under_multiple() {
         let f = parse(r#"{ "type": "text", "multiple": { "only": true, "keys": "..characters" } }"#);
         match f.multiple {
-            Some(Polymorphic::Config(m)) => {
+            Some(Multiple::Config(m)) => {
                 assert_eq!(m.only, Some(true));
                 assert_eq!(m.keys.as_deref(), Some("..characters"));
             }
             other => panic!("expected multiple config, got {other:?}"),
         }
+        assert_eq!(parse(r#"{ "type": "text", "multiple": "only" }"#).multiple, Some(Multiple::Only(OnlyKeyword::Only)));
         for src in [
+            r#"{ "type": "text", "multiple": "ONLY" }"#,
             r#"{ "type": "text", "multiple": { "only": true, "keys": 5 } }"#,
             r#"{ "type": "text", "multiple": { "only": "yes", "keys": "..characters" } }"#,
         ] {
