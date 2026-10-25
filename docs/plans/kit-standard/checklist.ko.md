@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a405058266dfaaef852e56eb52da9fa0210591e4915007e7bcbb1bbc815f07a8 -->
+<!-- source-sha256: b8932be37f5546a9f920548d52e52b41438e763eb74ba190130d1fe4f7c59101 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -353,3 +353,4 @@
 | C17.21 | Go form-render 테스트는 오류 코드를 오류 자체에서 읽는다: 인식되지 않는 오류에 INVALID_FORM_INPUT을 기본으로 붙이지 않으며, 그 케이스는 실패한다 | packages/generator/go: a FormInputError (Code INVALID_FORM_INPUT) returned at each input-error site of the generator, and the Go form-render test (failureCode and its callers, and the other Go suites that name INVALID_FORM_INPUT by default) reads the code from ComposeLoadError, UnsupportedFieldTypeError or FormInputError and fails on anything else | `make parity-check UNITS="form-render"` | [ ] |
 | C17.22 | 검증은 boolean, only, object가 아닌 multiple을 load에서 거부한다: 여섯 검증기 모두 INVALID_RULE_PARAMETER로, 공유 케이스와 함께 | docs/spec (CUSC-041 and its KO twin, with the new refusal sentence and its id from CUSC-081), its shared cases, and the load check in all six validators, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.23 | Go, Rust, Python form-render 테스트와 Python validate 테스트의 수동 입력 케이스 합계는 tests/fixtures cases.json에서 도출한다 | packages/generator/go/form_render_suite_test.go, packages/generator/rust/tests/form_render.rs, packages/generator/python/tests/test_form_render.py, packages/validator/python/tests/test_validate.py | `make docs-check`; `make parity-declarations-check` | [ ] |
+| C17.24 | php-ext 런타임 작성기는 data-source-relations의 실수를 JSON.stringify와 같은 ECMAScript 수 표기로 쓴다 | packages/php-ext/src/runtime.c (append_json), with a shared case holding a float that renders differently today | `make docs-check`; `make parity-declarations-check` | [ ] |
