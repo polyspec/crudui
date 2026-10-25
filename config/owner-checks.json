@@ -632,7 +632,6 @@
     },
     {
       "paths": [
-        "scripts/kit/**",
         ".github/workflows/release.yml",
         "PRINCIPLES.md",
         "PRINCIPLES.ko.md",
@@ -641,7 +640,6 @@
         "config/pyproject.schema.json",
         "config/composer.schema.json",
         "config/cargo.schema.json",
-        "config/php-lint/**",
         "config/commit-identity.json"
       ],
       "targets": [

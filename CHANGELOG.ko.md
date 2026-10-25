@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 61a5de4ab0f6d445afd9d86efa0c98a61bdf385bfb882e0f8fb4f5a443f4b938 -->
+<!-- source-sha256: 053bc369b98507d23863df147819f5897161ca4ac04f61cff4e2bc98e2777395 -->
 
 ## Unreleased
 
 ### 2026-10-25 — C17.4는 reference 규칙을 더한다(C17.4)
 
 - C17.4 완료(C17.4): reference 규칙은 facts.id 같은 필드의 선언 경로를 받는다. 그 id는 경로 위 모든 행에서 그 필드가 가진, 비어 있지 않은 scalar 값이며 숨긴 필드의 값도 포함하고, 값은 in의 포함 여부 규칙으로 통과한다. 문자열이 아니거나 선언된 필드, group, lang이 있는 필드를 가리키지 않는 매개변수는 INVALID_RULE_PARAMETER로 load에 실패한다(docs/spec/validation-rules.md, CUVR-071~CUVR-074). TypeScript, PHP, PHP 확장, Go, Rust, Python이 구현하고 meta-schema, CLI explain 라벨, TypeScript API report가 이름을 싣는다. red: e198dba8에서 make docs-check가 scripts/check-schema.mts에서 실패했고(meta-schema가 사례 reference-row-ids의 reference를 거부), make parity-check UNITS="validate"는 모든 구현에서 356개 중 341개만 통과하고 reference 사례 15개에 실패했다. green: docs-check가 통과하고 모든 구현이 356개 중 356개를 통과한다.
+
+### 2026-10-25 — crudui는 kit K614와 K621을 따른다 (C17.28)
+
+- kit-sync 복사본을 지웠다. Makefile은 kit checkout의 kit-bootstrap을 include하고, config/php-lint를 지웠으며, PRINCIPLES.md, PRINCIPLES.ko.md, .editorconfig, .claude/settings.json은 kit으로 가는 추적 symlink가 되었다. 삭제된 경로의 owner-check 글롭을 뺐고, make hooks가 쓴 훅 파일을 커밋했다.
 
 ### 2026-10-25 — C17.22는 불리언, only, 객체가 아닌 multiple을 로드할 때 거부한다(C17.22)
 

@@ -36,7 +36,7 @@ ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
 # scripts/kit/kit-bootstrap.mk (make kit-sync) includes its kit.mk and sets KIT to the directory of its tools; a change to
 # them is made in polyspec/kit, never here.
-include scripts/kit/kit-bootstrap.mk
+include ../kit/scripts/kit/kit-bootstrap.mk
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
