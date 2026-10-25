@@ -19,6 +19,8 @@ nested row paths, for hidden fields and in check order), empty values that skip 
 the shape of submitted data. The
 reference cases check `reference`: ids taken from every row on a declaration path, membership
 matching against them, ids of hidden fields, a form without ids and the parameter errors. The
+nested row paths, for hidden fields and in check order), empty values that skip format rules, the
+limits of submitted data and their parameter, and the shape of submitted data. The
 data-shape cases reject undeclared members at the root, in groups and in repeated group rows,
 and an array or object as the value of a single-choice field or of its rows, hidden fields
 included; fields referenced by conditions are declared in each specification. The

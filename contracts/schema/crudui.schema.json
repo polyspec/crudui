@@ -1492,6 +1492,23 @@
           "description": "Submission target of the form. Honored on the form root only.",
           "$ref": "#/definitions/FormAction"
         },
+        "dataLimits": {
+          "description": "Bounds of the submitted data: its levels and its nodes (CUVR-082). Honored on the form root only.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "depth": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 512
+            },
+            "values": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            }
+          }
+        },
         "$ref": {
           "description": "Composition reference resolved before evaluation.",
           "$ref": "#/definitions/Reference"

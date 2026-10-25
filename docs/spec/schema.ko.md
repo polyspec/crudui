@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 45f97df6fd6e8ae9c4013a8c8efe69721def0847d8658b618effa5ead207dbe7 -->
+<!-- source-sha256: aebc9d743d40ae12874bd1990c3e3e795f838613e136b1f63ce6e449a2d3197d -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -512,6 +512,7 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 - **CUSC-052** `messages`: 등록된 규칙 이름과 메시지 문자열의 객체
 - **CUSC-053** `buttons`: 버튼 목록(`type`: `submit`, `reset`, `button`, `link`); 폼 루트에서만
 - **CUSC-054** `action`: 문자열 `method`, `url`, `enctype`을 가진 객체; 폼 루트에서만
+- **CUSC-087** `dataLimits`: 정수 `depth`(1부터 512)와 `values`(1부터 1000000)를 가진 객체; 폼 루트에서만 ([데이터 한도](validation-rules.ko.md#데이터-한도))
 - **CUSC-055** `design.show`: 표현식, 불리언 또는 조건 맵
 - **CUSC-056** `design.class`, `design.style`: 문자열 또는 조건 맵
 - **CUSC-057** `design.label`, `design.wrapper`, `design.group`, `design.prepend`: 객체

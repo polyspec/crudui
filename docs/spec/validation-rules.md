@@ -394,6 +394,25 @@ On a repeated field the collection fails when two values are the same; on a fiel
 repeated group each row fails whose value is the same as that of an earlier row, and a filter
 condition is evaluated once per row. The check takes time linear in the number of values.
 
+## Data limits
+
+The form root may bound the data it accepts with `dataLimits` ([schema](schema.md), CUSC-087), read
+from the given specification as `buttons` and `action` are. A breach is an input failure of the
+request, never a field error.
+
+- **CUVR-082** After the rule names and parameters are checked and before any rule runs, validation
+  measures the data as the [value limits](input-text.md#value-limits) measure a value: its levels as
+  CUIT-022 counts them and its nodes as CUIT-021 counts them. Data that nests more levels than
+  `depth` fails; otherwise data that holds more nodes than `values` fails. The failure has code
+  `INVALID_FORM_INPUT`, message `Submitted data exceeds the {limit} limit of {n}`, where `{limit}` is
+  `depth` or `values` and `{n}` is that limit, and an empty location.
+- **CUVR-083** A missing `dataLimits`, or a missing member of it, takes the default: `depth` 64 and
+  `values` 100000.
+- **CUVR-084** A `dataLimits` that is not an object, that has a member other than `depth` and
+  `values`, whose `depth` is not an integer from 1 to 512 or whose `values` is not an integer from 1
+  to 1000000 fails the load after the forbidden-key scan and before the rule names and parameters
+  are checked — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid dataLimits parameter: expected depth from 1 to 512 and values from 1 to 1000000`; location: the empty path.
+
 ## Conditional parameters
 
 ```yaml

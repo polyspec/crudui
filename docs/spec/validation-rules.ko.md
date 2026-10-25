@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: d3d7583cc857641a3543cbacc66eaa9dfb2ce72a599f9b469258c3d429b89fc5 -->
+<!-- source-sha256: c474fdb96b2206964a208702e5225154e89cf71dcdcf5d5e087b206d35bf3db2 -->
 
 [English](validation-rules.md).
 
@@ -326,6 +326,21 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 객체와 같습니다. White_Space로 trim한 뒤 비어 있는 값은 비교에 참여하지 않습니다. 반복 필드에서는 두 값이
 같으면 컬렉션이 실패하고, 반복 그룹 안의 필드에서는 앞선 행과 값이 같은 각 행이 실패하며, 필터 조건은 행마다
 한 번 평가합니다. 검사 시간은 값 개수에 비례합니다.
+
+## 데이터 한도
+
+폼 루트는 `dataLimits`([스키마](schema.ko.md), CUSC-087)로 받아들일 데이터를 제한할 수 있으며, 이 값은
+`buttons`·`action`처럼 주어진 명세에서 읽습니다. 한도를 넘으면 필드 오류가 아니라 요청의 입력 실패입니다.
+
+- **CUVR-082** 규칙 이름과 매개변수를 검사한 뒤 어떤 규칙보다 먼저, 검증은 [값 한도](input-text.ko.md#값-한도)가
+  값을 재는 방식으로 데이터를 잽니다. 단계는 CUIT-022처럼, 노드는 CUIT-021처럼 셉니다. `depth`보다 많은
+  단계로 중첩된 데이터가 실패하고, 그렇지 않으면 `values`보다 많은 노드를 가진 데이터가 실패합니다. 실패의
+  코드는 `INVALID_FORM_INPUT`, 메시지는 `Submitted data exceeds the {limit} limit of {n}`이며 `{limit}`은
+  `depth` 또는 `values`, `{n}`은 그 한도이고, 위치는 비어 있습니다.
+- **CUVR-083** `dataLimits`가 없거나 그 멤버가 없으면 기본값을 씁니다: `depth` 64, `values` 100000.
+- **CUVR-084** 객체가 아니거나, `depth`와 `values` 이외의 멤버를 가지거나, `depth`가 1부터 512까지의
+  정수가 아니거나, `values`가 1부터 1000000까지의 정수가 아닌 `dataLimits`는 금지 키 검사 뒤, 규칙 이름과
+  매개변수 검사 전에 로드에 실패합니다 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid dataLimits parameter: expected depth from 1 to 512 and values from 1 to 1000000`; 위치: 빈 경로.
 
 ## 조건부 매개변수
 

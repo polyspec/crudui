@@ -17,7 +17,7 @@ interface FailureCase {
 
 /** One text field per value, all declaring `validate`; the fields named in `failing` fail `conditionTree`. */
 function fields(name: string, note: string, values: Record<string, unknown>, validate: Record<string, unknown>,
-  failing: string[]): WrittenCase {
+  failing: string[], dataLimits?: Record<string, number>): WrittenCase {
   for (const field of failing) {
     if (!(field in values)) throw new Error(`${name} names the failing field ${field}, which it does not declare`);
   }
@@ -28,7 +28,9 @@ function fields(name: string, note: string, values: Record<string, unknown>, val
   const errors: ErrorRecord[] = Object.keys(values)
     .filter(field => failing.includes(field))
     .map(field => ({ path: field, field, rule: 'conditionTree', message, value: values[field] ?? null }));
-  return { name, note, spec: { type: 'group', properties }, data: values, expected: { valid: errors.length === 0, errors } };
+  // A tree deeper than the default data limit of 64 levels (CUVR-083) declares a larger one, so the rule sees it (C17.10).
+  const spec = { type: 'group', properties, ...(dataLimits ? { dataLimits } : {}) };
+  return { name, note, spec, data: values, expected: { valid: errors.length === 0, errors } };
 }
 
 /** A one-field specification whose conditionTree parameter fails to load (CUVR-068). */
@@ -167,7 +169,7 @@ export const CONDITION_TREE_CASES: Array<WrittenCase | FailureCase> = [
       comparison33: chain(33, comparison('a', 'eq', 1)),
       group33: chain(33, { any: [] }),
       invalidBelow: chain(33, { any: [1] }),
-    }, TRUE, ['comparison33', 'group33', 'invalidBelow']),
+    }, TRUE, ['comparison33', 'group33', 'invalidBelow'], { depth: 128 }),
   {
     name: 'condition-tree-message',
     note: 'messages.conditionTree overrides the default message of the rule (CUSC-003, CUVR-067).',
