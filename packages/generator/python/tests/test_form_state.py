@@ -73,7 +73,10 @@ def _field_choices(nodes, path):
     for node in nodes:
         if node.get("kind") == "field" and node.get("path") == path:
             options = (node.get("widget") or {}).get("options") or []
-            return [{"value": option["value"], "label": option["label"]} for option in options]
+            return [
+                {"value": option["value"], "label": option["label"]}
+                for option in options
+            ]
         found = _field_choices(node.get("children") or [], path)
         if found is not None:
             return found
