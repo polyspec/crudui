@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9319739a17c5dddff8a571f9c4cff50830ab5dd1218c0d72dfb78619d919a0ae -->
+<!-- source-sha256: 2e4c9c5781b22839ac670b1e4e223bf156110a0d6017bb833ff49f5ea54310f6 -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-26 — config/rebuild.json은 추적된 도구만 적고 각 도구에 class를 붙인다 (C17.30)
 
 - K614 이후 더 이상 없는 파일의 rebuild 항목을 지웠고, group-source form-render 도구는 형제 도구와 같이 policy로 분류했다. rebuild-check가 통과한다.
+
+### 2026-10-26 — 구조 조건 편집기 (C17.25)
+
+- C17.25 완료 (C17.25): condition 필드는 design.editor로 text 또는 structured를 선언하고, structured 편집기에서는 비교가 제시하는 서로 다른 필드 이름인 options.fields를 선언한다 (docs/spec/schema.md, CUSC-083~CUSC-086). structured 편집기에서 모든 생성기는 textarea를 숨기고 그 뒤에 조건 트리의 화면을 렌더링한다: 모드 select를 가진 fieldset 그룹, 필드·연산자·값 컨트롤을 가진 비교, conditionTree judge에서의 판정 텍스트, 그리고 비교·그룹·판정 텍스트를 추가하고 조건을 제거하는 버튼 (docs/spec/form-markup.md, CUMK-067). 편집기가 보여 줄 수 없는 값은 conditionTree와 필드 경로를 밝히는 이름 있는 오류 뒤에 textarea를 보이게 둔다 (CUMK-068). connectForm은 이 컨트롤과 버튼으로 트리를 다시 쓴다 (docs/spec/form-runtime.md, Condition values). TypeScript, HTML·React·Vue·Svelte 렌더러, PHP, PHP 확장, Go, Rust, Python이 구현한다. Red: make parity-check UNITS="form-render spec-validity" exit 2 at 976c214b; green: 모든 구현이 form-render 241/241, spec-validity 37/37 사례를 통과한다.
 
 ### 2026-10-26 — Makefile이 kit 도구를 $(KIT_EXT)로 실행한다 (C17.29)
 

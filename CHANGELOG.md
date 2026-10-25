@@ -19,6 +19,10 @@
 
 - The rebuild entries of kit K614 for files that no longer exist are removed, and the group-source form-render tool is classed as policy like its siblings; rebuild-check passes.
 
+### 2026-10-26 — A structured condition editor (C17.25)
+
+- C17.25 is done (C17.25): a condition field declares design.editor text or structured and, under a structured editor, options.fields, the distinct field names that a comparison offers (docs/spec/schema.md, CUSC-083 to CUSC-086). Under a structured editor every generator renders the textarea hidden and, after it, a view of the condition tree: groups as fieldsets with their mode select, comparisons with their field, op and value controls, judged texts under conditionTree judge, and buttons that add a comparison, a group or a judged text and remove a condition (docs/spec/form-markup.md, CUMK-067). A value that the editor cannot show keeps the textarea visible after a named error that names conditionTree and the field path (CUMK-068). connectForm rewrites the tree through these controls and buttons (docs/spec/form-runtime.md, Condition values). TypeScript, the HTML, React, Vue and Svelte renderers, PHP, the PHP extension, Go, Rust and Python implement it. Red: make parity-check UNITS="form-render spec-validity" exit 2 at 976c214b; green: every implementation passes 241 of 241 form-render cases and 37 of 37 spec-validity cases.
+
 ### 2026-10-26 — The Makefile runs kit tools through $(KIT_EXT) (C17.29)
 
 - The ten recipe lines that ran $(KIT)/<tool>.mjs now run $(KIT)/<tool>.$(KIT_EXT), so the checks follow kit sources as .mts (K613).
