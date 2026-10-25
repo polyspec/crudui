@@ -81,6 +81,13 @@ export const GROUP_SOURCE_CASES = [
   sourceError('group-source-label-missing', 'label names a direct child field of the group.',
     { type: 'select', items: { from: 'variants.*.name', label: 'title' } },
     'Invalid items.label at pick: expected the name of a direct child field of the group without multiple, properties or lang'),
+  (() => {
+    const failure = sourceError('group-source-from-boolean-field', 'The field of from holds no boolean: a checkbox field of the group is refused.',
+      { type: 'select', items: { from: 'variants.*.active' } },
+      'Invalid items.from at pick: variants.active holds a boolean, expected a field whose values are strings or numbers');
+    const variants = failure.spec.properties.variants as { properties: Record<string, unknown> };
+    return { ...failure, spec: { ...failure.spec, properties: { ...failure.spec.properties, variants: { ...variants, properties: { ...variants.properties, active: { type: 'checkbox' } } } } } };
+  })(),
 ];
 
 /** The requirements each case tests. */
@@ -93,4 +100,5 @@ export const GROUP_SOURCE_REQUIREMENTS: Record<string, readonly string[]> = {
   'group-source-from-without-rows': ['CUSC-066'],
   'group-source-from-missing-field': ['CUSC-066'],
   'group-source-label-missing': ['CUSC-067'],
+  'group-source-from-boolean-field': ['CUSC-068'],
 };

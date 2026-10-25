@@ -18286,6 +18286,100 @@
     ]
   },
   {
+    "name": "group-source-from-boolean-field",
+    "note": "The field of from holds no boolean: a checkbox field is refused after the path of from.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            },
+            "active": {
+              "type": "checkbox"
+            },
+            "on": {
+              "type": "switcher"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.active",
+            "label": "name"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.from at lead: characters.active holds a boolean, expected a field whose values are strings or numbers",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-061",
+      "CUSC-068",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-label-boolean-field",
+    "note": "The label field holds no boolean: a switcher field is refused after the name of label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            },
+            "active": {
+              "type": "checkbox"
+            },
+            "on": {
+              "type": "switcher"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "on"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.label at lead: characters.on holds a boolean, expected a field whose values are strings or numbers",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-062",
+      "CUSC-068",
+      "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
     "name": "multiple-shape-accepted",
     "note": "A boolean, only and an object are the shapes of multiple; missing data of each field is no row.",
     "spec": {

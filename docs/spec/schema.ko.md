@@ -386,10 +386,10 @@ roles:
 
 - **CUSC-061** `from`은 `{group}.*.{value}` 경로입니다. `{group}`은 루트에서 반복 그룹까지의 속성 이름을
   `.`으로 이은 것이며, 그 경로에서 마지막 그룹 말고는 반복 그룹이 없으므로 그룹은 폼 전체에서 행 집합이 하나입니다.
-  `*`는 그룹의 행을 나타내고, `{value}`는 반복되지 않고 그룹이 아니며 `lang`이 없는 그룹의 직계 자식 필드
-  이름입니다. 소스를 선언한 필드는 그 그룹 안에 있어도 되고 폼의 다른 곳에 있어도 됩니다.
-- **CUSC-062** `label`은 같은 그룹에서 반복되지 않고 그룹이 아니며 `lang`이 없는 직계 자식 필드의
-  이름입니다. `label`이 없으면 선택지의 라벨은 그 값입니다.
+  `*`는 그룹의 행을 나타내고, `{value}`는 반복되지 않고 그룹이 아니며 `lang`이 없고 boolean을 담지 않는
+  (CUSC-068) 그룹의 직계 자식 필드 이름입니다. 소스를 선언한 필드는 그 그룹 안에 있어도 되고 폼의 다른 곳에 있어도 됩니다.
+- **CUSC-062** `label`은 같은 그룹에서 반복되지 않고 그룹이 아니며 `lang`이 없고 boolean을 담지 않는
+  (CUSC-068) 직계 자식 필드의 이름입니다. `label`이 없으면 선택지의 라벨은 그 값입니다.
 - **CUSC-063** 선택지는 폼을 렌더링하거나 데이터를 검증할 때 읽는 그룹의 행이며, 그룹 데이터의 순서를
   따릅니다. 행의 `{value}` 필드 값이 문자열이나 유한한 숫자이고 그 [정규 텍스트](validation-rules.ko.md#값)가
   다듬은 뒤 비어 있지 않으면, 그 행은 정규 텍스트를 값으로 하는 선택지가 됩니다. 그 밖의 행과, 앞선 행과
@@ -412,12 +412,13 @@ Svelte의 `Form` 컴포넌트와 HTML 렌더러의 페이지는 인스턴스의 
 
 모든 검증기는 값을 이 선택지와 대조합니다([반복 그룹의 선택지](validation-rules.ko.md#값)). 컴파일은
 필드의 다른 선언(`behavior`와 범위 필드의 규칙 포함) 다음에 그룹 소스를 검사하며, 순서는 `items`의
-멤버(선언 순서), 필드, `from`, `label`입니다. `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
+멤버(선언 순서), 필드, `from`, `from`이 가리키는 필드의 type, `label`, `label`이 가리키는 필드의 type입니다. `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
 
 - **CUSC-064** `from`과 `label` 말고 다른 멤버: `Invalid items.{key} at {path}: unknown key`
 - **CUSC-065** 선택 필드가 아니거나 `lang`이 있는 필드: `Invalid items.from at {path}: expected a choice field without lang`
 - **CUSC-066** 그 형식의 문자열이 아니거나 그룹 또는 필드가 이 규칙을 어기는 `from`: `Invalid items.from at {path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`
 - **CUSC-067** 그룹의 그런 필드 이름이 아닌 `label`: `Invalid items.label at {path}: expected the name of a direct child field of the group without multiple, properties or lang`
+- **CUSC-068** boolean을 담는 필드를 가리키는 `from`이나 `label`: `Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers`. `{member}`는 `from`이나 `label`이고 `{field}`는 가리킨 필드의 선언 경로(예: `characters.active`)입니다. type이 값으로 boolean을 저장하는 필드는 boolean을 담습니다: 데이터가 `true`나 `false`인 type `checkbox`와 `switcher`입니다([checkbox 필드](form-markup.ko.md#선언한-속성), CUMK-027, [스위치](form-markup.ko.md#스위치)). 그런 필드의 행은 선택지도 라벨도 주지 않으므로(CUSC-063) 컴파일은 선택지 없이 나열하지 않고 거부합니다. 나중에 추가되는 type이 값으로 boolean을 저장하면 이 규칙을 따르고 이 문장에 추가됩니다.
 
 ## 합성과 검증
 

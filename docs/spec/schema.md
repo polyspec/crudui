@@ -419,11 +419,11 @@ roles:
 - **CUSC-061** `from` is a path `{group}.*.{value}`. `{group}` is the property names from the root
   to a repeated group, joined with `.`, and no group on that path except the last is repeated, so
   the group has one set of rows for the whole form. `*` stands for the rows of the group, and
-  `{value}` is the name of a direct child field of the group that is not repeated, not a group and
-  has no `lang`. The field that declares the source may be inside that group or anywhere else in
+  `{value}` is the name of a direct child field of the group that is not repeated, not a group,
+  has no `lang` and does not hold a boolean (CUSC-068). The field that declares the source may be inside that group or anywhere else in
   the form.
 - **CUSC-062** `label` is the name of a direct child field of the same group that is not repeated,
-  not a group and has no `lang`. Without `label` the label of a choice is its value.
+  not a group, has no `lang` and does not hold a boolean (CUSC-068). Without `label` the label of a choice is its value.
 - **CUSC-063** The choices are the rows of the group in the order of its data, read when the form is
   rendered or the data is validated. A row gives the choice whose value is the
   [canonical text](validation-rules.md#values) of its `{value}` field when that value is a string
@@ -452,13 +452,15 @@ a native submission does.
 Every validator checks a value against these choices
 ([choices from a repeated group](validation-rules.md#values)). Compilation checks a group source
 after the other declarations of the field (its `behavior` and a range field's rules included), in
-this order: the members of `items` in declaration order, the field, `from` and then `label`. It
-fails with `INVALID_FORM_INPUT` and an empty location:
+this order: the members of `items` in declaration order, the field, `from`, the type of the field
+that `from` names, `label` and then the type of the field that `label` names. It fails with
+`INVALID_FORM_INPUT` and an empty location:
 
 - **CUSC-064** A member other than `from` and `label`: `Invalid items.{key} at {path}: unknown key`
 - **CUSC-065** A field that is not a choice field or that has `lang`: `Invalid items.from at {path}: expected a choice field without lang`
 - **CUSC-066** A `from` that is not a string of that form, or whose group or field breaks these rules: `Invalid items.from at {path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`
 - **CUSC-067** A `label` that is not the name of such a field of the group: `Invalid items.label at {path}: expected the name of a direct child field of the group without multiple, properties or lang`
+- **CUSC-068** A `from` or `label` that names a field that holds a boolean: `Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers`, where `{member}` is `from` or `label` and `{field}` is the declaration path of the named field, such as `characters.active`. A field holds a boolean when its type stores a boolean as its value: the types `checkbox` and `switcher`, whose data is `true` or `false` ([checkbox fields](form-markup.md#declared-attributes), CUMK-027, and [switches](form-markup.md#switches)). The rows of such a field would give no choice or label (CUSC-063), so compilation refuses it rather than listing no choices. A type added later whose stored value is a boolean falls under this rule and is added to this sentence.
 
 ## Composition and validation
 

@@ -31,8 +31,14 @@ const cast = {
 };
 
 /** A load failure of the group source of the field at `at`. */
-const sourceFailure = (name: string, note: string, fields: Record<string, unknown>, at: string, message: string): FailingCase =>
-  ({ name, note, spec: form(fields), data: {}, expectFailure: { code: 'INVALID_RULE_PARAMETER', message, at } });
+const sourceFailure = (name: string, note: string, fields: Record<string, unknown>, at: string, message: string,
+  group: Record<string, unknown> = characters): FailingCase =>
+  ({ name, note, spec: form(fields, group), data: {}, expectFailure: { code: 'INVALID_RULE_PARAMETER', message, at } });
+
+/** The characters group with a checkbox field active and a switcher field on, each of which holds a boolean. */
+const flaggedCharacters = { ...characters, properties: { ...characters.properties, active: { type: 'checkbox' }, on: { type: 'switcher' } } };
+const BOOLEAN_FIELD = (member: string, path: string, field: string) =>
+  `Invalid items.${member} at ${path}: ${field} holds a boolean, expected a field whose values are strings or numbers`;
 
 const FROM_FIELD = (path: string) => `Invalid items.from at ${path}: expected a choice field without lang`;
 const FROM_PATH = (path: string) => `Invalid items.from at ${path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`;
@@ -123,6 +129,10 @@ export const GROUP_SOURCE_CASES: Array<WrittenCase | FailingCase> = [
   sourceFailure('group-source-label-group', 'The label field is not a group.',
     { roles: { type: 'group', multiple: true, properties: { id: { type: 'text' }, meta: { type: 'group', properties: { x: { type: 'text' } } } } },
       lead: { type: 'select', items: { from: 'roles.*.id', label: 'meta' } } }, 'lead', LABEL('lead')),
+  sourceFailure('group-source-from-boolean-field', 'The field of from holds no boolean: a checkbox field is refused after the path of from.',
+    { lead: { type: 'select', items: { from: 'characters.*.active', label: 'name' } } }, 'lead', BOOLEAN_FIELD('from', 'lead', 'characters.active'), flaggedCharacters),
+  sourceFailure('group-source-label-boolean-field', 'The label field holds no boolean: a switcher field is refused after the name of label.',
+    { lead: { type: 'select', items: { from: 'characters.*.id', label: 'on' } } }, 'lead', BOOLEAN_FIELD('label', 'lead', 'characters.on'), flaggedCharacters),
 ];
 
 /** The requirements each case tests. */
@@ -143,4 +153,6 @@ export const GROUP_SOURCE_REQUIREMENTS: Record<string, string[]> = {
   'group-source-from-repeated-field': ['CUSC-061', 'CUSC-066', 'CUVR-061'],
   'group-source-label-missing': ['CUSC-062', 'CUSC-067', 'CUVR-061'],
   'group-source-label-group': ['CUSC-062', 'CUSC-067', 'CUVR-061'],
+  'group-source-from-boolean-field': ['CUSC-061', 'CUSC-068', 'CUVR-061'],
+  'group-source-label-boolean-field': ['CUSC-062', 'CUSC-068', 'CUVR-061'],
 };
