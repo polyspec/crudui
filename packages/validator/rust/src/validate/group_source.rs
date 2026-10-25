@@ -28,8 +28,40 @@ const CHOICE_TYPES: [&str; 8] = [
 pub struct GroupChoice {
     /// The canonical text of the row's value field.
     pub value: String,
-    /// The canonical text of the row's label field, or the value when it gives none.
-    pub label: String,
+    /// The declared label of a literal choice (CUSC-089), or the canonical text of the row's label
+    /// field, or the value when it gives none.
+    pub label: Value,
+}
+
+/// Why the choices of a group source could not be read.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum GroupChoicesError {
+    /// The source breaks a rule of its declaration, with the message of that refusal.
+    Declaration(String),
+    /// A row's value repeats a literal choice (CUSC-089), with the message that names its path and value.
+    Repeated(String),
+}
+
+/// The literal choices of a group source (CUSC-089), each with the canonical text of its value, or
+/// `None` when `choices` is not a list of `{value, label}` pairs whose values are strings or
+/// finite numbers with distinct canonical texts that are not empty after trimming.
+fn literal_choices(choices: Option<&Value>) -> Option<Vec<GroupChoice>> {
+    let Some(choices) = choices else {
+        return Some(Vec::new());
+    };
+    let mut literal: Vec<GroupChoice> = Vec::new();
+    for choice in choices.as_array()? {
+        let choice = choice.as_object()?;
+        if choice.len() != 2 || !choice.contains_key("label") {
+            return None;
+        }
+        let value = choice_text(choice.get("value"))?;
+        if literal.iter().any(|known| known.value == value) {
+            return None;
+        }
+        literal.push(GroupChoice { value, label: choice["label"].clone() });
+    }
+    Some(literal)
 }
 
 /// Whether `items` is a group source: an object with the member `from`.
@@ -142,7 +174,7 @@ pub fn group_source_failure(
         .get("items")
         .filter(|items| is_group_source(items))?;
     let members = items.as_object()?;
-    if let Some(key) = members.keys().find(|key| *key != "from" && *key != "label") {
+    if let Some(key) = members.keys().find(|key| *key != "from" && *key != "label" && *key != "choices") {
         return Some(format!("Invalid items.{key} at {path}: unknown key"));
     }
     let is_choice = field
@@ -165,12 +197,21 @@ pub fn group_source_failure(
     if holds_boolean(group, value_name) {
         return Some(boolean_message("from", path, &format!("{group_path}.{value_name}")));
     }
-    let label = members.get("label")?;
-    match label.as_str() {
-        Some(name) if group.get(name).is_some_and(scalar_child) => holds_boolean(group, name)
-            .then(|| boolean_message("label", path, &format!("{group_path}.{name}"))),
-        _ => Some(label_message(path)),
+    if let Some(label) = members.get("label") {
+        match label.as_str() {
+            Some(name) if group.get(name).is_some_and(scalar_child) => {
+                if holds_boolean(group, name) {
+                    return Some(boolean_message("label", path, &format!("{group_path}.{name}")));
+                }
+            }
+            _ => return Some(label_message(path)),
+        }
     }
+    literal_choices(members.get("choices")).is_none().then(|| choices_message(path))
+}
+
+fn choices_message(path: &str) -> String {
+    format!("Invalid items.choices at {path}: expected value and label pairs with distinct string or number values")
 }
 
 /// The canonical text of a string or a number whose text is not empty after trimming.
@@ -190,27 +231,32 @@ fn choice_text(value: Option<&Value>) -> Option<String> {
 ///
 /// `items` must have passed [`group_source_failure`]; a source whose `from` or `label` is not
 /// of the declared shape gives the message of its declaration failure, located at `path`.
-pub fn group_choices(items: &Value, data: &Value, path: &str) -> Result<Vec<GroupChoice>, String> {
-    let members = items.as_object().ok_or_else(|| from_message(path))?;
+pub fn group_choices(items: &Value, data: &Value, path: &str) -> Result<Vec<GroupChoice>, GroupChoicesError> {
+    let declaration = |message: String| GroupChoicesError::Declaration(message);
+    let members = items.as_object().ok_or_else(|| declaration(from_message(path)))?;
     let from = members
         .get("from")
         .and_then(Value::as_str)
-        .ok_or_else(|| from_message(path))?;
+        .ok_or_else(|| declaration(from_message(path)))?;
     let segments: Vec<&str> = from.split('.').collect();
     let count = segments.len();
     if count < 3 || segments[count - 2] != "*" {
-        return Err(from_message(path));
+        return Err(declaration(from_message(path)));
     }
     let label_name = match members.get("label") {
         None => None,
         Some(Value::String(name)) => Some(name.as_str()),
-        Some(_) => return Err(label_message(path)),
+        Some(_) => return Err(declaration(label_message(path))),
     };
+    let literal = literal_choices(members.get("choices")).ok_or_else(|| declaration(choices_message(path)))?;
+    if let Some(repeat) = first_repeat(items, data, false) {
+        return Err(GroupChoicesError::Repeated(repeat));
+    }
     let value_name = segments[count - 1];
     let Some(rows) = source_rows(&segments, data) else {
-        return Ok(Vec::new());
+        return Ok(literal);
     };
-    let mut choices = Vec::new();
+    let mut choices = literal;
     let mut seen = HashSet::new();
     for row in rows.values() {
         let Some(row) = row.as_object() else {
@@ -225,7 +271,7 @@ pub fn group_choices(items: &Value, data: &Value, path: &str) -> Result<Vec<Grou
         let label = label_name
             .and_then(|name| choice_text(row.get(name)))
             .unwrap_or_else(|| value.clone());
-        choices.push(GroupChoice { value, label });
+        choices.push(GroupChoice { value, label: Value::String(label) });
     }
     Ok(choices)
 }
@@ -241,10 +287,17 @@ fn source_rows<'a>(segments: &[&str], data: &'a Value) -> Option<&'a Map<String,
 }
 
 /// The input failure message of the first row of a checked group source, in data order, whose
-/// choice value repeats that of an earlier row, or `None` (CUVR-087). A source whose `from` is not
-/// of the declared shape has no rows.
+/// choice value repeats a literal choice (CUSC-089) or that of an earlier row (CUVR-087), or
+/// `None`. A source whose `from` is not of the declared shape has no rows.
 pub fn group_source_repeat(items: &Value, data: &Value) -> Option<String> {
+    first_repeat(items, data, true)
+}
+
+/// The message of the first row whose choice value is a literal choice or, with `rows`, the value
+/// of an earlier row.
+fn first_repeat(items: &Value, data: &Value, rows: bool) -> Option<String> {
     let from = items.get("from").and_then(Value::as_str)?;
+    let literal = literal_choices(items.get("choices")).unwrap_or_default();
     let segments: Vec<&str> = from.split('.').collect();
     if segments.len() < 3 {
         return None;
@@ -256,7 +309,12 @@ pub fn group_source_repeat(items: &Value, data: &Value) -> Option<String> {
         let Some(value) = choice_text(row.as_object().and_then(|row| row.get(value_name))) else {
             continue;
         };
-        if !seen.insert(value.clone()) {
+        if literal.iter().any(|choice| choice.value == value) {
+            return Some(format!(
+                "Group source value repeats a literal choice at {group_path}.{key}.{value_name}: {value}"
+            ));
+        }
+        if !seen.insert(value.clone()) && rows {
             return Some(format!(
                 "Group source value repeats an earlier row: {value} at {group_path}.{key}.{value_name}"
             ));

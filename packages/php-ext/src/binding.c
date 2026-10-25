@@ -192,7 +192,14 @@ static ps_value *build_widget(const ps_value *spec, const ps_value *value,
     const ps_value *items = ps_get(spec, "items");
     if (!ps_is_group_source(items))
         return build_declared_widget(spec, value, path, design, context, scope, error);
-    ps_value *choices = ps_group_source_choices(items, context->data);
+    ps_chars repeated = {NULL, 0};
+    ps_value *choices = ps_group_source_choices(items, context->data, &repeated);
+    if (!choices && repeated.bytes) {
+        /* A row that repeats a literal choice is the input failure of the validator (CUSC-089). */
+        *error = ps_error_text("form", "INVALID_FORM_INPUT", ps_view(repeated), PS_TEXT(""), NULL);
+        free(repeated.bytes);
+        return NULL;
+    }
     ps_value *source = ps_object_value();
     bool ok = choices && source;
     for (size_t i = 0; ok && i < ps_size(spec); ++i) {

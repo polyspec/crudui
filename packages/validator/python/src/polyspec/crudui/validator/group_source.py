@@ -9,6 +9,7 @@ lists the choices and the validator checks a value against them
 
 from typing import Any, TypeGuard
 
+from .errors import FormInputError
 from .values import canonical_text, trim
 
 __all__ = [
@@ -123,7 +124,7 @@ def group_source_failure(
     if not is_group_source(items):
         return None
     for key in items:
-        if key not in ("from", "label"):
+        if key not in ("from", "label", "choices"):
             return f"Invalid items.{key} at {path}: unknown key"
     if field.get("type") not in CHOICE_TYPES or _has_lang(field):
         return f"Invalid items.from at {path}: expected a choice field without lang"
@@ -144,7 +145,37 @@ def group_source_failure(
         )
     if "label" in items and _holds_boolean(group, items["label"]):
         return _boolean_failure("label", path, f"{group_path}.{items['label']}")
+    if "choices" in items and _literal_choices(items["choices"]) is None:
+        return (
+            f"Invalid items.choices at {path}: expected value and label pairs "
+            "with distinct string or number values"
+        )
     return None
+
+
+def _literal_choices(choices: object) -> list[dict[str, Any]] | None:
+    """The literal choices of a group source (schema.md, CUSC-089), or None when they break its rules.
+
+    Each is a `{value, label}` pair whose value is a string or a finite number with a
+    canonical text that is not empty after trimming and that no other literal choice has;
+    the value of a returned choice is that canonical text.
+    """
+    if not isinstance(choices, list):
+        return None
+    literal: list[dict[str, Any]] = []
+    for choice in choices:
+        if not _is_object(choice) or set(choice) != {"value", "label"}:
+            return None
+        value = _choice_text(choice["value"])
+        if value is None or any(known["value"] == value for known in literal):
+            return None
+        literal.append({"value": value, "label": choice["label"]})
+    return literal
+
+
+def _source_literal(source: dict[str, Any]) -> list[dict[str, Any]]:
+    """The literal choices of a checked group source, none when it declares no `choices`."""
+    return (_literal_choices(source["choices"]) or []) if "choices" in source else []
 
 
 def _choice_text(value: object) -> str | None:
@@ -169,10 +200,17 @@ def _source_rows(source: dict[str, Any], data: object) -> dict[str, Any]:
 
 def group_source_repeat(source: dict[str, Any], data: object) -> str | None:
     """The input failure message of the first row of a checked group source, in data order,
-    whose choice value repeats that of an earlier row, or None (CUVR-087)."""
+    whose choice value repeats a literal choice (CUSC-089) or that of an earlier row
+    (CUVR-087), or None."""
+    return _first_repeat(source, data, rows=True)
+
+
+def _first_repeat(source: dict[str, Any], data: object, *, rows: bool) -> str | None:
+    """The message of the first row whose value is a literal choice or, with `rows`, an earlier row's value."""
     segments = str(source["from"]).split(".")
     group_path = ".".join(segments[:-2])
     value_name = segments[-1]
+    literal = {choice["value"] for choice in _source_literal(source)}
     seen: set[str] = set()
     for key, row in _source_rows(source, data).items():
         if not _is_object(row):
@@ -180,23 +218,28 @@ def group_source_repeat(source: dict[str, Any], data: object) -> str | None:
         value = _choice_text(row.get(value_name))
         if value is None:
             continue
-        if value in seen:
-            return (
-                "Group source value repeats an earlier row: "
-                f"{value} at {group_path}.{key}.{value_name}"
-            )
+        at = f"{group_path}.{key}.{value_name}"
+        if value in literal:
+            return f"Group source value repeats a literal choice at {at}: {value}"
+        if rows and value in seen:
+            return f"Group source value repeats an earlier row: {value} at {at}"
         seen.add(value)
     return None
 
 
-def group_choices(source: dict[str, Any], data: object) -> list[dict[str, str]]:
+def group_choices(source: dict[str, Any], data: object) -> list[dict[str, Any]]:
     """The choices of a checked group source for the root `data`, as `{value, label}` pairs.
 
-    One choice per row of the group in data order whose value text is not empty and
-    not seen before. The label is the text of the row's `label` field, or else the value.
+    The literal choices come first in written order (CUSC-089), then one choice per row of
+    the group in data order whose value text is not empty and not seen before. The label
+    of a row is the text of its `label` field, or else the value. A row whose value is a
+    literal choice raises FormInputError with the row path and the value.
     """
+    literal_repeat = _first_repeat(source, data, rows=False)
+    if literal_repeat is not None:
+        raise FormInputError(literal_repeat)
     value_name = str(source["from"]).split(".")[-1]
-    choices: list[dict[str, str]] = []
+    choices: list[dict[str, Any]] = list(_source_literal(source))
     seen: set[str] = set()
     for row in _source_rows(source, data).values():
         if not _is_object(row):

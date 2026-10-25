@@ -22,11 +22,12 @@ var groupSourceTypes = map[string]bool{
 // booleanTypes are the field types whose stored value is a boolean, which a group source refuses (CUSC-068).
 var booleanTypes = map[string]bool{"checkbox": true, "switcher": true}
 
-// GroupChoice is one choice of a group source: the canonical text of a row's value and the text of its label, which
-// is the value when the source declares no label or the row gives none.
+// GroupChoice is one choice of a group source: the canonical text of its value and its label. A literal choice keeps
+// its declared label (CUSC-089); a row's label is the text of its label field, or the value when the source declares no
+// label or the row gives none.
 type GroupChoice struct {
 	Value string
-	Label string
+	Label any
 }
 
 // GroupSourceItems returns the items of a field as a group source, and whether the items are one: an object with the
@@ -46,7 +47,7 @@ func GroupSourceFailure(field *compose.OMap, path string, root *compose.OMap) st
 		return ""
 	}
 	for _, key := range source.Keys() {
-		if key != "from" && key != "label" {
+		if key != "from" && key != "label" && key != "choices" {
 			return "Invalid items." + key + " at " + path + ": unknown key"
 		}
 	}
@@ -75,17 +76,63 @@ func GroupSourceFailure(field *compose.OMap, path string, root *compose.OMap) st
 	if declared && holdsBoolean(group, labelText) {
 		return booleanFailure("label", path, groupPath+"."+labelText)
 	}
+	if choices, declared := source.Get("choices"); declared {
+		if _, ok := literalChoices(choices); !ok {
+			return "Invalid items.choices at " + path + ": expected value and label pairs with distinct string or number values"
+		}
+	}
 	return ""
 }
 
-// GroupChoices returns the choices of a checked group source for the root data: one per row of the group in data order
-// whose value is a string or a finite number with a non-empty canonical text, each value once. Data is an ordered object
-// or a plain map; a plain map has no member order, so its rows are read in sorted key order.
-func GroupChoices(source *compose.OMap, data any) []GroupChoice {
-	choices := []GroupChoice{}
+// literalChoices returns the literal choices of a group source (CUSC-089), each with the canonical text of its value,
+// and whether choices keeps their rules: a list of {value, label} pairs whose values are strings or finite numbers with
+// distinct canonical texts that are not empty after trimming. Absent choices give no literal choice.
+func literalChoices(choices any) ([]GroupChoice, bool) {
+	if choices == nil {
+		return nil, true
+	}
+	list, ok := choices.([]any)
+	if !ok {
+		return nil, false
+	}
+	literal := make([]GroupChoice, 0, len(list))
+	seen := map[string]bool{}
+	for _, item := range list {
+		choice, ok := item.(*compose.OMap)
+		if !ok || choice == nil || choice.Len() != 2 || !choice.Has("value") || !choice.Has("label") {
+			return nil, false
+		}
+		raw, _ := choice.Get("value")
+		value, ok := choiceText(raw)
+		if !ok || seen[value] {
+			return nil, false
+		}
+		seen[value] = true
+		label, _ := choice.Get("label")
+		literal = append(literal, GroupChoice{Value: value, Label: label})
+	}
+	return literal, true
+}
+
+// sourceLiteral returns the literal choices of a checked group source.
+func sourceLiteral(source *compose.OMap) []GroupChoice {
+	choices, _ := source.Get("choices")
+	literal, _ := literalChoices(choices)
+	return literal
+}
+
+// GroupChoices returns the choices of a checked group source for the root data: its literal choices in written order
+// (CUSC-089), then one per row of the group in data order whose value is a string or a finite number with a non-empty
+// canonical text, each value once. Data is an ordered object or a plain map; a plain map has no member order, so its rows
+// are read in sorted key order. A row whose value is a literal choice returns a FormInputError with its path and value.
+func GroupChoices(source *compose.OMap, data any) ([]GroupChoice, error) {
+	if repeat := firstRepeat(source, data, false); repeat != "" {
+		return nil, &FormInputError{Message: repeat}
+	}
+	choices := append([]GroupChoice{}, sourceLiteral(source)...)
 	rows, ok := sourceRows(source, data)
 	if !ok {
-		return choices
+		return choices, nil
 	}
 	valueName := rows.valueName
 	labelName, hasLabel := labelOf(source)
@@ -104,7 +151,7 @@ func GroupChoices(source *compose.OMap, data any) []GroupChoice {
 		}
 		choices = append(choices, GroupChoice{Value: value, Label: label})
 	}
-	return choices
+	return choices, nil
 }
 
 // groupRows are the rows of the group that a checked group source names in the data: the declaration path of the
@@ -142,20 +189,34 @@ func sourceRows(source *compose.OMap, data any) (groupRows, bool) {
 }
 
 // groupSourceRepeat returns the input failure message of the first row of a checked group source, in data order, whose
-// choice value repeats that of an earlier row, or "" when no row repeats one (CUVR-087).
+// choice value repeats a literal choice (CUSC-089) or that of an earlier row (CUVR-087), or "" when no row repeats one.
 func groupSourceRepeat(source *compose.OMap, data any) string {
-	rows, ok := sourceRows(source, data)
+	return firstRepeat(source, data, true)
+}
+
+// firstRepeat returns the message of the first row of a checked group source, in data order, whose choice value is a
+// literal choice or, with rows, the value of an earlier row; "" when none repeats.
+func firstRepeat(source *compose.OMap, data any, rows bool) string {
+	group, ok := sourceRows(source, data)
 	if !ok {
 		return ""
 	}
+	literal := map[string]bool{}
+	for _, choice := range sourceLiteral(source) {
+		literal[choice.Value] = true
+	}
 	seen := map[string]bool{}
-	for index, row := range rows.values {
-		value, ok := choiceText(objectMemberValue(row, rows.valueName))
+	for index, row := range group.values {
+		value, ok := choiceText(objectMemberValue(row, group.valueName))
 		if !ok {
 			continue
 		}
-		if seen[value] {
-			return "Group source value repeats an earlier row: " + value + " at " + rows.groupPath + "." + rows.keys[index] + "." + rows.valueName
+		at := group.groupPath + "." + group.keys[index] + "." + group.valueName
+		if literal[value] {
+			return "Group source value repeats a literal choice at " + at + ": " + value
+		}
+		if rows && seen[value] {
+			return "Group source value repeats an earlier row: " + value + " at " + at
 		}
 		seen[value] = true
 	}
@@ -163,13 +224,16 @@ func groupSourceRepeat(source *compose.OMap, data any) string {
 }
 
 // groupSourceMembers returns the choice values of a checked group source for the data, as the members of an in rule.
-func groupSourceMembers(source *compose.OMap, data map[string]any) []any {
-	choices := GroupChoices(source, data)
+func groupSourceMembers(source *compose.OMap, data map[string]any) ([]any, error) {
+	choices, err := GroupChoices(source, data)
+	if err != nil {
+		return nil, err
+	}
 	members := make([]any, 0, len(choices))
 	for _, choice := range choices {
 		members = append(members, choice.Value)
 	}
-	return members
+	return members, nil
 }
 
 // sourceGroup returns the child fields of the repeated group that from names under the root properties, or nil when

@@ -702,10 +702,13 @@ static bool array_level_rule(ps_text rule)
         ps_text_is(rule, "mincount") || ps_text_is(rule, "maxcount");
 }
 
-/* The values of a group source's choices for the root data, as an array of strings; NULL on allocation failure. */
-static ps_value *group_members(const ps_value *items, const ps_value *data)
+/*
+ * The values of a group source's choices for the root data, as an array of strings; NULL with the owned message in
+ * *repeated when a row repeats a literal choice (CUSC-089), and NULL with *repeated empty on allocation failure.
+ */
+static ps_value *group_members(const ps_value *items, const ps_value *data, ps_chars *repeated)
 {
-    ps_value *choices = ps_group_source_choices(items, data);
+    ps_value *choices = ps_group_source_choices(items, data, repeated);
     ps_value *members = choices ? ps_array_value() : NULL;
     bool ok = members != NULL;
     for (size_t i = 0; ok && i < ps_size(choices); ++i) {
@@ -748,8 +751,14 @@ static bool validate_rules(const ps_value *field, const ps_value *value,
             free(repeat.bytes);
             return false;
         }
-        ps_value *members = group_members(items, context->data);
-        if (!members) return false;
+        ps_chars repeated = {NULL, 0};
+        ps_value *members = group_members(items, context->data, &repeated);
+        if (!members) {
+            if (repeated.bytes)
+                context->failure = ps_error_text("input", "INVALID_FORM_INPUT", ps_view(repeated), PS_TEXT(""), NULL);
+            free(repeated.bytes);
+            return false;
+        }
         int pass = rule_passes(PS_TEXT("in"), value, members, field, context, path, length);
         bool ok = pass >= 0 && (pass || rule_error(context, path, length, field, PS_TEXT("in"), members, value));
         ps_value_free(members);

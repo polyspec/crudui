@@ -70,6 +70,9 @@ static bool holds_boolean(const ps_value *child)
     return ps_is_string(type, "checkbox") || ps_is_string(type, "switcher");
 }
 
+static int literal_choices(const ps_value *choices, ps_value **literal);
+static int first_repeat(const ps_value *items, const ps_value *data, bool rows_too, ps_chars *message);
+
 static int failure(ps_chars *message, ps_chars text)
 {
     *message = text;
@@ -83,7 +86,7 @@ int ps_group_source_failure(const ps_value *field, ps_text path, const ps_value 
     if (!ps_is_group_source(items)) return 0;
     for (size_t i = 0; i < ps_size(items); ++i) {
         ps_text key = ps_key(items, i);
-        if (!ps_text_is(key, "from") && !ps_text_is(key, "label"))
+        if (!ps_text_is(key, "from") && !ps_text_is(key, "label") && !ps_text_is(key, "choices"))
             return failure(message, PS_CONCAT(PS_TEXT("Invalid items."), key, PS_TEXT(" at "), path,
                                               PS_TEXT(": unknown key")));
     }
@@ -122,6 +125,15 @@ int ps_group_source_failure(const ps_value *field, ps_text path, const ps_value 
             return failure(message, PS_CONCAT(PS_TEXT("Invalid items.label at "), path, PS_TEXT(": "), group_path,
                 PS_TEXT("."), ps_string(label), PS_TEXT(" holds a boolean, expected a field whose values are strings or numbers")));
     }
+    if (ps_has(items, "choices")) {
+        ps_value *literal = NULL;
+        int state = literal_choices(ps_get(items, "choices"), &literal);
+        ps_value_free(literal);
+        if (state < 0) return -1;
+        if (!state)
+            return failure(message, PS_CONCAT(PS_TEXT("Invalid items.choices at "), path,
+                PS_TEXT(": expected value and label pairs with distinct string or number values")));
+    }
     return 0;
 }
 
@@ -153,12 +165,11 @@ static bool choice_seen(const ps_value *choices, ps_text value)
     return false;
 }
 
-/* Append a {value, label} choice; both texts are consumed. */
-static bool append_choice(ps_value *choices, ps_chars value, ps_chars label)
+/* Append a {value, label} choice; the value text and the label node are consumed. */
+static bool append_pair(ps_value *choices, ps_chars value, ps_value *label_node)
 {
     ps_value *pair = ps_object_value();
     ps_value *value_node = ps_chars_value(value);
-    ps_value *label_node = ps_chars_value(label);
     if (!pair || !value_node || !label_node) {
         ps_value_free(pair); ps_value_free(value_node); ps_value_free(label_node);
         return false;
@@ -168,12 +179,45 @@ static bool append_choice(ps_value *choices, ps_chars value, ps_chars label)
     return ps_append(choices, pair);
 }
 
-ps_value *ps_group_source_choices(const ps_value *items, const ps_value *data)
+/* Append a {value, label} choice of a row; both texts are consumed. */
+static bool append_choice(ps_value *choices, ps_chars value, ps_chars label)
 {
-    ps_value *choices = ps_array_value();
+    return append_pair(choices, value, ps_chars_value(label));
+}
+
+/*
+ * The literal choices of a group source (CUSC-089): 1 with the owned array of {value, label} objects in *literal, the
+ * value the canonical text; 0 when choices is not a list of {value, label} pairs whose values are strings or finite
+ * numbers with distinct canonical texts that are not empty after trimming; -1 on allocation failure. Absent choices
+ * give an empty array.
+ */
+static int literal_choices(const ps_value *choices, ps_value **literal)
+{
+    *literal = ps_array_value();
+    if (!*literal) return -1;
+    if (!choices) return 1;
+    if (choices->kind != PS_ARRAY) return 0;
+    for (size_t i = 0; i < ps_size(choices); ++i) {
+        const ps_value *choice = ps_at(choices, i);
+        if (!choice || choice->kind != PS_OBJECT || ps_size(choice) != 2 || !ps_has(choice, "value") ||
+            !ps_has(choice, "label"))
+            return 0;
+        ps_chars value = {NULL, 0};
+        int state = choice_text(ps_get(choice, "value"), &value);
+        if (state <= 0) return state;
+        if (choice_seen(*literal, ps_view(value))) { free(value.bytes); return 0; }
+        if (!append_pair(*literal, value, ps_value_clone(ps_get(choice, "label")))) return -1;
+    }
+    return 1;
+}
+
+ps_value *ps_group_source_choices(const ps_value *items, const ps_value *data, ps_chars *repeated)
+{
+    ps_value *choices = NULL;
     ps_text *parts = NULL;
     size_t count = 0;
-    if (!choices) return NULL;
+    if (first_repeat(items, data, false, repeated) != 0) return NULL;
+    if (literal_choices(ps_get(items, "choices"), &choices) <= 0) goto fail;
     const ps_value *from = ps_get(items, "from");
     if (from->kind != PS_STRING || !split_dots(ps_string(from), &parts, &count)) goto fail;
     const ps_value *rows = data;
@@ -208,24 +252,31 @@ fail:
     return NULL;
 }
 
-int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars *message)
+/*
+ * The message of the first row of a checked group source, in data order, whose choice value is a literal choice
+ * (CUSC-089) or, with rows, the value of an earlier row (CUVR-087): 0 when none repeats, 1 with the message in *message,
+ * -1 on allocation failure.
+ */
+static int first_repeat(const ps_value *items, const ps_value *data, bool rows_too, ps_chars *message)
 {
     *message = (ps_chars){NULL, 0};
+    ps_value *literal = NULL;
+    if (literal_choices(ps_get(items, "choices"), &literal) < 0) { ps_value_free(literal); return -1; }
     const ps_value *from = ps_get(items, "from");
     ps_text *parts = NULL;
     size_t count = 0;
-    if (!from || from->kind != PS_STRING) return 0;
-    if (!split_dots(ps_string(from), &parts, &count)) return -1;
+    if (!from || from->kind != PS_STRING) { ps_value_free(literal); return 0; }
+    if (!split_dots(ps_string(from), &parts, &count)) { ps_value_free(literal); return -1; }
     const ps_value *rows = data;
     for (size_t i = 0; rows && i + 2 < count; ++i)
         rows = rows->kind == PS_OBJECT ? ps_get_text(rows, parts[i]) : NULL;
-    if (count < 3 || !rows || rows->kind != PS_OBJECT) { free(parts); return 0; }
+    if (count < 3 || !rows || rows->kind != PS_OBJECT) { free(parts); ps_value_free(literal); return 0; }
     ps_text value_name = parts[count - 1];
     free(parts);
     /* from is {group}.*.{value}: the declaration path of the group is the text before ".*.". */
     ps_text group_path = ps_text_slice(ps_string(from), 0, ps_string(from).length - value_name.length - 3);
     ps_chars *seen = malloc((ps_size(rows) + 1) * sizeof(*seen));
-    if (!seen) return -1;
+    if (!seen) { ps_value_free(literal); return -1; }
     size_t seen_count = 0;
     int result = 0;
     for (size_t r = 0; result == 0 && r < ps_size(rows); ++r) {
@@ -235,8 +286,15 @@ int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars
         int state = choice_text(ps_get_text(row, value_name), &value);
         if (state < 0) { result = -1; break; }
         if (!state) continue;
+        if (choice_seen(literal, ps_view(value))) {
+            *message = PS_CONCAT(PS_TEXT("Group source value repeats a literal choice at "), group_path, PS_TEXT("."),
+                                 ps_key(rows, r), PS_TEXT("."), value_name, PS_TEXT(": "), ps_view(value));
+            free(value.bytes);
+            result = message->bytes ? 1 : -1;
+            break;
+        }
         bool repeated = false;
-        for (size_t i = 0; !repeated && i < seen_count; ++i)
+        for (size_t i = 0; rows_too && !repeated && i < seen_count; ++i)
             repeated = ps_text_equal(ps_view(seen[i]), ps_view(value));
         if (!repeated) { seen[seen_count++] = value; continue; }
         *message = PS_CONCAT(PS_TEXT("Group source value repeats an earlier row: "), ps_view(value), PS_TEXT(" at "),
@@ -246,5 +304,11 @@ int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars
     }
     for (size_t i = 0; i < seen_count; ++i) free(seen[i].bytes);
     free(seen);
+    ps_value_free(literal);
     return result;
+}
+
+int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars *message)
+{
+    return first_repeat(items, data, true, message);
 }

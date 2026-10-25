@@ -8,6 +8,7 @@
 
 import { canonicalText, trim } from './values/index';
 import { isRecord } from './record';
+import { FormInputError } from './validate/errors';
 
 /** The field types that take a group source. */
 const CHOICE_TYPES: readonly unknown[] = ['select', 'dropdown', 'selectbox', 'choice', 'radio', 'multichoice', 'checkboxes', 'checkcontainer'];
@@ -18,7 +19,7 @@ const BOOLEAN_TYPES: readonly unknown[] = ['checkbox', 'switcher'];
 /** One choice of a group source: the canonical text of a row's value and the label text. */
 export interface GroupChoice {
   value: string;
-  label: string;
+  label: unknown;
 }
 
 function has(object: object, key: string): boolean {
@@ -86,7 +87,7 @@ export function groupSourceFailure(field: Record<string, unknown>, path: string,
   const items = field.items;
   if (!isGroupSource(items)) return undefined;
   for (const key of Object.keys(items)) {
-    if (key !== 'from' && key !== 'label') return `Invalid items.${key} at ${path}: unknown key`;
+    if (key !== 'from' && key !== 'label' && key !== 'choices') return `Invalid items.${key} at ${path}: unknown key`;
   }
   if (!CHOICE_TYPES.includes(field.type) || hasLang(field)) return `Invalid items.from at ${path}: expected a choice field without lang`;
   const group = sourceGroup(items.from, properties);
@@ -101,6 +102,9 @@ export function groupSourceFailure(field: Record<string, unknown>, path: string,
     return `Invalid items.label at ${path}: expected the name of a direct child field of the group without multiple, properties or lang`;
   }
   if (has(items, 'label') && holdsBoolean(group, items.label)) return booleanFailure('label', path, `${groupPath}.${String(items.label)}`);
+  if (has(items, 'choices') && literalChoices(items.choices) === undefined) {
+    return `Invalid items.choices at ${path}: expected value and label pairs with distinct string or number values`;
+  }
   return undefined;
 }
 
@@ -109,6 +113,24 @@ function choiceText(value: unknown): string | undefined {
   if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) return undefined;
   const text = canonicalText(value);
   return text !== undefined && trim(text) !== '' ? text : undefined;
+}
+
+/**
+ * The literal choices of a group source (schema.md, CUSC-089) with the canonical text of each value, or `undefined` when
+ * `choices` is not a list of `{ value, label }` pairs whose values are strings or finite numbers with distinct canonical texts
+ * that are not empty after trimming. A source without `choices` has no literal choices.
+ */
+function literalChoices(choices: unknown): GroupChoice[] | undefined {
+  if (choices === undefined) return [];
+  if (!Array.isArray(choices)) return undefined;
+  const literal: GroupChoice[] = [];
+  for (const choice of choices) {
+    if (!isRecord(choice) || Object.keys(choice).length !== 2 || !has(choice, 'value') || !has(choice, 'label')) return undefined;
+    const value = choiceText(choice.value);
+    if (value === undefined || literal.some((known) => known.value === value)) return undefined;
+    literal.push({ value, label: choice.label });
+  }
+  return literal;
 }
 
 /** The rows of the group that a checked group source names in the root `data`, as [key, row] entries in data order. */
@@ -129,13 +151,18 @@ function valueField(source: Record<string, unknown>): string {
 }
 
 /**
- * The choices of a checked group source for the root `data`: one per row of the group in data
- * order whose value is a string or a finite number with a non-empty canonical text, each value
+ * The choices of a checked group source for the root `data`: its literal choices in written order (CUSC-089), then one per
+ * row of the group in data order whose value is a string or a finite number with a non-empty canonical text, each value
  * once, labelled with the text of its `label` field or else its value.
+ *
+ * @throws {FormInputError} when a row's value has the canonical text of a literal choice.
  */
 export function groupChoices(source: Record<string, unknown>, data: unknown): GroupChoice[] {
+  const literalRepeat = firstRepeat(source, data, false);
+  if (literalRepeat !== undefined) throw new FormInputError(literalRepeat);
   const valueName = valueField(source);
-  const choices: GroupChoice[] = [];
+  const literal = literalChoices(source.choices) ?? [];
+  const choices: GroupChoice[] = [...literal];
   const seen = new Set<string>();
   for (const [, row] of sourceRows(source, data)) {
     if (!isRecord(row)) continue;
@@ -150,18 +177,30 @@ export function groupChoices(source: Record<string, unknown>, data: unknown): Gr
 
 /**
  * The input failure message of the first row of a checked group source, in data order, whose
- * choice value repeats that of an earlier row, or `undefined` (CUVR-087).
+ * choice value repeats a literal choice (CUSC-089) or that of an earlier row (CUVR-087), or
+ * `undefined`.
  */
 export function groupSourceRepeat(source: Record<string, unknown>, data: unknown): string | undefined {
+  return firstRepeat(source, data, true);
+}
+
+/**
+ * The message of the first row of a checked group source, in data order, whose choice value is a literal choice, or, with
+ * `rows`, the value of an earlier row; `undefined` when none repeats.
+ */
+function firstRepeat(source: Record<string, unknown>, data: unknown, rows: boolean): string | undefined {
   const segments = String(source.from).split('.');
   const groupPath = segments.slice(0, -2).join('.');
   const valueName = valueField(source);
+  const literal = new Set((literalChoices(source.choices) ?? []).map((choice) => choice.value));
   const seen = new Set<string>();
   for (const [key, row] of sourceRows(source, data)) {
     if (!isRecord(row)) continue;
     const value = choiceText(row[valueName]);
     if (value === undefined) continue;
-    if (seen.has(value)) return `Group source value repeats an earlier row: ${value} at ${groupPath}.${key}.${valueName}`;
+    const at = `${groupPath}.${key}.${valueName}`;
+    if (literal.has(value)) return `Group source value repeats a literal choice at ${at}: ${value}`;
+    if (rows && seen.has(value)) return `Group source value repeats an earlier row: ${value} at ${at}`;
     seen.add(value);
   }
   return undefined;

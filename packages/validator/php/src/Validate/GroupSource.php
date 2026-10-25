@@ -49,7 +49,7 @@ final class GroupSource
         }
         $source = (array) $items;
         foreach (array_keys($source) as $key) {
-            if ($key !== 'from' && $key !== 'label') {
+            if ($key !== 'from' && $key !== 'label' && $key !== 'choices') {
                 return sprintf('Invalid items.%s at %s: unknown key', $key, $path);
             }
         }
@@ -80,7 +80,54 @@ final class GroupSource
         if (array_key_exists('label', $source) && self::holdsBoolean($group, $source['label'])) {
             return self::booleanFailure('label', $path, $groupPath . '.' . (string) $source['label']);
         }
+        if (array_key_exists('choices', $source) && self::literalChoices($source['choices']) === null) {
+            return sprintf(
+                'Invalid items.choices at %s: expected value and label pairs with distinct string or number values',
+                $path
+            );
+        }
         return null;
+    }
+
+    /**
+     * The literal choices of a group source (schema.md, CUSC-089) as [value text, label] pairs, or null
+     * when they are not a list of `{ value, label }` pairs whose values are strings or finite numbers
+     * with distinct canonical texts that are not empty after trimming.
+     *
+     * @return list<array{0: string, 1: mixed}>|null
+     */
+    private static function literalChoices(mixed $choices): ?array
+    {
+        if (!\is_array($choices) || !array_is_list($choices)) {
+            return null;
+        }
+        $literal = [];
+        foreach ($choices as $choice) {
+            if (!JsonValue::isObject($choice)) {
+                return null;
+            }
+            $choice = (array) $choice;
+            if (\count($choice) !== 2 || !array_key_exists('value', $choice) || !array_key_exists('label', $choice)) {
+                return null;
+            }
+            $value = self::choiceText($choice['value']);
+            if ($value === null || array_key_exists($value, $literal)) {
+                return null;
+            }
+            $literal[$value] = [$value, $choice['label']];
+        }
+        return array_values($literal);
+    }
+
+    /**
+     * The literal choices of a checked group source, none when it declares no `choices`.
+     *
+     * @param array<array-key, mixed> $source
+     * @return list<array{0: string, 1: mixed}>
+     */
+    private static function sourceLiteral(array $source): array
+    {
+        return array_key_exists('choices', $source) ? (self::literalChoices($source['choices']) ?? []) : [];
     }
 
     /**
@@ -90,14 +137,18 @@ final class GroupSource
      * else its value.
      *
      * @param array<array-key, mixed> $source the group source `{ from, label? }`
-     * @return list<array{0: string, 1: string}>
+     * @return list<array{0: string, 1: mixed}>
      */
     public static function choices(array $source, mixed $data): array
     {
+        $literalRepeat = self::firstRepeat($source, $data, false);
+        if ($literalRepeat !== null) {
+            throw new FormInputError($literalRepeat);
+        }
         $segments = explode('.', (string) $source['from']);
         $valueName = (string) end($segments);
         $label = $source['label'] ?? null;
-        $choices = [];
+        $choices = self::sourceLiteral($source);
         $seen = [];
         foreach (self::rows($source, $data) as $row) {
             if (!JsonValue::isObject($row)) {
@@ -117,15 +168,27 @@ final class GroupSource
 
     /**
      * The input failure message of the first row of a checked group source, in data order, whose
-     * choice value repeats that of an earlier row, or null (CUVR-087).
+     * choice value repeats a literal choice (CUSC-089) or that of an earlier row (CUVR-087), or null.
      *
-     * @param array<array-key, mixed> $source the group source `{ from, label? }`
+     * @param array<array-key, mixed> $source the group source `{ from, label?, choices? }`
      */
     public static function repeat(array $source, mixed $data): ?string
+    {
+        return self::firstRepeat($source, $data, true);
+    }
+
+    /**
+     * The message of the first row whose choice value is a literal choice or, with $rows, the value
+     * of an earlier row; null when none repeats.
+     *
+     * @param array<array-key, mixed> $source
+     */
+    private static function firstRepeat(array $source, mixed $data, bool $rows): ?string
     {
         $segments = explode('.', (string) $source['from']);
         $valueName = (string) end($segments);
         $groupPath = implode('.', array_slice($segments, 0, -2));
+        $literal = array_column(self::sourceLiteral($source), 0);
         $seen = [];
         foreach (self::rows($source, $data) as $key => $row) {
             if (!JsonValue::isObject($row)) {
@@ -135,14 +198,12 @@ final class GroupSource
             if ($value === null) {
                 continue;
             }
-            if (isset($seen[$value])) {
-                return sprintf(
-                    'Group source value repeats an earlier row: %s at %s.%s.%s',
-                    $value,
-                    $groupPath,
-                    (string) $key,
-                    $valueName
-                );
+            $at = $groupPath . '.' . (string) $key . '.' . $valueName;
+            if (\in_array($value, $literal, true)) {
+                return sprintf('Group source value repeats a literal choice at %s: %s', $at, $value);
+            }
+            if ($rows && isset($seen[$value])) {
+                return sprintf('Group source value repeats an earlier row: %s at %s', $value, $at);
             }
             $seen[$value] = true;
         }

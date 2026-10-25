@@ -386,7 +386,11 @@ func (v *Validator) runGroupSource(run fieldRun, value any, errors *[]Validation
 	if repeat := groupSourceRepeat(source, run.allData); repeat != "" {
 		return false, &FormInputError{Message: repeat}
 	}
-	msg, failed, err := v.runRule(run, "in", groupSourceMembers(source, run.allData), value)
+	members, err := groupSourceMembers(source, run.allData)
+	if err != nil {
+		return false, err
+	}
+	msg, failed, err := v.runRule(run, "in", members, value)
 	if err != nil || !failed {
 		return false, err
 	}

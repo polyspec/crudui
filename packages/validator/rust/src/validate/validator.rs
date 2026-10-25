@@ -21,7 +21,7 @@ use crate::compose::{ComposeErrorCode, ComposeLoadError};
 use crate::expr::{Evaluator, Expression, Node};
 
 use super::choice_data::{check_single_choice_data, is_single_choice};
-use super::group_source::{group_choices, group_source_repeat, is_group_source};
+use super::group_source::{group_choices, group_source_repeat, is_group_source, GroupChoicesError};
 use super::errors::{FormInputError, ValidateError};
 use super::keyed_maps::check_keyed_map_keys;
 use super::membership::Comparable;
@@ -475,17 +475,18 @@ impl Validator {
         let Some(items) = field.get("items").filter(|items| is_group_source(items)) else {
             return Ok(None);
         };
-        let choices = group_choices(items, run.data, &declaration.join(".")).map_err(|message| {
-            ValidateError::Load(ComposeLoadError::with_trace(
-                ComposeErrorCode::InvalidRuleParameter,
-                message,
-                declaration.to_vec(),
-            ))
-        })?;
         // A repeated value among the source rows is data that the choices cannot express (CUVR-087).
         if let Some(repeat) = group_source_repeat(items, run.data) {
             return Err(FormInputError::new(repeat).into());
         }
+        let choices = group_choices(items, run.data, &declaration.join(".")).map_err(|error| match error {
+            GroupChoicesError::Declaration(message) => ValidateError::Load(ComposeLoadError::with_trace(
+                ComposeErrorCode::InvalidRuleParameter,
+                message,
+                declaration.to_vec(),
+            )),
+            GroupChoicesError::Repeated(message) => ValidateError::Input(FormInputError::new(message)),
+        })?;
         let members = Value::Array(
             choices
                 .into_iter()

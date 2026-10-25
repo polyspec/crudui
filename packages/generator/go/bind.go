@@ -187,7 +187,11 @@ func makeWidget(spec *Object, value any, path string, design *Object, s bindStat
 	// A group source lists the rows of its group in the data as a choice list; compilation has checked the source
 	// (docs/spec/schema.md, Choices from a repeated group).
 	if source, ok := validate.GroupSourceItems(read(spec, "items")); ok {
-		spec = withGroupChoices(spec, source, s.data)
+		withChoices, err := withGroupChoices(spec, source, s.data)
+		if err != nil {
+			return nil, err
+		}
+		spec = withChoices
 	}
 	if items := read(spec, "items"); isChoiceList(items) {
 		// Only the choices of a choice or multichoice field declare their appearance, and only the
@@ -213,16 +217,20 @@ func makeWidget(spec *Object, value any, path string, design *Object, s bindStat
 }
 
 // withGroupChoices returns a copy of spec whose items are the choice list of the group source for the record data,
-// one {value, label} pair per choice in data order; the template keeps its group source.
-func withGroupChoices(spec *Object, source *Object, data *Object) *Object {
-	choices := validate.GroupChoices(source, data)
+// one {value, label} pair per choice, the literal choices first; the template keeps its group source. A row that repeats
+// a literal choice returns the input failure of the validator (CUSC-089).
+func withGroupChoices(spec *Object, source *Object, data *Object) (*Object, error) {
+	choices, err := validate.GroupChoices(source, data)
+	if err != nil {
+		return nil, err
+	}
 	items := make([]any, 0, len(choices))
 	for _, choice := range choices {
 		items = append(items, NewObject("value", choice.Value, "label", choice.Label))
 	}
 	copied := copyObject(spec)
 	copied.Set("items", items)
-	return copied
+	return copied, nil
 }
 
 // declaredAttributes returns a copy of the declared control attributes (design.attributes) or,

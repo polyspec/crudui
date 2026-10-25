@@ -444,7 +444,8 @@ roles:
 - **CUSC-089** `choices` is a list of literal choices that join the choices of the rows, such as the
   audience `player` beside the ids of the characters: `{ "value": …, "label": … }` pairs as in a
   [choice list](#choice-lists), each with only these two members, a `value` that is a string or a
-  finite number and a `label` as in a value-to-label map, no two values with the same canonical text.
+  finite number whose canonical text is not empty after trimming, as every choice of a row is, and a
+  `label` as in a value-to-label map, no two values with the same canonical text.
   The choices of the field are the literal choices in written order, followed by the choices of the
   rows (CUSC-063). A row whose value has the canonical text of a literal choice would give that value
   twice, so it is refused, not dropped: when the choices are read, for a binding or a validation of

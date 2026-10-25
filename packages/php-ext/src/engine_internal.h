@@ -399,15 +399,16 @@ const ps_value *ps_choice_label(const ps_value *items, ps_text key, bool *failed
  * properties: 0 when valid or not a group source, 1 with the message in *message, -1 on allocation
  * failure.
  * ps_group_source_choices: the choices of a checked group source for the root data, an array of
- * {value, label} objects; NULL on allocation failure.
+ * {value, label} objects, its literal choices first (CUSC-089); NULL with the owned message in *repeated
+ * when a row's value repeats a literal choice, and NULL with *repeated empty on allocation failure.
  */
 bool ps_is_group_source(const ps_value *items);
 int ps_group_source_failure(const ps_value *field, ps_text path, const ps_value *root, ps_chars *message);
-ps_value *ps_group_source_choices(const ps_value *items, const ps_value *data);
+ps_value *ps_group_source_choices(const ps_value *items, const ps_value *data, ps_chars *repeated);
 /*
  * ps_group_source_repeat: the input failure message of the first row of a checked group source, in
- * data order, whose choice value repeats that of an earlier row (CUVR-087): 0 when none repeats, 1
- * with the message in *message, -1 on allocation failure.
+ * data order, whose choice value repeats a literal choice (CUSC-089) or that of an earlier row
+ * (CUVR-087): 0 when none repeats, 1 with the message in *message, -1 on allocation failure.
  */
 int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars *message);
 
