@@ -672,7 +672,7 @@
   },
   {
     "name": "compose-ref-unresolved-load-error",
-    "note": "Unresolved $ref → ComposeLoadError (render FAILS; not valid:true). The fixture records the error code, no expected_html.",
+    "note": "Unresolved $ref → ComposeLoadError (render FAILS; not valid:true). The fixture records the error code and message, no expected_html.",
     "spec": {
       "type": "group",
       "properties": {
@@ -680,7 +680,8 @@
       }
     },
     "expectError": {
-      "code": "REF_FILE_NOT_FOUND"
+      "code": "REF_FILE_NOT_FOUND",
+      "message": "$ref file not found: Missing.yml"
     }
   },
   {
@@ -3233,7 +3234,8 @@
       }
     },
     "expectError": {
-      "code": "UNSUPPORTED_FIELD_TYPE"
+      "code": "UNSUPPORTED_FIELD_TYPE",
+      "message": "Unsupported field type \"totally-unknown-widget\" at \"x\""
     }
   },
   {

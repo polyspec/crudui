@@ -46,7 +46,10 @@ final class RenderingConformanceTest extends TestCase
                 throw $error;
             }
             self::assertTrue(method_exists($error, 'getErrorCode'));
-            self::assertSame($case->expectError->code, $error->getErrorCode());
+            self::assertSame(
+                (array) $case->expectError,
+                ['code' => $error->getErrorCode(), 'message' => $error->getMessage()],
+            );
             return;
         }
         self::assertFalse(isset($case->expectError), 'Expected generation error');

@@ -32,7 +32,7 @@ interface FixtureCase {
   /** The typed options of a scenario, or the options object of a widget or written case. */
   options?: BindFormOptions & CompileFormOptions | Record<string, unknown>;
   expected_html?: string;
-  expectError?: { code: string; message?: string };
+  expectError?: { code: string; message: string };
 }
 
 /** Wrap a single field spec in a root group (matches the fixture shape). */
@@ -62,9 +62,39 @@ function pass(
   };
 }
 
-// Declare an expected-error case without expected_html.
-function err(name: string, note: string, spec: Record<string, unknown>, code: string): FixtureCase {
-  return { name, note, spec, expectError: { code } };
+/**
+ * The error that rendering a case throws, with its code and message; a render that throws nothing, or an error without a
+ * string code, fails. The code is read from the error, not by its class: the generator package and the React renderer can
+ * load separate copies of the class UnsupportedFieldTypeError.
+ */
+function thrownError(name: string, render: () => unknown): { error: Error; code: string; message: string } {
+  let threw = false;
+  let thrown: unknown;
+  try {
+    render();
+  } catch (e) {
+    threw = true;
+    thrown = e;
+  }
+  if (!threw) throw new Error(`${name}: expected an error, but the case rendered`);
+  if (thrown instanceof Error && 'code' in thrown && typeof thrown.code === 'string') {
+    return { error: thrown, code: thrown.code, message: thrown.message };
+  }
+  throw new Error(`${name}: expected an error with a string code, got ${String(thrown)}`);
+}
+
+/** Fail unless the thrown error has the recorded code and message. */
+function requireError(name: string, expected: { code: string; message: string }, actual: { code: string; message: string }): void {
+  if (actual.code !== expected.code || actual.message !== expected.message) {
+    throw new Error(`${name}: expected ${JSON.stringify(expected)}, got ${JSON.stringify({ code: actual.code, message: actual.message })}`);
+  }
+}
+
+// Declare an expected-error case without expected_html, after the render throws the recorded code and message.
+function err(name: string, note: string, spec: Record<string, unknown>, code: string, message: string): FixtureCase {
+  const thrown = thrownError(name, () => renderFields(compileForm(spec), {}));
+  requireError(name, { code, message }, thrown);
+  return { name, note, spec, expectError: { code, message } };
 }
 
 const G = (props: Record<string, unknown>) => ({ type: 'group', properties: props });
@@ -235,7 +265,8 @@ const NEW: FixtureCase[] = [
 
   // ---- E. FALLBACK SURFACING -------------------------------------------------
   err('unsupported-type-throws', 'unregistered type under default throw → UnsupportedFieldTypeError.',
-    G({ x: { type: 'totally-unknown-widget', label: { ko: '미지원' } } }), 'UNSUPPORTED_FIELD_TYPE'),
+    G({ x: { type: 'totally-unknown-widget', label: { ko: '미지원' } } }), 'UNSUPPORTED_FIELD_TYPE',
+    'Unsupported field type "totally-unknown-widget" at "x"'),
   pass('unsupported-type-marker', 'options.unsupported:marker → data-unsupported-type div + HTML comment.',
     G({ x: { type: 'totally-unknown-widget', label: { ko: '미지원' } } }), {}, { unsupported: 'marker', language: 'ko' }),
 
@@ -385,21 +416,14 @@ NEW.push(...WRITTEN_CASES, ...GROUP_SOURCE_CASES);
 
 void group; // (kept for ad-hoc use)
 
-/** The rendered case of a scenario, or its error case after the render throws the recorded ComposeLoadError. */
+/** The rendered case of a scenario, or its error case after the render throws the recorded ComposeLoadError code and message. */
 function scenario(c: (typeof SCENARIOS)[number]): FixtureCase {
   if (c.expectError) {
-    let thrown: unknown;
-    try {
-      renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
-    } catch (e) {
-      thrown = e;
+    const thrown = thrownError(c.name, () => renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data }));
+    if (!(thrown.error instanceof ComposeLoadError)) {
+      throw new Error(`${c.name}: expected ComposeLoadError, got ${String(thrown.error)}`);
     }
-    if (!(thrown instanceof ComposeLoadError)) {
-      throw new Error(`${c.name}: expected ComposeLoadError, got ${String(thrown)}`);
-    }
-    if (thrown.code !== c.expectError.code) {
-      throw new Error(`${c.name}: expected code ${c.expectError.code}, got ${thrown.code}`);
-    }
+    requireError(c.name, c.expectError, thrown);
     return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expectError: c.expectError };
   }
   const html = renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });

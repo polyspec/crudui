@@ -59,7 +59,7 @@ func checkRecordedFailure(t *testing.T, c *Object, err error) {
 	if got := failureCode(err); got != stringAt(want, "code") {
 		t.Fatalf("code %s, want %s: %v", got, stringAt(want, "code"), err)
 	}
-	if got := err.Error(); got != stringAt(want, "message") {
+	if got := failureMessage(err); got != stringAt(want, "message") {
 		t.Fatalf("message %q, want %q", got, stringAt(want, "message"))
 	}
 }

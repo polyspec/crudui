@@ -12,7 +12,7 @@ export interface ScenarioCase {
   spec: Record<string, unknown>;
   data?: Record<string, unknown>;
   options?: BindFormOptions & CompileFormOptions;
-  expectError?: { code: string };
+  expectError?: { code: string; message: string };
 }
 
 /** An email field that the `subscribe` data member shows or hides. */
@@ -295,14 +295,14 @@ export const SCENARIOS: ScenarioCase[] = [
   },
   {
     name: 'compose-ref-unresolved-load-error',
-    note: 'Unresolved $ref → ComposeLoadError (render FAILS; not valid:true). The fixture records the error code, no expected_html.',
+    note: 'Unresolved $ref → ComposeLoadError (render FAILS; not valid:true). The fixture records the error code and message, no expected_html.',
     spec: {
       type: 'group',
       properties: {
         $ref: 'Missing.yml',
       },
     },
-    expectError: { code: 'REF_FILE_NOT_FOUND' },
+    expectError: { code: 'REF_FILE_NOT_FOUND', message: '$ref file not found: Missing.yml' },
   },
   {
     name: 'content-langmap-with-show',

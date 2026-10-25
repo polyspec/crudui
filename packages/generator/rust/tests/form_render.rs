@@ -1,5 +1,5 @@
 //! The form rendering fixtures against the Rust generator: each result case of `tests/fixtures/form-render` compiles,
-//! binds and renders to the recorded layout, and each failure case raises the recorded code. Each case is one test. Results are compared as normalized layout trees (tests/support), as the Python runner does.
+//! binds and renders to the recorded layout, and each failure case raises the recorded code and message. Each case is one test. Results are compared as normalized layout trees (tests/support), as the Python runner does.
 
 mod support;
 
@@ -43,7 +43,7 @@ fn check_result(case: &Value) {
     assert_eq!(actual, again, "{name}: a new instance renders differently");
 }
 
-/// A failure case raises the recorded code.
+/// A failure case raises the recorded code and message.
 fn check_failure(case: &Value) {
     let name = case["name"].as_str().unwrap();
     let error = match instance(case) {
@@ -53,9 +53,10 @@ fn check_failure(case: &Value) {
             Ok(_) => panic!("{name} must fail"),
         },
     };
+    let expected = &case["expectError"];
     assert_eq!(
-        error.code,
-        case["expectError"]["code"].as_str().unwrap(),
+        json!({ "code": error.code, "message": error.message }),
+        *expected,
         "{name}"
     );
 }

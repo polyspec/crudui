@@ -24,7 +24,7 @@ process.stdout.write(JSON.stringify(request.html.map((html) => normalizeHtml(htm
 // TestFormRenderSuite runs every case of the shared form-render suite through the Go generator. A result case
 // compiles, binds and renders, and its HTML is compared with the recorded HTML as the normalized layout of
 // tests/fixtures/form-render/normalize.mts, as the Rust, PHP and Python runners do; a failure case must raise the
-// recorded code.
+// recorded code and message.
 func TestFormRenderSuite(t *testing.T) {
 	repository, err := filepath.Abs("../../..")
 	if err != nil {
@@ -84,14 +84,8 @@ func TestFormRenderSuite(t *testing.T) {
 	}
 	for _, c := range failures {
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
-			want := stringAt(object(read(c, "expectError")), "code")
 			_, err := renderFormCase(c, nil)
-			if err == nil {
-				t.Fatalf("want the error %s, but the case rendered", want)
-			}
-			if got := failureCode(err); got != want {
-				t.Fatalf("code %s, want %s: %v", got, want, err)
-			}
+			checkRecordedFailure(t, c, err)
 		})
 	}
 }
@@ -179,6 +173,16 @@ func failureCode(err error) string {
 		code = fieldErr.Code()
 	}
 	return code
+}
+
+// failureMessage is the message of a generation failure: the Message of a composition error, whose Error prefixes
+// its code, and the text of every other error.
+func failureMessage(err error) string {
+	var loadErr *compose.ComposeLoadError
+	if errors.As(err, &loadErr) {
+		return loadErr.Message
+	}
+	return err.Error()
 }
 
 // normalizeLayouts returns the normalized layout of each HTML text, in order.

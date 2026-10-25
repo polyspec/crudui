@@ -1,12 +1,13 @@
 # 폼 렌더링 고정 사례
 <!-- doc-id: tests-fixtures-form-render-readme -->
-<!-- source-sha256: fe5d1e8970f8e11d3be2428601812b9ed7240286cb92ea138bc37f2a0bdd2548 -->
+<!-- source-sha256: a547ba7c44ce14c4923995b088ca7e81ac634ad269badeb70690f59cd6cf17db -->
 
 [English](README.md).
 
 React·Vue·Svelte 레이아웃 일치 검사는 `cases.json`을 공유합니다. 각 사례는
 이름, 명세, 선택적 데이터와 옵션, `expected_html` 또는 `expectError`를
-포함합니다. 생성기는 정규화한 출력을 비교하거나 기록된 합성 오류를 확인합니다.
+포함합니다. 생성기는 정규화한 출력을 비교하거나 기록된 오류를 확인합니다. `expectError`는 `code`와
+`message`를 담고, 모든 binding이 둘 다 비교합니다.
 
 이 사례는 내부 `renderFields`의 평가와 렌더링 경로를 검사합니다. 외형, 조건,
 합성, 번역 콘텐츠, 언어 입력, 반복과 위젯 출력을 포함하며, `multiple: only` 컬렉션(행 컨트롤 없이

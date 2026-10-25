@@ -15,7 +15,7 @@ interface FixtureCase {
   data?: Record<string, unknown>;
   options?: Record<string, unknown>;
   expected_html?: string;
-  expectError?: { code: string };
+  expectError?: { code: string; message: string };
 }
 
 const fixtures: FixtureCase[] = cases;
@@ -57,7 +57,7 @@ for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
   }));
 }
 
-// A load or registry failure is a surfaced error.
+// A load or registry failure is a surfaced error with the recorded code and message.
 for (const item of fixtures.filter((fixture) => fixture.expectError)) {
   test(item.name, () => proves(item.name, () => {
     let thrown: unknown;
@@ -67,6 +67,7 @@ for (const item of fixtures.filter((fixture) => fixture.expectError)) {
       thrown = error;
     }
     expect(thrown, `${item.name} must throw`).toBeInstanceOf(Error);
-    expect(thrown).toHaveProperty('code', item.expectError?.code);
+    const raised = thrown instanceof Error && 'code' in thrown ? { code: thrown.code, message: thrown.message } : thrown;
+    expect(raised).toEqual(item.expectError);
   }));
 }

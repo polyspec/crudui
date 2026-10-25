@@ -6,7 +6,8 @@
 `cases.json` is shared by the React, Vue and Svelte layout conformance tests.
 Each case contains a name, specification, optional data and options, and either
 `expected_html` or `expectError`. The generators compare normalized output or
-require the recorded composition error.
+require the recorded error: an `expectError` holds the `code` and the `message`, and every
+binding compares both.
 
 These fixtures exercise the internal `renderFields` evaluation and rendering
 path. They cover appearance, conditions, composition, translated content,

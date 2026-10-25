@@ -2,7 +2,8 @@
 
 Every case of `tests/fixtures/form-render/cases.json` compiles, binds and
 renders through the public operations: a result case reproduces the recorded
-HTML as a parsed normalized tree, and a failure case raises the recorded code.
+HTML as a parsed normalized tree, and a failure case raises the recorded code
+and message.
 Binding the same template twice writes the same fields.
 """
 
@@ -59,7 +60,10 @@ class TestFormRenderConformance(unittest.TestCase):
                 thrown = error
             record = failure_record(thrown)
             self.assertIsNotNone(record, f"{case['name']} must fail")
-            self.assertEqual(record["code"], case["expectError"]["code"])
+            self.assertEqual(
+                {"code": record["code"], "message": record["message"]},
+                case["expectError"],
+            )
             proof.passed = True
 
 
