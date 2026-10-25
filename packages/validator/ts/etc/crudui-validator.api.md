@@ -304,6 +304,7 @@ export interface MultipleSettings {
     controls?: 'header' | 'footer' | 'outline';
     copy?: boolean;
     header?: 'static' | 'sticky';
+    keys?: string;
     max?: number;
     min?: number;
     onclick?: string;

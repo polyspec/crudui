@@ -23,6 +23,7 @@ use crate::expr::{Evaluator, Expression, Node};
 use super::choice_data::{check_single_choice_data, is_single_choice};
 use super::group_source::{group_choices, is_group_source};
 use super::errors::{FormInputError, ValidateError};
+use super::keyed_maps::check_keyed_map_keys;
 use super::parameters::{check, check_declared, Patterns};
 use super::rules::{get_rule, is_condition_expression, RuleContext};
 use super::visibility::is_visible;
@@ -209,6 +210,9 @@ impl Validator {
                     path_to_string(&field_path)
                 ))
                 .into());
+            }
+            if let Some(rows) = present.and_then(Value::as_object).filter(|_| is_multiple) {
+                check_keyed_map_keys(field, rows, &field_path, row_keys, all_data)?;
             }
             if let Some(value) = present.filter(|_| is_single_choice(field)) {
                 check_single_choice_data(value, &field_path, is_multiple)?;
@@ -815,7 +819,7 @@ fn evaluate_expression_value(
 // ---------------------------------------------------------------------------
 
 /// Whether a field repeats: `multiple` is `true`, `only` or a settings object.
-fn is_multiple(field: &Value) -> bool {
+pub(crate) fn is_multiple(field: &Value) -> bool {
     match field.get("multiple") {
         Some(Value::Bool(true)) | Some(Value::Object(_)) => true,
         Some(Value::String(keyword)) => keyword == "only",
@@ -836,7 +840,7 @@ fn normalize_validate_slot(field: &Value) -> Option<&Map<String, Value>> {
 // Path utilities (JS pathToString / getFieldName).
 // ---------------------------------------------------------------------------
 
-fn path_to_string(path: &[String]) -> String {
+pub(crate) fn path_to_string(path: &[String]) -> String {
     path.join(".")
 }
 

@@ -712,15 +712,28 @@ static int compare_keys(const void *left, const void *right)
 { return ps_text_compare(*(const ps_text *)left, *(const ps_text *)right); }
 
 /* Record a form input failure for the data path and stop traversal. */
-static bool input_failure(validation_context *context, const char *label,
-                          const ps_text *path, size_t length)
+static bool input_failure_text(validation_context *context, ps_text label,
+                               const ps_text *path, size_t length)
 {
     ps_chars full = ps_dotted_path(path, length, (ps_text){NULL, 0});
-    ps_chars message = full.bytes ? PS_CONCAT(ps_fixed(label), ps_view(full)) : full;
+    ps_chars message = full.bytes ? PS_CONCAT(label, ps_view(full)) : full;
     context->failure = message.bytes
         ? ps_error_text("input", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL) : NULL;
     free(full.bytes); free(message.bytes);
     return false;
+}
+
+/* Record an allocation failure, which ends validation with an internal error; returns false. */
+static bool allocation_failure(validation_context *context)
+{
+    context->failure = ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
+    return false;
+}
+
+static bool input_failure(validation_context *context, const char *label,
+                          const ps_text *path, size_t length)
+{
+    return input_failure_text(context, ps_fixed(label), path, length);
 }
 
 /* Row keys of a keyed collection in sorted order; NULL only on allocation failure. */
@@ -766,6 +779,39 @@ static bool single_choice_data(const ps_value *value, bool repeated, validation_
         memcpy(row_path, path, length * sizeof(*row_path)); row_path[length] = keys[j];
         input_failure(context, label, row_path, length + 1);
         free(row_path); free(keys); return false;
+    }
+    free(keys);
+    return true;
+}
+
+/*
+ * Reject a key of the keyed object rows of a field declaring multiple.keys that is not a row key
+ * of the group its reference names, read in the field's row context; keys in code point order, the
+ * byte order of their UTF-8 text (docs/spec/validation-rules.md, Keyed maps). Returns false on a
+ * failure, with the failure or an allocation error recorded on the context.
+ */
+static bool keyed_map_keys(const ps_value *field, const ps_value *rows, validation_context *context,
+                           const ps_text *path, size_t length)
+{
+    const ps_value *multiple = ps_get(field, "multiple");
+    const ps_value *reference = multiple && multiple->kind == PS_OBJECT ? ps_get(multiple, "keys") : NULL;
+    if (!reference || reference->kind != PS_STRING) return true;
+    const ps_value *group = relative_field(ps_string(reference), context, path, length);
+    size_t count = 0;
+    ps_text *keys = sorted_row_keys(rows, &count);
+    if (!keys) return allocation_failure(context);
+    for (size_t j = 0; j < count; ++j) {
+        if (group && group->kind == PS_OBJECT && ps_get_text(group, keys[j])) continue;
+        ps_chars label = PS_CONCAT(PS_TEXT("Row key is not an id of "), ps_string(reference), PS_TEXT(": "));
+        ps_text *row_path = label.bytes ? malloc((length + 1) * sizeof(*row_path)) : NULL;
+        if (row_path) {
+            memcpy(row_path, path, length * sizeof(*row_path)); row_path[length] = keys[j];
+            input_failure_text(context, ps_view(label), row_path, length + 1);
+        } else {
+            allocation_failure(context);
+        }
+        free(row_path); free(label.bytes); free(keys);
+        return false;
     }
     free(keys);
     return true;
@@ -844,6 +890,9 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
         bool group = ps_is_string(ps_get(field, "type"), "group") && children && children->kind == PS_OBJECT;
         if (repeated && value && value->kind != PS_OBJECT) {
             input_failure(context, "Repeated data must be a keyed object: ", path, length + 1);
+            free(path); return false;
+        }
+        if (repeated && value && !keyed_map_keys(field, value, context, path, length + 1)) {
             free(path); return false;
         }
         if (value && single_choice_field(field) && !single_choice_data(value, repeated, context, path, length + 1)) {

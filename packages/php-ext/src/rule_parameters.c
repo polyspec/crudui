@@ -257,6 +257,75 @@ static ps_value *check_field(const ps_value *field, const ps_text *path, size_t 
     return NULL;
 }
 
+/* A declared field repeats: multiple is true, only or an object. */
+static bool declared_repeats(const ps_value *field)
+{
+    const ps_value *multiple = ps_get(field, "multiple");
+    return multiple && (multiple->kind == PS_OBJECT || ps_is_string(multiple, "only") ||
+                        (multiple->kind == PS_BOOL && multiple->data.boolean));
+}
+
+/*
+ * Whether reference, declared by the field at path, names a repeated group of the form whose root
+ * field map is root (docs/spec/schema.md, Keyed maps): it leaves as many fields of the declaration
+ * path as it has leading dots (a bare name one; a path with a dot inside and no leading dot starts
+ * at the root), stays within the root, has no empty name and no "*", passes only through groups
+ * that do not repeat and ends on a repeated group.
+ */
+static bool names_repeated_group(const ps_value *reference, const ps_value *root, const ps_text *path, size_t length)
+{
+    if (reference->kind != PS_STRING) return false;
+    ps_text text = ps_string(reference);
+    size_t dots = 0;
+    while (dots < text.length && text.bytes[dots] == '.') dots++;
+    ps_text rest = ps_text_slice(text, dots, text.length);
+    bool from_root = dots == 0 && ps_text_find_byte(rest, '.', 0) != SIZE_MAX;
+    size_t leave = from_root ? length : (dots ? dots : 1);
+    if (leave > length) return false;
+    for (size_t start = 0;;) {
+        size_t end = ps_text_find_byte(rest, '.', start);
+        ps_text name = ps_text_slice(rest, start, end == SIZE_MAX ? rest.length : end);
+        if (name.length == 0 || ps_text_is(name, "*")) return false;
+        if (end == SIZE_MAX) break;
+        start = end + 1;
+    }
+    const ps_value *properties = root;
+    for (size_t i = 0; i < length - leave; ++i) {
+        const ps_value *field = properties ? ps_get_text(properties, path[i]) : NULL;
+        properties = field && field->kind == PS_OBJECT ? ps_get(field, "properties") : NULL;
+        if (properties && properties->kind != PS_OBJECT) properties = NULL;
+    }
+    for (size_t start = 0;;) {
+        size_t end = ps_text_find_byte(rest, '.', start);
+        ps_text name = ps_text_slice(rest, start, end == SIZE_MAX ? rest.length : end);
+        const ps_value *field = properties ? ps_get_text(properties, name) : NULL;
+        const ps_value *children = field && field->kind == PS_OBJECT ? ps_get(field, "properties") : NULL;
+        if (!field || field->kind != PS_OBJECT || !ps_is_string(ps_get(field, "type"), "group") ||
+            !children || children->kind != PS_OBJECT)
+            return false;
+        if (end == SIZE_MAX) return declared_repeats(field);
+        if (declared_repeats(field)) return false;
+        properties = children;
+        start = end + 1;
+    }
+}
+
+/* The INVALID_FORM_INPUT load failure of a multiple.keys that names no repeated group, or NULL. */
+static ps_value *check_keyed_map(const ps_value *field, const ps_value *root, const ps_text *path, size_t length)
+{
+    const ps_value *multiple = ps_get(field, "multiple");
+    const ps_value *reference = multiple && multiple->kind == PS_OBJECT ? ps_get(multiple, "keys") : NULL;
+    if (!reference || names_repeated_group(reference, root, path, length)) return NULL;
+    ps_chars dotted = ps_dotted_path(path, length, (ps_text){NULL, 0});
+    ps_chars message = dotted.bytes ? PS_CONCAT(PS_TEXT("Invalid multiple.keys at "), ps_view(dotted),
+                                                PS_TEXT(": expected a reference to a repeated group")) : dotted;
+    ps_value *error = message.bytes
+        ? ps_error_text("input", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL) : NULL;
+    free(dotted.bytes);
+    free(message.bytes);
+    return error ? error : internal_error();
+}
+
 static ps_value *check_properties(const ps_value *properties, const ps_value *root, ps_text **path,
                                   size_t *capacity, size_t length, ps_pattern_cache *patterns)
 {
@@ -273,6 +342,7 @@ static ps_value *check_properties(const ps_value *properties, const ps_value *ro
         }
         (*path)[length] = ps_key(properties, i);
         ps_value *error = check_field(field, *path, length + 1, patterns, root);
+        if (!error) error = check_keyed_map(field, root, *path, length + 1);
         if (error) return error;
         const ps_value *children = ps_get(field, "properties");
         if (ps_is_string(ps_get(field, "type"), "group") && children && children->kind == PS_OBJECT) {

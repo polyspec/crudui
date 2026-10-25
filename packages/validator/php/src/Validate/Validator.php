@@ -208,7 +208,7 @@ final class Validator
             }
         }
         foreach ($this->fieldsOf($properties) as $fieldName => $field) {
-            $isMultiple = $this->isMultiple($field);
+            $isMultiple = self::isMultiple($field);
             $fieldPath = [...$currentPath, $fieldName];
             $fieldDeclaration = [...$declarationPath, $fieldName];
             $present = array_key_exists($fieldName, $data);
@@ -223,6 +223,9 @@ final class Validator
 
             if ($isMultiple && $present && !self::isObject($fieldValue)) {
                 throw new FormInputError('Repeated data must be a keyed object: ' . implode('.', $fieldPath));
+            }
+            if ($isMultiple && $present) {
+                KeyedMaps::assertKeys($field, $fieldValue, $fieldPath, $rowKeys, $allData);
             }
             if ($present && self::isSingleChoice($field)) {
                 self::assertSingleChoiceData($fieldValue, $fieldPath, $isMultiple);
@@ -351,7 +354,7 @@ final class Validator
                 continue;
             }
             $value = $data[$fieldName] ?? null;
-            if (!$this->isMultiple($field)) {
+            if (!self::isMultiple($field)) {
                 $this->collectHidden(
                     $children,
                     self::isObject($value) ? (array) $value : [],
@@ -422,8 +425,13 @@ final class Validator
         return $value instanceof \stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
     }
 
-    /** Whether a CRUDUI field repeats (multiple: true, only or { … }). */
-    private function isMultiple(array $field): bool
+    /**
+     * Whether a CRUDUI field repeats (multiple: true, only or { … }).
+     *
+     * @internal
+     * @param array<string, mixed> $field
+     */
+    public static function isMultiple(array $field): bool
     {
         $m = $field['multiple'] ?? null;
         return $m === true || $m === 'only' || $m instanceof \stdClass || (is_array($m) && !array_is_list($m));

@@ -246,6 +246,7 @@ def _check_declarations(spec: dict[str, Any], path: str, field: bool) -> None:
                     "controls",
                     "header",
                     "onclick",
+                    "keys",
                 ),
                 path,
             )
@@ -254,7 +255,13 @@ def _check_declarations(spec: dict[str, Any], path: str, field: bool) -> None:
             # Rows of a data-only collection come from the data: row limits and row
             # controls do not apply.
             if multiple.get("only") is True:
-                _closed("multiple", multiple, ("only", "title", "header"), path)
+                _closed("multiple", multiple, ("only", "title", "header", "keys"), path)
+            # A keyed map is a data-only collection; validation resolves its reference.
+            if "keys" in multiple:
+                if multiple.get("only") is not True:
+                    _fail("multiple.keys", path, "multiple.only: true")
+                if not isinstance(multiple["keys"], str):
+                    _fail("multiple.keys", path, "a reference to a repeated group")
             for key in ("min", "max"):
                 if key in multiple and not (
                     isinstance(multiple[key], (int, float))

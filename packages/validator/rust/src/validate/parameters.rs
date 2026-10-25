@@ -17,6 +17,7 @@ use crate::compose::{ComposeErrorCode, ComposeLoadError};
 
 use super::errors::ValidateError;
 use super::group_source::group_source_failure;
+use super::keyed_maps::check_keyed_map_reference;
 use super::length::{limit, range_limits, MAX_LIMIT};
 use super::membership::{members, Comparable};
 use super::numeric::{number_range, step};
@@ -111,6 +112,7 @@ fn check_fields(
                 check_name(rule, path)?;
             }
         }
+        check_keyed_map_reference(field, path, root)?;
         if let Some(children) = is_group_with_properties(field) {
             check_fields(root, children, path, patterns)?;
         }

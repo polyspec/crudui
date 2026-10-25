@@ -33,6 +33,8 @@ from .compose import MemoryLoader, compose_properties, compose_spec, compose_roo
 from .compose_errors import ComposeLoadError
 from .errors import FormInputError
 from .forbidden import scan_forbidden_keys
+from .keyed_maps import assert_keyed_map_keys, assert_keyed_map_reference
+from .keyed_maps import is_multiple_field as _is_multiple_field
 from .jsvalue import JsonValue, ordered_value
 from .parser import Node, ParseError, is_condition_expression, parse_condition
 from .resolver import evaluate_condition as _eval_condition
@@ -61,12 +63,6 @@ def _is_object(value: object) -> TypeGuard[dict[str, JsonValue]]:
 def _is_multiple_shape(multiple: object) -> bool:
     """Whether a `multiple` declaration is a boolean, `only` or an object (schema.md, CUSC-041)."""
     return isinstance(multiple, bool) or multiple == "only" or _is_object(multiple)
-
-
-def _is_multiple_field(field: dict[str, JsonValue]) -> bool:
-    """Whether a field repeats (`multiple: true`, `multiple: only` or an object)."""
-    multiple = field.get("multiple")
-    return multiple is True or multiple == "only" or _is_object(multiple)
 
 
 def _is_single_choice(field: dict[str, JsonValue]) -> bool:
@@ -329,6 +325,7 @@ class Validator:
                     _assert_rule_parameter(rule_name, literal, path)
             for rule_name in _field_messages(field) or {}:
                 _assert_rule_name(rule_name, path)
+            assert_keyed_map_reference(field, path, self.properties)
             child_properties = self._child_properties(field)
             if field.get("type") == "group" and child_properties is not None:
                 self._check_declared_parameters(child_properties, path)
@@ -373,6 +370,8 @@ class Validator:
                 raise FormInputError(
                     f"Repeated data must be a keyed object: {path_to_string(field_path)}"
                 )
+            if is_multiple and present and _is_object(field_value):
+                assert_keyed_map_keys(field, field_value, field_path, row_keys, all_data)
             if present and _is_single_choice(field):
                 _assert_single_choice_data(field_value, field_path, is_multiple)
 

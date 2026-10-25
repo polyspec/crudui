@@ -99,7 +99,7 @@ function scalarChild(child: unknown): boolean {
 
 /** Keys of the buckets the schema closes; any other key in them is rejected. */
 const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
-  multiple: ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+  multiple: ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick', 'keys'],
   lang: ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
   design: ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
   node: ['class', 'style'],
@@ -110,7 +110,7 @@ const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
 };
 
 /** Keys `multiple` accepts beside `only: true`. */
-const ONLY_MULTIPLE_KEYS: readonly string[] = ['only', 'title', 'header'];
+const ONLY_MULTIPLE_KEYS: readonly string[] = ['only', 'title', 'header', 'keys'];
 
 /** Whether an object has its own member. */
 function has(object: object, key: string): boolean {
@@ -152,6 +152,11 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
         for (const key of Object.keys(multiple)) {
           if (!ONLY_MULTIPLE_KEYS.includes(key)) throw new FormInputError(`Invalid multiple.${key} at ${path}: unknown key`);
         }
+      }
+      // A keyed map is a data-only collection; validation resolves its reference (docs/spec/schema.md, Keyed maps).
+      if (has(multiple, 'keys')) {
+        if (multiple.only !== true) fail(path, 'multiple.keys', 'multiple.only: true');
+        if (typeof multiple.keys !== 'string') fail(path, 'multiple.keys', 'a reference to a repeated group');
       }
       for (const key of ['min', 'max']) {
         if (has(multiple, key) && typeof multiple[key] !== 'number') fail(path, `multiple.${key}`, 'a number');

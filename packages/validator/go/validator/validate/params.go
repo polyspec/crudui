@@ -145,6 +145,9 @@ func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []st
 				}
 			}
 		}
+		if err := checkKeyedMapReference(field, path, v.properties); err != nil {
+			return err
+		}
 		if children := childProperties(field); fieldType(field) == "group" && children != nil {
 			if err := v.checkDeclarations(children, path); err != nil {
 				return err

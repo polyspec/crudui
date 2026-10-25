@@ -21,8 +21,10 @@ final class DeclarationCheck
     /**
      * @param array<string, mixed> $properties a composed field map
      * @param list<string> $path the declaration path of the map's group
-     * @param array<string, mixed>|null $root the root properties, which a group source reads (null for the root map)
+     * @param array<string, mixed>|null $root the root properties, which a group source reads and `multiple.keys`
+     *        references resolve in (null for the root map)
      * @throws ComposeLoadError at the first unknown rule name or invalid parameter
+     * @throws FormInputError at the first `multiple.keys` that names no repeated group
      */
     public static function run(array $properties, array $path = [], ?array $root = null): void
     {
@@ -61,6 +63,7 @@ final class DeclarationCheck
                     self::checkName((string) $rule, $fieldPath);
                 }
             }
+            KeyedMaps::assertReference($field, $fieldPath, $root);
             $children = $field['properties'] ?? null;
             if (
                 ($field['type'] ?? null) === 'group'

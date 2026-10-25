@@ -18,6 +18,7 @@ mod canonical;
 mod choice_data;
 pub mod errors;
 pub mod group_source;
+mod keyed_maps;
 mod length;
 mod membership;
 pub mod numeric;

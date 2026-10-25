@@ -1247,7 +1247,7 @@
           "additionalProperties": false,
           "properties": {
             "only": {
-              "description": "Whether the rows exist only in the data. With true, only title and header may accompany it.",
+              "description": "Whether the rows exist only in the data. With true, only title, header and keys may accompany it.",
               "const": false
             },
             "min": {
@@ -1299,8 +1299,12 @@
           ],
           "properties": {
             "only": {
-              "description": "Whether the rows exist only in the data. With true, only title and header may accompany it.",
+              "description": "Whether the rows exist only in the data. With true, only title, header and keys may accompany it.",
               "const": true
+            },
+            "keys": {
+              "description": "Field reference to a repeated group of the form whose row keys are the only keys of this keyed map (docs/spec/schema.md, Keyed maps).",
+              "type": "string"
             },
             "title": {
               "description": "Direct child field of a repeated group whose value titles each row.",

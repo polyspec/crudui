@@ -40,6 +40,8 @@ export type {
   LangSettings,
   LocalizedText,
   Multiple,
+  MultipleDataSettings,
+  MultipleRowSettings,
   MultipleSettings,
   OptionsSlot,
   PatchDirective,

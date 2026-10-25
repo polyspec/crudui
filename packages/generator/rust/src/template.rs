@@ -148,10 +148,10 @@ fn condition_value(value: &Value) -> bool {
 
 /// Allowed keys of the closed `multiple` bucket.
 const MULTIPLE_KEYS: &[&str] = &[
-    "only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick",
+    "only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick", "keys",
 ];
 /// Keys `multiple` accepts beside `only: true`.
-const ONLY_MULTIPLE_KEYS: &[&str] = &["only", "title", "header"];
+const ONLY_MULTIPLE_KEYS: &[&str] = &["only", "title", "header", "keys"];
 /// Allowed keys of the closed `lang` bucket.
 const LANG_KEYS: &[&str] = &[
     "mode",
@@ -401,6 +401,15 @@ fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> For
             // controls do not apply.
             if settings.get("only").is_some_and(|v| *v == true) {
                 check_known_keys("multiple", settings, ONLY_MULTIPLE_KEYS, path)?;
+            }
+            // A keyed map is a data-only collection; validation resolves its reference.
+            if let Some(keys) = settings.get("keys") {
+                if settings.get("only").is_none_or(|v| *v != true) {
+                    return fail("multiple.keys", "multiple.only: true");
+                }
+                if !keys.is_string() {
+                    return fail("multiple.keys", "a reference to a repeated group");
+                }
             }
             for key in ["min", "max"] {
                 if settings.get(key).is_some_and(|v| !v.is_number()) {

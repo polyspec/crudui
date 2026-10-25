@@ -639,19 +639,24 @@ export type StaticItem = ItemLabel;
  * hidden identity or order field (see docs/spec/form-runtime.md).
  *
  * The named keys are the canonical `dependency_buckets.multiple.keys`
- * (`only`/`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Other
+ * (`only`/`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`/`keys`). Other
  * spellings such as `multiple_max`, `sortable*` or `add_buttons` are not
  * recognition keys (R2 anti-duplication, R4 no magic tokens).
  */
 export type Multiple = boolean | 'only' | MultipleSettings;
 
-/** Repeated-row settings object (kept under `multiple`). */
-export interface MultipleSettings {
-  /**
-   * Rows exist only in the data: the data keys are the rows and the form offers
-   * no row controls. With `true`, only `title` and `header` may accompany it.
-   */
-  only?: boolean;
+/**
+ * Repeated-row settings object (kept under `multiple`): the settings of rows that the form adds and
+ * removes, or of rows that exist only in the data.
+ */
+export type MultipleSettings = MultipleRowSettings | MultipleDataSettings;
+
+/** Settings of rows that the form adds, removes, copies and moves. */
+export interface MultipleRowSettings {
+  /** Absent or `false`: the rows are not only in the data. */
+  only?: false;
+  /** A keyed map needs `only: true` (docs/spec/schema.md, Keyed maps). */
+  keys?: never;
   /** Minimum number of rows. */
   min?: number;
   /** Maximum number of rows. */
@@ -668,6 +673,36 @@ export interface MultipleSettings {
   header?: 'static' | 'sticky';
   /** Row-level click handler (opaque script). */
   onclick?: string;
+}
+
+/**
+ * Settings of rows that exist only in the data: the data keys are the rows and the form offers no
+ * row controls; only `title`, `header` and `keys` accompany `only: true`.
+ */
+export interface MultipleDataSettings {
+  /** The rows exist only in the data. */
+  only: true;
+  /**
+   * Field reference to a repeated group whose row keys are the only keys of this keyed map
+   * (docs/spec/schema.md, Keyed maps).
+   */
+  keys?: string;
+  /** Direct child field of a repeated group whose value titles each row. */
+  title?: string;
+  /** Whether row headers stay visible while scrolling. */
+  header?: 'static' | 'sticky';
+  /** Row limits do not apply to rows that come from the data. */
+  min?: never;
+  /** Row limits do not apply to rows that come from the data. */
+  max?: never;
+  /** Rows that come from the data have no copy control. */
+  copy?: never;
+  /** Rows that come from the data are not moved. */
+  sortable?: never;
+  /** Rows that come from the data have no row controls. */
+  controls?: never;
+  /** Rows that come from the data have no row controls. */
+  onclick?: never;
 }
 
 // ============================================================================

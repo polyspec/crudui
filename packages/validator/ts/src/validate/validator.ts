@@ -45,6 +45,8 @@ import { compareCodePoints } from '../text/index';
 import { assertRuleParameter, assertRuleName } from './parameters';
 import { ComposeLoadError } from '../compose/errors';
 import { groupChoices, groupSourceFailure, isGroupSource } from '../group-source';
+import { assertKeyedMapKeys, assertKeyedMapReference } from './keyed-maps';
+import { isMultipleField } from './fields';
 import {
   parseCondition,
   isConditionExpression,
@@ -383,6 +385,7 @@ export class Validator {
       for (const ruleName of Object.keys(fieldMessages(field) ?? {})) {
         assertRuleName(ruleName, path);
       }
+      assertKeyedMapReference(field, path, this.properties);
       const childProps = this.childProperties(field);
       if (field.type === 'group' && childProps) {
         this.checkDeclaredParameters(childProps, path);
@@ -431,6 +434,9 @@ export class Validator {
         throw new FormInputError(
           `Repeated data must be a keyed object: ${pathToString(fieldPath)}`
         );
+      }
+      if (isMultiple && present && isRecord(fieldValue)) {
+        assertKeyedMapKeys(field, fieldValue, { currentPath: fieldPath, rowKeys, formData: allData });
       }
       if (present && isSingleChoice(field)) {
         assertSingleChoiceData(fieldValue, fieldPath, isMultiple);
@@ -496,8 +502,7 @@ export class Validator {
 
   /** Whether a CRUDUI field repeats (`multiple: true`, `multiple: only` or `multiple: { ... }`). */
   private isMultiple(field: ComposedField): boolean {
-    const m = field.multiple;
-    return m === true || m === 'only' || isRecord(m);
+    return isMultipleField(field);
   }
 
   /**

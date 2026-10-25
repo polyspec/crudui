@@ -178,7 +178,7 @@ final class Template
                 self::closed(
                     'multiple',
                     $settings,
-                    ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+                    ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick', 'keys'],
                     $path
                 );
                 if (array_key_exists('only', $settings) && !is_bool($settings['only'])) {
@@ -186,7 +186,16 @@ final class Template
                 }
                 // Rows of a data-only collection come from the data: row limits and row controls do not apply.
                 if (($settings['only'] ?? null) === true) {
-                    self::closed('multiple', $settings, ['only', 'title', 'header'], $path);
+                    self::closed('multiple', $settings, ['only', 'title', 'header', 'keys'], $path);
+                }
+                // A keyed map is a data-only collection; validation resolves its reference.
+                if (array_key_exists('keys', $settings)) {
+                    if (($settings['only'] ?? null) !== true) {
+                        $fail('multiple.keys', 'multiple.only: true');
+                    }
+                    if (!is_string($settings['keys'])) {
+                        $fail('multiple.keys', 'a reference to a repeated group');
+                    }
                 }
                 foreach (['min', 'max'] as $key) {
                     if (array_key_exists($key, $settings) && !is_int($settings[$key]) && !is_float($settings[$key])) {

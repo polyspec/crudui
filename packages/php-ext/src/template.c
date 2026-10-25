@@ -93,22 +93,28 @@ static bool declarations_valid(const ps_value *spec, ps_text path, bool field, p
     static const char *const headers[] = {"static", "sticky"};
     static const char *const numbers[][2] = {{"min", "multiple.min"}, {"max", "multiple.max"}};
     static const char *const booleans[][2] = {{"copy", "multiple.copy"}, {"sortable", "multiple.sortable"}};
-    static const char *const multiple_keys[] = {"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick"};
+    static const char *const multiple_keys[] = {"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick", "keys"};
     /* Rows of a data-only collection come from the data: row limits and row controls do not apply. */
-    static const char *const only_keys[] = {"only", "title", "header"};
+    static const char *const only_keys[] = {"only", "title", "header", "keys"};
     static const char *const lang_keys[] = {"mode", "only", "name", "key", "frame", "title", "group_class"};
     static const char *const behavior_keys[] = {"onchange", "onclick", "onload"};
     const ps_value *multiple = ps_get(spec, "multiple");
     if (multiple) {
         if (multiple->kind != PS_BOOL && multiple->kind != PS_OBJECT && !ps_is_string(multiple, "only"))
             return ps_declaration_error(PS_TEXT("multiple"), path, "a boolean, only or an object", error);
-        if (multiple->kind == PS_OBJECT && !ps_known_keys(multiple, "multiple", multiple_keys, 9, path, error))
+        if (multiple->kind == PS_OBJECT && !ps_known_keys(multiple, "multiple", multiple_keys, 10, path, error))
             return false;
         const ps_value *only = multiple->kind == PS_OBJECT ? ps_get(multiple, "only") : NULL;
         if (only && only->kind != PS_BOOL)
             return ps_declaration_error(PS_TEXT("multiple.only"), path, "a boolean", error);
-        if (only && only->data.boolean && !ps_known_keys(multiple, "multiple", only_keys, 3, path, error))
+        if (only && only->data.boolean && !ps_known_keys(multiple, "multiple", only_keys, 4, path, error))
             return false;
+        /* A keyed map is a data-only collection; validation resolves its reference. */
+        const ps_value *keys = multiple->kind == PS_OBJECT ? ps_get(multiple, "keys") : NULL;
+        if (keys && !(only && only->data.boolean))
+            return ps_declaration_error(PS_TEXT("multiple.keys"), path, "multiple.only: true", error);
+        if (keys && keys->kind != PS_STRING)
+            return ps_declaration_error(PS_TEXT("multiple.keys"), path, "a reference to a repeated group", error);
         for (size_t i = 0; multiple->kind == PS_OBJECT && i < 2; ++i) {
             const ps_value *value = ps_get(multiple, numbers[i][0]);
             if (value && value->kind != PS_INT && value->kind != PS_FLOAT)

@@ -190,6 +190,11 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 		if isMultiple && present && !isObject(fieldValue) {
 			return &FormInputError{Message: "Repeated data must be a keyed object: " + pathToString(fieldPath)}
 		}
+		if rows, ok := fieldValue.(map[string]any); isMultiple && present && ok {
+			if err := checkKeyedMapKeys(field, rows, fieldPath, rowKeys, allData); err != nil {
+				return err
+			}
+		}
 		if present && isSingleChoice(field) {
 			if err := checkSingleChoiceData(fieldValue, fieldPath, isMultiple); err != nil {
 				return err

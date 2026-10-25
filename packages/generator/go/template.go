@@ -221,9 +221,9 @@ func scalarChild(v any) bool {
 
 // closedKeys lists the keys each closed declaration bucket allows.
 var closedKeys = map[string][]string{
-	"multiple": {"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick"},
-	// multiple.only: true combines with title and header only.
-	"multiple only": {"only", "title", "header"},
+	"multiple": {"only", "min", "max", "copy", "sortable", "title", "controls", "header", "onclick", "keys"},
+	// multiple.only: true combines with title, header and keys only.
+	"multiple only": {"only", "title", "header", "keys"},
 	"lang":          {"mode", "only", "name", "key", "frame", "title", "group_class"},
 	"design":        {"show", "class", "style", "label", "wrapper", "group", "prepend"},
 	"design node":   {"class", "style"},
@@ -281,6 +281,15 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 			}
 			if _, ok := read(settings, "only").(bool); settings.Has("only") && !ok {
 				return fail("multiple.only", "a boolean")
+			}
+			// A keyed map is a data-only collection; validation resolves its reference.
+			if settings.Has("keys") {
+				if read(settings, "only") != true {
+					return fail("multiple.keys", "multiple.only: true")
+				}
+				if _, ok := read(settings, "keys").(string); !ok {
+					return fail("multiple.keys", "a reference to a repeated group")
+				}
 			}
 			for _, key := range []string{"min", "max"} {
 				if _, ok := asNumber(read(settings, key)); settings.Has(key) && !ok {
