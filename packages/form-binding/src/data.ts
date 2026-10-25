@@ -30,7 +30,7 @@ function decoded(text: string): unknown {
 }
 
 /** The values a control submits, each with its line breaks written as CRLF. */
-function submitted(control: Control): string[] {
+export function submitted(control: Control): string[] {
   let values: string[];
   if (isSelect(control)) {
     values = Array.from(control.selectedOptions, (option) => option.value);

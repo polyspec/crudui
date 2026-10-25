@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { Language } from '@polyspec/crudui-generator-core';
 import { ValidationError } from '@polyspec/crudui-validator';
 import { ValidationResult } from '@polyspec/crudui-validator';
 
@@ -19,7 +20,9 @@ export interface FormBinding {
 // @public
 export interface FormBindingOptions {
     formErrors?: (result: ValidationResult) => string[];
+    idPrefix?: string;
     keyPrefix?: string;
+    language?: Language;
     message?: (error: ValidationError) => string;
 }
 

@@ -45,8 +45,32 @@ export function patched(html: string): Attachment<HTMLElement> {
       mounted.add(element);
       if (element.firstChild?.nodeType !== Node.COMMENT_NODE) element.replaceChildren();
     }
+    // The options of each select that its markup marks selected and that are selected, before the patch.
+    const selected = Array.from(element.querySelectorAll('select'), select => (
+      { select, options: Array.from(select.selectedOptions).filter(option => option.hasAttribute('selected')) }));
     patchContent(element, html);
+    for (const { select, options } of selected) keepMarkedSelection(select, options);
   };
+}
+
+/**
+ * Select the options of a patched select that its markup marks `selected` when the patch removed
+ * the mark of a selected option, or the option itself, such as the choice of a removed source row
+ * (docs/spec/schema.md, CUSC-071): the browser then keeps that option selected under another value
+ * or selects the first option, a value the data does not hold. A single select whose markup marks
+ * no option selects none. The patch runs after the form synchronized its controls for the same
+ * data, so the markup is the selection of the data.
+ */
+function keepMarkedSelection(select: HTMLSelectElement, before: HTMLOptionElement[]): void {
+  if (before.every(option => select.contains(option) && option.hasAttribute('selected'))) return;
+  // The mark is read from the attribute: a single select re-selects an option whose selectedness
+  // is set to false when no other option is selected.
+  const marked = Array.from(select.options).filter(option => option.hasAttribute('selected'));
+  if (!select.multiple && marked.length === 0) {
+    select.selectedIndex = -1;
+    return;
+  }
+  for (const option of select.options) option.selected = marked.includes(option);
 }
 
 const mounted = new WeakSet<Element>();

@@ -4,7 +4,8 @@
 [한국어](README.ko.md).
 
 Browser validation of a server-rendered CRUDUI form with the specification the server validates it
-with. The package runs only in a browser and depends on `@polyspec/crudui-validator`.
+with. The package runs only in a browser and depends on `@polyspec/crudui-validator`,
+`@polyspec/crudui-generator-core` and `@polyspec/crudui-generator-html`.
 
 ```ts
 import { bindForm } from '@polyspec/crudui-form-binding';
@@ -20,7 +21,9 @@ later change, and validates the whole form on submit. It writes the error markup
 writes for the same errors, sets `aria-invalid` on the controls of a field with errors, and cancels
 an invalid submission before any other `submit` listener, such as htmx, receives it.
 `options.keyPrefix` is the key prefix of the compiled template, `options.message(error)` returns
-the text of an error and `options.formErrors(result)` returns the form errors. The returned object
+the text of an error, `options.formErrors(result)` returns the form errors, and `options.language`
+and `options.idPrefix` are the language and the identifier prefix the server rendered the form
+with. The returned object
 has `validate()`, which validates the whole form and returns the result, and `dispose()`.
 
 The server validates every submission; the binding shows errors before the request is sent.
@@ -32,7 +35,7 @@ The server validates every submission; the binding shows errors before the reque
 
 `@polyspec/crudui-form-binding` (`packages/form-binding`) validates a server-rendered form in the browser
 with the rules the server applies. It is an ESM package that runs only in a browser and depends on
-`@polyspec/crudui-validator`. The server stays authoritative: the binding shows errors earlier and stops a
+`@polyspec/crudui-validator`, `@polyspec/crudui-generator-core` and `@polyspec/crudui-generator-html`. The server stays authoritative: the binding shows errors earlier and stops a
 submission it finds invalid, and the server validates every submission it receives.
 
 Browser binding applies user input and row actions. Server runtimes do not implement browser focus, selection or scroll behavior.
@@ -50,21 +53,26 @@ optional:
 
 - `message` — Value: Function from a validation error to a string; Use: The text shown for that error. Absent uses the error's `message`.
 - `formErrors` — Value: Function from the validation result to a list of strings; Use: The form errors written at each validation of the whole form. Absent writes none.
+- `language` — Value: String; Use: The language the server rendered the form with, which the binding renders the [choices of a group source](#choices-from-a-repeated-group) with. Absent uses the default language of the renderer.
+- `idPrefix` — Value: String; Use: The identifier prefix the server rendered the form with, which the binding renders the choices of a group source with. Absent uses the default prefix of the renderer.
 
 `bindForm` fails with a `TypeError` and the first of these messages, in this order:
 
 - `form` that is not a `form` element: `bindForm requires a form element`
 - `options` that is not an object: `Binding options must be an object`
-- A member of `options` other than `keyPrefix`, `message` and `formErrors`, the first in member order: `Unknown binding option: {name}`
+- A member of `options` other than `keyPrefix`, `message`, `formErrors`, `language` and `idPrefix`, the first in member order: `Unknown binding option: {name}`
 - `keyPrefix` that is not a string: `keyPrefix must be a string`
 - `message` that is not a function: `message must be a function`
 - `formErrors` that is not a function: `formErrors must be a function`
+- `language` that is not a string: `language must be a string`
+- `idPrefix` that is not a string: `idPrefix must be a string`
 - A form that does not contain exactly one `crudui-form__body`: `The form must contain one CRUDUI form`
 
 A validation fails with a `TypeError` when `message` returns a value that is not a string
 (`message must return a string`) or `formErrors` returns a value that is not a list of strings
-(`formErrors must return a list of strings`). A failure of the validator, such as a
-`FormInputError` for data with the wrong shape, propagates unchanged.
+(`formErrors must return a list of strings`). A failure of the validator or of the renderer, such as
+a `FormInputError` for data with the wrong shape or for a language that the renderer does not
+support, propagates unchanged.
 
 ### Data
 
@@ -165,6 +173,25 @@ take part in the data, as they do in a submission.
 `hiddenPaths` resolves every condition as validation resolves it and reads data of another shape
 as missing; it fails with a `FormInputError` for data that is not an object and with a
 `ComposeLoadError` for a specification whose composition cannot be resolved without files.
+
+### Choices from a repeated group
+
+The binding keeps the choices of every field whose `items` is a
+[group source](../../docs/spec/schema.md#choices-from-a-repeated-group) equal to the rows of its
+group in the data, as the renderers write them for the same data (CUSC-071), so a select, radio or
+checkbox field that lists the rows of another group changes its choices while the user edits that
+group. `bindForm` compiles `spec` once with `compileForm` of `@polyspec/crudui-generator-core` and
+`keyPrefix`; for a specification without a group source it renders nothing. When it binds and after every `input` or `change` event of a control of the form,
+before it writes the display and validates, it builds the data as described in [data](#data) and
+renders the form for that data with `renderForm` of `@polyspec/crudui-generator-html`, with
+`options.language` and `options.idPrefix`. For each node of a field with a group source it patches
+the `crudui-node__body` of the node to the body that the renderer writes for that node with
+`patchContent` of `@polyspec/crudui-generator-core`, which keeps every element that the new markup
+keeps. It then sets the selection of the patched controls to the values that the controls held
+before the patch: an option or a checkbox or radio input is selected exactly when its value was
+selected, and a select whose value is no longer a choice has no selected option. A value that is
+no longer a choice is therefore no longer held by a control, and the data lacks it, as a native
+submission would send it. The controls of a node that had `aria-invalid` keep it.
 
 ## Acceptance of the browser binding
 

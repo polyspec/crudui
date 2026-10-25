@@ -133,8 +133,8 @@ function perform(core: Core, form: FormLike, { op, args }: Step, spec: Json): un
   switch (op) {
     case 'validate': return validation(spec, form);
     case 'choices': {
-      const found = fieldChoices(form.getSnapshot().fields, String(a));
-      if (found === undefined) throw new Error(`No field node at ${String(a)}`);
+      const found = fieldChoices(form.getSnapshot().fields, text(a));
+      if (found === undefined) throw new Error(`No field node at ${text(a)}`);
       return found;
     }
     case 'runAction': return core.runAction(form, a);

@@ -1,11 +1,12 @@
 # @polyspec/crudui-form-binding
 <!-- doc-id: packages-form-binding-readme -->
-<!-- source-sha256: 5cb56c489f1a9dfcbc1142ad8302a77535c6b81591fb7c3187fcde638c978443 -->
+<!-- source-sha256: 9bb95f97aa0d9bacb55c4746b64e551fbbca4bcd23c7d214fcbd6fc40e8a9b61 -->
 
 [English](README.md).
 
 서버가 렌더링한 CRUDUI 폼을 서버가 검증할 때 쓰는 스펙으로 브라우저에서 검증합니다. 이 패키지는
-브라우저에서만 실행되며 `@polyspec/crudui-validator`에 의존합니다.
+브라우저에서만 실행되며 `@polyspec/crudui-validator`, `@polyspec/crudui-generator-core`,
+`@polyspec/crudui-generator-html`에 의존합니다.
 
 ```ts
 import { bindForm } from '@polyspec/crudui-form-binding';
@@ -20,7 +21,8 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 오류에 대해 `renderForm`이 쓰는 오류 마크업을 쓰고, 오류가 있는 필드의 컨트롤에 `aria-invalid`를
 설정하며, htmx 같은 다른 `submit` 리스너가 받기 전에 유효하지 않은 제출을 취소합니다.
 `options.keyPrefix`는 컴파일한 템플릿의 키 접두사이고, `options.message(error)`는 오류의 문구를,
-`options.formErrors(result)`는 폼 오류를 반환합니다. 반환한 객체에는 폼 전체를 검증하고 결과를
+`options.formErrors(result)`는 폼 오류를 반환하며, `options.language`와 `options.idPrefix`는 서버가 폼을
+렌더링할 때 쓴 언어와 식별자 접두사입니다. 반환한 객체에는 폼 전체를 검증하고 결과를
 반환하는 `validate()`와 `dispose()`가 있습니다.
 
 서버는 모든 제출을 검증합니다. 바인딩은 요청을 보내기 전에 오류를 보여 줍니다.
@@ -31,7 +33,8 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 ## 브라우저 검증
 
 `@polyspec/crudui-form-binding`(`packages/form-binding`)은 서버가 렌더링한 폼을 서버가 적용하는 규칙으로
-브라우저에서 검증합니다. 브라우저에서만 실행되는 ESM 패키지이며 `@polyspec/crudui-validator`에 의존합니다.
+브라우저에서 검증합니다. 브라우저에서만 실행되는 ESM 패키지이며 `@polyspec/crudui-validator`,
+`@polyspec/crudui-generator-core`, `@polyspec/crudui-generator-html`에 의존합니다.
 서버가 최종 권한을 가집니다. 바인딩은 오류를 더 일찍 보여 주고 유효하지 않다고 판단한 제출을
 멈추며, 서버는 받은 모든 제출을 검증합니다.
 
@@ -48,20 +51,25 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 
 - `message` — 값: 검증 오류에서 문자열로 가는 함수; 용도: 그 오류에 보여 줄 문구입니다. 없으면 오류의 `message`를 씁니다.
 - `formErrors` — 값: 검증 결과에서 문자열 목록으로 가는 함수; 용도: 폼 전체를 검증할 때마다 쓰는 폼 오류입니다. 없으면 쓰지 않습니다.
+- `language` — 값: 문자열; 용도: 서버가 폼을 렌더링할 때 쓴 언어이며, 바인딩은 이 언어로 [그룹 소스의 선택지](#반복-그룹의-선택지)를 렌더링합니다. 없으면 렌더러의 기본 언어를 씁니다.
+- `idPrefix` — 값: 문자열; 용도: 서버가 폼을 렌더링할 때 쓴 식별자 접두사이며, 바인딩은 이 접두사로 그룹 소스의 선택지를 렌더링합니다. 없으면 렌더러의 기본 접두사를 씁니다.
 
 `bindForm`은 `TypeError`와 다음 메시지 중 첫 번째로 이 순서에 따라 실패합니다.
 
 - `form` 요소가 아닌 `form`: `bindForm requires a form element`
 - 객체가 아닌 `options`: `Binding options must be an object`
-- `keyPrefix`, `message`, `formErrors` 이외의 `options` 멤버 중 멤버 순서로 첫 번째: `Unknown binding option: {name}`
+- `keyPrefix`, `message`, `formErrors`, `language`, `idPrefix` 이외의 `options` 멤버 중 멤버 순서로 첫 번째: `Unknown binding option: {name}`
 - 문자열이 아닌 `keyPrefix`: `keyPrefix must be a string`
 - 함수가 아닌 `message`: `message must be a function`
 - 함수가 아닌 `formErrors`: `formErrors must be a function`
+- 문자열이 아닌 `language`: `language must be a string`
+- 문자열이 아닌 `idPrefix`: `idPrefix must be a string`
 - `crudui-form__body`를 정확히 하나 담지 않은 폼: `The form must contain one CRUDUI form`
 
 `message`가 문자열이 아닌 값을 반환하면(`message must return a string`), `formErrors`가 문자열
 목록이 아닌 값을 반환하면(`formErrors must return a list of strings`) 검증은 `TypeError`로 실패합니다.
-형태가 잘못된 데이터에 대한 `FormInputError` 같은 검증기의 실패는 그대로 전달됩니다.
+형태가 잘못된 데이터나 렌더러가 지원하지 않는 언어에 대한 `FormInputError` 같은 검증기나 렌더러의 실패는 그대로
+전달됩니다.
 
 ### 데이터
 
@@ -149,6 +157,21 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 
 `hiddenPaths`는 모든 조건을 검증과 같이 결정하고 다른 형태의 데이터는 없는 것으로 읽습니다. 객체가 아닌
 데이터에는 `FormInputError`로, 파일 없이 합성을 해결할 수 없는 명세에는 `ComposeLoadError`로 실패합니다.
+
+### 반복 그룹의 선택지
+
+바인딩은 `items`가 [그룹 소스](../../docs/spec/schema.ko.md#반복-그룹의-선택지)인 모든 필드의 선택지를, 렌더러가 같은
+데이터에 대해 쓰는 대로 데이터에 있는 그 그룹의 행과 같게 유지합니다(CUSC-071). 따라서 다른 그룹의 행을 나열하는
+선택 목록, 라디오, 체크박스 필드는 사용자가 그 그룹을 편집하는 동안 선택지를 바꿉니다. `bindForm`은
+`@polyspec/crudui-generator-core`의 `compileForm`과 `keyPrefix`로 `spec`을 한 번 컴파일하며, 그룹 소스가 없는 스펙에
+대해서는 아무것도 렌더링하지 않습니다. 연결할 때와 폼 컨트롤의 `input` 또는 `change` 이벤트마다, 표시 여부를 쓰고
+검증하기 전에 [데이터](#데이터)에 설명한 대로 데이터를 만들고 `@polyspec/crudui-generator-html`의 `renderForm`으로
+`options.language`와 `options.idPrefix`를 써서 그 데이터의 폼을 렌더링합니다. 그룹 소스가 있는 필드의 노드마다
+`@polyspec/crudui-generator-core`의 `patchContent`로 노드의 `crudui-node__body`를 렌더러가 그 노드에 쓰는 본문으로
+패치하며, `patchContent`는 새 마크업이 유지하는 요소를 모두 유지합니다. 그다음 패치한 컨트롤의 선택을 패치 전에
+컨트롤이 가졌던 값으로 설정합니다. 옵션이나 체크박스, 라디오 input은 그 값이 선택되어 있었을 때만 선택되고, 값이 더
+이상 선택지가 아닌 select에는 선택된 옵션이 없습니다. 따라서 더 이상 선택지가 아닌 값은 어떤 컨트롤도 갖지 않으며,
+네이티브 제출이 보내는 것처럼 데이터에 그 값이 없습니다. `aria-invalid`가 있던 노드의 컨트롤은 그 속성을 유지합니다.
 
 ## 브라우저 바인딩 인수 기준
 

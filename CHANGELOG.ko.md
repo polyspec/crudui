@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a6978d670e647aaa31b5c4b5340fbed77a046469529fdd4eb0da44d776399d66 -->
+<!-- source-sha256: 195c4dd521cd3d3756352e45c4c27d249b2c8be2175569002a0d0ffb787afa72 -->
 
 ## Unreleased
 
@@ -55,6 +55,10 @@
 ### 2026-10-25 — C17.24는 data-source-relations를 JSON.stringify처럼 쓴다(C17.24)
 
 - C17.24 완료(C17.24): 모든 구현은 동적 선택지 기술자의 relations를 JSON.stringify가 쓰는 대로 data-source-relations에 쓰고, 각 숫자는 자신의 Number.prototype.toString writer(ps_number_text, Numbers::string, number_string, numberString, util::number_string)로, 각 문자열은 따옴표, 역슬래시와 제어 문자만 escape해서 쓴다. docs/spec/schema.md는 -0을 0으로 쓰는 것을 포함해 이 규칙을 명시한다. PHP extension은 float을 %.15g로, PHP json_encode는 1.0e+21과 escape한 U+2028로, Python은 1e-07로, Rust는 1e21로, Go는 -0과 escape한 <, &, U+2028로 썼다. PHP extension의 list.c는 두 번째 숫자 writer인 shortest_number를 지우고 ps_number_text를 쓴다. 공유 form-render case search-dynamic-relations-numbers와 search-dynamic-relations-text가 숫자와 문자열을 담는다. red: make parity-check UNITS="form-render"와 PHP extension comparison test가 새 case에서 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — 반복 그룹의 선택지가 브라우저에서 소스 행을 따른다(C17.15)
+
+- C17.15 완료(C17.15): docs/spec/schema.md에 CUSC-071을 적는다. 폼 인스턴스는 변경마다 현재 데이터에서 그룹 소스의 선택지를 나열하며, 나열해도 값은 바뀌지 않는다. step `choices`로 필드 노드의 선택지를 관찰하는 새 form-state family tests/fixtures/form-choices가 TypeScript, Go, Python, Rust, PHP, PHP extension 구현에서 이를 test한다(unit form-choices). React, Vue, Svelte, HTML renderer 폼은 공유 module tests/fixtures/form-session/group-source.mts를 실행한다. packages/form-binding의 브라우저 검증 바인딩은 연결할 때와 input 또는 change마다 컨트롤의 데이터로 HTML renderer와 patchContent를 써서 그룹 소스가 있는 각 필드의 본문을 다시 렌더링하고, 아직 선택지인 선택된 값을 유지하며, option language와 idPrefix를 받는다. Svelte widget patch는 선택된 옵션을 지웠을 때 마크업이 표시한 옵션을 선택하므로, 선택지가 사라진 select는 첫 옵션 대신 아무것도 선택하지 않는다. red: form-binding choices test가 5개 중 4개 실패했고, Svelte session test는 선택된 소스 행을 지운 뒤 첫 옵션이 선택된 상태를 보였으며, 변경 뒤 green.
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 

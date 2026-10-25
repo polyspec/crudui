@@ -30,11 +30,11 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@polyspec/crudui-generator-core": "0.0.7",
+    "@polyspec/crudui-generator-html": "0.0.7",
     "@polyspec/crudui-validator": "0.0.7"
   },
   "devDependencies": {
-    "@polyspec/crudui-generator-core": "0.0.7",
-    "@polyspec/crudui-generator-html": "0.0.7",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.6.5",
     "esbuild": "^0.28.2",

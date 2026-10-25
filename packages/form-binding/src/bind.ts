@@ -1,8 +1,10 @@
 /**
  * Browser validation of a server-rendered complete form (form-runtime.md, "Browser validation").
  */
+import type { Language } from '@polyspec/crudui-generator-core';
 import { FormInputError, hiddenPaths, validate, type ValidationError, type ValidationResult } from '@polyspec/crudui-validator';
 
+import { choiceRefresh } from './choices.js';
 import { collectData } from './data.js';
 import { containsFile, dataControls, isControl, nodeOf, nodePath, nodesByPath } from './nodes.js';
 import { formBody, writeFormErrors, writeNodeErrors } from './slots.js';
@@ -15,6 +17,10 @@ export interface FormBindingOptions {
   message?: (error: ValidationError) => string;
   /** The form errors written at each validation of the whole form; without it none are written. */
   formErrors?: (result: ValidationResult) => string[];
+  /** The language the server rendered the form with; the choices of a group source are rendered with it. */
+  language?: Language;
+  /** The identifier prefix the server rendered the form with; the choices of a group source are rendered with it. */
+  idPrefix?: string;
 }
 
 /** A connected form. */
@@ -25,7 +31,7 @@ export interface FormBinding {
   dispose(): void;
 }
 
-const OPTIONS = new Set(['keyPrefix', 'message', 'formErrors']);
+const OPTIONS = new Set(['keyPrefix', 'message', 'formErrors', 'language', 'idPrefix']);
 
 /** The options of `bindForm`, checked for a caller without types. */
 function checkedOptions(options: FormBindingOptions): FormBindingOptions {
@@ -35,10 +41,12 @@ function checkedOptions(options: FormBindingOptions): FormBindingOptions {
   for (const name of Object.keys(options)) {
     if (!OPTIONS.has(name)) throw new TypeError(`Unknown binding option: ${name}`);
   }
-  const { keyPrefix, message, formErrors } = options;
+  const { keyPrefix, message, formErrors, language, idPrefix } = options;
   if (keyPrefix !== undefined && typeof keyPrefix !== 'string') throw new TypeError('keyPrefix must be a string');
   if (message !== undefined && typeof message !== 'function') throw new TypeError('message must be a function');
   if (formErrors !== undefined && typeof formErrors !== 'function') throw new TypeError('formErrors must be a function');
+  if (language !== undefined && typeof language !== 'string') throw new TypeError('language must be a string');
+  if (idPrefix !== undefined && typeof idPrefix !== 'string') throw new TypeError('idPrefix must be a string');
   return options;
 }
 
@@ -46,19 +54,22 @@ function checkedOptions(options: FormBindingOptions): FormBindingOptions {
  * Validate a server-rendered form in the browser with the specification the server validates it
  * with: a changed node when its control loses focus and on every later change, and the whole form
  * on submit, where an invalid form is not submitted. The `hidden` attribute of every node follows
- * its `design.show` against the data when the form binds and after every change.
+ * its `design.show` against the data, and the choices of every field with a group source follow the
+ * rows of its group, when the form binds and after every change.
  *
  * @param form - The parsed `form` element that holds one complete form.
  * @param spec - The specification the server validates the form with, its composition resolved.
- * @param options - Key prefix and texts.
+ * @param options - Key prefix, texts, and the language and identifier prefix of the rendered form.
  * @throws TypeError for a value outside the contract, in the documented order.
  */
 export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, options: FormBindingOptions = {}): FormBinding {
   if (typeof form !== 'object' || form === null || (form as Element).tagName !== 'FORM') {
     throw new TypeError('bindForm requires a form element');
   }
-  const { keyPrefix, message, formErrors } = checkedOptions(options);
+  const { keyPrefix, message, formErrors, language, idPrefix } = checkedOptions(options);
   const body = formBody(form);
+  // The choices of the group sources follow the data of the controls (README, "Choices from a repeated group").
+  const refresh = choiceRefresh(spec, { keyPrefix, language, idPrefix });
   const view = form.ownerDocument.defaultView;
   if (view === null) throw new TypeError('bindForm requires a form of a document with a window');
   // Nodes changed by the user and not yet validated, and nodes validated since binding, by path.
@@ -138,6 +149,7 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
   const onChange = (event: Event) => {
     const path = pathOf(event.target);
     if (path === undefined) return;
+    refresh(body);
     display();
     if (whole || validated.has(path)) run(false);
     else changed.add(path);
@@ -174,6 +186,7 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
   // The rules decide validity: the browser's constraint validation would stop a submission first.
   const addedNoValidate = !form.noValidate;
   form.noValidate = true;
+  refresh(body);
   display();
   form.addEventListener('input', onChange);
   form.addEventListener('change', onChange);
