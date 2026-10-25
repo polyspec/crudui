@@ -110,6 +110,24 @@ const fixtureHelpers = [
  * caseReport and ends with caseProgramEnd, which exits with the first failing case id.
  */
 export const caseProgramStart = ['  int failed = 0;'];
+
+/*
+ * The line that reports the case `id` of a fixture program passed, for a program that returns at
+ * the first failing case: it runs at the end of the block of the case, so the reports name each
+ * case that the program checked.
+ */
+export function casePassed(id) {
+  return `  printf("crudui-case ${id} pass\\n"); fflush(stdout);`;
+}
+
+/*
+ * Assert that the fixture program of `stdout` reported the cases 1 to `count`, each once or more:
+ * the count is that of the cases the test read from a shared cases.json, so a case that the
+ * program drops fails the assertion.
+ */
+export function assertCasesReported(stdout, count, message) {
+  assert.deepEqual([...caseResults(stdout).keys()].sort((a, b) => a - b), Array.from({ length: count }, (_, index) => index + 1), message);
+}
 export const caseProgramEnd = ['  return failed;'];
 export function caseReport(id) {
   return [

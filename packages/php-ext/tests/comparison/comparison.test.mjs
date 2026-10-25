@@ -12,7 +12,7 @@ import { buildDetail } from '@polyspec/crudui-generator-core';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../../tests/native-generators/cases.mts';
 import { dispatch, errorRecord } from '../../../../tests/native-generators/javascript.mts';
 
-import { cString, cText, EngineFixtureSource, fixtureProgram, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, compileAndRunEngineFixture } from '../engine/support.mjs';
+import { cString, cText, EngineFixtureSource, assertCasesReported, casePassed, fixtureProgram, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, compileAndRunEngineFixture } from '../engine/support.mjs';
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -39,23 +39,25 @@ function sourceForFixtures() {
       lines.push(`  if (!actual.value || actual.error || !ps_equal(actual.value, ${value})) { print_text("template differs: ", ${cText(fixture.name)}); return ${index + 1}; }`);
       lines.push(`  ps_value_free(${value});`);
     }
-    lines.push(`  ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${spec}); ps_value_free(${options});`, '  }');
+    lines.push(`  ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${spec}); ps_value_free(${options});`, casePassed(index + 1), '  }');
   });
   return fixtureProgram(lines);
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 188,
-    'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'compile-fixtures',
+      onOutput: stdout => { output = stdout; },
       sources: [
         'value.c', 'number_text.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c',
       ],
     });
+    assertCasesReported(output, fixtures.length,
+      'the extension engine compiles each case of tests/fixtures/form-render/cases.json');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -66,11 +68,21 @@ test('PHP extension engine compiles every shared form fixture', { timeout: ENGIN
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
-// A fixture that compilation rejects has no template to bind; the compilation test covers it.
+// A fixture that compilation rejects with a CRUDUI error, of any code, has no template to bind; the compilation test
+// covers it.
 const bindFixtures = fixtures.filter(fixture => {
   try { dispatch({ operation: 'compileForm', spec: fixture.spec, options: fixture.options ?? {} }); return true; }
-  catch (error) { if (error?.code !== 'INVALID_FORM_INPUT') throw error; return false; }
+  catch (error) { if (typeof error?.code !== 'string') throw error; return false; }
 });
+
+// The binding options that bindForm rejects, each with its message.
+const optionRejections = [
+  [{ language: 'fr' }, 'Unsupported language: fr'], [{ language: '' }, 'Unsupported language: '],
+  [{ language: 5 }, 'Language must be a string'], [{ language: false }, 'Language must be a string'],
+  [{ language: ['ko'] }, 'Language must be a string'], [{ language: { ko: 'ko' } }, 'Language must be a string'],
+  [{ unsupported: true }, 'unsupported must be throw or marker'],
+  [{ language: 'fr', unsupported: 'other' }, 'unsupported must be throw or marker'],
+];
 
 function sourceForFixtures() {
   const builder = new EngineFixtureSource();
@@ -106,16 +118,9 @@ function sourceForFixtures() {
       lines.push(`  ps_value_free(${expectedValue});`);
     }
     lines.push(`  if (!ps_equal(${templateValue}, template_before) || !ps_equal(${dataValue}, data_before)) { print_text("input changed: ", ${cText(fixture.name)}); return ${index + 1}; }`);
-    lines.push(`  ps_value_free(template_before); ps_value_free(data_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
+    lines.push(`  ps_value_free(template_before); ps_value_free(data_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, casePassed(index + 1), '  }');
   });
   const template = dispatch({ operation: 'compileForm', spec: { type: 'group', properties: { name: { type: 'text' } } }, options: {} });
-  const optionRejections = [
-    [{ language: 'fr' }, 'Unsupported language: fr'], [{ language: '' }, 'Unsupported language: '],
-    [{ language: 5 }, 'Language must be a string'], [{ language: false }, 'Language must be a string'],
-    [{ language: ['ko'] }, 'Language must be a string'], [{ language: { ko: 'ko' } }, 'Language must be a string'],
-    [{ unsupported: true }, 'unsupported must be throw or marker'],
-    [{ language: 'fr', unsupported: 'other' }, 'unsupported must be throw or marker'],
-  ];
   optionRejections.forEach(([options, message], index) => {
     let languageError;
     try { dispatch({ operation: 'bindForm', template, data: {}, options }); }
@@ -127,25 +132,28 @@ function sourceForFixtures() {
     const optionsValue = builder.emit(options);
     lines.push(`  ps_result actual = ps_bind_form(${templateValue}, ${dataValue}, ${optionsValue});`);
     lines.push(`  if (actual.value || !actual.error || !text_is(ps_get(actual.error, "code"), ${cText(languageError.code)}) || !text_is(ps_get(actual.error, "message"), ${cText(languageError.message)}) || !text_is(ps_get(actual.error, "at"), PS_TEXT(""))) { print_text("error differs: ", ${cText(`option-rejection-${index}`)}); return ${bindFixtures.length + 1 + index}; }`);
-    lines.push(`  ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
+    lines.push(`  ps_value_free(actual.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, casePassed(bindFixtures.length + 1 + index), '  }');
   });
   return fixtureProgram(lines);
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 188,
-    'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 162,
-    'Review C binding coverage when compilation error fixtures change');
+  // A case that compilation rejects is left to the compilation test only when the case expects an error.
+  assert.deepEqual(fixtures.filter(fixture => !bindFixtures.includes(fixture) && !fixture.expectError).map(fixture => fixture.name), [],
+    'every case of tests/fixtures/form-render/cases.json without expectError compiles, so the binding test binds it');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
+      onOutput: stdout => { output = stdout; },
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'canonical.c',
       ],
     });
+    assertCasesReported(output, bindFixtures.length + optionRejections.length,
+      'the extension engine binds each case of tests/fixtures/form-render/cases.json that compiles, and each option rejection');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -241,25 +249,25 @@ function sourceForFixtures() {
     lines.push(`    print_text("actual: ", actual.bytes ? ps_view(actual) : PS_TEXT("null")); print_text("expected: ", ${cText(expectedHtml)});`);
     lines.push(`    free(actual.bytes); return ${index + 1}; }`);
     lines.push(`  if (!fields_before || !ps_equal(fields.value, fields_before)) { print_text("fields changed: ", ${cText(fixture.name)}); return ${index + 1}; }`);
-    lines.push(`  free(actual.bytes); ps_value_free(fields_before); ps_value_free(fields.value); ps_value_free(fields.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, '  }');
+    lines.push(`  free(actual.bytes); ps_value_free(fields_before); ps_value_free(fields.value); ps_value_free(fields.error); ps_value_free(${templateValue}); ps_value_free(${dataValue}); ps_value_free(${optionsValue});`, casePassed(index + 1), '  }');
   });
   return fixtureProgram(lines);
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 188,
-    'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 137,
-    'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures',
+      onOutput: stdout => { output = stdout; },
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
         'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
       ],
     });
+    assertCasesReported(output, allRenderFixtures.length,
+      'the extension engine renders each case of tests/fixtures/form-render/cases.json without expectError, and each edge case');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -357,7 +365,7 @@ function sourceForFixtures() {
       lines.push(`    return ${index + 1}; }`);
     }
     lines.push(`  if (!spec_before || !rows_before || !options_before || !ps_equal(${specValue}, spec_before) || !ps_equal(${rowsValue}, rows_before) || !ps_equal(${optionsValue}, options_before)) { print_text("input changed: ", ${cText(fixture.name)}); return ${index + 1}; }`);
-    lines.push(`  ps_value_free(spec_before); ps_value_free(rows_before); ps_value_free(options_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${specValue}); ps_value_free(${rowsValue}); ps_value_free(${optionsValue});`, '  }');
+    lines.push(`  ps_value_free(spec_before); ps_value_free(rows_before); ps_value_free(options_before); ps_value_free(actual.value); ps_value_free(actual.error); ps_value_free(${specValue}); ps_value_free(${rowsValue}); ps_value_free(${optionsValue});`, casePassed(index + 1), '  }');
   });
   return fixtureProgram(lines);
 }
@@ -369,17 +377,15 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 157,
-    'Review C list coverage when the shared fixture inventory changes');
-  assert.equal(numberCases.length, 17,
-    'Review C number coverage when the native number inventory changes');
-  assert.equal(dateCases.length, 28,
-    'Review C date coverage when the native date inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-list-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'list-fixtures', sources,
+      onOutput: stdout => { output = stdout; },
     });
+    assertCasesReported(output, listFixtures.length,
+      'the extension engine renders each case of tests/fixtures/list-render/cases.json, each number case and the date case');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -467,7 +473,7 @@ function sourceForFixtures() {
       }
       lines.push(`  if (${inputs.map(value => `!ps_equal(${value}, ${value}_before)`).join(' || ')}) { print_text("input changed: ", ${cText(name)}); return ${status}; }`);
       lines.push(`  ps_value_free(actual.value); ps_value_free(actual.error);`);
-      lines.push(...inputs.map(value => `  ps_value_free(${value}); ps_value_free(${value}_before);`), '  }');
+      lines.push(...inputs.map(value => `  ps_value_free(${value}); ps_value_free(${value}_before);`), casePassed(status), '  }');
       status += 1;
     }
   }
@@ -489,15 +495,17 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 62,
-    'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-detail-'));
+  let output = '';
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'detail-fixtures', sources,
+      onOutput: stdout => { output = stdout; },
     });
+    assertCasesReported(output, fixtures.length * 2,
+      'the extension engine renders and builds each case of tests/fixtures/detail-render/cases.json');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

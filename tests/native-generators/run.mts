@@ -566,10 +566,14 @@ function textRequest(feature: string, fixture: TextCase): InvokeRequest {
 const listCases = readJson<ListCase[]>(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), { elements: listCaseSchema });
 const detailCases = readJson<DetailCase[]>(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), { elements: detailCaseSchema });
 const outlineCases = readJson<OutlineCase[]>(path.join(ROOT, 'tests/fixtures/form-outline/cases.json'), { elements: outlineCaseSchema });
-assert.equal(formCases.length, 188, 'The form fixture inventory changed; review coverage before changing this assertion');
-assert.equal(listCases.length, 157, 'The list fixture inventory changed; review coverage before changing this assertion');
-assert.equal(outlineCases.length, 5, 'The form-outline fixture inventory changed; review coverage before changing this assertion');
-assert.equal(detailCases.length, 62, 'The detail fixture inventory changed; review coverage before changing this assertion');
+// Each case of these shared cases.json files is a check `group:name` of every available target; the suite check
+// fixture-coverage fails when a selected case has no check of a target, so the count of the checks follows cases.json.
+const fixtureFamilies: Array<{ fixture: string; group: string; cases: Array<{ name: string }> }> = [
+  { fixture: 'tests/fixtures/form-render/cases.json', group: 'form-fixture', cases: formCases },
+  { fixture: 'tests/fixtures/list-render/cases.json', group: 'list', cases: listCases },
+  { fixture: 'tests/fixtures/form-outline/cases.json', group: 'outline', cases: outlineCases },
+  { fixture: 'tests/fixtures/detail-render/cases.json', group: 'detail', cases: detailCases },
+];
 
 const targetNames = targets.map(target => target.name);
 for (const name of selectedTargets) assert.ok(targetNames.includes(name), `Unknown target: ${name}; available targets are ${targetNames.join(', ')}`);
@@ -1150,6 +1154,15 @@ for (const status of report.targets.filter(target => target.available)) {
   progress(`${status.name}: ${status.checks - status.failures}/${status.checks} checks passed`);
 }
 progress(`checks: finished (${seconds(checksStart)})`);
+// A selected case of a shared cases.json that an available target ran no check for was dropped from the run.
+const uncovered = available.flatMap(target => {
+  const checked = new Set(report.checks.filter(record => record.target === target.name).map(record => record.case));
+  return fixtureFamilies.flatMap(({ fixture, group, cases }) => cases.map(({ name }) => `${group}:${name}`)
+    .filter(name => selectsCheck(name) && !checked.has(name))
+    .map(name => `${target.name} ${name} (${fixture})`));
+});
+report.checks.push({ target: 'suite', case: 'fixture-coverage', passed: uncovered.length === 0, ...(uncovered.length === 0 ? {} : { error: { message: `No check ran for ${uncovered.length} selected cases: ${uncovered.join(', ')}` } }) });
+progress(uncovered.length === 0 ? 'fixture-coverage: every selected case of the shared cases.json files has a check of each available target' : `fixture-coverage: FAILED, ${uncovered.length} selected cases have no check`);
 progress('inputs: hashing sources and built artifacts again');
 try {
   report.inputs.end = await inputManifest();

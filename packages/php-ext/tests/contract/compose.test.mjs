@@ -51,8 +51,6 @@ function sourceForCases() {
 let evaluation;
 function evaluate() {
   evaluation ??= (async () => {
-    assert.equal(cases.length, 20,
-      'Review C composition coverage when the shared fixture inventory changes');
     const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compose-'));
     let output = '';
     let failure;
