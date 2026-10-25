@@ -1,6 +1,6 @@
 /**
- * Generates the shared form state fixtures of five families: `form-view`, `form-history` and `form-actions` (sessions of
- * operations on a form instance) and `view-functions` and `history-functions` (the pure functions of the view and the
+ * Generates the shared form state fixtures of six families: `form-view`, `form-history`, `form-actions` and
+ * `form-choices` (sessions of operations on a form instance) and `view-functions` and `history-functions` (the pure functions of the view and the
  * history).
  *
  * A form state case is `{ name, note, requirements, spec, data, options, steps, expected }`. Each step is
@@ -481,6 +481,104 @@ const view = sessions(['toggle-row-collapses-and-expands', 'set-all-expanded-col
 const historySessions = sessions(['set-data-restarts-history-and-view', 'undo-and-redo-restore-the-record', 'same-path-edits-share-one-record', 'a-change-after-undo-clears-redo', 'history-keeps-100-records']);
 const actions = all.filter(entry => !view.includes(entry) && !historySessions.includes(entry));
 
-for (const [folder, cases] of [['form-view', view], ['form-history', historySessions], ['form-actions', actions], ['view-functions', viewCases], ['history-functions', historyCases]] as const) {
+// The sessions of `form-choices`: a field whose items is a group source lists the rows of its group in the current data
+// after every change (docs/spec/schema.md, CUSC-071); the step `choices` observes the options of the field node.
+const sourceSpec: Json = {
+  type: 'group',
+  properties: {
+    characters: {
+      type: 'group',
+      label: 'Character',
+      multiple: { copy: true, sortable: true },
+      properties: { id: { type: 'text', label: 'Id' }, name: { type: 'text', label: 'Name' } },
+    },
+    lead: { type: 'select', label: 'Lead', items: { from: 'characters.*.id', label: 'name' } },
+    cast: { type: 'multichoice', label: 'Cast', items: { from: 'characters.*.id', label: 'name' } },
+    roles: {
+      type: 'group',
+      label: 'Role',
+      multiple: true,
+      properties: { character: { type: 'radio', label: 'Character', items: { from: 'characters.*.id' } } },
+    },
+  },
+};
+const C1 = k(21);
+const C2 = k(22);
+const C3 = k(23);
+const C4 = k(24);
+const R1 = k(31);
+const sourceData: Json = {
+  characters: { [C1]: { id: 'ann', name: 'Ann' }, [C2]: { id: 'bob', name: 'Bob' } },
+  lead: 'ann',
+  cast: ['bob'],
+  roles: { [R1]: { character: 'bob' } },
+};
+const choices = (path: string): Step => step('choices', path);
+const choiceCases: Case[] = [
+  session({
+    name: 'choices-follow-edited-values-and-labels',
+    note: 'An edited value or label of a source row changes its choice in the next view, in every field with the source.',
+    requirements: ['CUSC-071'],
+    spec: sourceSpec,
+    data: sourceData,
+    steps: [
+      choices('lead'),
+      step('setValue', `characters.${C1}.name`, 'Anna'),
+      choices('lead'),
+      step('setValue', `characters.${C2}.id`, 'rob'),
+      choices('cast'),
+      choices(`roles.${R1}.character`),
+    ],
+  }),
+  session({
+    name: 'choices-follow-added-copied-moved-and-rekeyed-rows',
+    note: 'An added row gives a choice in data order; a copied row repeats a value and gives none; moving a row moves its choice; rekeying keeps it.',
+    requirements: ['CUSC-071'],
+    spec: sourceSpec,
+    data: sourceData,
+    steps: [
+      step('addRow', 'characters', { key: C3, value: { id: 'cy', name: '' } }),
+      choices('lead'),
+      step('copyRow', 'characters', C3, { key: C4 }),
+      choices('lead'),
+      step('moveRow', 'characters', C3, 0),
+      choices('lead'),
+      step('rekeyRow', 'characters', C3, k(25)),
+      choices('lead'),
+    ],
+  }),
+  session({
+    name: 'choices-follow-removed-rows-and-history',
+    note: 'Removing the row of the selected value removes its choice and keeps the value, which validation reports; undo and redo list the restored rows.',
+    requirements: ['CUSC-071', 'CUVR-060'],
+    spec: sourceSpec,
+    data: sourceData,
+    steps: [
+      step('removeRow', 'characters', C1),
+      choices('lead'),
+      step('validate'),
+      step('undo'),
+      choices('lead'),
+      step('redo'),
+      choices('lead'),
+    ],
+  }),
+  session({
+    name: 'choices-follow-replaced-data',
+    note: 'setData lists the rows of the new data, and a group without rows has no choices; the explicit empty collections keep the observation free of generated row keys.',
+    requirements: ['CUSC-071'],
+    spec: sourceSpec,
+    data: sourceData,
+    steps: [
+      step('setData', { characters: { [C3]: { id: 'dee', name: 'Dee' } }, lead: 'dee', roles: {} }),
+      choices('lead'),
+      step('setData', { characters: {}, roles: {} }),
+      choices('lead'),
+      choices('cast'),
+    ],
+  }),
+];
+
+for (const [folder, cases] of [['form-view', view], ['form-history', historySessions], ['form-actions', actions], ['view-functions', viewCases], ['history-functions', historyCases], ['form-choices', choiceCases]] as const) {
   writeFileSync(resolve(here, '..', folder, 'cases.json'), `${JSON.stringify(cases, null, 2)}\n`);
 }

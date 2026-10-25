@@ -68,6 +68,18 @@ def _collapsed_rows(nodes):
 _ACTION_STEPS = ("runAction", "resolveAction")
 
 
+def _field_choices(nodes, path):
+    """The value and label of each option of the field node at a data path, depth first, or None."""
+    for node in nodes:
+        if node.get("kind") == "field" and node.get("path") == path:
+            options = (node.get("widget") or {}).get("options") or []
+            return [{"value": option["value"], "label": option["label"]} for option in options]
+        found = _field_choices(node.get("children") or [], path)
+        if found is not None:
+            return found
+    return None
+
+
 def _perform(form, op, args, spec):
     """Run one step on the form and return what the step returned."""
     if op == "validate":
@@ -85,6 +97,11 @@ def _perform(form, op, args, spec):
                 for e in result["errors"]
             ],
         }
+    if op == "choices":
+        found = _field_choices(form.getFields(), args[0])
+        if found is None:
+            raise AssertionError(f"no field node at {args[0]}")
+        return found
     if op == "addRow":
         return form.addRow(args[0], args[1] if len(args) > 1 else {})
     if op == "copyRow":
@@ -142,6 +159,16 @@ class TestFormHistory(unittest.TestCase):
 
 
 add_case_tests(TestFormHistory, "form-history", TestFormHistory.check_case)
+
+
+class TestFormChoices(unittest.TestCase):
+    """Each session of the choices of a group source equals its recorded observations, with the history flags."""
+
+    def check_case(self, case):
+        _check_session(self, case, history=True)
+
+
+add_case_tests(TestFormChoices, "form-choices", TestFormChoices.check_case)
 
 
 def _nodes(spec, data, collapsed=None):

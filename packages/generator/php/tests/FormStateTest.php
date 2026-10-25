@@ -58,6 +58,12 @@ final class FormStateTest extends TestCase
     }
 
     /** @return array<string, array{stdClass}> */
+    public static function choiceSessions(): array
+    {
+        return self::cases('form-choices');
+    }
+
+    /** @return array<string, array{stdClass}> */
     public static function viewFunctions(): array
     {
         return self::cases('view-functions');
@@ -114,6 +120,12 @@ final class FormStateTest extends TestCase
         $this->assertSession($case, true);
     }
 
+    #[DataProvider('choiceSessions')]
+    public function testChoiceSessionsEqualTheRecordedObservations(stdClass $case): void
+    {
+        $this->assertSession($case, true);
+    }
+
     #[DataProvider('viewFunctions')]
     public function testViewFunctionCallsEqualTheRecordedResults(stdClass $case): void
     {
@@ -153,6 +165,8 @@ final class FormStateTest extends TestCase
     {
         return match ($op) {
             'validate' => self::validation($spec, $form->getData()),
+            'choices' => self::fieldChoices($form->getFields(), $args[0])
+                ?? throw new \LogicException('no field node at ' . $args[0]),
             'addRow' => $form->addRow($args[0], isset($args[1]) ? (array) $args[1] : []),
             'copyRow' => $form->copyRow($args[0], $args[1], isset($args[2]) ? (array) $args[2] : []),
             'removeRow' => $form->removeRow($args[0], $args[1]),
@@ -168,6 +182,24 @@ final class FormStateTest extends TestCase
             'resolveAction' => Generator::resolveAction($args[0]),
             default => throw new \LogicException('unknown step ' . $op),
         };
+    }
+
+    /** @return list<array{value: string, label: string}>|null the options of the field node at a data path, depth first */
+    private static function fieldChoices(array $nodes, string $path): ?array
+    {
+        foreach ($nodes as $node) {
+            if (($node->kind ?? null) === 'field' && ($node->path ?? null) === $path) {
+                return array_map(
+                    static fn (object $option): array => ['value' => $option->value, 'label' => $option->label],
+                    $node->widget->options ?? []
+                );
+            }
+            $found = self::fieldChoices($node->children ?? [], $path);
+            if ($found !== null) {
+                return $found;
+            }
+        }
+        return null;
     }
 
     /** @return list<string> the row paths of the collapsed rows of the evaluated nodes, depth first */

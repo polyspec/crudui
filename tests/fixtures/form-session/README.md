@@ -34,6 +34,12 @@ form and passes it with `expect` and a `flush` function that waits for rendering
   same control, button, script, style and raw display element nodes, the focus on the edited
   control, the typed order, the caret and the form values, and that each widget script ran once.
 
+- [`group-source.mts`](group-source.mts) exports `sourceSpec`, `sourceData` and `exerciseGroupSource`, which checks
+  that a select and a multichoice field whose `items` is a
+  [group source](../../../docs/spec/schema.md#choices-from-a-repeated-group) show the rows of the source group after a
+  typed label, an added row with a typed value, a removed row, undo, a rekeyed and moved row and `setData`, and that no
+  step changes the values of the fields.
+
 ## Comparisons
 
 The scenario and control checks assert through the `expect` the framework test passes.
@@ -48,8 +54,8 @@ restores a value in both forms and requires equal states and the same checkbox e
 The [React](../../../packages/react/src/tests/Form.test.tsx),
 [Vue](../../../packages/vue/tests/form-session.test.mjs) and
 [Svelte](../../../packages/svelte/tests/form-session.client.mjs) form tests and the
-[HTML renderer session test](../../../packages/html/src/form-session.test.ts) use all four
-modules. The [core form test](../../../packages/generator/ts/src/form.test.ts) uses the scenario
+[HTML renderer session test](../../../packages/html/src/form-session.test.ts) use every
+module. The [core form test](../../../packages/generator/ts/src/form.test.ts) uses the scenario
 `spec`, `data`, row keys and `storesPath`.
 
 ## Regeneration

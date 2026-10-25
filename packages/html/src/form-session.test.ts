@@ -116,6 +116,21 @@ test('keeps a data-only collection to the rows of its data', async () => {
   }
 });
 
+// @ts-expect-error Shared group source assertions across all renderers.
+import { sourceSpec, sourceData, exerciseGroupSource } from '../../../tests/fixtures/form-session/group-source.mts';
+
+test('lists the choices of a group source from the rows of each change', async () => {
+  const session = createForm(compileForm(sourceSpec), sourceData);
+  const element = document.createElement('form');
+  const unmount = mount(session, element);
+  try {
+    await proves('group-source.mts', 'exerciseGroupSource', ['connectForm'], () =>
+      exerciseGroupSource({ element, session, expect, flush }));
+  } finally {
+    unmount();
+  }
+});
+
 test('keeps the values of a group hidden by design.show', async () => {
   const session = createForm(compileForm(visibilitySpec), visibilityData);
   const element = document.createElement('form');

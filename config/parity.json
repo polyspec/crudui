@@ -985,6 +985,52 @@
       ]
     },
     {
+      "id": "form-choices",
+      "kind": "suite",
+      "file": "tests/fixtures/form-choices/cases.json",
+      "cases": "$[*].name",
+      "bindings": [
+        {
+          "implementation": "ts",
+          "test": "packages/generator/ts/src/form-choices.test.ts"
+        },
+        {
+          "implementation": "go",
+          "test": "packages/generator/go/form_state_test.go",
+          "symbol": "TestFormChoices"
+        },
+        {
+          "implementation": "python",
+          "test": "packages/generator/python/tests/test_form_state.py",
+          "command": ["var/python/bin/python", "-m", "unittest", "-v", "tests.test_form_state.TestFormChoices"]
+        },
+        {
+          "implementation": "rust",
+          "test": "packages/generator/rust/tests/form_state.rs",
+          "symbol": "form_choices_sessions_equal_the_recorded_observations"
+        },
+        {
+          "implementation": "php",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testChoiceSessionsEqualTheRecordedObservations"
+        },
+        {
+          "implementation": "php-extension",
+          "test": "packages/generator/php/tests/FormStateTest.php",
+          "symbol": "Polyspec\\Crudui\\Generator\\Tests\\FormStateTest::testChoiceSessionsEqualTheRecordedObservations"
+        }
+      ],
+      "requirements": [
+        "CUSC-071",
+        "CUVR-060",
+        "CURP-010",
+        "CURP-011",
+        "CURP-012",
+        "CURP-020",
+        "CURP-027"
+      ]
+    },
+    {
       "id": "view-functions",
       "kind": "suite",
       "file": "tests/fixtures/view-functions/cases.json",

@@ -95,6 +95,20 @@ function collapsedRows(nodes: readonly unknown[], out: string[] = []): string[] 
   return out;
 }
 
+/** The value and label of each option of the field node at a data path, depth first, or undefined. */
+function fieldChoices(nodes: readonly unknown[], path: string): Json | undefined {
+  for (const node of nodes) {
+    if (!isRecord(node)) continue;
+    if (node.kind === 'field' && node.path === path) {
+      const options = isRecord(node.widget) && isEntries(node.widget.options) ? node.widget.options : [];
+      return options.filter(isRecord).map(option => ({ value: String(option.value), label: String(option.label) }));
+    }
+    const found = fieldChoices(isEntries(node.children) ? node.children : [], path);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
 function failure(error: unknown): Json {
   if (!(error instanceof Error)) return { code: 'ERROR', message: String(error) };
   return { code: 'code' in error && typeof error.code === 'string' ? error.code : 'ERROR', message: error.message };
@@ -118,6 +132,11 @@ function perform(core: Core, form: FormLike, { op, args }: Step, spec: Json): un
   const [a, b, c] = args;
   switch (op) {
     case 'validate': return validation(spec, form);
+    case 'choices': {
+      const found = fieldChoices(form.getSnapshot().fields, String(a));
+      if (found === undefined) throw new Error(`No field node at ${String(a)}`);
+      return found;
+    }
     case 'runAction': return core.runAction(form, a);
     case 'resolveAction': return core.resolveAction(a);
     case 'addRow': return form.addRow(a, b ?? {});

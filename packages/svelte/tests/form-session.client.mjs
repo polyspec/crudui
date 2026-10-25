@@ -132,3 +132,17 @@ it('keeps the typed control node, its order and its caret', async () => {
   }
   finally { await unmount(app); element.remove(); }
 });
+
+import { sourceSpec, sourceData, exerciseGroupSource } from '../../../tests/fixtures/form-session/group-source.mts';
+it('lists the choices of a group source from the rows of each change', async () => {
+  const session = createForm(compileForm(sourceSpec), sourceData);
+  const element = document.createElement('form');
+  document.body.append(element);
+  const app = mount(Form, { target: element, props: { form: session } });
+  await tick();
+  try {
+    await proves('group-source.mts', 'exerciseGroupSource', ['connectForm'], () =>
+      exerciseGroupSource({ element, session, expect, flush: tick }));
+  }
+  finally { await unmount(app); element.remove(); }
+});

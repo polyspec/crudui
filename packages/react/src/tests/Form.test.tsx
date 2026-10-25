@@ -79,6 +79,20 @@ it('keeps the values of a group hidden by design.show', async () => {
   } finally { view.unmount(); element.remove(); }
 });
 
+import { sourceSpec, sourceData, exerciseGroupSource } from '../../../../tests/fixtures/form-session/group-source.mts';
+it('lists the choices of a group source from the rows of each change', async () => {
+  const session = createForm(compileForm(sourceSpec), sourceData);
+  const element = document.createElement('form');
+  document.body.append(element);
+  const view = render(<Form form={session} />, { container: element });
+  try {
+    await act(async () => {
+      await proves('group-source.mts', 'exerciseGroupSource', ['connectForm'], () =>
+        exerciseGroupSource({ element, session, expect, flush: async () => { await act(async () => {}); } }));
+    });
+  } finally { view.unmount(); element.remove(); }
+});
+
 import { typingSpec, exerciseTyping, installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mts';
 it('keeps the typed control node, its order and its caret', async () => {
   installWidgetHost(document);

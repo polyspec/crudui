@@ -1,6 +1,6 @@
 # 폼 세션 시나리오
 <!-- doc-id: tests-fixtures-form-session-readme -->
-<!-- source-sha256: 4a0f51199955970b6ce547674a7dc0c35e4441728225ee1f41cc7e7bf9f8c679 -->
+<!-- source-sha256: 2531f23daa1416ce0ee1c9d3542fdcaabc94d6162d6219773d2743e0240fd340 -->
 
 [English](README.md).
 
@@ -33,6 +33,11 @@
   그대로인지, 편집한 컨트롤에 포커스가 있는지, 입력 순서와 캐럿, 폼 값이 맞는지, 각 위젯 스크립트가
   한 번 실행되었는지 확인합니다.
 
+- [`group-source.mts`](group-source.mts)는 `sourceSpec`, `sourceData`, `exerciseGroupSource`를 내보냅니다.
+  `exerciseGroupSource`는 `items`가 [그룹 소스](../../../docs/spec/schema.ko.md#반복-그룹의-선택지)인 선택 목록과
+  다중 선택 필드가 라벨 입력, 값을 입력한 새 행, 행 삭제, 되돌리기, 키를 바꾸고 옮긴 행, `setData` 뒤에 소스 그룹의
+  행을 보여 주는지, 그리고 어느 단계도 필드의 값을 바꾸지 않는지 확인합니다.
+
 ## 비교
 
 시나리오와 컨트롤 확인은 프레임워크 검사가 넘긴 `expect`로 단언합니다. `compareServerTakeover`는 HTML
@@ -46,7 +51,7 @@
 [React](../../../packages/react/src/tests/Form.test.tsx),
 [Vue](../../../packages/vue/tests/form-session.test.mjs),
 [Svelte](../../../packages/svelte/tests/form-session.client.mjs) 폼 검사와
-[HTML 렌더러 세션 검사](../../../packages/html/src/form-session.test.ts)가 네 모듈을 모두
+[HTML 렌더러 세션 검사](../../../packages/html/src/form-session.test.ts)가 모든 모듈을
 사용합니다. [코어 폼 검사](../../../packages/generator/ts/src/form.test.ts)는 시나리오의 `spec`,
 `data`, 행 키, `storesPath`를 사용합니다.
 

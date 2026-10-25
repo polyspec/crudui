@@ -112,6 +112,28 @@ fn collapsed_rows(nodes: &[Value]) -> Vec<Value> {
     rows
 }
 
+/// The value and label of each option of the field node at a data path, depth first.
+fn field_choices(nodes: &[Value], path: &str) -> Option<Value> {
+    for node in nodes {
+        if node["kind"] == "field" && node["path"] == path {
+            let options = node["widget"]["options"].as_array().map_or(&[][..], Vec::as_slice);
+            return Some(Value::Array(
+                options
+                    .iter()
+                    .map(|option| json!({"value": option["value"], "label": option["label"]}))
+                    .collect(),
+            ));
+        }
+        if let Some(found) = field_choices(
+            node["children"].as_array().map_or(&[][..], Vec::as_slice),
+            path,
+        ) {
+            return Some(found);
+        }
+    }
+    None
+}
+
 fn text(args: &[Value], index: usize) -> &str {
     args[index].as_str().unwrap()
 }
@@ -182,6 +204,10 @@ fn perform(form: &mut Form, spec: &Value, op: &str, args: &[Value]) -> FormResul
                 .collect();
             Ok(Some(json!({"valid": result.valid, "errors": errors})))
         }
+        "choices" => Ok(Some(
+            field_choices(form.fields(), text(args, 0))
+                .unwrap_or_else(|| panic!("no field node at {}", text(args, 0))),
+        )),
         "resolveAction" => Ok(resolve_action(
             &serde_json::from_value::<ActionInput>(args[0].clone()).unwrap(),
         )
@@ -322,10 +348,11 @@ fn check_view_call(case: &Value) {
 }
 
 fn main() {
-    let families: [(&str, &str, bool); 4] = [
+    let families: [(&str, &str, bool); 5] = [
         ("form-view", "form_view_sessions_equal_the_recorded_observations", false),
         ("form-history", "form_history_sessions_equal_the_recorded_observations", true),
         ("form-actions", "form_actions_sessions_equal_the_recorded_observations", true),
+        ("form-choices", "form_choices_sessions_equal_the_recorded_observations", true),
         ("view-functions", "view_function_calls_equal_the_recorded_results", false),
     ];
     let mut trials = Vec::new();

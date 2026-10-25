@@ -142,6 +142,23 @@ func collapsedRows(nodes []*Object) []string {
 	return out
 }
 
+// fieldChoices returns the value and label of each option of the field node at a data path, depth first.
+func fieldChoices(nodes []*Object, path string) (any, bool) {
+	for _, node := range nodes {
+		if stringAt(node, "kind") == "field" && stringAt(node, "path") == path {
+			out := []any{}
+			for _, option := range objectList(read(read(node, "widget"), "options")) {
+				out = append(out, NewObject("value", stringAt(option, "value"), "label", stringAt(option, "label")))
+			}
+			return out, true
+		}
+		if found, ok := fieldChoices(objectList(read(node, "children")), path); ok {
+			return found, true
+		}
+	}
+	return nil, false
+}
+
 // addRowOptions reads the options of addRow and copyRow from a step argument.
 func addRowOptions(options any) AddRowOptions {
 	out := AddRowOptions{Key: stringAt(options, "key"), AfterKey: stringAt(options, "afterKey")}
@@ -171,6 +188,12 @@ func performStep(t *testing.T, form *Form, spec *Object, op string, args []any) 
 			errors = append(errors, NewObject("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message))
 		}
 		return NewObject("valid", result.Valid, "errors", errors), nil
+	case "choices":
+		found, ok := fieldChoices(form.Fields(), text(0))
+		if !ok {
+			t.Fatalf("no field node at %s", text(0))
+		}
+		return found, nil
 	case "resolveAction":
 		target, ok := ResolveAction(ActionInput{Action: stringAt(args[0], "action"), Path: stringAt(args[0], "path"), Key: stringAt(args[0], "key")})
 		if !ok {
@@ -270,6 +293,9 @@ func TestFormHistory(t *testing.T) { observeSessions(t, "form-history", true) }
 
 // TestFormActions runs the action sessions of the fixtures, with the history flags.
 func TestFormActions(t *testing.T) { observeSessions(t, "form-actions", true) }
+
+// TestFormChoices runs the sessions of the choices of a group source, with the history flags.
+func TestFormChoices(t *testing.T) { observeSessions(t, "form-choices", true) }
 
 // actionTargetObject is the JSON object of an action target; path and key are absent when empty.
 func actionTargetObject(target ActionTarget) *Object {

@@ -99,3 +99,17 @@ it('keeps the typed control node, its order and its caret', async () => {
   }
   finally { app.unmount(); element.remove(); }
 });
+
+import { sourceSpec, sourceData, exerciseGroupSource } from '../../../tests/fixtures/form-session/group-source.mts';
+it('lists the choices of a group source from the rows of each change', async () => {
+  const session = createForm(compileForm(sourceSpec), sourceData);
+  const element = document.createElement('form');
+  document.body.append(element);
+  const app = createApp({ render: () => h(Form, { form: session }) });
+  app.mount(element);
+  try {
+    await proves('group-source.mts', 'exerciseGroupSource', ['connectForm'], () =>
+      exerciseGroupSource({ element, session, expect, flush: nextTick }));
+  }
+  finally { app.unmount(); element.remove(); }
+});
