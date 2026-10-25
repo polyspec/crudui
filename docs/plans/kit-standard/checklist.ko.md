@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 900e666e629e4421568a737b0744da51f8bcf304e874f881a46e6b66411f8d5a -->
+<!-- source-sha256: 97265eaa60c9a21d6e845863b58d3c1fd5ea8f8527f6a723ba5a96091bba7301 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -347,3 +347,4 @@
 | C17.13 | crudui의 모든 catch 절은 바인딩을 가진다: 결과를 뜻하는 오류로 좁히고 나머지는 다시 던지거나, 모든 실패가 결과를 뜻하면 // catch-any -- <이유>로 이유를 밝힌다 (K561) | the 33 catch clauses listed by K561 (examples/cross-check-console, examples/form-comparison, packages/cli, packages/form-binding, packages/generator/ts, packages/php-ext, packages/validator/ts, scripts, tests/build, tests/native-generators), each narrowed or annotated | `make lint-ts` | [o] |
 | C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `make test-ts CASES=list-describe` | [ ] |
 | C17.16 | php-ext 엔진 테스트는 공유 검증 케이스 수를 하드코딩한 318이 아니라 tests/fixtures cases.json에서 도출하며, 케이스가 빠지면 실패한다 | packages/php-ext/tests/engine/engine.test.mjs | `make test-php-ext CASES=engine` | [ ] |
+| C17.18 | 조건 트리를 편집하는 form 컨트롤: 생성기가 여섯 구현 모두에서 렌더링하고, 브라우저 바인딩이 편집하며, 객체를 conditionTree 규칙에 제출한다 | the control rule in docs/spec (with KO), its shared fixture cases, its implementation in all six implementations and the browser binding, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
