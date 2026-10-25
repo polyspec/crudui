@@ -643,6 +643,9 @@ into `data-source-relations` as `JSON.stringify` writes it, each number as ECMAS
 `Number.prototype.toString` writes it, so `1e21` is `1e+21`, `100000000000000000000` keeps its
 digits and `-0` is `0`.
 
+- **CUSC-088** `relations` is written to `data-source-relations` as the JSON text of its value; a missing or
+  null `relations` is written `[]`.
+
 Language configuration accepts a `mode`, an `only` language list or override map,
 and group `name`, `key`, `frame`, `title` and `group_class` settings. Language
 overrides can change `validate`, `design`, `behavior` and `options`.

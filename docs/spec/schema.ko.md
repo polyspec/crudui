@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: aebc9d743d40ae12874bd1990c3e3e795f838613e136b1f63ce6e449a2d3197d -->
+<!-- source-sha256: 397201844cbfc2833a2e232839a8c647191b09536346395c6d016ac5678f48ac -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -589,6 +589,9 @@ facts:
 `JSON.stringify`가 쓰는 대로 `data-source-relations`에 쓰고, 각 숫자는 ECMAScript
 `Number.prototype.toString`이 쓰는 대로 쓰므로 `1e21`은 `1e+21`이고 `100000000000000000000`은
 자릿수를 유지하며 `-0`은 `0`입니다.
+
+- **CUSC-088** `relations`는 그 값의 JSON 텍스트로 `data-source-relations`에 씁니다. 없거나 null인
+  `relations`는 `[]`로 씁니다.
 
 언어 설정은 `mode`, 언어 목록 또는 재정의 맵인 `only`, 그룹의 `name`,
 `key`, `frame`, `title`, `group_class` 설정을 받습니다. 언어별 재정의는

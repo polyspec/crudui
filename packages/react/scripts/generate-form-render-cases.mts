@@ -270,6 +270,10 @@ const NEW: FixtureCase[] = [
   pass('search-dynamic-relations-text', 'search dynamic items whose relations hold <, & and U+2028 in strings → data-source-relations writes them as JSON.stringify does, unescaped, and the attribute escapes them.',
     G({ sc: { type: 'search', label: { ko: '검색' },
       items: { model: 'Doc', method: 'find', table: 'docs', relations: ['a<b', 'x&y', 'line\u2028end', { 'q<': '<&>' }] } } }), {}, { language: 'ko' }),
+  pass('select-dynamic-relations-object', 'an empty object of relations is written as its JSON text {}, not [].',
+    G({ s: { type: 'select', label: 'Pick', items: { model: 'User', relations: {} } } }), {}, { language: 'en' }),
+  pass('select-dynamic-relations-text', 'an empty string of relations is written as its JSON text "", not [].',
+    G({ s: { type: 'select', label: 'Pick', items: { model: 'User', relations: '' } } }), {}, { language: 'en' }),
 
   // ---- D2. EMPTY SELECT PLACEHOLDER (CUSC-080) -------------------------------
   pass('select-no-items-placeholder', 'select without items → one option, value "" and text select, untranslated in English; the field value selects nothing.',
@@ -516,6 +520,8 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "search-dynamic-stub": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010", "CUMK-011", "CUSC-080"],
   "search-dynamic-relations-numbers": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010", "CUMK-011"],
   "search-dynamic-relations-text": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010", "CUMK-011"],
+  "select-dynamic-relations-object": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-011", "CUSC-088"],
+  "select-dynamic-relations-text": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-011", "CUSC-088"],
   "choice-behavior-passthrough": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-012"],
   "button-behavior-onclick": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-007"],
   "control-attributes-text": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-026", "CUMK-028"],
