@@ -19,6 +19,10 @@
 
 - Each of the 33 catch clauses that had no binding now binds the error and narrows it to the error that means its outcome (SyntaxError for JSON parse, TypeError for a malformed URL or form body, ENOENT or exit code 1 for a missing file or command, ParseError for a condition, FORBIDDEN_META_KEY and INVALID_FORM_INPUT where those are the outcome), and rethrows the rest. The catch-check of lint-ts passes.
 
+### 2026-10-25 — C17.2 takes the choices of a field from a repeated group (C17.2)
+
+- C17.2 is done (C17.2): a choice field declares items { from: group.*.field, label } and lists the rows of that repeated group of the same form as its choices, in data order (docs/spec/schema.md CUSC-061 to CUSC-067); compilation and the validator load refuse a group source that breaks its rules, and the validator checks a value against the choices with an implicit in check before the declared rules (docs/spec/validation-rules.md CUVR-060, CUVR-061), in TypeScript, PHP, the PHP extension, Go, Rust and Python. Red: make parity-check UNITS="validate form-render" failed the 16 validate and 8 form-render group-source cases; green after the change.
+
 ### 2026-10-23 — C17.11-1 reads the tools of a worktree from its main checkout (C17.11-1)
 
 - C17.11-1 is done (C17.11-1): check-doc-coverage.test requires the extends of the kit package that C17.11 brought; gen-api-docs takes phpDocumentor from the tools of the main checkout and keeps its cache in the checkout; UV, GO and COMPOSER name $(KIT_TOOLS). Red: check-doc-coverage.test failed; green after the change.
