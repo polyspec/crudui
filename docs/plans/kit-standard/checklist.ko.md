@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 97265eaa60c9a21d6e845863b58d3c1fd5ea8f8527f6a723ba5a96091bba7301 -->
+<!-- source-sha256: fa0828c4745c6d5341c1e8c2df0c4db19536dcf62d21aefba34b01283864ebc9 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -348,3 +348,4 @@
 | C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `make test-ts CASES=list-describe` | [ ] |
 | C17.16 | php-ext 엔진 테스트는 공유 검증 케이스 수를 하드코딩한 318이 아니라 tests/fixtures cases.json에서 도출하며, 케이스가 빠지면 실패한다 | packages/php-ext/tests/engine/engine.test.mjs | `make test-php-ext CASES=engine` | [ ] |
 | C17.18 | 조건 트리를 편집하는 form 컨트롤: 생성기가 여섯 구현 모두에서 렌더링하고, 브라우저 바인딩이 편집하며, 객체를 conditionTree 규칙에 제출한다 | the control rule in docs/spec (with KO), its shared fixture cases, its implementation in all six implementations and the browser binding, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
+| C17.19 | choice group의 boolean 행 값에는 명시된 규칙이 있고 모든 구현이 따른다 | the rule in docs/spec (with KO), its shared fixture cases, and its implementation in all six implementations, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
