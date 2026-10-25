@@ -8167,5 +8167,164 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid items.from at pick: variants.active holds a boolean, expected a field whose values are strings or numbers"
     }
+  },
+  {
+    "name": "combined-items-select",
+    "note": "A group source with literal choices lists the literal choice first and then the rows of the group in data order (CUSC-089).",
+    "requirements": [
+      "CUSC-089"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "type": "select",
+          "label": "Pick",
+          "items": {
+            "from": "variants.*.name",
+            "label": "price",
+            "choices": [
+              {
+                "value": "none",
+                "label": "None"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "__opt_b2__": {
+          "name": "Blue",
+          "price": 2
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": 1
+        }
+      },
+      "pick": "none"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><option selected=\"\" value=\"none\">None</option><option value=\"Blue\">2</option><option value=\"Red\">1</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "combined-items-row-repeats-choice",
+    "note": "A row whose value is a literal choice would list the value twice, so binding refuses it by the row path and the value.",
+    "requirements": [
+      "CUSC-089"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "type": "select",
+          "label": "Pick",
+          "items": {
+            "from": "variants.*.name",
+            "choices": [
+              {
+                "value": "Red",
+                "label": "Red"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "__opt_b2__": {
+          "name": "Blue",
+          "price": 2
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": 1
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group source value repeats a literal choice at variants.__opt_a1__.name: Red"
+    }
+  },
+  {
+    "name": "combined-items-choices-not-list",
+    "note": "choices is a list of value and label pairs.",
+    "requirements": [
+      "CUSC-089"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "pick": {
+          "label": "Pick",
+          "type": "select",
+          "items": {
+            "from": "variants.*.name",
+            "choices": "none"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.choices at pick: expected value and label pairs with distinct string or number values"
+    }
   }
 ]

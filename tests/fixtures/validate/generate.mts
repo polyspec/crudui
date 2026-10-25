@@ -38,6 +38,7 @@ import { AUTHORED_CASES, type AuthoredCase } from './value-rules.mts';
 import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility.mts';
 import { NUMERIC_CASES } from './numeric-rules.mts';
 import { GROUP_SOURCE_CASES, GROUP_SOURCE_REQUIREMENTS } from './group-source.mts';
+import { COMBINED_ITEMS_CASES, COMBINED_ITEMS_REQUIREMENTS } from './combined-items.mts';
 import { MULTIPLE_SHAPE_CASES, MULTIPLE_SHAPE_REQUIREMENTS } from './multiple-shape.mts';
 import { KEYED_MAP_CASES, KEYED_MAP_REQUIREMENTS } from './keyed-maps.mts';
 import { CONDITION_TREE_CASES, CONDITION_TREE_REQUIREMENTS } from './condition-tree.mts';
@@ -1125,6 +1126,7 @@ function written(c: WrittenCase | FailingCase): Record<string, unknown> {
  */
 const REQUIREMENTS: Record<string, string[]> = {
   ...GROUP_SOURCE_REQUIREMENTS,
+  ...COMBINED_ITEMS_REQUIREMENTS,
   ...MULTIPLE_SHAPE_REQUIREMENTS,
   ...KEYED_MAP_REQUIREMENTS,
   ...CONTAINED_IN_REQUIREMENTS,
@@ -1463,7 +1465,7 @@ const EXPRESSION_CASES: CaseSpec[] = [
   },
 ];
 
-const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written), ...CONTAINED_IN_CASES.map(written), ...TYPE_FROM_CASES.map(written), ...BOUNDS_FROM_CASES.map(written), ...DATA_LIMITS_CASES.map(written), ...CONDITION_FIELD_CASES.map(written)];
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...COMBINED_ITEMS_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written), ...CONTAINED_IN_CASES.map(written), ...TYPE_FROM_CASES.map(written), ...BOUNDS_FROM_CASES.map(written), ...DATA_LIMITS_CASES.map(written), ...CONDITION_FIELD_CASES.map(written)];
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }

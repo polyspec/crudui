@@ -716,6 +716,7 @@
         "CUSC-065",
         "CUSC-066",
         "CUSC-067",
+        "CUSC-068",
         "CUSC-070",
         "CUSC-072",
         "CUSC-073",
@@ -724,7 +725,8 @@
         "CUSC-076",
         "CUSC-077",
         "CUSC-081",
-        "CUSC-068",
+        "CUSC-087",
+        "CUSC-089",
         "CUSC-090",
         "CUVR-087",
         "CUVR-001",
@@ -799,15 +801,16 @@
         "CUVR-074",
         "CUVR-075",
         "CUVR-076",
-        "CUVR-080",
         "CUVR-077",
         "CUVR-078",
         "CUVR-079",
+        "CUVR-080",
         "CUVR-081",
         "CUVR-082",
         "CUVR-083",
         "CUVR-084",
-        "CUSC-087"
+        "CUVR-085",
+        "CUVR-086"
       ]
     },
     {
@@ -1671,12 +1674,13 @@
         "CUSC-065",
         "CUSC-066",
         "CUSC-067",
+        "CUSC-068",
         "CUSC-070",
         "CUSC-076",
         "CUSC-078",
         "CUSC-080",
         "CUSC-088",
-        "CUSC-068",
+        "CUSC-089",
         "CUSC-090"
       ]
     },

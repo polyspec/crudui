@@ -396,8 +396,8 @@ each choice `class`, `style` and then `attributes`, every name before every valu
 A choice field (the types `select`, `dropdown`, `selectbox`, `choice`, `radio`, `multichoice`,
 `checkboxes` and `checkcontainer`) without `lang` may take its choices from the rows of a repeated
 group of the same form, for example a role that names one of the characters the form declares.
-Its `items` is then a group source: an object with the member `from` and the optional member
-`label`. An `items` object that has the member `from` is a group source and never a value-to-label
+Its `items` is then a group source: an object with the member `from` and the optional members
+`label` and `choices`. An `items` object that has the member `from` is a group source and never a value-to-label
 map; a map that needs the value `from` is written as a [choice list](#choice-lists).
 
 ```yaml
@@ -441,6 +441,25 @@ roles:
   ([choices from a repeated group](validation-rules.md#values), CUVR-087). The rows of a group come
   from the data that a form submits, so a repeated value is data that the choices cannot express
   and validation reports it instead of choosing one of the rows.
+- **CUSC-089** `choices` is a list of literal choices that join the choices of the rows, such as the
+  audience `player` beside the ids of the characters: `{ "value": …, "label": … }` pairs as in a
+  [choice list](#choice-lists), each with only these two members, a `value` that is a string or a
+  finite number and a `label` as in a value-to-label map, no two values with the same canonical text.
+  The choices of the field are the literal choices in written order, followed by the choices of the
+  rows (CUSC-063). A row whose value has the canonical text of a literal choice would give that value
+  twice, so it is refused, not dropped: when the choices are read, for a binding or a validation of
+  the data, it fails with `INVALID_FORM_INPUT`, an empty location and the message
+  `Group source value repeats a literal choice at {path}: {value}`, where `{path}` is the data path of
+  the row's `{value}` field, such as `characters.c4.id`, and `{value}` its canonical text. Compilation
+  checks `choices` last, after the type of the field that `label` names; a `choices` that breaks these
+  rules fails with `Invalid items.choices at {path}: expected value and label pairs with distinct
+  string or number values`.
+
+  ```yaml
+  audience:
+    type: select
+    items: { from: characters.*.id, label: name, choices: [{ value: player, label: Player }] }
+  ```
 - **CUSC-071** The choices follow the data. A form instance lists them from its current data after
   every change of that data (`setValue`, `setData`, `addRow`, `copyRow`, `removeRow`, `moveRow`,
   `rekeyRow`, `undo` and `redo`), so a change of a row of the source group, of its `{value}` field
@@ -461,10 +480,10 @@ Every validator checks a value against these choices
 ([choices from a repeated group](validation-rules.md#values)). Compilation checks a group source
 after the other declarations of the field (its `behavior` and a range field's rules included), in
 this order: the members of `items` in declaration order, the field, `from`, the type of the field
-that `from` names, `label` and then the type of the field that `label` names. It fails with
+that `from` names, `label`, the type of the field that `label` names and then `choices` (CUSC-089). It fails with
 `INVALID_FORM_INPUT` and an empty location:
 
-- **CUSC-064** A member other than `from` and `label`: `Invalid items.{key} at {path}: unknown key`
+- **CUSC-064** A member other than `from`, `label` and `choices`: `Invalid items.{key} at {path}: unknown key`
 - **CUSC-065** A field that is not a choice field or that has `lang`: `Invalid items.from at {path}: expected a choice field without lang`
 - **CUSC-066** A `from` that is not a string of that form, or whose group or field breaks these rules: `Invalid items.from at {path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`
 - **CUSC-067** A `label` that is not the name of such a field of the group: `Invalid items.label at {path}: expected the name of a direct child field of the group without multiple, properties or lang`

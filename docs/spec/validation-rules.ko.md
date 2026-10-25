@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 634812a307703cb2cfee2693bf606f6229995776f415a73e91fae73f9de98802 -->
+<!-- source-sha256: c5ec3b7339f8438dee0a00c64cd1eda3f1887d78d06f4a010f0a8c3f8a1b2f7a -->
 
 [English](validation-rules.md).
 
@@ -201,6 +201,11 @@ display:
   예: `characters.c4.id`)입니다([스키마](schema.ko.md#반복-그룹의-선택지), CUSC-090). 첫 반복이 실패합니다.
   선택지가 되는 행(CUSC-063)만 비교하므로 비어 있거나 스칼라가 아닌 값은 아무것도 반복하지 않습니다.
   숨겨진 필드는 검증하지 않으므로 선택지를 읽지 않고 이 검사도 실행하지 않습니다.
+- **CUVR-085** **그룹 소스의 리터럴 선택지.** `choices`가 있는 그룹 소스(CUSC-089)의 암묵적 `in` 검사 멤버는
+  리터럴 선택지의 값 다음에 행 선택지의 값이 오는 하나의 집합이며, 값이 `in`처럼 그중 하나와 일치하면 통과합니다.
+  선택지는 필드의 규칙보다 먼저 읽으며, 값의 정규 텍스트가 리터럴 선택지와 같은 행은 입력 실패
+  `INVALID_FORM_INPUT`, 빈 위치, 메시지 `Group source value repeats a literal choice at {path}: {value}`(CUSC-089)로
+  검증에 실패하므로, 집합은 한 값을 두 번 갖지 않습니다.
 
 ## 조건 트리
 
@@ -303,6 +308,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 - **CUVR-057** 언어에 속하지 않는 `pattern`, `match` — 코드: `INVALID_RULE_PATTERN`; 메시지: `Invalid {rule} pattern: {reason} at {offset}`
 - **CUVR-068** `true`, `false`, `null`, `judge`가 아닌 `conditionTree` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid conditionTree parameter: expected true, false or judge`
 - **CUVR-061** 규칙을 어기는 [그룹 소스](schema.ko.md#반복-그룹의-선택지). 컴파일과 같은 순서로, 필드의 `validate` 규칙보다 먼저 검사합니다 — 코드: `INVALID_RULE_PARAMETER`; 메시지: 컴파일의 메시지(CUSC-064에서 CUSC-068)이며 `{path}`는 필드의 선언 경로입니다
+- **CUVR-086** 규칙(CUSC-089)을 어기는 그룹 소스의 `choices`. 그룹 소스의 나머지 다음에 검사합니다 — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid items.choices at {path}: expected value and label pairs with distinct string or number values`이며 `{path}`는 필드의 선언 경로입니다
 
 패턴의 `{reason}`은 `empty pattern`, `unexpected character`, `unsupported construct`,
 `invalid escape`, `invalid class`, `invalid range`, `invalid property`, `invalid quantifier`,

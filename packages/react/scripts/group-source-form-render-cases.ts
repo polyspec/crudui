@@ -97,10 +97,32 @@ export const GROUP_SOURCE_CASES = [
     options: { language: 'en' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid items.from at pick: variants.active holds a boolean, expected a field whose values are strings or numbers' },
   },
+  {
+    name: 'combined-items-select',
+    note: 'A group source with literal choices lists the literal choice first and then the rows of the group in data order (CUSC-089).',
+    spec: variantsWith({ pick: { type: 'select', label: 'Pick', items: { from: 'variants.*.name', label: 'price', choices: [{ value: 'none', label: 'None' }] } } }),
+    data: { variants: { __opt_b2__: { name: 'Blue', price: 2 }, __opt_a1__: { name: 'Red', price: 1 } }, pick: 'none' },
+    options: { language: 'en' },
+    expected_html: withNode(GROUP_ROWS, select('<option selected="" value="none">None</option><option value="Blue">2</option><option value="Red">1</option>')),
+  },
+  {
+    name: 'combined-items-row-repeats-choice',
+    note: 'A row whose value is a literal choice would list the value twice, so binding refuses it by the row path and the value.',
+    spec: variantsWith({ pick: { type: 'select', label: 'Pick', items: { from: 'variants.*.name', choices: [{ value: 'Red', label: 'Red' }] } } }),
+    data: { variants: { __opt_b2__: { name: 'Blue', price: 2 }, __opt_a1__: { name: 'Red', price: 1 } } },
+    options: { language: 'en' },
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Group source value repeats a literal choice at variants.__opt_a1__.name: Red' },
+  },
+  sourceError('combined-items-choices-not-list', 'choices is a list of value and label pairs.',
+    { type: 'select', items: { from: 'variants.*.name', choices: 'none' } },
+    'Invalid items.choices at pick: expected value and label pairs with distinct string or number values'),
 ];
 
 /** The requirements each case tests. */
 export const GROUP_SOURCE_REQUIREMENTS: Record<string, readonly string[]> = {
+  'combined-items-select': ['CUSC-089'],
+  'combined-items-row-repeats-choice': ['CUSC-089'],
+  'combined-items-choices-not-list': ['CUSC-089'],
   'group-source-select-rows': ['CUSC-061', 'CUSC-062', 'CUSC-063'],
   'group-source-multichoice-skips-rows': ['CUSC-061', 'CUSC-062', 'CUSC-063', 'CUSC-090'],
   'group-source-without-rows': ['CUSC-063'],

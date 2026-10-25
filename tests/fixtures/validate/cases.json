@@ -18542,6 +18542,555 @@
     ]
   },
   {
+    "name": "combined-items-one-set",
+    "note": "The literal choice player and the character ids are one set: a value passes when it is either, and fails when it is neither.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        },
+        "second": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        },
+        "third": {
+          "type": "radio",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        },
+        "cast": {
+          "type": "multichoice",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        },
+        "extras": {
+          "type": "checkboxes",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "hero",
+          "name": "Hero"
+        },
+        "c2": {
+          "id": 7,
+          "name": "Seven"
+        }
+      },
+      "lead": "player",
+      "second": "7.0",
+      "third": "nobody",
+      "cast": [
+        "player",
+        "hero"
+      ],
+      "extras": [
+        "player",
+        "villain"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "third",
+          "field": "third",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "nobody"
+        },
+        {
+          "path": "extras",
+          "field": "extras",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "player",
+            "villain"
+          ]
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-085",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-without-rows",
+    "note": "A group without data leaves the literal choices: player passes and a character id fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        },
+        "second": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "lead": "player",
+      "second": "hero"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "second",
+          "field": "second",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "hero"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-085",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-row-repeats-choice",
+    "note": "A row whose id is the literal choice player would give the value twice, so validation refuses it by the row path and the value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "hero",
+          "name": "Hero"
+        },
+        "c2": {
+          "id": "player",
+          "name": "Player"
+        }
+      },
+      "lead": "hero"
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group source value repeats a literal choice at characters.c2.id: player",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-085",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-row-repeats-number-choice",
+    "note": "The comparison is by canonical text: a row id written as the text 7 repeats the literal choice 7.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": 7,
+                "label": "Seven"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "7",
+          "name": "Seven"
+        }
+      },
+      "lead": "7"
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group source value repeats a literal choice at characters.c1.id: 7",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-085",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-choices-not-list",
+    "note": "choices is a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": "player"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.choices at lead: expected value and label pairs with distinct string or number values",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-086",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-choices-extra-member",
+    "note": "A literal choice has only value and label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player",
+                "label": "Player",
+                "class": "x"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.choices at lead: expected value and label pairs with distinct string or number values",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-086",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-choices-missing-label",
+    "note": "A literal choice has a label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": "player"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.choices at lead: expected value and label pairs with distinct string or number values",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-086",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-choices-boolean",
+    "note": "A literal value is a string or a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": true,
+                "label": "Yes"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.choices at lead: expected value and label pairs with distinct string or number values",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-086",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "combined-items-choices-duplicate",
+    "note": "Two literal values with the same canonical text are refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id",
+            "label": "name",
+            "choices": [
+              {
+                "value": 1,
+                "label": "One"
+              },
+              {
+                "value": "1",
+                "label": "Uno"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid items.choices at lead: expected value and label pairs with distinct string or number values",
+      "at": "lead"
+    },
+    "requirements": [
+      "CUSC-089",
+      "CUVR-086",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
     "name": "multiple-shape-accepted",
     "note": "A boolean, only and an object are the shapes of multiple; missing data of each field is no row.",
     "spec": {

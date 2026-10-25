@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: af8b8c45b9fb3b96563a9ff5e1b87c0b59d67f4b30e223990d2617f6f268a632 -->
+<!-- source-sha256: 8234836b37e47750fd733437da68a6c808732016ed467a959d26ebd53422d796 -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -365,7 +365,7 @@ accent:
 `lang`이 없는 선택 필드(`select`, `dropdown`, `selectbox`, `choice`, `radio`, `multichoice`,
 `checkboxes`, `checkcontainer` 타입)는 같은 폼의 반복 그룹 행에서 선택지를 가져올 수 있습니다. 예를 들어
 역할 필드는 폼이 선언한 인물 중 하나를 고릅니다. 이때 `items`는 그룹 소스이며, `from` 멤버와 선택 멤버
-`label`을 가진 객체입니다. `from` 멤버가 있는 `items` 객체는 그룹 소스이며 값과 라벨의 맵이 아닙니다. 값
+`label`, `choices`를 가진 객체입니다. `from` 멤버가 있는 `items` 객체는 그룹 소스이며 값과 라벨의 맵이 아닙니다. 값
 `from`이 필요한 맵은 [선택 목록](#선택-목록)으로 씁니다.
 
 ```yaml
@@ -402,6 +402,21 @@ roles:
   `Group source value repeats an earlier row: {value} at {path}`의 입력 오류입니다
   ([반복 그룹의 선택지](validation-rules.ko.md#값), CUVR-087). 그룹의 행은 폼이 제출하는 데이터에서 오므로,
   반복된 값은 선택지가 표현할 수 없는 데이터이고 검증은 행 하나를 고르지 않고 그것을 보고합니다.
+- **CUSC-089** `choices`는 행의 선택지에 더해지는 리터럴 선택지 목록입니다. 예를 들어 인물 id 옆의 청중
+  `player`가 그렇습니다. [선택 목록](#선택-목록)처럼 `{ "value": …, "label": … }` 쌍이며, 각 쌍은 이 두 멤버만
+  가지고, `value`는 문자열이나 유한한 숫자, `label`은 값과 라벨의 맵의 라벨이며, 정규 텍스트가 같은 두 값은 없습니다.
+  필드의 선택지는 쓴 순서의 리터럴 선택지 다음에 행의 선택지(CUSC-063)가 옵니다. 값의 정규 텍스트가 리터럴 선택지와
+  같은 행은 그 값을 두 번 내므로 버리지 않고 거부합니다: 바인딩이나 데이터 검증을 위해 선택지를 읽을 때
+  `INVALID_FORM_INPUT`, 빈 위치, 메시지 `Group source value repeats a literal choice at {path}: {value}`로 실패하며,
+  `{path}`는 행의 `{value}` 필드의 데이터 경로(예: `characters.c4.id`), `{value}`는 그 정규 텍스트입니다. 컴파일은
+  `label`이 가리키는 필드의 type 다음에 `choices`를 마지막으로 검사하며, 이 규칙을 어기는 `choices`는
+  `Invalid items.choices at {path}: expected value and label pairs with distinct string or number values`로 실패합니다.
+
+  ```yaml
+  audience:
+    type: select
+    items: { from: characters.*.id, label: name, choices: [{ value: player, label: Player }] }
+  ```
 - **CUSC-071** 선택지는 데이터를 따릅니다. 폼 인스턴스는 데이터가 바뀔 때마다(`setValue`, `setData`,
   `addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow`, `undo`, `redo`) 현재 데이터에서 선택지를 나열하므로,
   소스 그룹의 행이나 그 `{value}` 필드나 `label` 필드가 바뀌면 인스턴스의 다음 뷰가 나열하는 선택지가
@@ -417,9 +432,9 @@ Svelte의 `Form` 컴포넌트와 HTML 렌더러의 페이지는 인스턴스의 
 
 모든 검증기는 값을 이 선택지와 대조합니다([반복 그룹의 선택지](validation-rules.ko.md#값)). 컴파일은
 필드의 다른 선언(`behavior`와 범위 필드의 규칙 포함) 다음에 그룹 소스를 검사하며, 순서는 `items`의
-멤버(선언 순서), 필드, `from`, `from`이 가리키는 필드의 type, `label`, `label`이 가리키는 필드의 type입니다. `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
+멤버(선언 순서), 필드, `from`, `from`이 가리키는 필드의 type, `label`, `label`이 가리키는 필드의 type, `choices`(CUSC-089)입니다. `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
 
-- **CUSC-064** `from`과 `label` 말고 다른 멤버: `Invalid items.{key} at {path}: unknown key`
+- **CUSC-064** `from`, `label`, `choices` 말고 다른 멤버: `Invalid items.{key} at {path}: unknown key`
 - **CUSC-065** 선택 필드가 아니거나 `lang`이 있는 필드: `Invalid items.from at {path}: expected a choice field without lang`
 - **CUSC-066** 그 형식의 문자열이 아니거나 그룹 또는 필드가 이 규칙을 어기는 `from`: `Invalid items.from at {path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`
 - **CUSC-067** 그룹의 그런 필드 이름이 아닌 `label`: `Invalid items.label at {path}: expected the name of a direct child field of the group without multiple, properties or lang`

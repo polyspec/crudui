@@ -242,6 +242,13 @@ whitespace, emptiness or text.
   as `characters.c4.id` ([schema](schema.md#choices-from-a-repeated-group), CUSC-090). The first
   repeat fails. Only rows that give a choice (CUSC-063) are compared, so a blank or non-scalar value
   repeats nothing. A hidden field is not validated, so it reads no choices and runs no such check.
+- **CUVR-085** **Literal choices of a group source.** The members of the implicit `in` check of a
+  group source with `choices` (CUSC-089) are the values of its literal choices followed by the values
+  of the choices of its rows, one set, and a value passes when it matches one of them as for `in`.
+  The choices are read before the field's rules run; a row whose value has the canonical text of a
+  literal choice fails the validation with the input failure `INVALID_FORM_INPUT`, an empty location
+  and the message `Group source value repeats a literal choice at {path}: {value}` (CUSC-089), so the
+  set never holds a value twice.
 
 ## Condition trees
 
@@ -359,6 +366,7 @@ without row keys. Every runtime reports the same code and message:
 - **CUVR-057** `pattern`, `match` outside the language — Code: `INVALID_RULE_PATTERN`; Message: `Invalid {rule} pattern: {reason} at {offset}`
 - **CUVR-068** `conditionTree` other than `true`, `false`, `null` and `judge` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid conditionTree parameter: expected true, false or judge`
 - **CUVR-061** A [group source](schema.md#choices-from-a-repeated-group) that breaks its rules, checked in the order that compilation checks it and before the field's `validate` rules — Code: `INVALID_RULE_PARAMETER`; Message: the message of compilation (CUSC-064 to CUSC-068), whose `{path}` is the field's declaration path
+- **CUVR-086** A `choices` of a group source that breaks its rules (CUSC-089), checked after the rest of the group source — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid items.choices at {path}: expected value and label pairs with distinct string or number values`, whose `{path}` is the field's declaration path
 
 The pattern `{reason}` is one of `empty pattern`, `unexpected character`,
 `unsupported construct`, `invalid escape`, `invalid class`, `invalid range`,

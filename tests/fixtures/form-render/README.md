@@ -16,7 +16,8 @@ their data keys without row controls, and an empty or missing collection with it
 body and no add-row control) a hidden group that keeps its values, and choice lists in select, choice, multichoice, search and
 dummy fields with the binding failures of invalid choice lists, the options that a select or
 multichoice field takes from the rows of a repeated group with the compilation failures of a group
-source, the placeholder option of a select or search field with no option, and the translated root description
+source, the literal choices of a group source listed before its rows and the binding failure of a row that repeats
+one, the placeholder option of a select or search field with no option, and the translated root description
 as the first child of the `crudui-form` block. Repeated fixture data uses keyed
 collections as defined in the [form runtime](../../../docs/spec/form-runtime.md).
 
