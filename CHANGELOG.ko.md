@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6c94dd4eac25f954ba5008e8380a742609a80283f3c2635ee9514dad08f57015 -->
+<!-- source-sha256: 689207adbc6755bc275c48f858ed7e7c6376d3f71b6b64711b745c97a4cadad4 -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-25 — form-render와 validate 개수 test가 cases.json을 따른다(C17.23)
 
 - C17.23 완료(C17.23): Go, Rust, Python의 form-render suite test와 Python validate test는 공유 case를 추가한 row마다 올려야 했던 손으로 적은 합계 154, 59, 209, 425, 229, 196을 더 이상 assert하지 않는다. 각 test는 두 종류의 case가 모두 있고 결과 case와 실패 case를 합하면 그 cases.json의 모든 case인지 assert하므로, 뒤의 row가 추가한 case에 test를 고칠 필요가 없고 어느 종류도 기록하지 않거나 둘 다 기록한 case는 실패한다. red: make text-absent가 네 파일에서 합계를 찾았고, 변경 뒤 green.
+
+### 2026-10-25 — C17.5는 containedIn 규칙을 더한다(C17.5)
+
+- C17.5 완료(C17.5): 필드는 containedIn: <필드 참조>를 선언하며, 그 문자열 값은 equalTo의 참조처럼 해석한 참조 필드의 문자열 값 안에 들어 있어야 한다. 값이나 참조한 값이 문자열이 아니면 실패하고, 참조 문자열이 아닌 매개변수는 로드에 실패한다(docs/spec/validation-rules.md CUVR-075, CUVR-076). tests/fixtures/validate/contained-in.mts의 여덟 case는 TypeScript, PHP, PHP 확장, Go, Rust, Python에서 통과한다.
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 
