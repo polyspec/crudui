@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 453d966b8ee634982df00f113e9ae39cee4a87985865842f62880b412fef21c4 -->
+<!-- source-sha256: 61a5de4ab0f6d445afd9d86efa0c98a61bdf385bfb882e0f8fb4f5a443f4b938 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-25 — C17.5는 containedIn 규칙을 더한다(C17.5)
 
 - C17.5 완료(C17.5): 필드는 containedIn: <필드 참조>를 선언하며, 그 문자열 값은 equalTo의 참조처럼 해석한 참조 필드의 문자열 값 안에 들어 있어야 한다. 값이나 참조한 값이 문자열이 아니면 실패하고, 참조 문자열이 아닌 매개변수는 로드에 실패한다(docs/spec/validation-rules.md CUVR-075, CUVR-076). tests/fixtures/validate/contained-in.mts의 여덟 case는 TypeScript, PHP, PHP 확장, Go, Rust, Python에서 통과한다.
+
+### 2026-10-25 — C17.24는 data-source-relations를 JSON.stringify처럼 쓴다(C17.24)
+
+- C17.24 완료(C17.24): 모든 구현은 동적 선택지 기술자의 relations를 JSON.stringify가 쓰는 대로 data-source-relations에 쓰고, 각 숫자는 자신의 Number.prototype.toString writer(ps_number_text, Numbers::string, number_string, numberString, util::number_string)로, 각 문자열은 따옴표, 역슬래시와 제어 문자만 escape해서 쓴다. docs/spec/schema.md는 -0을 0으로 쓰는 것을 포함해 이 규칙을 명시한다. PHP extension은 float을 %.15g로, PHP json_encode는 1.0e+21과 escape한 U+2028로, Python은 1e-07로, Rust는 1e21로, Go는 -0과 escape한 <, &, U+2028로 썼다. PHP extension의 list.c는 두 번째 숫자 writer인 shortest_number를 지우고 ps_number_text를 쓴다. 공유 form-render case search-dynamic-relations-numbers와 search-dynamic-relations-text가 숫자와 문자열을 담는다. red: make parity-check UNITS="form-render"와 PHP extension comparison test가 새 case에서 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 
