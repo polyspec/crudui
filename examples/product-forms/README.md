@@ -43,7 +43,7 @@ The test imports the built `@polyspec/crudui-validator`, `@polyspec/crudui-gener
 
 ```sh
 npm run build
-node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/product-forms/examples.test.mjs
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- examples/product-forms/examples.test.mjs
 ```
 
 `node scripts/check-schema.mts` checks the three YAML files against the meta-schema.

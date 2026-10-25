@@ -1,6 +1,6 @@
 # CRUDUI Go 생성기
 <!-- doc-id: packages-generator-go-readme -->
-<!-- source-sha256: a38ad7e80e13591d1e295e8f12580b770fb3d3c4a4139fb630d442ad9e04bde3 -->
+<!-- source-sha256: 59386b4377f0a04856f87711fabbd3e0ef796487f2bfc2f858e5a260c70624d4 -->
 
 [English](README.md).
 
@@ -81,7 +81,7 @@ RFC 2822 값은 하나의 엄격한 파서로 처리하고 잘못되거나 지�
 저장소 루트에서 실행합니다.
 
 ```sh
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- ./...
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- ./...
 go -C packages/generator/go run ./examples/server -data /tmp/crudui-go-record.json
 ```
 

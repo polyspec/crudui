@@ -169,9 +169,9 @@ export function makeNodeEntrypoints(targets: Record<string, MakeRule>, target: s
 }
 
 function nativeTestNodeEntrypoints(): string[] {
-  // The tools of @polyspec/kit, $(KIT)/<tool>.mjs, import the dependencies of the kit package, not those of the root.
+  // The tools of @polyspec/kit, $(KIT)/<tool>.$(KIT_EXT), import the dependencies of the kit package, not those of the root.
   const entrypoints = makeNodeEntrypoints(
-    makeTargets(['Makefile', 'node_modules/@polyspec/kit/dist/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'crudui-test-native',
+    makeTargets(['Makefile', 'node_modules/@polyspec/kit/scripts/kit/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'crudui-test-native',
   ).filter((file) => !file.startsWith('$(KIT)/'));
   assert.notDeepEqual(entrypoints, [], 'make crudui-test-native runs no Node.js program');
   return entrypoints;
@@ -180,10 +180,10 @@ function nativeTestNodeEntrypoints(): string[] {
 test('the Node.js programs of a target include those of its prerequisites and sub-makes', () => {
   const targets = makeTargets([
     'all: build', '\t@status=0; $(MAKE) --no-print-directory suite || status=1; exit $$status',
-    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode $(KIT)/run-tests.mjs node -- a.test.mjs b.test.mjs', '',
+    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode $(KIT)/run-tests.$(KIT_EXT) node -- a.test.mjs b.test.mjs', '',
   ].join('\n'));
   assert.deepEqual(makeNodeEntrypoints(targets, 'all').sort(),
-    ['$(KIT)/run-tests.mjs', 'a.test.mjs', 'b.test.mjs', 'scripts/build.mjs']);
+    ['a.test.mjs', 'b.test.mjs', 'scripts/build.mjs']);
   assert.deepEqual(makeNodeEntrypoints(makeTargets('empty:\n\techo\n'), 'empty'), []);
 });
 

@@ -456,7 +456,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-2",
@@ -464,7 +464,7 @@
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -507,7 +507,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-2",
@@ -515,7 +515,7 @@
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -556,23 +556,23 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/buttons.conformance.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/buttons.conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestButtonsSuite ./..."
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite ./..."
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests/test_buttons.py"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests/test_buttons.py"
         },
         {
           "id": "test-4",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test buttons"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test buttons"
         },
         {
           "id": "test-5",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- --filter ButtonsConformanceTest"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- --filter ButtonsConformanceTest"
         }
       ]
     },
@@ -612,23 +612,23 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/buttons.conformance.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/buttons.conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run TestButtonsSuite ./..."
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite ./..."
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests/test_buttons.py"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests/test_buttons.py"
         },
         {
           "id": "test-4",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test buttons"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml --test buttons"
         },
         {
           "id": "test-5",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- --filter ButtonsConformanceTest"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- --filter ButtonsConformanceTest"
         }
       ]
     },
@@ -671,15 +671,15 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -826,11 +826,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/list.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/list.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -876,11 +876,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/detail.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/detail.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -1030,11 +1030,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/widget-controls.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/widget-controls.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form.test.ts"
         }
       ]
     },
@@ -1068,7 +1068,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/patch.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/patch.test.ts"
         },
         {
           "id": "test-2",
@@ -1156,11 +1156,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/node.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_outline"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests.test_outline"
         },
         {
           "id": "test-3",
@@ -1198,7 +1198,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -1243,23 +1243,23 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/node.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormActions'"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run 'TestFormActions'"
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
         },
         {
           "id": "test-4",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo --cwd packages/generator/rust -- --test form_state"
         },
         {
           "id": "test-5",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
         }
       ]
     },
@@ -1305,27 +1305,27 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/node.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form-state.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form-state.test.ts"
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormView|TestViewFunctions'"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run 'TestFormView|TestViewFunctions'"
         },
         {
           "id": "test-4",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests.test_form_state"
         },
         {
           "id": "test-5",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test form_state"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo --cwd packages/generator/rust -- --test form_state"
         },
         {
           "id": "test-6",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
         }
       ]
     },
@@ -1369,23 +1369,23 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/node.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/generator/go -- -run 'TestFormHistory|TestHistoryFunctions'"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run 'TestFormHistory|TestHistoryFunctions'"
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs python --venv var/python --cwd packages/generator/python -- tests.test_form_history"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests.test_form_history"
         },
         {
           "id": "test-4",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs cargo --cwd packages/generator/rust -- --test history_functions"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo --cwd packages/generator/rust -- --test history_functions"
         },
         {
           "id": "test-5",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php"
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php"
         }
       ]
     },

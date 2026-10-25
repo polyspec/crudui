@@ -3,7 +3,7 @@
 // of the install targets, dependency-review and the consumer installs of the release archives alone. cargo answers a missing crate offline with "retry
 // without --offline"; every target that runs cargo depends on cargo-downloads-check (check-cargo-downloads of @polyspec/kit),
 // which names the lock and `run make install` instead, so under make -k a target whose crates are missing does not run.
-// A target runs cargo when a recipe line runs `run-tests.mjs cargo` or `run-suite.mts cargo` or `run-rust-command.mts` with a command other than
+// A target runs cargo when a recipe line runs `run-tests.mts cargo` or `run-suite.mts cargo` or `run-rust-command.mts` with a command other than
 // fmt, or starts a file, an npm script or a package test that does, directly or through the files that it imports or
 // names.
 import assert from 'node:assert/strict';
@@ -44,7 +44,7 @@ const INSTALLS = Object.entries(makeTargets(makefile) as Record<string, MakeRule
   .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.length > 0)
   .map(([name]) => name);
 // The targets of the Makefile and of the files that it includes: scripts/kit/kit-bootstrap.mk and the kit.mk of @polyspec/kit.
-const kitMakefile = read('node_modules/@polyspec/kit/dist/kit.mk');
+const kitMakefile = read('node_modules/@polyspec/kit/scripts/kit/kit.mk');
 const makefiles = [makefile, read('scripts/kit/kit-bootstrap.mk'), kitMakefile].join('\n');
 // The online targets that kit.mk defines in the installed kit: a newer kit adds targets (worktree-setup, kit K348), and the
 // list names the ones of the kit that the lock pins as well as those that the installed kit defines.
@@ -64,7 +64,7 @@ function cargoFiles(): Set<string> {
   const sources = checkedFiles(ROOT).filter(file => /\.(?:mts|mjs|js)$/.test(file) && file !== SELF);
   const texts = new Map(sources.map(file => [file, read(file)]));
   const ENTRY = 'scripts/run-rust-command.mts';
-  // The test runner starts cargo only for `run-tests.mjs cargo`, which a command names, and scripts/test-commands.mts
+  // The test runner starts cargo only for `run-tests.mts cargo`, which a command names, and scripts/test-commands.mts
   // reads commands without running them.
   const readers = new Set(['tests/conformance/run-suite.mts', 'scripts/test-commands.mts']);
   const found = new Set([ENTRY]);
@@ -94,7 +94,7 @@ const CARGO_FILES = cargoFiles();
 
 /** Whether a shell command, run in `directory`, starts cargo. */
 function runsCargo(command: string, directory = '.', seen = new Set<string>()): boolean {
-  if (/(?:run-tests\.mjs|run-suite\.mts) cargo\b/.test(command) || /run-rust-command\.mts (?!fmt\b)/.test(command)) return true;
+  if (/(?:run-tests\.(?:mts|\$\(KIT_EXT\))|run-suite\.mts) cargo\b/.test(command) || /run-rust-command\.mts (?!fmt\b)/.test(command)) return true;
   const manifestOf = (dir: string): Manifest => parseJson(read(path.posix.join(dir, 'package.json')), manifestSchema, path.posix.join(dir, 'package.json'));
   const script = (dir: string, name: string): boolean => {
     const key = `${dir}:${name}`;

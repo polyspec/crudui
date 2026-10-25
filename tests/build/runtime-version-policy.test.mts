@@ -216,8 +216,8 @@ test('make installs nothing on its own and make install installs the Rust toolch
   assert.doesNotMatch(makefile, /^install-rust:/m);
   const install = makeDryRun(repository, 'install');
   assert.equal(install.status, 0, install.stderr);
-  // KIT is node_modules/@polyspec/kit/dist, or ../kit/dist when make link points the package at the sibling checkout of kit.
-  assert.ok(install.stdout.split('\n').some(line => /\/var\/tools\/bin\/node (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/dist\/install-tools\.mjs\s*$/.test(line)), install.stdout);
+  // KIT is the scripts/kit of the sibling checkout of kit, which node_modules/@polyspec/kit links (kit K613).
+  assert.ok(install.stdout.split('\n').some(line => /\/var\/tools\/bin\/node (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/install-tools\.mts\s*$/.test(line)), install.stdout);
 });
 
 test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and no auto-install', async () => {

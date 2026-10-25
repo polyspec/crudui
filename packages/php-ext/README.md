@@ -33,7 +33,7 @@ Run from the repository root:
 ```sh
 make build-php-ext
 composer install
-node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
   --extension "$(pwd)/var/php-ext/polyspec_crudui.so" \

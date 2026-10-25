@@ -18,7 +18,7 @@ const svelteTools = path.join(svelteWorkspace, 'tools');
 test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/svelte', () => {
   const run = makeDryRun(root, 'lint');
   assert.equal(run.status, 0, run.stderr);
-  assert.match(run.stdout, /\bnode node_modules\/@polyspec\/kit\/dist\/lint-ts\.mjs\b/);
+  assert.match(run.stdout, /\bnode (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/lint-ts\.mts\b/);
   assert.match(run.stdout, /\bnpm\b.* run lint -w @polyspec\/crudui-generator-svelte\b/);
 });
 

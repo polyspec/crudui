@@ -1,6 +1,6 @@
 # CRUDUI Rust 검증기
 <!-- doc-id: packages-validator-rust-readme -->
-<!-- source-sha256: fe400e539ef6bb1865ceb08d91c259fa4d0119556c1c47db41725652752f3331 -->
+<!-- source-sha256: c24480c45738fda06c8bf69bf204b4d48af73850c02ea22fb96541a510903322 -->
 
 [English](README.md).
 
@@ -47,7 +47,7 @@ fixture의 value-graph 사례처럼 `Arc::new_cyclic`으로 만듭니다.
 저장소 루트에서 실행합니다.
 
 ```sh
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test list_validity_conformance
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test detail_validity_conformance
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test list_validity_conformance
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test detail_validity_conformance
 ```

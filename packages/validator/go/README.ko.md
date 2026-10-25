@@ -1,6 +1,6 @@
 # validator-go
 <!-- doc-id: packages-validator-go-readme -->
-<!-- source-sha256: cbbe2ca8dfe0b0360513be37bab643ba68a3a91266c24cf024f452ea6e2f3643 -->
+<!-- source-sha256: 60edfec5e3ee9f0cf552d0aef7c0d3d1ab784c7acbf3ed20935fd9bf2c574691 -->
 
 [English](README.md).
 
@@ -37,6 +37,6 @@ result, err := validate.ValidateJSON(specJSON, dataJSON, files, basepath)
 저장소 루트에서 실행합니다.
 
 ```sh
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./...               # full suite
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./validator/...     # CRUDUI conformance
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/validator/go -- ./...               # full suite
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/validator/go -- ./validator/...     # CRUDUI conformance
 ```

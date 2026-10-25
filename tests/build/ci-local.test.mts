@@ -240,10 +240,10 @@ test('CI_TARGETS lists every checking command of the CI workflow, in the same or
 // fails with a missing module instead of its own error.
 test('every tool of kit that the Makefile starts is in the installed @polyspec/kit', async () => {
   const makefile = await read('Makefile');
-  const tools = [...new Set([...makefile.matchAll(/\$\(KIT\)\/([\w-]+\.mjs)/g)].map((match) => match[1] ?? ''))].sort();
+  const tools = [...new Set([...makefile.matchAll(/\$\(KIT\)\/([\w-]+)\.\$\(KIT_EXT\)/g)].map((match) => `${match[1] ?? ''}.mts`))].sort();
   assert.ok(tools.length > 0, 'the Makefile starts tools of kit');
-  const dist = new URL('../../node_modules/@polyspec/kit/dist/', import.meta.url);
-  assert.deepEqual(tools.filter((tool) => !existsSync(new URL(tool, dist))), []);
+  const sources = new URL('../../node_modules/@polyspec/kit/scripts/kit/', import.meta.url);
+  assert.deepEqual(tools.filter((tool) => !existsSync(new URL(tool, sources))), []);
 });
 
 // CI runs every lint target of kit, so a finding fails CI. make lint runs crudui-lint: lint-ts, the lint-ts.mjs of kit, with

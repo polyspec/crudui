@@ -111,9 +111,9 @@ export function projectCommands(file: string, text: string): ProjectCommand[] {
   return [];
 }
 
-// The test runner of @polyspec/kit, which the Makefile names as $(KIT)/run-tests.mjs and a package script by its path in
+// The test runner of @polyspec/kit, which the Makefile names as $(KIT)/run-tests.$(KIT_EXT) and a package script by its path in
 // node_modules, and the runner of the suites that record conformance evidence, which starts it.
-const runner = /(?:^|\/)(?:\$\(KIT\)\/run-tests\.mjs|node_modules\/@polyspec\/kit\/dist\/run-tests\.mjs|tests\/conformance\/run-suite\.m[jt]s)$/;
+const runner = /(?:^|\/)(?:\$\(KIT\)\/run-tests\.\$\(KIT_EXT\)|node_modules\/@polyspec\/kit\/scripts\/kit\/run-tests\.mts|tests\/conformance\/run-suite\.m[jt]s)$/;
 
 /** The test tools a command calls directly, outside the test runner. */
 export function directTestTools(command: string): string[] {

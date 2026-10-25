@@ -50,7 +50,7 @@ built with `Arc::new_cyclic`, as the value-graph cases of the fixture are.
 From the repository root:
 
 ```sh
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test list_validity_conformance
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test detail_validity_conformance
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test list_validity_conformance
+node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test detail_validity_conformance
 ```
