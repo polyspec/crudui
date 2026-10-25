@@ -81,6 +81,11 @@ const RANGE_STEP = { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.step
 const rangeCase = (name: string, note: string, validate: unknown, expectError: { code: string; message: string }) =>
   ({ name, note, spec: G({ volume: { type: 'range', label: 'Volume', ...(validate === undefined ? {} : { validate }) } }), options: { language: 'en' }, expectError });
 
+// Condition field checks (docs/spec/schema.md, Condition fields).
+const CONDITION_RULE = { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.conditionTree at pass: expected true or judge' };
+const conditionCase = (name: string, note: string, validate: unknown) =>
+  ({ name, note, spec: G({ pass: { type: 'condition', label: 'Pass', ...(validate === undefined ? {} : { validate }) } }), options: { language: 'en' }, expectError: CONDITION_RULE });
+
 // Choice appearance checks (docs/spec/schema.md, Choice appearance).
 const appearanceCase = (name: string, note: string, field: Record<string, unknown>, message: string) =>
   ({ name, note, spec: G({ accent: { label: 'Accent', ...field } }), options: { language: 'en' }, expectError: { code: 'INVALID_FORM_INPUT', message } });
@@ -181,6 +186,10 @@ export const WRITTEN_CASES = [
   rangeCase('range-conditional-step', 'validate.step of a range field is a literal number, not a conditional map.', { range: [0, 10], step: { '.fine': 0.1, true: 1 } }, RANGE_STEP),
   rangeCase('range-minimum-off-step', 'The minimum of validate.range is a multiple of validate.step.', { range: [0.5, 10], step: 1 },
     { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.range at volume: expected a minimum that is a multiple of validate.step' }),
+  conditionCase('condition-without-rule', 'A condition field requires validate.conditionTree.', undefined),
+  conditionCase('condition-rule-false', 'validate.conditionTree of a condition field is not false: every value is a condition tree.', { conditionTree: false }),
+  conditionCase('condition-rule-other-text', 'validate.conditionTree of a condition field is true or judge, no other text.', { conditionTree: 'any' }),
+  conditionCase('condition-rule-condition-map', 'validate.conditionTree of a condition field is a literal, not a condition map.', { conditionTree: { '.strict': true, true: 'judge' } }),
   attributesCase('control-attributes-not-object', 'design.attributes must be an object.',
     { attributes: 'data-x' }, { code: 'INVALID_FORM_INPUT', message: 'Invalid design.attributes at theme: expected an object' }),
   attributesCase('control-attributes-wrapper-list', 'design.wrapper.attributes must be an object, not a list.',

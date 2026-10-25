@@ -46,6 +46,7 @@ import { CONTAINED_IN_CASES, CONTAINED_IN_REQUIREMENTS } from './contained-in.mt
 import { TYPE_FROM_CASES, TYPE_FROM_REQUIREMENTS } from './type-from.mts';
 import { BOUNDS_FROM_CASES, BOUNDS_FROM_REQUIREMENTS } from './bounds-from.mts';
 import { DATA_LIMITS_CASES, DATA_LIMITS_COMPACT, DATA_LIMITS_REQUIREMENTS } from './data-limits.mts';
+import { CONDITION_FIELD_CASES, CONDITION_FIELD_REQUIREMENTS } from './condition-field.mts';
 import { parseJson } from '../../json.mts';
 
 interface CaseSpec {
@@ -1440,6 +1441,7 @@ const REQUIREMENTS: Record<string, string[]> = {
   'reference-parameter-row-key': ['CUVR-074'],
   'reference-parameter-relative': ['CUVR-074'],
   'reference-parameter-in-row': ['CUVR-074'],
+  ...CONDITION_FIELD_REQUIREMENTS,
 };
 
 /**
@@ -1461,7 +1463,7 @@ const EXPRESSION_CASES: CaseSpec[] = [
   },
 ];
 
-const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written), ...CONTAINED_IN_CASES.map(written), ...TYPE_FROM_CASES.map(written), ...BOUNDS_FROM_CASES.map(written), ...DATA_LIMITS_CASES.map(written)];
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written), ...CONTAINED_IN_CASES.map(written), ...TYPE_FROM_CASES.map(written), ...BOUNDS_FROM_CASES.map(written), ...DATA_LIMITS_CASES.map(written), ...CONDITION_FIELD_CASES.map(written)];
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }

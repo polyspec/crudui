@@ -44,3 +44,68 @@ describe('connectForm writes the same control value as the server render', () =>
     element.remove();
   });
 });
+
+/**
+ * A condition control holds the condition text of its tree, and connectForm reads it back as its
+ * decoded value (docs/spec/form-runtime.md, Condition values).
+ */
+describe('connectForm decodes the text of a condition control', () => {
+  const template = compileForm({ type: 'group', properties: {
+    pass: { type: 'condition', validate: { conditionTree: 'judge' } },
+  } }, { keyPrefix: 'form' });
+  const tree = { any: [{ field: 'clues.size', op: 'ge', value: 2 }, { judge: 'Jian "finds" it.' }] };
+
+  const connected = (data: Record<string, unknown>) => {
+    const element = document.createElement('div');
+    element.innerHTML = '<textarea name="form[pass]" data-crudui-value="json"></textarea>';
+    document.body.append(element);
+    const form = createForm(template, data);
+    const connection = connectForm(element, form);
+    const control = element.querySelector('textarea');
+    assert(control);
+    const type = (text: string) => {
+      control.value = text;
+      control.dispatchEvent(new Event('input', { bubbles: true }));
+      connection.sync();
+    };
+    const done = () => { connection.disconnect(); element.remove(); };
+    return { form, control, type, sync: () => connection.sync(), done };
+  };
+
+  test('the control holds the condition text of the tree, as the server render writes it', () => {
+    const { control, done } = connected({ pass: tree });
+    expect(control.value).toBe(widgetOf(bindForm(template, { pass: tree })[0]).text);
+    expect(control.value).toBe(JSON.stringify(tree));
+    done();
+  });
+
+  test('a typed JSON text sets the tree, and the control keeps the typed text', () => {
+    const { form, control, type, done } = connected({});
+    const typed = '{ "all": [ { "field": "a", "op": "eq", "value": 1 } ] }';
+    type(typed);
+    expect(form.getData()).toEqual({ pass: { all: [{ field: 'a', op: 'eq', value: 1 }] } });
+    expect(control.value).toBe(typed);
+    done();
+  });
+
+  test('a text that is no JSON text is the value itself', () => {
+    const { form, type, done } = connected({ pass: tree });
+    type('{"all": [');
+    expect(form.getData()).toEqual({ pass: '{"all": [' });
+    type('');
+    expect(form.getData()).toEqual({ pass: '' });
+    done();
+  });
+
+  test('new data writes the condition text of its tree into the control', () => {
+    const { form, control, type, sync, done } = connected({ pass: tree });
+    type('{"all": []}');
+    form.setData({ pass: { any: [] } });
+    sync();
+    expect(control.value).toBe('{"any":[]}');
+    form.setData({ pass: null });
+    sync();
+    expect(control.value).toBe('');
+    done();
+  });
+});

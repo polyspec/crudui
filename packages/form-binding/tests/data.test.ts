@@ -99,6 +99,24 @@ describe('data collection', () => {
     expect(collectData(body(form), 'form')).toStrictEqual({ on: '1', level: '35', pick: 'b', row: { x: 'X' }, inline: { z: 'Z' } });
   });
 
+  it('reads a condition control as the value its text decodes to', () => {
+    const conditions = {
+      type: 'group',
+      properties: {
+        pass: { type: 'condition', validate: { conditionTree: 'judge' } },
+        typed: { type: 'condition', validate: { conditionTree: true } },
+        cleared: { type: 'condition', validate: { conditionTree: true } },
+      },
+    };
+    const tree = { any: [{ field: 'clues.size', op: 'ge', value: 2 }, { judge: 'Jian finds it.' }] };
+    const { form } = renderedForm(conditions, { pass: tree, typed: '{"all": [' });
+    expect(collectData(body(form), 'form')).toStrictEqual({ pass: tree, typed: '{"all": [', cleared: '' });
+    // A JSON text is read after its line breaks are written as CRLF, which JSON takes as whitespace.
+    named(form, 'textarea', 'form[typed]').value = '{\n  "all": []\n}';
+    named(form, 'textarea', 'form[cleared]').value = '"text"';
+    expect(collectData(body(form), 'form')).toStrictEqual({ pass: tree, typed: { all: [] }, cleared: 'text' });
+  });
+
   it('leaves out file, disabled and node-less controls', () => {
     const { document, form } = renderedForm(spec, filled, { hidden: { _csrf: 'secret' } });
     control(form, 'form[name]').disabled = true;

@@ -4330,6 +4330,194 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"volume\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:volume\">Volume</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input class=\"valid-target crudui-input crudui-input--range wide\" data-default=\"50\" data-name=\"volume\" data-rule-name=\"volume\" data-setting=\"volume\" id=\"crudui:volume\" max=\"100\" min=\"0\" name=\"volume\" onchange=\"save(this)\" step=\"10\" style=\"width: 8rem\" type=\"range\" value=\"50\"><output class=\"crudui-widget__output\" for=\"crudui:volume\">50</output><span class=\"crudui-widget__affix\">dB</span></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"gain\"><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input aria-label=\"Gain\" class=\"valid-target crudui-input crudui-input--range\" data-default=\"\" data-name=\"gain\" data-rule-name=\"gain\" id=\"crudui:gain\" max=\"1\" min=\"0\" name=\"gain\" step=\"0.1\" style=\"width: 4rem\" type=\"range\" value=\"0.3\"><output class=\"crudui-widget__output\" for=\"crudui:gain\">0.3</output></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
+    "name": "condition-tree-data",
+    "note": "condition → a textarea marked data-crudui-value=\"json\" holding the JSON text of the tree: members in data order, the escapes of JSON.stringify and ECMAScript number texts.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-010",
+      "CUMK-011",
+      "CUMK-066"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pass": {
+          "type": "condition",
+          "label": "Pass",
+          "validate": {
+            "required": true,
+            "conditionTree": "judge"
+          }
+        }
+      }
+    },
+    "data": {
+      "pass": {
+        "any": [
+          {
+            "all": [
+              {
+                "field": "clues.size",
+                "op": "ge",
+                "value": 2
+              },
+              {
+                "op": "in",
+                "value": [
+                  "a",
+                  0.5,
+                  -1e-7,
+                  1e+21,
+                  true
+                ],
+                "field": "mood"
+              }
+            ]
+          },
+          {
+            "judge": "Jian says \"yes\" \\ no\n\ttab \u0001 \u001f  한글   <b>&amp;</b>"
+          }
+        ]
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"pass\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pass\">Pass</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><textarea class=\"valid-target crudui-input crudui-input--condition\" data-crudui-value=\"json\" data-default=\"\" data-name=\"pass\" data-rule-name=\"pass\" id=\"crudui:pass\" name=\"pass\" rows=\"5\">{\"any\":[{\"all\":[{\"field\":\"clues.size\",\"op\":\"ge\",\"value\":2},{\"op\":\"in\",\"value\":[\"a\",0.5,-1e-7,1e+21,true],\"field\":\"mood\"}]},{\"judge\":\"Jian says \\\"yes\\\" \\\\ no\\n\\ttab \\u0001 \\u001f  한글   &lt;b&gt;&amp;amp;&lt;/b&gt;\"}]}</textarea></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "condition-default",
+    "note": "condition without data → the JSON text of default as the text and as data-default.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-010",
+      "CUMK-011",
+      "CUMK-066"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "opens_when": {
+          "type": "condition",
+          "label": "Opens when",
+          "default": {
+            "all": [
+              {
+                "field": "episodes.e1.status",
+                "op": "eq",
+                "value": "passed"
+              }
+            ]
+          },
+          "validate": {
+            "conditionTree": true
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"opens_when\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:opens_when\">Opens when</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><textarea class=\"valid-target crudui-input crudui-input--condition\" data-crudui-value=\"json\" data-default=\"{&quot;all&quot;:[{&quot;field&quot;:&quot;episodes.e1.status&quot;,&quot;op&quot;:&quot;eq&quot;,&quot;value&quot;:&quot;passed&quot;}]}\" data-name=\"opens_when\" data-rule-name=\"opens_when\" id=\"crudui:opens_when\" name=\"opens_when\" rows=\"5\">{\"all\":[{\"field\":\"episodes.e1.status\",\"op\":\"eq\",\"value\":\"passed\"}]}</textarea></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "condition-text-and-empty",
+    "note": "condition with a string value → the string itself, with null → an empty text, without data or default → an empty text.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-010",
+      "CUMK-011",
+      "CUMK-066"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "typed": {
+          "type": "condition",
+          "label": "Typed",
+          "validate": {
+            "conditionTree": true
+          }
+        },
+        "cleared": {
+          "type": "condition",
+          "label": "Cleared",
+          "validate": {
+            "conditionTree": true
+          }
+        },
+        "absent": {
+          "type": "condition",
+          "label": "Absent",
+          "validate": {
+            "conditionTree": "judge"
+          }
+        }
+      }
+    },
+    "data": {
+      "typed": "{\"all\": [",
+      "cleared": null
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"typed\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:typed\">Typed</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><textarea class=\"valid-target crudui-input crudui-input--condition\" data-crudui-value=\"json\" data-default=\"\" data-name=\"typed\" data-rule-name=\"typed\" id=\"crudui:typed\" name=\"typed\" rows=\"5\">{\"all\": [</textarea></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"cleared\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:cleared\">Cleared</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><textarea class=\"valid-target crudui-input crudui-input--condition\" data-crudui-value=\"json\" data-default=\"\" data-name=\"cleared\" data-rule-name=\"cleared\" id=\"crudui:cleared\" name=\"cleared\" rows=\"5\"></textarea></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"absent\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:absent\">Absent</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><textarea class=\"valid-target crudui-input crudui-input--condition\" data-crudui-value=\"json\" data-default=\"\" data-name=\"absent\" data-rule-name=\"absent\" id=\"crudui:absent\" name=\"absent\" rows=\"5\"></textarea></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "condition-behavior-design",
+    "note": "condition with affixes, a behavior attribute, design.class, design.style and declared attributes → the textarea of a textarea field with the condition class.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-010",
+      "CUMK-011",
+      "CUMK-028",
+      "CUMK-066"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "gate": {
+          "type": "condition",
+          "label": "Gate",
+          "prepend": "if",
+          "append": "then",
+          "validate": {
+            "conditionTree": true
+          },
+          "behavior": {
+            "onchange": "save(this)"
+          },
+          "design": {
+            "class": "wide",
+            "style": "width: 20rem",
+            "attributes": {
+              "data-setting": "gate"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "gate": {
+        "all": []
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"gate\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:gate\">Gate</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><span class=\"crudui-widget__affix\">if</span><textarea class=\"valid-target crudui-input crudui-input--condition wide\" data-crudui-value=\"json\" data-default=\"\" data-name=\"gate\" data-rule-name=\"gate\" data-setting=\"gate\" id=\"crudui:gate\" name=\"gate\" onchange=\"save(this)\" rows=\"5\" style=\"width: 20rem\">{\"all\":[]}</textarea><span class=\"crudui-widget__affix\">then</span></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
     "name": "choice-appearance-swatches",
     "note": "choice items with class, style and attributes → the label class after the label classes, the label style, the input attributes after the control attributes; design.group on the choices element.",
     "requirements": [
@@ -6096,6 +6284,110 @@
     "expectError": {
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid validate.range at volume: expected a minimum that is a multiple of validate.step"
+    }
+  },
+  {
+    "name": "condition-without-rule",
+    "note": "A condition field requires validate.conditionTree.",
+    "requirements": [
+      "CUSC-070"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pass": {
+          "type": "condition",
+          "label": "Pass"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.conditionTree at pass: expected true or judge"
+    }
+  },
+  {
+    "name": "condition-rule-false",
+    "note": "validate.conditionTree of a condition field is not false: every value is a condition tree.",
+    "requirements": [
+      "CUSC-070"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pass": {
+          "type": "condition",
+          "label": "Pass",
+          "validate": {
+            "conditionTree": false
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.conditionTree at pass: expected true or judge"
+    }
+  },
+  {
+    "name": "condition-rule-other-text",
+    "note": "validate.conditionTree of a condition field is true or judge, no other text.",
+    "requirements": [
+      "CUSC-070"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pass": {
+          "type": "condition",
+          "label": "Pass",
+          "validate": {
+            "conditionTree": "any"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.conditionTree at pass: expected true or judge"
+    }
+  },
+  {
+    "name": "condition-rule-condition-map",
+    "note": "validate.conditionTree of a condition field is a literal, not a condition map.",
+    "requirements": [
+      "CUSC-070"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pass": {
+          "type": "condition",
+          "label": "Pass",
+          "validate": {
+            "conditionTree": {
+              ".strict": true,
+              "true": "judge"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.conditionTree at pass: expected true or judge"
     }
   },
   {

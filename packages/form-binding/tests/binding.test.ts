@@ -189,6 +189,23 @@ describe('errors', () => {
     expect(binding.validate()).toStrictEqual(validate(spec, { email: 'x', name: 'A' }));
   });
 
+  it('validates the tree of a condition control with the conditionTree rule', () => {
+    const conditions = {
+      type: 'group',
+      properties: {
+        opens: { type: 'condition', validate: { conditionTree: true } },
+        pass: { type: 'condition', validate: { required: true, conditionTree: 'judge' } },
+      },
+    };
+    const tree = { all: [{ field: 'episodes.e1.status', op: 'eq', value: 'passed' }] };
+    const { form } = renderedForm(conditions, { opens: tree, pass: { any: [{ judge: 'Jian finds it.' }] } });
+    const binding = bindForm(form, conditions, { keyPrefix: 'form' });
+    expect(binding.validate()).toStrictEqual({ valid: true, errors: [], hidden: [] });
+    found(form.querySelector<HTMLTextAreaElement>('textarea[name="form[opens]"]'), 'the opens control').value = '{"judge": "Jian finds it."}';
+    expect(binding.validate()).toStrictEqual(validate(conditions, { opens: { judge: 'Jian finds it.' }, pass: { any: [{ judge: 'Jian finds it.' }] } }));
+    expect(nodeErrors(node(form, 'opens'))).toStrictEqual(['Please enter a valid condition.']);
+  });
+
   it('removes the errors of a node that contains a file control', () => {
     const fileSpec = {
       type: 'group',
