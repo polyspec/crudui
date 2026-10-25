@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f06737b995908b44e1f49544776019c3bf8a5926b314b963a854d897ebc2045d -->
+<!-- source-sha256: 2a06dac108bcb8243062bb03fb296b21e4241a5561b1392bd65144dca3d1e6ba -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -350,3 +350,4 @@
 | C17.18 | 조건 트리를 편집하는 form 컨트롤: 생성기가 여섯 구현 모두에서 렌더링하고, 브라우저 바인딩이 편집하며, 객체를 conditionTree 규칙에 제출한다 | the control rule in docs/spec (with KO), its shared fixture cases, its implementation in all six implementations and the browser binding, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.19 | choice group의 boolean 행 값에는 명시된 규칙이 있고 모든 구현이 따른다 | the rule in docs/spec (with KO), its shared fixture cases, and its implementation in all six implementations, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.20 | run.mts와 php-ext 테스트의 커버리지 개수 단언은 오래된 하드코딩 합계가 아니라 공유 cases.json 파일에서 개수를 도출한다 | tests/native-generators/run.mts and the php-ext count assertions that C17.2 listed | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/comparison/comparison.test.mjs`; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/contract/expr.test.mjs packages/php-ext/tests/contract/compose.test.mjs`; `node tests/native-generators/run.mts --target javascript --check form-fixture:*,list:*,outline:*,detail:*`; `make docs-check`; `make parity-declarations-check` | [o] |
+| C17.21 | Go form-render 테스트는 오류 코드를 오류 자체에서 읽는다: 인식되지 않는 오류에 INVALID_FORM_INPUT을 기본으로 붙이지 않으며, 그 케이스는 실패한다 | packages/generator/go/form_render_suite_test.go (failureCode and its callers) | `make parity-check UNITS="form-render"` | [ ] |
