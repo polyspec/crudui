@@ -23150,5 +23150,400 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "type-from-bool",
+    "note": "a boolean of a bool variable passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "bool",
+      "initial": true
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-bool-false",
+    "note": "false is a value of a bool variable, not an empty one.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "bool",
+      "initial": false
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-bool-text",
+    "note": "the text true is no boolean.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "bool",
+      "initial": "true"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "initial",
+          "field": "initial",
+          "rule": "typeFrom",
+          "message": "Please enter a value of the declared type.",
+          "value": "true"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-int",
+    "note": "a number without a fractional part is an int.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "int",
+      "initial": 3
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-int-fraction",
+    "note": "a number with a fractional part is no int.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "int",
+      "initial": 2.5
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "initial",
+          "field": "initial",
+          "rule": "typeFrom",
+          "message": "Please enter a value of the declared type.",
+          "value": 2.5
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-int-text",
+    "note": "the text 3 is no int.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "int",
+      "initial": "3"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "initial",
+          "field": "initial",
+          "rule": "typeFrom",
+          "message": "Please enter a value of the declared type.",
+          "value": "3"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-enum",
+    "note": "a string is a value of an enum variable.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "enum",
+      "initial": "calm"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-enum-number",
+    "note": "a number is no value of an enum variable.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "enum",
+      "initial": 1
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "initial",
+          "field": "initial",
+          "rule": "typeFrom",
+          "message": "Please enter a value of the declared type.",
+          "value": 1
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-unknown-type",
+    "note": "a type that is not bool, int or enum fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "float",
+      "initial": 1
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "initial",
+          "field": "initial",
+          "rule": "typeFrom",
+          "message": "Please enter a value of the declared type.",
+          "value": 1
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-missing-type",
+    "note": "a missing type fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "type": {
+          "type": "text"
+        },
+        "initial": {
+          "type": "text",
+          "validate": {
+            "typeFrom": ".type"
+          }
+        }
+      }
+    },
+    "data": {
+      "initial": true
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "initial",
+          "field": "initial",
+          "rule": "typeFrom",
+          "message": "Please enter a value of the declared type.",
+          "value": true
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-077",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "type-from-parameter-not-string",
+    "note": "a typeFrom parameter that is not a string fails the load.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "typeFrom": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid typeFrom parameter: expected a field reference string",
+      "at": "value"
+    },
+    "requirements": [
+      "CUVR-078",
+      "CURP-018",
+      "CURP-022"
+    ]
   }
 ]

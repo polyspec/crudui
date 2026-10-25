@@ -169,6 +169,9 @@
         "containedIn": {
           "type": "string"
         },
+        "typeFrom": {
+          "type": "string"
+        },
         "notEqual": {
           "type": "string"
         },
@@ -406,6 +409,10 @@
             },
             "containedIn": {
               "description": "Field whose string value must contain the string value (CUVR-075).",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "typeFrom": {
+              "description": "Field whose value names the type of the value: bool, int or enum (CUVR-077).",
               "$ref": "#/definitions/RuleFieldReference"
             },
             "notEqual": {

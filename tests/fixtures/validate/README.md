@@ -12,7 +12,7 @@ failure's `at` is empty.
 
 These cases check relative, parent and field paths in rules, ternary and condition-map limits,
 conditional requiredness, keyed groups and scalars, repeated-field paths, `unique`, `mincount`,
-`equalTo`, `containedIn`, the parameter types of `equalTo`, `containedIn`, `enddate`, `notEqual` and `unique`, regular expression and `accept` values, choice membership with translated and empty
+`equalTo`, `containedIn`, `typeFrom`, the parameter types of `equalTo`, `containedIn`, `typeFrom`, `enddate`, `notEqual` and `unique`, regular expression and `accept` values, choice membership with translated and empty
 labels, choice lists as `in` members and their parameter errors, empty member sets that match no value, member order, composed specifications, the first error per field, message overrides under
 the declared rule name, rule names that are not registered (in `validate` and `messages`, at
 nested row paths, for hidden fields and in check order), empty values that skip format rules, and

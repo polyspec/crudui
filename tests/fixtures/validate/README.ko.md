@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: a577162cecca0d0fb1fa9ff5763a6b9002d203438ff99ca638833d5e52a9936e -->
+<!-- source-sha256: f8e09736a01026fb08dc24d69563bd44feae17ceea8ff0c3cac5689b5e7cfd6b -->
 
 [English](README.md).
 
@@ -11,7 +11,7 @@
 `.`으로 이은 값이고 입력 실패의 `at`은 빈 문자열입니다.
 
 규칙 안의 상대·부모·필드 경로, 삼항식과 조건맵 제한값, 조건부 필수 입력, 키를 가진 그룹과 스칼라, 반복
-필드 경로, `unique`, `mincount`, `equalTo`, `containedIn`, `equalTo`·`containedIn`·`enddate`·`notEqual`·`unique` 매개변수의 형식, 정규식과 `accept` 값, 번역한 라벨과 빈 라벨을 가진 선택지
+필드 경로, `unique`, `mincount`, `equalTo`, `containedIn`, `typeFrom`, `equalTo`·`containedIn`·`typeFrom`·`enddate`·`notEqual`·`unique` 매개변수의 형식, 정규식과 `accept` 값, 번역한 라벨과 빈 라벨을 가진 선택지
 포함 검사, `in` 멤버인 선택 목록과 그 매개변수 오류, 어떤 값과도 일치하지 않는 빈 멤버 집합, 멤버 순서, 합성한 명세, 필드별 첫 오류, 선언한 규칙 이름 기준의 메시지 재정의, 등록되지 않은
 규칙 이름(`validate`와 `messages`, 중첩 행 경로, 숨긴 필드, 검사 순서), 형식 규칙을 건너뛰는 빈 값, 제출
 데이터의 형태를 검사합니다.
