@@ -625,7 +625,10 @@ does not mean that the core executes an external widget. Search uses
 
 Dynamic choice descriptors can specify `model`, `method`, `table`, `relations`,
 `keys` and `api_server`. A nested `items` collection supplies initial static
-choices. Queries and endpoint calls happen outside the generators.
+choices. Queries and endpoint calls happen outside the generators. A generator writes `relations`
+into `data-source-relations` as `JSON.stringify` writes it, each number as ECMAScript
+`Number.prototype.toString` writes it, so `1e21` is `1e+21`, `100000000000000000000` keeps its
+digits and `-0` is `0`.
 
 Language configuration accepts a `mode`, an `only` language list or override map,
 and group `name`, `key`, `frame`, `title` and `group_class` settings. Language
