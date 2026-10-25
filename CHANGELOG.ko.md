@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 96fd2e7901b6067e0d32164d60a4e9c9baa2daa84181fbd719912e701f4dda24 -->
+<!-- source-sha256: 526264db6f425fb7a96798b4bd55b9dac13ee70dfa629a9f86030679564d0ff7 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-25 — form-render와 validate 개수 test가 cases.json을 따른다(C17.23)
 
 - C17.23 완료(C17.23): Go, Rust, Python의 form-render suite test와 Python validate test는 공유 case를 추가한 row마다 올려야 했던 손으로 적은 합계 154, 59, 209, 425, 229, 196을 더 이상 assert하지 않는다. 각 test는 두 종류의 case가 모두 있고 결과 case와 실패 case를 합하면 그 cases.json의 모든 case인지 assert하므로, 뒤의 row가 추가한 case에 test를 고칠 필요가 없고 어느 종류도 기록하지 않거나 둘 다 기록한 case는 실패한다. red: make text-absent가 네 파일에서 합계를 찾았고, 변경 뒤 green.
+
+### 2026-10-25 — C17.6은 typeFrom 규칙을 더한다(C17.6)
+
+- C17.6 완료(C17.6): 필드는 typeFrom: <필드 참조>를 선언하며, 참조 필드의 값이 값의 타입을 이름 붙인다. bool은 boolean, int는 소수 부분이 없는 유한한 수, enum은 문자열이다. 없거나 다른 타입이면 실패하고, 참조 문자열이 아닌 매개변수는 로드에 실패한다(docs/spec/validation-rules.md CUVR-077, CUVR-078). tests/fixtures/validate/type-from.mts의 열한 case는 TypeScript, PHP, PHP 확장, Go, Rust, Python에서 통과한다.
 
 ### 2026-10-25 — C17.5는 containedIn 규칙을 더한다(C17.5)
 

@@ -23,6 +23,10 @@
 
 - C17.23 is done (C17.23): the form-render suite tests of Go, Rust and Python and the Python validate test no longer assert the hand-typed totals 154, 59, 209, 425, 229 and 196, which each row that added shared cases had to raise; each asserts that both kinds of case occur and that the result and failure cases together are every case of its cases.json, so a case that a later row adds needs no edit of the test and a case that records neither or both kinds fails. Red: make text-absent found the totals in the four files; green after the change.
 
+### 2026-10-25 — C17.6 adds the typeFrom rule (C17.6)
+
+- C17.6 is done (C17.6): a field declares typeFrom: <field reference>, and the value of the referenced field names the type of the value: bool a boolean, int a finite number without a fractional part, enum a string; a missing or other type fails, and a parameter that is not a reference string fails the load (docs/spec/validation-rules.md CUVR-077, CUVR-078). The eleven cases of tests/fixtures/validate/type-from.mts pass in TypeScript, PHP, the PHP extension, Go, Rust and Python.
+
 ### 2026-10-25 — C17.5 adds the containedIn rule (C17.5)
 
 - C17.5 is done (C17.5): a field declares containedIn: <field reference>, and its string value must occur in the string value of the referenced field, which resolves as the reference of equalTo does; a value or a referenced value that is not a string fails, and a parameter that is not a reference string fails the load (docs/spec/validation-rules.md CUVR-075, CUVR-076). The eight cases of tests/fixtures/validate/contained-in.mts pass in TypeScript, PHP, the PHP extension, Go, Rust and Python.
