@@ -200,6 +200,48 @@ comparison, logic, membership and conditional values. Arithmetic, function calls
 and JavaScript evaluation are unsupported. Event scripts in `behavior` are opaque
 strings; evaluating them is outside the expression engine.
 
+## Condition trees
+
+A condition tree is a JSON value that a field holds as its data: an application writes a
+condition in it, such as the condition under which a step of a story opens, and evaluates it
+itself. It is data, not a declaration: CRUDUI does not evaluate it, and it is separate from the
+expressions and condition maps of the settings above. The rule
+[`conditionTree`](validation-rules.md#condition-trees) checks that a value has this form. A
+condition is an object of one of these forms, whose members may be written in any order:
+
+- **CUSC-072** A group: `{ "all": [ … ] }` or `{ "any": [ … ] }`, an object whose only member is `all` or `any`
+  and whose value is a list of conditions. The list may be empty.
+- **CUSC-073** A field comparison: `{ "field": …, "op": …, "value": … }`, an object with exactly these three
+  members. `field` is a string that is not empty after [trimming](validation-rules.md#values). `op` is
+  one of `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `in` and `has`. `value` is, for `in`, a list of strings,
+  finite numbers and booleans, which may be empty, and for every other `op` a string, a finite number or
+  a boolean.
+- **CUSC-074** A judged text: `{ "judge": … }`, an object whose only member is `judge` and whose value is a
+  string that is not empty after trimming. The application decides whether the text holds. A judged
+  text is a condition only where the rule permits it.
+- **CUSC-075** Depth: a condition tree is at most 32 levels deep. The root condition is level 1, and each
+  condition in the list of a group is one level below the group. A deeper value is not a condition
+  tree. The limit bounds the work of a check, so no value can exhaust the stack of a runtime, and it
+  keeps a tree, which nests two levels of JSON (an object and its list) for each of its levels, with
+  the form data around it, within the 128 levels of nesting that a JSON reader of a runtime takes by
+  default (`serde_json` of Rust).
+
+What a condition means (which data `field` names, how `op` compares, when a group holds) belongs
+to the application that evaluates the tree.
+
+```yaml
+opens_when:
+  type: textarea
+  validate: { conditionTree: true }
+pass:
+  type: textarea
+  validate: { required: true, conditionTree: judge }
+```
+
+The data `{ "opens_when": { "all": [{ "field": "episodes.e1.status", "op": "eq", "value": "passed" }] },
+"pass": { "any": [{ "field": "clues.size", "op": "ge", "value": 2 }, { "judge": "Jian finds the
+second recording." }] } }` passes both rules; a `judge` member in `opens_when` fails its rule.
+
 ## Languages and choices
 
 Content translation and language input values are separate. Content uses maps

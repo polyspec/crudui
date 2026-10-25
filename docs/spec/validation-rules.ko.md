@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 545e0c4c96ef7cc0579fbea978058c64dd03c2aad46a527f94c6d1b52f28fbd1 -->
+<!-- source-sha256: 64ac60e68b9a2000e3d89ae5c26daf4a4df713440ca01370e1afcf5eec658b4a -->
 
 [English](validation-rules.md).
 
@@ -28,6 +28,8 @@
 - **CUVR-014** `mincount`, `maxcount`: 컬렉션 크기의 최소 또는 최대입니다.
 - **CUVR-015** `unique`: 고유성 검사이며 선택적으로 참조 또는 필터 매개변수를 사용합니다.
 - **CUVR-016** `accept`: 파일 확장자 또는 MIME 타입 매개변수입니다.
+- **CUVR-066** `conditionTree`: `true` 또는 `judge`이며, 값은 [조건 트리](#조건-트리)이고 판정 문장은 `judge`에서만
+  허용됩니다.
 
 [TypeScript 등록부](../../packages/validator/ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
@@ -175,6 +177,15 @@ display:
   `messages.in`이 메시지를 바꿉니다. 선언한 `in`은 암묵적 검사 다음에 선언대로 실행합니다. 숨겨진 필드도
   값을 유지하므로([표시 여부](#평가)) 숨겨진 그룹의 행도 다른 행처럼 선택지가 됩니다.
 
+## 조건 트리
+
+- **CUVR-067** `conditionTree`는 [조건 트리](schema.ko.md#조건-트리)(CUSC-072부터 CUSC-075)인 값을 통과시킵니다.
+  매개변수 `true`는 group과 필드 비교를 허용하고, `judge`는 판정 문장도 허용합니다. 따라서 `true`에서는
+  어느 단계에든 `judge` 조건이 있는 값이 실패합니다. 그 밖의 모든 값은 실패합니다. 문자열, 숫자, boolean,
+  목록, 다른 형태의 객체, 그 형태에 없는 멤버가 있는 객체, 32단계보다 깊은 트리가 그렇습니다. 빈 값은 다른
+  모든 규칙처럼 통과하므로(CUVR-020) `{}`와 `null`은 통과하고 `required`가 거부합니다. runtime은 값의 깊이와
+  관계없이 값을 최대 32단계까지만 읽으며, 이 규칙의 기본 메시지는 `Please enter a valid condition.`입니다.
+
 ## 패턴
 
 `pattern`과 `match`는 HTML `pattern` 속성처럼 값의 정규 텍스트 **전체**가 일치해야 합니다. 패턴은 CRUDUI
@@ -232,6 +243,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 - **CUVR-056** 불리언이나 문자열이 아닌 `unique` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-057** 언어에 속하지 않는 `pattern`, `match` — 코드: `INVALID_RULE_PATTERN`; 메시지: `Invalid {rule} pattern: {reason} at {offset}`
 - **CUVR-061** 규칙을 어기는 [그룹 소스](schema.ko.md#반복-그룹의-선택지). 컴파일과 같은 순서로, 필드의 `validate` 규칙보다 먼저 검사합니다 — 코드: `INVALID_RULE_PARAMETER`; 메시지: 컴파일의 메시지(CUSC-064에서 CUSC-067)이며 `{path}`는 필드의 선언 경로입니다
+- **CUVR-068** `true`, `false`, `null`, `judge`가 아닌 `conditionTree` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid conditionTree parameter: expected true, false or judge`
 
 패턴의 `{reason}`은 `empty pattern`, `unexpected character`, `unsupported construct`,
 `invalid escape`, `invalid class`, `invalid range`, `invalid property`, `invalid quantifier`,
@@ -285,11 +297,12 @@ properties:
 조건부 매개변수는 [표현식 계약](expressions.ko.md)을 사용합니다. 조건맵은 첫 번째로
 일치한 값 또는 `true` 기본값을 선택합니다. 삼항식은 선택한 분기의 값을 반환합니다.
 
-`equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern`, `in`은
+`equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern`, `in`, `conditionTree`는
 자체 처리를 위해 매개변수를 그대로 받습니다. 특히 `enddate: period.start`는
 불리언 조건이 아니라 필드 참조입니다. 따라서 `equalTo`, `notEqual`, `unique`,
 `enddate`에 준 객체나 목록은 조건맵이 아니라 [매개변수 오류](#매개변수-오류)입니다.
-포함 여부 검사 맵은 조건맵이 아닌 값 집합입니다.
+포함 여부 검사 맵은 조건맵이 아닌 값 집합입니다. `conditionTree`의 매개변수 `judge`는 경로가 아닌
+리터럴이며, `conditionTree`에 준 객체는 매개변수 오류입니다.
 
 `enddate`의 `.start`는 형제 필드, `..start`는 한 그룹 위의 필드를 공통 필드 참조
 해석기로 조회합니다.

@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 5d980d31fce9010c6bc45c83d0ccf7b05191d3d693deab65a9fb7f327f4f7cb3 -->
+<!-- source-sha256: 5b6dad9fb943d7687d67e620ae74a8f44e776af300088479018518c81a2fa60f -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -184,6 +184,46 @@ appearance:
 상대 경로, 와일드카드, 목록, 비교, 논리, 포함 여부, 조건부 값을 지원합니다.
 산술, 함수 호출, JavaScript 평가는 지원하지 않습니다. `behavior`의 이벤트 스크립트는
 문자열로 보존하며 실행은 표현식 엔진의 범위 밖입니다.
+
+## 조건 트리
+
+조건 트리는 필드가 데이터로 담는 JSON 값입니다. 애플리케이션은 이야기의 한 단계가 열리는 조건 같은
+조건을 여기에 쓰고 직접 평가합니다. 조건 트리는 선언이 아니라 데이터입니다. CRUDUI는 이를 평가하지
+않으며, 위 설정의 표현식이나 조건 맵과는 별개입니다.
+[`conditionTree`](validation-rules.ko.md#조건-트리) 규칙은 값이 이 형태인지 검사합니다. 조건은 다음
+형태 중 하나인 객체이며, 멤버는 어떤 순서로 써도 됩니다.
+
+- **CUSC-072** group: `{ "all": [ … ] }` 또는 `{ "any": [ … ] }`. 유일한 멤버가 `all` 또는 `any`이고
+  그 값이 조건의 목록인 객체입니다. 목록은 비어 있어도 됩니다.
+- **CUSC-073** 필드 비교: `{ "field": …, "op": …, "value": … }`. 정확히 이 세 멤버를 가진 객체입니다.
+  `field`는 [trim](validation-rules.ko.md#값) 후 비어 있지 않은 문자열입니다. `op`는 `eq`, `ne`, `lt`,
+  `le`, `gt`, `ge`, `in`, `has` 중 하나입니다. `value`는 `in`이면 문자열, 유한한 숫자, boolean의
+  목록(비어 있어도 됨)이고, 그 밖의 `op`이면 문자열, 유한한 숫자 또는 boolean입니다.
+- **CUSC-074** 판정 문장: `{ "judge": … }`. 유일한 멤버가 `judge`이고 그 값이 trim 후 비어 있지 않은
+  문자열인 객체입니다. 문장이 성립하는지는 애플리케이션이 판정합니다. 판정 문장은 규칙이 허용하는
+  곳에서만 조건입니다.
+- **CUSC-075** 깊이: 조건 트리의 깊이는 최대 32단계입니다. 루트 조건이 1단계이고, group 목록의 각
+  조건은 그 group보다 한 단계 아래입니다. 더 깊은 값은 조건 트리가 아닙니다. 이 한도는 검사의 작업량을
+  제한하므로 어떤 값도 runtime의 stack을 소진하지 못합니다. 또한 트리는 단계마다 JSON 두 단계(객체와 그
+  목록)를 중첩하므로, 이 한도는 트리와 그것을 둘러싼 form 데이터를 runtime의 JSON reader가 기본으로 받는
+  128단계의 중첩(Rust의 `serde_json`) 안에 둡니다.
+
+조건의 의미(`field`가 가리키는 데이터, `op`의 비교 방식, group이 성립하는 때)는 트리를 평가하는
+애플리케이션에 속합니다.
+
+```yaml
+opens_when:
+  type: textarea
+  validate: { conditionTree: true }
+pass:
+  type: textarea
+  validate: { required: true, conditionTree: judge }
+```
+
+데이터 `{ "opens_when": { "all": [{ "field": "episodes.e1.status", "op": "eq", "value": "passed" }] },
+"pass": { "any": [{ "field": "clues.size", "op": "ge", "value": 2 }, { "judge": "Jian finds the
+second recording." }] } }`는 두 규칙을 모두 통과합니다. `opens_when`에 `judge` 멤버가 있으면 그 규칙에
+실패합니다.
 
 ## 언어와 선택지
 

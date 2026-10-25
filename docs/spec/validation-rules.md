@@ -34,6 +34,8 @@ entry points, load failures and input failures.
 - **CUVR-014** `mincount`, `maxcount`: Minimum or maximum collection size.
 - **CUVR-015** `unique`: Uniqueness check, optionally using a reference or filter parameter.
 - **CUVR-016** `accept`: File extension or MIME-type parameter.
+- **CUVR-066** `conditionTree`: `true` or `judge`; the value is a [condition tree](#condition-trees), with judged
+  text only under `judge`.
 
 The [TypeScript registry](../../packages/validator/ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
@@ -212,6 +214,16 @@ whitespace, emptiness or text.
   give choices like any other rows, because a hidden field keeps its value
   ([visibility](#evaluation)).
 
+## Condition trees
+
+- **CUVR-067** `conditionTree` passes a value that is a [condition tree](schema.md#condition-trees) (CUSC-072 to
+  CUSC-075). The parameter `true` permits groups and field comparisons; `judge` permits judged text as well,
+  so under `true` a value that holds a `judge` condition at any level fails. Every other value fails: a
+  string, a number, a boolean, a list, an object of another form, an object with a member that its form
+  does not have, and a tree deeper than 32 levels. An empty value passes as for every other rule
+  (CUVR-020), so `{}` and `null` pass and `required` refuses them. A runtime reads at most 32 levels of the
+  value, whatever its depth, and the rule's default message is `Please enter a valid condition.`
+
 ## Patterns
 
 `pattern` and `match` require the **whole** canonical text of the value to match,
@@ -276,6 +288,7 @@ without row keys. Every runtime reports the same code and message:
 - **CUVR-056** `unique` that is not a boolean or a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-057** `pattern`, `match` outside the language — Code: `INVALID_RULE_PATTERN`; Message: `Invalid {rule} pattern: {reason} at {offset}`
 - **CUVR-061** A [group source](schema.md#choices-from-a-repeated-group) that breaks its rules, checked in the order that compilation checks it and before the field's `validate` rules — Code: `INVALID_RULE_PARAMETER`; Message: the message of compilation (CUSC-064 to CUSC-067), whose `{path}` is the field's declaration path
+- **CUVR-068** `conditionTree` other than `true`, `false`, `null` and `judge` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid conditionTree parameter: expected true, false or judge`
 
 The pattern `{reason}` is one of `empty pattern`, `unexpected character`,
 `unsupported construct`, `invalid escape`, `invalid class`, `invalid range`,
@@ -344,14 +357,15 @@ Conditional parameters use the [expression contract](expressions.md). A conditio
 map selects the first matching value, or its `true` default. Ternary expressions
 return the selected branch value.
 
-`equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern` and `in`
+`equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern`, `in` and `conditionTree`
 receive parameters unchanged for their own processing. In particular,
 `enddate: period.start` references a field; it is not a boolean condition.
 An object or a list given to `equalTo`, `notEqual`, `unique` or `enddate` is therefore
 not a condition map but a [parameter error](#parameter-errors).
 For `enddate`, `.start` resolves a sibling field and `..start` resolves one
 group level above, using the common field-reference resolver.
-Membership maps are value sets, not condition maps.
+Membership maps are value sets, not condition maps. The parameter `judge` of `conditionTree` is a
+literal, not a path, and an object given to `conditionTree` is a parameter error.
 
 `design.show` decides whether a field's rules run; see [visibility](#evaluation). A condition in
 `validate.required` makes a visible field optional.
