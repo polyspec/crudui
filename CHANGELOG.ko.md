@@ -1,12 +1,15 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 195c4dd521cd3d3756352e45c4c27d249b2c8be2175569002a0d0ffb787afa72 -->
+<!-- source-sha256: 146887b3d2fd8b73d0af81568ee9ac452a4b2f2cf1ef8313442d7417b38a913b -->
 
 ## Unreleased
 
 ### 2026-10-26 — Makefile이 kit 도구를 $(KIT_EXT)로 실행한다 (C17.29)
 
 - $(KIT)/<도구>.mjs를 실행하던 레시피 줄 열 개를 $(KIT)/<도구>.$(KIT_EXT)로 바꿨다. 검사는 이제 kit 소스를 .mts로 따른다 (K613).
+### 2026-10-25 — 반복 그룹의 선택지가 브라우저에서 소스 행을 따른다(C17.15)
+
+- C17.15 완료(C17.15): docs/spec/schema.md에 CUSC-071을 적는다. 폼 인스턴스는 변경마다 현재 데이터에서 그룹 소스의 선택지를 나열하며, 나열해도 값은 바뀌지 않는다. step `choices`로 필드 노드의 선택지를 관찰하는 새 form-state family tests/fixtures/form-choices가 TypeScript, Go, Python, Rust, PHP, PHP extension 구현에서 이를 test한다(unit form-choices). React, Vue, Svelte, HTML renderer 폼은 공유 module tests/fixtures/form-session/group-source.mts를 실행한다. packages/form-binding의 브라우저 검증 바인딩은 연결할 때와 input 또는 change마다 컨트롤의 데이터로 HTML renderer와 patchContent를 써서 그룹 소스가 있는 각 필드의 본문을 다시 렌더링하고, 아직 선택지인 선택된 값을 유지하며, option language와 idPrefix를 받는다. Svelte widget patch는 선택된 옵션을 지웠을 때 마크업이 표시한 옵션을 선택하므로, 선택지가 사라진 select는 첫 옵션 대신 아무것도 선택하지 않는다. red: form-binding choices test가 5개 중 4개 실패했고, Svelte session test는 선택된 소스 행을 지운 뒤 첫 옵션이 선택된 상태를 보였으며, 변경 뒤 green.
 
 ### 2026-10-25 — C17.4는 reference 규칙을 더한다(C17.4)
 
