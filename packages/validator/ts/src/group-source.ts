@@ -111,23 +111,33 @@ function choiceText(value: unknown): string | undefined {
   return text !== undefined && trim(text) !== '' ? text : undefined;
 }
 
+/** The rows of the group that a checked group source names in the root `data`, as [key, row] entries in data order. */
+function sourceRows(source: Record<string, unknown>, data: unknown): Array<[string, unknown]> {
+  const segments = String(source.from).split('.');
+  let rows: unknown = data;
+  for (const name of segments.slice(0, -2)) {
+    if (!isRecord(rows) || !has(rows, name)) return [];
+    rows = rows[name];
+  }
+  return isRecord(rows) ? Object.entries(rows) : [];
+}
+
+/** The name of the value field of a checked group source. */
+function valueField(source: Record<string, unknown>): string {
+  const segments = String(source.from).split('.');
+  return segments[segments.length - 1] ?? '';
+}
+
 /**
  * The choices of a checked group source for the root `data`: one per row of the group in data
  * order whose value is a string or a finite number with a non-empty canonical text, each value
  * once, labelled with the text of its `label` field or else its value.
  */
 export function groupChoices(source: Record<string, unknown>, data: unknown): GroupChoice[] {
-  const segments = String(source.from).split('.');
-  const valueName = segments[segments.length - 1] ?? '';
-  let rows: unknown = data;
-  for (const name of segments.slice(0, -2)) {
-    if (!isRecord(rows) || !has(rows, name)) return [];
-    rows = rows[name];
-  }
-  if (!isRecord(rows)) return [];
+  const valueName = valueField(source);
   const choices: GroupChoice[] = [];
   const seen = new Set<string>();
-  for (const row of Object.values(rows)) {
+  for (const [, row] of sourceRows(source, data)) {
     if (!isRecord(row)) continue;
     const value = choiceText(row[valueName]);
     if (value === undefined || seen.has(value)) continue;
@@ -136,4 +146,23 @@ export function groupChoices(source: Record<string, unknown>, data: unknown): Gr
     choices.push({ value, label: label ?? value });
   }
   return choices;
+}
+
+/**
+ * The input failure message of the first row of a checked group source, in data order, whose
+ * choice value repeats that of an earlier row, or `undefined` (CUVR-087).
+ */
+export function groupSourceRepeat(source: Record<string, unknown>, data: unknown): string | undefined {
+  const segments = String(source.from).split('.');
+  const groupPath = segments.slice(0, -2).join('.');
+  const valueName = valueField(source);
+  const seen = new Set<string>();
+  for (const [key, row] of sourceRows(source, data)) {
+    if (!isRecord(row)) continue;
+    const value = choiceText(row[valueName]);
+    if (value === undefined) continue;
+    if (seen.has(value)) return `Group source value repeats an earlier row: ${value} at ${groupPath}.${key}.${valueName}`;
+    seen.add(value);
+  }
+  return undefined;
 }

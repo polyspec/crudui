@@ -21,7 +21,7 @@ use crate::compose::{ComposeErrorCode, ComposeLoadError};
 use crate::expr::{Evaluator, Expression, Node};
 
 use super::choice_data::{check_single_choice_data, is_single_choice};
-use super::group_source::{group_choices, is_group_source};
+use super::group_source::{group_choices, group_source_repeat, is_group_source};
 use super::errors::{FormInputError, ValidateError};
 use super::keyed_maps::check_keyed_map_keys;
 use super::membership::Comparable;
@@ -482,6 +482,10 @@ impl Validator {
                 declaration.to_vec(),
             ))
         })?;
+        // A repeated value among the source rows is data that the choices cannot express (CUVR-087).
+        if let Some(repeat) = group_source_repeat(items, run.data) {
+            return Err(FormInputError::new(repeat).into());
+        }
         let members = Value::Array(
             choices
                 .into_iter()

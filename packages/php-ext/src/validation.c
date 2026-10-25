@@ -717,6 +717,8 @@ static ps_value *group_members(const ps_value *items, const ps_value *data)
     return members;
 }
 
+static bool allocation_failure(validation_context *context);
+
 /*
  * The rules of a field. depth is the length of the field's declaration path in
  * context->declaration.
@@ -737,6 +739,15 @@ static bool validate_rules(const ps_value *field, const ps_value *value,
     /* A group source checks the value against the choices of its rows before the declared rules (validation-rules.md, "Values"). */
     const ps_value *items = ps_get(field, "items");
     if (!array_level && ps_is_group_source(items)) {
+        /* A repeated value among the source rows is data that the choices cannot express (CUVR-087). */
+        ps_chars repeat = {NULL, 0};
+        int repeat_state = ps_group_source_repeat(items, context->data, &repeat);
+        if (repeat_state < 0) return allocation_failure(context);
+        if (repeat_state > 0) {
+            context->failure = ps_error_text("input", "INVALID_FORM_INPUT", ps_view(repeat), PS_TEXT(""), NULL);
+            free(repeat.bytes);
+            return false;
+        }
         ps_value *members = group_members(items, context->data);
         if (!members) return false;
         int pass = rule_passes(PS_TEXT("in"), value, members, field, context, path, length);

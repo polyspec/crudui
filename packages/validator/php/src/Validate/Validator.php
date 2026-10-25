@@ -611,6 +611,11 @@ final class Validator
         if (!GroupSource::isSource($field['items'] ?? null)) {
             return false;
         }
+        // A repeated value among the source rows is data that the choices cannot express (CUVR-087).
+        $repeat = GroupSource::repeat((array) $field['items'], $allData);
+        if ($repeat !== null) {
+            throw new FormInputError($repeat);
+        }
         $members = array_map(
             static fn (array $choice): string => $choice[0],
             GroupSource::choices((array) $field['items'], $allData)

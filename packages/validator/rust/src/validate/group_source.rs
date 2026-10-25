@@ -207,14 +207,7 @@ pub fn group_choices(items: &Value, data: &Value, path: &str) -> Result<Vec<Grou
         Some(_) => return Err(label_message(path)),
     };
     let value_name = segments[count - 1];
-    let mut rows = data;
-    for name in &segments[..count - 2] {
-        match rows.as_object().and_then(|object| object.get(*name)) {
-            Some(next) => rows = next,
-            None => return Ok(Vec::new()),
-        }
-    }
-    let Some(rows) = rows.as_object() else {
+    let Some(rows) = source_rows(&segments, data) else {
         return Ok(Vec::new());
     };
     let mut choices = Vec::new();
@@ -235,4 +228,39 @@ pub fn group_choices(items: &Value, data: &Value, path: &str) -> Result<Vec<Grou
         choices.push(GroupChoice { value, label });
     }
     Ok(choices)
+}
+
+/// The rows of the group that the `from` path `segments` name in the root `data`, by row key in
+/// data order, when the group has object data.
+fn source_rows<'a>(segments: &[&str], data: &'a Value) -> Option<&'a Map<String, Value>> {
+    let mut rows = data;
+    for name in &segments[..segments.len() - 2] {
+        rows = rows.as_object()?.get(*name)?;
+    }
+    rows.as_object()
+}
+
+/// The input failure message of the first row of a checked group source, in data order, whose
+/// choice value repeats that of an earlier row, or `None` (CUVR-087). A source whose `from` is not
+/// of the declared shape has no rows.
+pub fn group_source_repeat(items: &Value, data: &Value) -> Option<String> {
+    let from = items.get("from").and_then(Value::as_str)?;
+    let segments: Vec<&str> = from.split('.').collect();
+    if segments.len() < 3 {
+        return None;
+    }
+    let group_path = segments[..segments.len() - 2].join(".");
+    let value_name = segments[segments.len() - 1];
+    let mut seen = HashSet::new();
+    for (key, row) in source_rows(&segments, data)? {
+        let Some(value) = choice_text(row.as_object().and_then(|row| row.get(value_name))) else {
+            continue;
+        };
+        if !seen.insert(value.clone()) {
+            return Some(format!(
+                "Group source value repeats an earlier row: {value} at {group_path}.{key}.{value_name}"
+            ));
+        }
+    }
+    None
 }

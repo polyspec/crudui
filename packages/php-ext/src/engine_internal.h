@@ -404,6 +404,12 @@ const ps_value *ps_choice_label(const ps_value *items, ps_text key, bool *failed
 bool ps_is_group_source(const ps_value *items);
 int ps_group_source_failure(const ps_value *field, ps_text path, const ps_value *root, ps_chars *message);
 ps_value *ps_group_source_choices(const ps_value *items, const ps_value *data);
+/*
+ * ps_group_source_repeat: the input failure message of the first row of a checked group source, in
+ * data order, whose choice value repeats that of an earlier row (CUVR-087): 0 when none repeats, 1
+ * with the message in *message, -1 on allocation failure.
+ */
+int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars *message);
 
 /* Membership (rule_in.c). ps_in_passes: 1, 0, or -1 on allocation failure; the parameter is valid. */
 ps_parameter_problem ps_in_parameter(const ps_value *parameter);

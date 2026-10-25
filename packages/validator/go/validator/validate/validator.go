@@ -382,6 +382,10 @@ func (v *Validator) runGroupSource(run fieldRun, value any, errors *[]Validation
 	if !ok {
 		return false, nil
 	}
+	// A repeated value among the source rows is data that the choices cannot express (CUVR-087).
+	if repeat := groupSourceRepeat(source, run.allData); repeat != "" {
+		return false, &FormInputError{Message: repeat}
+	}
 	msg, failed, err := v.runRule(run, "in", groupSourceMembers(source, run.allData), value)
 	if err != nil || !failed {
 		return false, err

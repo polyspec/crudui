@@ -43,7 +43,12 @@ from .resolver import evaluate_expression_value as _eval_value
 from .resolver import Value, get_field_name, path_to_string
 from .references import REFERENCE_PARAMETER_MESSAGE, is_reference_target, reference_ids
 from .rules import get_rule, rule_parameter_failure
-from .group_source import group_choices, group_source_failure, is_group_source
+from .group_source import (
+    group_choices,
+    group_source_failure,
+    group_source_repeat,
+    is_group_source,
+)
 from .loader import DocumentLoader
 from .text import check_input_text, check_option_text, checked_composition
 
@@ -681,6 +686,11 @@ class Validator:
             implied.append(("number", True))
         source = field.get("items")
         if is_group_source(source):
+            # A repeated value among the source rows is data that the choices cannot
+            # express (CUVR-087).
+            repeat = group_source_repeat(source, context["formData"])
+            if repeat is not None:
+                raise FormInputError(repeat)
             members: list[JsonValue] = [
                 choice["value"] for choice in group_choices(source, context["formData"])
             ]

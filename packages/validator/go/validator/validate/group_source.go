@@ -83,28 +83,14 @@ func GroupSourceFailure(field *compose.OMap, path string, root *compose.OMap) st
 // or a plain map; a plain map has no member order, so its rows are read in sorted key order.
 func GroupChoices(source *compose.OMap, data any) []GroupChoice {
 	choices := []GroupChoice{}
-	from, _ := source.Get("from")
-	text, isText := from.(string)
-	segments := strings.Split(text, ".")
-	if !isText || len(segments) < 3 {
-		return choices
-	}
-	valueName := segments[len(segments)-1]
-	rows := data
-	for _, name := range segments[:len(segments)-2] {
-		member, ok := objectMember(rows, name)
-		if !ok {
-			return choices
-		}
-		rows = member
-	}
-	values, ok := objectValues(rows)
+	rows, ok := sourceRows(source, data)
 	if !ok {
 		return choices
 	}
+	valueName := rows.valueName
 	labelName, hasLabel := labelOf(source)
 	seen := map[string]bool{}
-	for _, row := range values {
+	for _, row := range rows.values {
 		value, ok := choiceText(objectMemberValue(row, valueName))
 		if !ok || seen[value] {
 			continue
@@ -119,6 +105,61 @@ func GroupChoices(source *compose.OMap, data any) []GroupChoice {
 		choices = append(choices, GroupChoice{Value: value, Label: label})
 	}
 	return choices
+}
+
+// groupRows are the rows of the group that a checked group source names in the data: the declaration path of the
+// group, the name of its value field and the row keys with their rows in data order.
+type groupRows struct {
+	groupPath string
+	valueName string
+	keys      []string
+	values    []any
+}
+
+// sourceRows returns the rows of the group that a checked group source names in the root data, and whether the group
+// has object data.
+func sourceRows(source *compose.OMap, data any) (groupRows, bool) {
+	from, _ := source.Get("from")
+	text, isText := from.(string)
+	segments := strings.Split(text, ".")
+	if !isText || len(segments) < 3 {
+		return groupRows{}, false
+	}
+	names := segments[:len(segments)-2]
+	rows := data
+	for _, name := range names {
+		member, ok := objectMember(rows, name)
+		if !ok {
+			return groupRows{}, false
+		}
+		rows = member
+	}
+	keys, values, ok := objectEntries(rows)
+	if !ok {
+		return groupRows{}, false
+	}
+	return groupRows{groupPath: strings.Join(names, "."), valueName: segments[len(segments)-1], keys: keys, values: values}, true
+}
+
+// groupSourceRepeat returns the input failure message of the first row of a checked group source, in data order, whose
+// choice value repeats that of an earlier row, or "" when no row repeats one (CUVR-087).
+func groupSourceRepeat(source *compose.OMap, data any) string {
+	rows, ok := sourceRows(source, data)
+	if !ok {
+		return ""
+	}
+	seen := map[string]bool{}
+	for index, row := range rows.values {
+		value, ok := choiceText(objectMemberValue(row, rows.valueName))
+		if !ok {
+			continue
+		}
+		if seen[value] {
+			return "Group source value repeats an earlier row: " + value + " at " + rows.groupPath + "." + rows.keys[index] + "." + rows.valueName
+		}
+		seen[value] = true
+	}
+	return ""
 }
 
 // groupSourceMembers returns the choice values of a checked group source for the data, as the members of an in rule.
@@ -249,26 +290,28 @@ func objectMemberValue(object any, name string) any {
 	return member
 }
 
-// objectValues returns the member values of an object in data order, and whether the value is an object. A plain map
-// has no member order, so its values follow its sorted keys.
-func objectValues(object any) ([]any, bool) {
+// objectEntries returns the member keys and values of an object in data order, and whether the value is an object. A
+// plain map has no member order, so its members follow its sorted keys.
+func objectEntries(object any) ([]string, []any, bool) {
 	switch o := object.(type) {
 	case *compose.OMap:
 		if o == nil {
-			return nil, false
+			return nil, nil, false
 		}
-		values := make([]any, 0, o.Len())
-		for _, key := range o.Keys() {
+		keys := o.Keys()
+		values := make([]any, 0, len(keys))
+		for _, key := range keys {
 			member, _ := o.Get(key)
 			values = append(values, member)
 		}
-		return values, true
+		return keys, values, true
 	case map[string]any:
-		values := make([]any, 0, len(o))
-		for _, key := range sortedKeys(o) {
+		keys := sortedKeys(o)
+		values := make([]any, 0, len(keys))
+		for _, key := range keys {
 			values = append(values, o[key])
 		}
-		return values, true
+		return keys, values, true
 	}
-	return nil, false
+	return nil, nil, false
 }

@@ -97,19 +97,9 @@ final class GroupSource
         $segments = explode('.', (string) $source['from']);
         $valueName = (string) end($segments);
         $label = $source['label'] ?? null;
-        $rows = $data;
-        foreach (array_slice($segments, 0, -2) as $name) {
-            if (!JsonValue::isObject($rows) || !array_key_exists($name, (array) $rows)) {
-                return [];
-            }
-            $rows = ((array) $rows)[$name];
-        }
-        if (!JsonValue::isObject($rows)) {
-            return [];
-        }
         $choices = [];
         $seen = [];
-        foreach ((array) $rows as $row) {
+        foreach (self::rows($source, $data) as $row) {
             if (!JsonValue::isObject($row)) {
                 continue;
             }
@@ -123,6 +113,60 @@ final class GroupSource
             $choices[] = [$value, $text ?? $value];
         }
         return $choices;
+    }
+
+    /**
+     * The input failure message of the first row of a checked group source, in data order, whose
+     * choice value repeats that of an earlier row, or null (CUVR-087).
+     *
+     * @param array<array-key, mixed> $source the group source `{ from, label? }`
+     */
+    public static function repeat(array $source, mixed $data): ?string
+    {
+        $segments = explode('.', (string) $source['from']);
+        $valueName = (string) end($segments);
+        $groupPath = implode('.', array_slice($segments, 0, -2));
+        $seen = [];
+        foreach (self::rows($source, $data) as $key => $row) {
+            if (!JsonValue::isObject($row)) {
+                continue;
+            }
+            $value = self::choiceText(((array) $row)[$valueName] ?? null);
+            if ($value === null) {
+                continue;
+            }
+            if (isset($seen[$value])) {
+                return sprintf(
+                    'Group source value repeats an earlier row: %s at %s.%s.%s',
+                    $value,
+                    $groupPath,
+                    (string) $key,
+                    $valueName
+                );
+            }
+            $seen[$value] = true;
+        }
+        return null;
+    }
+
+    /**
+     * The rows of the group that a checked group source names in the root data, keyed by row key
+     * in data order; a group without object data has none.
+     *
+     * @param array<array-key, mixed> $source the group source `{ from, label? }`
+     * @return array<array-key, mixed>
+     */
+    private static function rows(array $source, mixed $data): array
+    {
+        $segments = explode('.', (string) $source['from']);
+        $rows = $data;
+        foreach (array_slice($segments, 0, -2) as $name) {
+            if (!JsonValue::isObject($rows) || !array_key_exists($name, (array) $rows)) {
+                return [];
+            }
+            $rows = ((array) $rows)[$name];
+        }
+        return JsonValue::isObject($rows) ? (array) $rows : [];
     }
 
     /**

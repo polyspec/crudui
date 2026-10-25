@@ -207,3 +207,44 @@ fail:
     ps_value_free(choices);
     return NULL;
 }
+
+int ps_group_source_repeat(const ps_value *items, const ps_value *data, ps_chars *message)
+{
+    *message = (ps_chars){NULL, 0};
+    const ps_value *from = ps_get(items, "from");
+    ps_text *parts = NULL;
+    size_t count = 0;
+    if (!from || from->kind != PS_STRING) return 0;
+    if (!split_dots(ps_string(from), &parts, &count)) return -1;
+    const ps_value *rows = data;
+    for (size_t i = 0; rows && i + 2 < count; ++i)
+        rows = rows->kind == PS_OBJECT ? ps_get_text(rows, parts[i]) : NULL;
+    if (count < 3 || !rows || rows->kind != PS_OBJECT) { free(parts); return 0; }
+    ps_text value_name = parts[count - 1];
+    free(parts);
+    /* from is {group}.*.{value}: the declaration path of the group is the text before ".*.". */
+    ps_text group_path = ps_text_slice(ps_string(from), 0, ps_string(from).length - value_name.length - 3);
+    ps_chars *seen = malloc((ps_size(rows) + 1) * sizeof(*seen));
+    if (!seen) return -1;
+    size_t seen_count = 0;
+    int result = 0;
+    for (size_t r = 0; result == 0 && r < ps_size(rows); ++r) {
+        const ps_value *row = ps_at(rows, r);
+        if (!row || row->kind != PS_OBJECT) continue;
+        ps_chars value = {NULL, 0};
+        int state = choice_text(ps_get_text(row, value_name), &value);
+        if (state < 0) { result = -1; break; }
+        if (!state) continue;
+        bool repeated = false;
+        for (size_t i = 0; !repeated && i < seen_count; ++i)
+            repeated = ps_text_equal(ps_view(seen[i]), ps_view(value));
+        if (!repeated) { seen[seen_count++] = value; continue; }
+        *message = PS_CONCAT(PS_TEXT("Group source value repeats an earlier row: "), ps_view(value), PS_TEXT(" at "),
+                             group_path, PS_TEXT("."), ps_key(rows, r), PS_TEXT("."), value_name);
+        free(value.bytes);
+        result = message->bytes ? 1 : -1;
+    }
+    for (size_t i = 0; i < seen_count; ++i) free(seen[i].bytes);
+    free(seen);
+    return result;
+}

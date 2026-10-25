@@ -45,7 +45,7 @@ import { isRecord } from '../record';
 import { compareCodePoints } from '../text/index';
 import { assertRuleParameter, assertRuleName } from './parameters';
 import { ComposeLoadError } from '../compose/errors';
-import { groupChoices, groupSourceFailure, isGroupSource } from '../group-source';
+import { groupChoices, groupSourceFailure, groupSourceRepeat, isGroupSource } from '../group-source';
 import { assertKeyedMapKeys, assertKeyedMapReference } from './keyed-maps';
 import { isMultipleField } from './fields';
 import { isReferenceTarget, referenceIds, type ReferenceId } from './references';
@@ -754,6 +754,9 @@ export class Validator {
     if (!isGroupSource(field.items)) {
       return false;
     }
+    // A repeated value among the source rows is data that the choices cannot express (CUVR-087).
+    const repeat = groupSourceRepeat(field.items, context.formData);
+    if (repeat !== undefined) throw new FormInputError(repeat);
     const members = groupChoices(field.items, context.formData).map((choice) => choice.value);
     const error = this.runRule('in', members, value, context, declarationPath, field, messages);
     if (error) {

@@ -15,6 +15,7 @@ __all__ = [
     "CHOICE_TYPES",
     "group_choices",
     "group_source_failure",
+    "group_source_repeat",
     "is_group_source",
 ]
 
@@ -156,24 +157,48 @@ def _choice_text(value: object) -> str | None:
     return text
 
 
+def _source_rows(source: dict[str, Any], data: object) -> dict[str, Any]:
+    """The rows of the group that a checked group source names in the root `data`, by row key in data order."""
+    rows: object = data
+    for name in str(source["from"]).split(".")[:-2]:
+        if not _is_object(rows) or name not in rows:
+            return {}
+        rows = rows[name]
+    return rows if _is_object(rows) else {}
+
+
+def group_source_repeat(source: dict[str, Any], data: object) -> str | None:
+    """The input failure message of the first row of a checked group source, in data order,
+    whose choice value repeats that of an earlier row, or None (CUVR-087)."""
+    segments = str(source["from"]).split(".")
+    group_path = ".".join(segments[:-2])
+    value_name = segments[-1]
+    seen: set[str] = set()
+    for key, row in _source_rows(source, data).items():
+        if not _is_object(row):
+            continue
+        value = _choice_text(row.get(value_name))
+        if value is None:
+            continue
+        if value in seen:
+            return (
+                "Group source value repeats an earlier row: "
+                f"{value} at {group_path}.{key}.{value_name}"
+            )
+        seen.add(value)
+    return None
+
+
 def group_choices(source: dict[str, Any], data: object) -> list[dict[str, str]]:
     """The choices of a checked group source for the root `data`, as `{value, label}` pairs.
 
     One choice per row of the group in data order whose value text is not empty and
     not seen before. The label is the text of the row's `label` field, or else the value.
     """
-    segments = str(source["from"]).split(".")
-    value_name = segments[-1]
-    rows: object = data
-    for name in segments[:-2]:
-        if not _is_object(rows) or name not in rows:
-            return []
-        rows = rows[name]
-    if not _is_object(rows):
-        return []
+    value_name = str(source["from"]).split(".")[-1]
     choices: list[dict[str, str]] = []
     seen: set[str] = set()
-    for row in rows.values():
+    for row in _source_rows(source, data).values():
         if not _is_object(row):
             continue
         value = _choice_text(row.get(value_name))
