@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5ba02a148ca1c9661cd8db4f1558ddf705afb9d1dec32dff86063a9ce482fea4 -->
+<!-- source-sha256: d502b84ed5ca26e544a17e97f31d28905cb7710f5fdbe74d0e564e34ec4e3303 -->
 
 ## Unreleased
 
 ### 2026-10-25 — C17.22는 불리언, only, 객체가 아닌 multiple을 로드할 때 거부한다(C17.22)
 
 - C17.22 완료(C17.22): 모든 검증기(TypeScript, PHP, PHP extension, Go, Rust, Python)는 multiple이 있고 불리언, only, 객체가 아닌 필드(null과 목록 포함)를 로드할 때 그 그룹 소스와 규칙보다 먼저 INVALID_RULE_PARAMETER, 메시지 Invalid multiple at {path}: expected a boolean, only or an object, 필드의 선언 경로로 거부한다(docs/spec/schema.md CUSC-081). red: make parity-check UNITS="validate"가 모든 검증기에서 거부 사례 다섯 개로 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — 키가 다른 반복 그룹의 행 키인 키 맵(C17.3)
+
+- C17.3 완료(C17.3): 필드는 `only: true` 옆의 `multiple.keys`로 키 맵을 선언합니다. 값은 `enddate` 매개변수처럼 쓰는 필드 참조이며 폼의 반복 그룹을 가리키고, 그룹의 id는 그 행 키입니다(docs/spec/schema.md, 키 맵, CUSC-076부터 CUSC-078). 모든 validator(TypeScript, PHP, PHP extension, Go, Rust, Python)는 참조가 반복 그룹을 가리키지 않으면 `Invalid multiple.keys at {path}: expected a reference to a repeated group`로 로드에 실패하고(CUVR-070), 데이터의 키가 필드의 행 문맥에서 읽은 그룹의 행 키가 아니면 `Row key is not an id of {reference}: {path}`로 입력에 실패하며 키는 코드 포인트 순서로 검사합니다(CUVR-069). 이전에는 `multiple: only`가 어떤 키든 받았습니다. Rust validator의 typed FieldSpec은 `multiple`을 `false`, `true`, `only` 또는 설정 객체로 읽고 `only: true` 없는 `keys`를 거부하며, TypeScript의 `MultipleSettings`는 행 설정과 데이터 설정의 union입니다. 모든 generator는 `only: true` 옆의 `keys`를 받고, 그 밖의 경우와 문자열이 아닌 값을 거부하며, meta-schema와 TypeScript 타입이 이를 선언합니다. 공유 case는 tests/fixtures/validate/keyed-maps.mts, form-render case 4개, spec-validity의 `ok-multiple-keys`이며, config/parity.json은 unit validate, form-render, spec-validity에서 이 id를 인용합니다. Red: `make parity-check UNITS="validate form-render spec-validity"`가 exit 2이며 모든 implementation에서 validate 387개 중 362개, form-render 213개 중 209개가 통과했습니다. Green: exit 0이며 모든 unit이 모든 implementation에서 성립합니다.
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 
