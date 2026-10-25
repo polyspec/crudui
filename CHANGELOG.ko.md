@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1135891defdbce52a92c5f9874fcf1af3d30d4b24ace02882eedd6623f3245bb -->
+<!-- source-sha256: b1650adef02877f8b9f655fc6be53e4a505e414d7155a8df569220d52aa03889 -->
 
 ## Unreleased
 
 ### 2026-10-26 — php-ext 테스트 소스 목록이 rule_condition_tree.c와 canonical.c를 링크한다 (C17.33)
 
 - php-ext comparison과 contract 테스트가 위젯과 숫자 표기에 필요한 소스(rule_condition_tree.c, canonical.c)를 컴파일하여 다시 링크된다. 링크가 드러낸 comparison 차이는 C17.34다.
+
+### 2026-10-26 — crudui는 kit의 dist가 아니라 소스를 가리킨다(C17.34)
+
+- C17.34 완료(C17.34): npm script, contracts/features.json과 config/dependency-policy.json의 검증 명령, composer.json, README, build test가 kit의 dist 대신 kit이 K613부터 실행하는 node_modules/@polyspec/kit/scripts/kit/<tool>.mts와 $(KIT)/<tool>.$(KIT_EXT)를 가리킨다. kit K646은 dist 빌드를 멈춘다. scripts/test-commands.mts는 소스 runner를 알아본다. Red: tests/build/ci-local.test.mts가 Makefile에서 kit 도구를 찾지 못했다. 변경 뒤 통과한다.
 
 ### 2026-10-26 — 그룹 소스는 리터럴 선택지를 그룹의 행과 합친다(C17.31)
 
