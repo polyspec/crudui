@@ -22796,5 +22796,289 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "contained-in-substring",
+    "note": "a canary that occurs in the truth passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": "The butler hid the key.",
+      "canary": "butler"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-whole",
+    "note": "a canary equal to the whole truth occurs in it.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": "The butler hid the key.",
+      "canary": "The butler hid the key."
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-missing",
+    "note": "a canary that does not occur in the truth fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": "The butler hid the key.",
+      "canary": "gardener"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "canary",
+          "field": "canary",
+          "rule": "containedIn",
+          "message": "Please enter a value that the referenced field contains.",
+          "value": "gardener"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-case",
+    "note": "the substring is matched exactly, with its case.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": "The butler hid the key.",
+      "canary": "BUTLER"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "canary",
+          "field": "canary",
+          "rule": "containedIn",
+          "message": "Please enter a value that the referenced field contains.",
+          "value": "BUTLER"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-number-value",
+    "note": "a value that is not a string fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": "room 7",
+      "canary": 7
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "canary",
+          "field": "canary",
+          "rule": "containedIn",
+          "message": "Please enter a value that the referenced field contains.",
+          "value": 7
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-number-reference",
+    "note": "a referenced value that is not a string fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": 7,
+      "canary": "7"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "canary",
+          "field": "canary",
+          "rule": "containedIn",
+          "message": "Please enter a value that the referenced field contains.",
+          "value": "7"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-empty",
+    "note": "an empty value is not evaluated by the rule.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "truth": {
+          "type": "text"
+        },
+        "canary": {
+          "type": "text",
+          "validate": {
+            "containedIn": ".truth"
+          }
+        }
+      }
+    },
+    "data": {
+      "truth": "The butler hid the key.",
+      "canary": ""
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-075",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "contained-in-parameter-not-string",
+    "note": "a containedIn parameter that is not a string fails the load.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "containedIn": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid containedIn parameter: expected a field reference string",
+      "at": "value"
+    },
+    "requirements": [
+      "CUVR-076",
+      "CURP-018",
+      "CURP-022"
+    ]
   }
 ]

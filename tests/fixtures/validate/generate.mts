@@ -42,6 +42,7 @@ import { MULTIPLE_SHAPE_CASES, MULTIPLE_SHAPE_REQUIREMENTS } from './multiple-sh
 import { KEYED_MAP_CASES, KEYED_MAP_REQUIREMENTS } from './keyed-maps.mts';
 import { CONDITION_TREE_CASES, CONDITION_TREE_REQUIREMENTS } from './condition-tree.mts';
 import { REFERENCE_CASES } from './reference-rules.mts';
+import { CONTAINED_IN_CASES, CONTAINED_IN_REQUIREMENTS } from './contained-in.mts';
 import { parseJson } from '../../json.mts';
 
 interface CaseSpec {
@@ -1122,6 +1123,7 @@ const REQUIREMENTS: Record<string, string[]> = {
   ...GROUP_SOURCE_REQUIREMENTS,
   ...MULTIPLE_SHAPE_REQUIREMENTS,
   ...KEYED_MAP_REQUIREMENTS,
+  ...CONTAINED_IN_REQUIREMENTS,
   'enddate-relative-path-2026-01-01': ['CUVR-013'],
   'property-member-order': ['CUVR-001', 'CURP-001'],
   'composed-member-order': ['CUVR-001'],
@@ -1452,7 +1454,7 @@ const EXPRESSION_CASES: CaseSpec[] = [
   },
 ];
 
-const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written)];
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written), ...CONTAINED_IN_CASES.map(written)];
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }

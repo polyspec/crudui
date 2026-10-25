@@ -23,6 +23,7 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   match: 'Please enter a valid format.',
   pattern: 'Please enter a valid format.',
   equalTo: 'Please enter the same value again.',
+  containedIn: 'Please enter a value that the referenced field contains.',
   notEqual: 'Please enter a different value.',
   in: 'Please select a valid option.',
   date: 'Please enter a valid date.',

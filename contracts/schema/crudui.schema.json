@@ -166,6 +166,9 @@
         "equalTo": {
           "type": "string"
         },
+        "containedIn": {
+          "type": "string"
+        },
         "notEqual": {
           "type": "string"
         },
@@ -399,6 +402,10 @@
             },
             "equalTo": {
               "description": "Field whose value must be equal.",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "containedIn": {
+              "description": "Field whose string value must contain the string value (CUVR-075).",
               "$ref": "#/definitions/RuleFieldReference"
             },
             "notEqual": {

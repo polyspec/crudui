@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 125513dcdfb5468b3589687cfabac4d4b012eb702a50f9fbe3d61a716bec591b -->
+<!-- source-sha256: 1afc47a95399ac774f93b7e6d227ee9a3e87e62a96c327a9b842d2292758eb91 -->
 
 [English](validation-rules.md).
 
@@ -32,6 +32,8 @@
   허용됩니다.
 - **CUVR-071** `reference`: 값은 매개변수가 가리키는 필드에서 데이터가 선언한 id를 가리킵니다.
   [참조](#참조)를 봅니다.
+- **CUVR-075** `containedIn`: 필드 경로입니다. 문자열 값은 참조한 필드의 문자열 값 안에 부분 문자열로 들어 있어야 하며, 참조는
+  `equalTo`의 참조처럼 해석합니다. 값이나 참조한 값이 문자열이 아니면 규칙이 실패합니다.
 
 [TypeScript 등록부](../../packages/validator/ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
@@ -271,6 +273,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 - **CUVR-052** 빈 멤버가 있는 `in` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid in parameter: members must not be empty`
 - **CUVR-053** 다른 형식의 `pattern`, `match` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a pattern string`
 - **CUVR-054** 문자열이 아닌 `equalTo`, `enddate` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a field reference string`
+- **CUVR-076** 문자열이 아닌 `containedIn` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid containedIn parameter: expected a field reference string`
 - **CUVR-055** 문자열·숫자·불리언이 아닌 `notEqual` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** 불리언이나 문자열이 아닌 `unique` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-074** 문자열이 아니거나, type이 `group`이 아니고 `lang`이 없거나 `false`·`null`인 form 필드의 선언 경로가 아닌 `reference` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid reference parameter: expected the declaration path of a field`

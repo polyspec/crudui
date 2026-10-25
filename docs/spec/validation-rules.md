@@ -38,6 +38,8 @@ entry points, load failures and input failures.
   text only under `judge`.
 - **CUVR-071** `reference`: The value names an id that the data declares at the field the parameter names; see
   [references](#references).
+- **CUVR-075** `containedIn`: Field path; a string value must occur as a substring of the string value of the referenced
+  field, which resolves as the reference of `equalTo` does. A value or a referenced value that is not a string fails the rule.
 
 The [TypeScript registry](../../packages/validator/ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
@@ -323,6 +325,7 @@ without row keys. Every runtime reports the same code and message:
 - **CUVR-052** `in` with an empty member — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid in parameter: members must not be empty`
 - **CUVR-053** `pattern`, `match` of another type — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a pattern string`
 - **CUVR-054** `equalTo`, `enddate` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a field reference string`
+- **CUVR-076** `containedIn` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid containedIn parameter: expected a field reference string`
 - **CUVR-055** `notEqual` that is not a string, number or boolean — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** `unique` that is not a boolean or a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-074** `reference` that is not a string, or a string that is not the declaration path of a field of the form whose type is not `group` and whose `lang` is absent, `false` or `null` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid reference parameter: expected the declaration path of a field`
