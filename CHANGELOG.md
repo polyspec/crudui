@@ -39,6 +39,10 @@
 
 - Each of the 33 catch clauses that had no binding now binds the error and narrows it to the error that means its outcome (SyntaxError for JSON parse, TypeError for a malformed URL or form body, ENOENT or exit code 1 for a missing file or command, ParseError for a condition, FORBIDDEN_META_KEY and INVALID_FORM_INPUT where those are the outcome), and rethrows the rest. The catch-check of lint-ts passes.
 
+### 2026-10-25 — The rule conditionTree checks nested conditions in six implementations (C17.1)
+
+- C17.1 is done (C17.1): `docs/spec/schema.md` defines condition trees (CUSC-072 to CUSC-075): a JSON value that a field holds as data, made of groups `{all: [...]}` and `{any: [...]}`, field comparisons `{field, op, value}` with the operators eq, ne, lt, le, gt, ge, in and has, and judged text `{judge}`, at most 32 levels deep. `docs/spec/validation-rules.md` registers the rule `conditionTree` (CUVR-066, CUVR-067), whose parameter `true` permits groups and field comparisons and `judge` judged text as well, and its parameter error (CUVR-068); the rule receives its parameter unchanged. The TypeScript, PHP, PHP extension, Go, Rust and Python validators, the meta-schema, the specification types and the CLI carry the rule. `tests/fixtures/validate/condition-tree.mts` writes 17 cases into `cases.json`, and the validate unit of `config/parity.json` cites the new requirements. Red: `make parity-check UNITS="validate"` failed the 17 cases (341 of 358 passed) in every implementation without the rule; green after the change.
+
 ### 2026-10-23 — C17.11-1 reads the tools of a worktree from its main checkout (C17.11-1)
 
 - C17.11-1 is done (C17.11-1): check-doc-coverage.test requires the extends of the kit package that C17.11 brought; gen-api-docs takes phpDocumentor from the tools of the main checkout and keeps its cache in the checkout; UV, GO and COMPOSER name $(KIT_TOOLS). Red: check-doc-coverage.test failed; green after the change.

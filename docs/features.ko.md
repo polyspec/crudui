@@ -1,12 +1,13 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: 823dc9ed47a500f3ed3c0a578b9b83e919cafb3342ad7478b3d3f0f38abf3965 -->
+<!-- source-sha256: b513b2533fa848a5091b285494c6f271bd76f43daf797e38a34ac46b70674c16 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
+| condition-trees | 필드 값이 all, any, 필드 비교, 판정 문장으로 이루어진 조건 트리인지 여섯 검증기에서 검사하는 `conditionTree` 규칙 | implemented | passed | not-deployed | [조건 트리](spec/schema.ko.md#조건-트리), [검증 규칙](spec/validation-rules.ko.md#조건-트리), [공유 사례](../tests/fixtures/validate/condition-tree.mts) |
 | control-attributes | 필드 컨트롤과 노드에 선언한 `attributes`를 여덟 렌더러가 속성으로 쓰며, 이름은 `data-*`와 `aria-*`로 제한한다 | implemented | passed | not-deployed | [명세](spec/schema.ko.md#선언한-속성), [폼 마크업](spec/form-markup.ko.md#선언한-속성); `@polyspec/crudui-generator-core`([모델과 검사 사례](../packages/generator/ts/src/declared-attributes.test.ts)), `@polyspec/crudui-generator-html`([바이트 사례](../packages/html/src/declared-attributes.test.ts)), React([바이트 사례](../packages/react/src/tests/declared-attributes.test.ts)), JSON Schema, PHP, Go, Rust 검증기의 타입 명세 모델; [공유 폼 사례](../packages/react/scripts/generate-form-render-cases.mts) `control-attributes-*`가 React, Vue, Svelte, HTML 렌더러, PHP, PHP 확장, Go, Rust를 비교함 |
 | switch-control | `switcher` 필드를 여덟 렌더러가 체크 상자와 다른 스위치(`role="switch"`)로 렌더링한다 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md#스위치); `@polyspec/crudui-generator-core`([모델 사례](../packages/generator/ts/src/switch-control.test.ts)), `@polyspec/crudui-generator-html`([바이트 사례](../packages/html/src/switch-control.test.ts)), React([바이트 사례](../packages/react/src/tests/switch-control.test.ts)), Vue([사례](../packages/vue/tests/switch-control.test.mjs)), Svelte([사례](../packages/svelte/tests/switch-control.test.mjs)), 스타일시트([브라우저 검사](../tests/form-styles.test.mts)), 그리고 공유 폼 사례 `switcher-bare`, `control-attributes-checkbox`로 [네이티브 검사](../tests/native-generators/README.ko.md)를 통과한 PHP, PHP 확장, Go, Rust에 구현됨 |
 | range-control | `range` 필드를 여덟 렌더러가 범위, 단계, 현재 값을 가진 슬라이더로 렌더링하고 검증기 다섯 개가 검증한다 | implemented | passed | not-deployed | [명세](spec/schema.ko.md#범위-필드), [폼 마크업](spec/form-markup.ko.md#범위-필드); `@polyspec/crudui-generator-core`([모델과 검사 사례](../packages/generator/ts/src/range-control.test.ts)), `@polyspec/crudui-generator-html`([바이트 사례](../packages/html/src/range-control.test.ts)), 스타일시트, JSON Schema에 구현됨; 기존 `range`와 `step` 규칙이 값을 검증함([TypeScript 사례](../packages/validator/ts/src/range-field.test.ts), [공유 검증 사례](../tests/fixtures/validate/numeric-rules.mts) `range-field-values`); [공유 폼 사례](../packages/react/scripts/generate-form-render-cases.mts) `range-*`가 React, Vue, Svelte와 [네이티브 검사](../tests/native-generators/README.ko.md)의 PHP, PHP 확장, Go, Rust를 비교함 |

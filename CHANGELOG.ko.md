@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d502b84ed5ca26e544a17e97f31d28905cb7710f5fdbe74d0e564e34ec4e3303 -->
+<!-- source-sha256: 4e4d323ff51d2bf9a0f32bcb675970485f397e00c11a73ee48bb2a31c7488c35 -->
 
 ## Unreleased
 
@@ -39,6 +39,10 @@
 ### 2026-10-25 — catch 절이 처리하는 오류를 명시한다 (C17.13)
 
 - 바인딩이 없던 catch 절 33곳이 오류를 바인딩하고, 결과를 뜻하는 오류(JSON 파싱은 SyntaxError, 잘못된 URL이나 form 본문은 TypeError, 없는 파일이나 명령은 ENOENT 또는 종료 코드 1, 조건은 ParseError, 결과가 그것인 경우 FORBIDDEN_META_KEY와 INVALID_FORM_INPUT)로 좁히고 나머지는 다시 던진다. lint-ts의 catch-check가 통과한다.
+
+### 2026-10-25 — conditionTree 규칙이 여섯 구현에서 중첩 조건을 검사한다 (C17.1)
+
+- C17.1 완료 (C17.1): `docs/spec/schema.md`가 조건 트리(CUSC-072부터 CUSC-075)를 정의한다. 필드가 데이터로 담는 JSON 값이며, group `{all: [...]}`와 `{any: [...]}`, 연산자 eq, ne, lt, le, gt, ge, in, has를 쓰는 필드 비교 `{field, op, value}`, 판정 문장 `{judge}`로 이루어지고 최대 32단계 깊이다. `docs/spec/validation-rules.md`는 `conditionTree` 규칙(CUVR-066, CUVR-067)을 등록한다. 매개변수 `true`는 group과 필드 비교를, `judge`는 판정 문장도 허용하며, 매개변수 오류(CUVR-068)가 있고 규칙은 매개변수를 그대로 받는다. TypeScript, PHP, PHP extension, Go, Rust, Python validator와 meta-schema, specification type, CLI가 이 규칙을 갖는다. `tests/fixtures/validate/condition-tree.mts`가 case 17개를 `cases.json`에 쓰고, `config/parity.json`의 validate unit이 새 requirement를 인용한다. red: 규칙이 없는 모든 구현에서 `make parity-check UNITS="validate"`가 17개 case에 실패했고(358개 중 341개 통과), 변경 뒤 green.
 
 ### 2026-10-23 — C17.11-1은 worktree의 도구를 main checkout에서 읽는다(C17.11-1)
 
