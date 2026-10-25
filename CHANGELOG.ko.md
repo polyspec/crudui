@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 912d4c0da11c29de910d0775ddbb782c6bad449359cfbb529c547825dab6114e -->
+<!-- source-sha256: f35923cfa36bf3d13daa5b0e1b0579ecdbd9015a6bc9f3284f437b64d5c1cd60 -->
 
 ## Unreleased
+
+### 2026-10-26 — 반복된 그룹 소스 값은 검증에 실패한다(C17.32)
+
+- C17.32 완료(C17.32): 값이 앞선 행의 값을 반복하는 그룹 소스의 행은 검증에서 더 이상 조용히 빠지지 않는다. 암묵적 in 검사가 INVALID_FORM_INPUT과 Group source value repeats an earlier row: {value} at {path}(CUSC-090, CUVR-087)로 실패하며, TypeScript, PHP, Go, Rust, Python과 PHP extension의 C engine이 모두 따른다. 렌더링은 그 값을 한 번 나열한다. red: make parity-check UNITS="validate form-render"가 모든 validator에서 group-source-repeated-value와 group-source-repeated-number로 실패했고, 변경 뒤 green.
 
 ### 2026-10-26 — 그룹 소스는 boolean을 담는 필드를 거부한다(C17.19)
 

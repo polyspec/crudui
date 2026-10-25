@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — A repeated group source value fails validation (C17.32)
+
+- C17.32 is done (C17.32): a row of a group source whose value repeats that of an earlier row no longer drops silently in validation; the implicit in check fails with INVALID_FORM_INPUT and Group source value repeats an earlier row: {value} at {path} (CUSC-090, CUVR-087) in TypeScript, PHP, Go, Rust, Python and the C engine of the PHP extension, and rendering lists the value once. Red: make parity-check UNITS="validate form-render" failed group-source-repeated-value and group-source-repeated-number in every validator; green after the change.
+
 ### 2026-10-26 — A group source refuses a field that holds a boolean (C17.19)
 
 - C17.19 is done (C17.19): compilation and validation refuse a group source whose from or label names a checkbox or switcher field, whose data is true or false and would give no choice or label, with Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers (CUSC-068), in TypeScript, PHP, Go, Rust, Python and the C engine of the PHP extension. Red: the new validate and form-render cases failed in every implementation; green after the change.

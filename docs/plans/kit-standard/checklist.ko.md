@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: bf417e65b4e72d847d546cfe3ce21c2d8ce88ead50e82ed3c67c886e3cd419b3 -->
+<!-- source-sha256: 7e301457e4090aab6509dda85493ff4fdcb6f9b502af994698080a9f294030a6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -361,4 +361,4 @@
 | C17.29 | crudui Makefile은 kit 도구를 하드코딩된 .mjs가 아니라 $(KIT)/<도구>.$(KIT_EXT)로 실행한다 (K613) | Makefile (the 10 recipe lines that run $(KIT)/<tool>.mjs) | `make kit-check`; `make lint-ts` | [o] |
 | C17.30 | crudui의 config/rebuild.json에는 더 이상 없는 파일의 항목과 class 없는 도구가 없다 (rebuild-check 통과) | config/rebuild.json (the four entries of K614 and the tool without a class) | `make rebuild-check` | [o] |
 | C17.31 | choice 필드의 items는 group source와 리터럴 항목 목록을 하나의 집합으로 묶어 검사한다. 여섯 구현 모두 (drama U-2) | docs/spec: CUSC-089 (items combining a group source with literal items) in schema.md and its KO twin, CUVR-085 (the combined-set check) and CUVR-086 (its refusal) in validation-rules.md and its KO twin; the shared cases; the six implementations with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
-| C17.32 | group source 행들 사이의 값 중복은 행 경로와 값을 밝힌 코드 있는 입력 오류로 검증에 실패한다. 여섯 구현 모두 (조용한 버림 금지) | docs/spec: CUSC-090 (the repeated value refusal) in schema.md and its KO twin, CUVR-087 (its check) in validation-rules.md and its KO twin; the shared cases; the six implementations with parity units | `make docs-check`; `make parity-declarations-check`; `make parity-check UNITS="validate form-render"` | [~] |
+| C17.32 | group source 행들 사이의 값 중복은 행 경로와 값을 밝힌 코드 있는 입력 오류로 검증에 실패한다. 여섯 구현 모두 (조용한 버림 금지) | docs/spec: CUSC-090 (the repeated value refusal) in schema.md and its KO twin, CUVR-087 (its check) in validation-rules.md and its KO twin; the shared cases; the six implementations with parity units | `make docs-check`; `make parity-declarations-check`; `make parity-check UNITS="validate form-render"` | [o] |
