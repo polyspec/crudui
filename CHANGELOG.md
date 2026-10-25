@@ -23,6 +23,10 @@
 
 - C17.23 is done (C17.23): the form-render suite tests of Go, Rust and Python and the Python validate test no longer assert the hand-typed totals 154, 59, 209, 425, 229 and 196, which each row that added shared cases had to raise; each asserts that both kinds of case occur and that the result and failure cases together are every case of its cases.json, so a case that a later row adds needs no edit of the test and a case that records neither or both kinds fails. Red: make text-absent found the totals in the four files; green after the change.
 
+### 2026-10-25 — C17.7 reads range bounds from data (C17.7)
+
+- C17.7 is done (C17.7): a field declares minFrom or maxFrom: <field reference>, and its value must be a finite number at or above or at or below the value of the referenced field; a missing or null bound declares none, a present bound that is not a finite number fails, and a parameter that is not a reference string fails the load (docs/spec/validation-rules.md CUVR-079, CUVR-081). The ten cases of tests/fixtures/validate/bounds-from.mts pass in TypeScript, PHP, the PHP extension, Go, Rust and Python.
+
 ### 2026-10-25 — C17.6 adds the typeFrom rule (C17.6)
 
 - C17.6 is done (C17.6): a field declares typeFrom: <field reference>, and the value of the referenced field names the type of the value: bool a boolean, int a finite number without a fractional part, enum a string; a missing or other type fails, and a parameter that is not a reference string fails the load (docs/spec/validation-rules.md CUVR-077, CUVR-078). The eleven cases of tests/fixtures/validate/type-from.mts pass in TypeScript, PHP, the PHP extension, Go, Rust and Python.

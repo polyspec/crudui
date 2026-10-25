@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 526264db6f425fb7a96798b4bd55b9dac13ee70dfa629a9f86030679564d0ff7 -->
+<!-- source-sha256: 114ecfaffe5144feb91c187296ef82f656d5d7c8c720e0ac6f30b47570724831 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-25 — form-render와 validate 개수 test가 cases.json을 따른다(C17.23)
 
 - C17.23 완료(C17.23): Go, Rust, Python의 form-render suite test와 Python validate test는 공유 case를 추가한 row마다 올려야 했던 손으로 적은 합계 154, 59, 209, 425, 229, 196을 더 이상 assert하지 않는다. 각 test는 두 종류의 case가 모두 있고 결과 case와 실패 case를 합하면 그 cases.json의 모든 case인지 assert하므로, 뒤의 row가 추가한 case에 test를 고칠 필요가 없고 어느 종류도 기록하지 않거나 둘 다 기록한 case는 실패한다. red: make text-absent가 네 파일에서 합계를 찾았고, 변경 뒤 green.
+
+### 2026-10-25 — C17.7은 범위 경계를 데이터에서 읽는다(C17.7)
+
+- C17.7 완료(C17.7): 필드는 minFrom 또는 maxFrom: <필드 참조>를 선언하며, 그 값은 참조 필드 값 이상이거나 이하인 유한한 수여야 한다. 없거나 null인 경계는 경계를 선언하지 않고, 있지만 유한한 수가 아닌 경계는 실패하며, 참조 문자열이 아닌 매개변수는 로드에 실패한다(docs/spec/validation-rules.md CUVR-079, CUVR-081). tests/fixtures/validate/bounds-from.mts의 열 case는 TypeScript, PHP, PHP 확장, Go, Rust, Python에서 통과한다.
 
 ### 2026-10-25 — C17.6은 typeFrom 규칙을 더한다(C17.6)
 
