@@ -440,7 +440,9 @@ def _rule_type_from(context: RuleContext) -> str | None:
         return None
     if _has_declared_type(value, _resolve_field_param(rule_param, context)):
         return None
-    message: str = _message(context, "typeFrom", "Please enter a value of the declared type.")
+    message: str = _message(
+        context, "typeFrom", "Please enter a value of the declared type."
+    )
     return message
 
 
@@ -451,7 +453,9 @@ def _finite_bound(value: Value) -> float | None:
     return float(value) if math.isfinite(value) else None
 
 
-def _bound_from(context: RuleContext, rule: str, fallback: str, below: bool) -> str | None:
+def _bound_from(
+    context: RuleContext, rule: str, fallback: str, below: bool
+) -> str | None:
     """A finite number at or above (below is False) or at or below the referenced value (CUVR-079)."""
     value, rule_param = context["value"], context["ruleParam"]
     if rule_param is None or is_empty_value(value):
@@ -461,18 +465,32 @@ def _bound_from(context: RuleContext, rule: str, fallback: str, below: bool) -> 
     if number is not None and bound is None:
         return None
     limit = _finite_bound(bound)
-    if number is not None and limit is not None and (number <= limit if below else number >= limit):
+    if (
+        number is not None
+        and limit is not None
+        and (number <= limit if below else number >= limit)
+    ):
         return None
     message: str = _message(context, rule, fallback)
     return message
 
 
 def _rule_min_from(context: RuleContext) -> str | None:
-    return _bound_from(context, "minFrom", "Please enter a value at or above the declared minimum.", False)
+    return _bound_from(
+        context,
+        "minFrom",
+        "Please enter a value at or above the declared minimum.",
+        False,
+    )
 
 
 def _rule_max_from(context: RuleContext) -> str | None:
-    return _bound_from(context, "maxFrom", "Please enter a value at or below the declared maximum.", True)
+    return _bound_from(
+        context,
+        "maxFrom",
+        "Please enter a value at or below the declared maximum.",
+        True,
+    )
 
 
 def _same_value(left: Value, right: Value) -> bool:
@@ -1122,7 +1140,14 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
     if rule_name == "in":
         members = read_members(param)
         return invalid(members) if isinstance(members, str) else None
-    if rule_name in ("equalTo", "containedIn", "typeFrom", "minFrom", "maxFrom", "enddate"):
+    if rule_name in (
+        "equalTo",
+        "containedIn",
+        "typeFrom",
+        "minFrom",
+        "maxFrom",
+        "enddate",
+    ):
         return (
             None
             if isinstance(param, str)

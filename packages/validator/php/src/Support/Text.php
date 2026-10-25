@@ -55,6 +55,30 @@ final class Text
         return self::first($value, [], 0, $nodes);
     }
 
+    /**
+     * The levels of arrays and objects that a value nests, the value itself the first, and the
+     * nodes it holds, counted as the limits count them.
+     *
+     * @return array{int, int}
+     */
+    public static function size(mixed $value): array
+    {
+        $levels = 0;
+        $nodes = 0;
+        $pending = [[$value, 1]];
+        while ($pending !== []) {
+            [$node, $level] = array_pop($pending);
+            ++$nodes;
+            if ($node instanceof stdClass || is_array($node)) {
+                $levels = max($levels, $level);
+                foreach ($node as $child) {
+                    $pending[] = [$child, $level + 1];
+                }
+            }
+        }
+        return [$levels, $nodes];
+    }
+
     /** Count a node at $depth; false when it takes the value beyond its limits. */
     private static function admit(mixed $value, int $depth, int &$nodes): bool
     {

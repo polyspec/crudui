@@ -100,9 +100,19 @@ func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, err
 		}
 	}
 
+	// The data limits are checked after the forbidden-key scan and before the
+	// rule parameters.
+	limits, err := readDataLimits(spec)
+	if err != nil {
+		return ValidationResult{}, err
+	}
 	// Rule parameters are checked after composition and the forbidden-key scan.
 	validator, err := NewValidator(properties)
 	if err != nil {
+		return ValidationResult{}, err
+	}
+	// The data is measured before any rule.
+	if err := checkDataLimits(data, limits); err != nil {
 		return ValidationResult{}, err
 	}
 	return validator.Validate(data)

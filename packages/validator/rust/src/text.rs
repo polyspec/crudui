@@ -29,10 +29,10 @@ pub const VALUE_LIMIT_MESSAGE: &str = "Recursive or excessively nested value";
 const MAX_DEPTH: usize = 512;
 
 /// Maximum nodes a value may hold: every array, object, string, number, boolean and null.
-const NODE_LIMIT: usize = 1_000_000;
+pub(crate) const NODE_LIMIT: usize = 1_000_000;
 
 /// Maximum levels of arrays and objects a value may nest.
-const NESTING_LIMIT: usize = 512;
+pub(crate) const NESTING_LIMIT: usize = 512;
 
 /// A string or member name of a JSON document: valid text, or the UTF-16
 /// code units of text that holds an unpaired surrogate.

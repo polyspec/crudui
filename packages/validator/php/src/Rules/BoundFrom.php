@@ -7,8 +7,8 @@ namespace Polyspec\Crudui\Validator\Rules;
 use Polyspec\Crudui\Validator\Values\Numeric;
 
 /**
- * The bound of the minFrom and maxFrom rules (CUVR-079): a finite number value against the value of the referenced field; a missing
- * or null bound declares none, and a boolean is no number.
+ * The bound of the minFrom and maxFrom rules (CUVR-079): a finite number value against the value of the referenced
+ * field; a missing or null bound declares none, and a boolean is no number.
  */
 final class BoundFrom
 {

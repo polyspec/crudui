@@ -58,7 +58,7 @@ final class LengthLimit
     }
 
     /** A number that is an integer from 0 to MAXIMUM, as an int. */
-    private static function integer(mixed $value): ?int
+    public static function integer(mixed $value): ?int
     {
         if (\is_int($value)) {
             return $value >= 0 && $value <= self::MAXIMUM ? $value : null;

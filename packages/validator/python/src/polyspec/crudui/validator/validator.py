@@ -31,6 +31,7 @@ from typing import Any, TypeGuard
 
 from .compose import MemoryLoader, compose_properties, compose_spec, compose_root
 from .compose_errors import ComposeLoadError
+from .data_limits import DataLimits, check_data_limits, data_limits
 from .errors import FormInputError
 from .forbidden import scan_forbidden_keys
 from .keyed_maps import assert_keyed_map_keys, assert_keyed_map_reference
@@ -51,7 +52,10 @@ __all__ = ["ARRAY_LEVEL_RULES", "FormInputError", "Validator", "validate"]
 ARRAY_LEVEL_RULES = ("required", "unique", "mincount", "maxcount")
 PATH_REFERENCE_RULES = (
     "equalTo",
-    "containedIn", "typeFrom", "minFrom", "maxFrom",
+    "containedIn",
+    "typeFrom",
+    "minFrom",
+    "maxFrom",
     "notEqual",
     "unique",
     "enddate",
@@ -234,7 +238,12 @@ class _ValidationRun:
 class Validator:
     """The validator of one composed specification: a group with `properties`."""
 
-    def __init__(self, composed_spec: dict[str, JsonValue]) -> None:
+    def __init__(
+        self, composed_spec: dict[str, JsonValue], limits: DataLimits | None = None
+    ) -> None:
+        """`limits` bounds the data, measured after the rule parameters are checked
+        and before any rule runs; data of any size when it is None."""
+        self.limits = limits
         properties = composed_spec.get("properties")
         self.properties: dict[str, JsonValue] = (
             properties if _is_object(properties) else {}
@@ -251,6 +260,10 @@ class Validator:
         """
         if not _is_object(data):
             raise FormInputError("Form data must be an object")
+        # The data is measured after the rule parameters, which the constructor
+        # checked, and before any rule (CUVR-082).
+        if self.limits is not None:
+            check_data_limits(data, self.limits)
         self.run = _ValidationRun(self.properties, data)
         errors: list[dict[str, Any]] = []
         self._validate_properties(self.properties, data, [], [], [], data, errors)
@@ -864,7 +877,9 @@ def validate(
         raise FormInputError("Form data must be an object")
     ordered = _ordered_spec(spec)
     properties = _composed_properties(ordered, checked, options)
-    return Validator({"type": "group", "properties": properties}).validate(data)
+    # The data limits are checked after the forbidden-key scan and before the rule names.
+    limits = data_limits(ordered)
+    return Validator({"type": "group", "properties": properties}, limits).validate(data)
 
 
 def hiddenPaths(spec: dict[str, JsonValue], data: JsonValue) -> list[str]:

@@ -1119,6 +1119,56 @@ ps_result ps_validate_detail(const ps_value *spec, const ps_value *options)
     return result;
 }
 
+/* The levels and the nodes of a form root that declares no dataLimits (CUVR-083), and their maximums. */
+#define DATA_DEPTH_DEFAULT 64
+#define DATA_VALUES_DEFAULT 100000
+#define DATA_DEPTH_MAXIMUM 512
+#define DATA_VALUES_MAXIMUM 1000000
+
+/*
+ * Read the dataLimits of a form root into depth and values, a missing member taking its default;
+ * the load failure of a bad one (CUVR-084), or NULL.
+ */
+static ps_value *read_data_limits(const ps_value *spec, int64_t *depth, int64_t *values)
+{
+    const ps_value *declared = spec && spec->kind == PS_OBJECT ? ps_get(spec, "dataLimits") : NULL;
+    if (!declared) return NULL;
+    bool valid = declared->kind == PS_OBJECT;
+    for (size_t i = 0; valid && i < ps_size(declared); ++i) {
+        ps_text key = ps_key(declared, i);
+        int64_t *bound = ps_text_is(key, "depth") ? depth : ps_text_is(key, "values") ? values : NULL;
+        int64_t maximum = bound == depth ? DATA_DEPTH_MAXIMUM : DATA_VALUES_MAXIMUM;
+        valid = bound && ps_length_limit(ps_at(declared, i), bound) && *bound >= 1 && *bound <= maximum;
+    }
+    if (valid) return NULL;
+    ps_value *trace = ps_array_value();
+    ps_value *error = trace ? ps_error("compose", "INVALID_RULE_PARAMETER",
+        "Invalid dataLimits parameter: expected depth from 1 to 512 and values from 1 to 1000000", "", trace) : NULL;
+    ps_value_free(trace);
+    return error ? error : ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
+}
+
+/* Add the levels and the nodes of value, which sits at level. */
+static void measure_data(const ps_value *value, int64_t level, int64_t *levels, int64_t *nodes)
+{
+    ++*nodes;
+    if (value->kind != PS_ARRAY && value->kind != PS_OBJECT) return;
+    if (level > *levels) *levels = level;
+    for (size_t i = 0; i < ps_size(value); ++i) measure_data(ps_at(value, i), level + 1, levels, nodes);
+}
+
+/* The input failure of data beyond its limits, its levels checked before its nodes (CUVR-082), or NULL. */
+static ps_value *data_limits_failure(const ps_value *data, int64_t depth, int64_t values)
+{
+    int64_t levels = 0, nodes = 0;
+    measure_data(data, 1, &levels, &nodes);
+    if (levels <= depth && nodes <= values) return NULL;
+    char message[96];
+    snprintf(message, sizeof(message), "Submitted data exceeds the %s limit of %lld",
+             levels > depth ? "depth" : "values", (long long)(levels > depth ? depth : values));
+    return ps_error("input", "INVALID_FORM_INPUT", message, "", NULL);
+}
+
 static ps_result validate_form(const ps_value *spec, const ps_value *data, const ps_value *options)
 {
     /* Root data is a request precondition, checked before composition. */
@@ -1142,10 +1192,15 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
         ps_text form_path[1] = {ps_fixed(form_keys[i])};
         if (ps_get(spec, form_keys[i])) error = ps_scan_forbidden(ps_get(spec, form_keys[i]), form_path, 1);
     }
+    /* The data limits are checked after the forbidden-key scan and before the rule parameters. */
+    int64_t depth_limit = DATA_DEPTH_DEFAULT, values_limit = DATA_VALUES_DEFAULT;
+    if (!error) error = read_data_limits(spec, &depth_limit, &values_limit);
     ps_pattern_cache *patterns = error ? NULL : ps_pattern_cache_new();
     if (!error && !patterns) error = ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
     /* Rule parameters are checked after composition and the forbidden-key scan. */
     if (!error) error = ps_check_rule_parameters(properties, patterns);
+    /* The data is measured before any rule. */
+    if (!error) error = data_limits_failure(data, depth_limit, values_limit);
     if (error) { ps_pattern_cache_free(patterns); ps_value_free(properties); return (ps_result){NULL, error}; }
     validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns, NULL, 0, ps_object_value(), NULL, 0,
                                   properties, ps_object_value()};

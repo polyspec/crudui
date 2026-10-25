@@ -37,6 +37,28 @@ type Failure struct {
 	Limit bool
 }
 
+// Size returns the levels of lists and objects that value nests, value itself
+// the first, and the nodes it holds, counted as the value limits count them.
+func Size(value any) (levels, nodes int) {
+	var visit func(node any, level int)
+	visit = func(node any, level int) {
+		nodes++
+		if _, isString := node.(string); isString {
+			return
+		}
+		_, values, _, container := children(node)
+		if !container {
+			return
+		}
+		levels = max(levels, level)
+		for _, child := range values {
+			visit(child, level+1)
+		}
+	}
+	visit(value, 1)
+	return levels, nodes
+}
+
 // ValueFailure returns the first failure in value, walked as the tree it
 // denotes: list items in index order; for an object, every member name first,
 // then the members in code point order of their names, which is the byte order

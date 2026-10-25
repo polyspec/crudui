@@ -32,7 +32,8 @@ final class RuleParameters
     public const REFERENCE_MESSAGE = 'Invalid reference parameter: expected the declaration path of a field';
 
     public const UNCHANGED = [
-        'equalTo', 'containedIn', 'typeFrom', 'minFrom', 'maxFrom', 'notEqual', 'unique', 'enddate', 'reference', 'accept', 'match', 'pattern', 'in',
+        'equalTo', 'containedIn', 'typeFrom', 'minFrom', 'maxFrom', 'notEqual', 'unique', 'enddate', 'reference',
+        'accept', 'match', 'pattern', 'in',
         'conditionTree',
     ];
 
@@ -69,8 +70,8 @@ final class RuleParameters
     }
 
     /**
-     * Check the parameter of a rule that references a field: `equalTo`, `containedIn`, `typeFrom`, `minFrom`, `maxFrom` and `enddate`
-     * take a field reference string, `notEqual` a string, number or boolean,
+     * Check the parameter of a rule that references a field: `equalTo`, `containedIn`, `typeFrom`, `minFrom`,
+     * `maxFrom` and `enddate` take a field reference string, `notEqual` a string, number or boolean,
      * `unique` true or a string, and `reference` a string.
      *
      * @throws InvalidRuleParameter

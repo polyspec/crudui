@@ -40,6 +40,7 @@ import type {
 } from '../types';
 import { getRule } from '../rules/index';
 import { FormInputError } from './errors';
+import { checkDataLimits } from './data-limits';
 import { isRecord } from '../record';
 import { compareCodePoints } from '../text/index';
 import { assertRuleParameter, assertRuleName } from './parameters';
@@ -275,6 +276,8 @@ function ternaryLiterals(node: ASTNode): unknown[] {
  */
 export class Validator {
   private readonly properties: Record<string, unknown>;
+  /** The bounds of the data; data of any size when absent. */
+  private readonly limits: { depth: number; values: number } | undefined;
   /** The state of the validation in progress. */
   private run: ValidationRun = this.newRun({});
 
@@ -284,7 +287,8 @@ export class Validator {
    * @throws {ComposeLoadError} for the first unknown rule name or parameter outside the definitions,
    *         a `reference` that names no field it can name included: the declaration fails the load.
    */
-  constructor(composedSpec: ComposedField) {
+  constructor(composedSpec: ComposedField, limits?: { depth: number; values: number }) {
+    this.limits = limits;
     const props = composedSpec.properties;
     this.properties = isRecord(props) ? props : {};
     this.checkDeclaredParameters(this.properties, []);
@@ -299,6 +303,8 @@ export class Validator {
     if (!isRecord(data)) {
       throw new FormInputError('Form data must be an object');
     }
+    // The data is measured after the rule parameters, which the constructor checked, and before any rule (CUVR-082).
+    if (this.limits) checkDataLimits(data, this.limits);
     this.run = this.newRun(data);
     const errors: ValidationError[] = [];
     this.validateProperties(this.properties, data, [], [], [], data, errors);

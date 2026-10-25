@@ -17,6 +17,7 @@
 mod canonical;
 mod choice_data;
 mod condition_tree;
+mod data_limits;
 pub mod errors;
 pub mod group_source;
 mod keyed_maps;
@@ -41,6 +42,7 @@ use crate::compose::{
     compose_properties, compose_spec, member_ordered, ComposeOptions, FileLoader, MemoryLoader,
 };
 use crate::forbidden_scan::scan_forbidden_keys;
+use data_limits::{check_data_limits, data_limits};
 
 /// Options for a CRUDUI validation run.
 #[derive(Default)]
@@ -117,7 +119,11 @@ pub fn validate(
         }
     }
 
+    // The data limits are checked after the forbidden-key scan and before the rule parameters.
+    let limits = data_limits(spec)?;
     // Rule parameters are checked after composition and the forbidden-key scan.
     let validator = Validator::new(properties)?;
+    // The data is measured before any rule.
+    check_data_limits(data, &limits)?;
     validator.validate(data)
 }

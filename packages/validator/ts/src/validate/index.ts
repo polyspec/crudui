@@ -28,6 +28,7 @@ import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { Validator } from './validator';
 import { FormInputError } from './errors';
+import { dataLimits } from './data-limits';
 import { checkInputText, checkOptionText, checkedComposition } from '../text/index';
 
 export { Validator, type ComposedField } from './validator';
@@ -70,7 +71,9 @@ export function validate(
   if (data === null || typeof data !== 'object' || Array.isArray(data)) {
     throw new FormInputError('Form data must be an object');
   }
-  return new Validator({ type: 'group', properties: composedProperties(spec, checked, options) }).validate(data);
+  const properties = composedProperties(spec, checked, options);
+  // The data limits are checked after the forbidden-key scan and before the rule names.
+  return new Validator({ type: 'group', properties }, dataLimits(spec)).validate(data);
 }
 
 /**

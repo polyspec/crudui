@@ -26,6 +26,7 @@ __all__ = [
     "VALUE_LIMIT_MESSAGE",
     "NESTING_LIMIT",
     "NODE_LIMIT",
+    "value_size",
     "check_input_text",
     "check_option_text",
     "check_specification_text",
@@ -103,6 +104,22 @@ def _first_failure(
 def _member_order(key: str) -> tuple[int, list[int]]:
     """Sort key placing every member name after the last, in code point order."""
     return (1, [ord(character) for character in key])
+
+
+def value_size(value: JsonValue) -> tuple[int, int]:
+    """The levels of lists and dicts that `value` nests, itself the first, and the nodes it holds."""
+    levels = nodes = 0
+    pending: list[tuple[JsonValue, int]] = [(value, 1)]
+    while pending:
+        node, level = pending.pop()
+        nodes += 1
+        if isinstance(node, list):
+            levels = max(levels, level)
+            pending.extend((item, level + 1) for item in node)
+        elif isinstance(node, dict):
+            levels = max(levels, level)
+            pending.extend((item, level + 1) for item in node.values())
+    return levels, nodes
 
 
 def value_failure(value: JsonValue) -> Failure:

@@ -11,6 +11,7 @@ use Polyspec\Crudui\Validator\Compose\Ref;
 use Polyspec\Crudui\Validator\ForbiddenScan;
 use Polyspec\Crudui\Validator\Support\JsonValue;
 use Polyspec\Crudui\Validator\Support\Text;
+use Polyspec\Crudui\Validator\Validate\DataLimits;
 use Polyspec\Crudui\Validator\Validate\FormInputError;
 use Polyspec\Crudui\Validator\Validate\Validator as DataValidator;
 use stdClass;
@@ -53,7 +54,12 @@ final class Validator
                 ForbiddenScan::scan($spec[$key], [$key]);
             }
         }
-        $result = (new DataValidator(['type' => 'group', 'properties' => $properties]))->validate((array) $data);
+        // The data limits are checked after the forbidden-key scan and before the rule parameters.
+        $limits = DataLimits::read($spec);
+        $validator = new DataValidator(['type' => 'group', 'properties' => $properties]);
+        // The data is measured before any rule.
+        DataLimits::check($data, $limits);
+        $result = $validator->validate((array) $data);
         return (object) [
             'valid' => $result->valid,
             'errors' => array_map(static fn ($error) => JsonValue::copy((object) $error), $result->errors),

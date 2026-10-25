@@ -52,10 +52,10 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 const VALUE_LIMIT_MESSAGE = 'Recursive or excessively nested value';
 
 /** Levels of arrays and objects a value may nest, the value itself included. */
-const NESTING_LIMIT = 512;
+export const NESTING_LIMIT = 512;
 
 /** Nodes a value may hold: every array, object, string, number, boolean and null, itself included. */
-const NODE_LIMIT = 1_000_000;
+export const NODE_LIMIT = 1_000_000;
 
 /** The first failure in a value: invalid text at its path, or the value is beyond its limits. */
 export type ValueFailure = { text: string[] } | { limit: true };
@@ -117,6 +117,26 @@ function firstFailure(value: unknown, path: string[], depth: number, walk: Walk)
  */
 export function valueFailure(value: unknown): ValueFailure | undefined {
   return holdsFailure(value, 0, new Walk()) ? firstFailure(value, [], 0, new Walk()) : undefined;
+}
+
+/**
+ * The levels of arrays and objects that `value` nests, the value itself the first, and the nodes it
+ * holds, counted as the value limits count them.
+ */
+export function valueSize(value: unknown): { levels: number; nodes: number } {
+  const size = { levels: 0, nodes: 0 };
+  const visit = (node: unknown, level: number): void => {
+    size.nodes++;
+    if (Array.isArray(node)) {
+      size.levels = Math.max(size.levels, level);
+      node.forEach(item => visit(item, level + 1));
+    } else if (isPlainObject(node)) {
+      size.levels = Math.max(size.levels, level);
+      for (const key of Object.keys(node)) visit(node[key], level + 1);
+    }
+  };
+  visit(value, 1);
+  return size;
 }
 
 function limitFailure(name: string): FormInputError {

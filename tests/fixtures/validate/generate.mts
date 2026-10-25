@@ -1468,8 +1468,9 @@ for (const name of Object.keys(REQUIREMENTS)) {
 /** Every case is a validate call of the runtime package (CURP-018) that validates record data and reports its errors (CURP-022). */
 const RUNTIME_REQUIREMENTS = ['CURP-018', 'CURP-022'];
 const out = generated.map(c => ({ ...c, requirements: [...(REQUIREMENTS[String(c.name)] ?? []), ...RUNTIME_REQUIREMENTS] }));
-const compactData = (name: string) => JSON.stringify(`__DATA_TEXT_${name}__`);
-let text = JSON.stringify(out.map(c => (DATA_LIMITS_COMPACT.includes(String(c.name)) ? { ...c, data: JSON.parse(compactData(String(c.name))) } : c)), null, 2);
+const dataPlaceholder = (name: string) => `__DATA_TEXT_${name}__`;
+const compactData = (name: string) => JSON.stringify(dataPlaceholder(name));
+let text = JSON.stringify(out.map(c => (DATA_LIMITS_COMPACT.includes(String(c.name)) ? { ...c, data: dataPlaceholder(String(c.name)) } : c)), null, 2);
 // Data of many nodes is written on one line, which a line per node would make the largest part of the file.
 for (const c of out) {
   if (!DATA_LIMITS_COMPACT.includes(String(c.name))) continue;
