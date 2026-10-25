@@ -23,6 +23,10 @@
 
 - C17.23 is done (C17.23): the form-render suite tests of Go, Rust and Python and the Python validate test no longer assert the hand-typed totals 154, 59, 209, 425, 229 and 196, which each row that added shared cases had to raise; each asserts that both kinds of case occur and that the result and failure cases together are every case of its cases.json, so a case that a later row adds needs no edit of the test and a case that records neither or both kinds fails. Red: make text-absent found the totals in the four files; green after the change.
 
+### 2026-10-25 — C17.10 bounds the submitted data (C17.10)
+
+- C17.10 is done (C17.10): a form root declares dataLimits: { depth, values }, 64 levels and 100000 nodes by default, and validation fails data beyond a limit with INVALID_FORM_INPUT and `Submitted data exceeds the {limit} limit of {n}` before any rule runs; a depth outside 1 to 512, values outside 1 to 1000000 or another member fails the load with INVALID_RULE_PARAMETER (docs/spec/validation-rules.md CUVR-082 to CUVR-084, docs/spec/schema.md CUSC-087). The nineteen cases of tests/fixtures/validate/data-limits.mts pass in TypeScript, PHP, the PHP extension, Go, Rust and Python.
+
 ### 2026-10-25 — C17.7 reads range bounds from data (C17.7)
 
 - C17.7 is done (C17.7): a field declares minFrom or maxFrom: <field reference>, and its value must be a finite number at or above or at or below the value of the referenced field; a missing or null bound declares none, a present bound that is not a finite number fails, and a parameter that is not a reference string fails the load (docs/spec/validation-rules.md CUVR-079, CUVR-081). The ten cases of tests/fixtures/validate/bounds-from.mts pass in TypeScript, PHP, the PHP extension, Go, Rust and Python.

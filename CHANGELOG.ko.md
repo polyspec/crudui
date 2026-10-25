@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 114ecfaffe5144feb91c187296ef82f656d5d7c8c720e0ac6f30b47570724831 -->
+<!-- source-sha256: b84df7974f3f14f11e0d50dae17c7f5d3418fe0970ffa33557fc63e98287fce9 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-25 — form-render와 validate 개수 test가 cases.json을 따른다(C17.23)
 
 - C17.23 완료(C17.23): Go, Rust, Python의 form-render suite test와 Python validate test는 공유 case를 추가한 row마다 올려야 했던 손으로 적은 합계 154, 59, 209, 425, 229, 196을 더 이상 assert하지 않는다. 각 test는 두 종류의 case가 모두 있고 결과 case와 실패 case를 합하면 그 cases.json의 모든 case인지 assert하므로, 뒤의 row가 추가한 case에 test를 고칠 필요가 없고 어느 종류도 기록하지 않거나 둘 다 기록한 case는 실패한다. red: make text-absent가 네 파일에서 합계를 찾았고, 변경 뒤 green.
+
+### 2026-10-25 — C17.10은 제출 데이터를 제한한다(C17.10)
+
+- C17.10 완료(C17.10): 폼 루트는 dataLimits: { depth, values }를 선언하며 기본값은 64단계와 100000노드입니다. 검증은 한도를 넘은 데이터를 어떤 규칙보다 먼저 INVALID_FORM_INPUT과 `Submitted data exceeds the {limit} limit of {n}`으로 실패시킵니다. 1부터 512 밖의 depth, 1부터 1000000 밖의 values, 다른 멤버는 INVALID_RULE_PARAMETER로 로드에 실패합니다(docs/spec/validation-rules.md CUVR-082부터 CUVR-084, docs/spec/schema.md CUSC-087). tests/fixtures/validate/data-limits.mts의 열아홉 case는 TypeScript, PHP, PHP 확장, Go, Rust, Python에서 통과합니다.
 
 ### 2026-10-25 — C17.7은 범위 경계를 데이터에서 읽는다(C17.7)
 
