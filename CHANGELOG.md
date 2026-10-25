@@ -7,6 +7,10 @@
 
 - C17.19 is done (C17.19): compilation and validation refuse a group source whose from or label names a checkbox or switcher field, whose data is true or false and would give no choice or label, with Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers (CUSC-068), in TypeScript, PHP, Go, Rust, Python and the C engine of the PHP extension. Red: the new validate and form-render cases failed in every implementation; green after the change.
 
+### 2026-10-26 — config/rebuild.json lists only tracked tools and classes each one (C17.30)
+
+- The rebuild entries of kit K614 for files that no longer exist are removed, and the group-source form-render tool is classed as policy like its siblings; rebuild-check passes.
+
 ### 2026-10-26 — The Makefile runs kit tools through $(KIT_EXT) (C17.29)
 
 - The ten recipe lines that ran $(KIT)/<tool>.mjs now run $(KIT)/<tool>.$(KIT_EXT), so the checks follow kit sources as .mts (K613).

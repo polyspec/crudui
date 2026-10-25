@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6e7cd9bf345f94429db06a4ecdc3aa07a79980cc87a7bfe3253f43b0b5bca4e0 -->
+<!-- source-sha256: 912d4c0da11c29de910d0775ddbb782c6bad449359cfbb529c547825dab6114e -->
 
 ## Unreleased
 
 ### 2026-10-26 — 그룹 소스는 boolean을 담는 필드를 거부한다(C17.19)
 
 - C17.19 완료(C17.19): from이나 label이 데이터가 true나 false여서 선택지도 라벨도 주지 않는 checkbox나 switcher 필드를 가리키는 그룹 소스를 컴파일과 검증이 Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers(CUSC-068)로 거부한다. TypeScript, PHP, Go, Rust, Python과 PHP extension의 C engine이 모두 따른다. red: 새 validate와 form-render case가 모든 구현에서 실패했고, 변경 뒤 green.
+
+### 2026-10-26 — config/rebuild.json은 추적된 도구만 적고 각 도구에 class를 붙인다 (C17.30)
+
+- K614 이후 더 이상 없는 파일의 rebuild 항목을 지웠고, group-source form-render 도구는 형제 도구와 같이 policy로 분류했다. rebuild-check가 통과한다.
 
 ### 2026-10-26 — Makefile이 kit 도구를 $(KIT_EXT)로 실행한다 (C17.29)
 
