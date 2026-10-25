@@ -17,6 +17,13 @@ describe('FieldSpec type assignability (the type is the reference schema)', () =
     expectTypeOf<Items>().toMatchTypeOf<NonNullable<FieldSpec['items']>>();
   });
 
+  it('accepts keys only beside only: true (docs/spec/schema.md, Keyed maps)', () => {
+    expectTypeOf<{ only: true; keys: string }>().toMatchTypeOf<Multiple>();
+    expectTypeOf<{ keys: string }>().not.toMatchTypeOf<Multiple>();
+    expectTypeOf<{ only: false; keys: string }>().not.toMatchTypeOf<Multiple>();
+    expectTypeOf<{ only: true; min: number }>().not.toMatchTypeOf<Multiple>();
+  });
+
   it('describes a range field with its literal bounds and step (docs/spec/schema.md, Range fields)', () => {
     expectTypeOf<{ type: 'range'; validate: { range: [number, number]; step: number } }>()
       .toMatchTypeOf<RangeFieldSpec>();

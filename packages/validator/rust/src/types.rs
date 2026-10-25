@@ -611,8 +611,10 @@ pub struct OptionsSlot {
 
 /// The `multiple` dimension of a field (docs/spec/schema.md, Acceptance criteria): `false`,
 /// `true`, the keyword `only` or a settings object.
+/// A keyed map (`keys`) accompanies only `only: true`: a settings object with `keys` and without
+/// `only: true` is refused when it is read (docs/spec/schema.md, Keyed maps).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(untagged, try_from = "MultipleValue")]
 pub enum Multiple {
     /// A Boolean toggle; `true` repeats the field with the default settings.
     Toggle(bool),
@@ -620,6 +622,30 @@ pub enum Multiple {
     Only(OnlyKeyword),
     /// An explicit settings object.
     Config(MultipleSpec),
+}
+
+/// The `multiple` value as it is written, before the keyed map rule is checked.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum MultipleValue {
+    Toggle(bool),
+    Only(OnlyKeyword),
+    Config(MultipleSpec),
+}
+
+impl TryFrom<MultipleValue> for Multiple {
+    type Error = String;
+
+    fn try_from(value: MultipleValue) -> Result<Self, Self::Error> {
+        Ok(match value {
+            MultipleValue::Toggle(toggle) => Multiple::Toggle(toggle),
+            MultipleValue::Only(keyword) => Multiple::Only(keyword),
+            MultipleValue::Config(settings) if settings.keys.is_some() && settings.only != Some(true) => {
+                return Err("multiple.keys: expected multiple.only: true".to_string());
+            }
+            MultipleValue::Config(settings) => Multiple::Config(settings),
+        })
+    }
 }
 
 /// The keyword `only` of `multiple`; no other string is a `multiple` value.
@@ -934,6 +960,8 @@ mod tests {
             r#"{ "type": "text", "multiple": "ONLY" }"#,
             r#"{ "type": "text", "multiple": { "only": true, "keys": 5 } }"#,
             r#"{ "type": "text", "multiple": { "only": "yes", "keys": "..characters" } }"#,
+            r#"{ "type": "text", "multiple": { "keys": "..characters" } }"#,
+            r#"{ "type": "text", "multiple": { "only": false, "keys": "..characters" } }"#,
         ] {
             let r: Result<FieldSpec, _> = serde_json::from_str(src);
             assert!(r.is_err(), "an invalid keyed map must be rejected: {src}");
