@@ -226,6 +226,11 @@ function prependAffix(ctx: WidgetCtx): Affix | undefined {
   };
 }
 
+/** The one option of a select or search field with no option: value '' and the untranslated text select (CUSC-080). */
+function placeholderOption(): OptionModel {
+  return { value: '', label: 'select', selected: false, isDefault: false };
+}
+
 /** Append affix from LocalizedText append (no dedicated design node). */
 function appendAffix(ctx: WidgetCtx): Affix | undefined {
   const content = ctx.spec.append;
@@ -468,7 +473,7 @@ const select: Evaluator = (ctx) => {
         ...dataAttrs(ctx),
       },
       source: dynamicSourceAttrs(items),
-      options: [{ value: '', label: 'select', selected: false, isDefault: false }],
+      options: [placeholderOption()],
       prepend: prependAffix(ctx),
       append: appendAffix(ctx),
     };
@@ -478,7 +483,7 @@ const select: Evaluator = (ctx) => {
   const groups = isChoiceList(items) ? choiceGroups(items) : [];
   const options: OptionModel[] =
     entries.length === 0
-      ? [{ value: '', label: 'select', selected: false, isDefault: false }]
+      ? [placeholderOption()]
       : entries.map(([key, val], index) => {
           const group = groups[index];
           return {
@@ -851,7 +856,7 @@ const search: Evaluator = (ctx) => {
     }
   }
   if (options.length === 0) {
-    options.push({ value: '', label: 'select', selected: false, isDefault: false });
+    options.push(placeholderOption());
   }
 
   const sourceAttrs = dynamic ? dynamicSourceAttrs(items) : null;

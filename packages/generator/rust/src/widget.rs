@@ -159,7 +159,8 @@ fn options(ctx: &WidgetContext<'_>, multi: bool, choice: bool) -> Vec<Value> {
     }).collect()
 }
 
-fn empty_option() -> Value {
+/// The one option of a select or search field with no option: value "" and the untranslated text select (CUSC-080).
+fn placeholder_option() -> Value {
     json!({"value":"","label":"select","selected":false,"isDefault":false})
 }
 
@@ -274,7 +275,7 @@ fn select_control(ctx: &WidgetContext<'_>) -> Value {
     ctx.data_attrs(&mut attrs);
     let mut options = options(ctx, false, false);
     if options.is_empty() {
-        options.push(empty_option());
+        options.push(placeholder_option());
     } else if is_choice_list(&ctx.spec["items"]) {
         // An option inside a group has the position of the group in the list and its label.
         for (option, group) in options.iter_mut().zip(choice_groups(&ctx.spec["items"])) {
@@ -483,7 +484,7 @@ fn search(ctx: &WidgetContext<'_>) -> Value {
     };
     let mut options = options(ctx, false, false);
     if options.is_empty() {
-        options.push(empty_option());
+        options.push(placeholder_option());
     }
     let mut model = json!({"kind":"search","layout":"search","tag":"select","attrs":attrs,"source":source,"options":options,
         "script":format!("$(function() {{select2(CSS.escape({}), {}, {}, {});{callback}}});",script_string(id),script_string(&min),script_string(&delay),script_string(&dropdown_class)),"styleChrome":style});

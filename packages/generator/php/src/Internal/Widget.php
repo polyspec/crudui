@@ -180,6 +180,12 @@ final class Widget
         return $style === null ? [] : ['style' => $style];
     }
 
+    /** The one option of a select or search field with no option: value '' and the untranslated text select (CUSC-080). */
+    private static function placeholderOption(): object
+    {
+        return (object) ['value' => '', 'label' => 'select', 'selected' => false, 'isDefault' => false];
+    }
+
     private function placeholder(): array
     {
         $text = $this->t($this->spec->placeholder ?? null);
@@ -409,7 +415,7 @@ final class Widget
             }
         }
         if (!$options) {
-            $options = [(object) ['value' => '', 'label' => 'select', 'selected' => false, 'isDefault' => false]];
+            $options = [self::placeholderOption()];
         }
         if ($kind === 'select') {
             $attrs = [

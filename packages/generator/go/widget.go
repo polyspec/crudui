@@ -198,6 +198,12 @@ func (c widgetContext) options(selected []string, defaults *string) []*Object {
 	}
 	return out
 }
+// placeholderOption is the one option of a select or search field with no option: value "" and the
+// untranslated text select (CUSC-080).
+func placeholderOption() *Object {
+	return NewObject("value", "", "label", "select", "selected", false, "isDefault", false)
+}
+
 func widget(kind, layout, tag string, attrs *Object) *Object {
 	w := NewObject("kind", kind, "layout", layout)
 	if tag != "" {
@@ -302,7 +308,7 @@ func evalWidget(c widgetContext) *Object {
 		w.Set("source", source)
 		options := c.options([]string{c.display()}, nil)
 		if len(options) == 0 {
-			options = []*Object{NewObject("value", "", "label", "select", "selected", false, "isDefault", false)}
+			options = []*Object{placeholderOption()}
 		} else if isChoiceList(items) {
 			// An option inside a choice list group has the group's position and translated label.
 			for i, group := range choiceGroups(items) {
@@ -564,7 +570,7 @@ func searchWidget(c widgetContext) *Object {
 	w.Set("source", source)
 	options := c.options([]string{c.display()}, nil)
 	if len(options) == 0 {
-		options = []*Object{NewObject("value", "", "label", "select", "selected", false, "isDefault", false)}
+		options = []*Object{placeholderOption()}
 	}
 	w.Set("options", options)
 	callback := ""

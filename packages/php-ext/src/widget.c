@@ -294,7 +294,8 @@ static ps_value *option_models(const widget_context *context, bool multiple, boo
     free(default_text.bytes); return options;
 }
 
-static ps_value *empty_option(void)
+/* The one option of a select or search field with no option: value "" and the untranslated text select (CUSC-080). */
+static ps_value *placeholder_option(void)
 {
     ps_value *option = ps_object_value();
     if (!option || !set_string(option, "value", "") ||
@@ -384,7 +385,7 @@ static ps_value *select_control(const widget_context *context)
         set_nonempty(attrs, "style", context_style(context)) && add_behavior(context, attrs) &&
         add_data(context, attrs);
     ps_value *options = ok ? option_models(context, false, false) : NULL;
-    if (options && !ps_size(options) && !ps_append(options, empty_option())) ok = false;
+    if (options && !ps_size(options) && !ps_append(options, placeholder_option())) ok = false;
     ps_value *model = ps_object_value();
     if (ok) ok = options && model && set_string(model, "kind", "select") &&
         set_string(model, "layout", "widget") && set_string(model, "tag", "select") &&
@@ -614,7 +615,7 @@ static ps_value *search_control(const widget_context *context)
         ? PS_CONCAT(PS_TEXT("[class~="), ps_view(quoted_container), PS_TEXT("] .loading-results { display: none; }"))
         : ps_copy(PS_TEXT(""));
     ps_value *options = ok ? option_models(context, false, false) : NULL;
-    if (options && !ps_size(options) && !ps_append(options, empty_option())) ok = false;
+    if (options && !ps_size(options) && !ps_append(options, placeholder_option())) ok = false;
     ps_value *model = ps_object_value();
     if (ok) ok = script.bytes && style.bytes && options && model && set_string(model, "kind", "search") &&
         set_string(model, "layout", "search") && set_string(model, "tag", "select") && ps_set(model, "attrs", attrs);

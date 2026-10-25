@@ -204,6 +204,14 @@ def _json_text(value: object) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def placeholder_option() -> dict[str, Any]:
+    """The one option of a select or search field with no option (CUSC-080).
+
+    Its value is "" and its text is select, untranslated.
+    """
+    return {"value": "", "label": "select", "selected": False, "isDefault": False}
+
+
 def _js(value: object) -> str:
     """A JavaScript string literal, with `<` escaped."""
     return json.dumps(value, ensure_ascii=False).replace("<", "\\u003c")
@@ -462,9 +470,7 @@ class _Widget:
                         "label": self.t(group["label"]) or scalar(group["label"]),
                     }
         if not options:
-            options = [
-                {"value": "", "label": "select", "selected": False, "isDefault": False}
-            ]
+            options = [placeholder_option()]
         if kind == "select":
             attrs = {
                 "name": self.name,
