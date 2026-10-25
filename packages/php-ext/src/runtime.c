@@ -204,7 +204,8 @@ static bool append_json(ps_html_buffer *out, const ps_value *value)
             snprintf(number, sizeof(number), "%lld", (long long)value->data.integer);
             return ps_html_text(out, number);
         case PS_FLOAT: {
-            ps_chars text = ps_format_general(value->data.number, 15);
+            /* JSON.stringify writes a number as Number.prototype.toString does; a non-finite number fails. */
+            ps_chars text = ps_number_text(value->data.number);
             bool ok = text.bytes && ps_html_append(out, ps_view(text));
             free(text.bytes);
             return ok;

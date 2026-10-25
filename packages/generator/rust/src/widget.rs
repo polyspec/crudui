@@ -109,7 +109,7 @@ fn source(items: &Value) -> Option<Value> {
     Some(
         json!({"data-source-model":scalar(items.get("model")),"data-source-method":scalar(items.get("method")),
         "data-source-table":scalar(items.get("table")),
-        "data-source-relations":items.get("relations").filter(|v| !v.is_null()).cloned().unwrap_or(json!([])).to_string()}),
+        "data-source-relations":items.get("relations").filter(|v| !v.is_null()).map_or_else(|| "[]".to_owned(), json_text)}),
     )
 }
 

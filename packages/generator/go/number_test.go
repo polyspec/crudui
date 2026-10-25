@@ -47,3 +47,13 @@ func TestNumberStringConversion(t *testing.T) {
 		}
 	}
 }
+
+// The relations of a dynamic source are written as JSON.stringify writes them: -0 as 0, a Go integer and a
+// float by numberString, and a string with only the quote, the backslash and the control characters escaped.
+func TestSourceRelationsWriteJSONStringifyText(t *testing.T) {
+	items := NewObject("model", "Doc", "relations", []any{math.Copysign(0, -1), 1e21, 3, NewObject("q<", "a&b \"\\\n\u0001")})
+	want := `[0,1e+21,3,{"q<":"a&b` + " " + `\"\\\n\u0001"}]`
+	if got := stringAt(sourceAttrs(items), "data-source-relations"); got != want {
+		t.Errorf("relations %q, want %q", got, want)
+	}
+}

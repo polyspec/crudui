@@ -11,6 +11,23 @@ fn number_string(number: &serde_json::Number) -> String {
     }
 }
 
+/// JSON text as JSON.stringify writes it: each number as `number_string` writes it.
+pub(crate) fn json_text(value: &Value) -> String {
+    match value {
+        Value::Number(n) => number_string(n),
+        Value::Array(items) => format!("[{}]", items.iter().map(json_text).collect::<Vec<_>>().join(",")),
+        Value::Object(members) => format!(
+            "{{{}}}",
+            members
+                .iter()
+                .map(|(key, member)| format!("{}:{}", Value::String(key.clone()), json_text(member)))
+                .collect::<Vec<_>>()
+                .join(",")
+        ),
+        other => other.to_string(),
+    }
+}
+
 pub(crate) fn scalar(value: Option<&Value>) -> String {
     match value {
         Some(Value::String(s)) => s.clone(),

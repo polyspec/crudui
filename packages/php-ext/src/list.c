@@ -1,7 +1,6 @@
 #include "engine_internal.h"
 
 #include <ctype.h>
-#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -263,80 +262,6 @@ static bool numeric_text(const ps_value *value, ps_chars *result)
     return result->bytes != NULL;
 }
 
-static void normalize_exponent(char *value)
-{
-    char *exponent = strchr(value, 'e');
-    if (!exponent) exponent = strchr(value, 'E');
-    if (!exponent) return;
-    *exponent = 'e';
-    char *digits = exponent + 1;
-    if (*digits == '+' || *digits == '-') digits++;
-    while (digits[0] == '0' && isdigit((unsigned char)digits[1]))
-        memmove(digits, digits + 1, strlen(digits));
-}
-
-static ps_chars shortest_number(double number)
-{
-    char candidate[128] = {0};
-    for (int precision = 1; precision <= DBL_DECIMAL_DIG; ++precision) {
-        ps_chars text = ps_format_general(number, precision);
-        if (!text.bytes) return text;
-        memcpy(candidate, text.bytes, text.length < sizeof(candidate) ? text.length + 1 : sizeof(candidate) - 1);
-        double parsed = 0; bool overflow = false;
-        bool whole = ps_c_number(ps_view(text), &parsed, &overflow) == text.length;
-        free(text.bytes);
-        if (whole && parsed == number) break;
-    }
-    const char *cursor = candidate;
-    bool negative = *cursor == '-';
-    if (negative) cursor++;
-    if (!isdigit((unsigned char)*cursor)) {
-        normalize_exponent(candidate);
-        return ps_copy(ps_fixed(candidate));
-    }
-    /* Collect the significant digits and the position of the decimal point after the first of them. */
-    char digits[64];
-    size_t count = 0;
-    long point = 0;
-    bool fraction = false;
-    for (; *cursor && *cursor != 'e' && *cursor != 'E'; ++cursor) {
-        if (*cursor == '.') { fraction = true; continue; }
-        if (!count && *cursor == '0') { if (fraction) point--; continue; }
-        if (count < sizeof(digits)) digits[count++] = *cursor;
-        if (!fraction) point++;
-    }
-    if (*cursor) point += strtol(cursor + 1, NULL, 10);
-    while (count > 1 && digits[count - 1] == '0') count--;
-    if (!count) return ps_copy(PS_TEXT("0"));
-    /* Write them as JavaScript's Number to String conversion does. */
-    char text[128];
-    size_t length = 0;
-    long k = (long)count;
-    if (negative) text[length++] = '-';
-    if (k <= point && point <= 21) {
-        memcpy(text + length, digits, count);
-        length += count;
-        for (long i = k; i < point; ++i) text[length++] = '0';
-    } else if (0 < point && point <= 21) {
-        memcpy(text + length, digits, (size_t)point);
-        length += (size_t)point;
-        text[length++] = '.';
-        memcpy(text + length, digits + point, count - (size_t)point);
-        length += count - (size_t)point;
-    } else if (-6 < point && point <= 0) {
-        text[length++] = '0';
-        text[length++] = '.';
-        for (long i = point; i < 0; ++i) text[length++] = '0';
-        memcpy(text + length, digits, count);
-        length += count;
-    } else {
-        length = ps_append_mantissa(text, length, digits, count);
-        length += (size_t)snprintf(text + length, sizeof(text) - length, "e%c%ld", point - 1 < 0 ? '-' : '+', labs(point - 1));
-    }
-    text[length] = '\0';
-    return ps_copy(ps_fixed(text));
-}
-
 static void bigint_normalize(list_bigint *value)
 {
     while (value->length && !value->limbs[value->length - 1]) value->length--;
@@ -558,7 +483,7 @@ static bool parse_number(const ps_value *value, double *number)
 static ps_chars fixed_number(double number, int decimals)
 {
     const ps_chars failed = {NULL, 0};
-    if (fabs(number) >= 1e21) return shortest_number(number);
+    if (fabs(number) >= 1e21) return ps_number_text(number);
     bool negative = number < 0;
     double absolute = fabs(number);
     uint64_t bits;
@@ -662,7 +587,7 @@ static ps_value *number_display(const ps_value *value, const ps_value *options, 
             return NULL;
         }
         body = fixed_number(number, (int)truncated);
-    } else body = shortest_number(number);
+    } else body = ps_number_text(number);
     ps_chars prefix = translated(member(options, "prefix"), language);
     ps_chars suffix = translated(member(options, "suffix"), language);
     ps_html_buffer text = {0};

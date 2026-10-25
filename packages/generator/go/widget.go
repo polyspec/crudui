@@ -87,12 +87,84 @@ func sourceAttrs(items any) *Object {
 		relations = []any{}
 	}
 	// relations was checked by checkOrderedValue with the whole specification, so it is a supported
-	// value with finite numbers, and Marshal cannot fail for it.
-	b, e := json.Marshal(relations)
-	if e != nil {
-		panic(fmt.Sprintf("sourceAttrs: marshal of checked relations: %v", e))
+	// value with finite numbers.
+	var b strings.Builder
+	writeJSONText(&b, relations)
+	return NewObject("data-source-model", stringAt(items, "model"), "data-source-method", stringAt(items, "method"), "data-source-table", stringAt(items, "table"), "data-source-relations", b.String())
+}
+
+// writeJSONText writes a checked JSON value as JSON.stringify writes it: each number as numberString
+// writes it, and each string with only the quote, the backslash and the control characters escaped.
+func writeJSONText(b *strings.Builder, v any) {
+	switch x := v.(type) {
+	case nil:
+		b.WriteString("null")
+	case bool:
+		b.WriteString(strconv.FormatBool(x))
+	case string:
+		writeJSONString(b, x)
+	case []any:
+		b.WriteByte('[')
+		for i, item := range x {
+			if i > 0 {
+				b.WriteByte(',')
+			}
+			writeJSONText(b, item)
+		}
+		b.WriteByte(']')
+	case *Object:
+		if x == nil {
+			b.WriteString("null")
+			return
+		}
+		b.WriteByte('{')
+		for i, key := range x.Keys() {
+			if i > 0 {
+				b.WriteByte(',')
+			}
+			writeJSONString(b, key)
+			b.WriteByte(':')
+			member, _ := x.Get(key)
+			writeJSONText(b, member)
+		}
+		b.WriteByte('}')
+	default:
+		number, ok := asNumber(x)
+		if !ok {
+			panic(fmt.Sprintf("writeJSONText: %T is no checked JSON value", v))
+		}
+		b.WriteString(numberString(number))
 	}
-	return NewObject("data-source-model", stringAt(items, "model"), "data-source-method", stringAt(items, "method"), "data-source-table", stringAt(items, "table"), "data-source-relations", string(b))
+}
+
+// writeJSONString writes a string as JSON.stringify quotes it.
+func writeJSONString(b *strings.Builder, s string) {
+	b.WriteByte('"')
+	for _, r := range s {
+		switch r {
+		case '"':
+			b.WriteString(`\"`)
+		case '\\':
+			b.WriteString(`\\`)
+		case '\b':
+			b.WriteString(`\b`)
+		case '\f':
+			b.WriteString(`\f`)
+		case '\n':
+			b.WriteString(`\n`)
+		case '\r':
+			b.WriteString(`\r`)
+		case '\t':
+			b.WriteString(`\t`)
+		default:
+			if r < 0x20 {
+				fmt.Fprintf(b, `\u%04x`, r)
+			} else {
+				b.WriteRune(r)
+			}
+		}
+	}
+	b.WriteByte('"')
 }
 func (c widgetContext) options(selected []string, defaults *string) []*Object {
 	out := []*Object{}

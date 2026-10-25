@@ -349,10 +349,7 @@ final class Widget
             'data-source-model' => Value::scalar($items->model),
             'data-source-method' => Value::scalar($items->method ?? null),
             'data-source-table' => Value::scalar($items->table ?? null),
-            'data-source-relations' => json_encode(
-                $items->relations ?? [],
-                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
-            ),
+            'data-source-relations' => self::json($items->relations ?? []),
         ];
     }
 
@@ -716,6 +713,28 @@ final class Widget
                 ...$this->behavior(),
             ],
             ['tag' => 'button', 'text' => $text]
+        );
+    }
+
+    /** JSON text as JSON.stringify writes it, each number as Numbers::string writes it. */
+    private static function json(mixed $value): string
+    {
+        if (is_int($value) || is_float($value)) {
+            return Numbers::string($value);
+        }
+        if (is_array($value) && array_is_list($value)) {
+            return '[' . implode(',', array_map(self::json(...), $value)) . ']';
+        }
+        if (is_array($value) || $value instanceof stdClass) {
+            $members = [];
+            foreach ((array) $value as $key => $member) {
+                $members[] = self::json((string) $key) . ':' . self::json($member);
+            }
+            return '{' . implode(',', $members) . '}';
+        }
+        return json_encode(
+            $value,
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS | JSON_THROW_ON_ERROR
         );
     }
 

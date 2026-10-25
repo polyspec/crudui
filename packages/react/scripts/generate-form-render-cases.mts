@@ -262,6 +262,14 @@ const NEW: FixtureCase[] = [
   pass('search-dynamic-stub', 'search dynamic items {model} → keeps placeholder option + data-source-*.',
     G({ sc: { type: 'search', label: { ko: '검색' },
       items: { model: 'Doc', method: 'find', table: 'docs', relations: [] } } }), {}, { language: 'ko' }),
+  pass('search-dynamic-relations-numbers', 'search dynamic items whose relations hold numbers → data-source-relations writes each number as Number.prototype.toString does: the shortest round trip, the exponent form from 1e21 and below 1e-6, and the digits of an integer beyond 64 bits.',
+    G({ sc: { type: 'search', label: { ko: '검색' },
+      items: { model: 'Doc', method: 'find', table: 'docs', relations: [
+        0.30000000000000004, 1e21, 1e-7, 100000000000000000000, 1.7976931348623157e308, 5e-324, -2.5e-8, { weight: 1.5e-7 },
+      ] } } }), {}, { language: 'ko' }),
+  pass('search-dynamic-relations-text', 'search dynamic items whose relations hold <, & and U+2028 in strings → data-source-relations writes them as JSON.stringify does, unescaped, and the attribute escapes them.',
+    G({ sc: { type: 'search', label: { ko: '검색' },
+      items: { model: 'Doc', method: 'find', table: 'docs', relations: ['a<b', 'x&y', 'line\u2028end', { 'q<': '<&>' }] } } }), {}, { language: 'ko' }),
 
   // ---- E. FALLBACK SURFACING -------------------------------------------------
   err('unsupported-type-throws', 'unregistered type under default throw → UnsupportedFieldTypeError.',
@@ -496,6 +504,8 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "choice-dynamic-stub": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-012"],
   "multichoice-dynamic-stub": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-012"],
   "search-dynamic-stub": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010", "CUMK-011"],
+  "search-dynamic-relations-numbers": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010", "CUMK-011"],
+  "search-dynamic-relations-text": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-010", "CUMK-011"],
   "choice-behavior-passthrough": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-012"],
   "button-behavior-onclick": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-007"],
   "control-attributes-text": ["CUMK-001", "CUMK-002", "CUMK-003", "CUMK-026", "CUMK-028"],

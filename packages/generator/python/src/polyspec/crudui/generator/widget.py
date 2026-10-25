@@ -17,6 +17,7 @@ from .choice_list import appearances as choice_appearances
 from .choice_list import check_appearance, is_choice_list, pairs
 from .design import declared as design_declared
 from .errors import FormError
+from .numbers import number_string
 from .value import (
     MISSING,
     Value,
@@ -183,6 +184,24 @@ def evaluate(
             for attribute, text in attributes.items():
                 target[attribute] = text
     return model
+
+
+def _json_text(value: object) -> str:
+    """JSON text as JSON.stringify writes it, each number as number_string writes it."""
+    if isinstance(value, list):
+        return "[" + ",".join(_json_text(item) for item in value) + "]"
+    if isinstance(value, dict):
+        return (
+            "{"
+            + ",".join(
+                f"{_json_text(str(key))}:{_json_text(item)}"
+                for key, item in value.items()
+            )
+            + "}"
+        )
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return number_string(value)
+    return json.dumps(value, ensure_ascii=False)
 
 
 def _js(value: object) -> str:
@@ -389,9 +408,7 @@ class _Widget:
             "data-source-model": scalar(items.get("model")),
             "data-source-method": scalar(items.get("method")),
             "data-source-table": scalar(items.get("table")),
-            "data-source-relations": json.dumps(
-                items.get("relations") or [], ensure_ascii=False, separators=(",", ":")
-            ),
+            "data-source-relations": _json_text(items.get("relations") or []),
         }
 
     def items(self) -> list[list[Any]]:
