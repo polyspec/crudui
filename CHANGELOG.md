@@ -43,6 +43,10 @@
 
 - C17.21 is done (C17.21): every failure of the Go generator that is no composition failure and no unsupported field is a `validate.FormInputError` with the code `INVALID_FORM_INPUT`, and the Go suites read the code from the error (ComposeLoadError, UnsupportedFieldTypeError or FormInputError) and fail on an error that carries none, instead of labelling every other error `INVALID_FORM_INPUT`. Red: parity-check of form-render failed in Go with 152 of 201 cases; green after the change.
 
+### 2026-10-25 — The empty select placeholder is a rule (C17.14)
+
+- C17.14 is done (C17.14): docs/spec/schema.md states as CUSC-080 that a select or search field with no option (no `items`, an empty array, an empty map or a dynamic source) writes exactly one `<option value="">select</option>`, untranslated and never selected, and docs/spec/validation-rules.md states as CUVR-080 that its value is an empty value, with the Korean twins. The form-render and validate fixtures test it, the parity units form-render and validate cite both requirements, and each of the six implementations builds the option in one constructor that cites CUSC-080; the output is unchanged. Red: parity-declarations-check failed with CUSC-080 and CUVR-080 untraced; green after the cases.
+
 ### 2026-10-25 — C17.17 reads the grammar tokens of describe from the token requirements (C17.17)
 
 - C17.17 is done (C17.17): crudui describe reads the tokens of docs/spec/expressions.md section 1 from the requirements CUXP-001 to CUXP-017, which C16.56 made bullets, instead of table rows that the section no longer holds; a line of another shape or a section without a token fails. The row runs the list-describe test of packages/cli, which make test-ts does not reach. Red: list-describe.test failed with 0 tokens; green after the change.

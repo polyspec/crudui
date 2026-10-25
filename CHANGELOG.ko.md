@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 053bc369b98507d23863df147819f5897161ca4ac04f61cff4e2bc98e2777395 -->
+<!-- source-sha256: 96fd2e7901b6067e0d32164d60a4e9c9baa2daa84181fbd719912e701f4dda24 -->
 
 ## Unreleased
 
@@ -43,6 +43,10 @@
 ### 2026-10-25 — Go 생성기는 코드가 있는 폼 입력 오류를 반환한다(C17.21)
 
 - C17.21 완료(C17.21): 합성 실패도 미지원 필드도 아닌 Go 생성기의 모든 실패는 코드 `INVALID_FORM_INPUT`의 `validate.FormInputError`이고, Go suite는 다른 모든 오류에 `INVALID_FORM_INPUT` 라벨을 붙이는 대신 오류(ComposeLoadError, UnsupportedFieldTypeError, FormInputError)에서 코드를 읽으며 코드가 없는 오류에서 실패한다. red: form-render parity-check가 Go에서 201개 중 152개 case로 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — 빈 select의 placeholder는 규칙이다(C17.14)
+
+- C17.14 완료(C17.14): docs/spec/schema.md는 CUSC-080으로 option이 없는 select나 search 필드(`items` 없음, 빈 배열, 빈 맵, 동적 소스)가 번역하지 않고 선택되지 않는 `<option value="">select</option>`을 정확히 하나 쓴다고 명시하고, docs/spec/validation-rules.md는 CUVR-080으로 그 값이 빈 값이라고 명시하며 한국어 twin도 같다. form-render와 validate fixture가 이를 검사하고, parity unit form-render와 validate가 두 요구사항을 인용하며, 여섯 구현은 각각 CUSC-080을 인용하는 하나의 constructor로 option을 만든다. 출력은 바뀌지 않는다. red: parity-declarations-check가 CUSC-080과 CUVR-080 미추적으로 실패했고, case 추가 뒤 green.
 
 ### 2026-10-25 — C17.17은 describe의 grammar token을 token 요구사항에서 읽는다(C17.17)
 
