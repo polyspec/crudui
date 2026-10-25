@@ -617,6 +617,13 @@ pub struct OptionsSlot {
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MultipleSpec {
+    /// Rows that exist only in the data: the data keys are the rows.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<bool>,
+    /// Field reference to a repeated group whose row keys are the only keys of this
+    /// keyed map, beside `only: true` (docs/spec/schema.md, Keyed maps).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub keys: Option<String>,
     /// Minimum row count.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub min: Option<Value>,
@@ -887,6 +894,26 @@ mod tests {
                 assert_eq!(m.header, Some(Value::from("sticky")));
             }
             other => panic!("expected multiple config, got {other:?}"),
+        }
+    }
+
+    // A keyed map declares only and keys under multiple; keys is a reference string.
+    #[test]
+    fn multiple_keyed_map_under_multiple() {
+        let f = parse(r#"{ "type": "text", "multiple": { "only": true, "keys": "..characters" } }"#);
+        match f.multiple {
+            Some(Polymorphic::Config(m)) => {
+                assert_eq!(m.only, Some(true));
+                assert_eq!(m.keys.as_deref(), Some("..characters"));
+            }
+            other => panic!("expected multiple config, got {other:?}"),
+        }
+        for src in [
+            r#"{ "type": "text", "multiple": { "only": true, "keys": 5 } }"#,
+            r#"{ "type": "text", "multiple": { "only": "yes", "keys": "..characters" } }"#,
+        ] {
+            let r: Result<FieldSpec, _> = serde_json::from_str(src);
+            assert!(r.is_err(), "an invalid keyed map must be rejected: {src}");
         }
     }
 
