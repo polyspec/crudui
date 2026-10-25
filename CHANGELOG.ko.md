@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fcec38b69aa3e2e3b4e26d608b0a35b2821c595a06b458cd1b3acd090b4f3858 -->
+<!-- source-sha256: 37b8b2f8762198c889770fb000626633648b4aa74751d52beac7b9799d8ff6d3 -->
 
 ## Unreleased
+
+### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
+
+- C17.2 완료(C17.2): 선택 필드는 items { from: group.*.field, label }을 선언하고 같은 폼 반복 그룹의 행을 데이터 순서대로 선택지로 나열한다(docs/spec/schema.md CUSC-061에서 CUSC-067). 컴파일과 검증기 로드는 규칙을 어기는 그룹 소스를 거부하고, 검증기는 선언한 규칙보다 먼저 암묵적 in 검사로 값을 선택지와 대조한다(docs/spec/validation-rules.md CUVR-060, CUVR-061). TypeScript, PHP, PHP extension, Go, Rust, Python에 구현했다. red: make parity-check UNITS="validate form-render"가 validate 16개와 form-render 8개 group-source 사례에서 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.17은 describe의 grammar token을 token 요구사항에서 읽는다(C17.17)
 
@@ -20,9 +24,9 @@
 
 - 바인딩이 없던 catch 절 33곳이 오류를 바인딩하고, 결과를 뜻하는 오류(JSON 파싱은 SyntaxError, 잘못된 URL이나 form 본문은 TypeError, 없는 파일이나 명령은 ENOENT 또는 종료 코드 1, 조건은 ParseError, 결과가 그것인 경우 FORBIDDEN_META_KEY와 INVALID_FORM_INPUT)로 좁히고 나머지는 다시 던진다. lint-ts의 catch-check가 통과한다.
 
-### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
+### 2026-10-25 — catch 절이 처리하는 오류를 명시한다 (C17.13)
 
-- C17.2 완료(C17.2): 선택 필드는 items { from: group.*.field, label }을 선언하고 같은 폼 반복 그룹의 행을 데이터 순서대로 선택지로 나열한다(docs/spec/schema.md CUSC-061에서 CUSC-067). 컴파일과 검증기 로드는 규칙을 어기는 그룹 소스를 거부하고, 검증기는 선언한 규칙보다 먼저 암묵적 in 검사로 값을 선택지와 대조한다(docs/spec/validation-rules.md CUVR-060, CUVR-061). TypeScript, PHP, PHP extension, Go, Rust, Python에 구현했다. red: make parity-check UNITS="validate form-render"가 validate 16개와 form-render 8개 group-source 사례에서 실패했고, 변경 뒤 green.
+- 바인딩이 없던 catch 절 33곳이 오류를 바인딩하고, 결과를 뜻하는 오류(JSON 파싱은 SyntaxError, 잘못된 URL이나 form 본문은 TypeError, 없는 파일이나 명령은 ENOENT 또는 종료 코드 1, 조건은 ParseError, 결과가 그것인 경우 FORBIDDEN_META_KEY와 INVALID_FORM_INPUT)로 좁히고 나머지는 다시 던진다. lint-ts의 catch-check가 통과한다.
 
 ### 2026-10-23 — C17.11-1은 worktree의 도구를 main checkout에서 읽는다(C17.11-1)
 
