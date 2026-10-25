@@ -55,9 +55,9 @@ func namesRepeatedGroup(reference any, declaration []string, root *compose.OMap)
 	properties := root
 	for _, name := range base {
 		raw, _ := properties.Get(name)
-		field, _ := raw.(*compose.OMap)
+		field, isField := raw.(*compose.OMap)
 		properties = nil
-		if field != nil {
+		if isField && field != nil {
 			properties = childProperties(field)
 		}
 		if properties == nil {
@@ -66,8 +66,8 @@ func namesRepeatedGroup(reference any, declaration []string, root *compose.OMap)
 	}
 	for index, name := range names {
 		raw, _ := properties.Get(name)
-		field, _ := raw.(*compose.OMap)
-		if field == nil || fieldType(field) != "group" || childProperties(field) == nil {
+		field, isField := raw.(*compose.OMap)
+		if !isField || field == nil || fieldType(field) != "group" || childProperties(field) == nil {
 			return false
 		}
 		if index == len(names)-1 {
@@ -100,9 +100,9 @@ func checkKeyedMapKeys(field *compose.OMap, value map[string]any, fieldPath []st
 	if !declared || !ok {
 		return nil
 	}
-	ids, _ := resolveFieldReference(reference, fieldPath, rowKeys, allData).(map[string]any)
+	ids, isGroup := resolveFieldReference(reference, fieldPath, rowKeys, allData).(map[string]any)
 	for _, key := range sortedKeys(value) {
-		if _, found := ids[key]; !found {
+		if _, found := ids[key]; !isGroup || !found {
 			return &FormInputError{Message: "Row key is not an id of " + reference + ": " + pathToString(appendPath(fieldPath, key))}
 		}
 	}

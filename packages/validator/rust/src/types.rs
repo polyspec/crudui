@@ -620,8 +620,8 @@ pub enum Multiple {
     Toggle(bool),
     /// The keyword `only`: rows that exist only in the data, the same as `{ "only": true }`.
     Only(OnlyKeyword),
-    /// An explicit settings object.
-    Config(MultipleSpec),
+    /// An explicit settings object, boxed because it is far larger than the other forms.
+    Config(Box<MultipleSpec>),
 }
 
 /// The `multiple` value as it is written, before the keyed map rule is checked.
@@ -630,7 +630,7 @@ pub enum Multiple {
 enum MultipleValue {
     Toggle(bool),
     Only(OnlyKeyword),
-    Config(MultipleSpec),
+    Config(Box<MultipleSpec>),
 }
 
 impl TryFrom<MultipleValue> for Multiple {

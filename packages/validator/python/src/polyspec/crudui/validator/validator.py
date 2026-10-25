@@ -371,7 +371,9 @@ class Validator:
                     f"Repeated data must be a keyed object: {path_to_string(field_path)}"
                 )
             if is_multiple and present and _is_object(field_value):
-                assert_keyed_map_keys(field, field_value, field_path, row_keys, all_data)
+                assert_keyed_map_keys(
+                    field, field_value, field_path, row_keys, all_data
+                )
             if present and _is_single_choice(field):
                 _assert_single_choice_data(field_value, field_path, is_multiple)
 

@@ -96,7 +96,8 @@ def assert_keyed_map_keys(
     if not isinstance(reference, str):
         return
     group = resolve_field_reference(
-        reference, {"currentPath": field_path, "rowKeys": row_keys, "formData": all_data}
+        reference,
+        {"currentPath": field_path, "rowKeys": row_keys, "formData": all_data},
     )
     ids = group if isinstance(group, dict) else {}
     for key in sorted(value):

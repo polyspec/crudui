@@ -104,14 +104,16 @@ final class KeyedMaps
         [$declares, $reference] = self::reference($field);
         if ($declares && !self::namesRepeatedGroup($reference, $declarationPath, $root)) {
             throw new FormInputError(
-                'Invalid multiple.keys at ' . implode('.', $declarationPath) . ': expected a reference to a repeated group'
+                'Invalid multiple.keys at ' . implode('.', $declarationPath)
+                . ': expected a reference to a repeated group'
             );
         }
     }
 
     /**
      * Fail when a key of the field's keyed object is not a row key of the group that its
-     * `multiple.keys` names, read in the field's row context (CUVR-069); keys in code point order, the byte order of their UTF-8 text.
+     * `multiple.keys` names, read in the field's row context (CUVR-069); keys in code point order, the byte
+     * order of their UTF-8 text.
      *
      * @param array<string, mixed> $field
      * @param list<string> $fieldPath
@@ -119,8 +121,13 @@ final class KeyedMaps
      * @param array<string, mixed>|\stdClass $allData
      * @throws FormInputError with the data path of the first row whose key is not an id
      */
-    public static function assertKeys(array $field, mixed $value, array $fieldPath, array $rowKeys, array|\stdClass $allData): void
-    {
+    public static function assertKeys(
+        array $field,
+        mixed $value,
+        array $fieldPath,
+        array $rowKeys,
+        array|\stdClass $allData,
+    ): void {
         [$declares, $reference] = self::reference($field);
         if (!$declares || !\is_string($reference)) {
             return;
@@ -131,7 +138,9 @@ final class KeyedMaps
         sort($keys, SORT_STRING);
         foreach ($keys as $key) {
             if (!\array_key_exists($key, $ids)) {
-                throw new FormInputError('Row key is not an id of ' . $reference . ': ' . implode('.', [...$fieldPath, $key]));
+                throw new FormInputError(
+                    'Row key is not an id of ' . $reference . ': ' . implode('.', [...$fieldPath, $key])
+                );
             }
         }
     }
