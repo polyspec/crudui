@@ -817,14 +817,6 @@ static bool keyed_map_keys(const ps_value *field, const ps_value *rows, validati
     return true;
 }
 
-/* A repeated field: multiple is true, only or an object. */
-static bool repeated_field(const ps_value *field)
-{
-    const ps_value *multiple = ps_get(field, "multiple");
-    return multiple && (multiple->kind == PS_OBJECT || ps_is_string(multiple, "only") ||
-                        (multiple->kind == PS_BOOL && multiple->data.boolean));
-}
-
 /* The rows of a repeated scalar field, each with its element rules, in sorted key order. */
 static bool validate_elements(const ps_value *field, const ps_value *rows, validation_context *context,
                               const ps_text *path, size_t length, size_t depth)
@@ -885,7 +877,7 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
         if (!field_path || !reserve_row_keys(context, length + 2)) { free(field_path ? field_path : path); return false; }
         path = field_path; path[length] = name; context->row_keys[length] = false;
         const ps_value *value = data && data->kind == PS_OBJECT ? ps_get_text(data, name) : NULL;
-        bool repeated = repeated_field(field);
+        bool repeated = ps_repeated_field(field);
         const ps_value *children = ps_get(field, "properties");
         bool group = ps_is_string(ps_get(field, "type"), "group") && children && children->kind == PS_OBJECT;
         if (repeated && value && value->kind != PS_OBJECT) {
@@ -977,7 +969,7 @@ static bool collect_hidden(const ps_value *properties, const ps_value *data, val
         if (!child_path) return false;
         memcpy(child_path, path, (length + 1) * sizeof(*child_path));
         bool ok = true;
-        if (!repeated_field(field)) {
+        if (!ps_repeated_field(field)) {
             ok = collect_hidden(children, value, context, child_path, length + 1, hidden);
         } else if (value) {
             size_t count = 0; ps_text *keys = sorted_row_keys(value, &count);

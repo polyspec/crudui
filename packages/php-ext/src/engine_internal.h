@@ -530,11 +530,14 @@ ps_value *ps_parameter_error(ps_text rule, const ps_parameter_problem *problem,
 /*
  * Check the declared rule names and parameters of composed form properties: fields in declaration
  * order (a group before its children), each field's rules in declaration order and then its
- * messages keys; a name that is not a registered rule is UNKNOWN_RULE. A resolved parameter given by a
+ * messages keys and its multiple.keys reference (INVALID_FORM_INPUT when it names no repeated group,
+ * docs/spec/validation-rules.md, Keyed maps); a name that is not a registered rule is UNKNOWN_RULE. A resolved parameter given by a
  * condition is checked when validation resolves it. Returns the first load failure, an internal
  * error on allocation failure, or NULL.
  */
 ps_value *ps_check_rule_parameters(const ps_value *properties, ps_pattern_cache *patterns);
+/* A repeated field: multiple is true, only or an object (rule_parameters.c). */
+bool ps_repeated_field(const ps_value *field);
 
 ps_result ps_ok(ps_value *value);
 /* Errors with fixed text. */

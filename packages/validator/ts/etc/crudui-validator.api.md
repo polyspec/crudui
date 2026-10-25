@@ -300,18 +300,35 @@ export interface MessagesSpec {
 export type Multiple = boolean | 'only' | MultipleSettings;
 
 // @public
-export interface MultipleSettings {
+export interface MultipleDataSettings {
+    controls?: never;
+    copy?: never;
+    header?: 'static' | 'sticky';
+    keys?: string;
+    max?: never;
+    min?: never;
+    onclick?: never;
+    only: true;
+    sortable?: never;
+    title?: string;
+}
+
+// @public
+export interface MultipleRowSettings {
     controls?: 'header' | 'footer' | 'outline';
     copy?: boolean;
     header?: 'static' | 'sticky';
-    keys?: string;
+    keys?: never;
     max?: number;
     min?: number;
     onclick?: string;
-    only?: boolean;
+    only?: false;
     sortable?: boolean;
     title?: string;
 }
+
+// @public
+export type MultipleSettings = MultipleRowSettings | MultipleDataSettings;
 
 // @public
 export interface OptionsSlot {

@@ -12,7 +12,7 @@ import { compareCodePoints } from '../text/index';
 import { pathToString, resolveFieldReference } from '../parser/PathResolver';
 
 /** The declared `multiple.keys` of a field, or undefined when it declares none. */
-export function keyedMapReference(field: Record<string, unknown>): unknown {
+function keyedMapReference(field: Record<string, unknown>): unknown {
   const multiple = field.multiple;
   return isRecord(multiple) && Object.prototype.hasOwnProperty.call(multiple, 'keys') ? multiple.keys : undefined;
 }

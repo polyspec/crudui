@@ -257,8 +257,7 @@ static ps_value *check_field(const ps_value *field, const ps_text *path, size_t 
     return NULL;
 }
 
-/* A declared field repeats: multiple is true, only or an object. */
-static bool declared_repeats(const ps_value *field)
+bool ps_repeated_field(const ps_value *field)
 {
     const ps_value *multiple = ps_get(field, "multiple");
     return multiple && (multiple->kind == PS_OBJECT || ps_is_string(multiple, "only") ||
@@ -303,8 +302,8 @@ static bool names_repeated_group(const ps_value *reference, const ps_value *root
         if (!field || field->kind != PS_OBJECT || !ps_is_string(ps_get(field, "type"), "group") ||
             !children || children->kind != PS_OBJECT)
             return false;
-        if (end == SIZE_MAX) return declared_repeats(field);
-        if (declared_repeats(field)) return false;
+        if (end == SIZE_MAX) return ps_repeated_field(field);
+        if (ps_repeated_field(field)) return false;
         properties = children;
         start = end + 1;
     }
