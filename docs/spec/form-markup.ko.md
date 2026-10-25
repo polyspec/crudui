@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: afe8c119b0199a10ba853a43457f5bbba9cf0199cfe4c2c6794c63ce0dcaa9af -->
+<!-- source-sha256: ced37156f995a6c094cecb884e07e3792b69817bfb009438a191426d9453e770 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -46,6 +46,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 - **CUMK-017** `hidden`: `design.show`가 false인 노드, 접힌 행 본문, 펼친 행의 요약
 - **CUMK-018** `aria-expanded`, `aria-controls`: 행 토글 상태와 제어하는 본문
 - **CUMK-019** `step="any"`: 모든 숫자 컨트롤(`number`, `integer`, `float`, `decimal`), 아래 참조
+- **CUMK-069** control 값의 숫자는 그 [정규 텍스트](validation-rules.ko.md#값)로 씁니다: 같은 double로
+  다시 읽히는 가장 짧은 텍스트
 
 버튼의 컬렉션 경로는 버튼 자신 또는 가장 가까운 상위 `[data-field-path]`입니다.
 행 키는 그 요소 안에서 가장 가까운 `[data-crudui-row-key]`이며, 없으면 작업은

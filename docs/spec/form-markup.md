@@ -48,6 +48,8 @@ spec declares in `design`.
 - **CUMK-017** `hidden`: `design.show` is false; a collapsed row body; the summary of an expanded row
 - **CUMK-018** `aria-expanded`, `aria-controls`: Row toggle state and the controlled body
 - **CUMK-019** `step="any"`: Every number control (`number`, `integer`, `float`, `decimal`); see below
+- **CUMK-069** A number in a control value is written as its [canonical text](validation-rules.md#values):
+  the shortest text that reads back as the same double
 
 A button's collection path is the nearest `[data-field-path]` at or above it. Its
 row key is the nearest `[data-crudui-row-key]` inside that element; without one

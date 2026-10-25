@@ -3190,6 +3190,33 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"m\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">복수</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\" data-source-method=\"\" data-source-model=\"Tag\" data-source-relations=\"[]\" data-source-table=\"tags\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
   },
   {
+    "name": "text-float-value",
+    "note": "a float control value is written as its canonical text, the shortest text of its double.",
+    "requirements": [
+      "CUMK-001",
+      "CUMK-002",
+      "CUMK-003",
+      "CUMK-011",
+      "CUMK-069"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "ratio": {
+          "type": "text",
+          "label": "Ratio"
+        }
+      }
+    },
+    "data": {
+      "ratio": 0.30000000000000004
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"ratio\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:ratio\">Ratio</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"ratio\" data-rule-name=\"ratio\" id=\"crudui:ratio\" name=\"ratio\" type=\"text\" value=\"0.30000000000000004\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
     "name": "search-dynamic-stub",
     "note": "search dynamic items {model} → keeps placeholder option + data-source-*.",
     "requirements": [
