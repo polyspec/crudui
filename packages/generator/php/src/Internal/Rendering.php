@@ -96,7 +96,8 @@ final class Rendering
         return '<' . $tag . self::attrs($attrs, $raw) . '>' . $body . '</' . $tag . '>';
     }
 
-    private static function input(array|stdClass $attrs, bool $raw = false): string
+    /** Serialize an input, an ordinary one with its name, checked and value last. */
+    public static function input(array|stdClass $attrs, bool $raw = false): string
     {
         if (!$raw) {
             $attrs = (array) $attrs;
@@ -387,7 +388,8 @@ final class Rendering
         );
     }
 
-    private static function affix(?stdClass $affix, bool $raw = false): string
+    /** Serialize the prepend or append affix of a widget, or nothing without one. */
+    public static function affix(?stdClass $affix, bool $raw = false): string
     {
         return $affix === null
             ? ''
@@ -402,7 +404,8 @@ final class Rendering
             );
     }
 
-    private static function control(stdClass $widget, bool $raw = false): string
+    /** Serialize the control element of a widget model: its input, select, textarea or button. */
+    public static function control(stdClass $widget, bool $raw = false): string
     {
         if (($widget->tag ?? '') === 'textarea') {
             $text = $widget->text ?? '';
@@ -574,6 +577,8 @@ final class Rendering
                     self::text($widget->text ?? '', $raw),
                     $raw
                 );
+            case 'condition':
+                return ConditionMarkup::widget($widget, $raw);
         }
         throw new \LogicException('Unknown widget layout: ' . $widget->layout);
     }

@@ -370,7 +370,150 @@ fn widget(model: &Value) -> String {
                 )
             }
         }
+        "condition" => condition_widget(model),
         _ => String::new(),
+    }
+}
+
+/// A structured condition widget (docs/spec/form-markup.md, Structured condition editor): the prepend affix, the
+/// named error of a value that the editor does not show, the textarea, the editor of a value that it shows and the
+/// append affix.
+fn condition_widget(model: &Value) -> String {
+    let raw = has_events(&model["attrs"]);
+    let editor = &model["condition"];
+    let mut content = affix(&model["prepend"], raw);
+    if let Some(error) = editor.get("error") {
+        content += &element(
+            "p",
+            &json!({"class":"crudui-condition__error","role":"alert"}),
+            &escape(error.as_str().unwrap_or("")),
+        );
+    }
+    content += &control(model, false);
+    if editor.get("error").is_none() {
+        content += &element(
+            "div",
+            &json!({"class":"crudui-condition","data-condition-for":editor["for"]}),
+            &condition_node(&editor["root"], editor),
+        );
+    }
+    element(
+        "div",
+        &json!({"class":"crudui-widget crudui-widget--condition"}),
+        &(content + &affix(&model["append"], raw)),
+    )
+}
+
+fn condition_button(action: &str, label: &Value) -> String {
+    element(
+        "button",
+        &json!({"type":"button","class":"crudui-action crudui-action--text","data-condition-action":action}),
+        &escape(label.as_str().unwrap_or("")),
+    )
+}
+
+fn condition_select(attrs: &Value, choices: &[&str], selected: &str) -> String {
+    let options: String = choices
+        .iter()
+        .map(|choice| {
+            let mut option = json!({"value":choice});
+            if *choice == selected {
+                option["selected"] = "".into();
+            }
+            element("option", &option, &escape(choice))
+        })
+        .collect();
+    element("select", attrs, &options)
+}
+
+/// One condition of the editor: a group, a field comparison or a judged text (CUMK-067).
+fn condition_node(node: &Value, editor: &Value) -> String {
+    let labels = &editor["labels"];
+    let path = str_at(node, "path");
+    let remove = if path.is_empty() {
+        String::new()
+    } else {
+        condition_button("remove", &labels["remove"])
+    };
+    match str_at(node, "kind") {
+        "group" => {
+            let items: String = node["items"]
+                .as_array()
+                .map_or(&[][..], Vec::as_slice)
+                .iter()
+                .map(|item| {
+                    element(
+                        "li",
+                        &json!({"class":"crudui-condition__item"}),
+                        &condition_node(item, editor),
+                    )
+                })
+                .collect();
+            let judge = if editor["judge"] == true {
+                condition_button("add-judge", &labels["addJudge"])
+            } else {
+                String::new()
+            };
+            element(
+                "fieldset",
+                &json!({"class":"crudui-condition__group","data-condition-path":path}),
+                &(condition_select(
+                    &json!({"class":"crudui-condition__mode","data-condition-part":"mode","aria-label":labels["mode"]}),
+                    &["all", "any"],
+                    str_at(node, "mode"),
+                ) + &element("ol", &json!({"class":"crudui-condition__list"}), &items)
+                    + &condition_button("add-comparison", &labels["addComparison"])
+                    + &condition_button("add-group", &labels["addGroup"])
+                    + &judge
+                    + &remove),
+            )
+        }
+        "judge" => element(
+            "div",
+            &json!({"class":"crudui-condition__judge","data-condition-path":path}),
+            &(element(
+                "input",
+                &json!({"class":"crudui-condition__text","data-condition-part":"judge","value":node["text"]}),
+                "",
+            ) + &remove),
+        ),
+        _ => {
+            let field = str_at(node, "field");
+            let control = match editor["fields"].as_array() {
+                Some(names) => {
+                    let mut choices: Vec<&str> = names.iter().filter_map(Value::as_str).collect();
+                    if !choices.contains(&field) {
+                        choices.insert(0, field);
+                    }
+                    condition_select(
+                        &json!({"class":"crudui-condition__field","data-condition-part":"field"}),
+                        &choices,
+                        field,
+                    )
+                }
+                None => element(
+                    "input",
+                    &json!({"class":"crudui-condition__field","data-condition-part":"field","value":field}),
+                    "",
+                ),
+            };
+            element(
+                "div",
+                &json!({"class":"crudui-condition__comparison","data-condition-path":path}),
+                &(control
+                    + &condition_select(
+                        &json!({"class":"crudui-condition__op","data-condition-part":"op"}),
+                        &crate::condition_editor::CONDITION_OPS,
+                        str_at(node, "op"),
+                    )
+                    + &element(
+                        "input",
+                        &json!({"class":"crudui-condition__value","data-condition-part":"value","value":node["value"]}),
+                        "",
+                    )
+                    + &remove),
+            )
+        }
     }
 }
 

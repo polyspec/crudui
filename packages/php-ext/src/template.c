@@ -91,6 +91,32 @@ static bool condition_type(const ps_value *type)
     return true;
 }
 
+/* The error of an options.fields that breaks its rule (docs/spec/schema.md, CUSC-084). */
+static bool condition_fields_error(ps_text path, ps_value **error)
+{
+    return ps_declaration_error(PS_TEXT("options.fields"), path, "distinct field names of a structured condition editor", error);
+}
+
+/*
+ * Reject a design.editor of a condition field other than text or structured (CUSC-083), and an
+ * options.fields outside a structured editor or with names that break its rule (CUSC-084).
+ */
+static bool condition_editor_valid(const ps_value *spec, ps_text path, ps_value **error)
+{
+    const ps_value *editor = member(member(spec, "design"), "editor");
+    if (editor && !ps_is_string(editor, "text") && !ps_is_string(editor, "structured"))
+        return ps_declaration_error(PS_TEXT("design.editor"), path, "text or structured", error);
+    const ps_value *fields = member(member(spec, "options"), "fields");
+    if (!fields) return true;
+    bool valid = ps_is_string(editor, "structured") && fields->kind == PS_ARRAY;
+    for (size_t i = 0; valid && i < ps_size(fields); ++i) {
+        const ps_value *name = ps_at(fields, i);
+        valid = name->kind == PS_STRING && !ps_empty_value(name);
+        for (size_t j = 0; valid && j < i; ++j) valid = !ps_equal(name, ps_at(fields, j));
+    }
+    return valid || condition_fields_error(path, error);
+}
+
 /* Reject a condition field whose validate.conditionTree is not the literal true or judge: every
    value of the field is checked as a condition tree. */
 static bool condition_declaration_valid(const ps_value *spec, ps_text path, ps_value **error)
@@ -184,12 +210,14 @@ static bool declarations_valid(const ps_value *spec, ps_text path, bool field, p
         layouts = multiple && ((multiple->kind == PS_BOOL && multiple->data.boolean) ||
                                multiple->kind == PS_OBJECT || ps_is_string(multiple, "only")) ? 2 : 3;
     const ps_value *design = ps_get(spec, "design");
-    if (design && !ps_design_declaration_valid(design, path, field, layouts, error)) return false;
+    if (design && !ps_design_declaration_valid(design, path, field, layouts, field && condition_type(ps_get(spec, "type")), error)) return false;
     const ps_value *behavior = ps_get(spec, "behavior");
     if (behavior && behavior->kind == PS_OBJECT &&
         !ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error)) return false;
     if (field && range_type(ps_get(spec, "type")) && !range_declaration_valid(spec, path, error)) return false;
-    return !field || !condition_type(ps_get(spec, "type")) || condition_declaration_valid(spec, path, error);
+    if (field && condition_type(ps_get(spec, "type")))
+        return condition_declaration_valid(spec, path, error) && condition_editor_valid(spec, path, error);
+    return !field || !ps_has(member(spec, "options"), "fields") || condition_fields_error(path, error);
 }
 
 /* Reject a wrong root action or buttons declaration. */

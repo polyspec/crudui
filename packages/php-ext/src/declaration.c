@@ -86,12 +86,14 @@ bool ps_declared_attributes_valid(const ps_value *attributes, const char *key, p
     return true;
 }
 
-bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts,
+bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts, bool condition,
                                  ps_value **error)
 {
     static const char *const design_keys[] = {"show", "class", "style", "label", "wrapper", "group", "prepend"};
     static const char *const field_design_keys[] = {"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"};
     static const char *const group_design_keys[] = {"show", "class", "style", "attributes", "layout", "label", "wrapper", "group", "prepend"};
+    /* A condition field also declares its editor (docs/spec/schema.md, Structured condition editor). */
+    static const char *const condition_design_keys[] = {"show", "class", "style", "attributes", "editor", "label", "wrapper", "group", "prepend"};
     static const char *const layout_names[] = {"stacked", "inline", "line"};
     static const char *const node_keys[] = {"class", "style"};
     static const char *const field_wrapper_keys[] = {"class", "style", "attributes"};
@@ -106,6 +108,7 @@ bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool fiel
         return ps_declaration_error(PS_TEXT("design"), path, "a boolean or an object", error);
     if (design->kind != PS_OBJECT) return true;
     if (!(layouts ? ps_known_keys(design, "design", group_design_keys, 9, path, error)
+          : condition ? ps_known_keys(design, "design", condition_design_keys, 9, path, error)
           : field ? ps_known_keys(design, "design", field_design_keys, 8, path, error)
                   : ps_known_keys(design, "design", design_keys, 7, path, error)))
         return false;

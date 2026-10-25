@@ -14,6 +14,9 @@ type formMessages struct {
 	rowControls, collectionControls, formControls           string
 	formActions, submit, reset                              string
 	outline, data, untitled, collapsed, count, children     string
+	// The structured condition editor (docs/spec/form-markup.md, Structured condition editor).
+	conditionMode, conditionAddComparison, conditionAddGroup string
+	conditionAddJudge, conditionRemove, conditionInvalid     string
 }
 
 // listMessages holds the interface text of list pagination buttons and empty state.

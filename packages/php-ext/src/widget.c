@@ -792,6 +792,129 @@ static ps_chars condition_text(const ps_value *value)
     return ps_html_take(&out);
 }
 
+/* The comparison operators that the structured editor offers, in their order (CUSC-073, CUSC-085). */
+const char *const ps_condition_ops[8] = {"eq", "ne", "lt", "le", "gt", "ge", "in", "has"};
+
+/* A new object with the kind and path of an editor node, or NULL on allocation failure. */
+static ps_value *condition_node_start(const char *kind, ps_text path)
+{
+    ps_value *node = ps_object_value();
+    if (node && set_string(node, "kind", kind) && ps_set(node, "path", ps_text_value(path))) return node;
+    ps_value_free(node);
+    return NULL;
+}
+
+/*
+ * The editor node of a condition at path and depth (docs/spec/schema.md, CUSC-086), or NULL when the
+ * editor does not show it; an allocation failure sets *failed.
+ */
+static ps_value *condition_node(const ps_value *value, ps_text path, size_t depth, bool judge, bool *failed)
+{
+    if (depth > 32 || !value || value->kind != PS_OBJECT) return NULL;
+    size_t count = ps_size(value);
+    ps_text key = ps_key(value, 0);
+    if (count == 1 && (ps_text_is(key, "all") || ps_text_is(key, "any"))) {
+        const ps_value *list = ps_at(value, 0);
+        if (!list || list->kind != PS_ARRAY) return NULL;
+        ps_value *items = ps_array_value();
+        if (!items) { *failed = true; return NULL; }
+        for (size_t i = 0; i < ps_size(list); ++i) {
+            ps_chars index = ps_decimal(i);
+            ps_chars child_path = index.bytes ? PS_CONCAT(path, PS_TEXT("/"), key, PS_TEXT("/"), ps_view(index)) : (ps_chars){NULL, 0};
+            free(index.bytes);
+            if (!child_path.bytes) { *failed = true; ps_value_free(items); return NULL; }
+            ps_value *child = condition_node(ps_at(list, i), ps_view(child_path), depth + 1, judge, failed);
+            free(child_path.bytes);
+            if (!child) { ps_value_free(items); return NULL; }
+            if (!ps_append(items, child)) { *failed = true; ps_value_free(items); return NULL; }
+        }
+        ps_value *node = condition_node_start("group", path);
+        if (node && ps_set(node, "mode", ps_text_value(key)) && set_owned_value(node, "items", &items)) return node;
+        ps_value_free(items); ps_value_free(node); *failed = true;
+        return NULL;
+    }
+    if (count == 1 && ps_text_is(key, "judge")) {
+        const ps_value *text = ps_at(value, 0);
+        if (!judge || !text || text->kind != PS_STRING) return NULL;
+        ps_value *node = condition_node_start("judge", path);
+        if (node && ps_set(node, "text", ps_text_value(ps_string(text)))) return node;
+        ps_value_free(node); *failed = true;
+        return NULL;
+    }
+    const ps_value *field = ps_get(value, "field"), *op = ps_get(value, "op"), *operand = ps_get(value, "value");
+    if (count != 3 || !field || !op || !operand || field->kind != PS_STRING || op->kind != PS_STRING) return NULL;
+    bool known = false;
+    for (size_t i = 0; i < 8; ++i) known = known || ps_text_is(ps_string(op), ps_condition_ops[i]);
+    if (!known) return NULL;
+    bool valid = ps_condition_scalar(operand);
+    if (ps_text_is(ps_string(op), "in")) {
+        valid = operand->kind == PS_ARRAY;
+        for (size_t i = 0; valid && i < ps_size(operand); ++i) valid = ps_condition_scalar(ps_at(operand, i));
+    }
+    if (!valid) return NULL;
+    ps_chars text = condition_text(operand);
+    ps_value *node = text.bytes ? condition_node_start("comparison", path) : NULL;
+    bool ok = node && ps_set(node, "field", ps_text_value(ps_string(field))) &&
+        ps_set(node, "op", ps_text_value(ps_string(op))) && ps_set(node, "value", ps_text_value(ps_view(text)));
+    free(text.bytes);
+    if (ok) return node;
+    ps_value_free(node); *failed = true;
+    return NULL;
+}
+
+/* The text of a message with its first {path} replaced by path. */
+static ps_chars message_with_path(const char *message, ps_text path)
+{
+    ps_text text = ps_fixed(message);
+    size_t at = ps_text_find(text, PS_TEXT("{path}"), 0);
+    if (at == SIZE_MAX) return ps_copy(text);
+    return PS_CONCAT(ps_text_slice(text, 0, at), path, ps_text_slice(text, at + 6, text.length));
+}
+
+/*
+ * The editor model of a structured condition field (docs/spec/form-markup.md, Structured condition editor):
+ * its root node when the editor shows the value (CUMK-067), an empty value being an empty all group, and
+ * otherwise the error text of the field (CUMK-068). NULL on allocation failure.
+ */
+static ps_value *condition_editor(const widget_context *context, const ps_value *value)
+{
+    const ps_form_messages *messages = ps_form_messages_for(context->language);
+    if (!messages) return NULL;
+    bool judge = ps_is_string(member(member(context->spec, "validate"), "conditionTree"), "judge");
+    bool failed = false;
+    ps_value *root = NULL;
+    if (ps_empty_value(value)) {
+        root = condition_node_start("group", PS_TEXT(""));
+        ps_value *items = ps_array_value();
+        if (!root || !set_string(root, "mode", "all") || !set_owned_value(root, "items", &items)) {
+            ps_value_free(items); ps_value_free(root); return NULL;
+        }
+    } else {
+        root = condition_node(value, PS_TEXT(""), 1, judge, &failed);
+        if (failed) return NULL;
+    }
+    ps_value *editor = ps_object_value();
+    if (!editor || !ps_set(editor, "for", ps_text_value(context->id))) { ps_value_free(root); ps_value_free(editor); return NULL; }
+    if (!root) {
+        if (set_owned(editor, "error", message_with_path(messages->condition_invalid, context->path))) return editor;
+        ps_value_free(editor); return NULL;
+    }
+    const ps_value *fields = member(member(context->spec, "options"), "fields");
+    ps_value *labels = ps_object_value();
+    bool ok = labels && set_string(labels, "mode", messages->condition_mode) &&
+        set_string(labels, "addComparison", messages->condition_add_comparison) &&
+        set_string(labels, "addGroup", messages->condition_add_group) &&
+        set_string(labels, "addJudge", messages->condition_add_judge) &&
+        set_string(labels, "remove", messages->condition_remove) &&
+        ps_set(editor, "judge", ps_bool_value(judge)) &&
+        ps_set(editor, "fields", fields && fields->kind == PS_ARRAY ? ps_value_clone(fields) : ps_null_value()) &&
+        set_owned_value(editor, "labels", &labels) && set_owned_value(editor, "root", &root);
+    ps_value_free(labels); ps_value_free(root);
+    if (ok) return editor;
+    ps_value_free(editor);
+    return NULL;
+}
+
 /* A condition field: a textarea holding the condition text of its tree, marked for the browser
    bindings that decode it (docs/spec/form-markup.md, Condition fields). */
 static ps_value *condition_control(const widget_context *context)
@@ -807,12 +930,19 @@ static ps_value *condition_control(const widget_context *context)
         set_nonempty(attrs, "style", context_style(context)) &&
         add_behavior(context, attrs) && add_data(context, attrs) &&
         set_owned(attrs, "data-default", condition_text(fallback));
+    /* A structured editor: the textarea keeps the value, hidden while the editor shows it (CUMK-067), visible
+       with a named error otherwise (CUMK-068). */
+    bool structured = ps_is_string(member(member(context->spec, "design"), "editor"), "structured");
+    ps_value *editor = ok && structured ? condition_editor(context, context->value_present ? context->value : fallback) : NULL;
+    if (structured && !editor) ok = false;
+    if (ok && editor && !ps_has(editor, "error")) ok = set_string(attrs, "hidden", "");
     ps_value *model = ps_object_value();
-    if (ok) ok = model && set_string(model, "kind", "condition") && set_string(model, "layout", "widget") &&
+    if (ok) ok = model && set_string(model, "kind", "condition") && set_string(model, "layout", structured ? "condition" : "widget") &&
         set_string(model, "tag", "textarea") && set_text(model, "text", ps_view(text)) &&
-        ps_set(model, "attrs", attrs);
-    if (ok) attrs = NULL;
+        set_owned_value(model, "attrs", &attrs);
     if (ok) ok = set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
+    if (ok && editor) ok = set_owned_value(model, "condition", &editor);
+    ps_value_free(editor);
     free(name.bytes); free(text.bytes); free(class_name.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
     return model;
@@ -841,7 +971,7 @@ static ps_value *button_control(const widget_context *context)
 /* Widget model members in output order. */
 static const char *const widget_members[] = {
     "kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass",
-    "script", "styleChrome", "prepend", "append", "extra",
+    "script", "styleChrome", "prepend", "append", "extra", "condition",
 };
 
 /* Reorder the widget's members in place to the output order; unlisted members keep their order after. */

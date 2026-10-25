@@ -243,6 +243,150 @@ static bool write_search(render_buffer *out, const ps_value *model)
     return ok;
 }
 
+/* The start of an element with the class and the data-condition-path of an editor node. */
+static bool start_condition_node(render_buffer *out, const char *tag, const char *class_name, ps_text path)
+{
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && attr_string(attrs, "class", class_name) && attr_text(attrs, "data-condition-path", path) &&
+        start_element(out, tag, attrs, false, false);
+    ps_value_free(attrs);
+    return ok;
+}
+
+static bool write_condition_button(render_buffer *out, const char *action, ps_text label)
+{
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && attr_string(attrs, "type", "button") &&
+        attr_string(attrs, "class", "crudui-action crudui-action--text") &&
+        attr_string(attrs, "data-condition-action", action) &&
+        start_element(out, "button", attrs, false, false) && escaped(out, label, false) &&
+        end_element(out, "button", false);
+    ps_value_free(attrs);
+    return ok;
+}
+
+static bool write_condition_option(render_buffer *out, ps_text choice, ps_text selected)
+{
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && attr_text(attrs, "value", choice) &&
+        (!ps_text_equal(choice, selected) || attr_string(attrs, "selected", "")) &&
+        start_element(out, "option", attrs, false, false) && escaped(out, choice, false) &&
+        end_element(out, "option", false);
+    ps_value_free(attrs);
+    return ok;
+}
+
+/* A select of the editor: its attributes (class, part and an optional aria-label) and the start of its options. */
+static bool start_condition_select(render_buffer *out, const char *class_name, const char *part, const ps_value *label)
+{
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && attr_string(attrs, "class", class_name) && attr_string(attrs, "data-condition-part", part) &&
+        (!label || attr_clone(attrs, "aria-label", label)) && start_element(out, "select", attrs, false, false);
+    ps_value_free(attrs);
+    return ok;
+}
+
+static bool write_condition_input(render_buffer *out, const char *class_name, const char *part, const ps_value *value)
+{
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && attr_string(attrs, "class", class_name) && attr_string(attrs, "data-condition-part", part) &&
+        attr_clone(attrs, "value", value) && ps_html_start_element(out, PS_TEXT("input"), attrs, false, true);
+    ps_value_free(attrs);
+    return ok;
+}
+
+/* One condition of the editor: a group, a field comparison or a judged text (docs/spec/form-markup.md, CUMK-067). */
+static bool write_condition_node(render_buffer *out, const ps_value *node, const ps_value *editor)
+{
+    const ps_value *labels = member(editor, "labels");
+    ps_text path = text_member(node, "path");
+    ps_text kind = text_member(node, "kind");
+    bool removable = path.length > 0;
+    if (ps_text_is(kind, "group")) {
+        if (!start_condition_node(out, "fieldset", "crudui-condition__group", path) ||
+            !start_condition_select(out, "crudui-condition__mode", "mode", member(labels, "mode")) ||
+            !write_condition_option(out, PS_TEXT("all"), text_member(node, "mode")) ||
+            !write_condition_option(out, PS_TEXT("any"), text_member(node, "mode")) ||
+            !end_element(out, "select", false)) return false;
+        ps_value *list_attrs = ps_object_value();
+        bool ok = list_attrs && attr_string(list_attrs, "class", "crudui-condition__list") &&
+            start_element(out, "ol", list_attrs, false, false);
+        ps_value_free(list_attrs);
+        const ps_value *items = member(node, "items");
+        for (size_t i = 0; ok && i < ps_size(items); ++i) {
+            ps_value *item_attrs = ps_object_value();
+            ok = item_attrs && attr_string(item_attrs, "class", "crudui-condition__item") &&
+                start_element(out, "li", item_attrs, false, false) &&
+                write_condition_node(out, ps_at(items, i), editor) && end_element(out, "li", false);
+            ps_value_free(item_attrs);
+        }
+        return ok && end_element(out, "ol", false) &&
+            write_condition_button(out, "add-comparison", text_member(labels, "addComparison")) &&
+            write_condition_button(out, "add-group", text_member(labels, "addGroup")) &&
+            (!bool_member(editor, "judge") || write_condition_button(out, "add-judge", text_member(labels, "addJudge"))) &&
+            (!removable || write_condition_button(out, "remove", text_member(labels, "remove"))) &&
+            end_element(out, "fieldset", false);
+    }
+    if (ps_text_is(kind, "judge")) {
+        return start_condition_node(out, "div", "crudui-condition__judge", path) &&
+            write_condition_input(out, "crudui-condition__text", "judge", member(node, "text")) &&
+            (!removable || write_condition_button(out, "remove", text_member(labels, "remove"))) &&
+            end_element(out, "div", false);
+    }
+    ps_text field = text_member(node, "field");
+    const ps_value *fields = member(editor, "fields");
+    if (!start_condition_node(out, "div", "crudui-condition__comparison", path)) return false;
+    bool ok = true;
+    if (fields && fields->kind == PS_ARRAY) {
+        bool listed = false;
+        for (size_t i = 0; i < ps_size(fields); ++i) listed = listed || ps_text_equal(ps_string(ps_at(fields, i)), field);
+        ok = start_condition_select(out, "crudui-condition__field", "field", NULL) &&
+            (listed || write_condition_option(out, field, field));
+        for (size_t i = 0; ok && i < ps_size(fields); ++i) ok = write_condition_option(out, ps_string(ps_at(fields, i)), field);
+        ok = ok && end_element(out, "select", false);
+    } else {
+        ok = write_condition_input(out, "crudui-condition__field", "field", member(node, "field"));
+    }
+    ok = ok && start_condition_select(out, "crudui-condition__op", "op", NULL);
+    for (size_t i = 0; ok && i < 8; ++i) ok = write_condition_option(out, ps_fixed(ps_condition_ops[i]), text_member(node, "op"));
+    return ok && end_element(out, "select", false) &&
+        write_condition_input(out, "crudui-condition__value", "value", member(node, "value")) &&
+        (!removable || write_condition_button(out, "remove", text_member(labels, "remove"))) &&
+        end_element(out, "div", false);
+}
+
+/*
+ * A structured condition widget (docs/spec/form-markup.md, Structured condition editor): the prepend affix,
+ * the named error of a value that the editor does not show, the textarea, the editor of a value that it
+ * shows and the append affix.
+ */
+static bool write_condition_widget(render_buffer *out, const ps_value *model)
+{
+    const ps_value *editor = member(model, "condition");
+    bool raw = has_events(member(model, "attrs"));
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && attr_string(attrs, "class", "crudui-widget crudui-widget--condition") &&
+        start_element(out, "div", attrs, false, false) && write_affix(out, member(model, "prepend"), raw);
+    ps_value_free(attrs);
+    if (ok && ps_has(editor, "error")) {
+        ps_value *error = ps_object_value();
+        ok = error && attr_string(error, "class", "crudui-condition__error") && attr_string(error, "role", "alert") &&
+            start_element(out, "p", error, false, false) && escaped(out, text_member(editor, "error"), false) &&
+            end_element(out, "p", false);
+        ps_value_free(error);
+    }
+    ok = ok && write_control(out, model, false);
+    if (ok && !ps_has(editor, "error")) {
+        ps_value *wrapper = ps_object_value();
+        ok = wrapper && attr_string(wrapper, "class", "crudui-condition") &&
+            attr_clone(wrapper, "data-condition-for", member(editor, "for")) &&
+            start_element(out, "div", wrapper, false, false) &&
+            write_condition_node(out, member(editor, "root"), editor) && end_element(out, "div", false);
+        ps_value_free(wrapper);
+    }
+    return ok && write_affix(out, member(model, "append"), raw) && end_element(out, "div", false);
+}
+
 static bool write_widget(render_buffer *out, const ps_value *model)
 {
     if (!model || model->kind != PS_OBJECT) return false;
@@ -299,6 +443,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
             append(out, text_member(model, "rawHtml")) && end_element(out, "div", false);
     if (ps_text_is(layout, "search")) return write_search(out, model);
     if (ps_text_is(layout, "button")) return write_control(out, model, false);
+    if (ps_text_is(layout, "condition")) return write_condition_widget(out, model);
     return false;
 }
 

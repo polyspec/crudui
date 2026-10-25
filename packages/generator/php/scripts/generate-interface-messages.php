@@ -16,11 +16,16 @@ crudui_generate(
     dirname(__DIR__) . '/src/Internal/InterfaceMessages.php',
     $argv,
     static function (array $contract): string {
-        /** Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit. */
+        /**
+         * Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit:
+         * a message that would pass 120 characters after its key starts on the next line.
+         */
         $crudui_language_table = static function (array $messages): string {
             $lines = [];
             foreach ($messages as $key => $message) {
-                $lines[] = '            ' . var_export($key, true) . ' => ' . var_export($message, true) . ',';
+                $name = '            ' . var_export($key, true) . ' =>';
+                $text = var_export($message, true) . ',';
+                $lines[] = mb_strlen("{$name} {$text}") <= 120 ? "{$name} {$text}" : "{$name}\n                {$text}";
             }
 
             return "\n" . implode("\n", $lines) . "\n        ";

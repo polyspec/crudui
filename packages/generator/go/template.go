@@ -227,9 +227,11 @@ var closedKeys = map[string][]string{
 	"design":        {"show", "class", "style", "label", "wrapper", "group", "prepend"},
 	"design node":   {"class", "style"},
 	"field design":  {"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"},
-	"group design":  {"show", "class", "style", "attributes", "layout", "label", "wrapper", "group", "prepend"},
-	"field wrapper": {"class", "style", "attributes"},
-	"behavior":      {"onchange", "onclick", "onload"},
+	// A condition field also declares its editor (docs/spec/schema.md, Structured condition editor).
+	"condition design": {"show", "class", "style", "attributes", "editor", "label", "wrapper", "group", "prepend"},
+	"group design":     {"show", "class", "style", "attributes", "layout", "label", "wrapper", "group", "prepend"},
+	"field wrapper":    {"class", "style", "attributes"},
+	"behavior":         {"onchange", "onclick", "onload"},
 }
 
 // unknownKey returns the first key of o, in declaration order, that the bucket does not allow.
@@ -345,7 +347,7 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 		if field {
 			layouts = groupLayouts(spec)
 		}
-		if e := checkDesignDeclaration(read(spec, "design"), path, field, layouts); e != nil {
+		if e := checkDesignDeclaration(read(spec, "design"), path, field, layouts, field && isConditionType(spec)); e != nil {
 			return e
 		}
 	}
@@ -357,10 +359,21 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 	if field && strings.ToLower(stringAt(spec, "type")) == "range" {
 		return checkRangeDeclaration(spec, path)
 	}
-	if field && strings.ToLower(stringAt(spec, "type")) == "condition" {
-		return checkConditionDeclaration(spec, path)
+	if field && isConditionType(spec) {
+		if e := checkConditionDeclaration(spec, path); e != nil {
+			return e
+		}
+		return checkConditionEditor(spec, path)
+	}
+	if field && has(read(spec, "options"), "fields") {
+		return conditionFieldsError(path)
 	}
 	return nil
+}
+
+// isConditionType reports a field whose type is condition.
+func isConditionType(spec *Object) bool {
+	return strings.ToLower(stringAt(spec, "type")) == "condition"
 }
 
 // checkRangeDeclaration rejects a range field without literal bounds and a literal step whose
@@ -458,7 +471,7 @@ func groupLayouts(spec *Object) []string {
 // Form fields, form buttons, list and detail specifications, their columns and fields share this
 // rule; only a form field (field) accepts attributes and wrapper.attributes, and only a group
 // field (non-nil layouts) accepts layout, one of layouts.
-func checkDesignDeclaration(design any, path string, field bool, layouts []string) error {
+func checkDesignDeclaration(design any, path string, field bool, layouts []string, condition bool) error {
 	fail := func(key, expected string) error { return invalidMember(path, key, expected) }
 	unknown := func(key string) error { return unknownMember(path, key) }
 	d := object(design)
@@ -471,6 +484,8 @@ func checkDesignDeclaration(design any, path string, field bool, layouts []strin
 	designBucket := "design"
 	if layouts != nil {
 		designBucket = "group design"
+	} else if condition {
+		designBucket = "condition design"
 	} else if field {
 		designBucket = "field design"
 	}

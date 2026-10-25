@@ -1,6 +1,8 @@
 use crate::choice_list::{
     choice_appearances, choice_groups, choice_label, choice_pairs, is_choice_list,
 };
+use crate::condition_editor::condition_editor;
+use crate::messages::form_messages;
 use crate::util::*;
 use serde_json::{json, Map, Value};
 
@@ -614,10 +616,25 @@ fn condition(ctx: &WidgetContext<'_>) -> Value {
     ctx.behavior(&mut attrs);
     ctx.data_attrs(&mut attrs);
     put_string(&mut attrs, "data-default", condition_text(default));
-    let text = condition_text(ctx.value.or(default));
+    let value = ctx.value.or(default);
+    let text = condition_text(value);
+    let structured = ctx.spec["design"]["editor"].as_str() == Some("structured");
+    // A structured editor (docs/spec/form-markup.md, Structured condition editor): the textarea keeps the value,
+    // hidden while the editor shows it (CUMK-067), visible with a named error otherwise (CUMK-068).
+    let editor = structured.then(|| {
+        let messages = form_messages(ctx.language).expect("a bound form has a supported language");
+        condition_editor(value, ctx.id, ctx.spec, ctx.path, messages)
+    });
+    if editor.as_ref().is_some_and(|editor| editor.get("error").is_none()) {
+        put_string(&mut attrs, "hidden", "");
+    }
+    let layout = if structured { "condition" } else { "widget" };
     let mut model =
-        json!({"kind":"condition","layout":"widget","tag":"textarea","attrs":attrs,"text":text});
+        json!({"kind":"condition","layout":layout,"tag":"textarea","attrs":attrs,"text":text});
     ctx.affixes(&mut model, true);
+    if let Some(editor) = editor {
+        model["condition"] = editor;
+    }
     model
 }
 
@@ -720,7 +737,7 @@ pub(crate) fn declared_attributes(spec: &Value, wrapper: bool) -> Option<Map<Str
 }
 
 /// Widget model members in output order.
-pub(crate) const WIDGET_MEMBERS: [&str; 14] = [
+pub(crate) const WIDGET_MEMBERS: [&str; 15] = [
     "kind",
     "layout",
     "tag",
@@ -735,6 +752,7 @@ pub(crate) const WIDGET_MEMBERS: [&str; 14] = [
     "prepend",
     "append",
     "extra",
+    "condition",
 ];
 
 /// The widget with its members in output order.

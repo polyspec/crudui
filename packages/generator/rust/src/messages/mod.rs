@@ -52,6 +52,18 @@ pub(crate) struct Messages {
     pub count: &'static str,
     /// Collapsed row summary with nested rows.
     pub children: &'static str,
+    /// Accessible name of the mode select of a condition group.
+    pub condition_mode: &'static str,
+    /// Add a field comparison to a condition group.
+    pub condition_add_comparison: &'static str,
+    /// Add a nested group to a condition group.
+    pub condition_add_group: &'static str,
+    /// Add a judged text to a condition group.
+    pub condition_add_judge: &'static str,
+    /// Remove a condition from its group.
+    pub condition_remove: &'static str,
+    /// Error of a value that the structured editor does not show; `{path}` is the data path of the field.
+    pub condition_invalid: &'static str,
 }
 
 /// Interface labels for list pagination. `{page}` is replaced by a page number.
@@ -173,6 +185,12 @@ mod tests {
                     "collapsed" => messages.collapsed,
                     "count" => messages.count,
                     "children" => messages.children,
+                    "condition_mode" => messages.condition_mode,
+                    "condition_add_comparison" => messages.condition_add_comparison,
+                    "condition_add_group" => messages.condition_add_group,
+                    "condition_add_judge" => messages.condition_add_judge,
+                    "condition_remove" => messages.condition_remove,
+                    "condition_invalid" => messages.condition_invalid,
                     _ => panic!("unknown field: {}", snake_key),
                 };
 

@@ -11,6 +11,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from .condition_editor import OPS
 from .style import rendered as style_rendered
 from .value import MISSING, classes, scalar
 
@@ -557,7 +558,146 @@ def _widget(widget: Mapping[str, Any]) -> str:
             text(widget.get("text", ""), raw),
             raw,
         )
+    if layout == "condition":
+        return _condition_widget(widget, raw)
     raise ValueError(f"Unknown widget layout: {widget['layout']}")
+
+
+def _condition_widget(widget: Mapping[str, Any], raw: bool) -> str:
+    """A structured condition widget (docs/spec/form-markup.md, Structured condition editor): the prepend affix, the
+    named error of a value that the editor does not show, the textarea, the editor of a value that it shows and the
+    append affix."""
+    editor = widget["condition"]
+    body = _affix(widget.get("prepend"), raw)
+    if "error" in editor:
+        body += element(
+            "p",
+            {"class": "crudui-condition__error", "role": "alert"},
+            text(editor["error"]),
+        )
+    body += _control(widget, raw)
+    if "error" not in editor:
+        body += element(
+            "div",
+            {"class": "crudui-condition", "data-condition-for": editor["for"]},
+            _condition_node(editor["root"], editor),
+        )
+    return element(
+        "div",
+        {"class": "crudui-widget crudui-widget--condition"},
+        body + _affix(widget.get("append"), raw),
+    )
+
+
+def _condition_button(action: str, label: str) -> str:
+    return element(
+        "button",
+        {
+            "type": "button",
+            "class": "crudui-action crudui-action--text",
+            "data-condition-action": action,
+        },
+        text(label),
+    )
+
+
+def _condition_select(
+    values: Mapping[str, Any], choices: list[str], selected: str
+) -> str:
+    return element(
+        "select",
+        values,
+        "".join(
+            element(
+                "option",
+                {"value": choice, **({"selected": ""} if choice == selected else {})},
+                text(choice),
+            )
+            for choice in choices
+        ),
+    )
+
+
+def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
+    """One condition of the editor: a group, a field comparison or a judged text (CUMK-067)."""
+    labels = editor["labels"]
+    remove = "" if node["path"] == "" else _condition_button("remove", labels["remove"])
+    if node["kind"] == "group":
+        items = "".join(
+            element(
+                "li", {"class": "crudui-condition__item"}, _condition_node(item, editor)
+            )
+            for item in node["items"]
+        )
+        return element(
+            "fieldset",
+            {"class": "crudui-condition__group", "data-condition-path": node["path"]},
+            _condition_select(
+                {
+                    "class": "crudui-condition__mode",
+                    "data-condition-part": "mode",
+                    "aria-label": labels["mode"],
+                },
+                ["all", "any"],
+                node["mode"],
+            )
+            + element("ol", {"class": "crudui-condition__list"}, items)
+            + _condition_button("add-comparison", labels["addComparison"])
+            + _condition_button("add-group", labels["addGroup"])
+            + (
+                _condition_button("add-judge", labels["addJudge"])
+                if editor["judge"]
+                else ""
+            )
+            + remove,
+        )
+    if node["kind"] == "judge":
+        return element(
+            "div",
+            {"class": "crudui-condition__judge", "data-condition-path": node["path"]},
+            _input(
+                {
+                    "class": "crudui-condition__text",
+                    "data-condition-part": "judge",
+                    "value": node["text"],
+                }
+            )
+            + remove,
+        )
+    fields = editor["fields"]
+    if fields is None:
+        field = _input(
+            {
+                "class": "crudui-condition__field",
+                "data-condition-part": "field",
+                "value": node["field"],
+            }
+        )
+    else:
+        choices = list(fields) if node["field"] in fields else [node["field"], *fields]
+        field = _condition_select(
+            {"class": "crudui-condition__field", "data-condition-part": "field"},
+            choices,
+            node["field"],
+        )
+    return element(
+        "div",
+        {"class": "crudui-condition__comparison", "data-condition-path": node["path"]},
+        field
+        + _condition_select(
+            {"class": "crudui-condition__op", "data-condition-part": "op"},
+            list(OPS),
+            node["op"],
+        )
+        + _input(
+            {
+                "class": "crudui-condition__value",
+                "data-condition-part": "value",
+                "value": node["value"],
+            }
+        )
+        + remove,
+    )
 
 
 def _buttons_html(buttons: list[Any]) -> str:

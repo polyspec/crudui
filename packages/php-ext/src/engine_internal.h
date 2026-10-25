@@ -115,6 +115,11 @@ bool ps_order_specification(const ps_value *spec, const ps_value *options,
 const ps_value *ps_get(const ps_value *value, const char *key);
 ps_value *ps_get_mut(ps_value *value, const char *key);
 bool ps_has(const ps_value *value, const char *key);
+
+/* The comparison operators of the structured condition editor, in their order (CUSC-073, CUSC-085). */
+extern const char *const ps_condition_ops[8];
+/* A string, a finite number or a boolean: an operand of a condition comparison (CUSC-073). */
+bool ps_condition_scalar(const ps_value *value);
 bool ps_set(ps_value *object, const char *key, ps_value *value);
 /* Members by a text key. */
 const ps_value *ps_get_text(const ps_value *value, ps_text key);
@@ -211,6 +216,12 @@ typedef struct {
     const char *collapsed;
     const char *count;
     const char *children;
+    const char *condition_mode;
+    const char *condition_add_comparison;
+    const char *condition_add_group;
+    const char *condition_add_judge;
+    const char *condition_remove;
+    const char *condition_invalid;
 } ps_form_messages;
 
 /* Interface labels for list pagination buttons and empty list text; {page} is replaced by a page number. */
@@ -586,7 +597,7 @@ ps_value *ps_error_text(const char *kind, const char *code, ps_text message,
 bool ps_declaration_error(ps_text key, ps_text path, const char *expected, ps_value **error);
 bool ps_known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
                    size_t count, ps_text path, ps_value **error);
-bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts,
+bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts, bool condition,
                                  ps_value **error);
 /* Declared attributes at key: an object of data-* or aria-* names crudui does not write to strings;
    every name is checked before any value. */

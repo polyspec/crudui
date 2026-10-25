@@ -23,6 +23,7 @@ from polyspec.crudui.validator.values import (
 )
 
 from . import messages as messages_module
+from .condition_editor import check_editor, fields_error
 from .errors import FormError
 from .value import MISSING, Value, copy_value, object_value, record, spec_value
 
@@ -320,18 +321,26 @@ def _check_declarations(spec: dict[str, Any], path: str, field: bool) -> None:
                 _fail("lang.only", path, "a list of language codes or an object")
     if "design" in spec:
         check_design_declaration(
-            spec["design"], path, field, _group_layouts(spec) if field else None
+            spec["design"],
+            path,
+            field,
+            _group_layouts(spec) if field else None,
+            field and _is_condition(spec),
         )
     if _is_object(spec.get("behavior")):
         _closed("behavior", spec["behavior"], ("onchange", "onclick", "onload"), path)
     if field and isinstance(spec.get("type"), str) and spec["type"].lower() == "range":
         _check_range_declaration(spec, path)
-    if (
-        field
-        and isinstance(spec.get("type"), str)
-        and spec["type"].lower() == "condition"
-    ):
+    if field and _is_condition(spec):
         _check_condition_declaration(spec, path)
+        check_editor(spec, path)
+    elif field and _is_object(spec.get("options")) and "fields" in spec["options"]:
+        raise fields_error(path)
+
+
+def _is_condition(spec: dict[str, Any]) -> bool:
+    """Whether a field declares the condition type."""
+    return isinstance(spec.get("type"), str) and spec["type"].lower() == "condition"
 
 
 def _check_condition_declaration(spec: dict[str, Any], path: str) -> None:
@@ -406,7 +415,11 @@ def check_declared_attributes(attributes: object, key: str, path: str) -> None:
 
 
 def check_design_declaration(
-    design: object, path: str, field: bool = False, layouts: list[str] | None = None
+    design: object,
+    path: str,
+    field: bool = False,
+    layouts: list[str] | None = None,
+    condition: bool = False,
 ) -> None:
     """Reject a wrong value type or an unknown key in one declared design.
 
@@ -437,6 +450,8 @@ def check_design_declaration(
             "class",
             "style",
             "attributes",
+            # A condition field also declares its editor (docs/spec/schema.md, Structured condition editor).
+            *(("editor",) if condition else ()),
             "label",
             "wrapper",
             "group",

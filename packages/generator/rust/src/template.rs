@@ -1,3 +1,4 @@
+use crate::condition_editor::{check_condition_editor, fields_error};
 use crate::{FormError, FormResult};
 use polyspec_crudui_validator::compose::{
     compose_properties, member_ordered, member_ordered_map, ComposeOptions, FileLoader,
@@ -169,6 +170,18 @@ const DESIGN_KEYS: &[&str] = &[
 /// Allowed keys of a closed design node.
 const DESIGN_NODE_KEYS: &[&str] = &["class", "style"];
 /// Allowed keys of the closed `design` bucket of a form field.
+/// A condition field also declares its editor (docs/spec/schema.md, Structured condition editor).
+const CONDITION_DESIGN_KEYS: &[&str] = &[
+    "show",
+    "class",
+    "style",
+    "attributes",
+    "editor",
+    "label",
+    "wrapper",
+    "group",
+    "prepend",
+];
 const FIELD_DESIGN_KEYS: &[&str] = &[
     "show",
     "class",
@@ -297,6 +310,7 @@ pub(crate) fn check_design_declaration(
     path: &str,
     field: bool,
     layouts: Option<&[&str]>,
+    condition: bool,
 ) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
         Err(FormError::input(format!(
@@ -311,6 +325,8 @@ pub(crate) fn check_design_declaration(
     };
     let design_keys = if layouts.is_some() {
         GROUP_DESIGN_KEYS
+    } else if condition {
+        CONDITION_DESIGN_KEYS
     } else if field {
         FIELD_DESIGN_KEYS
     } else {
@@ -474,7 +490,7 @@ fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> For
     }
     if let Some(design) = spec.get("design") {
         let layouts = if field { group_layouts(spec) } else { None };
-        check_design_declaration(design, path, field, layouts)?;
+        check_design_declaration(design, path, field, layouts, field && is_condition(spec))?;
     }
     if let Some(behavior) = spec.get("behavior").and_then(Value::as_object) {
         check_known_keys("behavior", behavior, BEHAVIOR_KEYS, path)?;
@@ -487,15 +503,25 @@ fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> For
     {
         check_range_declaration(spec, path)?;
     }
-    if field
-        && spec
-            .get("type")
-            .and_then(Value::as_str)
-            .is_some_and(|t| t.to_lowercase() == "condition")
-    {
+    if field && is_condition(spec) {
         check_condition_declaration(spec, path)?;
+        check_condition_editor(spec, path)?;
+    } else if field
+        && spec
+            .get("options")
+            .and_then(Value::as_object)
+            .is_some_and(|options| options.contains_key("fields"))
+    {
+        return Err(fields_error(path));
     }
     Ok(())
+}
+
+/// Whether a field declares the condition type.
+fn is_condition(spec: &Map<String, Value>) -> bool {
+    spec.get("type")
+        .and_then(Value::as_str)
+        .is_some_and(|t| t.to_lowercase() == "condition")
 }
 
 /// Reject a condition field whose `validate.conditionTree` is not the literal `true` or `judge`:

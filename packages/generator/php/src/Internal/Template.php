@@ -254,7 +254,13 @@ final class Template
             }
         }
         if (array_key_exists('design', $spec)) {
-            self::checkDesignDeclaration($spec['design'], $path, $field, $field ? self::groupLayouts($spec) : null);
+            self::checkDesignDeclaration(
+                $spec['design'],
+                $path,
+                $field,
+                $field ? self::groupLayouts($spec) : null,
+                $field && self::isCondition($spec)
+            );
         }
         if (Value::isObject($spec['behavior'] ?? null)) {
             self::closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload'], $path);
@@ -262,9 +268,20 @@ final class Template
         if ($field && is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'range') {
             self::checkRangeDeclaration($spec, $path);
         }
-        if ($field && is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'condition') {
+        if ($field && self::isCondition($spec)) {
             self::checkConditionDeclaration($spec, $path);
+            ConditionEditor::check($spec, $path);
+        } elseif (
+            $field && Value::isObject($spec['options'] ?? null) && array_key_exists('fields', (array) $spec['options'])
+        ) {
+            throw ConditionEditor::fieldsError($path);
         }
+    }
+
+    /** Whether a field declares the condition type. */
+    private static function isCondition(array $spec): bool
+    {
+        return is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'condition';
     }
 
     /**
@@ -379,7 +396,8 @@ final class Template
         mixed $design,
         string $path,
         bool $field = false,
-        ?array $layouts = null
+        ?array $layouts = null,
+        bool $condition = false
     ): void {
         if (!is_bool($design) && !Value::isObject($design)) {
             self::invalid('design', $path, 'a boolean or an object');
@@ -400,6 +418,8 @@ final class Template
                 'group',
                 'prepend',
             ],
+            // A condition field also declares its editor (docs/spec/schema.md, Structured condition editor).
+            $condition => ['show', 'class', 'style', 'attributes', 'editor', 'label', 'wrapper', 'group', 'prepend'],
             $field => ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'],
             default => ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
         }, $path);

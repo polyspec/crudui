@@ -28,6 +28,12 @@ pub const KO: Messages = Messages {
     collapsed: "접힘",
     count: "{count}개",
     children: "하위 {count}개",
+    condition_mode: "조건 방식",
+    condition_add_comparison: "조건 추가",
+    condition_add_group: "그룹 추가",
+    condition_add_judge: "판정 추가",
+    condition_remove: "제거",
+    condition_invalid: "{path}의 값은 conditionTree가 받는 조건 트리가 아닙니다. 텍스트를 고치십시오.",
 };
 
 pub const EN: Messages = Messages {
@@ -53,6 +59,12 @@ pub const EN: Messages = Messages {
     collapsed: "Collapsed",
     count: "Rows: {count}",
     children: "Nested rows: {count}",
+    condition_mode: "Condition mode",
+    condition_add_comparison: "Add condition",
+    condition_add_group: "Add group",
+    condition_add_judge: "Add judgement",
+    condition_remove: "Remove",
+    condition_invalid: "The value of {path} is not a condition tree that conditionTree accepts; correct the text.",
 };
 
 pub const JA: Messages = Messages {
@@ -78,6 +90,12 @@ pub const JA: Messages = Messages {
     collapsed: "折りたたみ中",
     count: "{count}件",
     children: "下位 {count}件",
+    condition_mode: "条件の方式",
+    condition_add_comparison: "条件を追加",
+    condition_add_group: "グループを追加",
+    condition_add_judge: "判定を追加",
+    condition_remove: "削除",
+    condition_invalid: "{path} の値は conditionTree が受け付ける条件ツリーではありません。テキストを修正してください。",
 };
 
 pub const ZH: Messages = Messages {
@@ -103,6 +121,12 @@ pub const ZH: Messages = Messages {
     collapsed: "已折叠",
     count: "{count} 项",
     children: "子项 {count} 项",
+    condition_mode: "条件方式",
+    condition_add_comparison: "添加条件",
+    condition_add_group: "添加组",
+    condition_add_judge: "添加判定",
+    condition_remove: "删除",
+    condition_invalid: "{path} 的值不是 conditionTree 接受的条件树，请修改文本。",
 };
 
 pub const KO_LIST: ListMessages = ListMessages {

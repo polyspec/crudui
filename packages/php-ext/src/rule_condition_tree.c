@@ -18,7 +18,7 @@ bool ps_condition_tree_parameter(const ps_value *parameter)
 }
 
 /* A string, a finite number or a boolean. */
-static bool condition_scalar(const ps_value *value)
+bool ps_condition_scalar(const ps_value *value)
 {
     return value && (value->kind == PS_STRING || value->kind == PS_BOOL || value->kind == PS_INT ||
                      (value->kind == PS_FLOAT && isfinite(value->data.number)));
@@ -63,10 +63,10 @@ static bool condition_node(const ps_value *node, bool judge, size_t level)
     if (condition_members(node, comparison, 3)) {
         const ps_value *op = ps_get(node, "op"), *value = ps_get(node, "value");
         if (!condition_text(ps_get(node, "field")) || !condition_operator(op)) return false;
-        if (!ps_is_string(op, "in")) return condition_scalar(value);
+        if (!ps_is_string(op, "in")) return ps_condition_scalar(value);
         if (value->kind != PS_ARRAY) return false;
         for (size_t i = 0; i < ps_size(value); ++i)
-            if (!condition_scalar(ps_at(value, i))) return false;
+            if (!ps_condition_scalar(ps_at(value, i))) return false;
         return true;
     }
     return condition_members(node, judged, 1) && judge && condition_text(ps_get(node, "judge"));

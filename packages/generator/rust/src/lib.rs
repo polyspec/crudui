@@ -5,6 +5,7 @@ mod actions;
 mod binding;
 mod buttons;
 mod choice_list;
+mod condition_editor;
 mod css;
 mod date;
 mod design;

@@ -247,6 +247,7 @@ final class Widget
         'prepend',
         'append',
         'extra',
+        'condition',
     ];
 
     private function model(string $kind, string $layout, array $attrs, array $extra = []): stdClass
@@ -352,9 +353,22 @@ final class Widget
     private function condition(): stdClass
     {
         $default = Value::get($this->spec, 'default');
+        $value = $this->value === Missing::Value ? $default : $this->value;
+        $design = $this->spec->design ?? null;
+        // A structured editor (docs/spec/form-markup.md, Structured condition editor): the textarea keeps the value,
+        // hidden while the editor shows it (CUMK-067), visible with a named error otherwise (CUMK-068).
+        $editor = $design instanceof stdClass && ($design->editor ?? null) === 'structured'
+            ? ConditionEditor::model(
+                $value,
+                $this->id,
+                $this->spec,
+                $this->path,
+                Messages::forLanguage($this->language)
+            )
+            : null;
         return $this->model(
             'condition',
-            'widget',
+            $editor === null ? 'widget' : 'condition',
             [
                 'name' => $this->name,
                 'class' => $this->main('valid-target crudui-input crudui-input--condition'),
@@ -364,11 +378,13 @@ final class Widget
                 ...$this->behavior(),
                 ...$this->data(),
                 'data-default' => Value::condition($default),
+                ...($editor === null || property_exists($editor, 'error') ? [] : ['hidden' => '']),
             ],
             [
                 'tag' => 'textarea',
-                'text' => Value::condition($this->value === Missing::Value ? $default : $this->value),
+                'text' => Value::condition($value),
                 ...$this->affixes(),
+                ...($editor === null ? [] : ['condition' => $editor]),
             ]
         );
     }

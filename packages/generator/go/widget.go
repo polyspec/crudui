@@ -285,6 +285,16 @@ func evalWidget(c widgetContext) *Object {
 			shown = read(c.spec, "default")
 		}
 		w.Set("text", conditionText(shown))
+		if read(read(c.spec, "design"), "editor") == "structured" {
+			// A structured editor (docs/spec/form-markup.md, Structured condition editor): the textarea keeps the
+			// value, hidden while the editor shows it (CUMK-067), visible with a named error otherwise (CUMK-068).
+			editor := conditionEditor(c, c.id(), shown)
+			w.Set("layout", "condition")
+			w.Set("condition", editor)
+			if !editor.Has("error") {
+				a.Set("hidden", "")
+			}
+		}
 	case "hidden":
 		a = NewObject("type", "hidden", "name", name, "value", c.display(), "class", c.class("valid-target"))
 		merge(a, c.dataAttrs())
@@ -537,7 +547,7 @@ func appendDeclaredAttributes(w *Object, attributes *Object) {
 }
 
 // widgetMembers lists the widget model members in their output order (docs/spec/form-runtime.md).
-var widgetMembers = []string{"kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass", "script", "styleChrome", "prepend", "append", "extra"}
+var widgetMembers = []string{"kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass", "script", "styleChrome", "prepend", "append", "extra", "condition"}
 
 // orderedWidget returns the widget with its members in output order.
 func orderedWidget(w *Object) *Object {

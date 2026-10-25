@@ -15,6 +15,8 @@ from polyspec.crudui.validator.jsvalue import JsonValue
 
 from .choice_list import appearances as choice_appearances
 from .choice_list import check_appearance, is_choice_list, pairs
+from . import messages as messages_module
+from .condition_editor import editor
 from .design import declared as design_declared
 from .errors import FormError
 from .numbers import number_string
@@ -100,6 +102,7 @@ _MEMBERS = (
     "prepend",
     "append",
     "extra",
+    "condition",
 )
 
 
@@ -410,11 +413,28 @@ class _Widget:
         )
 
     def condition(self) -> dict[str, Any]:
-        """A textarea holding the condition text of its tree, marked for the browser bindings."""
+        """A textarea holding the condition text of its tree, marked for the browser bindings. Under a structured
+        editor (docs/spec/form-markup.md, Structured condition editor) the textarea keeps the value, hidden while the
+        editor shows it (CUMK-067), visible with a named error otherwise (CUMK-068)."""
         default = get(self.spec, "default")
+        value = default if self.value is MISSING else self.value
+        design = self.spec.get("design")
+        structured = isinstance(design, dict) and design.get("editor") == "structured"
+        model = (
+            editor(
+                value,
+                self.id,
+                self.spec,
+                self.path,
+                messages_module.for_language(self.language),
+            )
+            if structured
+            else None
+        )
+        hidden = {} if model is None or "error" in model else {"hidden": ""}
         return self.model(
             "condition",
-            "widget",
+            "widget" if model is None else "condition",
             {
                 "name": self.name,
                 "class": self.main("valid-target crudui-input crudui-input--condition"),
@@ -424,11 +444,13 @@ class _Widget:
                 **self.behavior(),
                 **self.data(),
                 "data-default": condition(default),
+                **hidden,
             },
             {
                 "tag": "textarea",
-                "text": condition(default if self.value is MISSING else self.value),
+                "text": condition(value),
                 **self.affixes(),
+                **({} if model is None else {"condition": model}),
             },
         )
 
