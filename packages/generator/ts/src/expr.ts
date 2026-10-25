@@ -2,8 +2,9 @@
 import {
   parseCondition,
   isConditionExpression,
-  evaluateCondition,
   evaluateExpressionValue,
+  evaluateConditionOrFalse,
+  evaluateExpressionValueOrFalse,
   ParseError,
 } from '@polyspec/crudui-validator/internal';
 import type { PathContext } from '@polyspec/crudui-validator';
@@ -22,19 +23,11 @@ export function makeContext(
 }
 
 function evalConditionBool(expression: string, context: PathContext): boolean {
-  try {
-    return evaluateCondition(parseCondition(expression), context, 'CURRENT');
-  } catch (error) { if (!(error instanceof ParseError)) throw error;
-    return false;
-  }
+  return evaluateConditionOrFalse(expression, context);
 }
 
 function evalExpressionValue(expression: string, context: PathContext): unknown {
-  try {
-    return evaluateExpressionValue(parseCondition(expression), context, 'CURRENT');
-  } catch (error) { if (!(error instanceof ParseError)) throw error;
-    return false;
-  }
+  return evaluateExpressionValueOrFalse(expression, context);
 }
 
 /** Evaluate a complete ternary AST; other strings remain literal values. */

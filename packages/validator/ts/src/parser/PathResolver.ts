@@ -9,6 +9,7 @@
  */
 
 import { isRecord } from '../record';
+import { parseCondition, ParseError } from './ConditionParser';
 import {
   PathNode,
   PathContext,
@@ -694,4 +695,22 @@ export function pathToString(path: string[]): string {
  */
 export function getFieldName(path: string[]): string {
   return path[path.length - 1] ?? '';
+}
+
+/** The truth value of a condition, or false when the expression does not parse; any other failure surfaces. */
+export function evaluateConditionOrFalse(expression: string, context: PathContext): boolean {
+  try {
+    return evaluateCondition(parseCondition(expression), context, 'CURRENT');
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
+    return false;
+  }
+}
+
+/** The value of an expression, or false when the expression does not parse; any other failure surfaces. */
+export function evaluateExpressionValueOrFalse(expression: string, context: PathContext): unknown {
+  try {
+    return evaluateExpressionValue(parseCondition(expression), context, 'CURRENT');
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
+    return false;
+  }
 }

@@ -49,8 +49,9 @@ import {
   ParseError,
 } from '../parser/ConditionParser';
 import {
-  evaluateCondition,
+  evaluateConditionOrFalse,
   evaluateExpressionValue,
+  evaluateExpressionValueOrFalse,
   pathToString,
   getFieldName,
 } from '../parser/PathResolver';
@@ -803,21 +804,13 @@ export class Validator {
   }
 
   private evaluateCondition(expression: string, context: PathContext): boolean {
-    try {
-      return evaluateCondition(parseCondition(expression), context, 'CURRENT');
-    } catch (error) { if (!(error instanceof ParseError)) throw error;
-      return false;
-    }
+    return evaluateConditionOrFalse(expression, context);
   }
 
   private evaluateExpressionValue(
     expression: string,
     context: PathContext
   ): unknown {
-    try {
-      return evaluateExpressionValue(parseCondition(expression), context, 'CURRENT');
-    } catch (error) { if (!(error instanceof ParseError)) throw error;
-      return false;
-    }
+    return evaluateExpressionValueOrFalse(expression, context);
   }
 }

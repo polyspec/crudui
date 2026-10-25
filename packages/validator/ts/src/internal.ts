@@ -24,7 +24,12 @@ export {
   isConditionExpression,
   parseCondition,
 } from './parser/ConditionParser';
-export { evaluateCondition, evaluateExpressionValue } from './parser/PathResolver';
+export {
+  evaluateCondition,
+  evaluateExpressionValue,
+  evaluateConditionOrFalse,
+  evaluateExpressionValueOrFalse,
+} from './parser/PathResolver';
 export {
   INVALID_TEXT_MESSAGE,
   checkInputText,
