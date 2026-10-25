@@ -94,7 +94,34 @@ const EUROPE = { label: 'Europe', choices: [{ value: 'eu-west', label: 'West' },
 const groupCase = (name: string, note: string, field: Record<string, unknown>) =>
   ({ name, note, spec: G({ region: { label: 'Region', ...field } }), options: { language: 'en' }, expectError: INVALID_ITEMS('region') });
 
+// Keyed maps (docs/spec/schema.md, Keyed maps): rendering does not read multiple.keys, so the rows
+// are the data rows, as for multiple: only; compilation checks only: true and a string reference.
+const nodeOf = (html: string, path: string) => {
+  const start = html.indexOf(`<div class="crudui-node crudui-node--collection" data-field-path="${path}">`);
+  return html.slice(start, html.indexOf('<div class="crudui-form__footer">') - '</div>'.length);
+};
+const KEYED_SCALAR_ROWS = SCALAR_ROWS.replace('<div class="crudui-form__body">', `<div class="crudui-form__body">${nodeOf(EMPTY_COLLECTION, 'variants')}`);
+const keysCase = (name: string, note: string, multiple: Record<string, unknown>, message: string) =>
+  ({ name, note, spec: G({ tags: { type: 'text', label: 'Tags', multiple } }), options: { language: 'en' }, expectError: { code: 'INVALID_FORM_INPUT', message } });
+
 export const WRITTEN_CASES = [
+  {
+    name: 'keyed-map-scalar-rows',
+    note: 'A repeated scalar declared multiple: { only: true, keys } renders its data rows under their keys without row controls; rendering does not read keys.',
+    spec: G({
+      variants: { type: 'group', label: 'Variants', multiple: 'only', properties: { name: { type: 'text', label: 'Name' }, price: { type: 'number', label: 'Price' } } },
+      tags: { type: 'text', label: 'Tags', multiple: { only: true, keys: '.variants' } },
+    }),
+    data: { tags: { __opt_a1__: 'x', __opt_b2__: 'y' } },
+    options: { language: 'en' },
+    expected_html: KEYED_SCALAR_ROWS,
+  },
+  keysCase('keyed-map-without-only', 'multiple.keys is accepted only beside only: true.',
+    { keys: '.variants' }, 'Invalid multiple.keys at tags: expected multiple.only: true'),
+  keysCase('keyed-map-only-false', 'only: false does not accompany multiple.keys.',
+    { only: false, keys: '.variants' }, 'Invalid multiple.keys at tags: expected multiple.only: true'),
+  keysCase('keyed-map-keys-not-string', 'multiple.keys is a reference string.',
+    { only: true, keys: ['variants'] }, 'Invalid multiple.keys at tags: expected a reference to a repeated group'),
   groupCase('choice-groups-repeated-value', 'Values stay distinct across groups.',
     { type: 'select', items: [EUROPE, { label: 'Again', choices: [{ value: 'eu-west', label: 'West' }] }] }),
   groupCase('choice-groups-repeated-plain-value', 'A value inside a group is distinct from a plain choice value, by canonical text.',

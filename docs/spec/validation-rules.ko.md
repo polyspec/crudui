@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 604a7e20f21b64f8544e8de040d00ec79b6231d5f2b7599fe81c6e71c5783595 -->
+<!-- source-sha256: 545e0c4c96ef7cc0579fbea978058c64dd03c2aad46a527f94c6d1b52f28fbd1 -->
 
 [English](validation-rules.md).
 
@@ -80,6 +80,30 @@ display:
 `Choice data must be a single value: {path}` 메시지의 입력 오류입니다. 여러 선택지를 가지는 필드는
 `multichoice`, `checkboxes`, `checkcontainer`를 사용합니다. 다른 데이터 모양 검사처럼 숨겨진 필드에도
 적용합니다. 필드는 선언 순서로, 필드를 행보다 먼저, 행은 정렬한 키 순서로 검사합니다.
+
+## 키 맵
+
+`multiple.keys`를 선언한 필드는 [키 맵](schema.ko.md#키-맵)입니다. 그 행은 참조가 가리키는 반복
+그룹의 id 아래에만 존재합니다.
+
+- **CUVR-069** 필드 데이터의 각 키는 가리키는 그룹 데이터의 행 키여야 합니다. 참조는 `enddate`
+  매개변수처럼 필드의 행 문맥에서 해석하므로, 반복 그룹의 행 안에 있는 키 맵은 그 행을 둘러싼 그룹의
+  데이터를 읽습니다. 그룹 데이터가 없거나 `null`이거나 객체가 아니면 id가 없습니다. id가 아닌 키는
+  코드 `INVALID_FORM_INPUT`, 빈 위치, 메시지 `Row key is not an id of {reference}: {path}`의 입력
+  오류입니다. `{reference}`는 선언한 참조이고 `{path}`는 행 키를 포함한 행의 데이터 경로입니다. 키 맵의
+  행은 데이터에서만 오고 폼은 행을 추가하거나 제거하는 컨트롤을 제공하지 않으므로, 그룹 밖의 키는
+  선언되지 않은 멤버처럼 어떤 폼도 만들지 않는 데이터입니다. 다른 데이터 모양 검사처럼 숨겨진 필드에도
+  적용합니다. 필드의 키는 키 객체 검사 다음, 단일 선택 검사와 행보다 먼저, 키의 코드 포인트 순서로
+  검사합니다.
+- **CUVR-070** [스키마](schema.ko.md#키-맵)의 규칙대로 반복 그룹을 가리키지 않는 `multiple.keys`는
+  문자열이 아닌 값을 포함해 코드 `INVALID_FORM_INPUT`, 빈 위치, 메시지
+  `Invalid multiple.keys at {path}: expected a reference to a repeated group`로 로드에 실패합니다.
+  `{path}`는 필드의 선언 경로입니다. 선언한 매개변수와 함께([매개변수 오류](#매개변수-오류)) 필드의
+  `messages` 키 다음, 필드가 포함한 필드보다 먼저 검사하며 숨겨진 필드도 검사합니다.
+
+[스키마 예](schema.ko.md#키-맵)에서 데이터
+`{ "characters": { "c1": { "name": "Ann", "relation_notes": { "c2": "Brother" } }, "c2": { "name": "Ben" } }, "facts": { "f1": { "truth": "The will is forged", "holders": { "c1": "knows", "c3": "suspects" } } } }`는
+`Row key is not an id of ..characters: facts.f1.holders.c3`로 실패합니다.
 
 ## 값
 

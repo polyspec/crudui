@@ -68,13 +68,13 @@ fn main() {
         .filter(|case| case.get("expected_html").is_some())
         .cloned()
         .collect();
-    assert_eq!(results.len(), 153, "form-render holds 153 result cases");
+    assert_eq!(results.len(), 154, "form-render holds 154 result cases");
     let failures: Vec<Value> = cases
         .iter()
         .filter(|case| case.get("expectError").is_some())
         .cloned()
         .collect();
-    assert_eq!(failures.len(), 56, "form-render holds 56 failure cases");
+    assert_eq!(failures.len(), 59, "form-render holds 59 failure cases");
     let trial = |case: Value, check: fn(&Value)| {
         let name = case["name"].as_str().unwrap().to_string();
         Trial::test(

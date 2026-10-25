@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 5650288f6d312005257803855d90ab72c184763155a0ed4cc8f922a05bd2a936 -->
+<!-- source-sha256: 5d980d31fce9010c6bc45c83d0ccf7b05191d3d693deab65a9fb7f327f4f7cb3 -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -429,7 +429,7 @@ must declare fields`, 객체가 아닌 레코드는 `Detail record must be an ob
 스키마는 숨김 식별자 필드를 정의하지 않습니다. 행 연산은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
 `multiple.only: true`와 같은 `multiple: only`는 데이터에만 존재하는 행을 선언합니다. 데이터의 키가 곧
 행이고, 데이터가 없으면 행이 없으며, 폼은 행 컨트롤과 행 연산을 제공하지 않습니다. `multiple.only`는
-`title`, `header`와 함께 쓰며 `min`, `max`, `copy`, `sortable`, `controls`, `onclick`과 함께 쓸 수
+`title`, `header`, `keys`와 함께 쓰며 `min`, `max`, `copy`, `sortable`, `controls`, `onclick`과 함께 쓸 수
 없습니다. 컴파일은 그 밖의 문자열을 `Invalid multiple at {path}: expected a boolean, only or an object`로,
 불리언이 아닌 `only`를 `Invalid multiple.only at {path}: expected a boolean`으로, `only: true` 옆의 제외된
 키를 `Invalid multiple.{key} at {path}: unknown key`로 보고합니다.
@@ -464,6 +464,7 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 - **CUSC-058** 해당 노드의 `class`와 `style`: 문자열 또는 조건 맵
 - **CUSC-059** `design.attributes`, `design.wrapper.attributes`: `data-*` 또는 `aria-*` 이름에서 문자열로의 객체; 폼 필드에서만([선언한 속성](#선언한-속성))
 - **CUSC-060** `design.layout`: `stacked`, `inline`, `line`; group 필드에서만([배치](#배치))
+- **CUSC-076** `multiple.keys`: 반복 그룹을 가리키는 참조; `only: true`와 함께([키 맵](#키-맵))
 
 컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 스키마는
 `multiple`, `lang`, `design`, 디자인 노드, `behavior`를 닫습니다. 이들이 나열하지 않은 키는
@@ -474,6 +475,49 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 `messages`의 키는 등록된 규칙 이름입니다. 메타 스키마는 다른 이름을 거부하고, 검증은 `UNKNOWN_RULE`로
 로드에 실패합니다([매개변수 오류](validation-rules.ko.md#매개변수-오류)). 메타 스키마는
 등록된 모든 검증 규칙의 매개변수 형태를 선언하고, 열어 둔 모든 값의 모든 깊이에서 금지 키를 거부합니다.
+
+## 키 맵
+
+키 맵은 키가 폼의 다른 반복 그룹의 id인, 데이터에만 존재하는 컬렉션입니다. 예를 들어 사실 하나에
+대한 각 인물의 입장이나, 다른 각 인물에 대한 메모입니다. 반복 그룹의 id는 그 행 키입니다. 행은
+`id`라는 필드가 아니라 키로 식별합니다([폼 런타임](form-runtime.ko.md#행-식별자)). 필드는
+`only: true` 옆의 `multiple.keys`로 키 맵을 선언하며, 이 필드는 반복 스칼라 필드이거나 반복 그룹일 수
+있습니다.
+
+```yaml
+characters:
+  type: group
+  multiple: true
+  properties:
+    name: { type: text }
+    relation_notes:
+      type: text
+      multiple: { only: true, keys: ..characters }
+facts:
+  type: group
+  multiple: true
+  properties:
+    truth: { type: text }
+    holders:
+      type: select
+      items: { knows: Knows, suspects: Suspects }
+      multiple: { only: true, keys: ..characters }
+```
+
+- **CUSC-077** `multiple.keys`의 값은 반복 그룹을 가리키는 필드 참조이며 `enddate` 매개변수와 같은
+  방식으로 씁니다([조건부 매개변수](validation-rules.ko.md#조건부-매개변수)). `.name`이나 점 없는
+  `name`은 선언한 필드 옆의 필드를 가리키고, 앞의 점이 하나 늘 때마다 필드 한 단계 위로 올라가며 행 키는
+  그 컬렉션과 함께 떠납니다. 앞에 점이 없고 안에 점이 있는 참조는 폼 루트에서 시작하는 경로입니다.
+  따라서 선언에서 참조는 선언한 필드의 선언 경로에서 앞의 점 개수만큼(점 없는 이름은 하나, 루트에서
+  시작하는 경로는 전부) 필드를 떠난 뒤 그 이름들을 따라갑니다. 참조가 폼 루트를 벗어나지 않고, 빈 이름과 `*`가 없으며, 마지막을
+  제외한 각 이름이 그때까지 도달한 그룹의 필드 중 반복이 아닌 그룹을 가리키고, 마지막 이름이 반복
+  그룹을 가리키면 참조는 반복 그룹을 가리킵니다. 예에서 두 참조는 모두 `relation_notes` 또는
+  `holders`와 그것을 둘러싼 반복 그룹을 떠나 `characters`를 가리킵니다.
+- **CUSC-078** 컴파일은 `multiple.only` 다음에 `multiple.keys`를 검사합니다. `only: true` 없는
+  `keys`는 `Invalid multiple.keys at {path}: expected multiple.only: true`로, 문자열이 아닌 값은
+  `Invalid multiple.keys at {path}: expected a reference to a repeated group`로 실패하며, 둘 다
+  `INVALID_FORM_INPUT`와 빈 위치를 가집니다. 렌더링은 `keys`를 읽지 않습니다. 필드의 행은 데이터의
+  행입니다. 검증은 참조를 해석하고 데이터의 키를 검사합니다([키 맵](validation-rules.ko.md#키-맵)).
 
 ## 위젯과 소스 설정
 

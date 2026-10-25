@@ -81,10 +81,10 @@ class TestFormRenderFixtureCounts(unittest.TestCase):
         self.failures = [case for case in self.cases if "expectError" in case]
 
     def test_result_case_count(self):
-        self.assertEqual(len(self.results), 153)
+        self.assertEqual(len(self.results), 154)
 
     def test_failure_case_count(self):
-        self.assertEqual(len(self.failures), 56)
+        self.assertEqual(len(self.failures), 59)
 
     def test_every_case_declares_exactly_one_expectation(self):
         for case in self.cases:

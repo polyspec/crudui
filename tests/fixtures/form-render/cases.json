@@ -4660,6 +4660,135 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"region\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:region\">Region</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"region\" data-rule-name=\"region\" id=\"crudui:region\" name=\"region\" onchange=\"go(this)\"><option value=\"auto\">Automatic</option><optgroup label=\"Europe <west>\"><option selected=\"\" value=\"eu-west\">West &amp; more</option></optgroup></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
+    "name": "keyed-map-scalar-rows",
+    "note": "A repeated scalar declared multiple: { only: true, keys } renders its data rows under their keys without row controls; rendering does not read keys.",
+    "requirements": [
+      "CUMK-034",
+      "CUSC-076",
+      "CUSC-078"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        },
+        "tags": {
+          "type": "text",
+          "label": "Tags",
+          "multiple": {
+            "only": true,
+            "keys": ".variants"
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": {
+        "__opt_a1__": "x",
+        "__opt_b2__": "y"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__opt_a1__\" name=\"tags[__opt_a1__]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__opt_b2__\" name=\"tags[__opt_b2__]\" type=\"text\" value=\"y\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "keyed-map-without-only",
+    "note": "multiple.keys is accepted only beside only: true.",
+    "requirements": [
+      "CUSC-078"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": "Tags",
+          "multiple": {
+            "keys": ".variants"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at tags: expected multiple.only: true"
+    }
+  },
+  {
+    "name": "keyed-map-only-false",
+    "note": "only: false does not accompany multiple.keys.",
+    "requirements": [
+      "CUSC-078"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": "Tags",
+          "multiple": {
+            "only": false,
+            "keys": ".variants"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at tags: expected multiple.only: true"
+    }
+  },
+  {
+    "name": "keyed-map-keys-not-string",
+    "note": "multiple.keys is a reference string.",
+    "requirements": [
+      "CUSC-078"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": "Tags",
+          "multiple": {
+            "only": true,
+            "keys": [
+              "variants"
+            ]
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at tags: expected a reference to a repeated group"
+    }
+  },
+  {
     "name": "choice-groups-repeated-value",
     "note": "Values stay distinct across groups.",
     "spec": {

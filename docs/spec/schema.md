@@ -466,7 +466,7 @@ control position (default `header`) and `multiple.header` for static (default) o
 sticky row headers. The [form markup](form-markup.md) defines their rendering.
 `multiple: only`, the same as `multiple.only: true`, declares rows that exist only in the data:
 the data's keys are the rows, missing data has no row, and the form offers no row controls or
-row operations. `multiple.only` combines with `title` and `header` and excludes `min`, `max`,
+row operations. `multiple.only` combines with `title`, `header` and `keys` and excludes `min`, `max`,
 `copy`, `sortable`, `controls` and `onclick`. Compilation reports another string as
 `Invalid multiple at {path}: expected a boolean, only or an object`, a non-boolean `only` as
 `Invalid multiple.only at {path}: expected a boolean`, and an excluded key beside `only: true` as
@@ -507,6 +507,7 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 - **CUSC-058** `class` and `style` of those nodes: String or condition map
 - **CUSC-059** `design.attributes`, `design.wrapper.attributes`: Object of a `data-*` or `aria-*` name to a string; form fields only ([declared attributes](#declared-attributes))
 - **CUSC-060** `design.layout`: `stacked`, `inline` or `line`; group fields only ([layout](#layout))
+- **CUSC-076** `multiple.keys`: Reference to a repeated group, beside `only: true` ([keyed maps](#keyed-maps))
 
 Compilation checks fields in declaration order, each field before its children.
 The schema closes `multiple`, `lang`, `design`, the design nodes and `behavior`: a key they do
@@ -519,6 +520,52 @@ rejected everywhere. `validate` and `messages` keys are the registered rule name
 meta-schema rejects any other name, and validation fails the load with `UNKNOWN_RULE`
 ([parameter errors](validation-rules.md#parameter-errors)). The meta-schema declares the parameter shapes of every registered
 validation rule and rejects forbidden keys at every depth of every value it leaves open.
+
+## Keyed maps
+
+A keyed map is a data-only collection whose keys are the ids of another repeated group of the form,
+for example the stance of each character on a fact, or a note on each other character. The ids of a
+repeated group are its row keys: rows are identified by their keys
+([form runtime](form-runtime.md#row-identity)), not by a field named `id`. A field declares a keyed
+map with `multiple.keys` beside `only: true`; the field may be a repeated scalar field or a repeated
+group.
+
+```yaml
+characters:
+  type: group
+  multiple: true
+  properties:
+    name: { type: text }
+    relation_notes:
+      type: text
+      multiple: { only: true, keys: ..characters }
+facts:
+  type: group
+  multiple: true
+  properties:
+    truth: { type: text }
+    holders:
+      type: select
+      items: { knows: Knows, suspects: Suspects }
+      multiple: { only: true, keys: ..characters }
+```
+
+- **CUSC-077** The value of `multiple.keys` is a field reference to the repeated group, written as the
+  `enddate` parameter is written ([conditional parameters](validation-rules.md#conditional-parameters)):
+  `.name` or a bare `name` names a field beside the declaring field, each further leading dot moves
+  one field level up, a row key leaving with its collection, and a reference with a dot inside and no
+  leading dot names a path from the form root. In the declaration the reference therefore leaves as
+  many fields of the declaring field's declaration path as it has leading dots, a bare name one and a
+  path from the root all of them, and then follows its names. It names a repeated group when it does not leave the form root, has no
+  empty name and no `*`, every name but the last names a field of the group reached so far that is a
+  group and is not repeated, and the last names a repeated group. In the example both references
+  leave `relation_notes` or `holders` and the repeated group around it and name `characters`.
+- **CUSC-078** Compilation checks `multiple.keys` after `multiple.only`: `keys` without `only: true`
+  fails with `Invalid multiple.keys at {path}: expected multiple.only: true`, and a value that is not
+  a string fails with `Invalid multiple.keys at {path}: expected a reference to a repeated group`,
+  both with `INVALID_FORM_INPUT` and an empty location. Rendering does not read `keys`: the rows of
+  the field are its data's rows. Validation resolves the reference and checks the data's keys
+  ([keyed maps](validation-rules.md#keyed-maps)).
 
 ## Widget and source settings
 

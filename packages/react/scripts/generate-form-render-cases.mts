@@ -614,6 +614,10 @@ const REQUIREMENTS: Record<string, readonly string[]> = {
   "multiple-controls-footer": ["CUSC-046"],
   "multiple-controls-outline": ["CUSC-046"],
   "lang-values-keep-language-whatever-display": ["CUSC-039"],
+  "keyed-map-scalar-rows": ["CUMK-034", "CUSC-076", "CUSC-078"],
+  "keyed-map-without-only": ["CUSC-078"],
+  "keyed-map-only-false": ["CUSC-078"],
+  "keyed-map-keys-not-string": ["CUSC-078"],
 };
 
 /** The requirement ids that each case tests (docs/spec); a case that tests none keeps no requirements member. */

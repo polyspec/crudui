@@ -17566,5 +17566,1681 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "keyed-map-ids",
+    "note": "Every key of holders and of relation_notes is a row key of characters, read from a row of facts and of characters through ..characters.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "name": "Ann",
+          "relation_notes": {
+            "c2": "Brother"
+          }
+        },
+        "c2": {
+          "name": "Ben"
+        }
+      },
+      "facts": {
+        "f1": {
+          "truth": "The will is forged",
+          "holders": {
+            "c1": "knows",
+            "c2": "suspects"
+          }
+        }
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-key-not-an-id",
+    "note": "The example of validation-rules.md: c3 is not a row key of characters.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "name": "Ann",
+          "relation_notes": {
+            "c2": "Brother"
+          }
+        },
+        "c2": {
+          "name": "Ben"
+        }
+      },
+      "facts": {
+        "f1": {
+          "truth": "The will is forged",
+          "holders": {
+            "c1": "knows",
+            "c3": "suspects"
+          }
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of ..characters: facts.f1.holders.c3",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-key-not-an-id-in-own-group",
+    "note": "relation_notes inside a row of characters reads the rows of characters around that row; c9 is none of them.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "name": "Ann",
+          "relation_notes": {
+            "c2": "Brother",
+            "c9": "Stranger"
+          }
+        },
+        "c2": {
+          "name": "Ben"
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of ..characters: characters.c1.relation_notes.c9",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-sorted-key-order",
+    "note": "Keys are checked in sorted key order: of z9 and c3, neither an id, c3 is reported.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "name": "Ann",
+          "relation_notes": {
+            "c2": "Brother"
+          }
+        },
+        "c2": {
+          "name": "Ben"
+        }
+      },
+      "facts": {
+        "f1": {
+          "holders": {
+            "z9": "knows",
+            "c3": "suspects"
+          }
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of ..characters: facts.f1.holders.c3",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-missing-group-data",
+    "note": "Missing data of the named group has no ids, so any key fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "facts": {
+        "f1": {
+          "holders": {
+            "c1": "knows"
+          }
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of ..characters: facts.f1.holders.c1",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-null-group-data",
+    "note": "null data of the named group has no ids; notes is declared first, so its keys are checked before the shape of people.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".people"
+          }
+        },
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "people": null,
+      "notes": {
+        "p1": "x"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of .people: notes.p1",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-empty-data",
+    "note": "An empty keyed map has no key to check, and missing group data does not fail it.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "facts": {
+        "f1": {
+          "holders": {}
+        }
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-empty-data-beside-a-key",
+    "note": "An empty keyed map passes and the next row of facts is still checked: c9 of f2 is not a row key of the missing characters.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "facts": {
+        "f1": {
+          "holders": {}
+        },
+        "f2": {
+          "holders": {
+            "c9": "knows"
+          }
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of ..characters: facts.f2.holders.c9",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-code-point-key-order",
+    "note": "Keys are checked in code point order: U+FF61 comes before U+1F600, which UTF-16 code unit order puts first.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "relation_notes": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": {
+              "type": "text"
+            },
+            "holders": {
+              "type": "select",
+              "items": {
+                "knows": "Knows",
+                "suspects": "Suspects"
+              },
+              "multiple": {
+                "only": true,
+                "keys": "..characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "name": "Ann",
+          "relation_notes": {
+            "c2": "Brother"
+          }
+        },
+        "c2": {
+          "name": "Ben"
+        }
+      },
+      "facts": {
+        "f1": {
+          "holders": {
+            "😀": "knows",
+            "｡": "suspects"
+          }
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of ..characters: facts.f1.holders.｡",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-bare-name",
+    "note": "A bare name names the field beside the declaring field, as .name does.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": "people"
+          }
+        }
+      }
+    },
+    "data": {
+      "people": {
+        "p1": {
+          "name": "Ann"
+        }
+      },
+      "notes": {
+        "p1": "x",
+        "p2": "y"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of people: notes.p2",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-root-path",
+    "note": "A reference with a dot inside and no leading dot names a path from the form root, through a group that is not repeated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "meta": {
+          "type": "group",
+          "properties": {
+            "cast": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "holders": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": "meta.cast"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "meta": {
+        "cast": {
+          "m1": {
+            "n": "Ann"
+          }
+        }
+      },
+      "facts": {
+        "f1": {
+          "holders": {
+            "m1": "x"
+          }
+        },
+        "f2": {
+          "holders": {
+            "m2": "y"
+          }
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of meta.cast: facts.f2.holders.m2",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-repeated-group",
+    "note": "A repeated group can be a keyed map: its rows are checked under the ids, and the fields of each row are validated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "stances": {
+          "type": "group",
+          "multiple": {
+            "only": true,
+            "keys": ".people"
+          },
+          "properties": {
+            "stance": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "people": {
+        "p1": {
+          "name": "Ann"
+        }
+      },
+      "stances": {
+        "p1": {
+          "stance": ""
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "stances.p1.stance",
+          "field": "stance",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-repeated-group-key-before-rows",
+    "note": "The keys of a field are checked before its rows: the key failure is reported, not the shape of its row.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "stances": {
+          "type": "group",
+          "multiple": {
+            "only": true,
+            "keys": ".people"
+          },
+          "properties": {
+            "stance": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "people": {},
+      "stances": {
+        "p1": "not a row"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of .people: stances.p1",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-keyed-object-first",
+    "note": "The keyed-object check of the field comes before its keys.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".people"
+          }
+        }
+      }
+    },
+    "data": {
+      "notes": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Repeated data must be a keyed object: notes",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-before-single-choice",
+    "note": "The keys of a single-choice field are checked before its single-choice check.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "picks": {
+          "type": "select",
+          "multiple": {
+            "only": true,
+            "keys": ".people"
+          }
+        }
+      }
+    },
+    "data": {
+      "picks": {
+        "p1": [
+          "a"
+        ]
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of .people: picks.p1",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-hidden-field",
+    "note": "The keys of a hidden field are checked like the other data shapes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "design": {
+            "show": false
+          },
+          "multiple": {
+            "only": true,
+            "keys": ".people"
+          }
+        }
+      }
+    },
+    "data": {
+      "people": {
+        "p1": {
+          "name": "Ann"
+        }
+      },
+      "notes": {
+        "p2": "x"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Row key is not an id of .people: notes.p2",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077",
+      "CUVR-069",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-not-a-string",
+    "note": "A multiple.keys that is not a string names no repeated group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": 5
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-not-repeated",
+    "note": "meta is a group that is not repeated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".meta"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-repeated-scalar",
+    "note": "meta.tags is repeated but is not a group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": "meta.tags"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-unknown-field",
+    "note": "No field named cast is beside notes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".cast"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-through-repeated-group",
+    "note": "people.items passes through the repeated group people, which has no row in the reference.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": "people.items"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-above-root",
+    "note": "..people leaves notes and then one more field level, which the root field notes does not have.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": "..people"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-wildcard",
+    "note": "A reference has no wildcard.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".*"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-empty-name",
+    "note": "A reference has no empty name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": "meta..title"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-empty",
+    "note": "An empty reference names no field.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "people": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": {
+              "type": "text"
+            },
+            "items": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "n": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "type": "group",
+          "properties": {
+            "title": {
+              "type": "text"
+            },
+            "tags": {
+              "type": "text",
+              "multiple": true
+            }
+          }
+        },
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ""
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-after-messages",
+    "note": "The reference is checked after the field messages keys: an unknown messages key is reported first.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".cast"
+          },
+          "messages": {
+            "nope": "x"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "UNKNOWN_RULE",
+      "message": "Unknown rule: nope",
+      "at": "notes"
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-with-messages",
+    "note": "A field with valid messages keys still has its reference checked.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "notes": {
+          "type": "text",
+          "multiple": {
+            "only": true,
+            "keys": ".cast"
+          },
+          "messages": {
+            "required": "Required."
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-before-children",
+    "note": "The reference of a repeated group is checked before the fields it contains.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "stances": {
+          "type": "group",
+          "multiple": {
+            "only": true,
+            "keys": ".cast"
+          },
+          "properties": {
+            "stance": {
+              "type": "text",
+              "validate": {
+                "nope": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at stances: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-nested-path",
+    "note": "The message names the declaration path of the field, without row keys.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "holders": {
+              "type": "text",
+              "multiple": {
+                "only": true,
+                "keys": ".characters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at facts.holders: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "keyed-map-reference-hidden-field",
+    "note": "The reference of a hidden field is checked too.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "notes": {
+          "type": "text",
+          "design": {
+            "show": false
+          },
+          "multiple": {
+            "only": true,
+            "keys": ".cast"
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid multiple.keys at notes: expected a reference to a repeated group",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-077",
+      "CUVR-070",
+      "CURP-018",
+      "CURP-022"
+    ]
   }
 ]

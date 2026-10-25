@@ -95,6 +95,34 @@ object there, including an empty one, is an input error with the message
 hidden fields. Fields are checked in declaration order, the field before its rows, and rows in
 sorted key order.
 
+## Keyed maps
+
+A field that declares `multiple.keys` is a [keyed map](schema.md#keyed-maps): its rows exist only
+under the ids of the repeated group that its reference names.
+
+- **CUVR-069** Each key of the field's data must be a row key of the data of the named group. The
+  reference is resolved as the `enddate` parameter is resolved, in the row context of the field, so a
+  keyed map inside a row of a repeated group reads the group's data around that row. Group data that
+  is missing, `null` or not an object has no ids. A key that is not an id is an input error with code
+  `INVALID_FORM_INPUT`, an empty location and the message `Row key is not an id of {reference}: {path}`,
+  where `{reference}` is the declared reference and `{path}` is the data path of the row, row keys
+  included. The rows of a keyed map come only from the data and the form offers no control that adds
+  or removes one, so a key outside the group is data that no form produces, as an undeclared member
+  is. Like the other data-shape checks it applies to hidden fields. A field's keys are checked after
+  its keyed-object check and before its single-choice check and its rows, in code point order of
+  the keys.
+- **CUVR-070** A `multiple.keys` that does not name a repeated group by the rule of the
+  [schema](schema.md#keyed-maps), including a value that is not a string, fails the load with code
+  `INVALID_FORM_INPUT`, an empty location and the message
+  `Invalid multiple.keys at {path}: expected a reference to a repeated group`, where `{path}` is the
+  field's declaration path. It is checked with the declared parameters
+  ([parameter errors](#parameter-errors)), after the field's `messages` keys and before the fields it
+  contains, for hidden fields too.
+
+For the [schema example](schema.md#keyed-maps), the data
+`{ "characters": { "c1": { "name": "Ann", "relation_notes": { "c2": "Brother" } }, "c2": { "name": "Ben" } }, "facts": { "f1": { "truth": "The will is forged", "holders": { "c1": "knows", "c3": "suspects" } } } }`
+fails with `Row key is not an id of ..characters: facts.f1.holders.c3`.
+
 ## Values
 
 Every runtime applies these definitions; the rules below use no other notion of

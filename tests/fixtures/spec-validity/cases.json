@@ -583,6 +583,41 @@
     "engine": "pass"
   },
   {
+    "name": "ok-multiple-keys",
+    "note": "multiple.keys beside only: true names a repeated group: the keyed maps of the schema example load, and empty data has no key to check.",
+    "requirements": [
+      "CUSC-076",
+      "CUSC-077"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "name": { "type": "text" },
+            "relation_notes": { "type": "text", "multiple": { "only": true, "keys": "..characters" } }
+          }
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "truth": { "type": "text" },
+            "holders": {
+              "type": "select",
+              "items": { "knows": "Knows", "suspects": "Suspects" },
+              "multiple": { "only": true, "keys": "..characters" }
+            }
+          }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "ok-design-attributes",
     "note": "A form field declares data-* and aria-* attributes for its control and its node root; validation loads the specification.",
     "requirements": [
