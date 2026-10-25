@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 3fde4ef7db977bb6ad096321fa001165c3a11e7430831726c81d750d1d4ea28a -->
+<!-- source-sha256: c48b6fe18f6bf393850e09f6634885c476e09f01ef52dc06356666e529b9bb9d -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -116,6 +116,38 @@ pass:
 컴파일은 조건 필드를 `behavior` 다음에 검사하며 `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
 
 - **CUSC-070** `validate.conditionTree`가 없거나 `true`도 `judge`도 아님: `Invalid validate.conditionTree at {path}: expected true or judge`
+
+### 구조 조건 편집기
+
+조건 필드는 `design.editor`를 선언할 수 있습니다. `text`는 [폼 마크업](form-markup.ko.md#조건-필드)의
+textarea이며 그 멤버가 없는 필드의 편집기이기도 합니다. `structured`는 트리를 중첩한 컨트롤로 편집합니다
+([구조 편집기](form-markup.ko.md#구조-조건-편집기)). 구조 필드는 비교가 고르는 필드 이름인 `options.fields`를
+선언할 수 있으며, 그것이 없으면 비교의 필드는 입력하는 텍스트입니다.
+
+```yaml
+opens_when:
+  type: condition
+  label: Opens when
+  validate: { conditionTree: true }
+  design: { editor: structured }
+  options: { fields: [episodes.e1.status, clues.size] }
+```
+
+컴파일은 이 멤버들을 `validate.conditionTree` 다음에 검사하며 `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
+
+- **CUSC-083** 조건 필드가 아닌 필드의 `design.editor`: `Invalid design.editor at {path}: unknown key`, 그리고 조건 필드에서 `text`나 `structured`가 아닌 값: `Invalid design.editor at {path}: expected text or structured`
+- **CUSC-084** 구조 조건 필드가 아닌 필드의 `options.fields`, 또는 다듬은 뒤 비지 않고 서로 같지 않은 문자열의 목록이 아닌 `options.fields`: `Invalid options.fields at {path}: expected distinct field names of a structured condition editor`
+
+편집기는 필드의 규칙이 받는 것을 제공하고 값을 잃지 않고 보여 줍니다.
+
+- **CUSC-085** 편집기는 CUSC-073의 `op` 값 여덟 개를 그 순서로 제공합니다. 판정 텍스트는 추가할 조건으로도,
+  보여 줄 조건으로도 `conditionTree: judge`에서만 제공합니다.
+- **CUSC-086** 편집기는 값이 빈 값이면 빈 `all` 그룹으로, 또는 비어 있는 모든 `field`와 비어 있는 모든 `judge`
+  텍스트를 채운 것으로 볼 때 필드의 `conditionTree`가 받는 조건 트리이면 컨트롤로 보여 줍니다. 편집기가
+  추가하는 조건은 비어서 시작하기 때문입니다. 그 밖의 값은 컨트롤로 보여 주지 않고 바꾸지도 않습니다. 필드는
+  textarea를 보이게 값의 조건 텍스트와 함께 쓰고, 규칙과 필드의 데이터 경로를 밝히는 이름 있는 오류를
+  씁니다(CUMK-068). 그래서 작성자는 텍스트를 고칩니다. 값은 필드의 데이터로 남고, 폼을 검증하면
+  `conditionTree`가 알립니다.
 
 ## 조건과 외형
 

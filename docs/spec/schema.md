@@ -127,6 +127,43 @@ empty location:
 
 - **CUSC-070** `validate.conditionTree` absent, or neither `true` nor `judge`: `Invalid validate.conditionTree at {path}: expected true or judge`
 
+### Structured condition editor
+
+A condition field may declare `design.editor`: `text`, the textarea of the
+[form markup](form-markup.md#condition-fields), which is also the editor of a field without the
+member, or `structured`, which edits the tree as nested controls
+([structured editor](form-markup.md#structured-condition-editor)). A structured field may declare
+`options.fields`, the field names that its comparisons choose from; without it the field of a
+comparison is typed text.
+
+```yaml
+opens_when:
+  type: condition
+  label: Opens when
+  validate: { conditionTree: true }
+  design: { editor: structured }
+  options: { fields: [episodes.e1.status, clues.size] }
+```
+
+Compilation checks these members after `validate.conditionTree` and fails with
+`INVALID_FORM_INPUT` and an empty location:
+
+- **CUSC-083** `design.editor` of a field that is not a condition field: `Invalid design.editor at {path}: unknown key`; and of a condition field, a value other than `text` or `structured`: `Invalid design.editor at {path}: expected text or structured`
+- **CUSC-084** `options.fields` of a field that is not a structured condition field, or that is not a list of strings that are not empty after trimming and of which no two are equal: `Invalid options.fields at {path}: expected distinct field names of a structured condition editor`
+
+The editor offers what the rule of the field accepts and shows the value without loss:
+
+- **CUSC-085** The editor offers the eight `op` values of CUSC-073 in that order. It offers judged
+  text, as a condition to add and as a condition that it shows, only under `conditionTree: judge`.
+- **CUSC-086** The editor shows a value as controls when the value is an empty value, which it shows
+  as an empty `all` group, or when the value is a condition tree that `conditionTree` of the field
+  accepts after every empty `field` and every empty `judge` text is taken as filled, because a
+  condition that the editor adds starts empty. It shows no other value as controls and does not
+  replace it: the field writes its textarea, visible, with the condition text of the value, and a
+  named error that names the rule and the data path of the field (CUMK-068), so the author corrects
+  the text; the value stays the data of the field, and `conditionTree` reports it when the form is
+  validated.
+
 ## Conditions and appearance
 
 Conditions are values in the relevant setting. `design.show` controls visibility;

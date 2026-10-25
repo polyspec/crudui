@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: b7b0f96ecd40302865ffd32fc570026793fba9d449e5905e6240694427117bbd -->
+<!-- source-sha256: 46221a92d6022df8841bef21d351cd160915ac537e7beac1e676e085033aef70 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -264,6 +264,16 @@ WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 같은 디코딩한 값으로 데이터를 만듭니다. 네이티브 제출은 텍스트를 보내고, 서버는 데이터를 검증하기 전에
 같은 규칙으로 필드의 텍스트를 자신의 JSON 리더로 디코딩합니다. 따라서 `conditionTree`는 브라우저가 검사한
 트리를 검사합니다.
+
+`connectForm`은 [구조 편집기](form-markup.ko.md#구조-조건-편집기)의 트리를 그 컨트롤과 버튼으로 편집합니다.
+`data-condition-for`로 필드를 찾고, 인스턴스 값에서 트리를 가져오며(빈 값은 `{ "all": [] }`),
+`data-condition-path`의 조건을 바꾸고, 새 트리를 `setValue`로 설정합니다. 그러면 렌더러가 새 트리의 편집기를
+쓰고, textarea 텍스트는 위와 같이 인스턴스 값을 따릅니다. `mode` 변경은 그룹의 멤버 이름을 `all`이나 `any`로
+바꾸고 목록을 유지합니다. `field`, `op`, `value`, `judge` 변경은 그 멤버를 설정합니다. 값 텍스트는 조건 값을
+읽는 규칙으로 읽고, `in`으로의 `op` 변경은 목록이 아닌 값을 그 값의 목록으로, 값이 비면 `[]`로 만들며,
+`in`에서의 변경은 목록을 그 첫 멤버로, 목록이 비면 `""`로 만듭니다. `add-comparison`은 `options.fields`의 첫
+이름이나 `""`를 필드로 하는 `{ "field": …, "op": "eq", "value": "" }`를 덧붙이고, `add-group`은
+`{ "all": [] }`를, `add-judge`는 `{ "judge": "" }`를 덧붙이며, `remove`는 그 조건을 그룹에서 뺍니다.
 
 ## 완전한 폼
 

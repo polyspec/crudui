@@ -284,6 +284,19 @@ same decoded value. A native submission sends the text, and a server decodes the
 by the same rule with its JSON reader before it validates the data, so `conditionTree` checks the tree
 that the browser checked.
 
+`connectForm` edits the tree of a [structured editor](form-markup.md#structured-condition-editor)
+through its controls and buttons. It finds the field by `data-condition-for`, takes the tree from the
+instance value (an empty value is `{ "all": [] }`), changes the condition at `data-condition-path`
+and sets the new tree with `setValue`; the renderer then writes the editor of the new tree, and the
+textarea text follows the instance value as above. A `mode` change renames the member of the group
+to `all` or `any` and keeps its list. A `field`, `op`, `value` or `judge` change sets that member;
+the value text is read as a condition value is read, and an `op` change to `in` makes a value that is
+not a list the list of that value, or `[]` when the value is empty, while a change from `in` makes a
+list its first member, or `""` when it is empty. `add-comparison` appends
+`{ "field": …, "op": "eq", "value": "" }` with the first name of `options.fields`, or `""`, as the
+field; `add-group` appends `{ "all": [] }`; `add-judge` appends `{ "judge": "" }`; and `remove` takes
+the condition out of its group.
+
 ## Complete form
 
 `renderForm(form, options)` renders the complete form that a server sends: the form element,

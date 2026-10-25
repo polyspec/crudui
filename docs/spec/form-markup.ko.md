@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 091a6dee3eefa465ff225551f1ae64a49e0f21348ae41a26bf7bfc740a4040e2 -->
+<!-- source-sha256: 2ed17fe9cb99e24ad8891f0501474b309d92f0a522eeeacdf4a6dfd7f2aa5fcc -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -266,6 +266,60 @@ JSON 텍스트임을 표시합니다([조건 값](form-runtime.ko.md#조건-값)
 <div class="crudui-widget"><textarea name="pass" class="valid-target crudui-input crudui-input--condition"
   rows="5" data-crudui-value="json" data-name="pass" data-rule-name="pass" data-default=""
   id="crudui:pass">{&quot;any&quot;:[{&quot;field&quot;:&quot;clues.size&quot;,&quot;op&quot;:&quot;ge&quot;,&quot;value&quot;:2},{&quot;judge&quot;:&quot;Jian finds it.&quot;}]}</textarea></div>
+```
+
+### 구조 조건 편집기
+
+`design.editor: structured`인 조건 필드([스키마](schema.ko.md#구조-조건-편집기))는 위젯
+`crudui-widget crudui-widget--condition`을 씁니다. 그 안에는 값을 가지며 폼이 제출하는 조건 필드의
+textarea가 있고, 그 뒤에 트리의 편집기가 있습니다.
+
+- **CUMK-067** 편집기가 보여 주는 값(CUSC-086)은 textarea를 속성 `hidden`과 함께 쓰고, 그다음
+  `<div class="crudui-condition" data-condition-for="{id}">`를 씁니다. `{id}`는 textarea의 id이며, 그 안에
+  루트 조건이 있습니다. 각 조건은 트리 안 조건의 JSON Pointer(RFC 6901)인 `data-condition-path`를 가집니다.
+  루트는 빈 포인터이고, 그룹의 위치 `{n}`에 있는 조건은 그룹의 포인터, `/`, `all`이나 `any`, `/`, `{n}`입니다.
+  그룹은 `<fieldset class="crudui-condition__group">`이며, 옵션 `all`과 `any`(그룹의 mode가 선택됨)의
+  `<select class="crudui-condition__mode" data-condition-part="mode">`, 목록 순서로 조건을 담은
+  `<li class="crudui-condition__item">`의 `<ol class="crudui-condition__list">`, 그리고 버튼
+  `add-comparison`, `add-group`, `add-judge`(`conditionTree: judge`에서만), 루트 아래에서는 `remove`를
+  가집니다. 비교는 `<div class="crudui-condition__comparison">`이며, 필드 컨트롤, `op` 값 여덟 개(CUSC-085,
+  비교의 op가 선택됨)의 `<select class="crudui-condition__op" data-condition-part="op">`, 값의 조건
+  텍스트(CUMK-066)를 값으로 가진 `<input class="crudui-condition__value" data-condition-part="value">`,
+  버튼 `remove`를 가집니다. 필드 컨트롤은 필드를 값으로 가진
+  `<input class="crudui-condition__field" data-condition-part="field">`이거나, `options.fields`가 있으면 그
+  이름들을 그 순서로 가진 `<select class="crudui-condition__field" data-condition-part="field">`입니다. 비교의
+  필드가 선택되고, 그 이름들에 없으면 자기 옵션으로 맨 앞에 씁니다. 판정 텍스트는 텍스트를 가진
+  `<input class="crudui-condition__text" data-condition-part="judge">`와 버튼 `remove`의
+  `<div class="crudui-condition__judge">`입니다. 각 버튼은 동작의 화면 문구(`conditionAddComparison`,
+  `conditionAddGroup`, `conditionAddJudge`, `conditionRemove`)를 가진 `<button type="button"
+  class="crudui-action crudui-action--text" data-condition-action="{action}">`이고, mode select는
+  `conditionMode`의 `aria-label`을 가집니다. 편집기 컨트롤에는 `name`이 없으므로 폼은 textarea만 제출합니다.
+- **CUMK-068** 편집기가 보여 주지 않는 값(CUSC-086)은 `hidden`이 없는 textarea 앞에 화면 문구
+  `conditionInvalid`의 `<p class="crudui-condition__error" role="alert">`를 쓰고, 편집기는 쓰지 않습니다.
+  `{path}`는 필드의 데이터 경로입니다.
+
+구조 필드의 위젯 모델은 `condition`을 더합니다. `{ for, judge, fields, root }`에서 `for`는 textarea id, `judge`는
+판정 텍스트를 제공하는지 여부, `fields`는 `options.fields`의 목록 또는 `null`, `root`는 루트 노드입니다. 또는
+오류 텍스트가 있는 `{ for, error }`입니다. 노드는 `{ kind: "group", path, mode, items }`, 값 텍스트가 있는
+`{ kind: "comparison", path, field, op, value }`, 또는 `{ kind: "judge", path, text }`입니다. `options.fields:
+[clues.size]`이고 데이터가 `{ "all": [{ "field": "clues.size", "op": "ge", "value": 2 }] }`인 필드
+`opens_when`은 영어로 다음을 씁니다.
+
+```html
+<div class="crudui-widget crudui-widget--condition"><textarea name="opens_when" class="valid-target
+  crudui-input crudui-input--condition" rows="5" data-crudui-value="json" data-name="opens_when"
+  data-rule-name="opens_when" data-default="" id="crudui:opens_when" hidden="">{&quot;all&quot;:[…]}</textarea><div
+  class="crudui-condition" data-condition-for="crudui:opens_when"><fieldset class="crudui-condition__group"
+  data-condition-path=""><select class="crudui-condition__mode" data-condition-part="mode"
+  aria-label="Condition mode"><option value="all" selected="">all</option><option value="any">any</option></select><ol
+  class="crudui-condition__list"><li class="crudui-condition__item"><div class="crudui-condition__comparison"
+  data-condition-path="/all/0"><select class="crudui-condition__field" data-condition-part="field"><option
+  value="clues.size" selected="">clues.size</option></select><select class="crudui-condition__op"
+  data-condition-part="op"><option value="eq">eq</option>…<option value="ge" selected="">ge</option>…</select><input
+  class="crudui-condition__value" data-condition-part="value" value="2"><button type="button"
+  class="crudui-action crudui-action--text" data-condition-action="remove">Remove</button></div></li></ol><button
+  type="button" class="crudui-action crudui-action--text" data-condition-action="add-comparison">Add condition</button><button
+  type="button" class="crudui-action crudui-action--text" data-condition-action="add-group">Add group</button></fieldset></div></div>
 ```
 
 ## 스위치

@@ -289,6 +289,65 @@ writes:
   id="crudui:pass">{&quot;any&quot;:[{&quot;field&quot;:&quot;clues.size&quot;,&quot;op&quot;:&quot;ge&quot;,&quot;value&quot;:2},{&quot;judge&quot;:&quot;Jian finds it.&quot;}]}</textarea></div>
 ```
 
+### Structured condition editor
+
+A condition field with `design.editor: structured` ([schema](schema.md#structured-condition-editor))
+writes the widget `crudui-widget crudui-widget--condition`. It holds the textarea of a condition
+field, which keeps the value and is what a form submits, and after it the editor of the tree:
+
+- **CUMK-067** A value that the editor shows (CUSC-086) writes the textarea with the attribute `hidden`
+  and then `<div class="crudui-condition" data-condition-for="{id}">`, where `{id}` is the id of the
+  textarea, holding the root condition. Each condition carries `data-condition-path`, the JSON
+  Pointer (RFC 6901) of the condition in the tree: the root is the empty pointer and the condition at
+  position `{n}` of a group is the pointer of the group, `/`, `all` or `any`, `/` and `{n}`. A group
+  is `<fieldset class="crudui-condition__group">` with a
+  `<select class="crudui-condition__mode" data-condition-part="mode">` of the options `all` and `any`
+  (the mode of the group selected), an `<ol class="crudui-condition__list">` whose
+  `<li class="crudui-condition__item">` hold its conditions in list order, and the buttons
+  `add-comparison`, `add-group`, `add-judge` (only under `conditionTree: judge`) and, below the root,
+  `remove`. A comparison is `<div class="crudui-condition__comparison">` with the field control, a
+  `<select class="crudui-condition__op" data-condition-part="op">` of the eight `op` values (CUSC-085,
+  the op of the comparison selected), an
+  `<input class="crudui-condition__value" data-condition-part="value">` whose value is the condition
+  text (CUMK-066) of the value, and the button `remove`. The field control is
+  `<input class="crudui-condition__field" data-condition-part="field">` with the field as its value,
+  or, with `options.fields`, `<select class="crudui-condition__field" data-condition-part="field">` of
+  those names in their order, the field of the comparison selected and, when it is not among them,
+  written first as its own option. A judged text is `<div class="crudui-condition__judge">` with
+  `<input class="crudui-condition__text" data-condition-part="judge">` holding the text and the button
+  `remove`. Each button is `<button type="button" class="crudui-action crudui-action--text"
+  data-condition-action="{action}">` with the interface message of its action (`conditionAddComparison`,
+  `conditionAddGroup`, `conditionAddJudge`, `conditionRemove`), and the mode select has the
+  `aria-label` of `conditionMode`. No editor control has a `name`, so a form submits the textarea alone.
+- **CUMK-068** A value that the editor does not show (CUSC-086) writes, before the textarea, which keeps
+  no `hidden`, `<p class="crudui-condition__error" role="alert">` with the interface message
+  `conditionInvalid`, whose `{path}` is the data path of the field, and writes no editor.
+
+The widget model of a structured field adds `condition`: `{ for, judge, fields, root }`, where `for`
+is the textarea id, `judge` whether judged text is offered, `fields` the list of `options.fields` or
+`null`, and `root` the root node, or `{ for, error }` with the error text. A node is
+`{ kind: "group", path, mode, items }`, `{ kind: "comparison", path, field, op, value }` with the
+value text, or `{ kind: "judge", path, text }`. A field `opens_when` with `options.fields:
+[clues.size]` and the data `{ "all": [{ "field": "clues.size", "op": "ge", "value": 2 }] }` writes, in
+English:
+
+```html
+<div class="crudui-widget crudui-widget--condition"><textarea name="opens_when" class="valid-target
+  crudui-input crudui-input--condition" rows="5" data-crudui-value="json" data-name="opens_when"
+  data-rule-name="opens_when" data-default="" id="crudui:opens_when" hidden="">{&quot;all&quot;:[…]}</textarea><div
+  class="crudui-condition" data-condition-for="crudui:opens_when"><fieldset class="crudui-condition__group"
+  data-condition-path=""><select class="crudui-condition__mode" data-condition-part="mode"
+  aria-label="Condition mode"><option value="all" selected="">all</option><option value="any">any</option></select><ol
+  class="crudui-condition__list"><li class="crudui-condition__item"><div class="crudui-condition__comparison"
+  data-condition-path="/all/0"><select class="crudui-condition__field" data-condition-part="field"><option
+  value="clues.size" selected="">clues.size</option></select><select class="crudui-condition__op"
+  data-condition-part="op"><option value="eq">eq</option>…<option value="ge" selected="">ge</option>…</select><input
+  class="crudui-condition__value" data-condition-part="value" value="2"><button type="button"
+  class="crudui-action crudui-action--text" data-condition-action="remove">Remove</button></div></li></ol><button
+  type="button" class="crudui-action crudui-action--text" data-condition-action="add-comparison">Add condition</button><button
+  type="button" class="crudui-action crudui-action--text" data-condition-action="add-group">Add group</button></fieldset></div></div>
+```
+
 ## Switches
 
 A `switcher` field renders a switch. Its node model has the `checkbox` model of a checkbox field
