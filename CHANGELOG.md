@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — The php-ext test source lists link rule_condition_tree.c and canonical.c (C17.33)
+
+- The php-ext comparison and contract tests compile the sources that the widget and the number text need (rule_condition_tree.c, canonical.c), so they link again. The comparison divergence that the link now shows is C17.34.
+
 ### 2026-10-26 — A group source combines literal choices with the rows of its group (C17.31)
 
 - C17.31 is done (C17.31): a group source declares choices, literal value and label pairs that are listed before the rows of its group and checked with them as one set by the implicit in check, such as the audience player beside the character ids (docs/spec/schema.md CUSC-089, docs/spec/validation-rules.md CUVR-085); a row whose value repeats a literal choice fails with INVALID_FORM_INPUT and names its row path and value, in validation and in binding, and a choices outside its rules fails compilation and the load (CUVR-086); in TypeScript, PHP, the PHP extension, Go, Rust and Python. Red: make parity-check UNITS="validate form-render" failed the 9 validate and 3 form-render cases in every implementation; green after the change.

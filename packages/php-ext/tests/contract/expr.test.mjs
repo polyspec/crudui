@@ -81,7 +81,7 @@ function evaluate() {
     try {
       await compileAndRunEngineFixture({
         root, directory, source: sourceForFixtures(), name: 'expression-fixtures',
-        sources: ['value.c', 'number_text.c', 'value_path.c', 'expression.c'],
+        sources: ['value.c', 'number_text.c', 'value_path.c', 'expression.c', 'canonical.c'],
         onOutput: stdout => { output = stdout; },
       });
     } catch (error) {

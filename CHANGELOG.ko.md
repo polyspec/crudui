@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2e4c9c5781b22839ac670b1e4e223bf156110a0d6017bb833ff49f5ea54310f6 -->
+<!-- source-sha256: 1135891defdbce52a92c5f9874fcf1af3d30d4b24ace02882eedd6623f3245bb -->
 
 ## Unreleased
+
+### 2026-10-26 — php-ext 테스트 소스 목록이 rule_condition_tree.c와 canonical.c를 링크한다 (C17.33)
+
+- php-ext comparison과 contract 테스트가 위젯과 숫자 표기에 필요한 소스(rule_condition_tree.c, canonical.c)를 컴파일하여 다시 링크된다. 링크가 드러낸 comparison 차이는 C17.34다.
 
 ### 2026-10-26 — 그룹 소스는 리터럴 선택지를 그룹의 행과 합친다(C17.31)
 

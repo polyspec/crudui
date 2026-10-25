@@ -149,7 +149,7 @@ test('PHP extension engine binds every shared form fixture without changing inpu
       onOutput: stdout => { output = stdout; },
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
       ],
     });
     assertCasesReported(output, bindFixtures.length + optionRejections.length,
@@ -166,7 +166,7 @@ test('PHP extension engine binding has no undefined behavior findings', { timeou
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -263,7 +263,7 @@ test('PHP extension engine renders successful shared form fixtures and edge case
       onOutput: stdout => { output = stdout; },
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
       ],
     });
     assertCasesReported(output, allRenderFixtures.length,
@@ -278,7 +278,7 @@ test('PHP extension engine form rendering does not depend on a comma decimal loc
     signal: t.signal, root, prefix: 'crudui-c-render-locale-', name: 'render-fixtures-locale', source: sourceForFixtures(),
     sources: [
       'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
+      'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
     ],
   });
 });
@@ -290,7 +290,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', {
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
