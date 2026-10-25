@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 64ac60e68b9a2000e3d89ae5c26daf4a4df713440ca01370e1afcf5eec658b4a -->
+<!-- source-sha256: 125513dcdfb5468b3589687cfabac4d4b012eb702a50f9fbe3d61a716bec591b -->
 
 [English](validation-rules.md).
 
@@ -30,6 +30,8 @@
 - **CUVR-016** `accept`: 파일 확장자 또는 MIME 타입 매개변수입니다.
 - **CUVR-066** `conditionTree`: `true` 또는 `judge`이며, 값은 [조건 트리](#조건-트리)이고 판정 문장은 `judge`에서만
   허용됩니다.
+- **CUVR-071** `reference`: 값은 매개변수가 가리키는 필드에서 데이터가 선언한 id를 가리킵니다.
+  [참조](#참조)를 봅니다.
 
 [TypeScript 등록부](../../packages/validator/ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
@@ -186,6 +188,36 @@ display:
   모든 규칙처럼 통과하므로(CUVR-020) `{}`와 `null`은 통과하고 `required`가 거부합니다. runtime은 값의 깊이와
   관계없이 값을 최대 32단계까지만 읽으며, 이 규칙의 기본 메시지는 `Please enter a valid condition.`입니다.
 
+## 참조
+
+`reference`는 같은 form의 한 필드의 선언 경로를 받습니다. 선언 경로는 매개변수 오류가 위치를 나타낼 때처럼 root부터의
+property 이름을 `.`로 이은 것이며 행 키는 넣지 않습니다. 아래 필드에서 `facts.id`는 repeated group `facts`의 행에 있는
+필드 `id`를 가리키고, 각 행의 `secrets.fact_id` 값은 facts 중 하나의 `id`여야 합니다.
+
+```yaml
+facts:
+  type: group
+  multiple: true
+  properties:
+    id: { type: text, validate: { required: true, unique: true } }
+secrets:
+  type: group
+  multiple: true
+  properties:
+    fact_id: { type: text, validate: { reference: facts.id } }
+```
+
+- **CUVR-072** **Id.** 선언 경로의 id는 검증하는 데이터에서 그 필드가 가진 값입니다. 경로는 데이터 root부터 따라갑니다.
+  group의 데이터는 그 필드들의 객체이고 repeated 필드의 데이터는 멤버가 행인 키 객체이므로, 경로 위 모든 repeated 필드의
+  모든 행을 읽고, 가리킨 필드 자체가 repeated이면 그 모든 행 값을 읽습니다. 한 단계에서 다른 형태인 데이터와 없는 값에는
+  id가 없습니다. 정규 텍스트가 다듬은 뒤 비어 있지 않은 문자열·숫자·불리언이 id이고, 빈 값·배열·객체는 id가 아닙니다.
+  `design.show`로 숨겨진 필드도 값을 유지하므로(CUVR-017) 그 값도 id입니다.
+- **CUVR-073** **일치.** 값이 `in`의 [포함 여부](#값) 규칙(CUVR-029)에서 id를 목록의 멤버로 삼아 멤버이면 `reference`를
+  통과합니다. 문자열 값은 다듬고, 정규 텍스트가 같거나 숫자 값이 같은 id와 일치하며, 배열 값은 모든 원소가 통과해야
+  통과합니다. 빈 값은 평가하지 않고 통과합니다(CUVR-020). 데이터에 id가 하나도 없으면 그 밖의 모든 값이 실패합니다.
+
+선언 경로의 id는 `reference`가 그 id와 비교하는 값의 수와 관계없이 검증 한 번에 한 번 모읍니다.
+
 ## 패턴
 
 `pattern`과 `match`는 HTML `pattern` 속성처럼 값의 정규 텍스트 **전체**가 일치해야 합니다. 패턴은 CRUDUI
@@ -241,6 +273,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 - **CUVR-054** 문자열이 아닌 `equalTo`, `enddate` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a field reference string`
 - **CUVR-055** 문자열·숫자·불리언이 아닌 `notEqual` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** 불리언이나 문자열이 아닌 `unique` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid unique parameter: expected true, false or a string`
+- **CUVR-074** 문자열이 아니거나, type이 `group`이 아니고 `lang`이 없거나 `false`·`null`인 form 필드의 선언 경로가 아닌 `reference` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid reference parameter: expected the declaration path of a field`
 - **CUVR-057** 언어에 속하지 않는 `pattern`, `match` — 코드: `INVALID_RULE_PATTERN`; 메시지: `Invalid {rule} pattern: {reason} at {offset}`
 - **CUVR-061** 규칙을 어기는 [그룹 소스](schema.ko.md#반복-그룹의-선택지). 컴파일과 같은 순서로, 필드의 `validate` 규칙보다 먼저 검사합니다 — 코드: `INVALID_RULE_PARAMETER`; 메시지: 컴파일의 메시지(CUSC-064에서 CUSC-067)이며 `{path}`는 필드의 선언 경로입니다
 - **CUVR-068** `true`, `false`, `null`, `judge`가 아닌 `conditionTree` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid conditionTree parameter: expected true, false or judge`
@@ -303,6 +336,11 @@ properties:
 `enddate`에 준 객체나 목록은 조건맵이 아니라 [매개변수 오류](#매개변수-오류)입니다.
 포함 여부 검사 맵은 조건맵이 아닌 값 집합입니다. `conditionTree`의 매개변수 `judge`는 경로가 아닌
 리터럴이며, `conditionTree`에 준 객체는 매개변수 오류입니다.
+`equalTo`, `notEqual`, `unique`, `enddate`, `reference`, `accept`, `match`, `pattern`, `in`은
+자체 처리를 위해 매개변수를 그대로 받습니다. 특히 `enddate: period.start`는
+불리언 조건이 아니라 필드 참조입니다. 따라서 `equalTo`, `notEqual`, `unique`,
+`enddate`, `reference`에 준 객체나 목록은 조건맵이 아니라 [매개변수 오류](#매개변수-오류)입니다.
+포함 여부 검사 맵은 조건맵이 아닌 값 집합입니다.
 
 `enddate`의 `.start`는 형제 필드, `..start`는 한 그룹 위의 필드를 공통 필드 참조
 해석기로 조회합니다.

@@ -433,6 +433,11 @@ Validators inspect `validate` rules and current data. The
 compare the TypeScript, PHP, Go and Rust implementations. SSR comparisons and
 mounted DOM tests verify different behavior and are recorded separately.
 
+A field whose value names an entry of another field, such as the id of a row of another repeated
+group, declares `validate.reference` with the declaration path of that field, for example
+`reference: facts.id`. The [references](validation-rules.md#references) define the ids that the
+data declares there and the check of the value.
+
 ## Lists
 
 A list declares `columns`; row records are a separate `buildList(spec, rows,

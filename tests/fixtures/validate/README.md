@@ -17,6 +17,8 @@ labels, choice lists as `in` members and their parameter errors, empty member se
 the declared rule name, rule names that are not registered (in `validate` and `messages`, at
 nested row paths, for hidden fields and in check order), empty values that skip format rules, and
 the shape of submitted data. The
+reference cases check `reference`: ids taken from every row on a declaration path, membership
+matching against them, ids of hidden fields, a form without ids and the parameter errors. The
 data-shape cases reject undeclared members at the root, in groups and in repeated group rows,
 and an array or object as the value of a single-choice field or of its rows, hidden fields
 included; fields referenced by conditions are declared in each specification. The

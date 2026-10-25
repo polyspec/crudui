@@ -41,6 +41,7 @@ import { GROUP_SOURCE_CASES, GROUP_SOURCE_REQUIREMENTS } from './group-source.mt
 import { MULTIPLE_SHAPE_CASES, MULTIPLE_SHAPE_REQUIREMENTS } from './multiple-shape.mts';
 import { KEYED_MAP_CASES, KEYED_MAP_REQUIREMENTS } from './keyed-maps.mts';
 import { CONDITION_TREE_CASES, CONDITION_TREE_REQUIREMENTS } from './condition-tree.mts';
+import { REFERENCE_CASES } from './reference-rules.mts';
 import { parseJson } from '../../json.mts';
 
 interface CaseSpec {
@@ -1415,6 +1416,21 @@ const REQUIREMENTS: Record<string, string[]> = {
   'expression-scalar-equals-array-is-false': ['CUSC-038'],
   'expression-zero-equals-empty-array-is-false': ['CUSC-038'],
   ...CONDITION_TREE_REQUIREMENTS,
+  'reference-row-ids': ['CUVR-020', 'CUVR-071', 'CUVR-072', 'CUVR-073'],
+  'reference-nested-rows-and-repeated-target': ['CUVR-071', 'CUVR-072'],
+  'reference-membership-matching': ['CUVR-029', 'CUVR-071', 'CUVR-072', 'CUVR-073'],
+  'reference-no-ids': ['CUVR-020', 'CUVR-073'],
+  'reference-hidden-ids': ['CUVR-017', 'CUVR-072'],
+  'reference-parameter-false': ['CUVR-071'],
+  'reference-parameter-number': ['CUVR-074'],
+  'reference-parameter-list': ['CUVR-074'],
+  'reference-parameter-condition-map': ['CUVR-074'],
+  'reference-parameter-undeclared': ['CUVR-074'],
+  'reference-parameter-group': ['CUVR-074'],
+  'reference-parameter-lang': ['CUVR-074'],
+  'reference-parameter-row-key': ['CUVR-074'],
+  'reference-parameter-relative': ['CUVR-074'],
+  'reference-parameter-in-row': ['CUVR-074'],
 };
 
 /**
@@ -1436,7 +1452,7 @@ const EXPRESSION_CASES: CaseSpec[] = [
   },
 ];
 
-const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written)];
+const generated = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written), ...REFERENCE_CASES.map(written), ...EXPRESSION_CASES.map(build), ...GROUP_SOURCE_CASES.map(written), ...MULTIPLE_SHAPE_CASES.map(written), ...KEYED_MAP_CASES.map(written), ...CONDITION_TREE_CASES.map(written)];
 for (const name of Object.keys(REQUIREMENTS)) {
   if (!generated.some(c => c.name === name)) throw new Error(`requirements name ${name}, which no generated case has`);
 }

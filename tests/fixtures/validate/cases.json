@@ -16371,6 +16371,845 @@
     ]
   },
   {
+    "name": "reference-row-ids",
+    "note": "the ids of facts.id are the id of every row of facts; a row of secrets passes with one of them, fails with another value and passes when empty.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "secrets": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "fact_id": {
+              "type": "text",
+              "validate": {
+                "reference": "facts.id"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "facts": {
+        "__f1__": {
+          "id": "apple"
+        },
+        "__f2__": {
+          "id": "pear"
+        }
+      },
+      "secrets": {
+        "__s2__": {
+          "fact_id": "plum"
+        },
+        "__s1__": {
+          "fact_id": "pear"
+        },
+        "__s3__": {
+          "fact_id": ""
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "secrets.__s2__.fact_id",
+          "field": "fact_id",
+          "rule": "reference",
+          "message": "Please select an existing value.",
+          "value": "plum"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-020",
+      "CUVR-071",
+      "CUVR-072",
+      "CUVR-073",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-nested-rows-and-repeated-target",
+    "note": "a path through two repeated groups reads every row of both; a repeated scalar field gives every row value as an id.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "chapters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "scenes": {
+              "type": "group",
+              "multiple": true,
+              "properties": {
+                "code": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        "aliases": {
+          "type": "text",
+          "multiple": true
+        },
+        "scene": {
+          "type": "text",
+          "validate": {
+            "reference": "chapters.scenes.code"
+          }
+        },
+        "alias": {
+          "type": "text",
+          "validate": {
+            "reference": "aliases"
+          }
+        },
+        "other_alias": {
+          "type": "text",
+          "validate": {
+            "reference": "aliases"
+          }
+        }
+      }
+    },
+    "data": {
+      "chapters": {
+        "__c1__": {
+          "scenes": {
+            "__a__": {
+              "code": "s1"
+            }
+          }
+        },
+        "__c2__": {
+          "scenes": {
+            "__b__": {
+              "code": "s2"
+            }
+          }
+        }
+      },
+      "aliases": {
+        "__x__": "Kim",
+        "__y__": "Lee"
+      },
+      "scene": "s2",
+      "alias": "Lee",
+      "other_alias": "Park"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "other_alias",
+          "field": "other_alias",
+          "rule": "reference",
+          "message": "Please select an existing value.",
+          "value": "Park"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-071",
+      "CUVR-072",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-membership-matching",
+    "note": "a value matches an id as a value matches a member of in: numeric text equals a number id, a string value is trimmed, an id is read as it is, true is the id 1, an array or object is no id, and an array value passes when every element passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "number_text": {
+          "type": "text",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "number_fraction": {
+          "type": "text",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "padded": {
+          "type": "text",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "spaced": {
+          "type": "text",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "flag": {
+          "type": "text",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "listed": {
+          "type": "text",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "picks": {
+          "type": "multichoice",
+          "validate": {
+            "reference": "items.id"
+          }
+        },
+        "bad_picks": {
+          "type": "multichoice",
+          "validate": {
+            "reference": "items.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "items": {
+        "__1__": {
+          "id": 7
+        },
+        "__2__": {
+          "id": "pear"
+        },
+        "__3__": {
+          "id": " x "
+        },
+        "__4__": {
+          "id": true
+        },
+        "__5__": {
+          "id": [
+            "q"
+          ]
+        },
+        "__6__": {
+          "id": ""
+        },
+        "__7__": {
+          "id": null
+        }
+      },
+      "number_text": "7",
+      "number_fraction": "7.0",
+      "padded": " pear ",
+      "spaced": "x",
+      "flag": "1",
+      "listed": "q",
+      "picks": [
+        "pear",
+        "7"
+      ],
+      "bad_picks": [
+        "pear",
+        "plum"
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "spaced",
+          "field": "spaced",
+          "rule": "reference",
+          "message": "Please select an existing value.",
+          "value": "x"
+        },
+        {
+          "path": "listed",
+          "field": "listed",
+          "rule": "reference",
+          "message": "Please select an existing value.",
+          "value": "q"
+        },
+        {
+          "path": "bad_picks",
+          "field": "bad_picks",
+          "rule": "reference",
+          "message": "Please select an existing value.",
+          "value": [
+            "pear",
+            "plum"
+          ]
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-029",
+      "CUVR-071",
+      "CUVR-072",
+      "CUVR-073",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-no-ids",
+    "note": "with no data at the path there is no id: a value fails and an empty value passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": "facts.id"
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "reference": "facts.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple",
+      "blank": "  "
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "pick",
+          "field": "pick",
+          "rule": "reference",
+          "message": "Please select an existing value.",
+          "value": "apple"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-020",
+      "CUVR-073",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-hidden-ids",
+    "note": "a hidden field keeps its values, so its rows still give ids; its own rules do not run.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "show_facts": {
+          "type": "text"
+        },
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "design": {
+            "show": ".show_facts == 1"
+          },
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "note": {
+              "type": "text",
+              "validate": {
+                "required": true
+              }
+            }
+          }
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": "facts.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "show_facts": "0",
+      "facts": {
+        "__f1__": {
+          "id": "apple",
+          "note": ""
+        }
+      },
+      "pick": "apple"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": [
+        "facts"
+      ]
+    },
+    "requirements": [
+      "CUVR-017",
+      "CUVR-072",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-false",
+    "note": "a false parameter disables the rule.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": false
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-071",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-number",
+    "note": "a parameter is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-list",
+    "note": "a list is no declaration path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": [
+              "facts.id"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-condition-map",
+    "note": "reference receives its parameter unchanged, so an object is no condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": {
+              ".pick == 1": "facts.id"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-undeclared",
+    "note": "the path names no declared field.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": "facts.code"
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-group",
+    "note": "the path names a group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": "facts"
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-lang",
+    "note": "the path names a field with lang.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": "names"
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-row-key",
+    "note": "a declaration path has no row keys.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": "facts.__f1__.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-relative",
+    "note": "a declaration path starts at the root.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "names": {
+          "type": "text",
+          "lang": true
+        },
+        "pick": {
+          "type": "text",
+          "validate": {
+            "reference": ".id"
+          }
+        }
+      }
+    },
+    "data": {
+      "pick": "apple"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "pick"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "reference-parameter-in-row",
+    "note": "the location of a refused parameter is the declaration path of its field.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "facts": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "secrets": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "fact_id": {
+              "type": "text",
+              "validate": {
+                "reference": "facts.name"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "secrets": {
+        "__s1__": {
+          "fact_id": "apple"
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid reference parameter: expected the declaration path of a field",
+      "at": "secrets.fact_id"
+    },
+    "requirements": [
+      "CUVR-074",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
     "name": "expression-scalar-equals-array-is-false",
     "note": "'a' == .tags is false for tags ['a']: an array compared with a scalar has no text, so the note is not required. JavaScript loose equality gives true there, so this case rejects it (CUSC-038).",
     "spec": {

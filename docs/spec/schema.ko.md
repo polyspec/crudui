@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 5b6dad9fb943d7687d67e620ae74a8f44e776af300088479018518c81a2fa60f -->
+<!-- source-sha256: 2812bb2adb4da39dd473cf4af6b5ce7cf14e6eab505b7e4058b1af0bfe931faa -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -396,6 +396,10 @@ CLI 정적 검사도 해결되지 않은 조합을 거부합니다. 조합 전 �
 `tests/fixtures/expr`, `tests/fixtures/compose`, `tests/fixtures/validate`의 공유 사례로
 TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 DOM 테스트는
 서로 다른 동작을 검사하므로 별도로 기록합니다.
+
+다른 repeated group의 행 id처럼 다른 필드의 항목을 가리키는 값을 가진 필드는 그 필드의 선언 경로로
+`validate.reference`를 선언합니다(예: `reference: facts.id`). 데이터가 그곳에 선언한 id와 값의 검사는
+[참조](validation-rules.ko.md#참조)가 정의합니다.
 
 ## 목록
 

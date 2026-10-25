@@ -33,6 +33,7 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   unique: 'Values must be unique.',
   accept: 'Please upload a file with a valid format.',
   conditionTree: 'Please enter a valid condition.',
+  reference: 'Please select an existing value.',
 };
 
 interface ErrorRecord {

@@ -36,6 +36,8 @@ entry points, load failures and input failures.
 - **CUVR-016** `accept`: File extension or MIME-type parameter.
 - **CUVR-066** `conditionTree`: `true` or `judge`; the value is a [condition tree](#condition-trees), with judged
   text only under `judge`.
+- **CUVR-071** `reference`: The value names an id that the data declares at the field the parameter names; see
+  [references](#references).
 
 The [TypeScript registry](../../packages/validator/ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
@@ -224,6 +226,43 @@ whitespace, emptiness or text.
   (CUVR-020), so `{}` and `null` pass and `required` refuses them. A runtime reads at most 32 levels of the
   value, whatever its depth, and the rule's default message is `Please enter a valid condition.`
 
+## References
+
+`reference` takes the declaration path of a field of the same form: the property names from the
+root joined with `.`, without row keys, as a parameter error names its location. For the fields
+below, `facts.id` names the field `id` of the rows of the repeated group `facts`, and the value of
+`secrets.fact_id` in each row must be the `id` of one of the facts.
+
+```yaml
+facts:
+  type: group
+  multiple: true
+  properties:
+    id: { type: text, validate: { required: true, unique: true } }
+secrets:
+  type: group
+  multiple: true
+  properties:
+    fact_id: { type: text, validate: { reference: facts.id } }
+```
+
+- **CUVR-072** **Ids.** The ids of a declaration path are the values of the named field in the data being
+  validated. The path is followed from the data root: a group's data is an object of its fields, and
+  the data of a repeated field is a keyed object whose members are its rows, so every row of every
+  repeated field on the path is read, and every row value of the named field when it is itself
+  repeated. Data of another shape at a step, and a missing value, hold no ids. A string, a number or
+  a boolean whose canonical text is not empty after trimming is an id; an empty value, an array and
+  an object are not ids. A field hidden by `design.show` keeps its values (CUVR-017), so they are
+  ids as well.
+- **CUVR-073** **Matching.** A value passes `reference` when it is a member of the ids under the
+  [membership](#values) rules of `in` (CUVR-029), the ids being the members of a list: a string
+  value is trimmed, a value matches an id with the same canonical text or with an equal numeric
+  value, and an array value passes when every element passes. An empty value passes without
+  evaluation (CUVR-020). When the data declares no id, every other value fails.
+
+The ids of a declaration path are collected once per validation, whatever number of values
+`reference` checks against them.
+
 ## Patterns
 
 `pattern` and `match` require the **whole** canonical text of the value to match,
@@ -286,6 +325,7 @@ without row keys. Every runtime reports the same code and message:
 - **CUVR-054** `equalTo`, `enddate` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a field reference string`
 - **CUVR-055** `notEqual` that is not a string, number or boolean — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** `unique` that is not a boolean or a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid unique parameter: expected true, false or a string`
+- **CUVR-074** `reference` that is not a string, or a string that is not the declaration path of a field of the form whose type is not `group` and whose `lang` is absent, `false` or `null` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid reference parameter: expected the declaration path of a field`
 - **CUVR-057** `pattern`, `match` outside the language — Code: `INVALID_RULE_PATTERN`; Message: `Invalid {rule} pattern: {reason} at {offset}`
 - **CUVR-061** A [group source](schema.md#choices-from-a-repeated-group) that breaks its rules, checked in the order that compilation checks it and before the field's `validate` rules — Code: `INVALID_RULE_PARAMETER`; Message: the message of compilation (CUSC-064 to CUSC-067), whose `{path}` is the field's declaration path
 - **CUVR-068** `conditionTree` other than `true`, `false`, `null` and `judge` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid conditionTree parameter: expected true, false or judge`
@@ -358,9 +398,10 @@ map selects the first matching value, or its `true` default. Ternary expressions
 return the selected branch value.
 
 `equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern`, `in` and `conditionTree`
+`equalTo`, `notEqual`, `unique`, `enddate`, `reference`, `accept`, `match`, `pattern` and `in`
 receive parameters unchanged for their own processing. In particular,
 `enddate: period.start` references a field; it is not a boolean condition.
-An object or a list given to `equalTo`, `notEqual`, `unique` or `enddate` is therefore
+An object or a list given to `equalTo`, `notEqual`, `unique`, `enddate` or `reference` is therefore
 not a condition map but a [parameter error](#parameter-errors).
 For `enddate`, `.start` resolves a sibling field and `..start` resolves one
 group level above, using the common field-reference resolver.
