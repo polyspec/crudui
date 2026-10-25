@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b6cc7aeaf4cd7c9561789487225850bf1bb8968cb85e672073eaf55b0cf57978 -->
+<!-- source-sha256: 26e029163a8cb1d45d775746e2637f3f7841cc4af3075a014a00d2a26e190130 -->
 
 ## Unreleased
+
+### 2026-10-25 — C17.17은 describe의 grammar token을 token 요구사항에서 읽는다(C17.17)
+
+- C17.17 완료(C17.17): crudui describe는 docs/spec/expressions.md 1절의 token을 그 절에 더 이상 없는 표 행이 아니라 C16.56이 bullet로 만든 요구사항 CUXP-001부터 CUXP-017에서 읽고, 다른 모양의 줄이나 token이 없는 절은 실패한다. 이 row는 make test-ts가 닿지 않는 packages/cli의 list-describe test를 실행한다. red: list-describe.test가 token 0개로 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.16은 php-ext engine test에서 공유 case 각각을 검사한다(C17.16)
 

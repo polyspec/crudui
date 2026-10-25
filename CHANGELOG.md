@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-25 — C17.17 reads the grammar tokens of describe from the token requirements (C17.17)
+
+- C17.17 is done (C17.17): crudui describe reads the tokens of docs/spec/expressions.md section 1 from the requirements CUXP-001 to CUXP-017, which C16.56 made bullets, instead of table rows that the section no longer holds; a line of another shape or a section without a token fails. The row runs the list-describe test of packages/cli, which make test-ts does not reach. Red: list-describe.test failed with 0 tokens; green after the change.
+
 ### 2026-10-25 — C17.16 checks each shared case in the php-ext engine test (C17.16)
 
 - C17.16 is done (C17.16): the shared validation test of packages/php-ext/tests/engine/engine.test.mjs asserts that the engine program reports one result for each case of the validate, spec-validity, list-validity and detail-validity cases.json, instead of the hand-typed totals 318 and 385; a case that the program drops fails the test. The row runs that test, which make test-php-ext CASES=engine does not reach. Red: the test failed with 341 !== 318; green after the change.

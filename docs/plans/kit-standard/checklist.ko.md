@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 86124ba7099f1d3d6f629a43605652aa1be7897ef8e2d0a3806deefbc35cb981 -->
+<!-- source-sha256: d0e6b0ca6e4727652b37f6e41cbe325f31d27a3db188569ea8089a660660cb33 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -345,7 +345,7 @@
 | C17.14 | 빈 select의 placeholder는 규칙이다: spec이 placeholder 옵션의 텍스트와 값을 정하고 각 구현은 정확히 그것을 쓴다 | the placeholder rule in docs/spec (schema.md and validation-rules.md, with their .ko), its shared fixture cases, and its implementation in all six implementations with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.15 | 반복 그룹에서 가져온 선택지는 원본 그룹 행이 바뀌면 브라우저에서 새로 고쳐진다: spec이 새로 고침 규칙을 정하고 각 브라우저 바인딩이 구현한다 | the refresh rule in docs/spec (schema.md and validation-rules.md, with their .ko), its shared fixture cases, and its implementation in every browser binding with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.13 | crudui의 모든 catch 절은 바인딩을 가진다: 결과를 뜻하는 오류로 좁히고 나머지는 다시 던지거나, 모든 실패가 결과를 뜻하면 // catch-any -- <이유>로 이유를 밝힌다 (K561) | the 33 catch clauses listed by K561 (examples/cross-check-console, examples/form-comparison, packages/cli, packages/form-binding, packages/generator/ts, packages/php-ext, packages/validator/ts, scripts, tests/build, tests/native-generators), each narrowed or annotated | `make lint-ts` | [o] |
-| C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/cli -- tests/list-describe.test.ts` | [~] |
+| C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/cli -- tests/list-describe.test.ts` | [o] |
 | C17.16 | php-ext 엔진 테스트는 공유 검증 케이스 수를 하드코딩한 318이 아니라 tests/fixtures cases.json에서 도출하며, 케이스가 빠지면 실패한다 | packages/php-ext/tests/engine/engine.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern=validates.all.shared packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C17.18 | 조건 트리를 편집하는 form 컨트롤: 생성기가 여섯 구현 모두에서 렌더링하고, 브라우저 바인딩이 편집하며, 객체를 conditionTree 규칙에 제출한다 | the control rule in docs/spec (with KO), its shared fixture cases, its implementation in all six implementations and the browser binding, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.19 | choice group의 boolean 행 값에는 명시된 규칙이 있고 모든 구현이 따른다 | the rule in docs/spec (with KO), its shared fixture cases, and its implementation in all six implementations, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
