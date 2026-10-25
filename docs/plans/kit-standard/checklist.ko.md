@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d0e6b0ca6e4727652b37f6e41cbe325f31d27a3db188569ea8089a660660cb33 -->
+<!-- source-sha256: 0c9b71ca79814fc53f3a0ab5da4fd0a166c01742a731f96782da7306e9df7ded -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -349,4 +349,4 @@
 | C17.16 | php-ext 엔진 테스트는 공유 검증 케이스 수를 하드코딩한 318이 아니라 tests/fixtures cases.json에서 도출하며, 케이스가 빠지면 실패한다 | packages/php-ext/tests/engine/engine.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern=validates.all.shared packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C17.18 | 조건 트리를 편집하는 form 컨트롤: 생성기가 여섯 구현 모두에서 렌더링하고, 브라우저 바인딩이 편집하며, 객체를 conditionTree 규칙에 제출한다 | the control rule in docs/spec (with KO), its shared fixture cases, its implementation in all six implementations and the browser binding, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.19 | choice group의 boolean 행 값에는 명시된 규칙이 있고 모든 구현이 따른다 | the rule in docs/spec (with KO), its shared fixture cases, and its implementation in all six implementations, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
-| C17.20 | run.mts와 php-ext 테스트의 커버리지 개수 단언은 오래된 하드코딩 합계가 아니라 공유 cases.json 파일에서 개수를 도출한다 | tests/native-generators/run.mts and the php-ext count assertions that C17.2 listed | `make docs-check`; `make parity-declarations-check` | [ ] |
+| C17.20 | run.mts와 php-ext 테스트의 커버리지 개수 단언은 오래된 하드코딩 합계가 아니라 공유 cases.json 파일에서 개수를 도출한다 | tests/native-generators/run.mts and the php-ext count assertions that C17.2 listed | `make docs-check`; `make parity-declarations-check` | [~] |
