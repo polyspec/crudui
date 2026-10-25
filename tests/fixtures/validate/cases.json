@@ -17375,5 +17375,196 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "multiple-shape-accepted",
+    "note": "A boolean, only and an object are the shapes of multiple; missing data of each field is no row.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "on": {
+          "type": "text",
+          "multiple": true
+        },
+        "off": {
+          "type": "text",
+          "multiple": false
+        },
+        "rows": {
+          "type": "text",
+          "multiple": "only"
+        },
+        "settings": {
+          "type": "text",
+          "multiple": {
+            "min": 0
+          }
+        }
+      }
+    },
+    "data": {},
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUSC-041",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "multiple-shape-string",
+    "note": "A string other than only is refused at the declaration path of the field.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "meta": {
+          "type": "group",
+          "properties": {
+            "tags": {
+              "type": "text",
+              "multiple": "yes"
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid multiple at meta.tags: expected a boolean, only or an object",
+      "at": "meta.tags"
+    },
+    "requirements": [
+      "CUSC-041",
+      "CUSC-081",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "multiple-shape-null",
+    "note": "A present null is not a boolean, only or an object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "meta": {
+          "type": "group",
+          "properties": {
+            "tags": {
+              "type": "text",
+              "multiple": null
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid multiple at meta.tags: expected a boolean, only or an object",
+      "at": "meta.tags"
+    },
+    "requirements": [
+      "CUSC-041",
+      "CUSC-081",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "multiple-shape-list",
+    "note": "A list is not an object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "meta": {
+          "type": "group",
+          "properties": {
+            "tags": {
+              "type": "text",
+              "multiple": []
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid multiple at meta.tags: expected a boolean, only or an object",
+      "at": "meta.tags"
+    },
+    "requirements": [
+      "CUSC-041",
+      "CUSC-081",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "multiple-shape-number",
+    "note": "A number is not a boolean.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "meta": {
+          "type": "group",
+          "properties": {
+            "tags": {
+              "type": "text",
+              "multiple": 1
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid multiple at meta.tags: expected a boolean, only or an object",
+      "at": "meta.tags"
+    },
+    "requirements": [
+      "CUSC-041",
+      "CUSC-081",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "multiple-shape-before-rules",
+    "note": "The multiple of a field is checked before its rules, so an unknown rule beside it is not reported.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "meta": {
+          "type": "group",
+          "properties": {
+            "tags": {
+              "type": "text",
+              "multiple": "many",
+              "validate": {
+                "nope": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid multiple at meta.tags: expected a boolean, only or an object",
+      "at": "meta.tags"
+    },
+    "requirements": [
+      "CUSC-041",
+      "CUSC-081",
+      "CURP-018",
+      "CURP-022"
+    ]
   }
 ]

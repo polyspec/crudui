@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 24349b06432ec20e66663bccb74226d1f14098e2ee6bb958b774b4e2ec71543b -->
+<!-- source-sha256: 5650288f6d312005257803855d90ab72c184763155a0ed4cc8f922a05bd2a936 -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -441,6 +441,10 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 `link`는 `href`가 필요합니다([폼 마크업](form-markup.ko.md) 참고).
 
 - **CUSC-041** `multiple`: 불리언, `only` 또는 객체
+- **CUSC-081** 검증은 `multiple`이 있고 불리언, 문자열 `only`, 객체가 아닌 필드(`null`과 목록 포함)를 로드할 때
+  `INVALID_RULE_PARAMETER`, 메시지 `Invalid multiple at {path}: expected a boolean, only or an object`, 위치와 `{path}`인
+  필드의 선언 경로로 거부한다. 필드는 선언 순서로, 각 필드는 자식보다 먼저 검사하며, 필드의 `multiple`은 그 그룹 소스와
+  규칙보다 먼저 검사한다([매개변수 오류](validation-rules.ko.md#매개변수-오류)).
 - **CUSC-042** `multiple.only`: 불리언
 - **CUSC-043** `multiple.min`, `multiple.max`: 숫자
 - **CUSC-044** `multiple.copy`, `multiple.sortable`: 불리언

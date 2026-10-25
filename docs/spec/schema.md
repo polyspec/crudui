@@ -483,6 +483,11 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 [form markup](form-markup.md)).
 
 - **CUSC-041** `multiple`: Boolean, `only` or object
+- **CUSC-081** Validation refuses at load a field whose `multiple` is present and is not a boolean, the string `only` or an
+  object, `null` and a list included, with `INVALID_RULE_PARAMETER`, the message
+  `Invalid multiple at {path}: expected a boolean, only or an object` and the field's declaration path as its location and
+  `{path}`. It checks fields in declaration order, each field before its children, and the `multiple` of a field before its
+  group source and its rules ([parameter errors](validation-rules.md#parameter-errors)).
 - **CUSC-042** `multiple.only`: Boolean
 - **CUSC-043** `multiple.min`, `multiple.max`: Number
 - **CUSC-044** `multiple.copy`, `multiple.sortable`: Boolean
