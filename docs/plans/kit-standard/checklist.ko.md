@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 0cdd8ba26787af81b64e20a646cf6eeb8a40dbf56588a710d46ed6fe0baa14a7 -->
+<!-- source-sha256: adc06f3ab33aab26cb7db320f8906085855718b62cdf5ef858d6f6fcd5e49130 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -360,3 +360,4 @@
 | C17.28 | crudui는 kit K614를 따른다: kit-sync 복사본을 지우고, 공유 파일은 kit checkout으로 가는 symlink가 되며, bootstrap은 kit에서 include한다 | Makefile (the include of kit-bootstrap), config/layout.kit.yml and its three schemas kept by make kit-sync, config/php-lint (deleted), PRINCIPLES.md, PRINCIPLES.ko.md, .editorconfig and .claude/settings.json as symlinks, config/owner-checks.json (the globs of the deleted paths) | `make kit-check`; `make owner-validate`; `make layout-check`; `make rules-check`; `make docs-check`; `make toolchain-check`; `make lint-php` | [o] |
 | C17.29 | crudui Makefile은 kit 도구를 하드코딩된 .mjs가 아니라 $(KIT)/<도구>.$(KIT_EXT)로 실행한다 (K613) | Makefile (the 10 recipe lines that run $(KIT)/<tool>.mjs) | `make kit-check`; `make lint-ts` | [o] |
 | C17.30 | crudui의 config/rebuild.json에는 더 이상 없는 파일의 항목과 class 없는 도구가 없다 (rebuild-check 통과) | config/rebuild.json (the four entries of K614 and the tool without a class) | `make rebuild-check` | [o] |
+| C17.31 | choice 필드의 items는 group source와 리터럴 항목 목록을 하나의 집합으로 묶어 검사한다. 여섯 구현 모두 (drama U-2) | docs/spec: CUSC-089 (items combining a group source with literal items) in schema.md and its KO twin, CUVR-085 (the combined-set check) and CUVR-086 (its refusal) in validation-rules.md and its KO twin; the shared cases; the six implementations with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
