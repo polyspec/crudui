@@ -24,6 +24,7 @@ use super::choice_data::{check_single_choice_data, is_single_choice};
 use super::group_source::{group_choices, is_group_source};
 use super::errors::{FormInputError, ValidateError};
 use super::keyed_maps::check_keyed_map_keys;
+use super::membership::Comparable;
 use super::parameters::{check, check_declared, Patterns};
 use super::rules::{get_rule, is_condition_expression, RuleContext};
 use super::visibility::is_visible;
@@ -76,7 +77,7 @@ pub struct ValidationResult {
 const ARRAY_LEVEL_RULES: &[&str] = &["required", "unique", "mincount", "maxcount"];
 
 /// Rules whose param is a field reference / filter — preserved verbatim.
-const PATH_REFERENCE_RULES: &[&str] = &["equalTo", "notEqual", "unique", "enddate"];
+const PATH_REFERENCE_RULES: &[&str] = &["equalTo", "notEqual", "unique", "enddate", "reference"];
 
 /// Rules whose param is a literal value, never a condition or a condition map.
 const LITERAL_PARAM_RULES: &[&str] = &["accept", "conditionTree"];
@@ -99,6 +100,10 @@ pub(crate) struct Run<'a> {
     /// For each collection field (container path, field name and filter), the row keys whose
     /// `unique` value an earlier row already holds.
     pub(crate) unique_duplicates: RefCell<HashMap<String, HashSet<String>>>,
+    /// The composed root field map, which a `reference` parameter names a field of.
+    pub(crate) properties: &'a Map<String, Value>,
+    /// For each declaration path that `reference` names, its ids in the data, collected once.
+    pub(crate) reference_ids: RefCell<HashMap<String, Vec<Comparable>>>,
 }
 
 /// The CRUDUI validator over a composed spec.
@@ -131,6 +136,8 @@ impl Validator {
         let run = Run {
             data,
             unique_duplicates: RefCell::new(HashMap::new()),
+            properties: &self.properties,
+            reference_ids: RefCell::new(HashMap::new()),
         };
         self.validate_properties(
             &self.properties,

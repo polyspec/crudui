@@ -417,6 +417,14 @@ bool ps_condition_tree_parameter(const ps_value *parameter);
 bool ps_condition_tree_passes(const ps_value *value, const ps_value *parameter);
 
 /*
+ * References (references.c). ps_reference_target: whether path is the declaration path of a field of
+ * properties whose type is not group and whose lang is absent, false or null. ps_reference_ids: the
+ * array of the ids of path in data, or NULL on allocation failure.
+ */
+bool ps_reference_target(const ps_value *properties, ps_text path);
+ps_value *ps_reference_ids(const ps_value *properties, const ps_value *data, ps_text path);
+
+/*
  * Locale-independent number text (number_text.c); no engine path uses strtod or printf for a
  * floating-point number.
  * ps_numeric_text: whether trimmed text is numeric text (the HTML valid floating-point number)

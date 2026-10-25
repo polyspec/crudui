@@ -195,6 +195,9 @@
         },
         "conditionTree": {
           "type": "string"
+        },
+        "reference": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -479,6 +482,10 @@
             },
             "enddate": {
               "description": "Start-date field; the end date must not precede it.",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "reference": {
+              "description": "Declaration path of a field of the form, such as facts.id; the value must name one of the ids that the data holds in that field.",
               "$ref": "#/definitions/RuleFieldReference"
             },
             "mincount": {

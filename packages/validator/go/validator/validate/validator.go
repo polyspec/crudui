@@ -28,7 +28,7 @@ var arrayLevelRules = map[string]bool{
 // pathReferenceRules carry a field-reference param preserved verbatim — never
 // evaluated as a condition expression (PATH-REFERENCE-RULES).
 var pathReferenceRules = map[string]bool{
-	"equalTo": true, "notEqual": true, "unique": true, "enddate": true,
+	"equalTo": true, "notEqual": true, "unique": true, "enddate": true, "reference": true,
 }
 
 // literalParamRules carry a literal param (.jpg must not be read as a relative
@@ -80,7 +80,7 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
 	}
 	var errors []ValidationError
-	call := &callState{uniqueDuplicates: map[string]map[string]bool{}}
+	call := &callState{uniqueDuplicates: map[string]map[string]bool{}, properties: v.properties, referenceIds: map[string][]member{}}
 	if err := v.validateProperties(v.properties, root, nil, nil, nil, root, call, false, &errors); err != nil {
 		return ValidationResult{}, err
 	}
@@ -154,6 +154,11 @@ type callState struct {
 	// uniqueDuplicates maps a collection field (container path, field name and filter) to the row
 	// keys whose value an earlier row already holds.
 	uniqueDuplicates map[string]map[string]bool
+	// properties is the composed root field map, which a reference parameter names a field of.
+	properties *compose.OMap
+	// referenceIds maps each declaration path that reference names to its ids in the data,
+	// collected once per validation.
+	referenceIds map[string][]member
 }
 
 // report appends a failed rule to errors.

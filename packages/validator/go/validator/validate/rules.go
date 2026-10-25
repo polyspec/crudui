@@ -75,6 +75,7 @@ var builtInRules = map[string]ruleFn{
 	"maxcount":      ruleMaxCount,
 	"step":          ruleStep,
 	"conditionTree": ruleConditionTree,
+	"reference":     ruleReference,
 }
 
 // getRule returns the rule fn and whether it is registered.

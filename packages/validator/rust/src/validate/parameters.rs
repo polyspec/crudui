@@ -22,6 +22,7 @@ use super::length::{limit, range_limits, MAX_LIMIT};
 use super::membership::{members, Comparable};
 use super::numeric::{number_range, step};
 use super::pattern::{compile, Program};
+use super::references::{is_reference_target, REFERENCE_PARAMETER_MESSAGE};
 use super::rules::get_rule;
 use super::validator::{
     is_conditional, is_disabled, is_group_with_properties, selectable_literals,
@@ -97,6 +98,17 @@ fn check_fields(
                         if !is_disabled(&literal) {
                             check(rule, &literal, path, patterns)?;
                         }
+                    }
+                    continue;
+                }
+                if rule == "reference" {
+                    check(rule, value, path, patterns)?;
+                    if !value.as_str().is_some_and(|target| is_reference_target(root, target)) {
+                        return Err(ValidateError::Load(ComposeLoadError::with_trace(
+                            ComposeErrorCode::InvalidRuleParameter,
+                            REFERENCE_PARAMETER_MESSAGE.to_string(),
+                            path.clone(),
+                        )));
                     }
                     continue;
                 }
@@ -206,6 +218,10 @@ pub(crate) fn check(
             _ => Err(invalid(
                 "Invalid notEqual parameter: expected a string, number or boolean".to_string(),
             )),
+        },
+        "reference" => match parameter {
+            Value::String(_) => Ok(Parameter::Unchecked),
+            _ => Err(invalid(REFERENCE_PARAMETER_MESSAGE.to_string())),
         },
         "unique" => match parameter {
             Value::String(_) | Value::Bool(true) => Ok(Parameter::Unchecked),

@@ -27,6 +27,10 @@ typedef struct {
     /* For each position of the current data path, whether its segment is a row key. */
     bool *row_keys;
     size_t row_capacity;
+    /* The composed root field map, which a reference parameter names a field of. */
+    const ps_value *properties;
+    /* For each declaration path that reference names, the array of its ids in the data. */
+    ps_value *reference_ids;
 } validation_context;
 
 /* Make room for the row key flags of a data path of length segments. */
@@ -450,7 +454,7 @@ static const ps_value *effective_parameter(ps_text rule, const ps_value *declare
                                            const ps_text *path, size_t length, ps_value **owned)
 {
     static const char *const verbatim[] = {
-        "equalTo", "notEqual", "unique", "enddate", "accept",
+        "equalTo", "notEqual", "unique", "enddate", "reference", "accept",
         "match", "pattern", "in", "conditionTree",
     };
     *owned = NULL;
@@ -508,6 +512,7 @@ static ps_chars message_for(const ps_value *field, ps_text rule, const ps_value 
         {"mincount", "Please select at least {0} items."}, {"maxcount", "Please select no more than {0} items."},
         {"step", "Please enter a value that is a multiple of {0}."},
         {"conditionTree", "Please enter a valid condition."},
+        {"reference", "Please select an existing value."},
     };
     ps_text format = {NULL, 0};
     if (custom) format = ps_string(custom);
@@ -590,6 +595,17 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
         const ps_value *row = ps_path_segments(context->data, path, length - 1);
         if (rows->count && bsearch(&row, rows->duplicates, rows->count, sizeof(*rows->duplicates), compare_rows)) return 0;
         return 1;
+    }
+    if (ps_text_is(rule, "reference")) {
+        if (parameter->kind != PS_STRING) return -1;
+        /* The ids of a declaration path are collected once per validation. */
+        const ps_value *ids = ps_get_text(context->reference_ids, ps_string(parameter));
+        if (!ids) {
+            ps_value *found = ps_reference_ids(context->properties, context->data, ps_string(parameter));
+            if (!found || !ps_set_text(context->reference_ids, ps_string(parameter), found)) return -1;
+            ids = ps_get_text(context->reference_ids, ps_string(parameter));
+        }
+        return ids ? ps_in_passes(value, ids) : -1;
     }
     if (ps_text_is(rule, "equalTo") || ps_text_is(rule, "notEqual")) {
         const ps_value *other = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : parameter;
@@ -1087,8 +1103,10 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
     /* Rule parameters are checked after composition and the forbidden-key scan. */
     if (!error) error = ps_check_rule_parameters(properties, patterns);
     if (error) { ps_pattern_cache_free(patterns); ps_value_free(properties); return (ps_result){NULL, error}; }
-    validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns, NULL, 0, ps_object_value(), NULL, 0};
-    bool valid = context.errors && context.unique_positions && validate_properties(properties, data, &context, NULL, 0, 0, false);
+    validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns, NULL, 0, ps_object_value(), NULL, 0,
+                                  properties, ps_object_value()};
+    bool valid = context.errors && context.unique_positions && context.reference_ids &&
+        validate_properties(properties, data, &context, NULL, 0, 0, false);
     ps_value *hidden = valid ? ps_array_value() : NULL;
     ps_text *hidden_path = valid ? malloc(2 * sizeof(*hidden_path)) : NULL;
     bool collected = hidden && hidden_path && collect_hidden(properties, data, &context, hidden_path, 0, hidden);
@@ -1096,6 +1114,7 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
     free(context.declaration);
     free(context.row_keys);
     release_unique_rows(&context);
+    ps_value_free(context.reference_ids);
     ps_pattern_cache_free(patterns);
     ps_value_free(properties);
     if (!valid || !collected) {

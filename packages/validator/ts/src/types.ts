@@ -43,6 +43,8 @@ export interface MessagesSpec {
   equalTo?: string;
   /** Error message shown when the `notEqual` rule fails. */
   notEqual?: string;
+  /** Error message shown when the `reference` rule fails. */
+  reference?: string;
   /** Error message shown when the `in` rule fails. */
   in?: string;
   /** Error message shown when the `date` rule fails. */
@@ -146,6 +148,11 @@ export interface ValidationRun {
    * `unique` value an earlier row already holds.
    */
   uniqueDuplicates: Map<string, Set<string>>;
+  /**
+   * The ids of a declaration path in the data being validated (validation-rules.md, "References"),
+   * collected once per validation.
+   */
+  referenceIds(path: string): readonly (string | number | boolean)[];
 }
 
 /**

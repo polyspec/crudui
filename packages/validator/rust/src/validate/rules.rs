@@ -21,6 +21,7 @@ use super::length::value_length;
 use super::membership::is_member;
 use super::numeric::{is_multiple, numeric_value};
 use super::parameters::Parameter;
+use super::references::reference_ids;
 use super::whitespace::{is_empty, trim};
 
 // Cache for precomputed duplicate row keys, keyed by (container_path:field_name:filter_param).
@@ -82,6 +83,7 @@ pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
         "maxcount" => Some(rule_maxcount),
         "step" => Some(rule_step),
         "conditionTree" => Some(rule_condition_tree),
+        "reference" => Some(rule_reference),
         _ => None,
     }
 }
@@ -498,6 +500,33 @@ fn rule_in(ctx: &RuleContext) -> Option<String> {
     Some(
         message_override(ctx.messages, "in")
             .unwrap_or("Please select a valid option.")
+            .to_string(),
+    )
+}
+
+// ---------------------------------------------------------------------------
+// reference (validation rules, "References")
+// ---------------------------------------------------------------------------
+
+/// Fail a value that is not a member of the ids of the declaration path its parameter names; the
+/// ids of a path are collected once per validation. Empty values pass.
+fn rule_reference(ctx: &RuleContext) -> Option<String> {
+    let Value::String(path) = ctx.rule_param else {
+        unreachable!("reference receives a checked declaration path")
+    };
+    if is_empty(ctx.value) {
+        return None;
+    }
+    let mut cache = ctx.run.reference_ids.borrow_mut();
+    let ids = cache
+        .entry(path.clone())
+        .or_insert_with(|| reference_ids(ctx.run.properties, ctx.form_data, path));
+    if is_member(ctx.value, ids) {
+        return None;
+    }
+    Some(
+        message_override(ctx.messages, "reference")
+            .unwrap_or("Please select an existing value.")
             .to_string(),
     )
 }

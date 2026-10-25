@@ -133,6 +133,7 @@ final class FieldSpec
         'required', 'email', 'minlength', 'maxlength', 'min', 'max', 'match', 'pattern',
         'unique', 'in', 'range', 'rangelength', 'number', 'digits', 'equalTo', 'notEqual',
         'date', 'dateISO', 'enddate', 'url', 'accept', 'mincount', 'maxcount', 'step', 'conditionTree',
+        'reference',
     ];
 
     /**

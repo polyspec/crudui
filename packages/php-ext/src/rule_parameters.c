@@ -11,6 +11,9 @@
  * joined with '.', trace is the list of those names.
  */
 
+/* The message of a reference parameter outside its definition. */
+#define REFERENCE_MESSAGE "Invalid reference parameter: expected the declaration path of a field"
+
 bool ps_registered_rule(ps_text rule)
 {
     static const char *const rules[] = {
@@ -18,6 +21,7 @@ bool ps_registered_rule(ps_text rule)
         "unique", "in", "range", "rangelength", "number", "digits", "equalTo", "notEqual",
         "date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
         "conditionTree",
+        "reference",
     };
     for (size_t i = 0; i < sizeof(rules) / sizeof(rules[0]); ++i)
         if (ps_text_is(rule, rules[i])) return true;
@@ -31,7 +35,8 @@ static bool pattern_rule(ps_text rule)
 
 /*
  * The problem of a parameter of a rule that references a field: equalTo and enddate take a field
- * reference string, notEqual a string, number or boolean, and unique true or a string.
+ * reference string, notEqual a string, number or boolean, unique true or a string, and reference a
+ * string.
  */
 static bool reference_parameter(ps_text rule, const ps_value *parameter, ps_parameter_problem *problem)
 {
@@ -47,6 +52,8 @@ static bool reference_parameter(ps_text rule, const ps_value *parameter, ps_para
             message = "Invalid notEqual parameter: expected a string, number or boolean";
     } else if (ps_text_is(rule, "unique")) {
         if (kind != PS_STRING && kind != PS_BOOL) message = "Invalid unique parameter: expected true, false or a string";
+    } else if (ps_text_is(rule, "reference")) {
+        if (kind != PS_STRING) message = REFERENCE_MESSAGE;
     } else {
         return false;
     }
@@ -239,6 +246,20 @@ static ps_value *check_multiple(const ps_value *field, const ps_text *path, size
 }
 
 /*
+ * The load failure of a reference parameter that names no field of root that a reference can name
+ * (a field whose type is not group and that has no lang), or NULL.
+ */
+static ps_value *check_target(ps_text rule, const ps_value *parameter, const ps_value *root,
+                              const ps_text *path, size_t length)
+{
+    if (!ps_text_is(rule, "reference") || parameter->kind != PS_STRING || ps_reference_target(root, ps_string(parameter)))
+        return NULL;
+    static const ps_parameter_problem problem = {.code = "INVALID_RULE_PARAMETER", .message = REFERENCE_MESSAGE};
+    ps_value *error = ps_parameter_error(rule, &problem, path, length);
+    return error ? error : internal_error();
+}
+
+/*
  * A field's multiple, then its group source, then its rule names and parameters in declaration order, then its messages
  * keys.
  */
@@ -254,6 +275,7 @@ static ps_value *check_field(const ps_value *field, const ps_text *path, size_t 
         ps_text rule = ps_key(rules, i);
         ps_value *error = check_name(rule, path, length);
         if (!error) error = check_declared(rule, ps_at(rules, i), path, length, patterns);
+        if (!error) error = check_target(rule, ps_at(rules, i), root, path, length);
         if (error) return error;
     }
     const ps_value *messages = ps_get(field, "messages");

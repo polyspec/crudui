@@ -291,6 +291,7 @@ export interface MessagesSpec {
     pattern?: string;
     range?: string;
     rangelength?: string;
+    reference?: string;
     required?: string;
     step?: string;
     unique?: string;
@@ -441,6 +442,7 @@ export interface ValidateSlot {
     pattern?: string | false | null;
     range?: Evaluated<[number, number] | false | null>;
     rangelength?: Evaluated<[number, number] | false | null>;
+    reference?: string | false | null;
     required?: Evaluated<boolean | null>;
     step?: Evaluated<number | false | null>;
     unique?: boolean | string | null;

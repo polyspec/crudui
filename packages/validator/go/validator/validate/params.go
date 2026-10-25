@@ -54,7 +54,7 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 		return checkNumericParameter(rule, param)
 	case "in":
 		return checkIn(param)
-	case "equalTo", "enddate", "notEqual", "unique":
+	case "equalTo", "enddate", "notEqual", "unique", "reference":
 		return checkReferenceParameter(rule, param)
 	case "conditionTree":
 		return checkConditionTreeParameter(param)
@@ -80,7 +80,7 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 
 // checkReferenceParameter returns the parameter error of a rule that references a
 // field: equalTo and enddate take a field reference string, notEqual a string,
-// number or boolean, and unique true or a string.
+// number or boolean, unique true or a string, and reference a string.
 func checkReferenceParameter(rule string, param any) *parameterError {
 	_, isString := param.(string)
 	_, isBool := param.(bool)
@@ -96,6 +96,10 @@ func checkReferenceParameter(rule string, param any) *parameterError {
 	case "unique":
 		if !isString && !isBool {
 			return ruleParameterError("Invalid unique parameter: expected true, false or a string")
+		}
+	case "reference":
+		if !isString {
+			return ruleParameterError(referenceParameterMessage)
 		}
 	}
 	return nil
@@ -134,6 +138,9 @@ func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []st
 				for _, literal := range selectableLiterals(rule, param) {
 					if perr := v.checkParameter(rule, literal); perr != nil {
 						return perr.loadError(path)
+					}
+					if target, ok := literal.(string); ok && rule == "reference" && !isReferenceTarget(v.properties, target) {
+						return ruleParameterError(referenceParameterMessage).loadError(path)
 					}
 				}
 			}

@@ -19,6 +19,7 @@ from . import condition_tree
 from .jsvalue import JsonValue
 from .parser import is_condition_expression, parse_condition
 from .pattern import PatternSyntaxError, compile_pattern
+from .references import REFERENCE_PARAMETER_MESSAGE
 from .resolver import (
     Value,
     evaluate_condition,
@@ -436,6 +437,24 @@ def _rule_in(context: RuleContext) -> str | None:
         return None
     if not is_member(value, members):
         message: str = _message(context, "in", "Please select a valid option.")
+        return message
+    return None
+
+
+def _rule_reference(context: RuleContext) -> str | None:
+    """Fail a value that is not a member of the ids of the declaration path its
+    parameter names (validation rules, "References"). Empty values pass."""
+    value, rule_param = context["value"], context["ruleParam"]
+    if _disabled(rule_param):
+        return None
+    if not isinstance(rule_param, str):
+        raise TypeError(REFERENCE_PARAMETER_MESSAGE)
+    if is_empty_value(value):
+        return None
+    if not is_member(value, context["run"].reference_ids(rule_param)):
+        message: str = _message(
+            context, "reference", "Please select an existing value."
+        )
         return message
     return None
 
@@ -922,6 +941,7 @@ _RULES = {
     "maxcount": _rule_maxcount,
     "step": _rule_step,
     "conditionTree": _rule_condition_tree,
+    "reference": _rule_reference,
 }
 
 _CHECKED_RULES = {
@@ -944,6 +964,7 @@ _CHECKED_RULES = {
     "notEqual",
     "unique",
     "conditionTree",
+    "reference",
 }
 
 
@@ -1037,6 +1058,8 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
             if condition_tree.is_parameter(param)
             else invalid(condition_tree.PARAMETER_ERROR)
         )
+    if rule_name == "reference":
+        return None if isinstance(param, str) else invalid(REFERENCE_PARAMETER_MESSAGE)
     if rule_name == "unique":
         return (
             None

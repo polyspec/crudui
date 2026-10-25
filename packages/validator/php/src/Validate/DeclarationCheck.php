@@ -21,14 +21,13 @@ final class DeclarationCheck
     /**
      * @param array<string, mixed> $properties a composed field map
      * @param list<string> $path the declaration path of the map's group
-     * @param array<string, mixed>|null $root the root properties, which a group source reads and `multiple.keys`
-     *        references resolve in (null for the root map)
+     * @param array<string, mixed> $root the composed root field map, read by a group source, a `multiple.keys`
+     *        reference and a `reference` parameter
      * @throws ComposeLoadError at the first unknown rule name or invalid parameter
      * @throws FormInputError at the first `multiple.keys` that names no repeated group
      */
-    public static function run(array $properties, array $path = [], ?array $root = null): void
+    public static function run(array $properties, array $path, array $root): void
     {
-        $root ??= $properties;
         foreach ($properties as $name => $field) {
             if (!\is_array($field) && !$field instanceof \stdClass) {
                 continue;
@@ -54,6 +53,13 @@ final class DeclarationCheck
                     self::checkName((string) $rule, $fieldPath);
                     foreach (RuleParameters::declaredValues((string) $rule, $parameter) as $value) {
                         RuleParameters::check((string) $rule, $value, $fieldPath);
+                        if ($rule === 'reference' && \is_string($value) && !References::isTarget($root, $value)) {
+                            throw new ComposeLoadError(
+                                'INVALID_RULE_PARAMETER',
+                                RuleParameters::REFERENCE_MESSAGE,
+                                $fieldPath,
+                            );
+                        }
                     }
                 }
             }

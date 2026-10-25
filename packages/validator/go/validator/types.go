@@ -368,6 +368,7 @@ var RuleNames = []string{
 	"unique", "in", "range", "rangelength", "number", "digits", "equalTo", "notEqual",
 	"date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
 	"conditionTree",
+	"reference",
 }
 
 // Messages are error message overrides keyed by registered rule name, in

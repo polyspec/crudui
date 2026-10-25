@@ -25,6 +25,7 @@ mod membership;
 pub mod numeric;
 mod parameters;
 mod pattern;
+mod references;
 pub mod rules;
 mod unicode;
 pub mod validator;

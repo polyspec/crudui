@@ -41,6 +41,7 @@ const CHECKED_RULES = new Set([
   'notEqual',
   'unique',
   'conditionTree',
+  'reference',
 ]);
 
 /**
@@ -91,6 +92,10 @@ function ruleParameterFailure(ruleName: string, param: unknown): ParameterFailur
         : invalid('Invalid unique parameter: expected true, false or a string');
     case 'conditionTree':
       return isConditionTreeParameter(param) ? null : invalid(CONDITION_TREE_PARAMETER_ERROR);
+    case 'reference':
+      return typeof param === 'string'
+        ? null
+        : invalid('Invalid reference parameter: expected the declaration path of a field');
     case 'in': {
       const members = readMembers(param);
       return 'error' in members ? invalid(members.error) : null;

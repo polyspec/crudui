@@ -40,6 +40,7 @@ from .parser import Node, ParseError, is_condition_expression, parse_condition
 from .resolver import evaluate_condition as _eval_condition
 from .resolver import evaluate_expression_value as _eval_value
 from .resolver import Value, get_field_name, path_to_string
+from .references import REFERENCE_PARAMETER_MESSAGE, is_reference_target, reference_ids
 from .rules import get_rule, rule_parameter_failure
 from .group_source import group_choices, group_source_failure, is_group_source
 from .loader import DocumentLoader
@@ -48,7 +49,7 @@ from .text import check_input_text, check_option_text, checked_composition
 __all__ = ["ARRAY_LEVEL_RULES", "FormInputError", "Validator", "validate"]
 
 ARRAY_LEVEL_RULES = ("required", "unique", "mincount", "maxcount")
-PATH_REFERENCE_RULES = ("equalTo", "notEqual", "unique", "enddate")
+PATH_REFERENCE_RULES = ("equalTo", "notEqual", "unique", "enddate", "reference")
 LITERAL_PARAM_RULES = ("accept", "conditionTree")
 REGEX_PARAM_RULES = ("match", "pattern")
 MEMBERSHIP_PARAM_RULES = ("in",)
@@ -202,11 +203,25 @@ class _ValidationRun:
     """The state of one validation, dropped when it returns.
 
     For each collection field (container path, field name and filter), the row
-    keys whose `unique` value an earlier row already holds.
+    keys whose `unique` value an earlier row already holds, and for each
+    declaration path that `reference` names, its ids in the data.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self, properties: dict[str, JsonValue], data: dict[str, JsonValue]
+    ) -> None:
         self.unique_duplicates: dict[str, set[str]] = {}
+        self._properties = properties
+        self._data = data
+        self._reference_ids: dict[str, list[JsonValue]] = {}
+
+    def reference_ids(self, path: str) -> list[JsonValue]:
+        """The ids of a declaration path in the data, collected once per validation."""
+        if path not in self._reference_ids:
+            self._reference_ids[path] = reference_ids(
+                self._properties, self._data, path
+            )
+        return self._reference_ids[path]
 
 
 class Validator:
@@ -217,7 +232,9 @@ class Validator:
         self.properties: dict[str, JsonValue] = (
             properties if _is_object(properties) else {}
         )
-        self.run = _ValidationRun()
+        self.run = _ValidationRun(self.properties, {})
+        # The declaration fails the load: rule names and parameters are checked here.
+        self._check_declared_parameters(self.properties, [])
 
     def validate(self, data: JsonValue) -> dict[str, Any]:
         """Validate `data` against the composed specification.
@@ -227,8 +244,7 @@ class Validator:
         """
         if not _is_object(data):
             raise FormInputError("Form data must be an object")
-        self._check_declared_parameters(self.properties, [])
-        self.run = _ValidationRun()
+        self.run = _ValidationRun(self.properties, data)
         errors: list[dict[str, Any]] = []
         self._validate_properties(self.properties, data, [], [], [], data, errors)
         return {
@@ -323,6 +339,16 @@ class Validator:
                 _assert_rule_name(rule_name, path)
                 for literal in _declared_literals(rule_name, rule_value):
                     _assert_rule_parameter(rule_name, literal, path)
+                    if (
+                        rule_name == "reference"
+                        and isinstance(literal, str)
+                        and not is_reference_target(self.properties, literal)
+                    ):
+                        raise ComposeLoadError(
+                            "INVALID_RULE_PARAMETER",
+                            REFERENCE_PARAMETER_MESSAGE,
+                            list(path),
+                        )
             for rule_name in _field_messages(field) or {}:
                 _assert_rule_name(rule_name, path)
             assert_keyed_map_reference(field, path, self.properties)

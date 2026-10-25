@@ -28,8 +28,12 @@ use Polyspec\Crudui\Validator\Values\Numeric;
 final class RuleParameters
 {
     /** Rules that receive their parameters unchanged, never as conditions. */
+    /** The message of a `reference` parameter outside its definition. */
+    public const REFERENCE_MESSAGE = 'Invalid reference parameter: expected the declaration path of a field';
+
     public const UNCHANGED = [
-        'equalTo', 'notEqual', 'unique', 'enddate', 'accept', 'match', 'pattern', 'in', 'conditionTree',
+        'equalTo', 'notEqual', 'unique', 'enddate', 'reference', 'accept', 'match', 'pattern', 'in',
+        'conditionTree',
     ];
 
     /**
@@ -54,7 +58,7 @@ final class RuleParameters
                 'step' => Numeric::step($parameter),
                 'in' => Membership::fromParameter($parameter),
                 'match', 'pattern' => PatternParameter::compile($rule, $parameter),
-                'equalTo', 'enddate', 'notEqual', 'unique' => self::reference($rule, $parameter),
+                'equalTo', 'enddate', 'notEqual', 'unique', 'reference' => self::reference($rule, $parameter),
                 'conditionTree' => ConditionTree::judges($parameter),
                 default => null,
             };
@@ -65,8 +69,8 @@ final class RuleParameters
 
     /**
      * Check the parameter of a rule that references a field: `equalTo` and `enddate`
-     * take a field reference string, `notEqual` a string, number or boolean, and
-     * `unique` true or a string.
+     * take a field reference string, `notEqual` a string, number or boolean,
+     * `unique` true or a string, and `reference` a string.
      *
      * @throws InvalidRuleParameter
      */
@@ -75,6 +79,8 @@ final class RuleParameters
         $message = match ($rule) {
             'equalTo', 'enddate' => \is_string($parameter)
                 ? null : "Invalid $rule parameter: expected a field reference string",
+            'reference' => \is_string($parameter)
+                ? null : self::REFERENCE_MESSAGE,
             'notEqual' => \is_string($parameter) || \is_bool($parameter) || \is_int($parameter)
                 || (\is_float($parameter) && is_finite($parameter))
                 ? null : 'Invalid notEqual parameter: expected a string, number or boolean',

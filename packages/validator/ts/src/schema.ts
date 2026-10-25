@@ -293,7 +293,7 @@ export interface PatchDirective {
  *
  * The named members are every built-in rule, with the parameter shapes the
  * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `notEqual`,
- * `unique`, `enddate`, `accept`, `match`, `pattern`, `in` and `conditionTree` receive their
+ * `unique`, `enddate`, `reference`, `accept`, `match`, `pattern`, `in` and `conditionTree` receive their
  * parameter unchanged, so they take no condition map. No other rule name exists:
  * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
  */
@@ -340,6 +340,8 @@ export interface ValidateSlot {
   notEqual?: string | number | boolean | null;
   /** Start-date field the end date must not precede. */
   enddate?: string | false | null;
+  /** Declaration path of the field whose values are the ids the value must name. */
+  reference?: string | false | null;
   /** Uniqueness; a string names an item field or a filter condition. */
   unique?: boolean | string | null;
   /** Accepted file extensions or MIME types. */

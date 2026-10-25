@@ -47,6 +47,11 @@ pub(crate) struct Comparable {
 }
 
 impl Comparable {
+    /// The canonical text of the scalar.
+    pub(crate) fn text(&self) -> &str {
+        &self.text
+    }
+
     fn of_text(text: String) -> Self {
         // Read as written: callers trim a comma item and a value, never a list
         // element or a map key.
@@ -54,7 +59,9 @@ impl Comparable {
         Comparable { text, number }
     }
 
-    fn of_scalar(value: &Value) -> Option<Self> {
+    /// The comparable of a string, number or boolean as written; `None` for a value without
+    /// canonical text.
+    pub(crate) fn of_scalar(value: &Value) -> Option<Self> {
         let text = canonical_text(value)?.into_owned();
         Some(match value {
             Value::Number(number) => Comparable {

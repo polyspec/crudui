@@ -34,6 +34,7 @@ use Polyspec\Crudui\Validator\Expr\FieldPath;
 use Polyspec\Crudui\Validator\Expr\Visibility;
 use Polyspec\Crudui\Validator\Values\CanonicalText;
 use Polyspec\Crudui\Validator\Values\EmptyValue;
+use Polyspec\Crudui\Validator\Values\Membership;
 use Polyspec\Crudui\Validator\Values\NumberText;
 
 /**
@@ -99,6 +100,7 @@ final class Validator
         'maxcount' => 'Please select no more than {0} items.',
         'step' => 'Please enter a value that is a multiple of {0}.',
         'conditionTree' => 'Please enter a valid condition.',
+        'reference' => 'Please select an existing value.',
     ];
 
     /** @var array<string, RuleInterface> rule instances by rule name */
@@ -116,6 +118,14 @@ final class Validator
     private array $duplicatesByField = [];
 
     /**
+     * For each declaration path that `reference` names, the member set of its ids in the data of
+     * the validation in progress (docs/spec/validation-rules.md, "References").
+     *
+     * @var array<string, Membership>
+     */
+    private array $idsByPath = [];
+
+    /**
      * @param array<string, mixed> $composedSpec a composed CRUDUI root spec — a group
      *        with `properties` (already free of $ref/$patch and forbidden keys).
      * @throws \Polyspec\Crudui\Validator\Compose\ComposeLoadError when a declared rule name or parameter is invalid
@@ -124,7 +134,7 @@ final class Validator
     {
         $props = $composedSpec['properties'] ?? null;
         $this->properties = (is_array($props) && !array_is_list($props)) ? $props : [];
-        DeclarationCheck::run($this->properties);
+        DeclarationCheck::run($this->properties, [], $this->properties);
         $this->registerRules();
     }
 
@@ -145,6 +155,7 @@ final class Validator
         } finally {
             // The duplicates belong to this validation.
             $this->duplicatesByField = [];
+            $this->idsByPath = [];
         }
     }
 
@@ -224,7 +235,7 @@ final class Validator
 
             $childProps = $this->childProperties($field);
 
-            if ($isMultiple && $present && !self::isObject($fieldValue)) {
+            if ($isMultiple && $present && !FieldShape::isObject($fieldValue)) {
                 throw new FormInputError('Repeated data must be a keyed object: ' . implode('.', $fieldPath));
             }
             if ($isMultiple && $present) {
@@ -245,7 +256,7 @@ final class Validator
                         foreach ($keys as $key) {
                             $row = $rows[$key];
                             $rowPath = [...$fieldPath, $key];
-                            if (!self::isObject($row)) {
+                            if (!FieldShape::isObject($row)) {
                                 throw new FormInputError('Group data must be an object: ' . implode('.', $rowPath));
                             }
                             $this->validateProperties(
@@ -274,7 +285,7 @@ final class Validator
                         );
                     }
                 } else {
-                    if ($present && !self::isObject($fieldValue)) {
+                    if ($present && !FieldShape::isObject($fieldValue)) {
                         throw new FormInputError('Group data must be an object: ' . implode('.', $fieldPath));
                     }
                     $this->validateProperties(
@@ -360,7 +371,7 @@ final class Validator
             if (!self::isMultiple($field)) {
                 $this->collectHidden(
                     $children,
-                    self::isObject($value) ? (array) $value : [],
+                    FieldShape::isObject($value) ? (array) $value : [],
                     $fieldPath,
                     $rowKeys,
                     $allData,
@@ -368,14 +379,14 @@ final class Validator
                 );
                 continue;
             }
-            $rows = self::isObject($value) ? (array) $value : [];
+            $rows = FieldShape::isObject($value) ? (array) $value : [];
             $keys = array_map('strval', array_keys($rows));
             sort($keys, SORT_STRING);
             foreach ($keys as $key) {
                 $row = $rows[$key];
                 $this->collectHidden(
                     $children,
-                    self::isObject($row) ? (array) $row : [],
+                    FieldShape::isObject($row) ? (array) $row : [],
                     [...$fieldPath, $key],
                     [...$rowKeys, \count($fieldPath)],
                     $allData,
@@ -422,12 +433,6 @@ final class Validator
         }
     }
 
-    /** A JSON object value: stdClass or a non-empty associative array. */
-    private static function isObject(mixed $value): bool
-    {
-        return $value instanceof \stdClass || (is_array($value) && $value !== [] && !array_is_list($value));
-    }
-
     /**
      * Whether a CRUDUI field repeats (multiple: true, only or { … }).
      *
@@ -436,8 +441,7 @@ final class Validator
      */
     public static function isMultiple(array $field): bool
     {
-        $m = $field['multiple'] ?? null;
-        return $m === true || $m === 'only' || $m instanceof \stdClass || (is_array($m) && !array_is_list($m));
+        return FieldShape::isRepeated($field);
     }
 
     /**
@@ -448,7 +452,7 @@ final class Validator
     private function childProperties(array $field): ?array
     {
         $props = $field['properties'] ?? null;
-        if ($props instanceof \stdClass || (is_array($props) && !array_is_list($props))) {
+        if (FieldShape::isObject($props)) {
             return (array) $props;
         }
         return null;
@@ -775,6 +779,13 @@ final class Validator
         if ($ruleName === 'unique') {
             $ok = $this->validateUnique($value, $effectiveParam, $path, $rowKeys, $allData);
             return $ok ? null : $this->buildMessage('unique', $effectiveParam, $messages);
+        }
+
+        if ($ruleName === 'reference') {
+            $path = (string) $effectiveParam;
+            $ids = $this->idsByPath[$path]
+                ??= Membership::fromParameter(References::ids($this->properties, $allData, $path));
+            return $ids->contains($value) ? null : $this->buildMessage('reference', $effectiveParam, $messages);
         }
 
         $rule = $this->rules[$ruleName] ?? null;

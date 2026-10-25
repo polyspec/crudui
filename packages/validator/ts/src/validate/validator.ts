@@ -47,6 +47,7 @@ import { ComposeLoadError } from '../compose/errors';
 import { groupChoices, groupSourceFailure, isGroupSource } from '../group-source';
 import { assertKeyedMapKeys, assertKeyedMapReference } from './keyed-maps';
 import { isMultipleField } from './fields';
+import { isReferenceTarget, referenceIds, type ReferenceId } from './references';
 import {
   parseCondition,
   isConditionExpression,
@@ -75,7 +76,7 @@ export const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
  * is preserved verbatim and NOT evaluated as a condition expression. PATH-
  * REFERENCE-RULES.
  */
-export const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique', 'enddate'];
+export const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique', 'enddate', 'reference'];
 
 /**
  * Rules whose param is a literal value, never a condition expression or a condition map. An
@@ -275,15 +276,18 @@ function ternaryLiterals(node: ASTNode): unknown[] {
 export class Validator {
   private readonly properties: Record<string, unknown>;
   /** The state of the validation in progress. */
-  private run: ValidationRun = { uniqueDuplicates: new Map() };
+  private run: ValidationRun = this.newRun({});
 
   /**
    * @param composedSpec a composed CRUDUI root spec — a group with `properties`
    *        (already free of `$ref`/`$patch`).
+   * @throws {ComposeLoadError} for the first unknown rule name or parameter outside the definitions,
+   *         a `reference` that names no field it can name included: the declaration fails the load.
    */
   constructor(composedSpec: ComposedField) {
     const props = composedSpec.properties;
     this.properties = isRecord(props) ? props : {};
+    this.checkDeclaredParameters(this.properties, []);
   }
 
   /**
@@ -295,11 +299,26 @@ export class Validator {
     if (!isRecord(data)) {
       throw new FormInputError('Form data must be an object');
     }
-    this.checkDeclaredParameters(this.properties, []);
-    this.run = { uniqueDuplicates: new Map() };
+    this.run = this.newRun(data);
     const errors: ValidationError[] = [];
     this.validateProperties(this.properties, data, [], [], [], data, errors);
     return { valid: errors.length === 0, errors, hidden: this.hiddenPaths(data) };
+  }
+
+  /** The state of one validation of `data`: the ids of each declaration path are collected once. */
+  private newRun(data: Record<string, unknown>): ValidationRun {
+    const ids = new Map<string, ReferenceId[]>();
+    return {
+      uniqueDuplicates: new Map(),
+      referenceIds: (path: string) => {
+        let found = ids.get(path);
+        if (found === undefined) {
+          found = referenceIds(this.properties, data, path);
+          ids.set(path, found);
+        }
+        return found;
+      },
+    };
   }
 
   /**
@@ -380,6 +399,13 @@ export class Validator {
         assertRuleName(ruleName, path);
         for (const literal of declaredLiterals(ruleName, ruleValue)) {
           assertRuleParameter(ruleName, literal, path);
+          if (ruleName === 'reference' && typeof literal === 'string' && !isReferenceTarget(this.properties, literal)) {
+            throw new ComposeLoadError(
+              'INVALID_RULE_PARAMETER',
+              'Invalid reference parameter: expected the declaration path of a field',
+              [...path]
+            );
+          }
         }
       }
       for (const ruleName of Object.keys(fieldMessages(field) ?? {})) {
