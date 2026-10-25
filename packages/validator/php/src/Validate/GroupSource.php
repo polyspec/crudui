@@ -24,6 +24,9 @@ final class GroupSource
         'select', 'dropdown', 'selectbox', 'choice', 'radio', 'multichoice', 'checkboxes', 'checkcontainer',
     ];
 
+    /** The field types whose stored value is a boolean, which a group source refuses (CUSC-068). */
+    private const BOOLEAN_TYPES = ['checkbox', 'switcher'];
+
     /** Whether `items` is a group source: an object with the member `from`. */
     public static function isSource(mixed $items): bool
     {
@@ -32,8 +35,8 @@ final class GroupSource
 
     /**
      * The message of the first rule that the group source of a field breaks under the root
-     * properties, or null: the members of `items` in declaration order, the field, `from` and then
-     * `label`.
+     * properties, or null: the members of `items` in declaration order, the field, `from`, the type
+     * of its field, `label` and then the type of its field.
      *
      * @param array<array-key, mixed> $field the composed field declaration
      * @param array<array-key, mixed> $root the composed root properties
@@ -61,12 +64,21 @@ final class GroupSource
                 $path
             );
         }
+        $segments = explode('.', (string) $source['from']);
+        $groupPath = implode('.', array_slice($segments, 0, -2));
+        $valueName = $segments[count($segments) - 1];
+        if (self::holdsBoolean($group, $valueName)) {
+            return self::booleanFailure('from', $path, $groupPath . '.' . $valueName);
+        }
         if (array_key_exists('label', $source) && !self::scalarChild($group, $source['label'])) {
             return sprintf(
                 'Invalid items.label at %s: expected the name of a direct child field of the group '
                 . 'without multiple, properties or lang',
                 $path
             );
+        }
+        if (array_key_exists('label', $source) && self::holdsBoolean($group, $source['label'])) {
+            return self::booleanFailure('label', $path, $groupPath . '.' . (string) $source['label']);
         }
         return null;
     }
@@ -159,6 +171,26 @@ final class GroupSource
             && !array_key_exists('properties', $child)
             && !self::repeated($child)
             && !self::hasLang($child);
+    }
+
+    /** Whether the scalar child `name` of a group is of a type that stores a boolean. */
+    private static function holdsBoolean(array $properties, mixed $name): bool
+    {
+        if (!is_string($name) || !JsonValue::isObject($properties[$name] ?? null)) {
+            return false;
+        }
+        return in_array(((array) $properties[$name])['type'] ?? null, self::BOOLEAN_TYPES, true);
+    }
+
+    /** The message of a group source whose `member` names the field `field` that holds a boolean (CUSC-068). */
+    private static function booleanFailure(string $member, string $path, string $field): string
+    {
+        return sprintf(
+            'Invalid items.%s at %s: %s holds a boolean, expected a field whose values are strings or numbers',
+            $member,
+            $path,
+            $field
+        );
     }
 
     /** Whether a field repeats: multiple is true, only or an object. */

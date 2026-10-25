@@ -19,6 +19,9 @@ var groupSourceTypes = map[string]bool{
 	"multichoice": true, "checkboxes": true, "checkcontainer": true,
 }
 
+// booleanTypes are the field types whose stored value is a boolean, which a group source refuses (CUSC-068).
+var booleanTypes = map[string]bool{"checkbox": true, "switcher": true}
+
 // GroupChoice is one choice of a group source: the canonical text of a row's value and the text of its label, which
 // is the value when the source declares no label or the row gives none.
 type GroupChoice struct {
@@ -35,7 +38,7 @@ func GroupSourceItems(items any) (*compose.OMap, bool) {
 
 // GroupSourceFailure returns the message of the first rule that the group source of field, declared at path, breaks
 // under the root properties, or "" when it breaks none. The members of items are checked in declaration order, then the
-// field, from and label. A field whose items is not a group source has no failure.
+// field, from, the type of its field, label and the type of its field. A field whose items is not a group source has no failure.
 func GroupSourceFailure(field *compose.OMap, path string, root *compose.OMap) string {
 	items, _ := field.Get("items")
 	source, ok := GroupSourceItems(items)
@@ -55,8 +58,18 @@ func GroupSourceFailure(field *compose.OMap, path string, root *compose.OMap) st
 	if group == nil {
 		return "Invalid items.from at " + path + ": expected {group}.*.{field} for a field of a repeated group outside repeated groups"
 	}
-	if label, declared := source.Get("label"); declared && !scalarChild(group, label) {
+	segments := strings.Split(from.(string), ".")
+	groupPath := strings.Join(segments[:len(segments)-2], ".")
+	valueName := segments[len(segments)-1]
+	if holdsBoolean(group, valueName) {
+		return booleanFailure("from", path, groupPath+"."+valueName)
+	}
+	label, declared := source.Get("label")
+	if declared && !scalarChild(group, label) {
 		return "Invalid items.label at " + path + ": expected the name of a direct child field of the group without multiple, properties or lang"
+	}
+	if declared && holdsBoolean(group, label) {
+		return booleanFailure("label", path, groupPath+"."+label.(string))
 	}
 	return ""
 }
@@ -160,6 +173,23 @@ func scalarChild(properties *compose.OMap, name any) bool {
 	child, ok := raw.(*compose.OMap)
 	return ok && child != nil && fieldType(child) != "group" && !child.Has("properties") &&
 		!fieldIsMultiple(child) && !hasLang(child)
+}
+
+// holdsBoolean reports whether the child name of the group properties, a scalar child, is of a type that stores a
+// boolean.
+func holdsBoolean(properties *compose.OMap, name any) bool {
+	text, ok := name.(string)
+	if !ok {
+		return false
+	}
+	raw, _ := properties.Get(text)
+	child, ok := raw.(*compose.OMap)
+	return ok && child != nil && booleanTypes[fieldType(child)]
+}
+
+// booleanFailure returns the message of a group source whose member names the field that holds a boolean (CUSC-068).
+func booleanFailure(member string, path string, field string) string {
+	return "Invalid items." + member + " at " + path + ": " + field + " holds a boolean, expected a field whose values are strings or numbers"
 }
 
 // hasLang reports whether a field declares lang as true or as an object.

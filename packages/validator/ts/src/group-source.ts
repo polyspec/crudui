@@ -12,6 +12,9 @@ import { isRecord } from './record';
 /** The field types that take a group source. */
 const CHOICE_TYPES: readonly unknown[] = ['select', 'dropdown', 'selectbox', 'choice', 'radio', 'multichoice', 'checkboxes', 'checkcontainer'];
 
+/** The field types whose stored value is a boolean, which a group source refuses (CUSC-068). */
+const BOOLEAN_TYPES: readonly unknown[] = ['checkbox', 'switcher'];
+
 /** One choice of a group source: the canonical text of a row's value and the label text. */
 export interface GroupChoice {
   value: string;
@@ -63,10 +66,21 @@ function sourceGroup(from: unknown, properties: Record<string, unknown>): Record
   return scalarChild(current, segments[segments.length - 1]) ? current : undefined;
 }
 
+/** Whether the child `name` of the group `properties`, a scalar child, is of a type that stores a boolean. */
+function holdsBoolean(properties: Record<string, unknown>, name: unknown): boolean {
+  const child = typeof name === 'string' ? properties[name] : undefined;
+  return isRecord(child) && BOOLEAN_TYPES.includes(child.type);
+}
+
+/** The message of a group source whose `member` names the field `field` that holds a boolean (CUSC-068). */
+function booleanFailure(member: string, path: string, field: string): string {
+  return `Invalid items.${member} at ${path}: ${field} holds a boolean, expected a field whose values are strings or numbers`;
+}
+
 /**
  * The message of the first rule that the group source of `field` at the declaration `path` breaks
  * under the root `properties`, or `undefined`: the members of `items` in declaration order, the
- * field, `from` and then `label`.
+ * field, `from`, the type of its field, `label` and then the type of its field.
  */
 export function groupSourceFailure(field: Record<string, unknown>, path: string, properties: Record<string, unknown>): string | undefined {
   const items = field.items;
@@ -79,9 +93,14 @@ export function groupSourceFailure(field: Record<string, unknown>, path: string,
   if (group === undefined) {
     return `Invalid items.from at ${path}: expected {group}.*.{field} for a field of a repeated group outside repeated groups`;
   }
+  const segments = String(items.from).split('.');
+  const groupPath = segments.slice(0, -2).join('.');
+  const valueName = segments[segments.length - 1] ?? '';
+  if (holdsBoolean(group, valueName)) return booleanFailure('from', path, `${groupPath}.${valueName}`);
   if (has(items, 'label') && !scalarChild(group, items.label)) {
     return `Invalid items.label at ${path}: expected the name of a direct child field of the group without multiple, properties or lang`;
   }
+  if (has(items, 'label') && holdsBoolean(group, items.label)) return booleanFailure('label', path, `${groupPath}.${String(items.label)}`);
   return undefined;
 }
 

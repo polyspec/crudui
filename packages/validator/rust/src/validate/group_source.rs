@@ -109,9 +109,30 @@ fn label_message(path: &str) -> String {
     )
 }
 
+/// The field types whose stored value is a boolean, which a group source refuses (CUSC-068).
+const BOOLEAN_TYPES: [&str; 2] = ["checkbox", "switcher"];
+
+/// Whether the scalar child `name` of a group is of a type that stores a boolean.
+fn holds_boolean(group: &Map<String, Value>, name: &str) -> bool {
+    group
+        .get(name)
+        .and_then(|child| child.get("type"))
+        .and_then(Value::as_str)
+        .is_some_and(|kind| BOOLEAN_TYPES.contains(&kind))
+}
+
+/// The message of a group source whose `member` names the field `field` that holds a boolean
+/// (CUSC-068).
+fn boolean_message(member: &str, path: &str, field: &str) -> String {
+    format!(
+        "Invalid items.{member} at {path}: {field} holds a boolean, expected a field whose values are strings or numbers"
+    )
+}
+
 /// The message of the first rule that the group source of `field` at the declaration `path`
 /// breaks under the root `properties`, or `None`. The members of `items` are checked in
-/// declaration order, then the field, then `from` and then `label`.
+/// declaration order, then the field, then `from`, the type of its field, `label` and then the
+/// type of its field.
 pub fn group_source_failure(
     field: &Value,
     path: &str,
@@ -133,23 +154,24 @@ pub fn group_source_failure(
             "Invalid items.from at {path}: expected a choice field without lang"
         ));
     }
-    let Some(group) = members
-        .get("from")
-        .and_then(Value::as_str)
-        .and_then(|from| source_group(from, root))
+    let from = members.get("from").and_then(Value::as_str);
+    let Some((from, group)) = from.and_then(|from| source_group(from, root).map(|group| (from, group)))
     else {
         return Some(from_message(path));
     };
-    let label_ok = match members.get("label") {
-        None => true,
-        Some(label) => label
-            .as_str()
-            .is_some_and(|name| group.get(name).is_some_and(scalar_child)),
+    let segments: Vec<&str> = from.split('.').collect();
+    let group_path = segments[..segments.len() - 2].join(".");
+    let value_name = segments[segments.len() - 1];
+    if holds_boolean(group, value_name) {
+        return Some(boolean_message("from", path, &format!("{group_path}.{value_name}")));
+    }
+    let Some(label) = members.get("label") else {
+        return None;
     };
-    if label_ok {
-        None
-    } else {
-        Some(label_message(path))
+    match label.as_str() {
+        Some(name) if group.get(name).is_some_and(scalar_child) => holds_boolean(group, name)
+            .then(|| boolean_message("label", path, &format!("{group_path}.{name}"))),
+        _ => Some(label_message(path)),
     }
 }
 

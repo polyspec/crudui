@@ -29,6 +29,9 @@ CHOICE_TYPES = (
     "checkcontainer",
 )
 
+# The field types whose stored value is a boolean, which a group source refuses (CUSC-068).
+BOOLEAN_TYPES = ("checkbox", "switcher")
+
 
 def _is_object(value: object) -> TypeGuard[dict[str, Any]]:
     return isinstance(value, dict)
@@ -60,6 +63,20 @@ def _scalar_child(properties: dict[str, Any], name: object) -> bool:
         and "properties" not in child
         and not _repeated(child)
         and not _has_lang(child)
+    )
+
+
+def _holds_boolean(properties: dict[str, Any], name: object) -> bool:
+    """Whether the scalar child `name` of a group is of a type that stores a boolean."""
+    child = properties.get(name) if isinstance(name, str) else None
+    return _is_object(child) and child.get("type") in BOOLEAN_TYPES
+
+
+def _boolean_failure(member: str, path: str, field: str) -> str:
+    """The message of a group source whose `member` names the field `field` that holds a boolean (CUSC-068)."""
+    return (
+        f"Invalid items.{member} at {path}: {field} holds a boolean, "
+        "expected a field whose values are strings or numbers"
     )
 
 
@@ -99,7 +116,7 @@ def group_source_failure(
 
     `path` is the declaration path of the field and `properties` the root properties.
     The members of `items` are checked in declaration order, then the field, then
-    `from` and then `label`.
+    `from`, the type of its field, `label` and then the type of its field.
     """
     items = field.get("items")
     if not is_group_source(items):
@@ -115,11 +132,17 @@ def group_source_failure(
             f"Invalid items.from at {path}: expected {{group}}.*.{{field}} "
             "for a field of a repeated group outside repeated groups"
         )
+    segments = items["from"].split(".")
+    group_path = ".".join(segments[:-2])
+    if _holds_boolean(group, segments[-1]):
+        return _boolean_failure("from", path, f"{group_path}.{segments[-1]}")
     if "label" in items and not _scalar_child(group, items["label"]):
         return (
             f"Invalid items.label at {path}: expected the name of a direct child field "
             "of the group without multiple, properties or lang"
         )
+    if "label" in items and _holds_boolean(group, items["label"]):
+        return _boolean_failure("label", path, f"{group_path}.{items['label']}")
     return None
 
 

@@ -63,6 +63,13 @@ static const ps_value *source_scope(const ps_value *root, const ps_text *names, 
     return scope;
 }
 
+/* Whether the scalar child of a group is of a type that stores a boolean, checkbox or switcher (CUSC-068). */
+static bool holds_boolean(const ps_value *child)
+{
+    const ps_value *type = ps_get(child, "type");
+    return ps_is_string(type, "checkbox") || ps_is_string(type, "switcher");
+}
+
 static int failure(ps_chars *message, ps_chars text)
 {
     *message = text;
@@ -88,22 +95,32 @@ int ps_group_source_failure(const ps_value *field, ps_text path, const ps_value 
     bool valid = false;
     ps_text *parts = NULL;
     size_t count = 0;
+    ps_text value_name = {NULL, 0};
     if (from->kind == PS_STRING) {
         if (!split_dots(ps_string(from), &parts, &count)) return -1;
         if (count >= 3 && ps_text_is(parts[count - 2], "*")) {
             group = source_scope(root, parts, count - 2);
-            valid = group && scalar_child(ps_get_text(group, parts[count - 1]));
+            value_name = parts[count - 1];
+            valid = group && scalar_child(ps_get_text(group, value_name));
         }
     }
     free(parts);
     if (!valid)
         return failure(message, PS_CONCAT(PS_TEXT("Invalid items.from at "), path,
             PS_TEXT(": expected {group}.*.{field} for a field of a repeated group outside repeated groups")));
+    /* from is {group}.*.{value}: the declaration path of the group is the text before ".*.". */
+    ps_text group_path = ps_text_slice(ps_string(from), 0, ps_string(from).length - value_name.length - 3);
+    if (holds_boolean(ps_get_text(group, value_name)))
+        return failure(message, PS_CONCAT(PS_TEXT("Invalid items.from at "), path, PS_TEXT(": "), group_path,
+            PS_TEXT("."), value_name, PS_TEXT(" holds a boolean, expected a field whose values are strings or numbers")));
     if (ps_has(items, "label")) {
         const ps_value *label = ps_get(items, "label");
         if (label->kind != PS_STRING || !scalar_child(ps_get_text(group, ps_string(label))))
             return failure(message, PS_CONCAT(PS_TEXT("Invalid items.label at "), path,
                 PS_TEXT(": expected the name of a direct child field of the group without multiple, properties or lang")));
+        if (holds_boolean(ps_get_text(group, ps_string(label))))
+            return failure(message, PS_CONCAT(PS_TEXT("Invalid items.label at "), path, PS_TEXT(": "), group_path,
+                PS_TEXT("."), ps_string(label), PS_TEXT(" holds a boolean, expected a field whose values are strings or numbers")));
     }
     return 0;
 }
