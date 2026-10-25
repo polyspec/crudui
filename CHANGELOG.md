@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-25 — C17.4 adds the reference rule (C17.4)
+
+- C17.4 is done (C17.4): the rule reference takes the declaration path of a field, such as facts.id; its ids are the non-empty scalar values of that field in every row on the path, hidden fields included, and a value passes under the membership rules of in; a parameter that is not a string, or that names no declared field, a group or a field with lang, fails the load with INVALID_RULE_PARAMETER (docs/spec/validation-rules.md, CUVR-071 to CUVR-074). TypeScript, PHP, the PHP extension, Go, Rust and Python implement it, and the meta-schema, the CLI explain labels and the TypeScript API report name it. Red: on e198dba8 make docs-check failed in scripts/check-schema.mts, whose meta-schema rejected the reference of the case reference-row-ids, and make parity-check UNITS="validate" passed 341 of 356 cases in every implementation, failing the 15 reference cases; green: docs-check passes and every implementation passes 356 of 356.
+
 ### 2026-10-25 — C17.22 refuses at load a multiple that is not a boolean, only or an object (C17.22)
 
 - C17.22 is done (C17.22): every validator (TypeScript, PHP, the PHP extension, Go, Rust and Python) refuses at load a field whose multiple is present and is not a boolean, only or an object, null and a list included, with INVALID_RULE_PARAMETER, the message Invalid multiple at {path}: expected a boolean, only or an object and the field's declaration path, before its group source and its rules (docs/spec/schema.md CUSC-081). Red: make parity-check UNITS="validate" failed the five refusal cases in every validator; green after the change.

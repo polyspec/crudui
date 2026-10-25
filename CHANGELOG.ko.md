@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4e4d323ff51d2bf9a0f32bcb675970485f397e00c11a73ee48bb2a31c7488c35 -->
+<!-- source-sha256: b6b0f3dcac717797d528e0671b10b6ff82041f70fe94749fd72fba19b2048e6b -->
 
 ## Unreleased
+
+### 2026-10-25 — C17.4는 reference 규칙을 더한다(C17.4)
+
+- C17.4 완료(C17.4): reference 규칙은 facts.id 같은 필드의 선언 경로를 받는다. 그 id는 경로 위 모든 행에서 그 필드가 가진, 비어 있지 않은 scalar 값이며 숨긴 필드의 값도 포함하고, 값은 in의 포함 여부 규칙으로 통과한다. 문자열이 아니거나 선언된 필드, group, lang이 있는 필드를 가리키지 않는 매개변수는 INVALID_RULE_PARAMETER로 load에 실패한다(docs/spec/validation-rules.md, CUVR-071~CUVR-074). TypeScript, PHP, PHP 확장, Go, Rust, Python이 구현하고 meta-schema, CLI explain 라벨, TypeScript API report가 이름을 싣는다. red: e198dba8에서 make docs-check가 scripts/check-schema.mts에서 실패했고(meta-schema가 사례 reference-row-ids의 reference를 거부), make parity-check UNITS="validate"는 모든 구현에서 356개 중 341개만 통과하고 reference 사례 15개에 실패했다. green: docs-check가 통과하고 모든 구현이 356개 중 356개를 통과한다.
 
 ### 2026-10-25 — C17.22는 불리언, only, 객체가 아닌 multiple을 로드할 때 거부한다(C17.22)
 
