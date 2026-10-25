@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f35923cfa36bf3d13daa5b0e1b0579ecdbd9015a6bc9f3284f437b64d5c1cd60 -->
+<!-- source-sha256: 9319739a17c5dddff8a571f9c4cff50830ab5dd1218c0d72dfb78619d919a0ae -->
 
 ## Unreleased
+
+### 2026-10-26 — 그룹 소스는 리터럴 선택지를 그룹의 행과 합친다(C17.31)
+
+- C17.31 완료(C17.31): 그룹 소스는 choices를 선언하며, 이 리터럴 값과 라벨 쌍은 그룹의 행보다 먼저 나열되고 암묵적 in 검사에서 행과 하나의 집합으로 검사된다. 예를 들어 인물 id 옆의 청중 player가 그렇다(docs/spec/schema.md CUSC-089, docs/spec/validation-rules.md CUVR-085). 값이 리터럴 선택지를 반복하는 행은 검증과 바인딩에서 INVALID_FORM_INPUT으로 실패하며 그 행 경로와 값을 밝히고, 규칙을 어기는 choices는 컴파일과 로드에서 실패한다(CUVR-086). TypeScript, PHP, PHP extension, Go, Rust, Python에 구현했다. red: make parity-check UNITS="validate form-render"가 모든 구현에서 validate 9개와 form-render 3개 사례로 실패했고, 변경 뒤 green.
 
 ### 2026-10-26 — 반복된 그룹 소스 값은 검증에 실패한다(C17.32)
 

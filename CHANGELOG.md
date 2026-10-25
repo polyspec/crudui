@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — A group source combines literal choices with the rows of its group (C17.31)
+
+- C17.31 is done (C17.31): a group source declares choices, literal value and label pairs that are listed before the rows of its group and checked with them as one set by the implicit in check, such as the audience player beside the character ids (docs/spec/schema.md CUSC-089, docs/spec/validation-rules.md CUVR-085); a row whose value repeats a literal choice fails with INVALID_FORM_INPUT and names its row path and value, in validation and in binding, and a choices outside its rules fails compilation and the load (CUVR-086); in TypeScript, PHP, the PHP extension, Go, Rust and Python. Red: make parity-check UNITS="validate form-render" failed the 9 validate and 3 form-render cases in every implementation; green after the change.
+
 ### 2026-10-26 — A repeated group source value fails validation (C17.32)
 
 - C17.32 is done (C17.32): a row of a group source whose value repeats that of an earlier row no longer drops silently in validation; the implicit in check fails with INVALID_FORM_INPUT and Group source value repeats an earlier row: {value} at {path} (CUSC-090, CUVR-087) in TypeScript, PHP, Go, Rust, Python and the C engine of the PHP extension, and rendering lists the value once. Red: make parity-check UNITS="validate form-render" failed group-source-repeated-value and group-source-repeated-number in every validator; green after the change.
