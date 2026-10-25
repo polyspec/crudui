@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 2d12a313129e93101812eff7d77bc0cd8214044dcda2d516d21bc6b79a2117d1 -->
+<!-- source-sha256: 1df31ede2bb7308dd8d336b53780b2c0852aa1654a3f3832fe4a877205879b50 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -362,3 +362,4 @@
 | C17.30 | crudui의 config/rebuild.json에는 더 이상 없는 파일의 항목과 class 없는 도구가 없다 (rebuild-check 통과) | config/rebuild.json (the four entries of K614 and the tool without a class) | `make rebuild-check` | [o] |
 | C17.31 | choice 필드의 items는 group source와 리터럴 항목 목록을 하나의 집합으로 묶어 검사한다. 여섯 구현 모두 (drama U-2) | docs/spec: CUSC-089 (items combining a group source with literal items) in schema.md and its KO twin, CUVR-085 (the combined-set check) and CUVR-086 (its refusal) in validation-rules.md and its KO twin; the shared cases; the six implementations with parity units | `make docs-check`; `make parity-declarations-check`; `make parity-check UNITS="validate form-render"` | [o] |
 | C17.32 | group source 행들 사이의 값 중복은 행 경로와 값을 밝힌 코드 있는 입력 오류로 검증에 실패한다. 여섯 구현 모두 (조용한 버림 금지) | docs/spec: CUSC-090 (the repeated value refusal) in schema.md and its KO twin, CUVR-087 (its check) in validation-rules.md and its KO twin; the shared cases; the six implementations with parity units | `make docs-check`; `make parity-declarations-check`; `make parity-check UNITS="validate form-render"` | [o] |
+| C17.33 | widget.c를 컴파일하는 php-ext 테스트 소스 목록은 ps_condition_scalar를 정의하는 rule_condition_tree.c도 컴파일하여, comparison과 contract 테스트가 링크된다 | packages/php-ext/tests/comparison/comparison.test.mjs and packages/php-ext/tests/contract/expr.test.mjs (the source lists that include widget.c) | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- packages/php-ext/tests/comparison/comparison.test.mjs`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- packages/php-ext/tests/contract/expr.test.mjs` | [ ] |
