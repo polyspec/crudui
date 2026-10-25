@@ -25,7 +25,7 @@ The accepted cases check a plain specification, a conditional requiredness expre
 map with a `true` default key, deep nesting, choice labels in several languages, empty labels and
 content, per-language overrides, root `buttons` and `action`, `multiple: only` in its string and
 object forms, which loads with empty data because missing data has no row, and a choice list under
-`items` and `in`. The rejected cases place a
+`items` and `in`, and a structured condition editor with `options.fields`. The rejected cases place a
 forbidden key (`if`, `when`, `show_if`, `display_switch`, `display_target`, `seqtokey`, `_` or an
 `x`-prefixed key) at the top of a field, under a role slot or an open settings object, in a design
 node, in a nested child, inside an array element, in a base inherited through `$ref`, and in a

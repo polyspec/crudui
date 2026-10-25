@@ -1,6 +1,6 @@
 # 명세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-spec-validity-readme -->
-<!-- source-sha256: 79e05c18c8fe55fdbca5533df1cbf06159c9c92773dec1eb72d364544d270bc3 -->
+<!-- source-sha256: 9136883b9935fecc579d83345c84ba96a1b9690e0b8a41eeea2ac297f518d411 -->
 
 [English](README.md).
 
@@ -22,7 +22,7 @@
 
 허용 사례는 기본 명세, 조건부 필수 입력 표현식, `true` 기본 키를 가진 조건맵, 깊은 중첩, 여러 언어의 선택지
 라벨, 비어 있는 라벨과 내용, 언어별 재정의, 루트의 `buttons`와 `action`, 그리고 문자열과 객체 형태의
-`multiple: only`, `items`와 `in`의 선택 목록을 검사합니다. 데이터가 없으면 행이 없으므로 빈 데이터로 로드됩니다. 거부 사례는 금지 키
+`multiple: only`, `items`와 `in`의 선택 목록, `options.fields`가 있는 구조 조건 편집기를 검사합니다. 데이터가 없으면 행이 없으므로 빈 데이터로 로드됩니다. 거부 사례는 금지 키
 (`if`, `when`, `show_if`, `display_switch`, `display_target`, `seqtokey`, `_`, `x`로 시작하는 키)를 필드
 최상위, 역할 슬롯이나 열린 설정 객체 아래, 디자인 노드, 중첩한 자식, 배열 요소 안, `$ref`로 상속한 기반
 명세, 루트 버튼과 동작에 둡니다. 이 사례의 런타임 코드는 `FORBIDDEN_META_KEY`입니다. 두 거부 사례는 선택

@@ -703,6 +703,23 @@
     "engine": "pass"
   },
   {
+    "name": "ok-condition-editor",
+    "note": "A condition field may declare design.editor text or structured, and a structured one options.fields; validation loads the specification.",
+    "requirements": [
+      "CUSC-083",
+      "CUSC-084"
+    ],
+    "spec": {
+      "type": "group",
+      "properties": {
+        "opens_when": { "type": "condition", "label": "Opens when", "validate": { "conditionTree": true }, "design": { "editor": "structured" }, "options": { "fields": ["episodes.e1.status", "clues.size"] } },
+        "pass": { "type": "condition", "label": "Pass", "validate": { "conditionTree": "judge" }, "design": { "editor": "text" } }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "ok-choice-appearance",
     "note": "The choices of a choice field declare a label class and style and input attributes; validation loads the specification.",
     "requirements": [

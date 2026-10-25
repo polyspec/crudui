@@ -1,6 +1,6 @@
 {
   "format": "crudui/interface-messages",
-  "description": "The interface text of CRUDUI in every supported language. form: the labels of form controls, counts and summaries; {count} is replaced with a number. list: the labels of list pagination buttons, {page} replaced with a page number, and the text of an empty list whose specification declares no empty text. Every runtime embeds a source generated from this file and tests that it equals this file (docs/spec/form-markup.md, Interface messages).",
+  "description": "The interface text of CRUDUI in every supported language. form: the labels of form controls, counts and summaries; {count} is replaced with a number and {path} with the data path of a field. list: the labels of list pagination buttons, {page} replaced with a page number, and the text of an empty list whose specification declares no empty text. Every runtime embeds a source generated from this file and tests that it equals this file (docs/spec/form-markup.md, Interface messages).",
   "languages": [
     "ko",
     "en",
@@ -30,7 +30,13 @@
       "untitled": "(이름 없음)",
       "collapsed": "접힘",
       "count": "{count}개",
-      "children": "하위 {count}개"
+      "children": "하위 {count}개",
+      "conditionMode": "조건 방식",
+      "conditionAddComparison": "조건 추가",
+      "conditionAddGroup": "그룹 추가",
+      "conditionAddJudge": "판정 추가",
+      "conditionRemove": "제거",
+      "conditionInvalid": "{path}의 값은 conditionTree가 받는 조건 트리가 아닙니다. 텍스트를 고치십시오."
     },
     "en": {
       "moveUp": "Move up",
@@ -54,7 +60,13 @@
       "untitled": "(untitled)",
       "collapsed": "Collapsed",
       "count": "Rows: {count}",
-      "children": "Nested rows: {count}"
+      "children": "Nested rows: {count}",
+      "conditionMode": "Condition mode",
+      "conditionAddComparison": "Add condition",
+      "conditionAddGroup": "Add group",
+      "conditionAddJudge": "Add judgement",
+      "conditionRemove": "Remove",
+      "conditionInvalid": "The value of {path} is not a condition tree that conditionTree accepts; correct the text."
     },
     "ja": {
       "moveUp": "上へ",
@@ -78,7 +90,13 @@
       "untitled": "(名前なし)",
       "collapsed": "折りたたみ中",
       "count": "{count}件",
-      "children": "下位 {count}件"
+      "children": "下位 {count}件",
+      "conditionMode": "条件の方式",
+      "conditionAddComparison": "条件を追加",
+      "conditionAddGroup": "グループを追加",
+      "conditionAddJudge": "判定を追加",
+      "conditionRemove": "削除",
+      "conditionInvalid": "{path} の値は conditionTree が受け付ける条件ツリーではありません。テキストを修正してください。"
     },
     "zh": {
       "moveUp": "上移",
@@ -102,7 +120,13 @@
       "untitled": "(未命名)",
       "collapsed": "已折叠",
       "count": "{count} 项",
-      "children": "子项 {count} 项"
+      "children": "子项 {count} 项",
+      "conditionMode": "条件方式",
+      "conditionAddComparison": "添加条件",
+      "conditionAddGroup": "添加组",
+      "conditionAddJudge": "添加判定",
+      "conditionRemove": "删除",
+      "conditionInvalid": "{path} 的值不是 conditionTree 接受的条件树，请修改文本。"
     }
   },
   "list": {
