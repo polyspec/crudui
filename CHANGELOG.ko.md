@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2e76c275305ef5dd5db21b7286fe63f4f20301fee761ce53125404e9826e17c5 -->
+<!-- source-sha256: 5ba02a148ca1c9661cd8db4f1558ddf705afb9d1dec32dff86063a9ce482fea4 -->
 
 ## Unreleased
+
+### 2026-10-25 — C17.22는 불리언, only, 객체가 아닌 multiple을 로드할 때 거부한다(C17.22)
+
+- C17.22 완료(C17.22): 모든 검증기(TypeScript, PHP, PHP extension, Go, Rust, Python)는 multiple이 있고 불리언, only, 객체가 아닌 필드(null과 목록 포함)를 로드할 때 그 그룹 소스와 규칙보다 먼저 INVALID_RULE_PARAMETER, 메시지 Invalid multiple at {path}: expected a boolean, only or an object, 필드의 선언 경로로 거부한다(docs/spec/schema.md CUSC-081). red: make parity-check UNITS="validate"가 모든 검증기에서 거부 사례 다섯 개로 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 

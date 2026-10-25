@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-25 — C17.22 refuses at load a multiple that is not a boolean, only or an object (C17.22)
+
+- C17.22 is done (C17.22): every validator (TypeScript, PHP, the PHP extension, Go, Rust and Python) refuses at load a field whose multiple is present and is not a boolean, only or an object, null and a list included, with INVALID_RULE_PARAMETER, the message Invalid multiple at {path}: expected a boolean, only or an object and the field's declaration path, before its group source and its rules (docs/spec/schema.md CUSC-081). Red: make parity-check UNITS="validate" failed the five refusal cases in every validator; green after the change.
+
 ### 2026-10-25 — C17.2 takes the choices of a field from a repeated group (C17.2)
 
 - C17.2 is done (C17.2): a choice field declares items { from: group.*.field, label } and lists the rows of that repeated group of the same form as its choices, in data order (docs/spec/schema.md CUSC-061 to CUSC-067); compilation and the validator load refuse a group source that breaks its rules, and the validator checks a value against the choices with an implicit in check before the declared rules (docs/spec/validation-rules.md CUVR-060, CUVR-061), in TypeScript, PHP, the PHP extension, Go, Rust and Python. Red: make parity-check UNITS="validate form-render" failed the 16 validate and 8 form-render group-source cases; green after the change.
