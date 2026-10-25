@@ -487,7 +487,30 @@ fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> For
     {
         check_range_declaration(spec, path)?;
     }
+    if field
+        && spec
+            .get("type")
+            .and_then(Value::as_str)
+            .is_some_and(|t| t.to_lowercase() == "condition")
+    {
+        check_condition_declaration(spec, path)?;
+    }
     Ok(())
+}
+
+/// Reject a condition field whose `validate.conditionTree` is not the literal `true` or `judge`:
+/// every value of the field is checked as a condition tree.
+fn check_condition_declaration(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
+    let parameter = spec
+        .get("validate")
+        .and_then(|v| v.get("conditionTree"))
+        .unwrap_or(&Value::Null);
+    if *parameter == Value::Bool(true) || parameter.as_str() == Some("judge") {
+        return Ok(());
+    }
+    Err(FormError::input(format!(
+        "Invalid validate.conditionTree at {path}: expected true or judge"
+    )))
 }
 
 /// Reject a range field without literal bounds and a literal step whose multiple the minimum

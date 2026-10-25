@@ -96,6 +96,7 @@ pub(crate) fn widget_kind(name: &str) -> Option<&str> {
         "tinymce" | "wysiwyg" => "tinymce",
         "button" | "action" => "button",
         "range" => "range",
+        "condition" => "condition",
         "email" | "password" | "textarea" | "hidden" | "date" | "dummy-input" | "image"
         | "file" | "image-viewer" | "summernote" | "editorjs" | "tui" | "tagify" | "tagify2" => {
             name
@@ -596,6 +597,30 @@ fn range(ctx: &WidgetContext<'_>) -> Value {
     model
 }
 
+/// A condition field: a textarea holding the condition text of its tree, marked for the browser
+/// bindings that decode it (docs/spec/form-markup.md, Condition fields).
+fn condition(ctx: &WidgetContext<'_>) -> Value {
+    let default = ctx.spec.get("default");
+    let mut attrs = Map::new();
+    put_string(&mut attrs, "name", ctx.name());
+    put_string(
+        &mut attrs,
+        "class",
+        ctx.class("valid-target crudui-input crudui-input--condition"),
+    );
+    put_string(&mut attrs, "rows", "5");
+    put_string(&mut attrs, "data-crudui-value", "json");
+    put_nonempty(&mut attrs, "style", ctx.style());
+    ctx.behavior(&mut attrs);
+    ctx.data_attrs(&mut attrs);
+    put_string(&mut attrs, "data-default", condition_text(default));
+    let text = condition_text(ctx.value.or(default));
+    let mut model =
+        json!({"kind":"condition","layout":"widget","tag":"textarea","attrs":attrs,"text":text});
+    ctx.affixes(&mut model, true);
+    model
+}
+
 /// A button element with the content text; behavior scripts are its event attributes.
 fn button(ctx: &WidgetContext<'_>) -> Value {
     let mut attrs = Map::new();
@@ -628,6 +653,7 @@ pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Opti
         "tinymce" | "summernote" | "editorjs" | "tui" | "tagify" | "tagify2" => editor(kind, ctx),
         "button" => button(ctx),
         "range" => range(ctx),
+        "condition" => condition(ctx),
         _ => text_control(kind, ctx),
     };
     let id = ctx.id.to_owned();

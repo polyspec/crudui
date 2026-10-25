@@ -272,6 +272,19 @@ func evalWidget(c widgetContext) *Object {
 		c.attrsBehaviorData(a)
 		w = c.withAffixes(widget(kind, "widget", "textarea", a))
 		w.Set("text", c.display())
+	case "condition":
+		// A condition field holds the condition text of its tree, marked for the browser bindings
+		// (docs/spec/form-markup.md, Condition fields).
+		a = NewObject("name", name, "class", c.class("valid-target crudui-input crudui-input--condition"), "rows", "5", "data-crudui-value", "json")
+		c.attrsStyle(a)
+		c.attrsBehaviorData(a)
+		a.Set("data-default", conditionText(read(c.spec, "default")))
+		w = c.withAffixes(widget(kind, "widget", "textarea", a))
+		shown := c.value
+		if isAbsent(shown) {
+			shown = read(c.spec, "default")
+		}
+		w.Set("text", conditionText(shown))
 	case "hidden":
 		a = NewObject("type", "hidden", "name", name, "value", c.display(), "class", c.class("valid-target"))
 		merge(a, c.dataAttrs())

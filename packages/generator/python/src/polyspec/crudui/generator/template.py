@@ -326,6 +326,24 @@ def _check_declarations(spec: dict[str, Any], path: str, field: bool) -> None:
         _closed("behavior", spec["behavior"], ("onchange", "onclick", "onload"), path)
     if field and isinstance(spec.get("type"), str) and spec["type"].lower() == "range":
         _check_range_declaration(spec, path)
+    if (
+        field
+        and isinstance(spec.get("type"), str)
+        and spec["type"].lower() == "condition"
+    ):
+        _check_condition_declaration(spec, path)
+
+
+def _check_condition_declaration(spec: dict[str, Any], path: str) -> None:
+    """Reject a condition field whose validate.conditionTree is not the literal true or judge.
+
+    Every value of the field is checked as a condition tree.
+    """
+    raw_validate = spec.get("validate")
+    validate: dict[str, Any] = raw_validate if _is_object(raw_validate) else {}
+    parameter = validate.get("conditionTree")
+    if parameter is not True and parameter != "judge":
+        _fail("validate.conditionTree", path, "true or judge")
 
 
 def _check_range_declaration(spec: dict[str, Any], path: str) -> None:

@@ -21,6 +21,7 @@ final class Widget
         'range' => 'range',
         'password' => 'password',
         'textarea' => 'textarea',
+        'condition' => 'condition',
         'select' => 'select',
         'dropdown' => 'select',
         'selectbox' => 'select',
@@ -114,6 +115,7 @@ final class Widget
             'text', 'email', 'number', 'password', 'hidden', 'date', 'datetime', 'dummy-input' => $ctx->input($kind),
             'range' => $ctx->range(),
             'textarea' => $ctx->textarea(),
+            'condition' => $ctx->condition(),
             'select', 'search' => $ctx->select($kind),
             'choice', 'multichoice' => $ctx->choices($kind),
             'image', 'file', 'cover' => $ctx->file($kind),
@@ -340,6 +342,34 @@ final class Widget
                 ...$this->data(),
             ],
             ['tag' => 'textarea', 'text' => $this->displayValue(), ...$this->affixes()]
+        );
+    }
+
+    /**
+     * A condition field: a textarea holding the condition text of its tree, marked for the browser
+     * bindings that decode it (docs/spec/form-markup.md, Condition fields).
+     */
+    private function condition(): stdClass
+    {
+        $default = Value::get($this->spec, 'default');
+        return $this->model(
+            'condition',
+            'widget',
+            [
+                'name' => $this->name,
+                'class' => $this->main('valid-target crudui-input crudui-input--condition'),
+                'rows' => '5',
+                'data-crudui-value' => 'json',
+                ...$this->style(),
+                ...$this->behavior(),
+                ...$this->data(),
+                'data-default' => Value::condition($default),
+            ],
+            [
+                'tag' => 'textarea',
+                'text' => Value::condition($this->value === Missing::Value ? $default : $this->value),
+                ...$this->affixes(),
+            ]
         );
     }
 

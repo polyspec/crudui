@@ -209,6 +209,68 @@ def truthy(value: object) -> bool:
     )
 
 
+_SHORT_ESCAPES = {
+    '"': '\\"',
+    "\\": "\\\\",
+    "\b": "\\b",
+    "\t": "\\t",
+    "\n": "\\n",
+    "\f": "\\f",
+    "\r": "\\r",
+}
+
+
+def condition(value: Value) -> str:
+    """The condition text of a condition field value (docs/spec/form-markup.md, Condition fields).
+
+    A string is itself, null and an absent value are empty, and any other value is the JSON text
+    that ECMAScript's JSON.stringify writes for it.
+    """
+    if value is MISSING or value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    return _condition_json(value)
+
+
+def _condition_json(value: object) -> str:
+    """The JSON.stringify text of a JSON value: members in order, no whitespace, ECMAScript numbers."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return number_string(float(value))
+    if isinstance(value, str):
+        return _condition_string(value)
+    if isinstance(value, list):
+        return "[" + ",".join(_condition_json(item) for item in value) + "]"
+    if isinstance(value, dict):
+        members = (
+            f"{_condition_string(key)}:{_condition_json(item)}"
+            for key, item in value.items()
+        )
+        return "{" + ",".join(members) + "}"
+    raise FormError(
+        "INVALID_FORM_INPUT", f"Unsupported condition value: {type(value).__name__}"
+    )
+
+
+def _condition_string(text: str) -> str:
+    """A string as JSON.stringify quotes it: controls and unpaired surrogates as \\u escapes."""
+    out = ['"']
+    for character in text:
+        code = ord(character)
+        if character in _SHORT_ESCAPES:
+            out.append(_SHORT_ESCAPES[character])
+        elif code < 0x20 or 0xD800 <= code <= 0xDFFF:
+            out.append(f"\\u{code:04x}")
+        else:
+            out.append(character)
+    out.append('"')
+    return "".join(out)
+
+
 def display(value: Value, default: Value) -> str:
     """The default only when the field value is absent."""
     return scalar(

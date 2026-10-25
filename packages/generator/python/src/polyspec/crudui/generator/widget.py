@@ -22,6 +22,7 @@ from .value import (
     MISSING,
     Value,
     classes,
+    condition,
     control_id,
     display,
     get,
@@ -49,6 +50,7 @@ _KINDS = {
     "range": "range",
     "password": "password",
     "textarea": "textarea",
+    "condition": "condition",
     "select": "select",
     "dropdown": "select",
     "selectbox": "select",
@@ -145,6 +147,7 @@ def evaluate(
         "dummy-input": lambda: context.input("dummy-input"),
         "range": context.range_input,
         "textarea": context.textarea,
+        "condition": context.condition,
         "select": lambda: context.select("select"),
         "search": lambda: context.select("search"),
         "choice": lambda: context.choices("choice"),
@@ -404,6 +407,29 @@ class _Widget:
                 **self.data(),
             },
             {"tag": "textarea", "text": self.display_value(), **self.affixes()},
+        )
+
+    def condition(self) -> dict[str, Any]:
+        """A textarea holding the condition text of its tree, marked for the browser bindings."""
+        default = get(self.spec, "default")
+        return self.model(
+            "condition",
+            "widget",
+            {
+                "name": self.name,
+                "class": self.main("valid-target crudui-input crudui-input--condition"),
+                "rows": "5",
+                "data-crudui-value": "json",
+                **self.style(),
+                **self.behavior(),
+                **self.data(),
+                "data-default": condition(default),
+            },
+            {
+                "tag": "textarea",
+                "text": condition(default if self.value is MISSING else self.value),
+                **self.affixes(),
+            },
         )
 
     def dynamic(self) -> bool:

@@ -80,6 +80,28 @@ static bool range_declaration_valid(const ps_value *spec, ps_text path, ps_value
     return true;
 }
 
+/* The condition type, in any letter case. */
+static bool condition_type(const ps_value *type)
+{
+    if (!type || type->kind != PS_STRING) return false;
+    ps_text text = ps_string(type);
+    if (text.length != 9) return false;
+    for (size_t i = 0; i < 9; ++i)
+        if (tolower((unsigned char)text.bytes[i]) != "condition"[i]) return false;
+    return true;
+}
+
+/* Reject a condition field whose validate.conditionTree is not the literal true or judge: every
+   value of the field is checked as a condition tree. */
+static bool condition_declaration_valid(const ps_value *spec, ps_text path, ps_value **error)
+{
+    const ps_value *validate = ps_get(spec, "validate");
+    const ps_value *parameter = validate && validate->kind == PS_OBJECT ? ps_get(validate, "conditionTree") : NULL;
+    if ((parameter && parameter->kind == PS_BOOL && parameter->data.boolean) || ps_is_string(parameter, "judge"))
+        return true;
+    return ps_declaration_error(PS_TEXT("validate.conditionTree"), path, "true or judge", error);
+}
+
 /* Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations;
    only a form field (field) accepts declared attributes. */
 static bool declarations_valid(const ps_value *spec, ps_text path, bool field, ps_value **error)
@@ -166,7 +188,8 @@ static bool declarations_valid(const ps_value *spec, ps_text path, bool field, p
     const ps_value *behavior = ps_get(spec, "behavior");
     if (behavior && behavior->kind == PS_OBJECT &&
         !ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error)) return false;
-    return !field || !range_type(ps_get(spec, "type")) || range_declaration_valid(spec, path, error);
+    if (field && range_type(ps_get(spec, "type")) && !range_declaration_valid(spec, path, error)) return false;
+    return !field || !condition_type(ps_get(spec, "type")) || condition_declaration_valid(spec, path, error);
 }
 
 /* Reject a wrong root action or buttons declaration. */

@@ -262,6 +262,22 @@ final class Template
         if ($field && is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'range') {
             self::checkRangeDeclaration($spec, $path);
         }
+        if ($field && is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'condition') {
+            self::checkConditionDeclaration($spec, $path);
+        }
+    }
+
+    /**
+     * Reject a condition field whose validate.conditionTree is not the literal true or judge: every
+     * value of the field is checked as a condition tree.
+     */
+    private static function checkConditionDeclaration(array $spec, string $path): void
+    {
+        $validate = Value::isObject($spec['validate'] ?? null) ? (array) $spec['validate'] : [];
+        $parameter = $validate['conditionTree'] ?? null;
+        if ($parameter !== true && $parameter !== 'judge') {
+            self::invalid('validate.conditionTree', $path, 'true or judge');
+        }
     }
 
     /**

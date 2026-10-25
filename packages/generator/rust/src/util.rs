@@ -37,6 +37,55 @@ pub(crate) fn scalar(value: Option<&Value>) -> String {
     }
 }
 
+/// The condition text of a condition field value (docs/spec/form-markup.md, Condition fields): a
+/// string is itself, null and an absent value are empty, and any other value is the JSON text that
+/// ECMAScript's `JSON.stringify` writes for it.
+pub(crate) fn condition_text(value: Option<&Value>) -> String {
+    match value {
+        None | Some(Value::Null) => String::new(),
+        Some(Value::String(s)) => s.clone(),
+        Some(other) => {
+            let mut out = String::new();
+            write_condition_json(&mut out, other);
+            out
+        }
+    }
+}
+
+/// The `JSON.stringify` text of a JSON value: members in order, no whitespace, ECMAScript numbers.
+fn write_condition_json(out: &mut String, value: &Value) {
+    match value {
+        Value::Null => out.push_str("null"),
+        Value::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
+        Value::Number(n) => out.push_str(&number_string(n)),
+        // serde_json quotes a string as JSON.stringify does: `"` and `\` escaped, the short escapes
+        // of U+0008, U+0009, U+000A, U+000C and U+000D, `\u00xx` for the other controls.
+        Value::String(_) => out.push_str(&value.to_string()),
+        Value::Array(items) => {
+            out.push('[');
+            for (index, item) in items.iter().enumerate() {
+                if index > 0 {
+                    out.push(',');
+                }
+                write_condition_json(out, item);
+            }
+            out.push(']');
+        }
+        Value::Object(members) => {
+            out.push('{');
+            for (index, (key, member)) in members.iter().enumerate() {
+                if index > 0 {
+                    out.push(',');
+                }
+                out.push_str(&Value::String(key.clone()).to_string());
+                out.push(':');
+                write_condition_json(out, member);
+            }
+            out.push('}');
+        }
+    }
+}
+
 pub(crate) fn js_string(value: &Value) -> String {
     match value {
         Value::Null => "null".into(),

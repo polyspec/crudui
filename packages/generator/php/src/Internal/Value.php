@@ -147,6 +147,50 @@ final class Value
             && $value !== 0.0;
     }
 
+    /**
+     * The condition text of a condition field value (docs/spec/form-markup.md, Condition fields): a
+     * string is itself, null and an absent value are empty, and any other value is the JSON text that
+     * ECMAScript's JSON.stringify writes for it.
+     */
+    public static function condition(mixed $value): string
+    {
+        if ($value === Missing::Value || $value === null) {
+            return '';
+        }
+        return is_string($value) ? $value : self::conditionJson($value);
+    }
+
+    /** The JSON.stringify text of a JSON value: members in order, no whitespace, ECMAScript numbers. */
+    private static function conditionJson(mixed $value): string
+    {
+        if ($value === null) {
+            return 'null';
+        }
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        if (is_int($value) || is_float($value)) {
+            return Numbers::string($value);
+        }
+        if (is_string($value)) {
+            return json_encode(
+                $value,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS | JSON_THROW_ON_ERROR
+            );
+        }
+        if ($value instanceof stdClass) {
+            $members = [];
+            foreach (get_object_vars($value) as $key => $member) {
+                $members[] = self::conditionJson((string) $key) . ':' . self::conditionJson($member);
+            }
+            return '{' . implode(',', $members) . '}';
+        }
+        if (is_array($value)) {
+            return '[' . implode(',', array_map(self::conditionJson(...), $value)) . ']';
+        }
+        throw new FormError('INVALID_FORM_INPUT', 'Unsupported condition value: ' . get_debug_type($value));
+    }
+
     /** Select the default only when the field value is absent. */
     public static function display(mixed $value, mixed $default): string
     {

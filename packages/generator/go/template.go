@@ -357,6 +357,9 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 	if field && strings.ToLower(stringAt(spec, "type")) == "range" {
 		return checkRangeDeclaration(spec, path)
 	}
+	if field && strings.ToLower(stringAt(spec, "type")) == "condition" {
+		return checkConditionDeclaration(spec, path)
+	}
 	return nil
 }
 

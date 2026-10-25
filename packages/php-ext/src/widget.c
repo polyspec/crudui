@@ -167,6 +167,7 @@ static const char *canonical_kind(ps_text name)
     if (same_type(name, "tinymce") || same_type(name, "wysiwyg")) return "tinymce";
     if (same_type(name, "button") || same_type(name, "action")) return "button";
     if (same_type(name, "range")) return "range";
+    if (same_type(name, "condition")) return "condition";
     static const char *const direct[] = {"email","password","textarea","hidden","date",
         "dummy-input","image","file","image-viewer","summernote",
         "editorjs","tui","tagify","tagify2"};
@@ -747,6 +748,76 @@ static ps_value *range_control(const widget_context *context)
     return model;
 }
 
+/* The JSON.stringify text of a JSON value: members in order, no whitespace, ECMAScript numbers. */
+static bool append_condition_json(ps_html_buffer *out, const ps_value *value)
+{
+    if (!value || value->kind == PS_NULL) return ps_html_text(out, "null");
+    if (value->kind == PS_BOOL) return ps_html_text(out, value->data.boolean ? "true" : "false");
+    if (value->kind == PS_INT || value->kind == PS_FLOAT) {
+        ps_chars text = ps_number_text(value->kind == PS_INT ? (double)value->data.integer : value->data.number);
+        bool ok = text.bytes && ps_html_append(out, ps_view(text));
+        free(text.bytes);
+        return ok;
+    }
+    if (value->kind == PS_STRING) {
+        ps_chars quoted = ps_json_quote(ps_string(value));
+        bool ok = quoted.bytes && ps_html_append(out, ps_view(quoted));
+        free(quoted.bytes);
+        return ok;
+    }
+    bool object = value->kind == PS_OBJECT;
+    if (!object && value->kind != PS_ARRAY) return false;
+    if (!ps_html_character(out, object ? '{' : '[')) return false;
+    for (size_t i = 0; i < ps_size(value); ++i) {
+        if (i && !ps_html_character(out, ',')) return false;
+        if (object) {
+            ps_chars key = ps_json_quote(ps_key(value, i));
+            bool ok = key.bytes && ps_html_append(out, ps_view(key)) && ps_html_character(out, ':');
+            free(key.bytes);
+            if (!ok) return false;
+        }
+        if (!append_condition_json(out, ps_at(value, i))) return false;
+    }
+    return ps_html_character(out, object ? '}' : ']');
+}
+
+/* The condition text of a condition field value (docs/spec/form-markup.md, Condition fields): a
+   string is itself, null and an absent value are empty, and any other value is its JSON text. */
+static ps_chars condition_text(const ps_value *value)
+{
+    if (!value || value->kind == PS_NULL) return ps_copy(PS_TEXT(""));
+    if (value->kind == PS_STRING) return ps_copy(ps_string(value));
+    ps_html_buffer out = {0};
+    if (!append_condition_json(&out, value)) out.failed = true;
+    return ps_html_take(&out);
+}
+
+/* A condition field: a textarea holding the condition text of its tree, marked for the browser
+   bindings that decode it (docs/spec/form-markup.md, Condition fields). */
+static ps_value *condition_control(const widget_context *context)
+{
+    const ps_value *fallback = member(context->spec, "default");
+    ps_chars name = context_name(context);
+    ps_chars text = condition_text(context->value_present ? context->value : fallback);
+    ps_chars class_name = context_class(context, "valid-target crudui-input crudui-input--condition");
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && name.bytes && text.bytes && class_name.bytes &&
+        set_text(attrs, "name", ps_view(name)) && set_text(attrs, "class", ps_view(class_name)) &&
+        set_string(attrs, "rows", "5") && set_string(attrs, "data-crudui-value", "json") &&
+        set_nonempty(attrs, "style", context_style(context)) &&
+        add_behavior(context, attrs) && add_data(context, attrs) &&
+        set_owned(attrs, "data-default", condition_text(fallback));
+    ps_value *model = ps_object_value();
+    if (ok) ok = model && set_string(model, "kind", "condition") && set_string(model, "layout", "widget") &&
+        set_string(model, "tag", "textarea") && set_text(model, "text", ps_view(text)) &&
+        ps_set(model, "attrs", attrs);
+    if (ok) attrs = NULL;
+    if (ok) ok = set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
+    free(name.bytes); free(text.bytes); free(class_name.bytes);
+    if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
+    return model;
+}
+
 /* A button field: one button element with its content; it submits no value. */
 static ps_value *button_control(const widget_context *context)
 {
@@ -858,6 +929,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
              !strcmp(kind, "tagify") || !strcmp(kind, "tagify2")) model = editor_control(kind, &context);
     else if (!strcmp(kind, "button")) model = button_control(&context);
     else if (!strcmp(kind, "range")) model = range_control(&context);
+    else if (!strcmp(kind, "condition")) model = condition_control(&context);
     else model = text_control(kind, &context);
     if (model) {
         ps_text tag = text_member(model, "tag");
