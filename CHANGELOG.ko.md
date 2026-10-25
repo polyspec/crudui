@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1957b38463e1657a3732a31318b182b673253dac48bcb2821bf944b168f772d6 -->
+<!-- source-sha256: c35f76532254582e55bd0aec2062b92abf7160ffd3c0395acc1f3b03705266e6 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-25 — crudui는 kit K614와 K621을 따른다 (C17.28)
 
 - kit-sync 복사본을 지웠다. Makefile은 kit checkout의 kit-bootstrap을 include하고, config/php-lint를 지웠으며, PRINCIPLES.md, PRINCIPLES.ko.md, .editorconfig, .claude/settings.json은 kit으로 가는 추적 symlink가 되었다. 삭제된 경로의 owner-check 글롭을 뺐고, make hooks가 쓴 훅 파일을 커밋했다.
+
+### 2026-10-25 — C17.26은 Python에서 relations의 JSON 텍스트를 쓴다(C17.26)
+
+- C17.26 완료(C17.26): Python generator는 data-source-relations에 relations 값의 JSON 텍스트를 쓰고, 없거나 null인 값만 []로 씁니다. 이제 {}와 ""를 []로 쓰지 않습니다(docs/spec/schema.md CUSC-088). tests/fixtures/form-render의 select-dynamic-relations-object와 select-dynamic-relations-text case는 모든 generator에서 통과합니다.
 
 ### 2026-10-25 — C17.22는 불리언, only, 객체가 아닌 multiple을 로드할 때 거부한다(C17.22)
 

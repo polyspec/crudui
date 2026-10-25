@@ -15,6 +15,10 @@
 
 - The kit-sync copies are deleted: the Makefile includes kit-bootstrap from the kit checkout, config/php-lint is gone, PRINCIPLES.md, PRINCIPLES.ko.md, .editorconfig and .claude/settings.json are tracked symlinks into kit, and the owner-check globs of the deleted paths are removed. The hook files of make hooks are committed.
 
+### 2026-10-25 — C17.26 writes the relations JSON text in Python (C17.26)
+
+- C17.26 is done (C17.26): the Python generator writes data-source-relations as the JSON text of the relations value and writes [] only for a missing or null value, so {} and "" are no longer written as [] (docs/spec/schema.md CUSC-088). The cases select-dynamic-relations-object and select-dynamic-relations-text of tests/fixtures/form-render pass in every generator.
+
 ### 2026-10-25 — C17.22 refuses at load a multiple that is not a boolean, only or an object (C17.22)
 
 - C17.22 is done (C17.22): every validator (TypeScript, PHP, the PHP extension, Go, Rust and Python) refuses at load a field whose multiple is present and is not a boolean, only or an object, null and a list included, with INVALID_RULE_PARAMETER, the message Invalid multiple at {path}: expected a boolean, only or an object and the field's declaration path, before its group source and its rules (docs/spec/schema.md CUSC-081). Red: make parity-check UNITS="validate" failed the five refusal cases in every validator; green after the change.
