@@ -416,7 +416,9 @@ class _Widget:
             "data-source-model": scalar(items.get("model")),
             "data-source-method": scalar(items.get("method")),
             "data-source-table": scalar(items.get("table")),
-            "data-source-relations": _json_text(items.get("relations") or []),
+            "data-source-relations": _json_text(
+                [] if items.get("relations") is None else items.get("relations")
+            ),
         }
 
     def items(self) -> list[list[Any]]:
