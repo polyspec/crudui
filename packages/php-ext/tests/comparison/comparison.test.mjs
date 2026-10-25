@@ -53,7 +53,7 @@ test('PHP extension engine compiles every shared form fixture', { timeout: ENGIN
       onOutput: stdout => { output = stdout; },
       sources: [
         'value.c', 'number_text.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
-        'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c',
+        'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'group_source.c',
       ],
     });
     assertCasesReported(output, fixtures.length,
