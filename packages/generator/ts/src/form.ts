@@ -191,6 +191,18 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
   if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field, field ? groupLayouts(spec) : undefined);
   if (isRecord(spec.behavior)) closed(path, spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior);
   if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'range') checkRangeDeclaration(spec, path);
+  if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'condition') checkConditionDeclaration(spec, path);
+}
+
+/**
+ * Reject a condition field whose `validate.conditionTree` is not the literal `true` or `judge`
+ * (docs/spec/schema.md, Condition fields): every value of the field is checked as a condition tree.
+ */
+function checkConditionDeclaration(spec: Record<string, unknown>, path: string): void {
+  const parameter = isRecord(spec.validate) ? spec.validate.conditionTree : undefined;
+  if (parameter !== true && parameter !== 'judge') {
+    throw new FormInputError(`Invalid validate.conditionTree at ${path}: expected true or judge`);
+  }
 }
 
 /**

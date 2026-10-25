@@ -66,6 +66,30 @@ export function applyDefaultString(value: unknown, def: unknown): string {
 }
 
 /**
+ * The condition text of a condition field value (docs/spec/form-markup.md, Condition fields): a
+ * string is itself, null and an absent value are empty, and any other value is its JSON text.
+ */
+export function conditionText(v: unknown): string {
+  if (typeof v === 'string') return v;
+  if (v === undefined || v === null) return '';
+  return JSON.stringify(v);
+}
+
+/**
+ * The value of the text of a condition control (docs/spec/form-runtime.md, Condition values): the
+ * value of a JSON text, or the text itself when it is not one.
+ */
+export function decodeConditionText(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (error) {
+    // A text that is not a JSON text is the value itself, which the conditionTree rule refuses.
+    if (error instanceof SyntaxError) return text;
+    throw error;
+  }
+}
+
+/**
  * Deterministic element id from a field path (DOM-id uniqueness without a magic
  * token). The path is unique per field, so cleanStr(path) is a stable id that is
  * identical across frameworks — no per-render counter, no normalizer mask needed.

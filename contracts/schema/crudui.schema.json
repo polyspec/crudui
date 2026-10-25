@@ -1566,6 +1566,45 @@
           }
         },
         {
+          "description": "A condition field declares the literal validate.conditionTree true or judge (docs/spec/schema.md, Condition fields); a field with $ref receives it by composition.",
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "condition"
+              }
+            },
+            "not": {
+              "required": [
+                "$ref"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "validate"
+            ],
+            "properties": {
+              "validate": {
+                "type": "object",
+                "required": [
+                  "conditionTree"
+                ],
+                "properties": {
+                  "conditionTree": {
+                    "enum": [
+                      true,
+                      "judge"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
           "description": "Only a group field declares design.layout (docs/spec/schema.md, Layout).",
           "if": {
             "not": {

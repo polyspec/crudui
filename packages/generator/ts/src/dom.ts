@@ -1,7 +1,7 @@
 import type { FormInstance } from './instance';
 import { resolveAction, runAction, type ActionTarget, type FocusTarget } from './actions';
 import { formatDateValue } from './date';
-import { parsePathString, phpString } from './util';
+import { conditionText, decodeConditionText, parsePathString, phpString } from './util';
 
 /** Browser binding lifecycle. */
 export interface FormConnection {
@@ -34,6 +34,11 @@ function isSelect(element: Element): element is HTMLSelectElement {
 
 function isTextArea(element: Element): element is HTMLTextAreaElement {
   return element.tagName === 'TEXTAREA';
+}
+
+/** Whether a control is the textarea of a condition field, whose text is a JSON text. */
+function isCondition(element: Element): element is HTMLTextAreaElement {
+  return isTextArea(element) && element.getAttribute('data-crudui-value') === 'json';
 }
 
 /** Whether an element can take focus: an HTML, SVG or MathML element. */
@@ -246,6 +251,13 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     const path = pathOf(control.name);
     if (!path) return;
     let value: unknown = control.value;
+    if (isCondition(control)) {
+      value = decodeConditionText(control.value);
+      if (conditionText(value) === conditionText(session.getValue(path))) return;
+      captureFocus();
+      session.setValue(path, value);
+      return;
+    }
     if (isInput(control)) {
       if (control.type === 'radio' && !control.checked) return;
       if (control.type === 'checkbox') {
@@ -294,6 +306,11 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
             : value !== undefined && value !== null && phpString(value) === input.value;
           continue;
         }
+      }
+      if (isCondition(control)) {
+        const next = conditionText(value);
+        if (conditionText(decodeConditionText(control.value)) !== next) control.value = next;
+        continue;
       }
       if (isSelect(control) && control.multiple) {
         const selected = Array.isArray(value) ? value.map(String) : [];

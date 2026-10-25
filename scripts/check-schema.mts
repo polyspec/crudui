@@ -176,6 +176,21 @@ for (const [label, field, expected] of [
   assert.equal(validateForm(spec), expected, `range field, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
+// Condition fields (docs/spec/schema.md, Condition fields): the literal conditionTree true or judge,
+// or a composition reference that supplies it.
+for (const [label, field, expected] of [
+  ['true', { type: 'condition', validate: { conditionTree: true } }, true],
+  ['judge', { type: 'condition', validate: { required: true, conditionTree: 'judge' } }, true],
+  ['reference', { type: 'condition', $ref: 'pass.yml' }, true],
+  ['no validate', { type: 'condition' }, false],
+  ['no conditionTree', { type: 'condition', validate: { required: true } }, false],
+  ['false', { type: 'condition', validate: { conditionTree: false } }, false],
+  ['null', { type: 'condition', validate: { conditionTree: null } }, false],
+] satisfies [string, Record<string, unknown>, boolean][]) {
+  const spec = { type: 'group', properties: { pass: field } };
+  assert.equal(validateForm(spec), expected, `condition field, ${label}: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
 // Choice appearance (docs/spec/schema.md, Choice appearance): the choices of a field's items may
 // declare a label class and style and input attributes; `in` keeps value and label pairs.
 for (const [label, field, expected] of [

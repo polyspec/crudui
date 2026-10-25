@@ -76,7 +76,8 @@ prefix). A control takes part when it is an `input`, `select` or `textarea` with
 such as the `hidden` inputs of `renderForm` and the form buttons, take no part. A control of a
 node that `design.show` hides takes part, as it does in a submission.
 
-- `input` of type `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden` or another type not named below, and `textarea`: Its current value, a string. A number is the text the control holds, a range is the value the browser holds (the midpoint of its bounds while the rendered value is empty), and a date or datetime is the text the browser submits.
+- `input` of type `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden` or another type not named below, and `textarea` that is not marked as below: Its current value, a string. A number is the text the control holds, a range is the value the browser holds (the midpoint of its bounds while the rendered value is empty), and a date or datetime is the text the browser submits.
+- `textarea` marked `data-crudui-value="json"`, the control of a condition field: The value that its text decodes to ([condition values](../../docs/spec/form-runtime.md#condition-values)), the value of a JSON text or otherwise the text itself, read after its line breaks are written as CRLF.
 - `input` of type `checkbox`, including a switch, or `radio`: Its `value` when it is checked; nothing when it is not.
 - `select`, single or `multiple`: The value of each selected option, inside an `optgroup` or not; nothing when no option is selected.
 - `input` of type `file`: Nothing. The browser cannot build the value a server receives for a file.
@@ -84,8 +85,8 @@ node that `design.show` hides takes part, as it does in a submission.
 Each entry is placed at the path its name denotes. The name is `{first}[{segment}]…`, optionally
 ending in `[]`; with a key prefix the first segment must equal it and is removed. Each segment
 names an object member, so repeated rows are objects keyed by their row keys. A name ending in
-`[]` appends its value to a list at that path, in control order. Every value is a string, and
-each line break in it is written as CRLF, as the submission encodes it.
+`[]` appends its value to a list at that path, in control order. Every value but that of a condition
+control is a string, and each line break in it is written as CRLF, as the submission encodes it.
 
 A member is absent exactly where a native submission sends nothing: an unchecked checkbox, a
 choice or checkbox group without a checked option, a select without a selected option and a

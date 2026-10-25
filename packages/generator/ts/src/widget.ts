@@ -28,6 +28,7 @@ import {
   applyDefaultString,
   cleanStr,
   elementId,
+  conditionText,
   controlId,
   isRecord,
   joinClass,
@@ -447,6 +448,29 @@ const textarea: Evaluator = (ctx) => ({
     ...styleAttr(mainStyle(ctx)),
     ...behaviorAttrs(ctx),
     ...dataAttrs(ctx),
+  },
+  prepend: prependAffix(ctx),
+  append: appendAffix(ctx),
+});
+
+/**
+ * A condition field: a textarea holding the condition text of its tree, marked for the browser
+ * bindings that decode it (docs/spec/form-markup.md, Condition fields).
+ */
+const condition: Evaluator = (ctx) => ({
+  kind: 'condition',
+  layout: 'widget',
+  tag: 'textarea',
+  text: conditionText(ctx.value === undefined ? ctx.spec.default : ctx.value),
+  attrs: {
+    name: bracketName(ctx),
+    class: mainClass(ctx, 'valid-target crudui-input crudui-input--condition'),
+    rows: '5',
+    'data-crudui-value': 'json',
+    ...styleAttr(mainStyle(ctx)),
+    ...behaviorAttrs(ctx),
+    ...dataAttrs(ctx),
+    'data-default': conditionText(ctx.spec.default),
   },
   prepend: prependAffix(ctx),
   append: appendAffix(ctx),
@@ -1062,6 +1086,7 @@ const REGISTRY: Record<string, Evaluator> = {
   range,
   password,
   textarea,
+  condition,
   select,
   dropdown: select,
   selectbox: select,

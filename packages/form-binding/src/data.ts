@@ -10,6 +10,25 @@ type Data = Record<string, unknown>;
 
 const NAME = /^([^[\]]+)((?:\[[^[\]]*\])*)$/;
 
+/** Whether a control is the textarea of a condition field, whose text is a JSON text. */
+function isCondition(control: Control): boolean {
+  return control.tagName === 'TEXTAREA' && control.getAttribute('data-crudui-value') === 'json';
+}
+
+/**
+ * The value of the text of a condition control (form-runtime.md, "Condition values"): the value
+ * of a JSON text, or the text itself when it is not one.
+ */
+function decoded(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (error) {
+    // A text that is not a JSON text is the value itself, which the conditionTree rule refuses.
+    if (error instanceof SyntaxError) return text;
+    throw error;
+  }
+}
+
 /** The values a control submits, each with its line breaks written as CRLF. */
 function submitted(control: Control): string[] {
   let values: string[];
@@ -49,7 +68,7 @@ function define(target: Data, key: string, value: unknown): void {
 }
 
 /** Place one submitted value at the path its name denotes. */
-function place(data: Data, name: string, keyPrefix: string | undefined, value: string): void {
+function place(data: Data, name: string, keyPrefix: string | undefined, value: unknown): void {
   const { path, list } = segments(name, keyPrefix);
   const conflict = () => new FormInputError(`Control name is both a value and a group: ${name}`);
   let target = data;
@@ -68,7 +87,7 @@ function place(data: Data, name: string, keyPrefix: string | undefined, value: s
     else throw conflict();
   } else if (!present) {
     define(target, leaf, value);
-  } else if (typeof current === 'string') {
+  } else if (!isGroup(current) && !Array.isArray(current)) {
     throw new FormInputError(`Repeated control name: ${name}`);
   } else {
     throw conflict();
@@ -83,7 +102,7 @@ function place(data: Data, name: string, keyPrefix: string | undefined, value: s
 export function collectData(body: HTMLElement, keyPrefix: string | undefined): Data {
   const data: Data = {};
   for (const control of dataControls(body)) {
-    for (const value of submitted(control)) place(data, control.name, keyPrefix, value);
+    for (const value of submitted(control)) place(data, control.name, keyPrefix, isCondition(control) ? decoded(value) : value);
   }
   return data;
 }

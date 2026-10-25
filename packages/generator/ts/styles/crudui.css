@@ -328,6 +328,10 @@ textarea.crudui-input {
   accent-color: var(--crudui-accent);
 }
 
+.crudui-input--condition {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .crudui-widget__output {
   flex: none;
   min-width: 3ch;

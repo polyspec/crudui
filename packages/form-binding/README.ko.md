@@ -1,6 +1,6 @@
 # @polyspec/crudui-form-binding
 <!-- doc-id: packages-form-binding-readme -->
-<!-- source-sha256: 821eb0a4d7cc723d8936bae14bc2e41802a3a5829e2451cc4005d53e86d27b17 -->
+<!-- source-sha256: 5cb56c489f1a9dfcbc1142ad8302a77535c6b81591fb7c3187fcde638c978443 -->
 
 [English](README.md).
 
@@ -72,7 +72,8 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 `hidden` input과 폼 버튼처럼 노드 밖에 있는 컨트롤은 참여하지 않습니다. `design.show`가 숨긴
 노드의 컨트롤은 제출과 같이 참여합니다.
 
-- 유형이 `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden`이거나 아래에 없는 다른 유형인 `input`, 그리고 `textarea`: 현재 값인 문자열입니다. 숫자는 컨트롤이 담은 텍스트이고, range는 브라우저가 담은 값(렌더링한 값이 비어 있으면 범위의 중간값)이며, 날짜와 날짜시간은 브라우저가 제출하는 텍스트입니다.
+- 유형이 `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden`이거나 아래에 없는 다른 유형인 `input`, 그리고 아래에서 표시하지 않은 `textarea`: 현재 값인 문자열입니다. 숫자는 컨트롤이 담은 텍스트이고, range는 브라우저가 담은 값(렌더링한 값이 비어 있으면 범위의 중간값)이며, 날짜와 날짜시간은 브라우저가 제출하는 텍스트입니다.
+- `data-crudui-value="json"`으로 표시한 `textarea`, 즉 조건 필드의 컨트롤: 텍스트를 디코딩한 값입니다([조건 값](../../docs/spec/form-runtime.ko.md#조건-값)). JSON 텍스트이면 그 값이고 그렇지 않으면 텍스트 자체이며, 줄바꿈을 CRLF로 쓴 뒤에 읽습니다.
 - 유형이 `checkbox`(스위치 포함)나 `radio`인 `input`: 선택되었으면 그 `value`이고 선택되지 않았으면 없습니다.
 - 단일 또는 `multiple` `select`: `optgroup` 안에 있든 없든 선택된 옵션마다 그 값이며 선택된 옵션이 없으면 없습니다.
 - 유형이 `file`인 `input`: 없습니다. 브라우저는 서버가 파일에 대해 받는 값을 만들 수 없습니다.
@@ -80,7 +81,7 @@ const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'fo
 각 항목은 이름이 가리키는 경로에 놓입니다. 이름은 `{first}[{segment}]…`이고 `[]`로 끝날 수 있습니다.
 키 접두사가 있으면 첫 세그먼트가 그 접두사와 같아야 하며 제거됩니다. 각 세그먼트는 객체 멤버를
 가리키므로 반복 행은 행 키를 키로 가진 객체입니다. `[]`로 끝나는 이름은 그 경로의 목록에 값을 컨트롤
-순서로 덧붙입니다. 모든 값은 문자열이며, 값 안의 줄바꿈은 제출이 인코딩하는 대로 CRLF로 씁니다.
+순서로 덧붙입니다. 조건 컨트롤의 값을 뺀 모든 값은 문자열이며, 값 안의 줄바꿈은 제출이 인코딩하는 대로 CRLF로 씁니다.
 
 멤버는 네이티브 제출이 아무것도 보내지 않는 곳에서만 없습니다. 선택되지 않은 체크박스, 선택된
 옵션이 없는 선택지나 체크박스 묶음, 선택된 옵션이 없는 select, 행이 없는 컬렉션이 그렇습니다.
