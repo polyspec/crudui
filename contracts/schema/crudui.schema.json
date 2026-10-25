@@ -810,6 +810,13 @@
                 "line"
               ]
             },
+            "editor": {
+              "description": "The editor of a condition field: text, the textarea of its JSON text, or structured, nested controls of its tree.",
+              "enum": [
+                "text",
+                "structured"
+              ]
+            },
             "label": {
               "description": "Appearance settings for the label node.",
               "$ref": "#/definitions/DesignNode"
@@ -980,6 +987,14 @@
             "$ref": "#/definitions/ForbiddenKeyNames"
           },
           "properties": {
+            "fields": {
+              "description": "The field names that the comparisons of a structured condition editor choose from.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
             "keyword_min_length": {
               "description": "Minimum search keyword length.",
               "$ref": "#/definitions/OpenValue"
@@ -1625,6 +1640,33 @@
                   "type": "object",
                   "required": [
                     "layout"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "Only a condition field declares design.editor (docs/spec/schema.md, Structured condition editor).",
+          "if": {
+            "not": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "condition"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "design": {
+                "not": {
+                  "type": "object",
+                  "required": [
+                    "editor"
                   ]
                 }
               }

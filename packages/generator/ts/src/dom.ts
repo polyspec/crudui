@@ -2,6 +2,8 @@ import type { FormInstance } from './instance';
 import { resolveAction, runAction, type ActionTarget, type FocusTarget } from './actions';
 import { formatDateValue } from './date';
 import { conditionText, decodeConditionText, parsePathString, phpString } from './util';
+import { applyConditionAction, applyConditionPart, isConditionAction, isConditionPart, type ConditionAction, type ConditionPart } from './condition-editor';
+import type { NodeVM } from './viewmodel';
 
 /** Browser binding lifecycle. */
 export interface FormConnection {
@@ -42,6 +44,38 @@ function isCondition(element: Element): element is HTMLTextAreaElement {
 }
 
 /** Whether an element can take focus: an HTML, SVG or MathML element. */
+/** The place of a control or button of a structured condition editor: the textarea id, the condition path and the part or action. */
+interface ConditionPlace {
+  for: string;
+  path: string;
+  part?: ConditionPart;
+  action?: ConditionAction;
+}
+
+/** The editor place of a control or button, or undefined outside a structured condition editor. */
+function conditionPlace(element: Element): ConditionPlace | undefined {
+  const editor = element.closest<HTMLElement>('.crudui-condition[data-condition-for]');
+  const condition = element.closest<HTMLElement>('[data-condition-path]');
+  if (!editor || !condition) return undefined;
+  const partText = element.getAttribute('data-condition-part') ?? '';
+  const actionText = element.getAttribute('data-condition-action') ?? '';
+  const part = isConditionPart(partText) ? partText : undefined;
+  const action = isConditionAction(actionText) ? actionText : undefined;
+  if (!part && !action) return undefined;
+  return { for: editor.getAttribute('data-condition-for') ?? '', path: condition.getAttribute('data-condition-path') ?? '', ...(part ? { part } : {}), ...(action ? { action } : {}) };
+}
+
+/** The `options.fields` of the structured condition field whose textarea has the id `id`, from the view model. */
+function conditionFields(nodes: readonly NodeVM[], id: string): string[] | null {
+  for (const node of nodes) {
+    const widget = node.widget;
+    if (widget && 'attrs' in widget && widget.attrs.id === id && widget.condition && !('error' in widget.condition)) return widget.condition.fields;
+    const found = node.children ? conditionFields(node.children, id) : null;
+    if (found) return found;
+  }
+  return null;
+}
+
 function isFocusable(element: Element): element is Element & HTMLOrSVGElement {
   return 'focus' in element && typeof element.focus === 'function' && 'dataset' in element;
 }
@@ -167,6 +201,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     active: Element & HTMLOrSVGElement;
     name?: string;
     action?: ActionTarget;
+    condition?: ConditionPlace;
     start: number | null;
     end: number | null;
     direction?: 'forward' | 'backward' | 'none';
@@ -199,9 +234,11 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     if (active && isFocusable(active) && element.contains(active)) {
       const action = active.matches('button[data-crudui-action]') ? resolveAction(active) : undefined;
       const text = isInput(active) || isTextArea(active) ? active : undefined;
+      const condition = conditionPlace(active);
       focus = {
         active,
         ...(action ? { action } : {}),
+        ...(condition ? { condition } : {}),
         ...('name' in active && typeof active.name === 'string' ? { name: active.name } : {}),
         start: text?.selectionStart ?? null,
         end: text?.selectionEnd ?? null,
@@ -220,7 +257,8 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     if (!saved) return;
     const control = element.contains(saved.active) ? saved.active
       : saved.action ? actionButton(saved.action)
-        : controls().find(c => c.name === saved.name);
+        : saved.condition ? conditionElement(saved.condition)
+          : controls().find(c => c.name === saved.name);
     if (control) {
       control.focus({ preventScroll: true, focusVisible: saved.visible });
       if (saved.start !== null && (isInput(control) || isTextArea(control))) {
@@ -242,9 +280,39 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         .find(button => !unavailable(button) && resolveAction(button)?.path === path);
     if (control) revealControl(control);
   };
+  /** The rendered control or button of an editor place, the button of a removed condition being its group's. */
+  const conditionElement = (place: ConditionPlace): (Element & HTMLOrSVGElement) | undefined => {
+    const editor = Array.from(element.querySelectorAll<HTMLElement>('.crudui-condition[data-condition-for]'))
+      .find(candidate => candidate.getAttribute('data-condition-for') === place.for);
+    const condition = editor && Array.from(editor.querySelectorAll<HTMLElement>('[data-condition-path]'))
+      .find(candidate => candidate.getAttribute('data-condition-path') === place.path);
+    if (!condition) return undefined;
+    const selector = place.part ? `[data-condition-part="${place.part}"]` : `[data-condition-action="${place.action ?? ''}"]`;
+    return Array.from(condition.querySelectorAll<HTMLElement>(selector)).find(found => found.closest('[data-condition-path]') === condition);
+  };
+  /** The textarea of the structured condition editor of a place, which holds the field name. */
+  const conditionTextarea = (place: ConditionPlace) =>
+    Array.from(element.querySelectorAll<HTMLTextAreaElement>('textarea[data-crudui-value="json"]')).find(area => area.id === place.for);
+  /** Set the tree of a structured condition field after an edit of its editor (docs/spec/form-runtime.md, Condition values). */
+  const editCondition = (place: ConditionPlace, edit: (value: unknown) => unknown) => {
+    const area = conditionTextarea(place);
+    const path = area && pathOf(area.name);
+    if (!path) return;
+    const tree = edit(session.getValue(path));
+    if (tree === undefined || conditionText(tree) === conditionText(session.getValue(path))) return;
+    captureFocus();
+    session.setValue(path, tree);
+  };
   const onInput = (event: Event) => {
     const control = event.target;
-    if (isElement(control) && isControl(control)) input(control);
+    if (!isElement(control)) return;
+    const place = conditionPlace(control);
+    const part = place?.part;
+    if (place && part && (isInput(control) || isSelect(control))) {
+      editCondition(place, value => applyConditionPart(value, place.path, part, control.value));
+      return;
+    }
+    if (isControl(control)) input(control);
   };
   const input = (control: Control) => {
     if (control.disabled) return;
@@ -276,6 +344,14 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         previous.length === value.length && previous.every((v, i) => v === value[i]))) return;
     captureFocus();
     session.setValue(path, value);
+  };
+  const onConditionClick = (event: Event) => {
+    const target = isElement(event.target) ? event.target.closest('[data-condition-action]') : null;
+    const place = target && conditionPlace(target);
+    const action = place?.action;
+    if (!place || !action) return;
+    const fields = conditionFields(session.getSnapshot().fields, place.for);
+    editCondition(place, value => applyConditionAction(value, place.path, action, fields));
   };
   const onClick = actionClick(element, session, (_target, result) => {
     if (!result.focus) return;
@@ -336,6 +412,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
+  element.addEventListener('click', onConditionClick);
   // A visitor can edit server markup before the connection; those edits differ from the
   // rendered defaults and win over the rendered values. A browser sanitizes a value it reads, so
   // the default is compared after the same sanitization: a datetime control reads
@@ -366,6 +443,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       element.removeEventListener('input', onInput);
       element.removeEventListener('change', onInput);
       element.removeEventListener('click', onClick);
+      element.removeEventListener('click', onConditionClick);
     },
   };
 }

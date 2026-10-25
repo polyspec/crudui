@@ -23,6 +23,7 @@ import type { Affix, AnyWidget, Attrs, OptionModel, WidgetModel } from '@polyspe
 import {
   affixHtml,
   choiceLabelClass,
+  conditionInnerHtml,
   escAttr,
   escText,
   groupButtonHtml,
@@ -302,6 +303,10 @@ export function Widget({ w }: { w: AnyWidget }): React.ReactElement | null {
       return <Search w={w} />;
     case 'button':
       return <ActionButton w={w} />;
+    case 'condition':
+      // The structured condition editor carries empty attributes (`hidden=""`, `selected=""`) that React
+      // coerces, so its content is the shared raw markup inside a real container element.
+      return <RawContainer className="crudui-widget crudui-widget--condition" html={conditionInnerHtml(w)} />;
     default:
       return null;
   }

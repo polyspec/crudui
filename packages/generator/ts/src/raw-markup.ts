@@ -11,6 +11,7 @@ import type { ActionVM } from './list';
 import type { UnsupportedVM } from './viewmodel';
 import type { Affix, Attrs, OptionModel, WidgetModel } from './widget';
 import { optionSections } from './widget';
+import { CONDITION_OPS, type ConditionEditorModel, type ConditionNode } from './condition-editor';
 import { escAttr, escText } from './util';
 
 /** True when an attr bag carries any opaque on-event attribute. */
@@ -171,5 +172,59 @@ export function widgetRootHtml(w: AnyWidget, bare: (widget: WidgetModel) => stri
   if (w.layout === 'button') return rawElement('button', w.attrs, escText(w.text ?? ''));
   if (w.layout === 'choices') return choicesHtml(w);
   if (w.layout === 'search') return searchHtml(w);
+  if (w.layout === 'condition') return conditionHtml(w);
   return null;
+}
+
+type ShownEditor = Exclude<ConditionEditorModel, { error: string }>;
+
+function conditionButton(action: string, label: string): string {
+  return rawElement('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-condition-action': action }, escText(label));
+}
+
+function conditionSelect(attrs: Attrs, choices: readonly string[], selected: string): string {
+  return rawElement('select', attrs, choices.map((choice) =>
+    `<option value="${escAttr(choice)}"${choice === selected ? ' selected=""' : ''}>${escText(choice)}</option>`).join(''));
+}
+
+/** One condition of a structured editor: a group, a field comparison or a judged text (CUMK-067). */
+function conditionNodeHtml(node: ConditionNode, editor: ShownEditor): string {
+  const remove = node.path === '' ? '' : conditionButton('remove', editor.labels.remove);
+  if (node.kind === 'group') {
+    return rawElement('fieldset', { class: 'crudui-condition__group', 'data-condition-path': node.path },
+      conditionSelect({ class: 'crudui-condition__mode', 'data-condition-part': 'mode', 'aria-label': editor.labels.mode }, ['all', 'any'], node.mode) +
+      rawElement('ol', { class: 'crudui-condition__list' }, node.items.map((item) =>
+        rawElement('li', { class: 'crudui-condition__item' }, conditionNodeHtml(item, editor))).join('')) +
+      conditionButton('add-comparison', editor.labels.addComparison) + conditionButton('add-group', editor.labels.addGroup) +
+      (editor.judge ? conditionButton('add-judge', editor.labels.addJudge) : '') + remove);
+  }
+  if (node.kind === 'judge') {
+    return rawElement('div', { class: 'crudui-condition__judge', 'data-condition-path': node.path },
+      rawVoid('input', { class: 'crudui-condition__text', 'data-condition-part': 'judge', value: node.text }) + remove);
+  }
+  const fields = editor.fields;
+  const field = fields === null
+    ? rawVoid('input', { class: 'crudui-condition__field', 'data-condition-part': 'field', value: node.field })
+    : conditionSelect({ class: 'crudui-condition__field', 'data-condition-part': 'field' }, fields.includes(node.field) ? fields : [node.field, ...fields], node.field);
+  return rawElement('div', { class: 'crudui-condition__comparison', 'data-condition-path': node.path },
+    field + conditionSelect({ class: 'crudui-condition__op', 'data-condition-part': 'op' }, CONDITION_OPS, node.op) +
+    rawVoid('input', { class: 'crudui-condition__value', 'data-condition-part': 'value', value: node.value }) + remove);
+}
+
+/**
+ * The structured condition widget (docs/spec/form-markup.md, Structured condition editor): the prepend affix, the named error
+ * of a value that the editor does not show, the textarea, the editor of a value that it shows and the append affix.
+ */
+export function conditionHtml(w: WidgetModel): string {
+  return `<div class="crudui-widget crudui-widget--condition">${conditionInnerHtml(w)}</div>`;
+}
+
+/** The content of the structured condition widget, inside its `crudui-widget crudui-widget--condition` element. */
+export function conditionInnerHtml(w: WidgetModel): string {
+  const editor = w.condition;
+  const error = editor && 'error' in editor ? rawElement('p', { class: 'crudui-condition__error', role: 'alert' }, escText(editor.error)) : '';
+  const tree = editor && !('error' in editor)
+    ? rawElement('div', { class: 'crudui-condition', 'data-condition-for': editor.for }, conditionNodeHtml(editor.root, editor))
+    : '';
+  return `${affixHtml(w.prepend)}${error}${rawControl(w)}${tree}${affixHtml(w.append)}`;
 }

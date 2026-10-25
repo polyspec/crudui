@@ -1,4 +1,5 @@
 import { FormInputError, type FileLoader } from '@polyspec/crudui-validator';
+import { isEmptyValue } from '@polyspec/crudui-validator/internal';
 import {
   checkOptionText, checkedComposition, composeProperties, groupSourceFailure, isMultiple, isNumberRange, isStep, MemoryLoader,
 } from '@polyspec/crudui-validator/internal';
@@ -104,6 +105,7 @@ const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
   design: ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
   node: ['class', 'style'],
   fieldDesign: ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'],
+  conditionDesign: ['show', 'class', 'style', 'attributes', 'editor', 'label', 'wrapper', 'group', 'prepend'],
   groupDesign: ['show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend'],
   fieldWrapper: ['class', 'style', 'attributes'],
   behavior: ['onchange', 'onclick', 'onload'],
@@ -188,10 +190,21 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
     if (!codes && !isRecord(only)) fail(path, 'lang.only', 'a list of language codes or an object');
   }
-  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field, field ? groupLayouts(spec) : undefined);
+  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field, field ? groupLayouts(spec) : undefined, field && isConditionType(spec.type));
   if (isRecord(spec.behavior)) closed(path, spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior);
   if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'range') checkRangeDeclaration(spec, path);
-  if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'condition') checkConditionDeclaration(spec, path);
+  if (field && isConditionType(spec.type)) checkConditionDeclaration(spec, path);
+  else if (field && isRecord(spec.options) && has(spec.options, 'fields')) failConditionFields(path);
+}
+
+/** Whether a declared type is the condition field type. */
+function isConditionType(type: unknown): boolean {
+  return typeof type === 'string' && type.toLowerCase() === 'condition';
+}
+
+/** Reject `options.fields` outside a structured condition field or with names that break its rule (CUSC-084). */
+function failConditionFields(path: string): never {
+  throw new FormInputError(`Invalid options.fields at ${path}: expected distinct field names of a structured condition editor`);
 }
 
 /**
@@ -202,6 +215,17 @@ function checkConditionDeclaration(spec: Record<string, unknown>, path: string):
   const parameter = isRecord(spec.validate) ? spec.validate.conditionTree : undefined;
   if (parameter !== true && parameter !== 'judge') {
     throw new FormInputError(`Invalid validate.conditionTree at ${path}: expected true or judge`);
+  }
+  // The editor (docs/spec/schema.md, Structured condition editor): design.editor is text or structured
+  // (CUSC-083), and options.fields belongs to a structured editor (CUSC-084).
+  const editor = isRecord(spec.design) && has(spec.design, 'editor') ? spec.design.editor : 'text';
+  if (editor !== 'text' && editor !== 'structured') fail(path, 'design.editor', 'text or structured');
+  if (isRecord(spec.options) && has(spec.options, 'fields')) {
+    const fields: unknown = spec.options.fields;
+    const list: unknown[] = Array.isArray(fields) ? fields : [];
+    const names = list.filter((name): name is string => typeof name === 'string' && !isEmptyValue(name));
+    const valid = Array.isArray(fields) && names.length === list.length && new Set(names).size === names.length;
+    if (editor !== 'structured' || !valid) failConditionFields(path);
   }
 }
 
@@ -236,10 +260,11 @@ function groupLayouts(spec: Record<string, unknown>): readonly string[] | undefi
  * form field (`field`) accepts `attributes` and `wrapper.attributes`, and only a group field
  * accepts `layout`, one of `layouts`.
  */
-export function checkDesignDeclaration(design: unknown, path: string, field = false, layouts?: readonly string[]): void {
+export function checkDesignDeclaration(design: unknown, path: string, field = false, layouts?: readonly string[], condition = false): void {
   if (typeof design !== 'boolean' && !isRecord(design)) fail(path, 'design', 'a boolean or an object');
   if (isRecord(design)) {
-    const keys = layouts ? CLOSED_BUCKET_KEYS.groupDesign : field ? CLOSED_BUCKET_KEYS.fieldDesign : CLOSED_BUCKET_KEYS.design;
+    const keys = layouts ? CLOSED_BUCKET_KEYS.groupDesign
+      : condition ? CLOSED_BUCKET_KEYS.conditionDesign : field ? CLOSED_BUCKET_KEYS.fieldDesign : CLOSED_BUCKET_KEYS.design;
     closed(path, design, 'design', keys);
     if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
       fail(path, 'design.show', 'an expression, a boolean or a condition map');

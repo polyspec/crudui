@@ -43,6 +43,8 @@ import {
 import type { ResolvedDesign } from './design';
 import { choiceAppearances, choiceGroups, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
+import { conditionEditor, type ConditionEditorModel } from './condition-editor';
+import type { FormMessages } from './messages';
 
 /** Inputs every widget evaluator needs for one leaf field. */
 export interface WidgetCtx {
@@ -64,6 +66,8 @@ export interface WidgetCtx {
   attributes?: Attrs;
   /** Content translator (active language). */
   t: Translate;
+  /** Interface messages of the form language, for the controls a widget writes itself. */
+  messages?: FormMessages;
 }
 
 /** Flat attribute bag (exact HTML attribute names, lowercase). */
@@ -152,6 +156,7 @@ export interface WidgetModel {
     | 'display' // dummy/dummy-input/image-viewer display-only
     | 'search' // select2 host: style?/script + .crudui-widget--search
     | 'range' // prepend? + range input + output + append? inside .crudui-widget--range
+    | 'condition' // prepend? + textarea + structured condition editor or its error + append? inside .crudui-widget--condition
     | 'button'; // button/action: a button element with its content
   /** Main control element name ('input'|'select'|'textarea'|'div'|'button'). */
   tag?: 'input' | 'select' | 'textarea' | 'div' | 'button';
@@ -163,6 +168,8 @@ export interface WidgetModel {
   rawHtml?: string;
   /** Static options (select/choice/multichoice/search). */
   options?: OptionModel[];
+  /** The structured condition editor, or its named error (layout `condition`). */
+  condition?: ConditionEditorModel;
   /** Dynamic source stub descriptor (data-source-* attrs), or null when static. */
   source?: SourceAttrs | null;
   /** Prepend affix (content + design.prepend node). */
@@ -457,24 +464,55 @@ const textarea: Evaluator = (ctx) => ({
  * A condition field: a textarea holding the condition text of its tree, marked for the browser
  * bindings that decode it (docs/spec/form-markup.md, Condition fields).
  */
-const condition: Evaluator = (ctx) => ({
-  kind: 'condition',
-  layout: 'widget',
-  tag: 'textarea',
-  text: conditionText(ctx.value === undefined ? ctx.spec.default : ctx.value),
-  attrs: {
-    name: bracketName(ctx),
-    class: mainClass(ctx, 'valid-target crudui-input crudui-input--condition'),
-    rows: '5',
-    'data-crudui-value': 'json',
-    ...styleAttr(mainStyle(ctx)),
-    ...behaviorAttrs(ctx),
-    ...dataAttrs(ctx),
-    'data-default': conditionText(ctx.spec.default),
-  },
-  prepend: prependAffix(ctx),
-  append: appendAffix(ctx),
-});
+const condition: Evaluator = (ctx) => {
+  const value = ctx.value === undefined ? ctx.spec.default : ctx.value;
+  const model: WidgetModel = {
+    kind: 'condition',
+    layout: 'widget',
+    tag: 'textarea',
+    text: conditionText(value),
+    attrs: {
+      name: bracketName(ctx),
+      class: mainClass(ctx, 'valid-target crudui-input crudui-input--condition'),
+      rows: '5',
+      'data-crudui-value': 'json',
+      ...styleAttr(mainStyle(ctx)),
+      ...behaviorAttrs(ctx),
+      ...dataAttrs(ctx),
+      'data-default': conditionText(ctx.spec.default),
+    },
+    prepend: prependAffix(ctx),
+    append: appendAffix(ctx),
+  };
+  const design = ctx.spec.design;
+  if (!(isRecord(design) && design.editor === 'structured')) return model;
+  // A structured editor (docs/spec/form-markup.md, Structured condition editor): the textarea keeps the
+  // value, hidden while the editor shows it (CUMK-067), visible with a named error otherwise (CUMK-068).
+  const messages = ctx.messages;
+  if (!messages) throw new Error('a structured condition editor needs the interface messages of the form');
+  const options = ctx.spec.options;
+  const names: unknown = isRecord(options) ? options.fields : undefined;
+  const fields = Array.isArray(names) ? names.filter((name): name is string => typeof name === 'string') : null;
+  const validate = ctx.spec.validate;
+  const judge = isRecord(validate) && validate.conditionTree === 'judge';
+  const editor = conditionEditor(value, {
+    for: ctx.controlId,
+    judge,
+    fields,
+    labels: {
+      mode: messages.conditionMode,
+      addComparison: messages.conditionAddComparison,
+      addGroup: messages.conditionAddGroup,
+      addJudge: messages.conditionAddJudge,
+      remove: messages.conditionRemove,
+    },
+    error: messages.conditionInvalid.replace('{path}', ctx.path),
+  });
+  model.layout = 'condition';
+  model.condition = editor;
+  if (!('error' in editor)) model.attrs.hidden = '';
+  return model;
+};
 
 const select: Evaluator = (ctx) => {
   const items = ctx.spec.items;
@@ -1180,7 +1218,7 @@ export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
 /** Widget model members in their output order (docs/spec/form-runtime.md). */
 const WIDGET_MEMBERS = [
   'kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options',
-  'itemLabelClass', 'script', 'styleChrome', 'prepend', 'append', 'extra',
+  'itemLabelClass', 'script', 'styleChrome', 'prepend', 'append', 'extra', 'condition',
 ] as const satisfies readonly (keyof WidgetModel)[];
 /** Every widget model member has an output position. */
 type UnorderedWidgetMember = Exclude<keyof WidgetModel, (typeof WIDGET_MEMBERS)[number]>;

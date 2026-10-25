@@ -209,6 +209,45 @@ export interface CompileFormOptions {
 export { ComposeLoadError }
 
 // @public
+export type ConditionEditorModel = {
+    for: string;
+    judge: boolean;
+    fields: string[] | null;
+    labels: ConditionLabels;
+    root: ConditionNode;
+} | {
+    for: string;
+    error: string;
+};
+
+// @public
+export interface ConditionLabels {
+    addComparison: string;
+    addGroup: string;
+    addJudge: string;
+    mode: string;
+    remove: string;
+}
+
+// @public
+export type ConditionNode = {
+    kind: 'group';
+    path: string;
+    mode: 'all' | 'any';
+    items: ConditionNode[];
+} | {
+    kind: 'comparison';
+    path: string;
+    field: string;
+    op: string;
+    value: string;
+} | {
+    kind: 'judge';
+    path: string;
+    text: string;
+};
+
+// @public
 export function connectForm(element: HTMLElement, session: FormInstance): FormConnection;
 
 // @public
@@ -324,6 +363,12 @@ export interface FormMessages {
     collapseAll: string;
     collapsed: string;
     collectionControls: string;
+    conditionAddComparison: string;
+    conditionAddGroup: string;
+    conditionAddJudge: string;
+    conditionInvalid: string;
+    conditionMode: string;
+    conditionRemove: string;
     copyRow: string;
     count: string;
     data: string;
@@ -680,6 +725,7 @@ export interface WidgetCtx {
     design: ResolvedDesign;
     idPrefix?: string;
     keyPrefix?: string;
+    messages?: FormMessages;
     path: string;
     rowSegments?: readonly number[];
     spec: Record<string, unknown>;
@@ -691,10 +737,11 @@ export interface WidgetCtx {
 export interface WidgetModel {
     append?: Affix;
     attrs: Attrs;
+    condition?: ConditionEditorModel;
     extra?: Record<string, Attrs>;
     itemLabelClass?: string;
     kind: string;
-    layout: 'widget' | 'bare' | 'host-script' | 'choices' | 'file' | 'display' | 'search' | 'range' | 'button';
+    layout: 'widget' | 'bare' | 'host-script' | 'choices' | 'file' | 'display' | 'search' | 'range' | 'condition' | 'button';
     options?: OptionModel[];
     prepend?: Affix;
     rawHtml?: string;

@@ -339,6 +339,7 @@ function buildWidget(
     design,
     attributes: declaredAttributes(spec.design, path).control,
     t: state.t,
+    messages: state.messages,
     rowSegments: state.rowSegments,
   };
   const model = evalWidget(type, ctx);

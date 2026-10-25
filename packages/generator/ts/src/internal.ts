@@ -17,6 +17,8 @@ export {
   affixHtml,
   choiceLabelClass,
   choicesHtml,
+  conditionHtml,
+  conditionInnerHtml,
   groupButtonHtml,
   hasEventAttr,
   isUnsupported,
@@ -29,3 +31,5 @@ export {
   widgetRootHtml,
 } from './raw-markup';
 export { escAttr, escText } from './util';
+export { CONDITION_OPS, applyConditionAction, applyConditionPart } from './condition-editor';
+export type { ConditionAction, ConditionPart } from './condition-editor';

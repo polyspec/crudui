@@ -53,6 +53,18 @@ export interface FormMessages {
   count: string;
   /** Collapsed row summary with nested rows. */
   children: string;
+  /** Accessible name of the mode select of a condition group. */
+  conditionMode: string;
+  /** Add a field comparison to a condition group. */
+  conditionAddComparison: string;
+  /** Add a nested group to a condition group. */
+  conditionAddGroup: string;
+  /** Add a judged text to a condition group. */
+  conditionAddJudge: string;
+  /** Remove a condition from its group. */
+  conditionRemove: string;
+  /** Error of a value that the structured editor does not show; `{path}` is the data path of the field. */
+  conditionInvalid: string;
 }
 
 

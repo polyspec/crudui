@@ -184,6 +184,10 @@
           "reason": "test: the TypeScript unit test of hiddenPaths; the validate suite (CUVR-017, CUSC-055) covers its hidden member in tests/fixtures/validate, and input-root-data-not-object covers its non-object data error"
         },
         {
+          "glob": "packages/generator/ts/src/condition-editor.test.ts",
+          "reason": "test: the browser runtime behaviour of connectForm, which rewrites the tree of a structured condition field through the controls and buttons of its editor (docs/spec/form-runtime.md, Condition values), which only the TypeScript browser runtime has"
+        },
+        {
           "glob": "packages/generator/ts/src/dom-sync.test.ts",
           "reason": "test: the browser runtime behaviour of connectForm, which writes the values of the server render into the live controls (docs/spec/form-runtime.md, the connectForm paragraph), which only the TypeScript browser runtime has"
         },

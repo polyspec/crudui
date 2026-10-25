@@ -332,6 +332,47 @@ textarea.crudui-input {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+/* Structured condition editor: nested groups of comparisons and judged texts. */
+.crudui-widget--condition {
+  display: block;
+}
+
+.crudui-condition__group {
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--crudui-border);
+  border-radius: var(--crudui-radius);
+}
+
+.crudui-condition__list {
+  margin: 0.5rem 0;
+  padding-inline-start: 1.25rem;
+}
+
+.crudui-condition__item + .crudui-condition__item {
+  margin-top: 0.25rem;
+}
+
+.crudui-condition__comparison,
+.crudui-condition__judge {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.crudui-condition__field,
+.crudui-condition__value,
+.crudui-condition__text {
+  min-width: 8rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.crudui-condition__error {
+  margin: 0 0 0.25rem;
+  color: var(--crudui-error);
+}
+
 .crudui-widget__output {
   flex: none;
   min-width: 3ch;

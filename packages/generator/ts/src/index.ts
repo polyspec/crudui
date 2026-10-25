@@ -44,6 +44,7 @@ export type {
 export { formMessages } from './messages';
 export type { FormMessages } from './messages';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel, OptionGroupModel, SourceAttrs } from './widget';
+export type { ConditionEditorModel, ConditionLabels, ConditionNode } from './condition-editor';
 export type { AnyWidget } from './raw-markup';
 
 // Errors the API throws.
