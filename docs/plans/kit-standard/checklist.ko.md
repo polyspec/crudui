@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3a58897dce37662346930925eeca01027dd31c0e262fa38cac9ca41bc7876960 -->
+<!-- source-sha256: 3cb169183cd85e9ab2bc392d57b496afeafd3f002f43d6ce33a8fb2fb1453ce0 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -346,7 +346,7 @@
 | C17.15 | 반복 그룹에서 가져온 선택지는 원본 그룹 행이 바뀌면 브라우저에서 새로 고쳐진다: spec이 새로 고침 규칙을 정하고 각 브라우저 바인딩이 구현한다 | the refresh rule in docs/spec (schema.md and validation-rules.md, with their .ko), its shared fixture cases, and its implementation in every browser binding with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.13 | crudui의 모든 catch 절은 바인딩을 가진다: 결과를 뜻하는 오류로 좁히고 나머지는 다시 던지거나, 모든 실패가 결과를 뜻하면 // catch-any -- <이유>로 이유를 밝힌다 (K561) | the 33 catch clauses listed by K561 (examples/cross-check-console, examples/form-comparison, packages/cli, packages/form-binding, packages/generator/ts, packages/php-ext, packages/validator/ts, scripts, tests/build, tests/native-generators), each narrowed or annotated | `make lint-ts` | [o] |
 | C17.17 | cli list-describe가 main에서 widgets, rules, slots, grammar tokens를 돌려준다: 기대값이 아니라 원인을 고친다 | the cause in packages/cli or the describe data source, with its test in packages/cli/tests/list-describe.test.ts | `make test-ts CASES=list-describe` | [ ] |
-| C17.16 | php-ext 엔진 테스트는 공유 검증 케이스 수를 하드코딩한 318이 아니라 tests/fixtures cases.json에서 도출하며, 케이스가 빠지면 실패한다 | packages/php-ext/tests/engine/engine.test.mjs | `make test-php-ext CASES=engine` | [~] |
+| C17.16 | php-ext 엔진 테스트는 공유 검증 케이스 수를 하드코딩한 318이 아니라 tests/fixtures cases.json에서 도출하며, 케이스가 빠지면 실패한다 | packages/php-ext/tests/engine/engine.test.mjs | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern=validates.all.shared packages/php-ext/tests/engine/engine.test.mjs` | [~] |
 | C17.18 | 조건 트리를 편집하는 form 컨트롤: 생성기가 여섯 구현 모두에서 렌더링하고, 브라우저 바인딩이 편집하며, 객체를 conditionTree 규칙에 제출한다 | the control rule in docs/spec (with KO), its shared fixture cases, its implementation in all six implementations and the browser binding, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.19 | choice group의 boolean 행 값에는 명시된 규칙이 있고 모든 구현이 따른다 | the rule in docs/spec (with KO), its shared fixture cases, and its implementation in all six implementations, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.20 | run.mts와 php-ext 테스트의 커버리지 개수 단언은 오래된 하드코딩 합계가 아니라 공유 cases.json 파일에서 개수를 도출한다 | tests/native-generators/run.mts and the php-ext count assertions that C17.2 listed | `make docs-check`; `make parity-declarations-check` | [ ] |
