@@ -110,7 +110,7 @@ async function phpExtensionArguments(name) {
   try {
     await execFileAsync('php', ['-n', '-r', `exit(extension_loaded(${JSON.stringify(name)}) ? 0 : 1);`]);
     return [];
-  } catch {
+  } catch (error) { if (error.code !== 1) throw error;
     return ['-d', `extension=${name}`];
   }
 }

@@ -749,7 +749,7 @@ for (const target of available) {
   // reference. Text that is not one JSON value fails with the same input error everywhere.
   for (const [name, text] of requestCases) check(target, `request:${name}`, async () => {
     let request: unknown, parsed = true;
-    try { request = JSON.parse(text); } catch { parsed = false; }
+    try { request = JSON.parse(text); } catch (error) { if (!(error instanceof SyntaxError)) throw error; parsed = false; }
     let expected: unknown, expectedError: ErrorRecord | undefined;
     if (!parsed) expectedError = { code: 'INVALID_FORM_INPUT', message: 'Request must be valid JSON', at: '' };
     else try { expected = reference(request); } catch (caught) { expectedError = errorRecord(caught); }

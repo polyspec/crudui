@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import type { ValidationResult } from '@polyspec/crudui-validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { describe, expect, it } from 'vitest';
 
 import { collectData } from '../src/data';
@@ -48,7 +49,7 @@ const formErrors = (result: ValidationResult) => (result.valid ? [] : ['Check th
 function holdsData(item: Case): boolean {
   if (!isRecord(item.expected) || item.expected.valid !== false) return false;
   let html: string;
-  try { html = formHtml(item.spec, item.data); } catch { return false; }
+  try { html = formHtml(item.spec, item.data); } catch (error) { if (!(error instanceof FormInputError)) throw error; return false; }
   return JSON.stringify(collectData(formBodyOf(documentOf(html).document), 'form')) === JSON.stringify(item.data);
 }
 

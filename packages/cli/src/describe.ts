@@ -562,7 +562,7 @@ export function describe(): DescribeResult {
       let threw = false;
       try {
         scanForbiddenKeys({ [key]: 1 });
-      } catch {
+      } catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'FORBIDDEN_META_KEY')) throw error;
         threw = true;
       }
       if (!threw) return false;

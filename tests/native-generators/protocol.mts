@@ -238,7 +238,7 @@ export function parseCLIResponse(request: ProtocolRequest, processResult: Proces
   if (error) throw new Error(`CLI execution failed: ${error.message}`);
   if (signal || status === null || status === undefined) throw new Error(`CLI terminated: ${signal ?? 'missing exit status'}`);
   let value: unknown;
-  try { value = JSON.parse(stdout); } catch { throw new Error('CLI did not return one JSON value'); }
+  try { value = JSON.parse(stdout); } catch (error) { if (!(error instanceof SyntaxError)) throw error; throw new Error('CLI did not return one JSON value', { cause: error }); }
   if (object(value) && own(value, 'error')) {
     validateError(value.error);
     assert.equal(status, 1, 'Operation errors must exit with status 1');

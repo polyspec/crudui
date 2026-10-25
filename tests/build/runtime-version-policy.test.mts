@@ -198,7 +198,7 @@ test('every @types/node range requires the major of the Node.js of mise.toml', a
     let manifest: Manifest;
     // A manifest that is no JSON, such as a template of a fixture, names no range.
     let parsed: unknown;
-    try { parsed = JSON.parse(await read(file)); } catch { continue; }
+    try { parsed = JSON.parse(await read(file)); } catch (error) { if (!(error instanceof SyntaxError)) throw error; continue; }
     manifest = checked(parsed, manifestSchema, file);
     for (const field of ['dependencies', 'devDependencies'] as const) {
       const range = manifest[field]?.['@types/node'];
@@ -288,7 +288,7 @@ test('no browser of a release channel or of the machine is installed or launched
   const violations: string[] = [];
   for (const file of files) {
     let source: string;
-    try { source = await read(file); } catch { continue; }
+    try { source = await read(file); } catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; continue; }
     source.split('\n').forEach((line, index) => {
       if (/browsers install \S+@(?:stable|latest|beta|dev|canary)\b|\/opt\/google\/chrome|\/Applications\/Firefox|\/usr\/bin\/firefox|CRUDUI_FIREFOX_EXECUTABLE/.test(line)) violations.push(`${file}:${index + 1}: ${line.trim()}`);
     });

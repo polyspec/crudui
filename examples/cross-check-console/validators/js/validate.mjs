@@ -36,7 +36,7 @@ function respond(raw) {
   let request;
   try {
     request = JSON.parse(raw);
-  } catch {
+  } catch (error) { if (!(error instanceof SyntaxError)) throw error;
     return reject('Request must be valid JSON');
   }
   if (!isObject(request)) return reject('Request must be an object');

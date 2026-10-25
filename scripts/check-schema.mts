@@ -456,7 +456,7 @@ for (const test of readCases('../examples/cross-check-console/validators/request
   let request: unknown;
   try {
     request = JSON.parse(checkedShape(STRING, test.input, `${label}: input`));
-  } catch {
+  } catch (error) { if (!(error instanceof SyntaxError)) throw error;
     continue;
   }
   const { mode, spec } = checkedShape(OBJECT, request, `${label}: request`);

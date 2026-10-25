@@ -45,7 +45,7 @@ function expectResponses(input, expected) {
     let output;
     try {
       output = JSON.parse(run.stdout);
-    } catch {
+    } catch (error) { if (!(error instanceof SyntaxError)) throw error;
       failures.push(`${name} wrote no JSON (exit ${run.status}): ${run.stdout}${run.stderr}`);
       continue;
     }

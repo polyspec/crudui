@@ -183,7 +183,7 @@ async function parseSubmission(request, body) {
     let value;
     try {
       value = JSON.parse(body.toString('utf8'));
-    } catch {
+    } catch (error) { if (!(error instanceof SyntaxError)) throw error;
       throw new HttpError(400, 'Malformed JSON');
     }
     if (!isObject(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'form')) {
@@ -199,7 +199,7 @@ async function parseSubmission(request, body) {
     fields = await new Request('http://localhost/', {
       method: 'POST', headers: { 'Content-Type': request.headers['content-type'] }, body,
     }).formData();
-  } catch {
+  } catch (error) { if (!(error instanceof TypeError)) throw error;
     throw new HttpError(400, 'Malformed form request');
   }
   return shaped(nativeForm(fields), formShape, 'form');

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-25 — Catch clauses name the error they handle (C17.13)
+
+- Each of the 33 catch clauses that had no binding now binds the error and narrows it to the error that means its outcome (SyntaxError for JSON parse, TypeError for a malformed URL or form body, ENOENT or exit code 1 for a missing file or command, ParseError for a condition, FORBIDDEN_META_KEY and INVALID_FORM_INPUT where those are the outcome), and rethrows the rest. The catch-check of lint-ts passes.
+
 ### 2026-10-23 — C17.11-1 reads the tools of a worktree from its main checkout (C17.11-1)
 
 - C17.11-1 is done (C17.11-1): check-doc-coverage.test requires the extends of the kit package that C17.11 brought; gen-api-docs takes phpDocumentor from the tools of the main checkout and keeps its cache in the checkout; UV, GO and COMPOSER name $(KIT_TOOLS). Red: check-doc-coverage.test failed; green after the change.

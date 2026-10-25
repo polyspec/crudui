@@ -56,7 +56,7 @@ test('every published PHP package requires the optional extensions its source us
   for (const directory of packages) {
     try {
       await readFile(path.join(directory, 'composer.json'));
-    } catch {
+    } catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
       continue;
     }
     checked++;

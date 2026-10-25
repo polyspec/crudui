@@ -69,7 +69,7 @@ const fixtures = JSON.parse(readFileSync(
 // A fixture that compilation rejects has no template to bind; the compilation test covers it.
 const bindFixtures = fixtures.filter(fixture => {
   try { dispatch({ operation: 'compileForm', spec: fixture.spec, options: fixture.options ?? {} }); return true; }
-  catch { return false; }
+  catch (error) { if (error?.code !== 'INVALID_FORM_INPUT') throw error; return false; }
 });
 
 function sourceForFixtures() {

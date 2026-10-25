@@ -18,7 +18,7 @@ test('no test file runs a dry run of make outside the helper', () => {
   const violations: string[] = [];
   for (const file of files) {
     let source: string;
-    try { source = readFileSync(path.join(ROOT, file), 'utf8'); } catch { continue; }
+    try { source = readFileSync(path.join(ROOT, file), 'utf8'); } catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; continue; }
     source.split('\n').forEach((line, index) => {
       // A spawn of make with -n among its arguments, in any of the spawn forms of the tests.
       if (/['"]make['"]/.test(line) && /['"]-n['"]|['"]--dry-run['"]|['"]--just-print['"]/.test(line)) violations.push(`${file}:${index + 1}: ${line.trim()}`);

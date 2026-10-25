@@ -4,6 +4,7 @@ import {
   isConditionExpression,
   evaluateCondition,
   evaluateExpressionValue,
+  ParseError,
 } from '@polyspec/crudui-validator/internal';
 import type { PathContext } from '@polyspec/crudui-validator';
 import { isRecord, jsString } from './util';
@@ -23,7 +24,7 @@ export function makeContext(
 function evalConditionBool(expression: string, context: PathContext): boolean {
   try {
     return evaluateCondition(parseCondition(expression), context, 'CURRENT');
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return false;
   }
 }
@@ -31,7 +32,7 @@ function evalConditionBool(expression: string, context: PathContext): boolean {
 function evalExpressionValue(expression: string, context: PathContext): unknown {
   try {
     return evaluateExpressionValue(parseCondition(expression), context, 'CURRENT');
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return false;
   }
 }
@@ -45,7 +46,7 @@ function tryEvaluateTernary(
     const node = parseCondition(expression);
     if (node.type !== 'Ternary') return { handled: false };
     return { handled: true, value: evaluateExpressionValue(node, context) };
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return { handled: false };
   }
 }
@@ -96,7 +97,7 @@ function isValidExpression(expression: string): boolean {
   try {
     parseCondition(expression);
     return true;
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return false;
   }
 }

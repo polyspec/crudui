@@ -34,7 +34,7 @@ export function packReport(output: string, packageName: string): PackReport {
   let report: unknown;
   try {
     report = JSON.parse(output);
-  } catch {
+  } catch (error) { if (!(error instanceof SyntaxError)) throw error;
     assert.fail(`npm pack returned invalid JSON instead of the report of ${packageName}`);
   }
   const results: unknown[] = Array.isArray(report)

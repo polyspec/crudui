@@ -30,7 +30,7 @@ function isValidUrl(value: unknown): boolean {
   try {
     const url = new URL(trimmed);
     return ['http:', 'https:', 'ftp:'].includes(url.protocol);
-  } catch {
+  } catch (error) { if (!(error instanceof TypeError)) throw error;
     // Fall back to regex validation
     return URL_PATTERN.test(trimmed);
   }

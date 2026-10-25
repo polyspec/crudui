@@ -24,7 +24,7 @@ import {
   parsePathString,
   evaluateCondition,
 } from '../parser/PathResolver';
-import { parseCondition, isConditionExpression } from '../parser/ConditionParser';
+import { parseCondition, isConditionExpression, ParseError } from '../parser/ConditionParser';
 
 /**
  * The canonical key of a value for `unique` (docs/spec/validation-rules.md): equal keys mean the
@@ -110,7 +110,7 @@ function itemPassesCondition(
       { currentPath: itemFieldPath, rowKeys, formData: allData },
       'CURRENT'
     );
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return false;
   }
 }

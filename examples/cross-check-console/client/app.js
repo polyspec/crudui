@@ -304,7 +304,7 @@ async function postJson(pathname, payload) {
   let body;
   try {
     body = await res.json();
-  } catch {
+  } catch (error) { if (!(error instanceof SyntaxError)) throw error;
     body = { error: `non-JSON response (HTTP ${res.status})` };
   }
   if (!res.ok) {

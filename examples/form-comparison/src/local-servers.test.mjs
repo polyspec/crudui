@@ -102,7 +102,7 @@ test('no program reserves a port by listening and closing before another process
   const violations = [];
   for (const file of files) {
     let source;
-    try { source = await readFile(path.join(import.meta.dirname, '../../..', file), 'utf8'); } catch { continue; }
+    try { source = await readFile(path.join(import.meta.dirname, '../../..', file), 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; continue; }
     if (/\bfreePort\b|listen\(0,[^\n]*\n[^\n]*\.address\(\)[^\n]*\n[^\n]*\.close\(/.test(source)) violations.push(file);
   }
   assert.deepEqual(violations, []);

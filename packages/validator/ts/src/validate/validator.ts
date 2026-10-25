@@ -46,6 +46,7 @@ import { assertRuleParameter, assertRuleName } from './parameters';
 import {
   parseCondition,
   isConditionExpression,
+  ParseError,
 } from '../parser/ConditionParser';
 import {
   evaluateCondition,
@@ -169,7 +170,7 @@ type RuleValueForm =
 function isTernary(expression: string): boolean {
   try {
     return parseCondition(expression).type === 'Ternary';
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return false;
   }
 }
@@ -179,7 +180,7 @@ function isValidExpression(expression: string): boolean {
   try {
     parseCondition(expression);
     return true;
-  } catch {
+  } catch (error) { if (!(error instanceof ParseError)) throw error;
     return false;
   }
 }
@@ -796,7 +797,7 @@ export class Validator {
   private evaluateTernary(expression: string, context: PathContext): unknown {
     try {
       return evaluateExpressionValue(parseCondition(expression), context);
-    } catch {
+    } catch (error) { if (!(error instanceof ParseError)) throw error;
       return expression;
     }
   }
@@ -804,7 +805,7 @@ export class Validator {
   private evaluateCondition(expression: string, context: PathContext): boolean {
     try {
       return evaluateCondition(parseCondition(expression), context, 'CURRENT');
-    } catch {
+    } catch (error) { if (!(error instanceof ParseError)) throw error;
       return false;
     }
   }
@@ -815,7 +816,7 @@ export class Validator {
   ): unknown {
     try {
       return evaluateExpressionValue(parseCondition(expression), context, 'CURRENT');
-    } catch {
+    } catch (error) { if (!(error instanceof ParseError)) throw error;
       return false;
     }
   }

@@ -111,7 +111,7 @@ function executeNpm(args: string[], cwd: string = root) {
   let parsed: unknown;
   try {
     parsed = JSON.parse(result.stdout);
-  } catch {
+  } catch (error) { if (!(error instanceof SyntaxError)) throw error;
     assert.fail([
       `npm ${args.join(' ')} did not return JSON:`,
       result.stdout,

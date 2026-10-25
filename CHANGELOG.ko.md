@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8f2023d275aea39dc98c274973661e8d5d283644dc69a9591573eeee3b76d4f4 -->
+<!-- source-sha256: 5edd84de13e820ee87d171525388060a9a474eead585a3e4ded00eeb7be95503 -->
 
 ## Unreleased
+
+### 2026-10-25 — catch 절이 처리하는 오류를 명시한다 (C17.13)
+
+- 바인딩이 없던 catch 절 33곳이 오류를 바인딩하고, 결과를 뜻하는 오류(JSON 파싱은 SyntaxError, 잘못된 URL이나 form 본문은 TypeError, 없는 파일이나 명령은 ENOENT 또는 종료 코드 1, 조건은 ParseError, 결과가 그것인 경우 FORBIDDEN_META_KEY와 INVALID_FORM_INPUT)로 좁히고 나머지는 다시 던진다. lint-ts의 catch-check가 통과한다.
 
 ### 2026-10-23 — C17.11-1은 worktree의 도구를 main checkout에서 읽는다(C17.11-1)
 

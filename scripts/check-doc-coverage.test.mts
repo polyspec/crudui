@@ -107,7 +107,7 @@ test('every TypeScript package checks its public API with API Extractor and comm
     if (config.extends !== '@polyspec/kit/config/api-extractor.kit.json') problems.push(`${pkg}: extends ${String(config.extends)}`);
     if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${String(config.mainEntryPointFilePath)}`);
     const name = checkedShape(STRING, checkedShape(OBJECT, readShape(OBJECT, join(directory, 'package.json')), `${pkg}/package.json`).name, `name of ${pkg}/package.json`).replace(/^@[^/]+\//, '');
-    try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch { problems.push(`${pkg}: etc/${name}.api.md is missing`); }
+    try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; problems.push(`${pkg}: etc/${name}.api.md is missing`); }
   }
   assert.deepEqual(problems, []);
 });

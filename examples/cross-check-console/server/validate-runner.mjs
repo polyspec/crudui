@@ -121,7 +121,7 @@ function runProcess(lang, payload) {
   if (stdout) {
     try {
       parsed = JSON.parse(stdout);
-    } catch {
+    } catch (error) { if (!(error instanceof SyntaxError)) throw error;
       parsed = null;
     }
   }
