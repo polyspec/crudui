@@ -428,11 +428,19 @@ roles:
   rendered or the data is validated. A row gives the choice whose value is the
   [canonical text](validation-rules.md#values) of its `{value}` field when that value is a string
   or a finite number whose canonical text is not empty after trimming; any other row gives no
-  choice, and so does a row whose canonical text is the same as that of an earlier row. The label
+  choice. A row whose canonical text is the same as that of an earlier row repeats it (CUSC-090).
+  The label
   of a choice is the canonical text of the row's `label` field when that value is a string or a
   finite number whose canonical text is not empty after trimming, and otherwise the value of the
   choice. A group without data has no choices. The field lists these choices as it lists a
   [choice list](#choice-lists) of the same pairs.
+- **CUSC-090** The values of the choices are distinct, as those of a choice list are. Rendering
+  lists a repeated value once, as the choice of its first row, and validation refuses data in
+  which the rows of the group repeat a value: an input error with `INVALID_FORM_INPUT`, an empty
+  location and the message `Group source value repeats an earlier row: {value} at {path}`
+  ([choices from a repeated group](validation-rules.md#values), CUVR-087). The rows of a group come
+  from the data that a form submits, so a repeated value is data that the choices cannot express
+  and validation reports it instead of choosing one of the rows.
 - **CUSC-071** The choices follow the data. A form instance lists them from its current data after
   every change of that data (`setValue`, `setData`, `addRow`, `copyRow`, `removeRow`, `moveRow`,
   `rekeyRow`, `undo` and `redo`), so a change of a row of the source group, of its `{value}` field

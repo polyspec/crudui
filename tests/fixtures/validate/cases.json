@@ -17407,8 +17407,8 @@
           "name": "Blank"
         },
         "c4": {
-          "id": "hero",
-          "name": "Hero again"
+          "id": "sidekick",
+          "name": "Sidekick"
         }
       },
       "roles": {
@@ -17506,8 +17506,8 @@
           "name": "Blank"
         },
         "c4": {
-          "id": "hero",
-          "name": "Hero again"
+          "id": "sidekick",
+          "name": "Sidekick"
         }
       },
       "cast": [
@@ -17675,8 +17675,8 @@
           "name": "Blank"
         },
         "c4": {
-          "id": "hero",
-          "name": "Hero again"
+          "id": "sidekick",
+          "name": "Sidekick"
         }
       },
       "lead": "",
@@ -17772,8 +17772,8 @@
           "name": "Blank"
         },
         "c4": {
-          "id": "hero",
-          "name": "Hero again"
+          "id": "sidekick",
+          "name": "Sidekick"
         }
       },
       "lead": "hero"
@@ -18375,6 +18375,168 @@
       "CUSC-062",
       "CUSC-068",
       "CUVR-061",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-repeated-value",
+    "note": "A row whose id repeats the id of an earlier row is an input error that names the canonical text and the data path of the repeating row; two blank ids repeat nothing.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": "hero"
+        },
+        "c2": {
+          "id": " "
+        },
+        "c3": {
+          "id": " "
+        },
+        "c4": {
+          "id": "hero"
+        }
+      },
+      "lead": "hero"
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group source value repeats an earlier row: hero at characters.c4.id",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-063",
+      "CUSC-090",
+      "CUVR-087",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-repeated-number",
+    "note": "The number 7 and the text 7 have the same canonical text, so the second row repeats the first.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          }
+        }
+      }
+    },
+    "data": {
+      "characters": {
+        "c1": {
+          "id": 7
+        },
+        "c2": {
+          "id": "7"
+        }
+      },
+      "lead": ""
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Group source value repeats an earlier row: 7 at characters.c2.id",
+      "at": ""
+    },
+    "requirements": [
+      "CUSC-090",
+      "CUVR-087",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "group-source-repeated-value-hidden-field",
+    "note": "A hidden field is not validated, so it reads no choices and its repeated source rows fail nothing.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "characters": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "id": {
+              "type": "text"
+            },
+            "name": {
+              "type": "text"
+            }
+          }
+        },
+        "flag": {
+          "type": "text"
+        },
+        "lead": {
+          "type": "select",
+          "items": {
+            "from": "characters.*.id"
+          },
+          "design": {
+            "show": ".flag == 1"
+          }
+        }
+      }
+    },
+    "data": {
+      "flag": "0",
+      "characters": {
+        "c1": {
+          "id": "hero"
+        },
+        "c2": {
+          "id": "hero"
+        }
+      },
+      "lead": "hero"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": [
+        "lead"
+      ]
+    },
+    "requirements": [
+      "CUVR-087",
       "CURP-018",
       "CURP-022"
     ]

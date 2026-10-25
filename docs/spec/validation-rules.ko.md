@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 4856a615d9627a0a7c0febae73e41e764e65ddf16c79a1433c269f86fcdeabf6 -->
+<!-- source-sha256: 634812a307703cb2cfee2693bf606f6229995776f415a73e91fae73f9de98802 -->
 
 [English](validation-rules.md).
 
@@ -194,6 +194,13 @@ display:
   멤버는 검증할 때마다 데이터에서 읽으므로, 소스 행이 바뀐 뒤의 검증은 그 변경 뒤에 폼이 나열하는 선택지를
   검사합니다([반복 그룹의 선택지](schema.ko.md#반복-그룹의-선택지)). 브라우저 검증 바인딩은 자신이 보여 주는
   선택지를 가진 컨트롤의 데이터를 검증합니다.
+- **CUVR-087** **그룹 소스의 반복된 값.** CUVR-060의 암묵적 검사가 그룹 소스의 선택지를 읽을 때, 값을
+  비교하기 전에 그룹의 행을 데이터 순서로 읽으며, 선택지 값이 앞선 행 값의 정규 텍스트와 같은 행은 코드
+  `INVALID_FORM_INPUT`, 빈 위치, 메시지 `Group source value repeats an earlier row: {value} at {path}`의 입력
+  오류입니다. `{value}`는 정규 텍스트이고 `{path}`는 반복하는 행의 `{value}` 필드 데이터 경로(행 key 포함,
+  예: `characters.c4.id`)입니다([스키마](schema.ko.md#반복-그룹의-선택지), CUSC-090). 첫 반복이 실패합니다.
+  선택지가 되는 행(CUSC-063)만 비교하므로 비어 있거나 스칼라가 아닌 값은 아무것도 반복하지 않습니다.
+  숨겨진 필드는 검증하지 않으므로 선택지를 읽지 않고 이 검사도 실행하지 않습니다.
 
 ## 조건 트리
 

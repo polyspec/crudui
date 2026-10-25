@@ -56,7 +56,7 @@ export const GROUP_SOURCE_CASES = [
   },
   {
     name: 'group-source-multichoice-skips-rows',
-    note: 'A row with a blank value and a row that repeats an earlier value give no choice; a number value gives its canonical text, and an empty label falls back to the value.',
+    note: 'A row with a blank value gives no choice and rendering lists a repeated value once, as the choice of its first row (validation refuses such data); a number value gives its canonical text, and an empty label falls back to the value.',
     spec: variantsWith({ picks: { type: 'multichoice', label: 'Picks', items: { from: 'variants.*.name', label: 'price' } } }),
     data: { variants: { x1: { name: 'Blue', price: 2 }, x2: { name: ' ', price: 3 }, x3: { name: 'Blue', price: 4 }, x4: { name: 5, price: '' } }, picks: ['5'] },
     options: { language: 'en' },
@@ -102,7 +102,7 @@ export const GROUP_SOURCE_CASES = [
 /** The requirements each case tests. */
 export const GROUP_SOURCE_REQUIREMENTS: Record<string, readonly string[]> = {
   'group-source-select-rows': ['CUSC-061', 'CUSC-062', 'CUSC-063'],
-  'group-source-multichoice-skips-rows': ['CUSC-061', 'CUSC-062', 'CUSC-063'],
+  'group-source-multichoice-skips-rows': ['CUSC-061', 'CUSC-062', 'CUSC-063', 'CUSC-090'],
   'group-source-without-rows': ['CUSC-063'],
   'group-source-unknown-member': ['CUSC-064'],
   'group-source-text-field': ['CUSC-065'],

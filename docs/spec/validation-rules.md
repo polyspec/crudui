@@ -233,6 +233,15 @@ whitespace, emptiness or text.
   source rows checks the choices that the form lists after that change
   ([choices from a repeated group](schema.md#choices-from-a-repeated-group)); the browser validation
   binding validates the data of its controls, whose choices are the ones it shows.
+- **CUVR-087** **A repeated value of a group source.** When the implicit check of CUVR-060 reads the
+  choices of a group source, before it compares the value, it reads the rows of the group in data
+  order, and a row whose choice value has the canonical text of an earlier row's value is an input
+  error with code `INVALID_FORM_INPUT`, an empty location and the message
+  `Group source value repeats an earlier row: {value} at {path}`, where `{value}` is the canonical
+  text and `{path}` is the data path of the repeating row's `{value}` field, row key included, such
+  as `characters.c4.id` ([schema](schema.md#choices-from-a-repeated-group), CUSC-090). The first
+  repeat fails. Only rows that give a choice (CUSC-063) are compared, so a blank or non-scalar value
+  repeats nothing. A hidden field is not validated, so it reads no choices and runs no such check.
 
 ## Condition trees
 

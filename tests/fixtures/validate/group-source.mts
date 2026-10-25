@@ -22,13 +22,17 @@ const characters = { type: 'group', multiple: true, properties: { id: { type: 't
 const form = (fields: Record<string, unknown>, group: Record<string, unknown> = characters) =>
   ({ type: 'group', properties: { characters: group, ...fields } });
 
-/** Rows of characters: hero, the number 7 written as a number, a blank id and a repeat of hero. */
+/** Rows of characters: hero, the number 7 written as a number, a blank id and a sidekick. */
 const cast = {
   c1: { id: 'hero', name: 'Hero' },
   c2: { id: 7, name: 'Seven' },
   c3: { id: ' ', name: 'Blank' },
-  c4: { id: 'hero', name: 'Hero again' },
+  c4: { id: 'sidekick', name: 'Sidekick' },
 };
+
+/** The input failure of a row that repeats the value `value` of an earlier row, at the data path `path`. */
+const repeatFailure = (value: string, path: string) =>
+  ({ code: 'INVALID_FORM_INPUT', message: `Group source value repeats an earlier row: ${value} at ${path}`, at: '' });
 
 /** A load failure of the group source of the field at `at`. */
 const sourceFailure = (name: string, note: string, fields: Record<string, unknown>, at: string, message: string,
@@ -133,11 +137,36 @@ export const GROUP_SOURCE_CASES: Array<WrittenCase | FailingCase> = [
     { lead: { type: 'select', items: { from: 'characters.*.active', label: 'name' } } }, 'lead', BOOLEAN_FIELD('from', 'lead', 'characters.active'), flaggedCharacters),
   sourceFailure('group-source-label-boolean-field', 'The label field holds no boolean: a switcher field is refused after the name of label.',
     { lead: { type: 'select', items: { from: 'characters.*.id', label: 'on' } } }, 'lead', BOOLEAN_FIELD('label', 'lead', 'characters.on'), flaggedCharacters),
+  {
+    name: 'group-source-repeated-value',
+    note: 'A row whose id repeats the id of an earlier row is an input error that names the canonical text and the data path of the repeating row; two blank ids repeat nothing.',
+    spec: form({ lead: { type: 'select', items: { from: 'characters.*.id' } } }),
+    data: { characters: { c1: { id: 'hero' }, c2: { id: ' ' }, c3: { id: ' ' }, c4: { id: 'hero' } }, lead: 'hero' },
+    expectFailure: repeatFailure('hero', 'characters.c4.id'),
+  },
+  {
+    name: 'group-source-repeated-number',
+    note: 'The number 7 and the text 7 have the same canonical text, so the second row repeats the first.',
+    spec: form({ lead: { type: 'select', items: { from: 'characters.*.id' } } }),
+    data: { characters: { c1: { id: 7 }, c2: { id: '7' } }, lead: '' },
+    expectFailure: repeatFailure('7', 'characters.c2.id'),
+  },
+  {
+    name: 'group-source-repeated-value-hidden-field',
+    note: 'A hidden field is not validated, so it reads no choices and its repeated source rows fail nothing.',
+    spec: form({ flag: { type: 'text' }, lead: { type: 'select', items: { from: 'characters.*.id' }, design: { show: '.flag == 1' } } }),
+    data: { flag: '0', characters: { c1: { id: 'hero' }, c2: { id: 'hero' } }, lead: 'hero' },
+    hidden: ['lead'],
+    expected: result(),
+  },
 ];
 
 /** The requirements each case tests. */
 export const GROUP_SOURCE_REQUIREMENTS: Record<string, string[]> = {
   'group-source-select-members': ['CUSC-061', 'CUSC-062', 'CUSC-063', 'CUVR-060'],
+  'group-source-repeated-value': ['CUSC-063', 'CUSC-090', 'CUVR-087'],
+  'group-source-repeated-number': ['CUSC-090', 'CUVR-087'],
+  'group-source-repeated-value-hidden-field': ['CUVR-087'],
   'group-source-multichoice-members': ['CUSC-061', 'CUSC-063', 'CUVR-060'],
   'group-source-without-rows': ['CUSC-063', 'CUVR-060'],
   'group-source-before-declared-rules': ['CUVR-060'],
