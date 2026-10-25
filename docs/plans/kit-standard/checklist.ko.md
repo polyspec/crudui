@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 6c387cd5c8b6d2588e38477af3d7d8822052b973bbebbcf339c770af2860ee45 -->
+<!-- source-sha256: 3d051682510a4aba76ea51ec373e906671b48e6e61cef14cbe07f9834a2ff626 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -351,3 +351,4 @@
 | C17.19 | choice group의 boolean 행 값에는 명시된 규칙이 있고 모든 구현이 따른다 | the rule in docs/spec (with KO), its shared fixture cases, and its implementation in all six implementations, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
 | C17.20 | run.mts와 php-ext 테스트의 커버리지 개수 단언은 오래된 하드코딩 합계가 아니라 공유 cases.json 파일에서 개수를 도출한다 | tests/native-generators/run.mts and the php-ext count assertions that C17.2 listed | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/comparison/comparison.test.mjs`; `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/contract/expr.test.mjs packages/php-ext/tests/contract/compose.test.mjs`; `node tests/native-generators/run.mts --target javascript --check form-fixture:*,list:*,outline:*,detail:*`; `make docs-check`; `make parity-declarations-check` | [o] |
 | C17.21 | Go form-render 테스트는 오류 코드를 오류 자체에서 읽는다: 인식되지 않는 오류에 INVALID_FORM_INPUT을 기본으로 붙이지 않으며, 그 케이스는 실패한다 | packages/generator/go: a FormInputError (Code INVALID_FORM_INPUT) returned at each input-error site of the generator, and the Go form-render test (failureCode and its callers, and the other Go suites that name INVALID_FORM_INPUT by default) reads the code from ComposeLoadError, UnsupportedFieldTypeError or FormInputError and fails on anything else | `make parity-check UNITS="form-render"` | [ ] |
+| C17.22 | 검증은 boolean, only, object가 아닌 multiple을 load에서 거부한다: 여섯 검증기 모두 INVALID_RULE_PARAMETER로, 공유 케이스와 함께 | docs/spec (CUSC-041 and its KO twin, with the new refusal sentence and its id from CUSC-081), its shared cases, and the load check in all six validators, with parity units | `make docs-check`; `make parity-declarations-check` | [ ] |
