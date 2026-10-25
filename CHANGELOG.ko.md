@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 37b8b2f8762198c889770fb000626633648b4aa74751d52beac7b9799d8ff6d3 -->
+<!-- source-sha256: 2e76c275305ef5dd5db21b7286fe63f4f20301fee761ce53125404e9826e17c5 -->
 
 ## Unreleased
 
 ### 2026-10-25 — C17.2는 필드의 선택지를 반복 그룹에서 가져온다(C17.2)
 
 - C17.2 완료(C17.2): 선택 필드는 items { from: group.*.field, label }을 선언하고 같은 폼 반복 그룹의 행을 데이터 순서대로 선택지로 나열한다(docs/spec/schema.md CUSC-061에서 CUSC-067). 컴파일과 검증기 로드는 규칙을 어기는 그룹 소스를 거부하고, 검증기는 선언한 규칙보다 먼저 암묵적 in 검사로 값을 선택지와 대조한다(docs/spec/validation-rules.md CUVR-060, CUVR-061). TypeScript, PHP, PHP extension, Go, Rust, Python에 구현했다. red: make parity-check UNITS="validate form-render"가 validate 16개와 form-render 8개 group-source 사례에서 실패했고, 변경 뒤 green.
+
+### 2026-10-25 — C17.12는 form-render 실패 case의 message를 비교한다(C17.12)
+
+- C17.12 완료(C17.12): form-render 실패 case는 여섯 binding(ts, php, php-extension, go, rust, python) 모두에서 발생한 code와 message를 expectError 기록 전체와 비교하므로, 틀린 message나 message가 없는 기록은 실패한다. Go suite는 Error가 code를 앞에 붙이는 composition 오류의 Message를 읽는다. docs/spec/form-runtime.md는 UNSUPPORTED_FIELD_TYPE의 message `Unsupported field type "{type}" at "{path}"`를 명시하고, fixture 생성기는 모든 오류 case의 message를 기록하고 확인하며 compose-ref-unresolved-load-error와 unsupported-type-throws의 message를 추가한다. red: make parity-check UNITS="form-render"가 message 없는 두 case에서 실패했고, 변경 뒤 green.
 
 ### 2026-10-25 — C17.17은 describe의 grammar token을 token 요구사항에서 읽는다(C17.17)
 

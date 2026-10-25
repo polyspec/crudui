@@ -7,6 +7,10 @@
 
 - C17.2 is done (C17.2): a choice field declares items { from: group.*.field, label } and lists the rows of that repeated group of the same form as its choices, in data order (docs/spec/schema.md CUSC-061 to CUSC-067); compilation and the validator load refuse a group source that breaks its rules, and the validator checks a value against the choices with an implicit in check before the declared rules (docs/spec/validation-rules.md CUVR-060, CUVR-061), in TypeScript, PHP, the PHP extension, Go, Rust and Python. Red: make parity-check UNITS="validate form-render" failed the 16 validate and 8 form-render group-source cases; green after the change.
 
+### 2026-10-25 — C17.12 compares the message of the form-render failure cases (C17.12)
+
+- C17.12 is done (C17.12): the form-render failure cases compare the raised code and message with the whole expectError record in all six bindings (ts, php, php-extension, go, rust, python), so a wrong message or a record without a message fails; the Go suites read the Message of a composition error, whose Error prefixes the code. docs/spec/form-runtime.md states the UNSUPPORTED_FIELD_TYPE message `Unsupported field type "{type}" at "{path}"`, and the fixture generator records and checks the message of every error case, adding the messages of compose-ref-unresolved-load-error and unsupported-type-throws. Red: make parity-check UNITS="form-render" failed on the two cases without a message; green after the change.
+
 ### 2026-10-25 — C17.17 reads the grammar tokens of describe from the token requirements (C17.17)
 
 - C17.17 is done (C17.17): crudui describe reads the tokens of docs/spec/expressions.md section 1 from the requirements CUXP-001 to CUXP-017, which C16.56 made bullets, instead of table rows that the section no longer holds; a line of another shape or a section without a token fails. The row runs the list-describe test of packages/cli, which make test-ts does not reach. Red: list-describe.test failed with 0 tokens; green after the change.
