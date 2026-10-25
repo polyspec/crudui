@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: c0c92d87f1dff1c84ce6323fb60e4468cc4b71dcbc28f2e7092bb71de961e4f5 -->
+<!-- source-sha256: 3838e40adaae6f43481064c4a5e2e80f1c13a857378567f76987db9fa19c88df -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -373,8 +373,9 @@ form 비교 예제의 복사 규칙은 [예제 README](../../examples/form-compa
 바인딩에 실패합니다.
 
 지원하지 않는 필드 타입은 코드 `UNSUPPORTED_FIELD_TYPE`의
-`UnsupportedFieldTypeError`를 발생시킵니다. 메시지는 버전별 렌더러 이름
-없이 필드 타입과 경로를 명시합니다.
+`UnsupportedFieldTypeError`를 메시지 `Unsupported field type "{type}" at "{path}"`로 발생시킵니다.
+`{type}`은 선언된 필드 타입이고 `{path}`는 필드의 데이터 경로이며, 메시지는 버전별 렌더러
+이름을 쓰지 않습니다.
 
 ## HTML 직렬화
 

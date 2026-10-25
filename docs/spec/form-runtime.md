@@ -400,8 +400,9 @@ A field whose `items` is an invalid [choice list](schema.md#choice-lists) fails 
 `INVALID_FORM_INPUT` before its type is evaluated.
 
 Unsupported field types produce `UnsupportedFieldTypeError` with code
-`UNSUPPORTED_FIELD_TYPE`. The message identifies the field type and path without
-a version-specific renderer name.
+`UNSUPPORTED_FIELD_TYPE` and the message `Unsupported field type "{type}" at "{path}"`,
+where `{type}` is the declared field type and `{path}` the field's data path; the message names no
+version-specific renderer.
 
 ## HTML serialization
 
