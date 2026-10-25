@@ -43,6 +43,10 @@ entry points, load failures and input failures.
 - **CUVR-077** `typeFrom`: Field path; the value of the referenced field, which resolves as the reference of `equalTo` does,
   names the type that the value must have: `bool` a boolean, `int` a finite number without a fractional part, and `enum` a
   string. A referenced value that is missing or names no such type fails the rule.
+- **CUVR-079** `minFrom`, `maxFrom`: Field path; the value must be a finite number at or above (`minFrom`) or at or below
+  (`maxFrom`) the value of the referenced field, which resolves as the reference of `equalTo` does. A value that is not a
+  finite number fails; a referenced value that is missing or `null` declares no bound and the rule passes, and one that is
+  present but not a finite number fails.
 
 The [TypeScript registry](../../packages/validator/ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
@@ -335,6 +339,7 @@ without row keys. Every runtime reports the same code and message:
 - **CUVR-054** `equalTo`, `enddate` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a field reference string`
 - **CUVR-076** `containedIn` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid containedIn parameter: expected a field reference string`
 - **CUVR-078** `typeFrom` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid typeFrom parameter: expected a field reference string`
+- **CUVR-081** `minFrom`, `maxFrom` that is not a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid {rule} parameter: expected a field reference string`
 - **CUVR-055** `notEqual` that is not a string, number or boolean — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** `unique` that is not a boolean or a string — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-074** `reference` that is not a string, or a string that is not the declaration path of a field of the form whose type is not `group` and whose `lang` is absent, `false` or `null` — Code: `INVALID_RULE_PARAMETER`; Message: `Invalid reference parameter: expected the declaration path of a field`

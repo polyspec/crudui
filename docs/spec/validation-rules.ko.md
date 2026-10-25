@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 4b8726330d2f22a1987cb3a07e6a2cb297f5e55727c7964fe1023253c059fa86 -->
+<!-- source-sha256: d3d7583cc857641a3543cbacc66eaa9dfb2ce72a599f9b469258c3d429b89fc5 -->
 
 [English](validation-rules.md).
 
@@ -37,6 +37,9 @@
 - **CUVR-077** `typeFrom`: 필드 경로입니다. `equalTo`의 참조처럼 해석한 참조 필드의 값이 값이 가져야 할 타입을 이름 붙입니다.
   `bool`은 boolean, `int`는 소수 부분이 없는 유한한 수, `enum`은 문자열입니다. 참조한 값이 없거나 이런 타입을 이름 붙이지 않으면
   규칙이 실패합니다.
+- **CUVR-079** `minFrom`, `maxFrom`: 필드 경로입니다. 값은 `equalTo`의 참조처럼 해석한 참조 필드의 값 이상(`minFrom`)이거나
+  이하(`maxFrom`)인 유한한 수여야 합니다. 유한한 수가 아닌 값은 실패합니다. 참조한 값이 없거나 `null`이면 경계가 선언되지 않아
+  규칙이 통과하고, 있지만 유한한 수가 아니면 실패합니다.
 
 [TypeScript 등록부](../../packages/validator/ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
@@ -283,6 +286,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 - **CUVR-054** 문자열이 아닌 `equalTo`, `enddate` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a field reference string`
 - **CUVR-076** 문자열이 아닌 `containedIn` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid containedIn parameter: expected a field reference string`
 - **CUVR-078** 문자열이 아닌 `typeFrom` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid typeFrom parameter: expected a field reference string`
+- **CUVR-081** 문자열이 아닌 `minFrom`, `maxFrom` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid {rule} parameter: expected a field reference string`
 - **CUVR-055** 문자열·숫자·불리언이 아닌 `notEqual` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid notEqual parameter: expected a string, number or boolean`
 - **CUVR-056** 불리언이나 문자열이 아닌 `unique` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid unique parameter: expected true, false or a string`
 - **CUVR-074** 문자열이 아니거나, type이 `group`이 아니고 `lang`이 없거나 `false`·`null`인 form 필드의 선언 경로가 아닌 `reference` — 코드: `INVALID_RULE_PARAMETER`; 메시지: `Invalid reference parameter: expected the declaration path of a field`

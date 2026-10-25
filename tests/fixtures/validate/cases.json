@@ -23545,5 +23545,396 @@
       "CURP-018",
       "CURP-022"
     ]
+  },
+  {
+    "name": "bounds-from-inside",
+    "note": "a value between its bounds passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": 0,
+      "max": 10,
+      "value": 5
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-at-bounds",
+    "note": "the bounds are inclusive.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": 5,
+      "max": 5,
+      "value": 5
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-below",
+    "note": "a value below its minimum fails minFrom.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": 0,
+      "max": 10,
+      "value": -1
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "minFrom",
+          "message": "Please enter a value at or above the declared minimum.",
+          "value": -1
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-above",
+    "note": "a value above its maximum fails maxFrom.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": 0,
+      "max": 10,
+      "value": 11
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "maxFrom",
+          "message": "Please enter a value at or below the declared maximum.",
+          "value": 11
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-fraction",
+    "note": "a fraction is a finite number and compares as one.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": 0,
+      "max": 1,
+      "value": 0.5
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-text-value",
+    "note": "a value that is not a finite number fails the first rule.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": 0,
+      "max": 10,
+      "value": "5"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "minFrom",
+          "message": "Please enter a value at or above the declared minimum.",
+          "value": "5"
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-missing",
+    "note": "a missing bound declares none.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "value": 99
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-null",
+    "note": "a null bound declares none.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": null,
+      "max": null,
+      "value": -99
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-text-bound",
+    "note": "a bound that is present but not a finite number fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "min": {
+          "type": "text"
+        },
+        "max": {
+          "type": "text"
+        },
+        "value": {
+          "type": "text",
+          "validate": {
+            "minFrom": ".min",
+            "maxFrom": ".max"
+          }
+        }
+      }
+    },
+    "data": {
+      "min": "0",
+      "max": 10,
+      "value": 5
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "value",
+          "field": "value",
+          "rule": "minFrom",
+          "message": "Please enter a value at or above the declared minimum.",
+          "value": 5
+        }
+      ],
+      "hidden": []
+    },
+    "requirements": [
+      "CUVR-079",
+      "CURP-018",
+      "CURP-022"
+    ]
+  },
+  {
+    "name": "bounds-from-parameter-not-string",
+    "note": "a maxFrom parameter that is not a string fails the load.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "maxFrom": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": 1
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid maxFrom parameter: expected a field reference string",
+      "at": "value"
+    },
+    "requirements": [
+      "CUVR-081",
+      "CURP-018",
+      "CURP-022"
+    ]
   }
 ]

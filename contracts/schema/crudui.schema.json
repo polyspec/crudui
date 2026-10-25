@@ -172,6 +172,12 @@
         "typeFrom": {
           "type": "string"
         },
+        "minFrom": {
+          "type": "string"
+        },
+        "maxFrom": {
+          "type": "string"
+        },
         "notEqual": {
           "type": "string"
         },
@@ -413,6 +419,14 @@
             },
             "typeFrom": {
               "description": "Field whose value names the type of the value: bool, int or enum (CUVR-077).",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "minFrom": {
+              "description": "Field whose value is the inclusive lower bound of the value (CUVR-079).",
+              "$ref": "#/definitions/RuleFieldReference"
+            },
+            "maxFrom": {
+              "description": "Field whose value is the inclusive upper bound of the value (CUVR-079).",
               "$ref": "#/definitions/RuleFieldReference"
             },
             "notEqual": {
