@@ -1029,7 +1029,7 @@ test('PHP extension engine reports supported widget construction failures as int
       signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1273,7 +1273,7 @@ test('PHP extension engine compiles composed form templates', { timeout: ENGINE_
       root, directory, name: 'template-test', signal: t.signal,
       program: path.join(root, 'packages/php-ext/tests/template.c'),
       sources: ['value.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c', 'number_text.c',
-        'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c'],
+        'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'group_source.c'],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
