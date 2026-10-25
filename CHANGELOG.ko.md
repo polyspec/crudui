@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c35f76532254582e55bd0aec2062b92abf7160ffd3c0395acc1f3b03705266e6 -->
+<!-- source-sha256: 8a69df9fd38bb92ce2ec599171412671278de009837ac05bd99afb031d0626f1 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-25 — crudui는 kit K614와 K621을 따른다 (C17.28)
 
 - kit-sync 복사본을 지웠다. Makefile은 kit checkout의 kit-bootstrap을 include하고, config/php-lint를 지웠으며, PRINCIPLES.md, PRINCIPLES.ko.md, .editorconfig, .claude/settings.json은 kit으로 가는 추적 symlink가 되었다. 삭제된 경로의 owner-check 글롭을 뺐고, make hooks가 쓴 훅 파일을 커밋했다.
+
+### 2026-10-25 — C17.27은 PHP 확장에서 float control 값을 정규 텍스트로 쓴다(C17.27)
+
+- C17.27 완료(C17.27): PHP 확장은 float control 값을 %.15g 대신 ps_number_text로, 같은 double로 다시 읽히는 가장 짧은 텍스트인 정규 텍스트로 씁니다. 이제 0.30000000000000004를 0.3으로 쓰지 않습니다(docs/spec/form-markup.md CUMK-069). tests/fixtures/form-render의 text-float-value case는 모든 generator에서 통과합니다.
 
 ### 2026-10-25 — C17.26은 Python에서 relations의 JSON 텍스트를 쓴다(C17.26)
 

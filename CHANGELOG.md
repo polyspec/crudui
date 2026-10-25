@@ -15,6 +15,10 @@
 
 - The kit-sync copies are deleted: the Makefile includes kit-bootstrap from the kit checkout, config/php-lint is gone, PRINCIPLES.md, PRINCIPLES.ko.md, .editorconfig and .claude/settings.json are tracked symlinks into kit, and the owner-check globs of the deleted paths are removed. The hook files of make hooks are committed.
 
+### 2026-10-25 — C17.27 writes a float control value as its canonical text in the PHP extension (C17.27)
+
+- C17.27 is done (C17.27): the PHP extension writes a float control value as its canonical text, the shortest text that reads back as the same double, through ps_number_text instead of %.15g, so 0.30000000000000004 is no longer written 0.3 (docs/spec/form-markup.md CUMK-069). The case text-float-value of tests/fixtures/form-render passes in every generator.
+
 ### 2026-10-25 — C17.26 writes the relations JSON text in Python (C17.26)
 
 - C17.26 is done (C17.26): the Python generator writes data-source-relations as the JSON text of the relations value and writes [] only for a missing or null value, so {} and "" are no longer written as [] (docs/spec/schema.md CUSC-088). The cases select-dynamic-relations-object and select-dynamic-relations-text of tests/fixtures/form-render pass in every generator.
