@@ -16,6 +16,7 @@ use Polyspec\Crudui\Validator\Rules\Range;
 use Polyspec\Crudui\Validator\Rules\RangeLength;
 use Polyspec\Crudui\Validator\Rules\Number;
 use Polyspec\Crudui\Validator\Rules\Digits;
+use Polyspec\Crudui\Validator\Rules\ContainedIn;
 use Polyspec\Crudui\Validator\Rules\EqualTo;
 use Polyspec\Crudui\Validator\Rules\NotEqual;
 use Polyspec\Crudui\Validator\Rules\Date;
@@ -90,6 +91,7 @@ final class Validator
         'number' => 'Please enter a valid number.',
         'digits' => 'Please enter only digits.',
         'equalTo' => 'Please enter the same value again.',
+        'containedIn' => 'Please enter a value that the referenced field contains.',
         'notEqual' => 'Please enter a different value.',
         'date' => 'Please enter a valid date.',
         'dateISO' => 'Please enter a valid date in ISO format (YYYY-MM-DD).',
@@ -177,6 +179,7 @@ final class Validator
             'number' => new Number(),
             'digits' => new Digits(),
             'equalTo' => new EqualTo(),
+            'containedIn' => new ContainedIn(),
             'notEqual' => new NotEqual(),
             'date' => new Date(),
             'dateISO' => new DateISO(),

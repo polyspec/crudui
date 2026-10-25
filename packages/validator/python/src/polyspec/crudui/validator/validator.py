@@ -49,7 +49,14 @@ from .text import check_input_text, check_option_text, checked_composition
 __all__ = ["ARRAY_LEVEL_RULES", "FormInputError", "Validator", "validate"]
 
 ARRAY_LEVEL_RULES = ("required", "unique", "mincount", "maxcount")
-PATH_REFERENCE_RULES = ("equalTo", "notEqual", "unique", "enddate", "reference")
+PATH_REFERENCE_RULES = (
+    "equalTo",
+    "containedIn",
+    "notEqual",
+    "unique",
+    "enddate",
+    "reference",
+)
 LITERAL_PARAM_RULES = ("accept", "conditionTree")
 REGEX_PARAM_RULES = ("match", "pattern")
 MEMBERSHIP_PARAM_RULES = ("in",)

@@ -19,6 +19,7 @@ import { rangelengthRule } from './rangelength';
 import { numberRule } from './number';
 import { digitsRule } from './digits';
 import { equalToRule } from './equalTo';
+import { containedInRule } from './containedIn';
 import { notEqualRule } from './notEqual';
 import { dateRule } from './date';
 import { dateISORule } from './dateISO';
@@ -51,6 +52,7 @@ const builtInRules: Map<string, RuleDefinition> = new Map([
   ['number', numberRule],
   ['digits', digitsRule],
   ['equalTo', equalToRule],
+  ['containedIn', containedInRule],
   ['notEqual', notEqualRule],
   ['date', dateRule],
   ['dateISO', dateISORule],

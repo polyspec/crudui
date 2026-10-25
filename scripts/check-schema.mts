@@ -226,7 +226,7 @@ const registeredRules = [...readText('packages/validator/ts/src/rules/index.ts')
     assert.ok(name !== undefined, `the rule registry line names its rule: ${line}`);
     return name;
   });
-assert.equal(registeredRules.length, 26, 'the rule registry lists 26 rules');
+assert.equal(registeredRules.length, 27, 'the rule registry lists 27 rules');
 const validateObject = schema.definitions.Validate.anyOf.find((shape) => shape.type === 'object');
 assert.ok(validateObject?.properties);
 const codeUnitOrder = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);

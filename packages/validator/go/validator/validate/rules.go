@@ -65,6 +65,7 @@ var builtInRules = map[string]ruleFn{
 	"number":        ruleNumber,
 	"digits":        ruleDigits,
 	"equalTo":       ruleEqualTo,
+	"containedIn":   ruleContainedIn,
 	"notEqual":      ruleNotEqual,
 	"date":          ruleDate,
 	"dateISO":       ruleDateISO,
@@ -469,22 +470,44 @@ func ruleDigits(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	return "", false
 }
 
+// referencedValue returns the value of the field that the reference parameter of a rule names, and false when
+// the rule does not apply: no parameter, or an empty value.
+func referencedValue(value any, ruleParam any, ctx ruleContext) (any, bool) {
+	if ruleParam == nil || isEmpty(value) {
+		return nil, false
+	}
+	return resolveFieldReference(jsString(ruleParam), ctx.pathSegments, ctx.rowKeys, ctx.formData), true
+}
+
 // ruleEqualTo: value must equal a referenced field's value. The param is a field
 // reference preserved verbatim. Empty skips. Comparison is strict (JS uses value
 // !== targetValue) — the JS engine compares with === (SameValue-ish). We mirror
 // that with a typed equality (JS strict equality across decoded JSON types).
 func ruleEqualTo(value any, ruleParam any, ctx ruleContext) (string, bool) {
-	if ruleParam == nil {
+	target, applies := referencedValue(value, ruleParam, ctx)
+	if !applies {
 		return "", false
 	}
-	if isEmpty(value) {
-		return "", false
-	}
-	target := resolveFieldReference(jsString(ruleParam), ctx.pathSegments, ctx.rowKeys, ctx.formData)
 	if !strictEquals(value, target) {
 		return ctx.msg("equalTo", "Please enter the same value again."), true
 	}
 	return "", false
+}
+
+// ruleContainedIn: a string value must occur in the string value of a referenced field
+// (CUVR-075). The param is a field reference preserved verbatim. Empty skips; a value
+// or a referenced value that is not a string fails.
+func ruleContainedIn(value any, ruleParam any, ctx ruleContext) (string, bool) {
+	target, applies := referencedValue(value, ruleParam, ctx)
+	if !applies {
+		return "", false
+	}
+	text, isText := value.(string)
+	within, isWithin := target.(string)
+	if isText && isWithin && strings.Contains(within, text) {
+		return "", false
+	}
+	return ctx.msg("containedIn", "Please enter a value that the referenced field contains."), true
 }
 
 // strictEquals mirrors JS === over decoded JSON values: same JS type and equal.

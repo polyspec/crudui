@@ -41,6 +41,8 @@ export interface MessagesSpec {
   step?: string;
   /** Error message shown when the `equalTo` rule fails. */
   equalTo?: string;
+  /** Error message shown when the `containedIn` rule fails. */
+  containedIn?: string;
   /** Error message shown when the `notEqual` rule fails. */
   notEqual?: string;
   /** Error message shown when the `reference` rule fails. */

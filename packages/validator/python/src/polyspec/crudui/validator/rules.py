@@ -397,6 +397,24 @@ def _rule_equal_to(context: RuleContext) -> str | None:
     return None
 
 
+def _rule_contained_in(context: RuleContext) -> str | None:
+    """A string value occurs in the string value of the referenced field (CUVR-075)."""
+    value, rule_param = context["value"], context["ruleParam"]
+    if rule_param is None:
+        return None
+    if is_empty_value(value):
+        return None
+    target = _resolve_field_param(rule_param, context)
+    if isinstance(value, str) and isinstance(target, str) and value in target:
+        return None
+    message: str = _message(
+        context,
+        "containedIn",
+        "Please enter a value that the referenced field contains.",
+    )
+    return message
+
+
 def _same_value(left: Value, right: Value) -> bool:
     """The strict equality of two data values: objects and lists by identity."""
     if isinstance(left, (dict, list)) or isinstance(right, (dict, list)):
@@ -931,6 +949,7 @@ _RULES = {
     "number": _rule_number,
     "digits": _rule_digits,
     "equalTo": _rule_equal_to,
+    "containedIn": _rule_contained_in,
     "notEqual": _rule_not_equal,
     "date": _rule_date,
     "dateISO": _rule_date_iso,
@@ -960,6 +979,7 @@ _CHECKED_RULES = {
     "match",
     "pattern",
     "equalTo",
+    "containedIn",
     "enddate",
     "notEqual",
     "unique",
@@ -1036,7 +1056,7 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
     if rule_name == "in":
         members = read_members(param)
         return invalid(members) if isinstance(members, str) else None
-    if rule_name in ("equalTo", "enddate"):
+    if rule_name in ("equalTo", "containedIn", "enddate"):
         return (
             None
             if isinstance(param, str)

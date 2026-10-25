@@ -54,7 +54,7 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 		return checkNumericParameter(rule, param)
 	case "in":
 		return checkIn(param)
-	case "equalTo", "enddate", "notEqual", "unique", "reference":
+	case "equalTo", "containedIn", "enddate", "notEqual", "unique", "reference":
 		return checkReferenceParameter(rule, param)
 	case "conditionTree":
 		return checkConditionTreeParameter(param)
@@ -79,13 +79,13 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 }
 
 // checkReferenceParameter returns the parameter error of a rule that references a
-// field: equalTo and enddate take a field reference string, notEqual a string,
+// field: equalTo, containedIn and enddate take a field reference string, notEqual a string,
 // number or boolean, unique true or a string, and reference a string.
 func checkReferenceParameter(rule string, param any) *parameterError {
 	_, isString := param.(string)
 	_, isBool := param.(bool)
 	switch rule {
-	case "equalTo", "enddate":
+	case "equalTo", "containedIn", "enddate":
 		if !isString {
 			return ruleParameterError("Invalid " + rule + " parameter: expected a field reference string")
 		}

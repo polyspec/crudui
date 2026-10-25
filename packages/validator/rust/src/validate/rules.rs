@@ -73,6 +73,7 @@ pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
         "number" => Some(rule_number),
         "digits" => Some(rule_digits),
         "equalTo" => Some(rule_equal_to),
+        "containedIn" => Some(rule_contained_in),
         "notEqual" => Some(rule_not_equal),
         "date" => Some(rule_date),
         "dateISO" => Some(rule_date_iso),
@@ -535,18 +536,21 @@ fn rule_reference(ctx: &RuleContext) -> Option<String> {
 // equalTo / notEqual
 // ---------------------------------------------------------------------------
 
-fn rule_equal_to(ctx: &RuleContext) -> Option<String> {
-    if ctx.rule_param.is_null() {
-        return None;
-    }
-    if is_empty(ctx.value) {
+/// The value of the field that the reference parameter of a rule names, or `None` when the rule does not apply:
+/// no parameter, or an empty value.
+fn referenced_value<'a>(ctx: &RuleContext<'a>) -> Option<&'a Value> {
+    if ctx.rule_param.is_null() || is_empty(ctx.value) {
         return None;
     }
     let param = match ctx.rule_param {
         Value::String(s) => s.clone(),
         other => js_string(other),
     };
-    let target = resolve_field_reference(&param, ctx.path_segments, ctx.row_keys, ctx.form_data);
+    Some(resolve_field_reference(&param, ctx.path_segments, ctx.row_keys, ctx.form_data))
+}
+
+fn rule_equal_to(ctx: &RuleContext) -> Option<String> {
+    let target = referenced_value(ctx)?;
     if !strict_eq(ctx.value, target) {
         return Some(
             message_override(ctx.messages, "equalTo")
@@ -578,6 +582,22 @@ fn rule_not_equal(ctx: &RuleContext) -> Option<String> {
         );
     }
     None
+}
+
+/// containedIn: a string value occurs in the string value of the referenced field; a value or a
+/// referenced value that is not a string fails.
+fn rule_contained_in(ctx: &RuleContext) -> Option<String> {
+    let target = referenced_value(ctx)?;
+    if let (Value::String(text), Value::String(within)) = (ctx.value, target) {
+        if within.contains(text.as_str()) {
+            return None;
+        }
+    }
+    Some(
+        message_override(ctx.messages, "containedIn")
+            .unwrap_or("Please enter a value that the referenced field contains.")
+            .to_string(),
+    )
 }
 
 /// JS `===` for the equalTo/notEqual comparison. Different JSON types never equal;

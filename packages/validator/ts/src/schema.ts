@@ -292,7 +292,7 @@ export interface PatchDirective {
  * value's expression (G1), never a separate key.
  *
  * The named members are every built-in rule, with the parameter shapes the
- * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `notEqual`,
+ * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `containedIn`, `notEqual`,
  * `unique`, `enddate`, `reference`, `accept`, `match`, `pattern`, `in` and `conditionTree` receive their
  * parameter unchanged, so they take no condition map. No other rule name exists:
  * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
@@ -336,6 +336,8 @@ export interface ValidateSlot {
   pattern?: string | false | null;
   /** Field whose value must be equal. */
   equalTo?: string | false | null;
+  /** Field whose string value must contain the string value (CUVR-075). */
+  containedIn?: string | false | null;
   /** Dot-prefixed field reference or literal value the input must differ from. */
   notEqual?: string | number | boolean | null;
   /** Start-date field the end date must not precede. */

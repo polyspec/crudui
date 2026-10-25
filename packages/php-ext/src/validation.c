@@ -449,12 +449,21 @@ static const unique_rows *duplicate_rows(validation_context *context, const ps_v
     return rows;
 }
 
+/* Whether `needle` occurs in `haystack`, byte for byte (CUVR-075). */
+static bool text_contains(ps_text haystack, ps_text needle)
+{
+    if (needle.length > haystack.length) return false;
+    for (size_t at = 0; at + needle.length <= haystack.length; ++at)
+        if (memcmp(haystack.bytes + at, needle.bytes, needle.length) == 0) return true;
+    return false;
+}
+
 static const ps_value *effective_parameter(ps_text rule, const ps_value *declared,
                                            const validation_context *context,
                                            const ps_text *path, size_t length, ps_value **owned)
 {
     static const char *const verbatim[] = {
-        "equalTo", "notEqual", "unique", "enddate", "reference", "accept",
+        "equalTo", "containedIn", "notEqual", "unique", "enddate", "reference", "accept",
         "match", "pattern", "in", "conditionTree",
     };
     *owned = NULL;
@@ -506,6 +515,7 @@ static ps_chars message_for(const ps_value *field, ps_text rule, const ps_value 
         {"rangelength", "Please enter a value between {0} and {1} characters."},
         {"number", "Please enter a valid number."}, {"digits", "Please enter only digits."},
         {"equalTo", "Please enter the same value again."}, {"notEqual", "Please enter a different value."},
+        {"containedIn", "Please enter a value that the referenced field contains."},
         {"date", "Please enter a valid date."}, {"dateISO", "Please enter a valid date in ISO format (YYYY-MM-DD)."},
         {"enddate", "End date must be after the start date."}, {"url", "Please enter a valid URL."},
         {"accept", "Please upload a file with a valid format."},
@@ -610,6 +620,11 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
     if (ps_text_is(rule, "equalTo") || ps_text_is(rule, "notEqual")) {
         const ps_value *other = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : parameter;
         bool equal = ps_equal(value, other); return ps_text_is(rule, "equalTo") ? equal : !equal;
+    }
+    if (ps_text_is(rule, "containedIn")) {
+        /* CUVR-075: a string value occurs in the string value of the referenced field. */
+        const ps_value *other = parameter->kind == PS_STRING ? relative_field(ps_string(parameter), context, path, length) : NULL;
+        return value->kind == PS_STRING && other && other->kind == PS_STRING && text_contains(ps_string(other), ps_string(value));
     }
     if (ps_text_is(rule, "dateISO")) { int serial; return value->kind == PS_STRING && iso_date(ps_trim(ps_string(value)), &serial); }
     if (ps_text_is(rule, "date")) return value->kind == PS_STRING && valid_date_text(ps_trim(ps_string(value)));
