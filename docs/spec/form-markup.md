@@ -37,7 +37,8 @@ spec declares in `design`.
 - **CUMK-006** `crudui-controls`: A button group with `role="group"` and an accessible name.
 - **CUMK-007** `crudui-action`: A button: an action with `data-crudui-action`, a form button or the button of a [button field](#button-fields); `crudui-action--text` shows its label as text.
 - The structure map (`crudui-outline`) and the current data view (`crudui-data`) are blocks of the TypeScript HTML renderer, documented in `packages/html/README.md`.
-- **CUMK-010** `crudui-widget`: A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget.
+- The structured condition editor (`crudui-condition`) is a block of the widget of a structured condition field, defined in [structured condition editor](#structured-condition-editor) (CUMK-067, CUMK-068).
+- **CUMK-010** `crudui-widget`: A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control, `--condition` holds a [structured condition editor](#structured-condition-editor) and `--unsupported` marks a type without a widget.
 - **CUMK-011** `crudui-input`: A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input, `--condition` for the textarea of a [condition field](#condition-fields) and `--switch` for the checkbox input of a [switch](#switches).
 - **CUMK-012** `crudui-choices`: Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)).
 
@@ -292,8 +293,9 @@ writes:
 ### Structured condition editor
 
 A condition field with `design.editor: structured` ([schema](schema.md#structured-condition-editor))
-writes the widget `crudui-widget crudui-widget--condition`. It holds the textarea of a condition
-field, which keeps the value and is what a form submits, and after it the editor of the tree:
+writes the widget `crudui-widget crudui-widget--condition`. It holds the prepend affix, the textarea
+of a condition field, which keeps the value and is what a form submits, the editor of the tree and
+the append affix:
 
 - **CUMK-067** A value that the editor shows (CUSC-086) writes the textarea with the attribute `hidden`
   and then `<div class="crudui-condition" data-condition-for="{id}">`, where `{id}` is the id of the

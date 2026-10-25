@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 2ed17fe9cb99e24ad8891f0501474b309d92f0a522eeeacdf4a6dfd7f2aa5fcc -->
+<!-- source-sha256: 2b34e69b1ca79a3fe9d959d8dfcdd36793200bd82bcf4379daab929d4bb03062 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -35,7 +35,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 - **CUMK-006** `crudui-controls`: `role="group"`과 접근성 이름을 가진 버튼 묶음입니다.
 - **CUMK-007** `crudui-action`: 버튼입니다. `data-crudui-action`을 가진 조작, 폼 버튼, [버튼 필드](#버튼-필드)의 버튼이 이에 해당합니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다.
 - 구조 맵(`crudui-outline`)과 현재 데이터 보기(`crudui-data`)는 TypeScript HTML 렌더러의 블록이며, `packages/html/README.ko.md`에 문서화되어 있습니다.
-- **CUMK-010** `crudui-widget`: 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다.
+- 구조 조건 편집기(`crudui-condition`)는 구조 조건 필드의 위젯 안 블록이며 [구조 조건 편집기](#구조-조건-편집기)에 정의합니다(CUMK-067, CUMK-068).
+- **CUMK-010** `crudui-widget`: 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을, `--condition`은 [구조 조건 편집기](#구조-조건-편집기)를 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다.
 - **CUMK-011** `crudui-input`: 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [조건 필드](#조건-필드)의 textarea는 `--condition`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다.
 - **CUMK-012** `crudui-choices`: 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)).
 
@@ -271,8 +272,8 @@ JSON 텍스트임을 표시합니다([조건 값](form-runtime.ko.md#조건-값)
 ### 구조 조건 편집기
 
 `design.editor: structured`인 조건 필드([스키마](schema.ko.md#구조-조건-편집기))는 위젯
-`crudui-widget crudui-widget--condition`을 씁니다. 그 안에는 값을 가지며 폼이 제출하는 조건 필드의
-textarea가 있고, 그 뒤에 트리의 편집기가 있습니다.
+`crudui-widget crudui-widget--condition`을 씁니다. 그 안에는 앞 텍스트, 값을 가지며 폼이 제출하는 조건
+필드의 textarea, 트리의 편집기, 뒤 텍스트가 있습니다.
 
 - **CUMK-067** 편집기가 보여 주는 값(CUSC-086)은 textarea를 속성 `hidden`과 함께 쓰고, 그다음
   `<div class="crudui-condition" data-condition-for="{id}">`를 씁니다. `{id}`는 textarea의 id이며, 그 안에
