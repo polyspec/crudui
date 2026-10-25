@@ -293,7 +293,7 @@ export interface PatchDirective {
  *
  * The named members are every built-in rule, with the parameter shapes the
  * meta-schema declares; `false` or `null` disables a rule. `equalTo`, `notEqual`,
- * `unique`, `enddate`, `accept`, `match`, `pattern` and `in` receive their
+ * `unique`, `enddate`, `accept`, `match`, `pattern`, `in` and `conditionTree` receive their
  * parameter unchanged, so they take no condition map. No other rule name exists:
  * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
  */
@@ -346,6 +346,8 @@ export interface ValidateSlot {
   accept?: string | string[] | false | null;
   /** Allowed values: comma-separated string, list, choice list with groups, or value-to-label map. */
   in?: string | Array<string | number | boolean | null> | Array<ChoicePair | ChoiceGroup> | Record<string, LangMap | string | null> | false | null;
+  /** A condition tree; `judge` also permits judged text (validation-rules.md, "Condition trees"). */
+  conditionTree?: true | 'judge' | false | null;
 }
 
 // ============================================================================

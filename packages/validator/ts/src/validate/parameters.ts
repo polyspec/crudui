@@ -12,6 +12,7 @@ import { ComposeLoadError } from '../compose/errors';
 import { isFiniteNumber, isLengthLimit, isLengthRange, isNumberRange, isStep, readMembers } from '../values/index';
 import { PatternSyntaxError, compilePattern } from '../pattern/index';
 import { getRule } from '../rules/index';
+import { CONDITION_TREE_PARAMETER_ERROR, isConditionTreeParameter } from '../rules/conditionTree';
 
 /** The failure a rule parameter causes. */
 interface ParameterFailure {
@@ -39,6 +40,7 @@ const CHECKED_RULES = new Set([
   'enddate',
   'notEqual',
   'unique',
+  'conditionTree',
 ]);
 
 /**
@@ -87,6 +89,8 @@ function ruleParameterFailure(ruleName: string, param: unknown): ParameterFailur
       return typeof param === 'string' || param === true
         ? null
         : invalid('Invalid unique parameter: expected true, false or a string');
+    case 'conditionTree':
+      return isConditionTreeParameter(param) ? null : invalid(CONDITION_TREE_PARAMETER_ERROR);
     case 'in': {
       const members = readMembers(param);
       return 'error' in members ? invalid(members.error) : null;

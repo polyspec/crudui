@@ -226,7 +226,7 @@ const registeredRules = [...readText('packages/validator/ts/src/rules/index.ts')
     assert.ok(name !== undefined, `the rule registry line names its rule: ${line}`);
     return name;
   });
-assert.equal(registeredRules.length, 24, 'the rule registry lists 24 rules');
+assert.equal(registeredRules.length, 25, 'the rule registry lists 25 rules');
 const validateObject = schema.definitions.Validate.anyOf.find((shape) => shape.type === 'object');
 assert.ok(validateObject?.properties);
 const codeUnitOrder = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
@@ -235,6 +235,10 @@ assert.deepEqual(Object.keys(schema.definitions.Messages.properties).sort(codeUn
 for (const [field, expected, keyword] of [
   [{ validate: { required: true, minlength: 2, dateISO: true, equalTo: '.other' } }, true],
   [{ validate: { no_such_rule: true } }, false, 'additionalProperties'],
+  [{ validate: { conditionTree: true } }, true],
+  [{ validate: { conditionTree: 'judge' } }, true],
+  [{ validate: { conditionTree: 'any' } }, false, 'enum'],
+  [{ validate: { conditionTree: { '.enabled': true } } }, false, 'enum'],
   [{ validate: { requried: false } }, false, 'additionalProperties'],
   [{ validate: { equalto: '.other' } }, false, 'additionalProperties'],
   [{ messages: { required: 'Enter a value.', number: 'Enter a number.', pattern: 'Wrong format.' } }, true],

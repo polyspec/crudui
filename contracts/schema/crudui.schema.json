@@ -192,6 +192,9 @@
         },
         "accept": {
           "type": "string"
+        },
+        "conditionTree": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -523,6 +526,15 @@
                     null
                   ]
                 }
+              ]
+            },
+            "conditionTree": {
+              "description": "The value is a condition tree; judge also permits judged text. Passed unchanged.",
+              "enum": [
+                true,
+                "judge",
+                false,
+                null
               ]
             }
           },

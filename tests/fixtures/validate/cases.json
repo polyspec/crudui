@@ -21673,7 +21673,7 @@
     "spec": {
       "type": "group",
       "properties": {
-        "when": {
+        "trigger": {
           "type": "text",
           "validate": {
             "conditionTree": true
@@ -21685,7 +21685,7 @@
       }
     },
     "data": {
-      "when": {
+      "trigger": {
         "all": [
           1
         ]
@@ -21695,8 +21695,8 @@
       "valid": false,
       "errors": [
         {
-          "path": "when",
-          "field": "when",
+          "path": "trigger",
+          "field": "trigger",
           "rule": "conditionTree",
           "message": "Write a condition.",
           "value": {

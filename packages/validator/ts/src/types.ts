@@ -59,6 +59,8 @@ export interface MessagesSpec {
   unique?: string;
   /** Error message shown when the `accept` rule fails. */
   accept?: string;
+  /** Error message shown when the `conditionTree` rule fails. */
+  conditionTree?: string;
 }
 
 // ============================================================================

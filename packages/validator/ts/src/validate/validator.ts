@@ -78,11 +78,11 @@ export const ARRAY_LEVEL_RULES = ['required', 'unique', 'mincount', 'maxcount'];
 export const PATH_REFERENCE_RULES = ['equalTo', 'notEqual', 'unique', 'enddate'];
 
 /**
- * Rules whose string param is a literal value, never a condition expression. An
- * `accept` param like `.jpg` would otherwise be misread as a relative field
- * reference. LITERAL-PARAM-RULES.
+ * Rules whose param is a literal value, never a condition expression or a condition map. An
+ * `accept` param like `.jpg` would otherwise be misread as a relative field reference, and the
+ * `conditionTree` param `judge` as a path. LITERAL-PARAM-RULES.
  */
-export const LITERAL_PARAM_RULES = ['accept'];
+export const LITERAL_PARAM_RULES = ['accept', 'conditionTree'];
 
 /**
  * `match`/`pattern` carry a regex string preserved verbatim (it is not a

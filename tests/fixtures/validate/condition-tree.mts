@@ -45,7 +45,7 @@ function parameter(name: string, note: string, param: unknown): FailureCase {
   };
 }
 
-const comparison = (field: string, op: string, value: unknown) => ({ field, op, value });
+const comparison = (field: unknown, op: string, value: unknown) => ({ field, op, value });
 
 /** A chain of `levels` conditions: `levels - 1` nested groups around the condition `leaf`, which is level `levels`. */
 function chain(levels: number, leaf: Record<string, unknown>): Record<string, unknown> {
@@ -102,7 +102,7 @@ export const CONDITION_TREE_CASES: Array<WrittenCase | FailureCase> = [
       noOp: { field: 'a', value: 1 },
       noField: { op: 'eq', value: 1 },
       extraMember: { field: 'a', op: 'eq', value: 1, judge: 'x' },
-      fieldNumber: comparison(1 as unknown as string, 'eq', 1),
+      fieldNumber: comparison(1, 'eq', 1),
       fieldEmpty: comparison('', 'eq', 1),
       fieldWhitespace: comparison('　 \t', 'eq', 1),
       opUnknown: comparison('a', 'contains', 'x'),
@@ -172,11 +172,11 @@ export const CONDITION_TREE_CASES: Array<WrittenCase | FailureCase> = [
     name: 'condition-tree-message',
     note: 'messages.conditionTree overrides the default message of the rule (CUSC-003, CUVR-067).',
     spec: { type: 'group', properties: {
-      when: { type: 'text', validate: { conditionTree: true }, messages: { conditionTree: 'Write a condition.' } },
+      trigger: { type: 'text', validate: { conditionTree: true }, messages: { conditionTree: 'Write a condition.' } },
     } },
-    data: { when: { all: [1] } },
+    data: { trigger: { all: [1] } },
     expected: { valid: false, errors: [
-      { path: 'when', field: 'when', rule: 'conditionTree', message: 'Write a condition.', value: { all: [1] } },
+      { path: 'trigger', field: 'trigger', rule: 'conditionTree', message: 'Write a condition.', value: { all: [1] } },
     ] },
   },
   {

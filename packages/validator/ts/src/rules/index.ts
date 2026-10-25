@@ -28,6 +28,7 @@ import { acceptRule } from './accept';
 import { mincountRule } from './mincount';
 import { maxcountRule } from './maxcount';
 import { stepRule } from './step';
+import { conditionTreeRule } from './conditionTree';
 
 /**
  * Built-in validation rules registry
@@ -58,6 +59,7 @@ const builtInRules: Map<string, RuleDefinition> = new Map([
   ['mincount', mincountRule],
   ['maxcount', maxcountRule],
   ['step', stepRule],
+  ['conditionTree', conditionTreeRule],
 ]);
 
 /**

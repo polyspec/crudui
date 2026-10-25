@@ -271,6 +271,7 @@ export type LocalizedText = string | LangMap | null;
 // @public
 export interface MessagesSpec {
     accept?: string;
+    conditionTree?: string;
     date?: string;
     dateISO?: string;
     digits?: string;
@@ -420,6 +421,7 @@ export interface ValidateOptions {
 // @public
 export interface ValidateSlot {
     accept?: string | string[] | false | null;
+    conditionTree?: true | 'judge' | false | null;
     date?: Evaluated<boolean | null>;
     dateISO?: Evaluated<boolean | null>;
     digits?: Evaluated<boolean | null>;
