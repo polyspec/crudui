@@ -16,6 +16,7 @@
 
 mod canonical;
 mod choice_data;
+mod condition_tree;
 pub mod errors;
 pub mod group_source;
 mod keyed_maps;

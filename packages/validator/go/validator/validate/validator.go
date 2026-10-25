@@ -32,8 +32,9 @@ var pathReferenceRules = map[string]bool{
 }
 
 // literalParamRules carry a literal param (.jpg must not be read as a relative
-// reference) — never evaluated (LITERAL-PARAM-RULES).
-var literalParamRules = map[string]bool{"accept": true}
+// reference, nor the conditionTree param judge as a path, nor an object as a
+// condition map) — never evaluated (LITERAL-PARAM-RULES).
+var literalParamRules = map[string]bool{"accept": true, "conditionTree": true}
 
 // patternParamRules carry a CRUDUI pattern string preserved verbatim.
 var patternParamRules = map[string]bool{"match": true, "pattern": true}

@@ -213,6 +213,13 @@ pub(crate) fn check(
                 "Invalid unique parameter: expected true, false or a string".to_string(),
             )),
         },
+        "conditionTree" => {
+            if super::condition_tree::is_parameter(parameter) {
+                Ok(Parameter::Unchecked)
+            } else {
+                Err(invalid(super::condition_tree::PARAMETER_ERROR.to_string()))
+            }
+        }
         "pattern" | "match" => {
             let Value::String(source) = parameter else {
                 return Err(invalid(format!(

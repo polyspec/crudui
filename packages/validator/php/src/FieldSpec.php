@@ -132,7 +132,7 @@ final class FieldSpec
     public const VALIDATE_SUB_KEYS = [
         'required', 'email', 'minlength', 'maxlength', 'min', 'max', 'match', 'pattern',
         'unique', 'in', 'range', 'rangelength', 'number', 'digits', 'equalTo', 'notEqual',
-        'date', 'dateISO', 'enddate', 'url', 'accept', 'mincount', 'maxcount', 'step',
+        'date', 'dateISO', 'enddate', 'url', 'accept', 'mincount', 'maxcount', 'step', 'conditionTree',
     ];
 
     /**

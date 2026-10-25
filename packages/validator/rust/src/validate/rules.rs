@@ -81,6 +81,7 @@ pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
         "mincount" => Some(rule_mincount),
         "maxcount" => Some(rule_maxcount),
         "step" => Some(rule_step),
+        "conditionTree" => Some(rule_condition_tree),
         _ => None,
     }
 }
@@ -372,6 +373,23 @@ fn rule_digits(ctx: &RuleContext) -> Option<String> {
     Some(
         message_override(ctx.messages, "digits")
             .unwrap_or("Please enter only digits.")
+            .to_string(),
+    )
+}
+
+/// `conditionTree`: the value is a condition tree; the parameter `judge` permits
+/// judged text (docs/spec/validation-rules.md, Condition trees). Empty skips.
+fn rule_condition_tree(ctx: &RuleContext) -> Option<String> {
+    if !super::condition_tree::is_parameter(ctx.rule_param) || is_empty(ctx.value) {
+        return None;
+    }
+    let judge = ctx.rule_param.as_str() == Some("judge");
+    if super::condition_tree::is_condition(ctx.value, judge, 1) {
+        return None;
+    }
+    Some(
+        message_override(ctx.messages, "conditionTree")
+            .unwrap_or("Please enter a valid condition.")
             .to_string(),
     )
 }

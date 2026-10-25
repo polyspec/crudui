@@ -53,7 +53,7 @@ const detailCases = JSON.parse(readFileSync(
 
 /* The engine units of rule evaluation, shared by the validation programs. */
 const ruleSources = [
-  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'choice_list.c', 'group_source.c', 'rule_number.c', 'unicode_data.c',
+  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'rule_condition_tree.c', 'choice_list.c', 'group_source.c', 'rule_number.c', 'unicode_data.c',
   'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c',
 ];
 

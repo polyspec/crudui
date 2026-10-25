@@ -56,6 +56,8 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 		return checkIn(param)
 	case "equalTo", "enddate", "notEqual", "unique":
 		return checkReferenceParameter(rule, param)
+	case "conditionTree":
+		return checkConditionTreeParameter(param)
 	case "match", "pattern":
 		source, ok := param.(string)
 		if !ok {

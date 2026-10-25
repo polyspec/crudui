@@ -17,6 +17,7 @@ bool ps_registered_rule(ps_text rule)
         "required", "email", "minlength", "maxlength", "min", "max", "match", "pattern",
         "unique", "in", "range", "rangelength", "number", "digits", "equalTo", "notEqual",
         "date", "dateISO", "enddate", "url", "accept", "mincount", "maxcount", "step",
+        "conditionTree",
     };
     for (size_t i = 0; i < sizeof(rules) / sizeof(rules[0]); ++i)
         if (ps_text_is(rule, rules[i])) return true;
@@ -70,6 +71,12 @@ bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache
         return !problem->code || strcmp(problem->code, "INTERNAL_ERROR");
     }
     if (reference_parameter(rule, parameter, problem)) return true;
+    if (ps_text_is(rule, "conditionTree")) {
+        if (!ps_condition_tree_parameter(parameter))
+            *problem = (ps_parameter_problem){.code = "INVALID_RULE_PARAMETER",
+                .message = "Invalid conditionTree parameter: expected true, false or judge"};
+        return true;
+    }
     if (!pattern_rule(rule)) return true;
     if (!parameter || parameter->kind != PS_STRING) {
         *problem = (ps_parameter_problem){.code = "INVALID_RULE_PARAMETER", .message =

@@ -451,7 +451,7 @@ static const ps_value *effective_parameter(ps_text rule, const ps_value *declare
 {
     static const char *const verbatim[] = {
         "equalTo", "notEqual", "unique", "enddate", "accept",
-        "match", "pattern", "in",
+        "match", "pattern", "in", "conditionTree",
     };
     *owned = NULL;
     if (!declared || string_in(rule, verbatim, sizeof(verbatim) / sizeof(verbatim[0]))) return declared;
@@ -507,6 +507,7 @@ static ps_chars message_for(const ps_value *field, ps_text rule, const ps_value 
         {"accept", "Please upload a file with a valid format."},
         {"mincount", "Please select at least {0} items."}, {"maxcount", "Please select no more than {0} items."},
         {"step", "Please enter a value that is a multiple of {0}."},
+        {"conditionTree", "Please enter a valid condition."},
     };
     ps_text format = {NULL, 0};
     if (custom) format = ps_string(custom);
@@ -603,6 +604,7 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
     }
     if (ps_text_is(rule, "url")) return parameter->kind == PS_BOOL && !parameter->data.boolean ? 1 : value->kind == PS_STRING && url_valid(ps_trim(ps_string(value)));
     if (ps_text_is(rule, "accept")) return accept_value(value, parameter);
+    if (ps_text_is(rule, "conditionTree")) return ps_condition_tree_passes(value, parameter);
     /* Rule names are checked when the specification loads. */
     (void)field; return -1;
 }

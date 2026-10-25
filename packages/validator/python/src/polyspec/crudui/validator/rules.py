@@ -15,6 +15,7 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Any, Callable, TypeAlias, cast
 
+from . import condition_tree
 from .jsvalue import JsonValue
 from .parser import is_condition_expression, parse_condition
 from .pattern import PatternSyntaxError, compile_pattern
@@ -884,6 +885,16 @@ def _rule_accept(context: RuleContext) -> str | None:
     return None
 
 
+def _rule_condition_tree(context: RuleContext) -> str | None:
+    value, rule_param = context["value"], context["ruleParam"]
+    if not condition_tree.is_parameter(rule_param) or is_empty_value(value):
+        return None
+    if condition_tree.is_condition_tree(value, rule_param == "judge"):
+        return None
+    message: str = _message(context, "conditionTree", "Please enter a valid condition.")
+    return message
+
+
 _RULES = {
     "required": _rule_required,
     "email": _rule_email,
@@ -910,6 +921,7 @@ _RULES = {
     "mincount": _rule_mincount,
     "maxcount": _rule_maxcount,
     "step": _rule_step,
+    "conditionTree": _rule_condition_tree,
 }
 
 _CHECKED_RULES = {
@@ -931,6 +943,7 @@ _CHECKED_RULES = {
     "enddate",
     "notEqual",
     "unique",
+    "conditionTree",
 }
 
 
@@ -1017,6 +1030,12 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
             else invalid(
                 "Invalid notEqual parameter: expected a string, number or boolean"
             )
+        )
+    if rule_name == "conditionTree":
+        return (
+            None
+            if condition_tree.is_parameter(param)
+            else invalid(condition_tree.PARAMETER_ERROR)
         )
     if rule_name == "unique":
         return (

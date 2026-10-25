@@ -26,6 +26,7 @@ use Polyspec\Crudui\Validator\Rules\Accept;
 use Polyspec\Crudui\Validator\Rules\MinCount;
 use Polyspec\Crudui\Validator\Rules\MaxCount;
 use Polyspec\Crudui\Validator\Rules\Step;
+use Polyspec\Crudui\Validator\Rules\ConditionTree;
 use Polyspec\Crudui\Validator\Rules\RuleInterface;
 use Polyspec\Crudui\Validator\Expr\Expression;
 use Polyspec\Crudui\Validator\Expr\ConditionalValue;
@@ -97,6 +98,7 @@ final class Validator
         'mincount' => 'Please select at least {0} items.',
         'maxcount' => 'Please select no more than {0} items.',
         'step' => 'Please enter a value that is a multiple of {0}.',
+        'conditionTree' => 'Please enter a valid condition.',
     ];
 
     /** @var array<string, RuleInterface> rule instances by rule name */
@@ -173,6 +175,7 @@ final class Validator
             'mincount' => new MinCount(),
             'maxcount' => new MaxCount(),
             'step' => new Step(),
+            'conditionTree' => new ConditionTree(),
         ];
     }
 

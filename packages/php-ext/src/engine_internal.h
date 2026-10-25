@@ -410,6 +410,13 @@ ps_parameter_problem ps_in_parameter(const ps_value *parameter);
 int ps_in_passes(const ps_value *value, const ps_value *parameter);
 
 /*
+ * Condition trees (rule_condition_tree.c): ps_condition_tree_parameter is true for the parameters
+ * true and judge, and ps_condition_tree_passes whether a value is a condition tree under one of them.
+ */
+bool ps_condition_tree_parameter(const ps_value *parameter);
+bool ps_condition_tree_passes(const ps_value *value, const ps_value *parameter);
+
+/*
  * Locale-independent number text (number_text.c); no engine path uses strtod or printf for a
  * floating-point number.
  * ps_numeric_text: whether trimmed text is numeric text (the HTML valid floating-point number)

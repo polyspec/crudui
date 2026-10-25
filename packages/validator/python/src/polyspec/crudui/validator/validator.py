@@ -49,7 +49,7 @@ __all__ = ["ARRAY_LEVEL_RULES", "FormInputError", "Validator", "validate"]
 
 ARRAY_LEVEL_RULES = ("required", "unique", "mincount", "maxcount")
 PATH_REFERENCE_RULES = ("equalTo", "notEqual", "unique", "enddate")
-LITERAL_PARAM_RULES = ("accept",)
+LITERAL_PARAM_RULES = ("accept", "conditionTree")
 REGEX_PARAM_RULES = ("match", "pattern")
 MEMBERSHIP_PARAM_RULES = ("in",)
 

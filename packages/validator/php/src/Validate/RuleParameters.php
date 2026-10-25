@@ -11,6 +11,7 @@ use Polyspec\Crudui\Validator\Expr\LiteralNode;
 use Polyspec\Crudui\Validator\Expr\Node;
 use Polyspec\Crudui\Validator\Expr\TernaryNode;
 use Polyspec\Crudui\Validator\Patterns\PatternParameter;
+use Polyspec\Crudui\Validator\Rules\ConditionTree;
 use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
 use Polyspec\Crudui\Validator\Values\LengthLimit;
 use Polyspec\Crudui\Validator\Values\Membership;
@@ -27,7 +28,9 @@ use Polyspec\Crudui\Validator\Values\Numeric;
 final class RuleParameters
 {
     /** Rules that receive their parameters unchanged, never as conditions. */
-    public const UNCHANGED = ['equalTo', 'notEqual', 'unique', 'enddate', 'accept', 'match', 'pattern', 'in'];
+    public const UNCHANGED = [
+        'equalTo', 'notEqual', 'unique', 'enddate', 'accept', 'match', 'pattern', 'in', 'conditionTree',
+    ];
 
     /**
      * Check a parameter that is used as declared or was selected by a condition.
@@ -52,6 +55,7 @@ final class RuleParameters
                 'in' => Membership::fromParameter($parameter),
                 'match', 'pattern' => PatternParameter::compile($rule, $parameter),
                 'equalTo', 'enddate', 'notEqual', 'unique' => self::reference($rule, $parameter),
+                'conditionTree' => ConditionTree::judges($parameter),
                 default => null,
             };
         } catch (InvalidRuleParameter $error) {

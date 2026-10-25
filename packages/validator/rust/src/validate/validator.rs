@@ -78,8 +78,8 @@ const ARRAY_LEVEL_RULES: &[&str] = &["required", "unique", "mincount", "maxcount
 /// Rules whose param is a field reference / filter — preserved verbatim.
 const PATH_REFERENCE_RULES: &[&str] = &["equalTo", "notEqual", "unique", "enddate"];
 
-/// Rules whose string param is a literal value, never a condition.
-const LITERAL_PARAM_RULES: &[&str] = &["accept"];
+/// Rules whose param is a literal value, never a condition or a condition map.
+const LITERAL_PARAM_RULES: &[&str] = &["accept", "conditionTree"];
 
 /// Rules whose string param is a pattern preserved verbatim.
 const PATTERN_PARAM_RULES: &[&str] = &["match", "pattern"];
