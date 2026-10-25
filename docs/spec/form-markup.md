@@ -38,7 +38,7 @@ spec declares in `design`.
 - **CUMK-007** `crudui-action`: A button: an action with `data-crudui-action`, a form button or the button of a [button field](#button-fields); `crudui-action--text` shows its label as text.
 - The structure map (`crudui-outline`) and the current data view (`crudui-data`) are blocks of the TypeScript HTML renderer, documented in `packages/html/README.md`.
 - **CUMK-010** `crudui-widget`: A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget.
-- **CUMK-011** `crudui-input`: A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input and `--switch` for the checkbox input of a [switch](#switches).
+- **CUMK-011** `crudui-input`: A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input, `--condition` for the textarea of a [condition field](#condition-fields) and `--switch` for the checkbox input of a [switch](#switches).
 - **CUMK-012** `crudui-choices`: Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)).
 
 - **CUMK-013** `data-field-path`: Data path of field, group, collection and lang nodes, and of structure-map rows
@@ -255,6 +255,38 @@ output text as `text`. A field `volume` with `default: 50`, `append: "%"` and
   data-default="50" id="crudui:volume" name="volume" value="50"/><output
   class="crudui-widget__output" for="crudui:volume">50</output><span
   class="crudui-widget__affix">%</span></div>
+```
+
+## Condition fields
+
+A `condition` field ([schema](schema.md#condition-fields)) renders the widget of a `textarea` field:
+the prepend affix, a `textarea` and the append affix inside `crudui-widget`. The textarea has the
+class `valid-target crudui-input crudui-input--condition` followed by the class of `design.class`,
+`rows="5"` and `data-crudui-value="json"`, which marks its text as a JSON text for the browser
+bindings ([condition values](form-runtime.md#condition-values)); then come the style, the event
+attributes and the data attributes of a textarea. Its text is the condition text of the field value,
+or of `default` when the data has no value for the field, and `data-default` is the condition text of
+`default`:
+
+- **CUMK-066** The condition text of a value: a string is itself, `null` and an absent value are empty, and any
+  other value is its JSON text as ECMAScript's `JSON.stringify` writes it without indentation. That
+  text has no whitespace, writes the members of an object in their data order, writes a number in the
+  shortest form of ECMAScript's `Number::toString` and writes `true`, `false` and `null`. A string is in
+  double quotes: `"` and `\` are escaped by a backslash; U+0008, U+0009, U+000A, U+000C and U+000D
+  are written as `\b`, `\t`, `\n`, `\f` and `\r`; every other character below U+0020 and every
+  unpaired surrogate is written as `\u` and four lowercase hexadecimal digits; and every other
+  character is written as itself.
+
+The widget model has the layout `widget`, the tag `textarea`, the textarea attributes as `attrs` and
+the condition text as `text`. The stylesheet writes the text in a monospace font. A field `pass` with the label `Pass condition`,
+`validate: { required: true, conditionTree: judge }` and the data
+`{ "any": [{ "field": "clues.size", "op": "ge", "value": 2 }, { "judge": "Jian finds it." }] }`
+writes:
+
+```html
+<div class="crudui-widget"><textarea name="pass" class="valid-target crudui-input crudui-input--condition"
+  rows="5" data-crudui-value="json" data-name="pass" data-rule-name="pass" data-default=""
+  id="crudui:pass">{&quot;any&quot;:[{&quot;field&quot;:&quot;clues.size&quot;,&quot;op&quot;:&quot;ge&quot;,&quot;value&quot;:2},{&quot;judge&quot;:&quot;Jian finds it.&quot;}]}</textarea></div>
 ```
 
 ## Switches

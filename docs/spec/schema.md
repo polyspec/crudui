@@ -105,6 +105,28 @@ empty location. Multiples are decided exactly, as the `step` rule decides them.
 - **CUSC-009** `validate.step` absent, or not a finite number above 0: `Invalid validate.step at {path}: expected a finite number above 0`
 - **CUSC-010** A minimum that is not a multiple of the step: `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step`
 
+### Condition fields
+
+A `condition` field holds one [condition tree](#condition-trees) as its data, and its control edits
+the tree as JSON text. Its rule is `validate.conditionTree`, which is required and is the literal
+`true` or `judge`, not an expression or a condition map: every value of the field is then checked as
+a condition tree, with judged text only under `judge`. A required tree also declares `required`.
+The [form markup](form-markup.md#condition-fields) defines the control, and the
+[form runtime](form-runtime.md#condition-values) defines how a browser reads its text back into the
+tree and how a server reads a submitted tree.
+
+```yaml
+pass:
+  type: condition
+  label: Pass condition
+  validate: { required: true, conditionTree: judge }
+```
+
+Compilation checks a condition field after its `behavior` and fails with `INVALID_FORM_INPUT` and an
+empty location:
+
+- **CUSC-070** `validate.conditionTree` absent, or neither `true` nor `judge`: `Invalid validate.conditionTree at {path}: expected true or judge`
+
 ## Conditions and appearance
 
 Conditions are values in the relevant setting. `design.show` controls visibility;

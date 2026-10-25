@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: ced37156f995a6c094cecb884e07e3792b69817bfb009438a191426d9453e770 -->
+<!-- source-sha256: 091a6dee3eefa465ff225551f1ae64a49e0f21348ae41a26bf7bfc740a4040e2 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -36,7 +36,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 - **CUMK-007** `crudui-action`: 버튼입니다. `data-crudui-action`을 가진 조작, 폼 버튼, [버튼 필드](#버튼-필드)의 버튼이 이에 해당합니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다.
 - 구조 맵(`crudui-outline`)과 현재 데이터 보기(`crudui-data`)는 TypeScript HTML 렌더러의 블록이며, `packages/html/README.ko.md`에 문서화되어 있습니다.
 - **CUMK-010** `crudui-widget`: 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다.
-- **CUMK-011** `crudui-input`: 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다.
+- **CUMK-011** `crudui-input`: 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [조건 필드](#조건-필드)의 textarea는 `--condition`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다.
 - **CUMK-012** `crudui-choices`: 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)).
 
 - **CUMK-013** `data-field-path`: field·group·collection·lang 노드와 구조 맵 행의 데이터 경로
@@ -237,6 +237,35 @@ select 필드의 선택 목록은 그룹을 가질 수 있습니다([스키마](
   data-default="50" id="crudui:volume" name="volume" value="50"/><output
   class="crudui-widget__output" for="crudui:volume">50</output><span
   class="crudui-widget__affix">%</span></div>
+```
+
+## 조건 필드
+
+`condition` 필드([스키마](schema.ko.md#조건-필드))는 `textarea` 필드의 위젯을 렌더링합니다.
+`crudui-widget` 안에 앞 텍스트, `textarea`, 뒤 텍스트가 놓입니다. textarea는
+`valid-target crudui-input crudui-input--condition` 클래스 뒤에 `design.class`의 클래스를 가지고,
+`rows="5"`와 `data-crudui-value="json"`을 가집니다. `data-crudui-value`는 브라우저 바인딩에 그 텍스트가
+JSON 텍스트임을 표시합니다([조건 값](form-runtime.ko.md#조건-값)). 그 뒤에 textarea의 style, 이벤트 속성,
+데이터 속성이 옵니다. 텍스트는 필드 값의 조건 텍스트이고, 데이터에 필드 값이 없으면 `default`의 조건
+텍스트입니다. `data-default`는 `default`의 조건 텍스트입니다.
+
+- **CUMK-066** 값의 조건 텍스트: 문자열은 그 자신이고, `null`과 없는 값은 비어 있으며, 그 밖의 값은
+  ECMAScript의 `JSON.stringify`가 들여쓰기 없이 쓰는 JSON 텍스트입니다. 그 텍스트에는 공백이 없고, 객체의
+  멤버를 데이터 순서로 쓰며, 숫자를 ECMAScript `Number::toString`의 가장 짧은 형태로 쓰고, `true`, `false`,
+  `null`을 씁니다. 문자열은 큰따옴표 안에 씁니다. `"`와 `\`는 백슬래시로 이스케이프하고, U+0008, U+0009,
+  U+000A, U+000C, U+000D는 `\b`, `\t`, `\n`, `\f`, `\r`로 쓰며, U+0020 미만의 다른 문자와 짝이 없는
+  서로게이트는 `\u`와 소문자 16진수 네 자리로 쓰고, 그 밖의 문자는 그대로 씁니다.
+
+위젯 모델은 배치 `widget`, 태그 `textarea`, textarea 속성인 `attrs`, 조건 텍스트인 `text`를 가집니다.
+스타일시트는 텍스트를 고정폭 글꼴로 씁니다.
+라벨 `Pass condition`, `validate: { required: true, conditionTree: judge }`, 데이터
+`{ "any": [{ "field": "clues.size", "op": "ge", "value": 2 }, { "judge": "Jian finds it." }] }`를 가진
+`pass` 필드는 다음을 씁니다.
+
+```html
+<div class="crudui-widget"><textarea name="pass" class="valid-target crudui-input crudui-input--condition"
+  rows="5" data-crudui-value="json" data-name="pass" data-rule-name="pass" data-default=""
+  id="crudui:pass">{&quot;any&quot;:[{&quot;field&quot;:&quot;clues.size&quot;,&quot;op&quot;:&quot;ge&quot;,&quot;value&quot;:2},{&quot;judge&quot;:&quot;Jian finds it.&quot;}]}</textarea></div>
 ```
 
 ## 스위치

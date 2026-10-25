@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 397201844cbfc2833a2e232839a8c647191b09536346395c6d016ac5678f48ac -->
+<!-- source-sha256: c3b547cf1d8bf96e4aeb1a63732a05f1beacff6b967717dcbadbda372dc0a8dd -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -96,6 +96,26 @@ volume:
 - **CUSC-008** `validate.range`가 없거나, 최솟값이 최댓값보다 크지 않은 유한한 숫자 두 개가 아님: `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum`
 - **CUSC-009** `validate.step`이 없거나 0보다 큰 유한한 숫자가 아님: `Invalid validate.step at {path}: expected a finite number above 0`
 - **CUSC-010** 최솟값이 단계의 배수가 아님: `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step`
+
+### 조건 필드
+
+`condition` 필드는 데이터로 [조건 트리](#조건-트리) 하나를 가지며, 컨트롤은 그 트리를 JSON 텍스트로
+편집합니다. 규칙은 `validate.conditionTree`입니다. 이 규칙은 필수이며 표현식이나 조건 맵이 아닌 리터럴
+`true` 또는 `judge`입니다. 따라서 필드의 모든 값을 조건 트리로 검사하고, 판정 문장은 `judge`에서만
+허용합니다. 트리가 필수이면 `required`도 선언합니다. 컨트롤은 [폼 마크업](form-markup.ko.md#조건-필드)이
+정의하고, 브라우저가 그 텍스트를 트리로 다시 읽는 방법과 서버가 제출된 트리를 읽는 방법은
+[폼 런타임](form-runtime.ko.md#조건-값)이 정의합니다.
+
+```yaml
+pass:
+  type: condition
+  label: Pass condition
+  validate: { required: true, conditionTree: judge }
+```
+
+컴파일은 조건 필드를 `behavior` 다음에 검사하며 `INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
+
+- **CUSC-070** `validate.conditionTree`가 없거나 `true`도 `judge`도 아님: `Invalid validate.conditionTree at {path}: expected true or judge`
 
 ## 조건과 외형
 

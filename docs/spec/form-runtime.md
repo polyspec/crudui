@@ -269,6 +269,21 @@ rendered or submitted row order retain the data member order. Form state does
 not retain validation errors; pages validate the current data and pass the
 returned errors to `renderForm` as `options.errors`.
 
+### Condition values
+
+A browser holds the tree of a [condition field](schema.md#condition-fields) as the text of its
+control, the `textarea` marked `data-crudui-value="json"` ([form markup](form-markup.md#condition-fields)).
+The browser bindings read that control as its decoded value: a text that is a JSON text (RFC 8259) is
+the value it parses to, and any other text, the empty text included, is that text as a string, which
+`conditionTree` refuses unless it is empty. `connectForm` sets the decoded value with `setValue`, so
+`getData()` returns the tree as an object. It writes the condition text of the instance value into
+the control only when the condition text of the decoded control value differs from it, so a text that
+a visitor types keeps its whitespace while it decodes to the instance value. The browser validation
+of a server-rendered form (`bindForm` of `@polyspec/crudui-form-binding`) builds the data with the
+same decoded value. A native submission sends the text, and a server decodes the text of the field
+by the same rule with its JSON reader before it validates the data, so `conditionTree` checks the tree
+that the browser checked.
+
 ## Complete form
 
 `renderForm(form, options)` renders the complete form that a server sends: the form element,
