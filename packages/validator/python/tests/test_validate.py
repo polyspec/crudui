@@ -65,11 +65,11 @@ class TestValidateFixtureCounts(unittest.TestCase):
         self.assertGreater(len(self.cases), 0)
 
     def test_result_case_count(self):
-        self.assertEqual(len(self.cases), 357)
-        self.assertEqual(len(self.result_cases), 207)
+        self.assertEqual(len(self.cases), 363)
+        self.assertEqual(len(self.result_cases), 208)
 
     def test_failure_case_count(self):
-        self.assertEqual(len(self.failure_cases), 150)
+        self.assertEqual(len(self.failure_cases), 155)
 
 
 if __name__ == "__main__":

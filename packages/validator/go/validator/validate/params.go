@@ -115,6 +115,10 @@ func checkRuleName(rule string, declaration []string) error {
 func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []string) error {
 	for name, field := range fieldDeclarations(properties) {
 		path := appendPath(declaration, name)
+		// The shape of multiple is checked before the field's group source and rules (schema.md, CUSC-081).
+		if multiple, declared := field.Get("multiple"); declared && !isMultipleShape(multiple) {
+			return ruleParameterError("Invalid multiple at " + pathToString(path) + ": expected a boolean, only or an object").loadError(path)
+		}
 		// A group source is checked before the field's rules (validation-rules.md, Parameter errors).
 		if message := GroupSourceFailure(field, pathToString(path), v.properties); message != "" {
 			return ruleParameterError(message).loadError(path)
@@ -192,4 +196,15 @@ func ternaryLiterals(node expr.Node, literals []any) []any {
 // patternFor returns the matcher of a checked pattern parameter.
 func (v *Validator) patternFor(source string) *patternMatcher {
 	return v.patterns[source]
+}
+
+// isMultipleShape reports whether a multiple declaration is a boolean, only or an object (schema.md, CUSC-041).
+func isMultipleShape(multiple any) bool {
+	switch value := multiple.(type) {
+	case bool, *compose.OMap:
+		return true
+	case string:
+		return value == "only"
+	}
+	return false
 }

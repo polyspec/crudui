@@ -105,6 +105,11 @@ export const MEMBERSHIP_PARAM_RULES = ['in'];
 /** A CRUDUI field after compose: a plain object with the role slots. */
 export type ComposedField = Record<string, unknown>;
 
+/** Whether a `multiple` declaration has one of its shapes: a boolean, `only` or an object (schema.md, CUSC-041). */
+function isMultipleShape(multiple: unknown): boolean {
+  return typeof multiple === 'boolean' || multiple === 'only' || isRecord(multiple);
+}
+
 /** Field types whose control holds one value (validation-rules.md, "Evaluation"). */
 const SINGLE_CHOICE_TYPES: ReadonlySet<unknown> = new Set(['select', 'dropdown', 'selectbox', 'choice', 'radio']);
 
@@ -361,6 +366,10 @@ export class Validator {
         continue;
       }
       const path = [...declarationPath, propertyKey];
+      // The shape of multiple is checked before the field's group source and rules (schema.md, CUSC-081).
+      if (Object.prototype.hasOwnProperty.call(field, 'multiple') && !isMultipleShape(field.multiple)) {
+        throw new ComposeLoadError('INVALID_RULE_PARAMETER', `Invalid multiple at ${path.join('.')}: expected a boolean, only or an object`, path);
+      }
       // A group source is checked before the field's rules (validation-rules.md, "Parameter errors").
       const sourceFailure = groupSourceFailure(field, path.join('.'), this.properties);
       if (sourceFailure !== undefined) throw new ComposeLoadError('INVALID_RULE_PARAMETER', sourceFailure, path);

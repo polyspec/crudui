@@ -180,6 +180,23 @@ static ps_value *check_name(ps_text rule, const ps_text *path, size_t length)
 }
 
 /*
+ * The load failure INVALID_RULE_PARAMETER with message at the declaration path location, whose trace is the path, or NULL when
+ * an allocation fails.
+ */
+static ps_value *declaration_error(const ps_text *path, size_t length, ps_text location, ps_text message)
+{
+    ps_value *trace = ps_array_value();
+    bool ok = trace != NULL;
+    for (size_t i = 0; ok && i < length; ++i) {
+        ps_value *name = ps_text_value(path[i]);
+        ok = name && ps_append(trace, name);
+    }
+    ps_value *error = ok ? ps_error_text("compose", "INVALID_RULE_PARAMETER", message, location, trace) : NULL;
+    ps_value_free(trace);
+    return error;
+}
+
+/*
  * The load failure of a field's group source (group_source.c), or NULL: INVALID_RULE_PARAMETER at
  * the declaration path. An allocation failure is an internal error.
  */
@@ -189,27 +206,40 @@ static ps_value *check_group_source(const ps_value *field, const ps_text *path, 
     ps_chars location = ps_dotted_path(path, length, (ps_text){NULL, 0});
     ps_chars message = {NULL, 0};
     int state = location.bytes ? ps_group_source_failure(field, ps_view(location), root, &message) : -1;
-    ps_value *error = NULL;
-    if (state > 0) {
-        ps_value *trace = ps_array_value();
-        bool ok = trace != NULL;
-        for (size_t i = 0; ok && i < length; ++i) {
-            ps_value *name = ps_text_value(path[i]);
-            ok = name && ps_append(trace, name);
-        }
-        if (ok) error = ps_error_text("compose", "INVALID_RULE_PARAMETER", ps_view(message), ps_view(location), trace);
-        ps_value_free(trace);
-    }
+    ps_value *error = state > 0 ? declaration_error(path, length, ps_view(location), ps_view(message)) : NULL;
     free(location.bytes);
     free(message.bytes);
     if (state < 0 || (state > 0 && !error)) return internal_error();
     return error;
 }
 
-/* A field's group source, then its rule names and parameters in declaration order, then its messages keys. */
+/*
+ * The load failure of a field whose multiple is present and is not a boolean, only or an object (schema.md, CUSC-081), or
+ * NULL: INVALID_RULE_PARAMETER at the declaration path. An allocation failure is an internal error.
+ */
+static ps_value *check_multiple(const ps_value *field, const ps_text *path, size_t length)
+{
+    const ps_value *multiple = ps_get(field, "multiple");
+    if (!multiple || multiple->kind == PS_BOOL || multiple->kind == PS_OBJECT || ps_is_string(multiple, "only")) return NULL;
+    ps_chars location = ps_dotted_path(path, length, (ps_text){NULL, 0});
+    ps_chars message = location.bytes
+        ? PS_CONCAT(PS_TEXT("Invalid multiple at "), ps_view(location), PS_TEXT(": expected a boolean, only or an object"))
+        : (ps_chars){NULL, 0};
+    ps_value *error = message.bytes ? declaration_error(path, length, ps_view(location), ps_view(message)) : NULL;
+    free(location.bytes);
+    free(message.bytes);
+    return error ? error : internal_error();
+}
+
+/*
+ * A field's multiple, then its group source, then its rule names and parameters in declaration order, then its messages
+ * keys.
+ */
 static ps_value *check_field(const ps_value *field, const ps_text *path, size_t length,
                              ps_pattern_cache *patterns, const ps_value *root)
 {
+    ps_value *multiple_error = check_multiple(field, path, length);
+    if (multiple_error) return multiple_error;
     ps_value *source_error = check_group_source(field, path, length, root);
     if (source_error) return source_error;
     const ps_value *rules = ps_get(field, "validate");

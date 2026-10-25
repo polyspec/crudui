@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\Validator\Validate;
 
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Support\JsonValue;
 
 /**
  * Check the declared rule names and parameters of a composed field map: fields in
@@ -32,6 +33,14 @@ final class DeclarationCheck
             }
             $field = (array) $field;
             $fieldPath = [...$path, (string) $name];
+            // The shape of multiple is checked before the group source and the rules of the field (CUSC-081).
+            if (array_key_exists('multiple', $field) && !self::isMultipleShape($field['multiple'])) {
+                throw new ComposeLoadError(
+                    'INVALID_RULE_PARAMETER',
+                    sprintf('Invalid multiple at %s: expected a boolean, only or an object', implode('.', $fieldPath)),
+                    $fieldPath
+                );
+            }
             // A group source is checked before the rules of its field (schema.md, "Choices from a repeated group").
             $sourceFailure = GroupSource::failure($field, implode('.', $fieldPath), $root);
             if ($sourceFailure !== null) {
@@ -71,5 +80,11 @@ final class DeclarationCheck
         if (!\array_key_exists($rule, Validator::DEFAULT_MESSAGES)) {
             throw new ComposeLoadError('UNKNOWN_RULE', 'Unknown rule: ' . $rule, $path);
         }
+    }
+
+    /** Whether a multiple declaration is a boolean, only or an object (schema.md, CUSC-041). */
+    private static function isMultipleShape(mixed $multiple): bool
+    {
+        return \is_bool($multiple) || $multiple === 'only' || JsonValue::isObject($multiple);
     }
 }

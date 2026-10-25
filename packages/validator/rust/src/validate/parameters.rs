@@ -70,6 +70,14 @@ fn check_fields(
             continue;
         }
         path.push(key.clone());
+        // The shape of multiple is checked before the field's group source and rules (schema.md, Acceptance criteria).
+        if field.get("multiple").is_some_and(|multiple| !is_multiple_shape(multiple)) {
+            return Err(ValidateError::Load(ComposeLoadError::with_trace(
+                ComposeErrorCode::InvalidRuleParameter,
+                format!("Invalid multiple at {}: expected a boolean, only or an object", path.join(".")),
+                path.clone(),
+            )));
+        }
         if let Some(message) = group_source_failure(field, &path.join("."), root) {
             return Err(ValidateError::Load(ComposeLoadError::with_trace(
                 ComposeErrorCode::InvalidRuleParameter,
@@ -229,6 +237,11 @@ pub(crate) fn check(
 /// A JSON number as a finite double.
 fn finite(value: &Value) -> Option<f64> {
     value.as_f64().filter(|number| number.is_finite())
+}
+
+/// Whether a `multiple` declaration is a boolean, `only` or an object (schema.md, Acceptance criteria).
+fn is_multiple_shape(multiple: &Value) -> bool {
+    matches!(multiple, Value::Bool(_) | Value::Object(_)) || multiple.as_str() == Some("only")
 }
 
 #[cfg(test)]

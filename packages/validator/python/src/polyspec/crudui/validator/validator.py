@@ -58,6 +58,11 @@ def _is_object(value: object) -> TypeGuard[dict[str, JsonValue]]:
     return value is not None and isinstance(value, dict)
 
 
+def _is_multiple_shape(multiple: object) -> bool:
+    """Whether a `multiple` declaration is a boolean, `only` or an object (schema.md, CUSC-041)."""
+    return isinstance(multiple, bool) or multiple == "only" or _is_object(multiple)
+
+
 def _is_multiple_field(field: dict[str, JsonValue]) -> bool:
     """Whether a field repeats (`multiple: true`, `multiple: only` or an object)."""
     multiple = field.get("multiple")
@@ -306,6 +311,13 @@ class Validator:
             if not _is_object(field):
                 continue
             path = [*declaration_path, property_key]
+            # The shape of multiple is checked before the field's group source and rules (schema.md, CUSC-081).
+            if "multiple" in field and not _is_multiple_shape(field["multiple"]):
+                raise ComposeLoadError(
+                    "INVALID_RULE_PARAMETER",
+                    f"Invalid multiple at {'.'.join(path)}: expected a boolean, only or an object",
+                    path,
+                )
             # A group source is checked before the field's rules (validation-rules.md, "Parameter errors").
             failure = group_source_failure(field, ".".join(path), self.properties)
             if failure is not None:
