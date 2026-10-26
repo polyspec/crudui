@@ -162,7 +162,7 @@ fn affix(affix: &Value, raw: bool) -> String {
 
 fn control(widget: &Value, search: bool) -> String {
     let tag = widget["tag"].as_str().unwrap_or("input");
-    let raw = search || has_events(&widget["attrs"]);
+    let raw = search || widget["layout"] == "condition" || has_events(&widget["attrs"]);
     let text = if raw { raw_text } else { escape };
     let render = if raw { raw_element } else { element };
     let content = if tag == "select" {
@@ -379,25 +379,25 @@ fn widget(model: &Value) -> String {
 /// named error of a value that the editor does not show, the textarea, the editor of a value that it shows and the
 /// append affix.
 fn condition_widget(model: &Value) -> String {
-    let raw = has_events(&model["attrs"]);
+    let raw = true;
     let editor = &model["condition"];
     let mut content = affix(&model["prepend"], raw);
     if let Some(error) = editor.get("error") {
-        content += &element(
+        content += &raw_element(
             "p",
             &json!({"class":"crudui-condition__error","role":"alert"}),
-            &escape(error.as_str().unwrap_or("")),
+            &raw_text(error.as_str().unwrap_or("")),
         );
     }
     content += &control(model, false);
     if editor.get("error").is_none() {
-        content += &element(
+        content += &raw_element(
             "div",
             &json!({"class":"crudui-condition","data-condition-for":editor["for"]}),
             &condition_node(&editor["root"], editor),
         );
     }
-    element(
+    raw_element(
         "div",
         &json!({"class":"crudui-widget crudui-widget--condition"}),
         &(content + &affix(&model["append"], raw)),
@@ -405,10 +405,10 @@ fn condition_widget(model: &Value) -> String {
 }
 
 fn condition_button(action: &str, label: &Value) -> String {
-    element(
+    raw_element(
         "button",
         &json!({"type":"button","class":"crudui-action crudui-action--text","data-condition-action":action}),
-        &escape(label.as_str().unwrap_or("")),
+        &raw_text(label.as_str().unwrap_or("")),
     )
 }
 
@@ -420,10 +420,10 @@ fn condition_select(attrs: &Value, choices: &[&str], selected: &str) -> String {
             if *choice == selected {
                 option["selected"] = "".into();
             }
-            element("option", &option, &escape(choice))
+            raw_element("option", &option, &raw_text(choice))
         })
         .collect();
-    element("select", attrs, &options)
+    raw_element("select", attrs, &options)
 }
 
 /// One condition of the editor: a group, a field comparison or a judged text (CUMK-067).
@@ -442,7 +442,7 @@ fn condition_node(node: &Value, editor: &Value) -> String {
                 .map_or(&[][..], Vec::as_slice)
                 .iter()
                 .map(|item| {
-                    element(
+                    raw_element(
                         "li",
                         &json!({"class":"crudui-condition__item"}),
                         &condition_node(item, editor),
@@ -454,24 +454,24 @@ fn condition_node(node: &Value, editor: &Value) -> String {
             } else {
                 String::new()
             };
-            element(
+            raw_element(
                 "fieldset",
                 &json!({"class":"crudui-condition__group","data-condition-path":path}),
                 &(condition_select(
                     &json!({"class":"crudui-condition__mode","data-condition-part":"mode","aria-label":labels["mode"]}),
                     &["all", "any"],
                     str_at(node, "mode"),
-                ) + &element("ol", &json!({"class":"crudui-condition__list"}), &items)
+                ) + &raw_element("ol", &json!({"class":"crudui-condition__list"}), &items)
                     + &condition_button("add-comparison", &labels["addComparison"])
                     + &condition_button("add-group", &labels["addGroup"])
                     + &judge
                     + &remove),
             )
         }
-        "judge" => element(
+        "judge" => raw_element(
             "div",
             &json!({"class":"crudui-condition__judge","data-condition-path":path}),
-            &(element(
+            &(raw_element(
                 "input",
                 &json!({"class":"crudui-condition__text","data-condition-part":"judge","value":node["text"]}),
                 "",
@@ -491,13 +491,13 @@ fn condition_node(node: &Value, editor: &Value) -> String {
                         field,
                     )
                 }
-                None => element(
+                None => raw_element(
                     "input",
                     &json!({"class":"crudui-condition__field","data-condition-part":"field","value":field}),
                     "",
                 ),
             };
-            element(
+            raw_element(
                 "div",
                 &json!({"class":"crudui-condition__comparison","data-condition-path":path}),
                 &(control
@@ -506,7 +506,7 @@ fn condition_node(node: &Value, editor: &Value) -> String {
                         &crate::condition_editor::CONDITION_OPS,
                         str_at(node, "op"),
                     )
-                    + &element(
+                    + &raw_element(
                         "input",
                         &json!({"class":"crudui-condition__value","data-condition-part":"value","value":node["value"]}),
                         "",

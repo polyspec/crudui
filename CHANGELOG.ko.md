@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9ce093432cac16ad49b9dc1cc7bd5f183fda5b56c352c7ac178f8116eec133f4 -->
+<!-- source-sha256: 3302e9700901a88426ab184dcbada70c62ba4359da389946970c36aed9a5c0de -->
 
 ## Unreleased
 
@@ -59,6 +59,10 @@
 ### 2026-10-26 — Native PHP record 저장이 표준 score 변환을 사용한다 (C17.46)
 
 - PHP record store는 검증된 decimal score text를 PHP numeric conversion으로 변환하며 finite-number 검사를 유지한다. Native extension process에서 validator NumberValue 구현 class를 읽지 않는다. Native process 검사를 유지하며 score test는 customer specification으로 decimal 허용과 radix 거부를 검증한다.
+
+### 2026-10-26 — Native condition editor가 raw HTML을 일관되게 작성한다 (C17.35-3)
+
+- PHP, Go, Rust, Python은 structured condition editor를 raw text와 attribute로 직렬화한다. Textarea는 JSON 따옴표를 유지하고 editor input은 HTML void tag를 사용하며 condition node, error, affix는 shared renderer와 같은 escaping을 적용한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

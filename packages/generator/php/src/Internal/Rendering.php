@@ -578,7 +578,7 @@ final class Rendering
                     $raw
                 );
             case 'condition':
-                return ConditionMarkup::widget($widget, $raw);
+                return ConditionMarkup::widget($widget);
         }
         throw new \LogicException('Unknown widget layout: ' . $widget->layout);
     }

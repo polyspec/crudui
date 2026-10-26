@@ -88,6 +88,9 @@ func attrs(a *Object, raw, input bool) string {
 func element(tag string, a *Object, body string) string {
 	return "<" + tag + attrs(a, false, false) + ">" + body + "</" + tag + ">"
 }
+func rawElement(tag string, a *Object, body string) string {
+	return "<" + tag + attrs(a, true, false) + ">" + body + "</" + tag + ">"
+}
 func inputHTML(a *Object, raw bool) string {
 	end := "/>"
 	if raw {
@@ -272,7 +275,7 @@ func renderWidget(w *Object) string {
 		}
 		return "<button" + attrs(a, raw, false) + ">" + textContent(stringAt(w, "text"), raw) + "</button>"
 	case "condition":
-		return conditionWidgetHTML(w, raw)
+		return conditionWidgetHTML(w)
 	}
 	return ""
 }
@@ -280,21 +283,21 @@ func renderWidget(w *Object) string {
 // conditionWidgetHTML writes a structured condition widget (docs/spec/form-markup.md, Structured condition
 // editor): the prepend affix, the named error of a value that the editor does not show, the textarea, the
 // editor of a value that it shows and the append affix.
-func conditionWidgetHTML(w *Object, raw bool) string {
+func conditionWidgetHTML(w *Object) string {
 	editor := object(read(w, "condition"))
-	body := affixHTML(read(w, "prepend"), raw)
+	body := affixHTML(read(w, "prepend"), true)
 	if editor.Has("error") {
-		body += element("p", NewObject("class", "crudui-condition__error", "role", "alert"), escape(stringAt(editor, "error")))
+		body += rawElement("p", NewObject("class", "crudui-condition__error", "role", "alert"), escapeText(stringAt(editor, "error")))
 	}
-	body += controlHTML(w, raw, "")
+	body += controlHTML(w, true, "")
 	if !editor.Has("error") {
-		body += element("div", NewObject("class", "crudui-condition", "data-condition-for", stringAt(editor, "for")), conditionNodeHTML(object(read(editor, "root")), editor))
+		body += rawElement("div", NewObject("class", "crudui-condition", "data-condition-for", stringAt(editor, "for")), conditionNodeHTML(object(read(editor, "root")), editor))
 	}
-	return `<div class="crudui-widget crudui-widget--condition">` + body + affixHTML(read(w, "append"), raw) + `</div>`
+	return `<div class="crudui-widget crudui-widget--condition">` + body + affixHTML(read(w, "append"), true) + `</div>`
 }
 
 func conditionButtonHTML(action, label string) string {
-	return element("button", NewObject("type", "button", "class", "crudui-action crudui-action--text", "data-condition-action", action), escape(label))
+	return rawElement("button", NewObject("type", "button", "class", "crudui-action crudui-action--text", "data-condition-action", action), escapeText(label))
 }
 
 func conditionSelectHTML(a *Object, choices []string, selected string) string {
@@ -304,9 +307,9 @@ func conditionSelectHTML(a *Object, choices []string, selected string) string {
 		if choice == selected {
 			o.Set("selected", "")
 		}
-		options += element("option", o, escape(choice))
+		options += rawElement("option", o, escapeText(choice))
 	}
-	return element("select", a, options)
+	return rawElement("select", a, options)
 }
 
 // conditionNodeHTML writes one condition of the editor: a group, a field comparison or a judged text (CUMK-067).
@@ -321,19 +324,19 @@ func conditionNodeHTML(node, editor *Object) string {
 	case "group":
 		items := ""
 		for _, item := range objectList(read(node, "items")) {
-			items += element("li", NewObject("class", "crudui-condition__item"), conditionNodeHTML(item, editor))
+			items += rawElement("li", NewObject("class", "crudui-condition__item"), conditionNodeHTML(item, editor))
 		}
 		judge := ""
 		if read(editor, "judge") == true {
 			judge = conditionButtonHTML("add-judge", stringAt(labels, "addJudge"))
 		}
-		return element("fieldset", NewObject("class", "crudui-condition__group", "data-condition-path", path),
+		return rawElement("fieldset", NewObject("class", "crudui-condition__group", "data-condition-path", path),
 			conditionSelectHTML(NewObject("class", "crudui-condition__mode", "data-condition-part", "mode", "aria-label", stringAt(labels, "mode")), []string{"all", "any"}, stringAt(node, "mode"))+
-				element("ol", NewObject("class", "crudui-condition__list"), items)+
+				rawElement("ol", NewObject("class", "crudui-condition__list"), items)+
 				conditionButtonHTML("add-comparison", stringAt(labels, "addComparison"))+conditionButtonHTML("add-group", stringAt(labels, "addGroup"))+judge+remove)
 	case "judge":
-		return element("div", NewObject("class", "crudui-condition__judge", "data-condition-path", path),
-			inputHTML(NewObject("class", "crudui-condition__text", "data-condition-part", "judge", "value", stringAt(node, "text")), false)+remove)
+		return rawElement("div", NewObject("class", "crudui-condition__judge", "data-condition-path", path),
+			inputHTML(NewObject("class", "crudui-condition__text", "data-condition-part", "judge", "value", stringAt(node, "text")), true)+remove)
 	}
 	field := stringAt(node, "field")
 	var control string
@@ -347,11 +350,11 @@ func conditionNodeHTML(node, editor *Object) string {
 		}
 		control = conditionSelectHTML(NewObject("class", "crudui-condition__field", "data-condition-part", "field"), choices, field)
 	} else {
-		control = inputHTML(NewObject("class", "crudui-condition__field", "data-condition-part", "field", "value", field), false)
+		control = inputHTML(NewObject("class", "crudui-condition__field", "data-condition-part", "field", "value", field), true)
 	}
-	return element("div", NewObject("class", "crudui-condition__comparison", "data-condition-path", path),
+	return rawElement("div", NewObject("class", "crudui-condition__comparison", "data-condition-path", path),
 		control+conditionSelectHTML(NewObject("class", "crudui-condition__op", "data-condition-part", "op"), conditionOps, stringAt(node, "op"))+
-			inputHTML(NewObject("class", "crudui-condition__value", "data-condition-part", "value", "value", stringAt(node, "value")), false)+remove)
+			inputHTML(NewObject("class", "crudui-condition__value", "data-condition-part", "value", "value", stringAt(node, "value")), true)+remove)
 }
 
 // classes joins the nonempty class parts with single spaces.

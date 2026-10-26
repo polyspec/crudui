@@ -17,20 +17,20 @@ final class ConditionMarkup
      * The prepend affix, the named error of a value that the editor does not show, the textarea, the editor of a value
      * that it shows and the append affix.
      */
-    public static function widget(stdClass $widget, bool $raw): string
+    public static function widget(stdClass $widget): string
     {
         $editor = $widget->condition;
-        $body = Rendering::affix($widget->prepend ?? null, $raw);
+        $body = Rendering::affix($widget->prepend ?? null, true);
         if (property_exists($editor, 'error')) {
             $error = ['class' => 'crudui-condition__error', 'role' => 'alert'];
-            $body .= Rendering::element('p', $error, Rendering::text($editor->error));
+            $body .= Rendering::element('p', $error, Rendering::text($editor->error, true), true);
         }
-        $body .= Rendering::control($widget, $raw);
+        $body .= Rendering::control($widget, true);
         if (!property_exists($editor, 'error')) {
             $wrapper = ['class' => 'crudui-condition', 'data-condition-for' => $editor->for];
-            $body .= Rendering::element('div', $wrapper, self::node($editor->root, $editor));
+            $body .= Rendering::element('div', $wrapper, self::node($editor->root, $editor), true);
         }
-        $body .= Rendering::affix($widget->append ?? null, $raw);
+        $body .= Rendering::affix($widget->append ?? null, true);
         return Rendering::element('div', ['class' => 'crudui-widget crudui-widget--condition'], $body);
     }
 
@@ -39,13 +39,14 @@ final class ConditionMarkup
         return Rendering::element(
             'button',
             ['type' => 'button', 'class' => 'crudui-action crudui-action--text', 'data-condition-action' => $action],
-            Rendering::text($label)
+            Rendering::text($label, true),
+            true
         );
     }
 
     private static function input(string $class, string $part, string $value): string
     {
-        return Rendering::input(['class' => $class, 'data-condition-part' => $part, 'value' => $value]);
+        return Rendering::input(['class' => $class, 'data-condition-part' => $part, 'value' => $value], true);
     }
 
     /** @param list<string> $choices */
@@ -54,9 +55,9 @@ final class ConditionMarkup
         $options = '';
         foreach ($choices as $choice) {
             $attrs = ['value' => $choice, ...($choice === $selected ? ['selected' => ''] : [])];
-            $options .= Rendering::element('option', $attrs, Rendering::text($choice));
+            $options .= Rendering::element('option', $attrs, Rendering::text($choice, true), true);
         }
-        return Rendering::element('select', $select, $options);
+        return Rendering::element('select', $select, $options, true);
     }
 
     /** One condition of the editor: a group, a field comparison or a judged text (CUMK-067). */
@@ -67,7 +68,12 @@ final class ConditionMarkup
         if ($node->kind === 'group') {
             $items = '';
             foreach ($node->items as $item) {
-                $items .= Rendering::element('li', ['class' => 'crudui-condition__item'], self::node($item, $editor));
+                $items .= Rendering::element(
+                    'li',
+                    ['class' => 'crudui-condition__item'],
+                    self::node($item, $editor),
+                    true
+                );
             }
             return Rendering::element(
                 'fieldset',
@@ -85,14 +91,16 @@ final class ConditionMarkup
                     . self::button('add-comparison', $labels->addComparison)
                     . self::button('add-group', $labels->addGroup)
                     . ($editor->judge ? self::button('add-judge', $labels->addJudge) : '')
-                    . $remove
+                    . $remove,
+                true
             );
         }
         if ($node->kind === 'judge') {
             return Rendering::element(
                 'div',
                 ['class' => 'crudui-condition__judge', 'data-condition-path' => $node->path],
-                self::input('crudui-condition__text', 'judge', $node->text) . $remove
+                self::input('crudui-condition__text', 'judge', $node->text) . $remove,
+                true
             );
         }
         $field = $editor->fields === null
@@ -112,7 +120,8 @@ final class ConditionMarkup
                     $node->op
                 )
                 . self::input('crudui-condition__value', 'value', $node->value)
-                . $remove
+                . $remove,
+            true
         );
     }
 }

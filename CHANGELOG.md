@@ -59,6 +59,10 @@
 
 - The PHP record store converts validated decimal score text with PHP numeric conversion and preserves finite-number checks. It does not load the validator NumberValue implementation class in the native extension process. The native process assertion remains enabled; the score tests use the customer specification to retain decimal acceptance and radix refusal.
 
+### 2026-10-26 — Native condition editors write raw HTML consistently (C17.35-3)
+
+- PHP, Go, Rust and Python serialize structured condition editors with raw text and attributes. Their textareas preserve JSON quotes, their editor inputs use HTML void tags, and their condition nodes, errors and affixes use the same escaping as the shared renderer.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

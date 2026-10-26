@@ -559,33 +559,36 @@ def _widget(widget: Mapping[str, Any]) -> str:
             raw,
         )
     if layout == "condition":
-        return _condition_widget(widget, raw)
+        return _condition_widget(widget)
     raise ValueError(f"Unknown widget layout: {widget['layout']}")
 
 
-def _condition_widget(widget: Mapping[str, Any], raw: bool) -> str:
+def _condition_widget(widget: Mapping[str, Any]) -> str:
     """A structured condition widget (docs/spec/form-markup.md, Structured condition editor): the prepend affix, the
     named error of a value that the editor does not show, the textarea, the editor of a value that it shows and the
     append affix."""
     editor = widget["condition"]
-    body = _affix(widget.get("prepend"), raw)
+    body = _affix(widget.get("prepend"), True)
     if "error" in editor:
         body += element(
             "p",
             {"class": "crudui-condition__error", "role": "alert"},
-            text(editor["error"]),
+            text(editor["error"], raw=True),
+            raw=True,
         )
-    body += _control(widget, raw)
+    body += _control(widget, True)
     if "error" not in editor:
         body += element(
             "div",
             {"class": "crudui-condition", "data-condition-for": editor["for"]},
             _condition_node(editor["root"], editor),
+            raw=True,
         )
     return element(
         "div",
         {"class": "crudui-widget crudui-widget--condition"},
-        body + _affix(widget.get("append"), raw),
+        body + _affix(widget.get("append"), True),
+        raw=True,
     )
 
 
@@ -597,7 +600,8 @@ def _condition_button(action: str, label: str) -> str:
             "class": "crudui-action crudui-action--text",
             "data-condition-action": action,
         },
-        text(label),
+        text(label, raw=True),
+        raw=True,
     )
 
 
@@ -611,10 +615,12 @@ def _condition_select(
             element(
                 "option",
                 {"value": choice, **({"selected": ""} if choice == selected else {})},
-                text(choice),
+                text(choice, raw=True),
+                raw=True,
             )
             for choice in choices
         ),
+        raw=True,
     )
 
 
@@ -625,7 +631,10 @@ def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
     if node["kind"] == "group":
         items = "".join(
             element(
-                "li", {"class": "crudui-condition__item"}, _condition_node(item, editor)
+                "li",
+                {"class": "crudui-condition__item"},
+                _condition_node(item, editor),
+                raw=True,
             )
             for item in node["items"]
         )
@@ -641,7 +650,7 @@ def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
                 ["all", "any"],
                 node["mode"],
             )
-            + element("ol", {"class": "crudui-condition__list"}, items)
+            + element("ol", {"class": "crudui-condition__list"}, items, raw=True)
             + _condition_button("add-comparison", labels["addComparison"])
             + _condition_button("add-group", labels["addGroup"])
             + (
@@ -650,6 +659,7 @@ def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
                 else ""
             )
             + remove,
+            raw=True,
         )
     if node["kind"] == "judge":
         return element(
@@ -660,9 +670,11 @@ def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
                     "class": "crudui-condition__text",
                     "data-condition-part": "judge",
                     "value": node["text"],
-                }
+                },
+                raw=True,
             )
             + remove,
+            raw=True,
         )
     fields = editor["fields"]
     if fields is None:
@@ -671,7 +683,8 @@ def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
                 "class": "crudui-condition__field",
                 "data-condition-part": "field",
                 "value": node["field"],
-            }
+            },
+            raw=True,
         )
     else:
         choices = list(fields) if node["field"] in fields else [node["field"], *fields]
@@ -694,9 +707,11 @@ def _condition_node(node: Mapping[str, Any], editor: Mapping[str, Any]) -> str:
                 "class": "crudui-condition__value",
                 "data-condition-part": "value",
                 "value": node["value"],
-            }
+            },
+            raw=True,
         )
         + remove,
+        raw=True,
     )
 
 

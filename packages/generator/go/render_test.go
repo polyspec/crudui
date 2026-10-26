@@ -172,3 +172,27 @@ func TestOrdinaryURLAttributesRejectJavascriptProtocols(t *testing.T) {
 		}
 	}
 }
+
+func TestConditionEditorUsesRawHTML(t *testing.T) {
+	spec := parseObject(t, `{"type":"group","properties":{"pass":{"type":"condition","validate":{"conditionTree":true},"design":{"editor":"structured"}}}}`)
+	template, err := CompileForm(spec, CompileOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := parseObject(t, `{"pass":{"field":"a'b","op":"eq","value":"\"<&>'"}}`)
+	form, err := NewForm(template, data, BindOptions{IDPrefix: "a'b", Language: "en"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	html := renderHTML(t, form)
+	for _, want := range []string{
+		`data-condition-for="a'b:pass"`,
+		`>{"field":"a'b","op":"eq","value":"\"&lt;&amp;&gt;'"}</textarea>`,
+		`<input class="crudui-condition__field" data-condition-part="field" value="a'b">`,
+		`<input class="crudui-condition__value" data-condition-part="value" value="&quot;&lt;&amp;>'">`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("condition editor lacks raw markup %q in %s", want, html)
+		}
+	}
+}
