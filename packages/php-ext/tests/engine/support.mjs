@@ -48,7 +48,14 @@ export class EngineFixtureSource {
       this.lines.push(`  ps_value *${name} = ps_text_value_checked(${cText(value)});`);
     else if (Array.isArray(value)) {
       this.lines.push(`  ps_value *${name} = ps_array_value();`);
-      for (const item of value) this.lines.push(`  push(${name}, ${this.emit(item)});`);
+      // Repeated scalar values keep separate ownership without unrolling the same allocation into C source.
+      if (value.length > 1 && (value[0] === null || typeof value[0] !== 'object') && value.every(item => Object.is(item, value[0]))) {
+        const item = this.emit(value[0]);
+        this.lines.push(`  for (size_t i_${name} = 0; i_${name} < ${value.length}; ++i_${name}) push(${name}, ps_value_clone(${item}));`);
+        this.lines.push(`  ps_value_free(${item});`);
+      } else {
+        for (const item of value) this.lines.push(`  push(${name}, ${this.emit(item)});`);
+      }
     } else {
       this.lines.push(`  ps_value *${name} = ps_object_value();`);
       for (const [key, item] of Object.entries(value))

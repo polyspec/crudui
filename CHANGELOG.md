@@ -67,6 +67,10 @@
 
 - PHP, Go, Rust and Python serialize structured condition editors with raw text and attributes. Their textareas preserve JSON quotes, their editor inputs use HTML void tags, and their condition nodes, errors and affixes use the same escaping as the shared renderer.
 
+### 2026-10-26 — PHP engine fixtures compile repeated scalar arrays compactly (C17.48)
+
+- The C fixture emitter builds a repeated scalar array with a loop and separately owned clones while preserving its length and every value. The validation programs link references.c. The 50,000-row uniqueness fixtures declare sufficient submitted-data budgets. The selected shared validation, uniqueness, scalar-array and undefined-behavior checks pass without changing compiler flags or time limits.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

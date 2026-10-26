@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 206270a750a8dc5c92a02f29096a06c0d5cf6d631854e24bcd7c1717e0ec00ce -->
+<!-- source-sha256: 5a83267a11fe3c6e822ba45c47163150d6a94e49cf408727b5ed210e5736f10f -->
 
 ## Unreleased
 
@@ -67,6 +67,10 @@
 ### 2026-10-26 — Native condition editor가 raw HTML을 일관되게 작성한다 (C17.35-3)
 
 - PHP, Go, Rust, Python은 structured condition editor를 raw text와 attribute로 직렬화한다. Textarea는 JSON 따옴표를 유지하고 editor input은 HTML void tag를 사용하며 condition node, error, affix는 shared renderer와 같은 escaping을 적용한다.
+
+### 2026-10-26 — PHP engine fixture가 반복 scalar array를 간결하게 컴파일한다 (C17.48)
+
+- C fixture emitter는 loop와 개별 소유 clone으로 반복 scalar array를 만들며 길이와 모든 값을 보존한다. Validation program은 references.c를 link한다. 50,000-row uniqueness fixture는 충분한 submitted-data budget을 선언한다. Compiler flag와 시간 제한을 변경하지 않고 선택한 shared validation, uniqueness, scalar-array, undefined-behavior 검사가 통과한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

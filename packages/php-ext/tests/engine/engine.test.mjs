@@ -54,7 +54,7 @@ const detailCases = JSON.parse(readFileSync(
 /* The engine units of rule evaluation, shared by the validation programs. */
 const ruleSources = [
   'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'rule_condition_tree.c', 'choice_list.c', 'group_source.c', 'rule_number.c', 'unicode_data.c',
-  'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c',
+  'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c', 'references.c',
 ];
 
 /** The evidence each validation program case proves, in program order. */
@@ -148,6 +148,29 @@ function sourceForValidation() {
   return fixtureProgram(lines);
 }
 
+test('PHP extension fixture arrays preserve every repeated scalar value', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-repeated-array-'));
+  const builder = new EngineFixtureSource();
+  for (const [value, count] of [[7, 100000], [null, 4], [true, 4], [0.25, 4], ["a'한글", 4]]) {
+    const array = builder.emit(Array.from({ length: count }, () => value));
+    const expected = builder.emit(value);
+    builder.lines.push(
+      `  if (ps_size(${array}) != ${count}) return 1;`,
+      `  for (size_t i = 0; i < ${count}; ++i) if (!ps_equal(ps_at(${array}, i), ${expected})) return 2;`,
+      `  if (!ps_equal(ps_at(${array}, ${count - 1}), ${expected})) return 3;`,
+      `  ps_value_free(${array}); ps_value_free(${expected});`,
+    );
+  }
+  try {
+    await compileAndRunEngineFixture({
+      signal: t.signal, root, directory, source: fixtureProgram(builder.lines), name: 'repeated-array',
+      sources: ['value.c', 'number_text.c', 'canonical.c', 'engine_error.c'],
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -183,7 +206,8 @@ const UNIQUE_ROWS = 50000;
 function sourceForManyUniqueRows(spec, row, data) {
   const builder = new EngineFixtureSource();
   const { lines } = builder;
-  const emitted = builder.emit(spec);
+  // The largest fixture contains two scalar members per row, the rows container, the root and its checked member.
+  const emitted = builder.emit({ ...spec, dataLimits: { values: UNIQUE_ROWS * 3 + 3 } });
   lines.push(
     `  bool valid = rows_valid(${emitted}, ${UNIQUE_ROWS});`,
     `  ps_value_free(${emitted});`,
