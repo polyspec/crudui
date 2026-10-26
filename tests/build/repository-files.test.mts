@@ -16,15 +16,15 @@ test('the copies of kit are the paths of kit.copies of the installed @polyspec/k
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   execFileSync('git', ['init', '--quiet'], { cwd: directory });
   writeFileSync(path.join(directory, '.gitignore'), 'node_modules/\n');
-  const kit = { name: '@polyspec/kit', kit: { copies: { 'scripts/kit/kit-bootstrap.mk': 'scripts/kit/kit-bootstrap.mk', 'ruff.toml': 'ruff.toml' } } };
-  const files = ['.gitignore', 'scripts/kit/kit-bootstrap.mk', 'scripts/kitchen.mjs', 'ruff.toml', 'tools/own.mjs', 'package.json'];
+  const kit = { name: '@polyspec/kit', kit: { copies: { 'scripts/kit/kit-bootstrap.mk': 'scripts/kit/kit-bootstrap.mk', 'ruff.toml': 'ruff.toml' }, owners: [{ paths: ['.github/workflows/release.yml', '.githooks/*'] }] } };
+  const files = ['.gitignore', 'scripts/kit/kit-bootstrap.mk', 'scripts/kitchen.mjs', 'ruff.toml', 'tools/own.mjs', 'package.json', '.github/workflows/release.yml', '.githooks/pre-commit'];
   for (const file of [...files, 'node_modules/@polyspec/kit/package.json']) {
     mkdirSync(path.dirname(path.join(directory, file)), { recursive: true });
     writeFileSync(path.join(directory, file), file.startsWith('node_modules/') ? JSON.stringify(kit) : '{}\n');
   }
   assert.deepEqual(kitCopies(directory), ['ruff.toml', 'scripts/kit/kit-bootstrap.mk']);
   assert.deepEqual(ownedFiles(directory), ['.gitignore', 'package.json', 'scripts/kitchen.mjs', 'tools/own.mjs']);
-  assert.deepEqual(files.filter(file => isVendored(file, directory)), ['scripts/kit/kit-bootstrap.mk', 'ruff.toml']);
+  assert.deepEqual(files.filter(file => isVendored(file, directory)), ['scripts/kit/kit-bootstrap.mk', 'ruff.toml', '.github/workflows/release.yml', '.githooks/pre-commit']);
 });
 
 test('a checkout without the installed @polyspec/kit names the install instead of a list of copies', t => {

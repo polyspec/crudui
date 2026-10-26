@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c43acb8f5ae7a30c5b9e66dfef12ffa029b7c9df3d4ce346f8e1e1713f24cb32 -->
+<!-- source-sha256: b0683e34596d58b720875352e389b53946e5904d20790656a73b4527ef41fa0c -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-26 — PHP 확장이 구조화된 조건 편집기 HTML을 일관되게 렌더링한다 (C17.35)
 
 - C renderer는 구조화된 condition editor를 raw HTML로 작성한다. textarea text의 따옴표를 유지하고, editor input에 HTML void tag를 사용하며, editor text와 affix에 shared renderer와 같은 escaping을 적용한다. comparison test 11개가 통과하며 이전에 실패한 rendering 검사 3개를 포함한다.
+
+### 2026-10-26 — Build 검사가 현재 kit 소유 경로와 package import를 읽는다 (C17.36)
+
+- Build 검사는 kit의 source tool과 configuration을 읽고 PHP extension contract test를 포함하며, kit 소유 경로를 저장소별 규칙에서 제외한다. Native test 파일 pattern은 존재하는 파일로 확장하고, import 검사는 module lexer로 읽은 각 package subpath를 실제 설치에서 해석한다. npm은 locked graph와 설치된 local package link를 각각 검사한다.
 
 ### 2026-10-26 — php-ext 테스트 소스 목록이 rule_condition_tree.c와 canonical.c를 링크한다 (C17.33)
 

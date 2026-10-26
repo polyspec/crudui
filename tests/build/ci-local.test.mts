@@ -153,7 +153,7 @@ test('the native suites run in three jobs, each once, and make crudui-test-nativ
   assert.equal(run.status, 0, run.stderr);
   const commands = run.stdout.split('\n');
   for (const command of [
-    /^\/\S+\/var\/tools\/bin\/node tests\/conformance\/run-suite\.mts node -- packages\/php-ext\/tests\/engine\/engine\.test\.mjs packages\/php-ext\/tests\/comparison\/comparison\.test\.mjs$/,
+    /^\/\S+\/var\/tools\/bin\/node tests\/conformance\/run-suite\.mts node -- packages\/php-ext\/tests\/engine\/engine\.test\.mjs packages\/php-ext\/tests\/contract\/\*\.test\.mjs packages\/php-ext\/tests\/comparison\/comparison\.test\.mjs$/,
     /^\/\S+\/var\/tools\/bin\/node tests\/native-generators\/run\.mts --target javascript,html,go,rust,python --report "[^"]+report\.json" \|\| status=1; \\$/,
     /^\/\S+\/var\/tools\/bin\/node tests\/native-generators\/run\.mts --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
   ]) assert.equal(commands.filter((line) => command.test(line.trim())).length, 1, `${command}\n${run.stdout}`);
@@ -251,9 +251,10 @@ test('every tool of kit that the Makefile starts is in the installed @polyspec/k
 const LINT_TARGETS = ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts'];
 
 test('a CI job runs every lint target of kit', async () => {
-  const makefile = await read('Makefile');
   const workflow = workflowCommands(await workflowFile('ci.yml'));
-  assert.match(makefile, /^crudui-lint:.*\n(?:\t.*\n)*?\t\$\(NODE\) \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
+  const lint = makeDryRun(ROOT, 'lint');
+  assert.equal(lint.status, 0, lint.stderr);
+  assert.match(lint.stdout, /\/var\/tools\/bin\/node (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/lint-ts\.mts\b/, 'make lint runs the lint-ts source of kit');
   const run = (target: string): boolean => workflow.includes(`make ${target}`) || (target === 'lint-ts' && workflow.includes('make lint'));
   assert.deepEqual(LINT_TARGETS.filter((target) => !run(target)), []);
 });

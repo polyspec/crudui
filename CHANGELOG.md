@@ -15,6 +15,10 @@
 
 - The C renderer writes the structured condition editor as raw HTML: textarea text retains quotes, editor inputs use HTML void tags, and editor text and affixes use the same escaping as the shared renderer. The comparison tests pass all 11 cases, including the three previously failing rendering checks.
 
+### 2026-10-26 — Build checks read current kit ownership and package imports (C17.36)
+
+- Build checks read the source tools and configuration of kit, include the PHP extension contract tests, and exclude the paths that kit owns from repository-specific rules. Native test file patterns expand to existing files; import checks use the module lexer and resolve each imported package subpath. npm checks the locked graph and the installed local package links separately.
+
 ### 2026-10-26 — The php-ext test source lists link rule_condition_tree.c and canonical.c (C17.33)
 
 - The php-ext comparison and contract tests compile the sources that the widget and the number text need (rule_condition_tree.c, canonical.c), so they link again. The comparison divergence that the link now shows is C17.34.

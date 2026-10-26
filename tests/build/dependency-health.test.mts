@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { builtinModules } from 'node:module';
+import { init, parse } from 'es-module-lexer';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mts';
 import { checked, readJson, type JTDSchemaType } from '../json.mts';
@@ -101,7 +103,7 @@ function captured(match: RegExpMatchArray, index: number): string {
 }
 
 function execute(command: string, args: string[], cwd: string = root) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8' });
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
   if (result.error !== undefined) assert.fail(result.error.message);
   return result;
 }
@@ -172,7 +174,11 @@ function nativeTestNodeEntrypoints(): string[] {
   // The tools of @polyspec/kit, $(KIT)/<tool>.$(KIT_EXT), import the dependencies of the kit package, not those of the root.
   const entrypoints = makeNodeEntrypoints(
     makeTargets(['Makefile', 'node_modules/@polyspec/kit/scripts/kit/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'crudui-test-native',
-  ).filter((file) => !file.startsWith('$(KIT)/'));
+  ).filter((file) => !file.startsWith('$(KIT)/')).flatMap(file => {
+    const matches = globSync(file, { cwd: root });
+    assert.notDeepEqual(matches, [], `make crudui-test-native selects no file for ${file}`);
+    return matches;
+  });
   assert.notDeepEqual(entrypoints, [], 'make crudui-test-native runs no Node.js program');
   return entrypoints;
 }
@@ -200,12 +206,9 @@ function rootExampleEntrypoints(): string[] {
   ));
 }
 
-function importedPackageNames(filename: string): string[] {
-  const source = readFileSync(path.join(root, filename), 'utf8');
-  const specifiers = [
-    ...source.matchAll(/\b(?:import|export)\s+(?:[^'"]*?\s+from\s*)?['"]([^'"]+)['"]/g),
-    ...source.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g),
-  ].map((match) => captured(match, 1));
+function importedPackageNames(filename: string, source = readFileSync(path.join(root, filename), 'utf8')): string[] {
+  const [imports] = parse(source, filename);
+  const specifiers = imports.flatMap(item => typeof item.specifier === 'string' ? [item.specifier] : []);
   const builtins = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
   return specifiers
     .filter((specifier) => (
@@ -216,12 +219,30 @@ function importedPackageNames(filename: string): string[] {
       && !/^[A-Za-z][A-Za-z+.-]*:/.test(specifier)
     ))
     .map((specifier) => {
+      assert.doesNotThrow(() => {
+        const resolved = import.meta.resolve(specifier);
+        assert.ok(existsSync(fileURLToPath(resolved)), `${resolved} is missing`);
+      }, `${filename}: installed dependency ${specifier} must resolve from the root package`);
       if (specifier.startsWith('@')) return specifier.split('/').slice(0, 2).join('/');
       const [name] = specifier.split('/');
       assert.ok(name !== undefined);
       return name;
     });
 }
+
+test('import checks ignore quoted syntax and resolve each installed package subpath', async () => {
+  await init();
+  const file = 'tests/build/dependency-health.test.mts';
+  assert.deepEqual(importedPackageNames(file, String.raw`
+    import { createElement } from 'react';
+    export { strict } from 'node:assert';
+    const text = "import 'missing-in-quoted-text'";
+    const pattern = /import \{ fake \} from 'missing-in-regex'/;
+    const module = import('react-dom/server');
+  `), ['react', 'react-dom']);
+  assert.throws(() => importedPackageNames(file, "import 'react/missing-C17.36-subpath';"),
+    /installed dependency react\/missing-C17\.36-subpath must resolve/);
+});
 
 function packageApprovalFailures(lockFile: string) {
   const directory = path.dirname(path.join(root, lockFile));
@@ -246,8 +267,10 @@ function packageApprovalFailures(lockFile: string) {
   return failures;
 }
 
-test('installed packages form one valid dependency graph', () => {
-  const result = executeNpm(['ls', '--all', '--json']);
+test('the locked dependency graph is valid and installed local packages satisfy the link rules', () => {
+  const result = executeNpm(['ls', '--all', '--json', '--package-lock-only']);
+  const links = execute('make', ['link-state-check']);
+  assert.equal(links.status, 0, links.stdout + links.stderr);
   assert.equal(result.status, 0, [
     ...(result.report.problems ?? []),
     result.report.error?.summary,
@@ -263,7 +286,8 @@ test('workspace packages use the root dependency lock file', () => {
   assert.deepEqual(failures, []);
 });
 
-test('native test root imports are declared by the root package', () => {
+test('native test root imports are declared by the root package', async () => {
+  await init();
   const manifest = packageManifest('.');
   const workspaceNames = workspacePackageDirectories().map((directory) => {
     const workspace = packageManifest(directory);
@@ -285,7 +309,8 @@ test('native test root imports are declared by the root package', () => {
   assert.deepEqual(failures, []);
 });
 
-test('root example imports are declared by the root package', () => {
+test('root example imports are declared by the root package', async () => {
+  await init();
   const manifest = packageManifest('.');
   const declared = new Set([
     ...Object.keys(manifest.dependencies ?? {}),

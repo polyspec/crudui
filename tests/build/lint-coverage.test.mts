@@ -22,14 +22,15 @@ test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/
   assert.match(run.stdout, /\bnpm\b.* run lint -w @polyspec\/crudui-generator-svelte\b/);
 });
 
-test('oxlint with the copied configuration fails on a planted violation', t => {
+test('oxlint with the kit configuration fails on a planted violation', t => {
   mkdirSync(path.join(root, 'var/tmp'), { recursive: true });
   const directory = mkdtempSync(path.join(root, 'var/tmp/crudui-lint-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const file = path.join(directory, 'planted.mjs');
   writeFileSync(file, 'export function planted(value) {\n  debugger;\n  return value;\n}\n');
-  const run = spawnSync(path.join(root, 'node_modules/.bin/oxlint'), ['-c', '.oxlintrc.json', '--deny-warnings', '--format', 'json', file], { cwd: root, encoding: 'utf8' });
-  assert.notEqual(run.status, 0, run.stdout + run.stderr);
+  const run = spawnSync(path.join(root, 'node_modules/.bin/oxlint'), ['-c', 'node_modules/@polyspec/kit/.oxlintrc.json', '--deny-warnings', '--format', 'json', file], { cwd: root, encoding: 'utf8' });
+  assert.equal(run.error, undefined, run.error?.message ?? '');
+  assert.equal(run.status, 1, run.stdout + run.stderr);
   const report = parseJson<{ diagnostics: { code: string }[] }>(run.stdout, {
     properties: { diagnostics: { elements: { properties: { code: { type: 'string' } }, additionalProperties: true } } },
     additionalProperties: true,

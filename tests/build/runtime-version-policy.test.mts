@@ -214,7 +214,8 @@ test('make installs nothing on its own and make install installs the Rust toolch
   assert.match(makefile, /^export GOTOOLCHAIN := local$/m);
   // install-tools of kit installs the Rust toolchain of rust-toolchain.toml (kit K151); no target of crudui repeats it.
   assert.doesNotMatch(makefile, /^install-rust:/m);
-  const install = makeDryRun(repository, 'install');
+  // Model the installing checkout in the dry run; an actual worktree uses the main checkout's tools and refuses installs.
+  const install = makeDryRun(repository, 'install', { variables: ['KIT_WORKTREE='] });
   assert.equal(install.status, 0, install.stderr);
   // KIT is the scripts/kit of the sibling checkout of kit, which node_modules/@polyspec/kit links (kit K613).
   assert.ok(install.stdout.split('\n').some(line => /\/var\/tools\/bin\/node (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/install-tools\.mts\s*$/.test(line)), install.stdout);
