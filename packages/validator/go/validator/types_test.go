@@ -333,7 +333,7 @@ func TestDesignLayout(t *testing.T) {
 	roundTrip(t, `{"type":"group","design":{"layout":"inline","wrapper":{"class":"section"}}}`)
 }
 
-// TestFormDataLimitsRoundTrip keeps optional submission bounds in the form model (CUSC-087).
+// TestFormDataLimitsRoundTrip preserves optional members in the Go model.
 func TestFormDataLimitsRoundTrip(t *testing.T) {
 	for _, input := range []string{
 		`{"type":"group","dataLimits":{}}`,

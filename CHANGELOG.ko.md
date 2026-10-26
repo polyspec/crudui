@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2dfd1fd6699875918e513d5afcc521afc332f8c7901652c017550e1f93852c80 -->
+<!-- source-sha256: 3e6b0dcbd86b17825c3d0fd1c637bdc6916e0f83f4b57f1a34220b32b1d3a47a -->
 
 ## Unreleased
+
+### 2026-10-26 — 모델 round-trip 검사가 구현 coverage를 설명한다 (C17.10-2)
+
+- PHP와 Go FieldSpec round-trip 검사는 구현별 직렬화를 설명한다. 공유 validation fixture는 data limit 선언과 검증 요구사항의 coverage를 유지한다. Test 이름, assertion과 선택은 유지한다.
 
 ### 2026-10-26 — Contract manifest가 내부 URL export를 선언한다 (C17.40-1)
 

@@ -277,7 +277,7 @@ final class FieldSpecTest extends TestCase
         );
     }
 
-    /** Form data limits are a form declaration retained by the model (CUSC-087). */
+    /** The PHP model preserves optional data limit members during serialization. */
     public function testFormDataLimitsRoundTrip(): void
     {
         foreach (['{}', '{"depth":512}', '{"values":1000000}', '{"depth":512,"values":1000000}'] as $limits) {

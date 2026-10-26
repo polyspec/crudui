@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Model round-trip checks describe implementation coverage (C17.10-2)
+
+- PHP and Go FieldSpec round-trip checks describe their implementation-specific serialization. Shared validation fixtures retain coverage of the data limit declaration and validation requirements. Test names, assertions and selection remain unchanged.
+
 ### 2026-10-26 — The internal URL export is declared in the contract manifest (C17.40-1)
 
 - The generator core internal entry declares sanitizeUrl in the contract manifest. The generated feature documents include the same export, and the manifest export and generated-document checks pass.
