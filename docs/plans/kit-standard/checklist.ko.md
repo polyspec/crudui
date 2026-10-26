@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b6630c6ffb3562bbff9d494b6199a703ef5e7364f721bfdf4b8e2b1c55732098 -->
+<!-- source-sha256: 10cbbda34130cac258d1985bc207263fa33794b1e8e8087a594e91a6c9ee6935 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -390,3 +390,4 @@
 | C17.48 | PHP extension engine fixture 컴파일은 반복 array allocation을 펼치지 않고 모든 case를 보존하며 validator test program은 reference rule 구현을 link한다. | packages/php-ext/tests/engine/engine.test.mjs and packages/php-ext/tests/engine/support.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="repeated scalar\|validates all shared\|unique rule\|validation has no undefined" packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C17.50 | PHP extension의 공개 form message가 interface-message contract의 모든 condition-editor key와 value를 포함한다. | packages/php-ext/src/messages.c, packages/php-ext/tests/engine/engine.test.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern=interface.messages packages/php-ext/tests/engine/engine.test.mjs`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php --php-extension var/php-ext/polyspec_crudui.so -- tests/InterfaceMessagesConformanceTest.php` | [o] |
 | C17.51 | PHP package source 문서와 provenance 검사는 기존 source 및 docblock 검사를 유지하며 extension runtime 계약 test 밖의 문서 도구 unit으로 실행한다. | scripts/php-doc-coverage.test.mts, the two package DocCoverageTest.php files and their parity internal declarations | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- scripts/php-doc-coverage.test.mts`; `make parity-declarations-check` | [o] |
+| C17.52 | 종결 예외를 재검토하고 release 선행 조건을 준비한다 (우선순위: 높음). | checklist decisions, advisory records, release readiness | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/docs/repository-writing.test.mts` | [ ] |
