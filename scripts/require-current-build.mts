@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { failureOf, formatSeconds, runCommand } from '@polyspec/kit/run-command';
-import { createProgress } from '@polyspec/kit/test-progress';
+import { createOperationProgress } from './operation-progress.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
@@ -82,9 +82,9 @@ async function run(command: string, args: string[]): Promise<void> {
   lines.line(`build: ${command} ${args.join(' ')} finished in ${formatSeconds(result.elapsedMs)}`);
 }
 
-const lines = createProgress({ write: text => process.stdout.write(text) });
+const lines = createOperationProgress({ write: text => process.stdout.write(text) });
 const id = 'build: workspace packages';
-lines.start(id, { group: true });
+lines.start(id);
 const current = await state();
 let recorded: BuildState | undefined;
 try { recorded = buildState(JSON.parse(await readFile(STAMP, 'utf8'))); } catch (error) { if (!missing(error)) throw error; }

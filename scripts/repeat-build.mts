@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 
 import { buildOutputs, type BuildOutput } from './package-outputs.mts';
 import { failureOf, runCommand } from '@polyspec/kit/run-command';
-import { createProgress } from '@polyspec/kit/test-progress';
+import { createOperationProgress } from './operation-progress.mts';
 
 /** The differences between the outputs of two builds, one line per file, in path order. */
 export function buildDifferences(first: readonly BuildOutput[], second: readonly BuildOutput[]): string[] {
@@ -33,11 +33,11 @@ export function buildDifferences(first: readonly BuildOutput[], second: readonly
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const lines = createProgress({ write: text => process.stdout.write(text) });
+  const lines = createOperationProgress({ write: text => process.stdout.write(text) });
   const outputs: BuildOutput[][] = [];
   for (const name of ['first', 'second']) {
     const id = `build: ${name} build of the workspace packages`;
-    lines.start(id, { group: true });
+    lines.start(id);
     const result = await runCommand({ command: 'npm', args: ['run', 'build'], cwd: ROOT });
     const failure = failureOf(result);
     if (failure) {
@@ -51,7 +51,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     lines.line(`build: the ${name} build wrote ${written.length} output files`);
   }
   const id = 'build: both builds wrote the same bytes';
-  lines.start(id, { group: true });
+  lines.start(id);
   const [first, second] = outputs;
   assert.ok(first && second);
   const differences = buildDifferences(first, second);

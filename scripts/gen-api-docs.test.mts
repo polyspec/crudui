@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { copyFileSync, readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
@@ -34,7 +34,7 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
           ...['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'].map(pkg => `packages/${pkg}`)]) {
           mkdirSync(join(root, path), { recursive: true });
         }
-        for (const file of ['gen-api-docs.mts', 'run-rust-command.mts']) {
+        for (const file of ['gen-api-docs.mts', 'run-rust-command.mts', 'operation-progress.mts']) {
           mkdirSync(dirname(join(root, 'scripts', file)), { recursive: true });
           copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
         }
@@ -53,8 +53,11 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
         const rust = target === 'rust'
           ? mockRust(root, failure === 'tool-failure' ? 27 : 0)
           : {};
+        const resultFile = join(root, 'outer-result.json');
+        const seeded = JSON.stringify({ owner: 'outer test', passed: 13 });
+        writeFileSync(resultFile, seeded);
         const environment: NodeJS.ProcessEnv = {
-          ...process.env, HOME: root, PATH: join(root, 'bin'), GO: 'go', PHP: 'php',
+          ...process.env, KIT_TEST_RESULT: resultFile, HOME: root, PATH: join(root, 'bin'), GO: 'go', PHP: 'php',
         };
         delete environment.CARGO; delete environment.RUSTC; delete environment.RUSTDOC;
         Object.assign(environment, rust);
@@ -62,6 +65,7 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
           encoding: 'utf8', env: environment,
         });
         assert.notEqual(result.status, 0);
+        assert.equal(readFileSync(resultFile, 'utf8'), seeded);
         assert.ok(!result.stdout.includes(': complete'));
         if (failure === 'missing-output') assert.match(result.stderr, /missing|empty/);
         else assert.match(result.stderr, /Command failed/);
@@ -71,3 +75,22 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
     });
   }
 }
+
+
+test('successful API generation preserves the enclosing test result', t => {
+  mkdirSync(join(repository, 'var/tmp'), { recursive: true });
+  const root = mkdtempSync(join(repository, 'var/tmp/crudui-api-operation-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  for (const name of ['scripts', 'bin', 'packages/validator/go', 'packages/generator/go']) mkdirSync(join(root, name), { recursive: true });
+  for (const file of ['gen-api-docs.mts', 'operation-progress.mts']) copyFileSync(join(repository, 'scripts', file), join(root, 'scripts', file));
+  writeFileSync(join(root, 'bin/go'), `#!${process.execPath}\nprocess.stdout.write(process.argv[2] === 'list' ? 'example/package\\n' : 'func Example()\\n');\n`, { mode: 0o755 });
+  const resultFile = join(root, 'outer-result.json');
+  const seeded = JSON.stringify({ owner: 'outer test', passed: 13 });
+  writeFileSync(resultFile, seeded);
+  const result = spawnSync(process.execPath, [join(root, 'scripts/gen-api-docs.mts'), 'go'], {
+    encoding: 'utf8', env: { ...process.env, PATH: join(root, 'bin'), GO: 'go', KIT_TEST_RESULT: resultFile },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(resultFile, 'utf8'), seeded);
+  assert.equal(readFileSync(join(root, 'docs/api/go.md'), 'utf8').includes('func Example()'), true);
+});

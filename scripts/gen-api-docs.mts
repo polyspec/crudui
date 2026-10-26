@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { failureOf, runCommand } from '@polyspec/kit/run-command';
-import { createProgress } from '@polyspec/kit/test-progress';
+import { createOperationProgress } from './operation-progress.mts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RUST_COMMAND = join(ROOT, 'scripts/run-rust-command.mts');
@@ -23,7 +23,7 @@ if (!['all', 'ts', 'go', 'rust', 'php'].includes(target)) {
 const want = (name: string): boolean => target === 'all' || target === name;
 const packages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'];
 
-const lines = createProgress({ write: text => process.stdout.write(text) });
+const lines = createOperationProgress({ write: text => process.stdout.write(text) });
 const shown = (value: string): string => value.startsWith(ROOT) ? relative(ROOT, value) || '.' : value;
 
 /** Run one tool command to its end; `capture` returns its standard output. */
@@ -31,7 +31,7 @@ async function run(
   command: string, args: string[], cwd: string = ROOT, { capture = false }: { capture?: boolean } = {},
 ): Promise<string> {
   const id = [basename(command), ...args.map(shown)].join(' ');
-  lines.start(id, { group: true });
+  lines.start(id);
   const result = await runCommand({ command, args, cwd, stdout: capture ? 'pipe' : 'inherit' });
   const failure = failureOf(result);
   if (failure) {

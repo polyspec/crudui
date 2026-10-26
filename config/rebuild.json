@@ -510,6 +510,10 @@
       "kind": "ecosystem",
       "tool": "the install commands of puppeteer and playwright, at the builds that the locked packages pin"
     },
+    "scripts/operation-progress.mts": {
+      "kind": "ecosystem",
+      "tool": "formatSeconds of @polyspec/kit/run-command formats elapsed operation times; the callers execute commands through runCommand"
+    },
     "scripts/install-lock.mts": {
       "kind": "record",
       "record": "docs/rebuild/install-lock.md"

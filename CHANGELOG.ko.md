@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8f969ab389845a110f15eeedbd25503f2a6e6f67692a5c85e171cf713b530b38 -->
+<!-- source-sha256: c55469f1b72f444bc0ec886481d85eb6166e7d11248ac415b154f07ece172558 -->
 
 ## Unreleased
+
+### 2026-10-26 — 작업 로그와 test result를 분리한다 (C18.1-7)
+
+- Workspace build, API 생성, browser 설치와 반복 build는 test-result metadata를 읽거나 쓰지 않고 작업 단계, 실패, 경과 시간과 heartbeat를 보고한다. 회귀 fixture는 child command의 성공과 실패 모두에서 상위 test result가 보존되는지 검증한다. Native command fixture는 정의되지 않은 working directory를 명시적으로 표현한다.
 
 ### 2026-10-26 — Contract version을 workspace metadata와 대조한다 (C18.1-6)
 

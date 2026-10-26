@@ -3,7 +3,7 @@
 // with the helper source and its path as its two operands.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -51,3 +51,21 @@ test('the helper command with its two operands writes the helper file', t => {
   assert.equal(statSync(helper).mode & 0o7777, 0o4755);
   assert.equal(SANDBOX_HELPER, '/usr/local/sbin/chrome-devel-sandbox');
 });
+
+
+for (const status of [0, 27]) {
+  test(`browser operation preserves its enclosing test result when the tool exits ${status}`, t => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'crudui-browser-operation-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    mkdirSync(path.join(directory, 'bin'));
+    writeFileSync(path.join(directory, 'bin/npx'), `#!${process.execPath}\nprocess.stdout.write('/fixture/chrome\\n'); process.exit(${status});\n`, { mode: 0o755 });
+    const resultFile = path.join(directory, 'outer-result.json');
+    const seeded = JSON.stringify({ owner: 'outer test', passed: 13 });
+    writeFileSync(resultFile, seeded);
+    const result = spawnSync(process.execPath, [path.resolve(import.meta.dirname, '../../scripts/install-browsers.mts'), 'chrome'], {
+      encoding: 'utf8', env: { ...process.env, PATH: path.join(directory, 'bin'), KIT_TEST_RESULT: resultFile },
+    });
+    assert.equal(result.status, status === 0 ? 0 : 1, result.stderr);
+    assert.equal(readFileSync(resultFile, 'utf8'), seeded);
+  });
+}

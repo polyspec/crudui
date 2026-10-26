@@ -437,6 +437,15 @@
     },
     {
       "paths": [
+        "scripts/operation-progress.mts"
+      ],
+      "tests": [
+        "scripts/gen-api-docs.test.mts",
+        "tests/build/install-browsers.test.mts"
+      ]
+    },
+    {
+      "paths": [
         "scripts/install-browsers.mts",
         "scripts/check-ci-browser.mts"
       ],

@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js';
 
 import { failureOf, formatSeconds, runCommand } from '@polyspec/kit/run-command';
-import { createProgress } from '@polyspec/kit/test-progress';
+import { createOperationProgress } from './operation-progress.mts';
 /** The message of a caught value: the message of an Error, or the value as text. */
 const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
@@ -61,12 +61,12 @@ export function installCommands(
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  const lines = createProgress({ write: text => process.stdout.write(text) });
+  const lines = createOperationProgress({ write: text => process.stdout.write(text) });
   let chromePath: string | undefined;
   let failed = false;
   try {
     for (const step of installCommands(args.filter(arg => !arg.startsWith('--')), { withDeps: args.includes('--with-deps'), chromeSandbox: args.includes('--chrome-sandbox') })) {
-      lines.start(step.id, { group: true });
+      lines.start(step.id);
       // The helper sits beside the chrome executable that the install step printed.
       let stepArgs = step.args;
       if (step.sandbox) {

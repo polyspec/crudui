@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Keep operation logs separate from test results (C18.1-7)
+
+- Workspace builds, API generation, browser installation and repeated builds report operation steps, failures, elapsed times and heartbeats without reading or writing test-result metadata. Regression fixtures verify that enclosing test results survive successful and failed child commands. Native command fixtures represent an undefined working directory explicitly.
+
 ### 2026-10-26 — Compare contract versions with workspace metadata (C18.1-6)
 
 - The feature manifest checker reads the root package version instead of requiring an earlier literal version. It accepts the current candidate and rejects a mismatched contract version with the expected and actual values. Candidate checklist translations retain the same task order.

@@ -260,7 +260,7 @@ test('a Cargo command refuses a CARGO_TARGET_DIR outside its checkout', async t 
 test('local Rust commands use the declared provider through the public native link command', async () => {
   const { runRustCommand } = await import('../../scripts/run-rust-command.mts');
   const cwd = path.join(repository, 'examples/form-comparison/servers/rust');
-  const calls: { executable: string; args: string[]; cwd?: string }[] = [];
+  const calls: { executable: string; args: string[]; cwd: string | undefined }[] = [];
   await runRustCommand(['metadata', '--offline', '--format-version=1'], {
     cwd, cargo: '/native/cargo', rustc: '/native/rustc', rustdoc: '/native/rustdoc',
     environment: { ...process.env, LOCAL: '1' },
