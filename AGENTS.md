@@ -12,7 +12,8 @@ only the rules of crudui.
   runs for tens of minutes, or that prints only its start and its end, is a defect.
   Enforced by: `make test-markers-check`
 - Refines P20: During development only the unit tests that own the change run. The full suite runs exactly once after
-  every item of the active checklists is complete, and never after each change or item. Long operations run in the
+  every item of the active checklists, including `docs/plans/kit-standard/checklist.md`, is complete, and never after
+  each change or item. Long operations run in the
   background and report their progress. A failure gets a task like any other defect.
   Enforced by: none, which unit tests a developer runs before a commit is a procedure that no check reads.
 - Own: A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the working tree. The
@@ -93,12 +94,9 @@ only the rules of crudui.
 
 ## Checklist
 
-- Refines P24: This repository allows multiple checklists under `docs/plans/<plan>/checklist.md`. Each plan holds its
-  checklist and its Korean twin; task IDs are unique across all checklists.
-  Enforced by: `make docs-check`
-- Own: Each wave is a heading `## Wave <n> — <title>` followed by a table with the columns ID, Task, Verification and Status.
-  A task ID has the form `C<wave>.<number>`, and a task row starts with it. The state marker appears only at the start of
-  the Status cell of a task row. The plan's `plan.md` holds the dependencies of its waves.
+- Own: `docs/plans/execution-checklist/checklist.md` groups tasks under linked Wave headings. Checklist tables use the
+  columns ID, Task, Deliverables, Verification and State. A base task ID has the form `C<wave>.<number>`; sub-items
+  follow P24. The state marker appears only at the start of the State cell. Each plan's `plan.md` holds its dependencies.
   Enforced by: `make docs-check`
 - Own: A received instruction is classified first: a task of the checklist, a rule of this file, or an answer only. Unless the
   instruction states that it is urgent, record it as a task with its priority and continue the task in progress. Rules

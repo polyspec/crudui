@@ -621,6 +621,10 @@
     "packages/react/scripts/group-source-form-render-cases.ts": {
       "kind": "policy",
       "reason": "the reference implementation writes the shared conformance fixtures that every port must reproduce (S6); no ecosystem tool defines the fixtures"
+    },
+    "packages/react/scripts/condition-editor-form-render-cases.ts": {
+      "kind": "policy",
+      "reason": "Defines structured condition editor fixtures and expected markup from the CRUDUI specification; no ecosystem tool defines these domain-specific test vectors."
     }
   }
 }
