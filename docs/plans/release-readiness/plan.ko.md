@@ -1,5 +1,5 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: 7a7a1fff578433132fbe929a3a0a21b90a3879f954f159ca7df38c3064130ec5 -->
+<!-- source-sha256: eecc1fdffff460f152781ee710fb8ca426de36aa62ffe6197512b9a70a5e3e48 -->
 # Release candidate 재검토
 
 [English](plan.md)
@@ -29,6 +29,10 @@ C16.13은 C16.13-1이 구현한다. C16.29-1은 forwarding을 수정하고 현�
 일치를 요구하지 않으며 Composer가 선언한 제약 내에서 선택한다. 이 결정은 candidate 의존성과 archive 검사를 제거하지 않는다.
 
 ## 완료
+
+같은 실행에서 `make release-assets TAG="$TAG"`로 candidate archive를 만들고 `make release-consumer TAG="$TAG"`를 실행한다.
+Consumer 검증은 이전 실행의 archive를 읽지 않는다. Publication tag의 workflow는 proof 뒤 자동 공개하므로 해당 tag를
+push하기 전에 C18.1을 완료한다.
 
 Candidate commit, 검토일, 평가한 version, 유지한 결정과 consumer 결과를 기록한다. 실행 가능한 변경은 publication 전에
 소유 검사와 함께 구현한다. Candidate가 바뀌면 해당 commit의 필수 CI 결과를 확보한다. 선택적 대체를 계속 막는 조건은 현재

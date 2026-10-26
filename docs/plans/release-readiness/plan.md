@@ -30,6 +30,10 @@ These decisions do not remove the candidate dependency and archive checks.
 
 ## Completion
 
+Build the candidate archives with `make release-assets TAG="$TAG"` in the same run before `make release-consumer TAG="$TAG"`;
+consumer verification never reads archives left by an earlier run. Complete C18.1 before pushing the publication tags,
+because their workflow publishes automatically after its proof.
+
 Record the candidate commit, review date, evaluated versions, retained decisions and consumer results. A feasible change
 is implemented with its owning checks before publication. A changed candidate obtains its own required CI results.
 A condition that still prevents an optional replacement is recorded with current evidence and a new retry condition;

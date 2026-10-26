@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: d6ddf7c4ba3ed74308f89679b7daed9281182ff291812832633033e77371b085 -->
+<!-- source-sha256: 33564ca640c6d83ac2de1e8a6212d25bc83d7f8d623ab827792582d3fb12c493 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -23,8 +23,9 @@
   `make records-check`를 실행합니다.
   Enforced by: `make hooks-check`
 - Own: version이 0.x인 동안에는 pull request, merge queue, GitHub ruleset이 없습니다. 작업은 로컬에서 commit하며 commit마다
-  checklist 행 하나를 담고, 소유한 unit test가 통과해야 그 행이 `[o]`가 됩니다. `main`은 checklist의 모든 행이 `[o]`일 때
-  한 번 push합니다. tag는 commit에 대해 CI check `ci-passed`와 push check `push-gate`가 성공한 뒤에만 만들며, release는
+  checklist 행 하나를 담고, 소유한 unit test가 통과해야 그 행이 `[o]`가 됩니다. 개발 작업이 완료되거나 수용한 종결 결정이
+  있고 활성 작업이 없을 때 `main`을 한 번 push합니다. 선언한 선행 조건이 충족되지 않은 candidate 단계 검토는 해당 시점까지
+  우회 상태로 둘 수 있습니다. tag는 commit에 대해 CI check `ci-passed`와 push check `push-gate`가 성공한 뒤에만 만들며, release는
   그 tag에서 만듭니다(`docs/operations/repository.md`).
   Enforced by: none, push와 tag의 순서는 어떤 검사도 읽지 않는 절차입니다.
 
@@ -88,6 +89,11 @@
   Enforced by: `make layout-check`
 
 ## Checklist
+
+- Own: 철회한 작업은 현재 원인에 따라 분류합니다. 조건부 결정은 재시도 조건과 `docs/plans/release-readiness/`의 candidate
+  단계 검토를 명시하고 publication 전에 재검토합니다. 이전 불가 또는 우회 상태는 결정을 영구화하거나 candidate 검토를
+  완료하지 않습니다.
+  Enforced by: none, 분류와 candidate 검토는 절차입니다.
 
 - Own: `docs/plans/execution-checklist/checklist.md`는 연결된 Wave 제목 아래에 작업을 묶습니다. Checklist 표는 ID, Task,
   Deliverables, Verification, State 열을 사용합니다. 기본 작업 ID는 `C<wave>.<number>` 형식이며 하위 항목은 P24를

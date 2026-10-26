@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Conditional withdrawals retain a candidate checkpoint (C17.52-1)
+
+- Conditional tool and dependency decisions have a candidate-stage checklist with a cause and retry condition. Development completion does not complete the publication review. Repository procedures distinguish accepted terminal decisions from deferred candidate checks, and the PHP extension policy coverage record names its completed verification.
+
 ### 2026-10-26 — Terminal checklist decisions and release inputs are reviewed (C17.52)
 
 - The checklist states the current grounds for retained dependency declarations and tool choices. The dependency review records no advisories across 17 locks, and the withdrawn sprintf-js exception is removed. The native PHP extension manifest participates in version updates. Release coverage, manifest versions and selected owning checks pass; release publication still requires the commit checks.

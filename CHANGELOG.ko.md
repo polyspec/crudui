@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d0884b0104f685148650f6dc7703a47d93e5f585c0429f641391c91078788434 -->
+<!-- source-sha256: 5ed4d02bc685474596ecbf8a5a8e3f7df172db6107d91a6c177fa064e0fc1512 -->
 
 ## Unreleased
+
+### 2026-10-26 — 조건부 철회는 candidate 재검토 단계를 유지한다 (C17.52-1)
+
+- 조건부 도구 및 의존성 결정은 원인과 재시도 조건이 있는 candidate 단계 checklist를 갖는다. 개발 완료는 publication 검토를 완료하지 않는다. 저장소 절차는 수용한 종결 결정과 보류한 candidate 검사를 구분하며 PHP extension policy coverage 기록은 완료한 검증을 명시한다.
 
 ### 2026-10-26 — 종결 checklist 결정과 release 입력을 검토한다 (C17.52)
 

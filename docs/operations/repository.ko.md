@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 0b79daeaafb430d6f0e2cafe94f21ae185672d5f601eee953197de0ea1f06509 -->
+<!-- source-sha256: e26cccaa9687aeedcb960a15429b4a3e9bf580b766e21c715dba1e86e00d10ed -->
 
 [English](repository.md).
 
@@ -9,8 +9,10 @@ GitHub ruleset은 없습니다. 작업은 checklist row마다 commit하며 로�
 
 ## main 게시
 
-`docs/plans/execution-checklist/checklist.md`의 각 작업은 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다.
-`main`은 모든 row가 `[o]`일 때 한 번 push합니다.
+각 개발 작업은 소유 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다. 거절한 원래 작업은 기록한
+원인을 유지합니다. 개발 작업이 완료되거나 수용한 종결 결정이 있고 활성 작업이 없을 때 `main`을 한 번 push합니다.
+[Candidate 검토](../plans/release-readiness/plan.ko.md)는 선언한 CI 선행 조건이 충족될 때까지 우회 상태로 둘 수 있으며
+publication 전에 재검토합니다.
 
 ```sh
 git push origin main
@@ -54,12 +56,20 @@ platform별 binary를 추가하지 않습니다.
 2. 그 commit에서 `git tag vX.Y.Z`(로컬 tag), `make release-assets TAG=vX.Y.Z`, `make release-consumer-lock TAG=vX.Y.Z`(online)가
    그 version의 archive에 대한 사용자 project `tests/release-install/npm`과 `tests/release-install/composer`의 manifest와 lock을
    씁니다. 로컬 tag는 지우고 그 file을 commit합니다. 그다음 `make release-consumer TAG=vX.Y.Z`가 그것들로 archive를 설치합니다.
-3. push된 commit의 CI가 성공한 뒤 maintainer가 그 commit에 tag를 달아 push합니다:
+3. Push된 commit의 CI가 성공한 뒤 maintainer가 해당 commit에 검증용 로컬 tag를 만듭니다:
 
    ```sh
    git tag vX.Y.Z <commit of main>
    git tag packages/generator/go/vX.Y.Z <commit of main>
    git tag packages/validator/go/vX.Y.Z <commit of main>
+   ```
+
+   이 tag를 push하기 전에 [candidate 재검토 checklist](../plans/release-readiness/checklist.ko.md)의 C18.1을 완료하며
+   새 candidate archive와 consumer 검사를 포함합니다. Tag workflow는 proof 뒤 자동 공개하므로 candidate 검토가 우회 또는
+   미완료 상태이면 publication tag를 push하지 않습니다. Candidate 입력이 바뀌면 변경 입력을 검증하고 필수 CI 결과를
+   확보한 뒤 진행하며 로컬 tag는 검증한 해당 commit을 가리켜야 합니다. Maintainer가 그다음 tag를 push합니다:
+
+   ```sh
    git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
    ```
 

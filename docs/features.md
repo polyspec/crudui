@@ -115,6 +115,11 @@ The release configuration classifies the native PHP extension manifest as versio
 0.0.7 manifest versions are checked separately from publication. A release still requires successful `ci-passed` and
 `push-gate` checks on its commit; owning unit checks do not establish that result.
 
+The [candidate reconsideration checklist](plans/release-readiness/checklist.md) remains bypassed until the candidate's
+required CI checks succeed. It re-evaluates the conditional VitePress and React decisions, current security data and
+tracked dependency installs without development links before publication. The original impossible markers preserve task
+history; they do not make conditional decisions permanent or complete this candidate-stage work.
+
 ## Display declaration verification
 
 On 2026-09-24 the working tree of the display declaration change passed on macOS arm64 with PHP

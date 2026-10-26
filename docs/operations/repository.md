@@ -9,8 +9,10 @@ pushes `main`.
 
 ## Publishing main
 
-Each task of `docs/plans/execution-checklist/checklist.md` is committed with its changelog entry when its unit tests pass, and the
-row becomes `[o]`. `main` is pushed once, when every row is `[o]`:
+Each development task is committed with its changelog entry when its owning unit tests pass, and the row becomes `[o]`.
+Rejected original tasks retain their documented cause. `main` is pushed once development tasks are complete or have
+accepted terminal decisions and no task is active. The [candidate review](../plans/release-readiness/plan.md) may remain
+bypassed until its declared CI prerequisite is met; it is reconsidered before publication:
 
 ```sh
 git push origin main
@@ -58,12 +60,21 @@ Composer archive or a platform-specific binary to the published assets.
    `make release-consumer-lock TAG=vX.Y.Z` (online) write the manifests and locks of the consumer projects
    `tests/release-install/npm` and `tests/release-install/composer` for the archives of the version; the local tag is
    deleted, and the files are committed. `make release-consumer TAG=vX.Y.Z` then installs the archives from them.
-3. After CI succeeded for the pushed commit, the maintainer tags it and pushes the tag:
+3. After CI succeeded for the pushed commit, the maintainer creates local verification tags at that commit:
 
    ```sh
    git tag vX.Y.Z <commit of main>
    git tag packages/generator/go/vX.Y.Z <commit of main>
    git tag packages/validator/go/vX.Y.Z <commit of main>
+   ```
+
+   Before pushing these tags, complete C18.1 of the
+   [candidate reconsideration checklist](../plans/release-readiness/checklist.md), including fresh candidate archives
+   and their consumer checks. A bypassed or incomplete candidate review prevents pushing publication tags, whose workflow
+   automatically publishes after its proof. If the candidate inputs change, verify the changed inputs and obtain the
+   required CI results before proceeding; the local tags must name that verified commit. The maintainer then pushes them:
+
+   ```sh
    git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
    ```
 

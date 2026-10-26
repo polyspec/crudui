@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: 2992dbb3c210ef8547eaebf0ed1a249691887c5e784758a845e3e40b3bd7cb34 -->
+<!-- source-sha256: eb8d004721f3dcf324a417bd719aaa0e5ebf0992f988fbb7a99c510f34c9c3be -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -112,6 +112,10 @@ Go 1.27.3은 linked module의 최소 버전을 충족하며 advisory scan을 실
 Release 설정은 native PHP extension manifest를 version-only로 분류합니다. Package coverage와 기존 0.0.7 manifest version은
 publication과 구분해 검사합니다. Release에는 해당 commit의 `ci-passed`와 `push-gate` 성공이 필요하며 소유 unit 검사는
 그 결과를 입증하지 않습니다.
+
+[Candidate 재검토 checklist](plans/release-readiness/checklist.ko.md)는 candidate의 필수 CI 검사가 성공할 때까지 우회 상태다.
+Publication 전에 조건부 VitePress와 React 결정, 현재 보안 data, 개발 링크 없는 추적 의존성 설치를 재평가한다. 원래 불가
+표시는 작업 이력을 보존하며 조건부 결정을 영구화하거나 이 candidate 단계 작업을 완료하지 않는다.
 
 ## 표시 선언 검증
 
