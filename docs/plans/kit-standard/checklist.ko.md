@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e2fcd95c6994e65e8f23837aafd085aaa2a1071d0ecddf65a51bc4dc6ba46c9e -->
+<!-- source-sha256: af5b605e964d734de3db27d5180e1c70d68ab4fcde29bf3b331aaab0f317d58f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -394,3 +394,4 @@
 | C17.50 | PHP extension의 공개 form message가 interface-message contract의 모든 condition-editor key와 value를 포함한다. | packages/php-ext/src/messages.c, packages/php-ext/tests/engine/engine.test.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern=interface.messages packages/php-ext/tests/engine/engine.test.mjs`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php --php-extension var/php-ext/polyspec_crudui.so -- tests/InterfaceMessagesConformanceTest.php` | [o] |
 | C17.51 | PHP package source 문서와 provenance 검사는 기존 source 및 docblock 검사를 유지하며 extension runtime 계약 test 밖의 문서 도구 unit으로 실행한다. | scripts/php-doc-coverage.test.mts, the two package DocCoverageTest.php files and their parity internal declarations | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- scripts/php-doc-coverage.test.mts`; `make parity-declarations-check` | [o] |
 | C17.52 | 종결 예외를 재검토하고 release 선행 조건을 준비한다 (우선순위: 높음). | checklist decisions, advisory records, release readiness | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/docs/repository-writing.test.mts` | [ ] |
+| C17.54 | Go workspace와 toolchain을 linked module의 최소 버전에 맞춘다 (우선순위: 높음). | mise.toml, mise.lock, go.work, Go toolchain unit verification | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/runtime-version-policy.test.mts` | [o] |

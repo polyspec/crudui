@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fc8477f12608137ab94e25b7663b573622a30f825b0e1c4a6d56201c086ceb93 -->
+<!-- source-sha256: 9d8a72e9de35c1346f094aed19b3d25d8cd5fb00d8836e5d6f774e18bd58ac40 -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-26 — HTTP 전달이 양방향 연결 header를 제거한다 (C16.29-1)
 
 - Form comparison은 전달 전에 Connection이 지정한 요청 header를 제거하며 target routing, 조기 응답, 구조화된 upstream 실패와 upload 취소를 보존한다. 전달 unit test는 이 동작을 검사한다. 재구현 기록은 Node.js adapter와 http-proxy를 비교하고 현재 구현을 설명한다.
+
+### 2026-10-26 — Go toolchain이 linked module의 최소 버전과 일치한다 (C17.54)
+
+- 기록한 Go toolchain과 workspace는 Go 1.27.3을 요구한다. mise.lock은 네 platform의 archive를 고정한다. 기록한 toolchain으로 linked comparison module graph를 해석하며 runtime-version policy 검사가 통과한다.
 
 ### 2026-10-26 — Rust fixture reader가 오류를 명시적으로 match한다 (C17.38-1)
 

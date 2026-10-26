@@ -15,6 +15,10 @@
 
 - The form comparison removes request headers named by Connection before forwarding and preserves target routing, early responses, structured upstream failures and upload cancellation. The forwarding unit tests cover these behaviors. The rebuild record compares the Node.js adapter with http-proxy and records the current implementation.
 
+### 2026-10-26 — The Go toolchain matches the linked module minimum (C17.54)
+
+- The recorded Go toolchain and workspace require Go 1.27.3. mise.lock pins its archives on all four platforms. The linked comparison module graph resolves with the recorded toolchain, and the runtime-version policy checks pass.
+
 ### 2026-10-26 — Rust fixture readers match errors explicitly (C17.38-1)
 
 - Rust fixture readers use explicit Result matching for file reads and JSON parsing. Failures retain the fixture path and underlying error, and the selected Clippy checks use the repository configuration. The diagnostic example names the same error handling form.
