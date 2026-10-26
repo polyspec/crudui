@@ -21,5 +21,5 @@ test('no Rust file read discards the path and the error', () => {
       violations.push(`${file}:${line}: ${match[1]}`);
     }
   }
-  assert.deepEqual(violations, [], 'name the path and the error, as in unwrap_or_else(|error| panic!("read {path}: {error}"))');
+  assert.deepEqual(violations, [], 'handle the error with its path and cause in an explicit Result match');
 });

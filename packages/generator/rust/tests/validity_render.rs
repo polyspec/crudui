@@ -15,10 +15,14 @@ fn cases(family: &str) -> Vec<Value> {
         .join("../../../tests/fixtures")
         .join(family)
         .join("cases.json");
-    let text = std::fs::read_to_string(&path)
-        .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
-    let cases: Vec<Value> = serde_json::from_str(&text)
-        .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()));
+    let text = match std::fs::read_to_string(&path) {
+        Ok(value) => value,
+        Err(error) => panic!("read {}: {error}", path.display()),
+    };
+    let cases: Vec<Value> = match serde_json::from_str(&text) {
+        Ok(value) => value,
+        Err(error) => panic!("parse {}: {error}", path.display()),
+    };
     assert!(!cases.is_empty(), "{family} holds no case");
     cases
 }

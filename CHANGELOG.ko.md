@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3e6b0dcbd86b17825c3d0fd1c637bdc6916e0f83f4b57f1a34220b32b1d3a47a -->
+<!-- source-sha256: 6fff8775a1a4b5a3ef7a45eae0c0b578fa77623f88e4251ff90ced1aede9c99a -->
 
 ## Unreleased
+
+### 2026-10-26 — Rust fixture reader가 오류를 명시적으로 match한다 (C17.38-1)
+
+- Rust fixture reader는 파일 읽기와 JSON parse에 명시적 Result match를 사용한다. 실패는 fixture 경로와 원래 오류를 보존하며 선택한 Clippy 검사는 저장소 설정을 사용한다. 진단 예시도 같은 오류 처리 형식을 설명한다.
 
 ### 2026-10-26 — 모델 round-trip 검사가 구현 coverage를 설명한다 (C17.10-2)
 

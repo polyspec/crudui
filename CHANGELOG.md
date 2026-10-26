@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Rust fixture readers match errors explicitly (C17.38-1)
+
+- Rust fixture readers use explicit Result matching for file reads and JSON parsing. Failures retain the fixture path and underlying error, and the selected Clippy checks use the repository configuration. The diagnostic example names the same error handling form.
+
 ### 2026-10-26 — Model round-trip checks describe implementation coverage (C17.10-2)
 
 - PHP and Go FieldSpec round-trip checks describe their implementation-specific serialization. Shared validation fixtures retain coverage of the data limit declaration and validation requirements. Test names, assertions and selection remain unchanged.
