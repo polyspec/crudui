@@ -8,13 +8,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { validate } from '../../../packages/validator/ts/src/validate/index.ts';
-import { validateList } from '../../../packages/validator/ts/src/validate-list/index.ts';
-import { validateDetail } from '../../../packages/validator/ts/src/validate-detail/index.ts';
-import { ComposeLoadError } from '../../../packages/validator/ts/src/compose/index.ts';
-import { FormInputError } from '../../../packages/validator/ts/src/validate/errors.ts';
-import { isRecord } from '../../../packages/validator/ts/src/record.ts';
+import { validate, validateList, validateDetail, ComposeLoadError, FormInputError } from '@polyspec/crudui-validator';
 import { provesConformance } from '../../conformance/evidence.mts';
+
+/** Whether a fixture value is a JSON object rather than null or an array. */
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 

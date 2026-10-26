@@ -10,10 +10,9 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 import {
-  bindForm, buildDetail, buildList, compileForm, ComposeLoadError, createForm, FormInputError,
-} from '../../../packages/generator/ts/src/index.ts';
-import { checkFormTemplate } from '../../../packages/generator/ts/src/template-shape.ts';
-import { isRecord } from '../../../packages/generator/ts/src/util.ts';
+  bindForm, buildDetail, buildList, compileForm, ComposeLoadError, createForm, decodeFormTemplate, FormInputError,
+} from '@polyspec/crudui-generator-core';
+import { isRecord } from './cases.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -129,8 +128,7 @@ const operations = {
     const created = failure(() => createForm(template(c), c.data, c.options));
     const action = c.action;
     if (!action || created !== 'pass') return created;
-    const accepted = template(c);
-    checkFormTemplate(accepted);
+    const accepted = decodeFormTemplate(template(c));
     const form = createForm(accepted, c.data, c.options);
     return failure(() => runFormAction(form, action));
   },

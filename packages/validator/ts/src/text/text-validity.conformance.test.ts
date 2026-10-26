@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from 'vitest';
-import { validate } from '../validate/index';
+import { validate } from '@polyspec/crudui-validator';
 import { MemoryLoader } from '../compose/index';
 import { compareCodePoints, isScalarText, valueFailure } from './index';
 import { expectOutcome } from '../../../../../tests/fixtures/text-validity/cases.mts';

@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a969be625dd0d4b1a5dfb6031c9668d267e0e1a078641886041ab15d7b4316ac -->
+<!-- source-sha256: 51d667579aa63f4387b163151985b6403261fb51481b14cb3610ddddd1bee71a -->
 
 ## Unreleased
 
 ### 2026-10-26 — Runtime 검사가 선언된 tool 경로와 dry-run helper를 사용한다 (C17.36-1)
 
 - Make dry-run helper는 make database 옵션으로 target별 변수를 읽는다. Runtime 검사는 test runner 경로와 확장자를 make에서 읽고 bootstrap 경로를 Makefile include에서 읽는다. Offline target 검사는 local PHP arginfo generator를 offline으로 분류한다.
+
+### 2026-10-26 — Root fixture 검사가 설치된 package API를 사용한다 (C17.37)
+
+- Text-validity fixture는 설치된 validator와 generator API를 호출하고 decodeFormTemplate으로 승인한 template을 decode한다. Validator text helper test도 loader 검사에 같은 설치 API를 사용한다. Button fixture는 평가한 button 네 개를 tuple로 선언하고 validation fixture는 생성 record의 타입을 명시한다. Root TypeScript 검사는 package 구현 source를 root configuration으로 compile하지 않고 통과한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

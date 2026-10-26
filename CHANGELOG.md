@@ -7,6 +7,10 @@
 
 - The make dry-run helper reads target-specific variables with the make database option. Runtime checks resolve the test runner path and extension from make and the bootstrap path from the Makefile include. The offline target checks classify the local PHP arginfo generator as offline.
 
+### 2026-10-26 — Root fixture checks use installed package APIs (C17.37)
+
+- Text-validity fixtures call the installed validator and generator APIs, and decode accepted templates with decodeFormTemplate. The validator text helper test uses the same installed API for its loader check. The button fixture declares its four evaluated buttons as a tuple, and the validation fixture declares its generated records explicitly. The root TypeScript check passes without compiling package implementation sources under the root configuration.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

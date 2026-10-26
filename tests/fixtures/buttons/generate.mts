@@ -111,7 +111,7 @@ bind('language-not-a-string', 'A language option that is not a string is refused
 
 // Markup: each evaluated button is an element with its attributes in the order type, class, style, name, value,
 // href and onclick.
-const EVALUATED = [
+const EVALUATED: [Json, Json, Json, Json] = [
   { type: 'submit', tag: 'button', text: 'Save', attrs: { type: 'submit', class: 'crudui-action crudui-action--text' } },
   { type: 'link', tag: 'a', text: 'List', attrs: { class: 'crudui-action crudui-action--text', href: '/items?a=1&b="2"' } },
   { type: 'button', tag: 'button', text: 'Hi <b>&', attrs: {
