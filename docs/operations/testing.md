@@ -367,3 +367,19 @@ container images have no `ps`.
 `tests/build/shared-resources.test.mts`, run by `npm run test:runtimes`, checks the documentation
 and `dist` rows; it checks the `dist` lock on a fixture package that it builds in a temporary
 checkout, so it reads no build output of the repository and runs before `npm run build`.
+
+## PHP source and extension test scopes
+
+Each PHP library declares a `public` PHPUnit suite and a `php-source-internal` suite. The default suite is `public`, which
+the extension runs with the PHP library source-load guard enabled. Tests that call implementation helpers remain in the source
+suite. A mixed test class keeps public API assertions in the public suite and moves helper assertions into a source class.
+
+The source Composer test scripts select both suites. The PHP validator CI entry uses that script, the PHP API CI entry
+selects both generator suites, and `make test-php` includes the source-internal suites. Public extension runs retain every
+public case. Shared expression and composition fixture checks retain their PHP source bindings and their separate native
+C engine bindings. No contract requirement or fixture case is removed.
+
+`npm run test:php-scope` asks native PHPUnit for XML case listings and verifies that public and source-internal case IDs
+are disjoint, their union equals all discovered cases, and the default equals the complete public selection. The same unit
+checks the source entry commands. Fixture JSON uses the public OrderedJSON API through `tests/php/FixtureJson.php`, so
+unpaired surrogate inputs are preserved without loading a PHP implementation helper into the extension process.

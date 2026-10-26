@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 2645a88390d77071772448da1622549e459c8fa3a1d9ebda2848d6f9de29ecb0 -->
+<!-- source-sha256: 6cd7f608c30e1b27b4d911fba1de5c27afc69e315c1b5e51037d7f6b6f404b49 -->
 
 [English](testing.md).
 
@@ -331,3 +331,19 @@ Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. 최소 
 `npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mts`는 documentation,
 `dist` 행을 확인합니다. `dist` lock은 임시 checkout에서 build하는 fixture package로 확인하므로 저장소의 build
 결과물을 읽지 않고 `npm run build`보다 먼저 실행됩니다.
+
+## PHP source와 extension test 범위
+
+각 PHP library는 `public`과 `php-source-internal` PHPUnit suite를 선언한다. 기본 suite는 `public`이며 extension은 PHP
+library source-load guard를 활성화하고 실행한다. 구현 helper를 호출하는 test는 source suite에 유지한다. 혼합 test class는 공개 API
+assertion을 public suite에 남기고 helper assertion을 source class로 분리한다.
+
+Source Composer test script는 두 suite를 모두 선택한다. PHP validator CI entry는 해당 script를 사용하고 PHP API CI entry는
+generator의 두 suite를 선택하며 `make test-php`는 source-internal suite를 포함한다. 공개 extension 실행은 모든 public case를
+유지한다. 공유 expression과 composition fixture 검사는 PHP source binding과 별도의 native C engine binding을 유지한다.
+Contract requirement와 fixture case를 제거하지 않는다.
+
+`npm run test:php-scope`는 native PHPUnit XML case 목록으로 public과 source-internal case ID가 겹치지 않으며 합집합이 전체
+발견 case와 같고 기본 선택이 전체 public 선택과 같음을 검증한다. 같은 unit이 source entry 명령도 검사한다. Fixture JSON은
+`tests/php/FixtureJson.php`에서 공개 OrderedJSON API를 사용하여 extension process에 PHP 구현 helper를 로드하지 않고 고립
+surrogate 입력을 보존한다.

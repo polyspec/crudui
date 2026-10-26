@@ -27,7 +27,7 @@
         }
     },
     "scripts": {
-        "test": "COMPOSER_VENDOR_DIR=../../../vendor node ../../../tests/conformance/run-suite.mts phpunit --cwd packages/validator/php"
+        "test": "COMPOSER_VENDOR_DIR=../../../vendor node ../../../tests/conformance/run-suite.mts phpunit --cwd packages/validator/php -- --testsuite public,php-source-internal"
     },
     "minimum-stability": "stable"
 }

@@ -6,7 +6,7 @@ namespace Polyspec\Crudui\Extension\Tests;
 
 use Polyspec\Crudui\Validator;
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
-use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\CruduiTestSupport\FixtureJson;
 use Polyspec\Crudui\Validator\Validate\FormInputError;
 use ReflectionClass;
 use RuntimeException;
@@ -140,12 +140,9 @@ final class ValidateReport
         }
         // Input text cases are JSON text with unpaired surrogate escapes (docs/spec/input-text.md). The
         // decoder has no dependencies, so the native run without an autoloader loads its file.
-        if (!class_exists(JsonText::class)) {
-            require_once $root . '/packages/validator/php/src/Support/JsonText.php';
-        }
         foreach (['validate','validateList','validateDetail'] as $feature) {
             foreach (
-                JsonText::decode(
+                FixtureJson::decode(
                     file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')
                 ) as $case
             ) {
@@ -211,7 +208,7 @@ final class ValidateReport
             return $value;
         };
         foreach (
-            JsonText::decode(file_get_contents($root . '/tests/fixtures/text-validity/value-graphs.json')) as $case
+            FixtureJson::decode(file_get_contents($root . '/tests/fixtures/text-validity/value-graphs.json')) as $case
         ) {
             $inputs = ['spec' => $case->spec,'files' => $case->files ?? null,'data' => $case->data];
             $target = $inputs[$case->graph->at[0]];

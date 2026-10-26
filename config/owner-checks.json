@@ -833,6 +833,22 @@
       "tests": [
         "tests/build/dependency-health.test.mts"
       ]
+    },
+    {
+      "paths": [
+        "packages/{generator,validator}/php/phpunit.xml",
+        "packages/{generator,validator}/php/tests/**",
+        "tests/php/FixtureJson.php",
+        "tests/fixtures/**",
+        "tests/build/php-test-scope.test.mts",
+        "packages/{generator,validator}/php/composer.json",
+        "Makefile",
+        "tests/build/make-dry-run.mts",
+        "tests/json.mts"
+      ],
+      "scripts": [
+        "test:php-scope"
+      ]
     }
   ],
   "inputs": [
@@ -909,6 +925,20 @@
       "paths": [
         "composer.local.json",
         "composer.local.lock"
+      ]
+    },
+    {
+      "check": "npm run test:php-scope",
+      "paths": [
+        "packages/{generator,validator}/php/phpunit.xml",
+        "packages/{generator,validator}/php/tests/**",
+        "tests/php/FixtureJson.php",
+        "tests/fixtures/**",
+        "tests/build/php-test-scope.test.mts",
+        "packages/{generator,validator}/php/composer.json",
+        "Makefile",
+        "tests/build/make-dry-run.mts",
+        "tests/json.mts"
       ]
     }
   ]

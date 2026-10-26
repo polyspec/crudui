@@ -20,6 +20,10 @@
 - Release manifests and internal dependencies name 0.0.8. npm, Cargo, uv and the local Composer profile refresh their workspace locks. The feature manifest and consumer declarations use the candidate version, and the existing change records form the 0.0.8 section. No tag is created.
 
 ## 0.0.8
+### 2026-10-26 — PHP implementation units have a separate source suite (C18.6)
+
+- PHP source runs select public and source-internal suites, while extension runs select every public case with no PHP library sources. Mixed classes retain public assertions and separate helper assertions. Native PHPUnit listings preserve all original cases and prove scope coverage. Fixture decoding uses the public OrderedJSON API, and shared native expression and composition bindings remain unchanged.
+
 
 ### 2026-10-26 — Shared kit configuration uses tracked regular files (C17.56-2)
 

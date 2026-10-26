@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: cce23ae7be61dedd1306a5d4db7e4c24746c58eb090a2b985bb46c3cde3eb7ba -->
+<!-- source-sha256: d5cc0e8aa31b806430d30f679b24bd4ecdc9aef3ea794d01fa3399c83c79935f -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -208,3 +208,11 @@ Git에서 제거했습니다. 새 이미지는 같은 잠금 버전의 PHP 의�
 TypeScript·Go·Rust·PHP API 생성과 엄격한 정적 웹 빌드가 통과했습니다.
 전체 문서를 두 번 생성한 API 문서·네이티브 HTML 자산·스키마 출력은 동일했습니다.
 생성 실패 검사 8개와 폼 원문 검사기 18개가 통과했습니다.
+
+## PHP test 범위 검증
+
+2026-10-26 PHP 8.4.26 source 실행은 generator 859개와 validator 985개 case를 모두 통과했다. 빌드한 extension의 공개 실행은
+PHP library source-load guard를 활성화하고 generator 841개와 validator 633개 case를 모두 통과했다. Native expression 및
+composition engine unit은 94개 case를 통과했다. Native PHPUnit XML 목록은 혼합 class 3개 분리 전후 원래 case ID를 모두
+보존하며 scope unit은 source와 public 선택의 완전성을 검증한다. 이 소유 결과는 앞선 extension 전체 실행의 test 범위 문제를
+수정하며 전체 candidate CI 검증을 대신하지 않는다.

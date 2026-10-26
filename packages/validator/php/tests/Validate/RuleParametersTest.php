@@ -6,7 +6,6 @@ namespace Polyspec\Crudui\Validator\Tests\Validate;
 
 use Polyspec\Crudui\Validator;
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
-use Polyspec\Crudui\Validator\Validate\Validator as DataValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -182,15 +181,6 @@ final class RuleParametersTest extends TestCase
         );
     }
 
-    public function testTheValidatorChecksDeclarationsWhenConstructed(): void
-    {
-        $this->expectException(ComposeLoadError::class);
-        $this->expectExceptionMessage('Invalid match pattern: unsupported construct at 0');
-        new DataValidator([
-            'type' => 'group',
-            'properties' => ['a' => ['type' => 'text', 'validate' => ['match' => '(?i)a']]]
-        ]);
-    }
 
     public function testForbiddenKeysAreReportedBeforeParameters(): void
     {

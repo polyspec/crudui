@@ -7,7 +7,7 @@ namespace Polyspec\Crudui\Generator\Tests;
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
-use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\CruduiTestSupport\FixtureJson;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -29,7 +29,7 @@ final class TemplateShapeTest extends TestCase
     public static function shapeCases(): iterable
     {
         $root = \dirname(__DIR__, 4);
-        $cases = JsonText::decode(
+        $cases = FixtureJson::decode(
             (string) \file_get_contents($root . '/tests/fixtures/template-shape/cases.json')
         );
         self::assertCount(self::CASES, $cases, 'The template shape fixture holds 42 cases');

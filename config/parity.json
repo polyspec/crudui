@@ -327,6 +327,18 @@
         {
           "glob": "packages/validator/php/tests/Compose/RefTest.php",
           "reason": "test: the cycle, format and declaration-order rules of the Ref class of the PHP compose module, which only PHP has; the shared compose suite checks the contract through its ref cases"
+        },
+        {
+          "glob": "packages/generator/php/tests/Internal/NumberFormattingTest.php",
+          "reason": "test: PHP implementation helper unit; public API cases remain in the public test suite"
+        },
+        {
+          "glob": "packages/generator/php/tests/Internal/StyleTest.php",
+          "reason": "test: PHP implementation helper unit; public API cases remain in the public test suite"
+        },
+        {
+          "glob": "packages/validator/php/tests/Validate/ValidatorConstructionTest.php",
+          "reason": "test: PHP implementation helper unit; public API cases remain in the public test suite"
         }
       ]
     },

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3859845a2e2ae7a4c26a9f6f06a7599888b9756e93af21e4ea3c54728b2f39c4 -->
+<!-- source-sha256: bafb99cf6fbe10629bc36c77d1741766e2be239e0a60230754a86f9c51d3415f -->
 
 ## Unreleased
 
@@ -21,6 +21,10 @@
 - Release manifest와 내부 의존성은 0.0.8을 명시합니다. npm, Cargo, uv와 local Composer profile은 workspace lock을 갱신하며 feature manifest와 consumer 선언은 candidate version을 사용합니다. 기존 변경 기록은 0.0.8 section에 둡니다. Tag는 생성하지 않습니다.
 
 ## 0.0.8
+### 2026-10-26 — PHP 구현 unit을 별도 source suite로 실행한다 (C18.6)
+
+- PHP source 실행은 public 및 source-internal suite를 선택하며 extension은 PHP library source 없이 모든 public case를 선택한다. 혼합 class는 공개 assertion을 유지하고 helper assertion을 분리한다. Native PHPUnit 목록은 원래 case를 모두 보존하고 범위 coverage를 증명한다. Fixture decode는 공개 OrderedJSON API를 사용하며 공유 native expression 및 composition binding은 유지한다.
+
 
 ### 2026-10-26 — 공유 kit 설정을 추적 일반 파일로 둔다 (C17.56-2)
 

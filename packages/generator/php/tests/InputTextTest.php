@@ -8,7 +8,7 @@ use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
-use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\CruduiTestSupport\FixtureJson;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -119,7 +119,7 @@ final class InputTextTest extends TestCase
     {
         $root = \dirname(__DIR__, 4);
         foreach (['compileForm', 'bindForm', 'createForm', 'buildList', 'buildDetail'] as $feature) {
-            $cases = JsonText::decode(
+            $cases = FixtureJson::decode(
                 (string) \file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')
             );
             foreach ($cases as $case) {
@@ -162,7 +162,7 @@ final class InputTextTest extends TestCase
     private static function casesOf(string $feature): array
     {
         $root = \dirname(__DIR__, 4);
-        $cases = JsonText::decode(
+        $cases = FixtureJson::decode(
             (string) \file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')
         );
         $out = [];

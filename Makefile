@@ -392,7 +392,7 @@ crudui-test-native-generators: cargo-downloads-check
 crudui-test-php-api: require-build build-php-ext
 	@status=0; \
 	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
-	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -406,7 +406,7 @@ crudui-test-native:
 crudui-test-validators: cargo-downloads-check
 	@status=0; \
 	$(NODE) tests/conformance/run-suite.mts vitest --cwd packages/validator/ts || status=1; \
-	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/validator/php || status=1; \
+	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/validator/php -- --testsuite public,php-source-internal || status=1; \
 	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./... || status=1; \
 	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
 	exit $$status
@@ -535,3 +535,12 @@ CHECK_TARGETS = \
 lint-ts: production-dependencies-check
 production-dependencies-check:
 	$(NODE) node_modules/knip/bin/knip.js --config config/knip-production.json --production --strict --include unlisted --no-progress --no-config-hints
+
+# Native source units remain part of the PHP source target; extension runs keep the public default.
+test-php: crudui-test-php-source-internals
+.PHONY: crudui-test-php-source-internals
+crudui-test-php-source-internals:
+	@status=0; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php -- --testsuite php-source-internal || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/validator/php -- --testsuite php-source-internal || status=1; \
+	exit $$status

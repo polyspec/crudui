@@ -215,3 +215,11 @@ TypeScript, Go, Rust and PHP API generation and the strict static web build
 passed. Two complete generations produced identical API documentation, native
 HTML assets and schema output. Eight generator failure tests passed, and the raw
 form inspector passed 18 cases.
+
+## PHP test scope verification
+
+On 2026-10-26, PHP 8.4.26 source runs passed all 859 generator and 985 validator cases. Public runs against the built
+extension passed all 841 generator and 633 validator cases with the PHP library source-load guard enabled. Native
+expression and composition engine units passed 94 cases. Native PHPUnit XML listings preserve all original case IDs
+across the three mixed-class splits, and the scope unit verifies complete source and public selections. These owning
+results correct the earlier extension-wide test-scope limitation; they do not replace full candidate CI verification.

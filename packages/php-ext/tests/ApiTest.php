@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polyspec\Crudui\Conformance\Evidence;
 use Polyspec\CruduiTestSupport\PhpProcess;
-use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\CruduiTestSupport\FixtureJson;
 use RuntimeException;
 use stdClass;
 
@@ -85,8 +85,8 @@ final class ApiTest extends TestCase
                 $same
             );
         }
-        // The cases hold unpaired surrogate escapes, which JsonText decodes and json_decode refuses.
-        $graphs = JsonText::decode(
+        // The cases hold unpaired surrogate escapes, which FixtureJson preserves and json_decode refuses.
+        $graphs = FixtureJson::decode(
             (string) file_get_contents(dirname(__DIR__, 3) . '/tests/fixtures/text-validity/value-graphs.json')
         );
         self::assertSame(
