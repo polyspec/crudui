@@ -101,6 +101,8 @@ def dispatch(request):
         return Generator.bindButtons(template_of(request), data_of(request), options)
     if operation == "formButtonsHtml":
         return Generator.formButtonsHtml(request.get("buttons"))
+    if operation == "buildOutline":
+        return Generator.buildOutline(request.get("nodes"))
     if operation == "renderList":
         return Generator.renderList(request.get("spec"), request.get("rows"), options)
     if operation == "buildList":

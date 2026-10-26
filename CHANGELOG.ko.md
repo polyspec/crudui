@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4a34a0b9ef969f512a195f06fc468695643d167809403327852f0d8f58bc56cb -->
+<!-- source-sha256: 63201967c6ba26446ab647cc236b9f12d60d938e8c21e9287e031a623b0ec4cf -->
 
 ## Unreleased
 
@@ -43,6 +43,10 @@
 ### 2026-10-26 — PHP server fixture가 선언된 PHP 설치 경로를 사용한다 (C17.44)
 
 - PHP server unit fixture는 launcher module에서 해석하는 경로에 php-config와 PHP-FPM을 배치한다. 각 test는 readiness 실패와 cleanup 실패를 포함한 모든 결과에서 launcher 종료를 기다린 뒤 sandbox를 제거한다.
+
+### 2026-10-26 — Python native 검사가 structure map 요청을 전달한다 (C17.45)
+
+- Python native generator program이 buildOutline 요청과 평가된 node를 Generator.buildOutline으로 전달한다. 공유 outline 사례 5개가 unknown-operation 오류 없이 native program을 통해 실행된다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 
