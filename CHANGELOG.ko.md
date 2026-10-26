@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 63201967c6ba26446ab647cc236b9f12d60d938e8c21e9287e031a623b0ec4cf -->
+<!-- source-sha256: c3a7778d03341468c62ea2a94ed2d037e0c8f249d6fc9827020a2d61bd8f7dcd -->
 
 ## Unreleased
 
@@ -47,6 +47,10 @@
 ### 2026-10-26 — Python native 검사가 structure map 요청을 전달한다 (C17.45)
 
 - Python native generator program이 buildOutline 요청과 평가된 node를 Generator.buildOutline으로 전달한다. 공유 outline 사례 5개가 unknown-operation 오류 없이 native program을 통해 실행된다.
+
+### 2026-10-26 — Condition editor 식별자가 apostrophe를 보존한다 (C17.35-1)
+
+- PHP extension은 condition wrapper 식별자에 shared renderer와 같은 raw attribute escaping을 적용한다. 기존 tree fixture는 apostrophe를 포함한 idPrefix를 사용하며 exact HTML 비교를 통과한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

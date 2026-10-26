@@ -380,7 +380,7 @@ static bool write_condition_widget(render_buffer *out, const ps_value *model)
         ps_value *wrapper = ps_object_value();
         ok = wrapper && attr_string(wrapper, "class", "crudui-condition") &&
             attr_clone(wrapper, "data-condition-for", member(editor, "for")) &&
-            start_element(out, "div", wrapper, false, false) &&
+            start_element(out, "div", wrapper, true, false) &&
             write_condition_node(out, member(editor, "root"), editor) && end_element(out, "div", false);
         ps_value_free(wrapper);
     }

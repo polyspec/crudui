@@ -47,6 +47,10 @@
 
 - The Python native generator program forwards buildOutline requests and their evaluated nodes to Generator.buildOutline. The five shared outline cases now execute through the native program without an unknown-operation failure.
 
+### 2026-10-26 — Condition editor identifiers preserve apostrophes (C17.35-1)
+
+- The PHP extension writes the condition wrapper identifier with the same raw attribute escaping as the shared renderer. The existing tree fixture uses an idPrefix containing an apostrophe and the exact HTML comparison passes.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

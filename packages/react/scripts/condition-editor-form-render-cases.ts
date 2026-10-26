@@ -95,8 +95,8 @@ export const CONDITION_EDITOR_CASES = [
     note: 'A structured editor writes the tree as nested controls under the hidden textarea: groups with their mode and buttons, comparisons with the field select of options.fields (a field outside the list first as its own option), the eight ops and the value text, and judged text under conditionTree: judge.',
     spec: editorField({ conditionTree: 'judge' }, { options: { fields: FIELDS } }),
     data: { pass: TREE },
-    options: { language: 'en' },
-    expected_html: form('pass', 'Pass', shown('pass', JSON.stringify(TREE), TREE_ROOT, { language: 'en', judge: true, fields: FIELDS }), 'en'),
+    options: { language: 'en', idPrefix: "a'b" },
+    expected_html: form('pass', 'Pass', shown('pass', JSON.stringify(TREE), TREE_ROOT, { language: 'en', judge: true, fields: FIELDS }), 'en').replace(/crudui:/g, "a'b:"),
   },
   {
     name: 'condition-editor-empty',
