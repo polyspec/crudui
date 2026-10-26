@@ -498,6 +498,7 @@ test('install-packages installs the svelte tools after its npm ci and runs no li
 // UV_PROJECT_ENVIRONMENT, so the Makefile gives install-link the venv of var/python (C16.135).
 test('install-link links into the venv of var/python', () => {
   // The make database names the target-specific variables of each target: `make -p` shows the one of install-link.
-  const database = execFileSync('make', ['-p', '-n', 'install-link'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  assert.match(database, /^# UV_PROJECT_ENVIRONMENT := .*\/var\/python$/m, 'install-link has the venv of the repository as its environment');
+  const database = makeDryRun(ROOT, 'install-link', { database: true });
+  assert.equal(database.status, 0, database.stderr);
+  assert.match(database.stdout, /^# UV_PROJECT_ENVIRONMENT := .*\/var\/python$/m, 'install-link has the venv of the repository as its environment');
 });

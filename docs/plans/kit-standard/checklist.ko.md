@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ab1202d305188768ccff2746bd29ea5db9519ccb69e6b69a83b8d07563f45bc8 -->
+<!-- source-sha256: 8f1635c6000113f3ea309d8a5ad0cf97ec83c858465202a50fd6088440a8c6d7 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -368,3 +368,4 @@
 | C17.35 | php-ext C 엔진은 C17.25 조건 편집기 트리를 기대 HTML과 같게 렌더링한다 (comparison 테스트, 세 케이스 모두) | packages/php-ext (the C engine renderer of the condition editor), not the expected HTML | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- packages/php-ext/tests/comparison/comparison.test.mjs` | [o] |
 | C17.36 | tests/build의 실패하는 열 개 테스트가 main에서 통과한다: ci-local, dependency-health, runtime-version-policy, lint-coverage | the four test files and the sources or configs they check (fixed at the cause, not the expectation) | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/dependency-health.test.mts tests/build/runtime-version-policy.test.mts tests/build/lint-coverage.test.mts` | [o] |
 | C17.47 | 완료된 checklist 수정을 통합하고 전체 suite를 반복하지 않으면서 통합 기록과 변경 owner를 검증한다. | docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md and CHANGELOG.md with its Korean twin | `node node_modules/@polyspec/kit/scripts/kit/check-documents.mts`; `make records-check` | [ ] |
+| C17.36-1 | Runtime build 검사가 선언된 kit source 경로를 읽고 make database 출력을 dry-run helper로 읽는다. | tests/build/make-dry-run.mts, tests/build/ci-local.test.mts, tests/build/make-tool-path.test.mts, tests/build/offline-checks.test.mts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/make-tool-path.test.mts tests/build/offline-checks.test.mts tests/build/make-dry-run.test.mts` | [o] |

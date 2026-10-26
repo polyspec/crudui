@@ -31,11 +31,11 @@ const ROOT = path.resolve(import.meta.dirname, '../..');
 
 const SELF = 'tests/build/offline-checks.test.mts';
 const CHECK = 'cargo-downloads-check';
-// The targets of the kit.mk of @polyspec/kit and of scripts/kit/kit-bootstrap.mk that download: the tools, the packages, the
+// The targets of the kit.mk and bootstrap of @polyspec/kit that download: the tools, the packages, the
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
 // the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). release-consumer installs the archives of a release in clean projects: the tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock', 'php-ext-arginfo', 'unlink'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock', 'unlink'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 // The install targets of the Makefile itself that run a recipe: by the rule of docs/operations/package-build.md only they
@@ -43,9 +43,13 @@ const makefile = read('Makefile');
 const INSTALLS = Object.entries(makeTargets(makefile) as Record<string, MakeRule>)
   .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.length > 0)
   .map(([name]) => name);
-// The targets of the Makefile and of the files that it includes: scripts/kit/kit-bootstrap.mk and the kit.mk of @polyspec/kit.
+// The targets of the Makefile, its declared bootstrap include and the kit.mk of the installed @polyspec/kit.
 const kitMakefile = read('node_modules/@polyspec/kit/scripts/kit/kit.mk');
-const makefiles = [makefile, read('scripts/kit/kit-bootstrap.mk'), kitMakefile].join('\n');
+const bootstrapIncludes = [...makefile.matchAll(/^include ([^\s]+\/kit-bootstrap\.mk)$/gm)];
+assert.equal(bootstrapIncludes.length, 1, 'Makefile declares exactly one kit bootstrap include');
+const bootstrap = bootstrapIncludes[0]?.[1];
+assert.ok(bootstrap, 'Makefile declares the kit bootstrap path');
+const makefiles = [makefile, read(bootstrap), kitMakefile].join('\n');
 // The online targets that kit.mk defines in the installed kit: a newer kit adds targets (worktree-setup, kit K348), and the
 // list names the ones of the kit that the lock pins as well as those that the installed kit defines.
 const KIT_ONLINE = Object.entries(makeTargets(kitMakefile) as Record<string, MakeRule>)
@@ -131,7 +135,10 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|dependency-review\.\$\(KIT_EXT\)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
+  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|dependency-review\.\$\(KIT_EXT\)(?! --provider-entries\b)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
+  // The provider-entries mode rewrites local Composer metadata and returns before the registry review.
+  assert.equal(downloading.test('$(NODE) $(KIT)/dependency-review.$(KIT_EXT) --record'), true);
+  assert.equal(downloading.test('$(NODE) $(KIT)/dependency-review.$(KIT_EXT) --provider-entries'), false);
   const offline = Object.entries(targets).flatMap(([name, rule]) => rule.commands
     .filter(command => downloading.test(command) && !command.includes('$(ONLINE)'))
     .map(command => `${name}: ${command}`));

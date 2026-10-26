@@ -17,22 +17,21 @@ function escapeRegExp(text: string): string {
 }
 
 /**
- * The directory of the kit tools that the Makefile runs (KIT): make decides it from the checkout, a kit checkout beside
- * the repository or the installed package, so the test asks make for it instead of naming one of them.
+ * The test runner path of the Makefile: make resolves KIT and KIT_EXT from the checkout or the installed package.
  */
-function kitDirectory(): string {
+function kitTestRunner(): string {
   const probe = mkdtempSync(path.join(os.tmpdir(), 'crudui-kit-probe-'));
   try {
-    const probeFile = path.join(probe, 'kit-directory.mk');
-    writeFileSync(probeFile, 'print-kit-directory:\n\t@printf \'%s\\n\' \'$(KIT)\'\n');
-    const result = spawnSync(make, ['--no-print-directory', '-s', '-f', 'Makefile', '-f', probeFile, 'print-kit-directory'], {
+    const probeFile = path.join(probe, 'kit-test-runner.mk');
+    writeFileSync(probeFile, 'print-kit-test-runner:\n\t@printf \'%s\\n\' \'$(KIT)/run-tests.$(KIT_EXT)\'\n');
+    const result = spawnSync(make, ['--no-print-directory', '-s', '-f', 'Makefile', '-f', probeFile, 'print-kit-test-runner'], {
       cwd: repository,
       encoding: 'utf8',
     });
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const [directory] = result.stdout.trim().split('\n');
-    assert.ok(directory, 'make printed no KIT directory');
-    return directory;
+    const [runner] = result.stdout.trim().split('\n');
+    assert.ok(runner, 'make printed no kit test runner path');
+    return runner;
   } finally {
     rmSync(probe, { recursive: true, force: true });
   }
@@ -86,9 +85,9 @@ test('crudui-test-native runs the Rust tests through the test runner', async t =
   assert.equal(result.error, undefined, result.error?.message ?? '');
   assert.equal(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
-  const kit = kitDirectory();
+  const runner = kitTestRunner();
   assert.match(commands,
-    new RegExp(`^node\\t${escapeRegExp(kit)}/run-tests\\.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo\\.toml$`, 'm'));
+    new RegExp(`^node\\t${escapeRegExp(runner)} cargo -- --locked --manifest-path packages/generator/rust/Cargo\\.toml$`, 'm'));
 });
 
 test('crudui-test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', async t => {

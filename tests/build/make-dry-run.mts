@@ -12,8 +12,8 @@ export function makeEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.Pr
 
 /**
  * Runs `make --no-print-directory -n <target>` in `cwd`, with the make variables `variables` (`NAME=value`) on the
- * command line; returns the spawnSync result.
+ * command line; database also prints the make database with -p. Returns the spawnSync result.
  */
-export function makeDryRun(cwd: string, target: string, { env, variables = [] }: { env?: NodeJS.ProcessEnv; variables?: string[] } = {}): SpawnSyncReturns<string> {
-  return spawnSync('make', ['--no-print-directory', '-n', target, ...variables], { cwd, encoding: 'utf8', env: makeEnvironment(env) });
+export function makeDryRun(cwd: string, target: string, { env, variables = [], database = false }: { env?: NodeJS.ProcessEnv; variables?: string[]; database?: boolean } = {}): SpawnSyncReturns<string> {
+  return spawnSync('make', ['--no-print-directory', '-n', ...(database ? ['-p'] : []), target, ...variables], { cwd, encoding: 'utf8', env: makeEnvironment(env) });
 }

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b0683e34596d58b720875352e389b53946e5904d20790656a73b4527ef41fa0c -->
+<!-- source-sha256: a969be625dd0d4b1a5dfb6031c9668d267e0e1a078641886041ab15d7b4316ac -->
 
 ## Unreleased
+
+### 2026-10-26 — Runtime 검사가 선언된 tool 경로와 dry-run helper를 사용한다 (C17.36-1)
+
+- Make dry-run helper는 make database 옵션으로 target별 변수를 읽는다. Runtime 검사는 test runner 경로와 확장자를 make에서 읽고 bootstrap 경로를 Makefile include에서 읽는다. Offline target 검사는 local PHP arginfo generator를 offline으로 분류한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

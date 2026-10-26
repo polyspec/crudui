@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Runtime checks use declared tool paths and the dry-run helper (C17.36-1)
+
+- The make dry-run helper reads target-specific variables with the make database option. Runtime checks resolve the test runner path and extension from make and the bootstrap path from the Makefile include. The offline target checks classify the local PHP arginfo generator as offline.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.
