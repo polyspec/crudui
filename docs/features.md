@@ -104,8 +104,9 @@ parser. The [documentation](rebuild/documentation-web.md) and [HTTP forwarding](
 the requirements, evaluated tools and retry conditions.
 
 Published dependency URLs remain in tracked manifests and locks while development uses installed-folder links. Composer
-selects PHPUnit within its declared constraint. React retains the dependency-policy exception for client widget-script
-execution. The withdrawn sprintf-js advisory does not require a package update.
+selects PHPUnit within its declared constraint. React and React DOM 19.3.1 run client widget scripts from an effect after
+rendering an inert template; server rendering and hydration retain script elements. The React dependency-policy exceptions
+are removed. The withdrawn sprintf-js advisory does not require a package update.
 
 The refreshed dependency review covers 95 registry dependencies and 17 locks and records no security advisories.
 The npm locks select patched Markdown, URI, HTTP client and schema packages, and the Rust comparison server lock selects
@@ -116,7 +117,7 @@ The release configuration classifies the native PHP extension manifest as versio
 `push-gate` checks on its commit; owning unit checks do not establish that result.
 
 The [candidate reconsideration checklist](plans/release-readiness/checklist.md) remains bypassed until the candidate's
-required CI checks succeed. It re-evaluates the conditional VitePress and React decisions, current security data and
+required CI checks succeed. It re-evaluates the conditional VitePress decision, current security data and
 tracked dependency installs without development links before publication. The original impossible markers preserve task
 history; they do not make conditional decisions permanent or complete this candidate-stage work.
 

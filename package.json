@@ -98,8 +98,8 @@
   },
   "homepage": "https://github.com/polyspec/crudui#readme",
   "overrides": {
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "dependencies": {
     "puppeteer": "^25.14.0"
@@ -130,8 +130,8 @@
     "playwright": "^1.64.1",
     "postcss": "^8.5.30",
     "puppeteer-core": "25.14.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vite": "8.3.4",

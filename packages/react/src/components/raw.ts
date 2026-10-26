@@ -44,18 +44,20 @@ export function RawContainer({ tag = 'div', html, ...props }: { tag?: string; ht
 /**
  * A `<script>` or `<style>` element with verbatim text, written once. Server rendering writes it
  * and the browser runs a server-rendered script while it parses the page; hydration keeps it. The
- * script element React creates in a client render never runs, so once the whole render is in
- * place a new script element with the same attributes and text runs next to it and is removed:
- * the script runs once, and the page keeps React's element. Later text replaces only the text.
+ * client render keeps an inert template in place of a script. Once the whole render is in place,
+ * an effect creates and retains a script with the same attributes and text next to the template.
+ * Later text changes keep both nodes without running the script again; unmount removes the script.
  */
 export function RawText({ tag, text, ...props }: { tag: 'script' | 'style'; text: string } & Record<string, unknown>): React.ReactElement {
   const ref = React.useRef<HTMLElement>(null);
+  const script = React.useRef<HTMLScriptElement>(null);
   const server = React.useSyncExternalStore(subscribeNever, () => false, () => true);
-  const [content] = React.useState(() => ({ __html: text }));
   const [clientRender] = React.useState(!server);
+  const [content] = React.useState(() => ({ __html: tag === 'script' && clientRender ? '' : text }));
   React.useLayoutEffect(() => {
     const element = mounted(ref, 'RawText');
     if (element.textContent !== text) element.textContent = text;
+    if (script.current && script.current.textContent !== text) script.current.textContent = text;
   }, [text]);
   // A passive effect runs after every layout effect of the render, when the controls are in place.
   React.useEffect(() => {
@@ -65,7 +67,11 @@ export function RawText({ tag, text, ...props }: { tag: 'script' | 'style'; text
     for (const { name, value } of Array.from(element.attributes)) fresh.setAttribute(name, value);
     fresh.textContent = element.textContent;
     element.after(fresh);
-    fresh.remove();
+    script.current = fresh;
+    return () => {
+      fresh.remove();
+      script.current = null;
+    };
   }, [tag, clientRender]);
-  return React.createElement(tag, { ...props, ref, dangerouslySetInnerHTML: content });
+  return React.createElement(tag === 'script' && clientRender ? 'template' : tag, { ...props, ref, dangerouslySetInnerHTML: content });
 }

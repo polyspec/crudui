@@ -7,6 +7,10 @@
 
 - The pre-CI documentation review retains the directly managed latest patched Markdown parser, 15.0.3. Fresh stable and next VitePress archives still embed the affected reference parser. The rebuild record states the current registry channels, archive digests, parser selection and completed candidate decision.
 
+### 2026-10-26 — React 19.3.1 runs client widget scripts after rendering (C18.3)
+
+- React and React DOM use 19.3.1. Client widget scripts run from an effect beside an inert template and remain in the DOM until unmount; later renders preserve their nodes without executing them again. Server output and hydration retain script elements. The React dependency exceptions are removed. React owner tests and client/server script checks in Chromium, Firefox and WebKit pass.
+
 ### 2026-10-26 — Shared kit configuration uses tracked regular files (C17.56-2)
 
 - The shared principles, editor configuration and command settings are regular files synchronized by kit-sync. The managed workflows match the current installed kit source. Source package installation folders remain native links. The kit configuration check, document pairs and selected workflow trigger checks pass.

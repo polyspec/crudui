@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 692bd3f0dbc1a5a84da70685842c1ca55827eab8351159c49a44e04f71e3ad5d -->
+<!-- source-sha256: bb8c9510315aa1507b4ef8f6f0b3b256a4b6016484156c748ee1e8e89024533c -->
 
 ## Unreleased
 
 ### 2026-10-26 — 현재 문서 도구 candidate 검토를 완료한다 (C18.2)
 
 - CI 전 문서 검토는 직접 관리하는 최신 수정 Markdown parser 15.0.3을 유지합니다. 새 stable과 next VitePress archive에는 영향받는 reference parser가 남아 있습니다. Rebuild record는 현재 registry channel, archive digest, parser 선택과 완료된 candidate 결정을 기록합니다.
+
+### 2026-10-26 — React 19.3.1이 렌더링 후 client widget script를 실행한다 (C18.3)
+
+- React와 React DOM은 19.3.1을 사용한다. Client widget script는 inert template 옆에서 effect로 실행하고 unmount까지 DOM에 유지하며, 이후 render는 node를 보존하고 다시 실행하지 않는다. Server 출력과 hydration은 script element를 유지한다. React 의존성 예외를 제거한다. React 소유 test와 Chromium, Firefox, WebKit의 client/server script 검사가 통과한다.
 
 ### 2026-10-26 — 공유 kit 설정을 추적 일반 파일로 둔다 (C17.56-2)
 

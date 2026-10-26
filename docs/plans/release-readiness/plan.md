@@ -13,9 +13,8 @@ The maintainer supplies the candidate tag through `TAG`; this plan creates no ta
 
 - C16.8: Query the current stable VitePress distribution and compare its bundled parser with the security fix. Adopt a
   suitable fixed distribution, or retain the renderer with current evidence in the rebuild record.
-- C16.173: Reconsider the React widget-script exception against the current candidate and available fixes. An upgrade
-  must preserve client widget-script execution; run its owning tests when evaluating a changed React version. Version
-  alignment alone does not require an upgrade.
+- C16.173: C18.3 supports React and React DOM 19.3.1 without a widget-script exception. Candidate verification retains
+  the script execution and server hydration checks when the dependency version changes.
 - C16.45, C16.170 and C16.171: Verify the tracked dependency declarations and candidate archives without development
   links. The dependency manager must resolve the published versions and the consumer smoke commands must pass.
 - C16.169: Refresh advisory data. A withdrawn advisory does not require an update, but its withdrawal does not exempt

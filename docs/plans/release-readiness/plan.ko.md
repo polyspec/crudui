@@ -1,5 +1,5 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: eecc1fdffff460f152781ee710fb8ca426de36aa62ffe6197512b9a70a5e3e48 -->
+<!-- source-sha256: 1dc698a8dd186f21d81c91df4febe1992ed8d0c227781e3c42ef31d767405097 -->
 # Release candidate 재검토
 
 [English](plan.md)
@@ -14,9 +14,8 @@ Maintainer가 `TAG`로 candidate tag를 제공하며 이 plan은 tag를 만들�
 
 - C16.8: 현재 stable VitePress distribution을 조회하고 내장 parser와 보안 수정을 비교한다. 적합한 수정 distribution을
   채택하거나 rebuild record에 현재 근거를 기록하고 renderer를 유지한다.
-- C16.173: 현재 candidate와 사용 가능한 수정에 따라 React widget-script exception을 재검토한다. Upgrade는 client
-  widget-script 실행을 보존해야 하며 변경한 React version을 평가할 때 소유 검사를 실행한다. 버전 정렬만으로 upgrade를
-  요구하지 않는다.
+- C16.173: C18.3은 widget-script exception 없이 React와 React DOM 19.3.1을 지원한다. Candidate 검증은 의존성
+  version이 바뀌면 script 실행과 server hydration 검사를 유지한다.
 - C16.45, C16.170과 C16.171: 개발 링크 없이 추적 의존성 선언과 candidate archive를 검증한다. 의존성 관리자가 published
   version을 해석하고 consumer smoke 명령이 통과해야 한다.
 - C16.169: Advisory data를 갱신한다. 철회된 advisory는 update를 요구하지 않지만 candidate의 새 보안 finding 검사를

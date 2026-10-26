@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: 13bc3c1974879768fec68c81f3b24908502b7366ff512c2f158c7fa7fe83774a -->
+<!-- source-sha256: cce23ae7be61dedd1306a5d4db7e4c24746c58eb090a2b985bb46c3cde3eb7ba -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -102,7 +102,8 @@ Report는 `var/report/final-checklist/record.json`입니다. 실패의 수정과
 조건을 설명합니다.
 
 추적 manifest와 lock은 published dependency URL을 유지하고 개발 중에는 installed-folder link를 사용합니다. Composer는
-선언한 제약 내에서 PHPUnit을 선택합니다. React는 client widget-script 실행을 위한 dependency-policy exception을 유지합니다.
+선언한 제약 내에서 PHPUnit을 선택합니다. React와 React DOM 19.3.1은 inert template을 렌더링한 뒤 effect에서 client widget
+script를 실행합니다. Server rendering과 hydration은 script element를 유지하며 React dependency-policy exception은 제거합니다.
 철회된 sprintf-js advisory는 package update를 요구하지 않습니다.
 
 갱신한 dependency review는 registry dependency 95개와 lock 17개를 검토하며 보안 advisory가 없습니다. npm lock은 수정된
@@ -114,7 +115,7 @@ publication과 구분해 검사합니다. Release에는 해당 commit의 `ci-pas
 그 결과를 입증하지 않습니다.
 
 [Candidate 재검토 checklist](plans/release-readiness/checklist.ko.md)는 candidate의 필수 CI 검사가 성공할 때까지 우회 상태다.
-Publication 전에 조건부 VitePress와 React 결정, 현재 보안 data, 개발 링크 없는 추적 의존성 설치를 재평가한다. 원래 불가
+Publication 전에 조건부 VitePress 결정, 현재 보안 data, 개발 링크 없는 추적 의존성 설치를 재평가한다. 원래 불가
 표시는 작업 이력을 보존하며 조건부 결정을 영구화하거나 이 candidate 단계 작업을 완료하지 않는다.
 
 ## 로컬 source 개발
