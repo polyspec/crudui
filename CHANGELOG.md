@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — The internal URL export is declared in the contract manifest (C17.40-1)
+
+- The generator core internal entry declares sanitizeUrl in the contract manifest. The generated feature documents include the same export, and the manifest export and generated-document checks pass.
+
 ### 2026-10-26 — The completed checklist fixes are integrated (C17.47)
 
 - The integrated changes preserve the selected owner checks for rendering, validation budgets, native dispatch, API errors, source documentation and test preparation. English and Korean task records and change entries match. PHP source changes select the source documentation unit. The full-run result and its conformance evidence limitation are recorded in docs/features.md.

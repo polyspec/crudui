@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3a2a2bf22a2f47942f9e0d9d1ea25f925205cb2d01e83051d1017eada3ce1435 -->
+<!-- source-sha256: 2dfd1fd6699875918e513d5afcc521afc332f8c7901652c017550e1f93852c80 -->
 
 ## Unreleased
+
+### 2026-10-26 — Contract manifest가 내부 URL export를 선언한다 (C17.40-1)
+
+- Generator core internal entry는 contract manifest에 sanitizeUrl을 선언한다. 생성된 feature 문서도 같은 export를 포함하며 manifest export 검사와 생성 문서 검사가 통과한다.
 
 ### 2026-10-26 — 완료된 checklist 수정을 통합한다 (C17.47)
 

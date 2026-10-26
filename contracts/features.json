@@ -85,6 +85,7 @@
             "rawElement",
             "rawOptions",
             "rawVoid",
+            "sanitizeUrl",
             "searchHtml",
             "serializeAttrs",
             "sortDir",
