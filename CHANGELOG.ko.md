@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d342baad7cb4b1c3e76347536e09d9f5f5ec63003ec40847240498f36382922d -->
+<!-- source-sha256: 7fd314bec404d5e3f1d03d546e36ac82659552e4376c7f61cd604e50f4976136 -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-26 — Rust fixture 오류가 경로와 원인을 명시한다 (C17.38)
 
 - Rust generator fixture reader는 파일 읽기와 JSON parsing 실패에 fixture 경로와 원래 오류를 명시한다. buttons, complete forms, form state, form rendering, list rendering, detail rendering, validity test target의 604개 case가 모두 통과한다.
+
+### 2026-10-26 — Cross-check 입력이 native build와 fixture requirement를 사용한다 (C17.39)
+
+- Native PHP process test는 기본적으로 var/php-ext/polyspec_crudui.so를 읽으며 PHP_EXTENSION override를 유지한다. Validation fixture export는 명시한 requirement ID의 순서를 보존하고 미주석 draft에 빈 requirement 목록을 작성한다. Exporter는 validation 결과, hidden path와 failure record를 보존한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

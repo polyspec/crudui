@@ -32,10 +32,26 @@ describe('fixture export — form validation cases', () => {
     expect(selected.every(Boolean)).toBe(true);
   });
 
+  test('an unannotated export has an empty requirement list', () => {
+    const exported = validateCases({ name: 'draft', spec: {}, data: {}, run: {
+      idempotent: true, results: [{ lang: 'js', ok: true, valid: true, errors: [], hidden: [] }],
+    } });
+    expect(exported[0].requirements).toStrictEqual([]);
+  });
+
+  test('requirement IDs retain their order without sharing the input array', () => {
+    const requirements = ['CUVR-001', 'CUSC-001'];
+    const exported = validateCases({ name: 'annotated', requirements, spec: {}, data: {}, run: {
+      idempotent: true, results: [{ lang: 'js', ok: true, valid: true, errors: [], hidden: [] }],
+    } });
+    expect(exported[0].requirements).toStrictEqual(requirements);
+    expect(exported[0].requirements).not.toBe(requirements);
+  });
+
   for (const c of selected.filter(Boolean)) {
     test(c.name, async () => {
       const run = await validateAll({ spec: c.spec, data: c.data, files: {}, basepath: '' });
-      const exported = validateCases({ name: c.name, spec: c.spec, data: c.data, run });
+      const exported = validateCases({ name: c.name, requirements: c.requirements, spec: c.spec, data: c.data, run });
       expect(exported.map(item => item.name)).toStrictEqual(['js', 'php', 'go', 'rust', 'python'].map(lang => `${c.name}--${lang}`));
       for (const item of exported) {
         expect(Object.keys(item).sort()).toStrictEqual(Object.keys(c).sort());

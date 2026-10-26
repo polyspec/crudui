@@ -440,7 +440,7 @@ async function runDetail() {
 
 // ---------------------------------------------------------------------------
 // Fixture export — current (spec,data,options,results) → cases.json shapes.
-// validate case: {name,note,spec,data,expected:{valid,errors,hidden}} (./fixture-export.js)
+// validate case: {name,note,requirements,spec,data,expected:{valid,errors,hidden}} (./fixture-export.js)
 // form-render case: {name,note,spec,data,options,expected_html}
 // Downloaded via the App.tsx Blob pattern.
 // ---------------------------------------------------------------------------

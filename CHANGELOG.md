@@ -19,6 +19,10 @@
 
 - The Rust generator fixture readers retain the fixture path and the original error for file reads and JSON parsing. The buttons, complete forms, form state, form rendering, list rendering, detail rendering and validity test targets pass all 604 cases.
 
+### 2026-10-26 — Cross-check inputs use the native build and fixture requirements (C17.39)
+
+- The native PHP process test reads var/php-ext/polyspec_crudui.so by default and preserves the PHP_EXTENSION override. Validation fixture export preserves explicit requirement IDs in order and writes an empty requirement list for an unannotated draft. The exporter retains validation results, hidden paths and failure records.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

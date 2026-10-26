@@ -200,7 +200,7 @@ Each tab serializes its current run into the matching `cases.json` shape and
 downloads it, one case per language/framework:
 
 - form tab → `tests/fixtures/{validate,form-render}/cases.json` shapes: validate
-  `{name,note,spec,data,expected:{valid,errors,hidden}}` (or `expectFailure:{code,message,at}`), with the
+  `{name,note,requirements,spec,data,expected:{valid,errors,hidden}}` (or `expectFailure:{code,message,at}`), with the
   errors and hidden paths in the order of each validator, and form-render
   `{name,note,spec,data,options,expected_html}` (or `{expected_error}`).
 - list tab → `tests/fixtures/list-render/cases.json` shape:
@@ -210,7 +210,9 @@ downloads it, one case per language/framework:
 - detail tab → `tests/fixtures/detail-render/cases.json` shape:
   `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
 
-`client/fixture-export.js` builds the validate cases, and a process that answered
+`client/fixture-export.js` preserves explicitly supplied requirement IDs in their order. An unannotated export has
+an empty `requirements` list; a shared conformance case declares the requirements it tests.
+The exporter builds the validate cases, and a process that answered
 neither a result nor a failure record gives no case. `server/fixture-export.test.mjs`
 runs shared validation cases through the five validator processes and requires each
 exported case to state the `spec`, `data` and `expected` or `expectFailure` of the

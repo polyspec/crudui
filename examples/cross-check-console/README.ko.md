@@ -1,6 +1,6 @@
 # 교차 검사 콘솔
 <!-- doc-id: examples-cross-check-console-readme -->
-<!-- source-sha256: 87b279332f472ce8a1ae7ab4d16e978d542c02d85740e8d9d577de5b53c6b8bb -->
+<!-- source-sha256: f81117774aa4360ee6c735016c793ad93ce6916c76951390db8dd718d2033fc7 -->
 
 [English](README.md).
 
@@ -189,7 +189,7 @@ bindForm fixture의 고정 바이트와 비교하지 않습니다.
 케이스 하나를 만듭니다.
 
 - 폼 탭 → `tests/fixtures/{validate,form-render}/cases.json` 형태: validate는
-  `{name,note,spec,data,expected:{valid,errors,hidden}}`(또는 `expectFailure:{code,message,at}`)이며 오류와
+  `{name,note,requirements,spec,data,expected:{valid,errors,hidden}}`(또는 `expectFailure:{code,message,at}`)이며 오류와
   hidden path는 각 validator의 순서를 따르고,
   form-render는 `{name,note,spec,data,options,expected_html}`(또는 `{expected_error}`).
 - 목록 탭 → `tests/fixtures/list-render/cases.json` 형태:
@@ -199,8 +199,10 @@ bindForm fixture의 고정 바이트와 비교하지 않습니다.
 - 상세 탭 → `tests/fixtures/detail-render/cases.json` 형태:
   `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
 
-`client/fixture-export.js`가 validate 케이스를 만들며, 결과도 실패 기록도 답하지 않은
-프로세스는 케이스를 만들지 않습니다. `server/fixture-export.test.mjs`는 공용 검증 케이스를 네
+`client/fixture-export.js`는 명시적으로 제공된 requirement ID를 순서대로 보존합니다. 주석이 없는 export는
+빈 `requirements` 목록을 가지며, shared conformance case는 검사하는 requirement를 선언합니다.
+Exporter가 validate case를 만들며, 결과도 실패 기록도 답하지 않은
+프로세스는 케이스를 만들지 않습니다. `server/fixture-export.test.mjs`는 공용 검증 케이스를 다섯
 validator 프로세스로 실행하고, 내보낸 각 케이스가 공용 케이스의 `spec`, `data`, `expected` 또는
 `expectFailure`를 그대로 담는지 검사합니다.
 
