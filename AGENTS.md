@@ -24,8 +24,9 @@ only the rules of crudui.
   Enforced by: `make hooks-check`
 - Own: While the version is 0.x there is no pull request, merge queue or GitHub ruleset. Work is committed locally, one
   checklist row per commit, and the owning unit tests pass before the row becomes `[o]`. `main` is pushed once, when
-  development tasks are done or have accepted terminal decisions and no task is active. A candidate-stage review whose
-  declared prerequisites are unmet may remain bypassed until its checkpoint. A tag is created only after the CI check `ci-passed` and the push check `push-gate`
+  development tasks and local candidate preparation are complete and no task is active. Candidate preparation runs before
+  CI with current sibling sources and is not postponed until CI or a separate permission. A tag is created only after
+  the CI check `ci-passed` and the push check `push-gate`
   succeeded for the commit on `main`; a release is made from that tag (`docs/operations/repository.md`).
   Enforced by: none, the order of pushes and tags is a procedure that no check reads.
 
@@ -96,7 +97,7 @@ only the rules of crudui.
 ## Checklist
 
 - Own: A withdrawn task is classified by its current cause. A conditional decision names its retry condition and a
-  candidate-stage review in `docs/plans/release-readiness/`; it is reconsidered before publication. An earlier impossible
+  local candidate review in `docs/plans/release-readiness/`; it is reconsidered before candidate CI. An earlier impossible
   or bypassed state does not make that decision permanent or complete the candidate review.
   Enforced by: none, classification and candidate review are procedures.
 
@@ -144,12 +145,11 @@ The same tree gives the same result on every date and machine, and a failed run 
 - Own: A release is a tag of a commit of `main`, which passed the full suite of CI: `vX.Y.Z` for the repository,
   `<directory>/vX.Y.Z` for the Go module of that directory. Only the maintainer creates, moves or pushes a tag.
   Enforced by: `make release-verify`
-- Own: After the CI check `ci-passed` succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)`
-  comes first: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
+- Own: Before candidate CI, the commit `chore(release): Release X.Y.Z (#<task ID>)` prepares the candidate: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
   `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency on a package of the repository, to X.Y.Z,
   and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new empty `## Unreleased`.
   Enforced by: `make release-verify`
-- Own: The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml`, the copy of kit, runs
+- Own: After local preparation and successful CI checks for that commit, the maintainer tags it and pushes the tag. `.github/workflows/release.yml`, the copy of kit, runs
   `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
   `make release-proof` and `make release-undraft` (the release tool of `@polyspec/kit`). It requires the commit on `main`
   with the checks `push-gate` and `ci-passed` concluded success, the version of the tag in every manifest and the section

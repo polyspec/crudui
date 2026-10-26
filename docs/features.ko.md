@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: d5cc0e8aa31b806430d30f679b24bd4ecdc9aef3ea794d01fa3399c83c79935f -->
+<!-- source-sha256: 42b430c37100343a84ace5c8c7a3892051acb2db10414f8809628c2b0494a6be -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -101,7 +101,7 @@ Report는 `var/report/final-checklist/record.json`입니다. 실패의 수정과
 [문서](rebuild/documentation-web.ko.md)와 [HTTP forwarding](rebuild/http-forward.ko.md) 기록은 요구, 검토한 도구와 재검토
 조건을 설명합니다.
 
-추적 manifest와 lock은 published dependency URL을 유지하고 개발 중에는 installed-folder link를 사용합니다. Composer는
+Native package manager는 로컬 준비에서 현재 sibling source를 선택합니다. Composer는 하나의 root 선언과 lock을 사용하고
 선언한 제약 내에서 PHPUnit을 선택합니다. React와 React DOM 19.3.1은 inert template을 렌더링한 뒤 effect에서 client widget
 script를 실행합니다. Server rendering과 hydration은 script element를 유지하며 React dependency-policy exception은 제거합니다.
 철회된 sprintf-js advisory는 package update를 요구하지 않습니다.
@@ -110,20 +110,22 @@ script를 실행합니다. Server rendering과 hydration은 script element를 �
 Markdown, URI, HTTP client와 schema package를 선택하며 Rust comparison server lock은 Tokio 1.53.3을 선택합니다.
 Go 1.27.3은 linked module의 최소 버전을 충족하며 advisory scan을 실행할 수 있습니다.
 
-Release 설정은 native PHP extension manifest를 version-only로 분류합니다. Package coverage와 기존 0.0.7 manifest version은
-publication과 구분해 검사합니다. Release에는 해당 commit의 `ci-passed`와 `push-gate` 성공이 필요하며 소유 unit 검사는
-그 결과를 입증하지 않습니다.
+Release 설정은 native PHP extension manifest를 version-only로 분류합니다. C18.5는 CI 전에 version 0.0.8 manifest,
+내부 의존성과 native lock을 준비합니다. Package coverage와 version 검사는 publication과 구분합니다. Release에는 해당
+commit의 `ci-passed`와 `push-gate` 성공이 필요하며 로컬 준비와 소유 unit 검사는 그 결과를 입증하지 않습니다.
 
-[Candidate 재검토 checklist](plans/release-readiness/checklist.ko.md)는 candidate의 필수 CI 검사가 성공할 때까지 우회 상태다.
-Publication 전에 조건부 VitePress 결정, 현재 보안 data, 개발 링크 없는 추적 의존성 설치를 재평가한다. 원래 불가
-표시는 작업 이력을 보존하며 조건부 결정을 영구화하거나 이 candidate 단계 작업을 완료하지 않는다.
+[로컬 candidate 준비 checklist](plans/release-readiness/checklist.ko.md)는 CI 전에 활성화합니다. C18.2는 현재 parser 결정을
+완료하고 C18.3은 현재 React widget script를 지원합니다. C18.4는 npm과 Svelte peer를 갱신하고 C18.5는 candidate version을
+준비하며 C18.6은 PHP source-only helper test와 extension runtime test를 분리합니다. C18.1은 완료된 작업을 로컬 `main`에
+통합하고 현재 source 의존성과 consumer를 검증합니다. CI나 별도 허가를 기다리며 미루지 않습니다. 원래 불가 표시는 이력을
+보존하며 이 candidate에 남긴 작업을 뜻하지 않습니다.
 
 ## 로컬 source 개발
 
-설치한 npm kit과 OrderedJSON 폴더 및 Composer OrderedJSON 폴더는 sibling source로 해석한다. 로컬 Composer profile은
-native Composer resolution으로 OrderedJSON 0.0.10과 PHPUnit 13.4.3을 기록한다. 설치 기록은 실제 package manifest와
-일치하며 native validation, PHP platform 검사와 local lock advisory audit이 통과한다. Archive 설치는 별도의 기본
-manifest와 lock을 사용한다. 이 개발 검사는 C18.1을 완료하거나 release candidate의 CI 성공을 입증하지 않는다.
+설치한 npm과 Composer polyspec package는 현재 sibling source로 해석합니다. Root Composer 선언과 native lock은 실제
+로컬 package version을 설명합니다. 로컬 준비는 package manager가 설치한 autoload를 통해 현재 OrderedJSON source의
+순서, 값과 빈 type을 검증합니다. 과거 공개 OrderedJSON archive로 대체하거나 두 번째 archive compatibility 설치 profile을
+유지하지 않습니다. C18.1은 candidate CI 전에 최종 native validation, platform과 consumer 결과를 기록합니다.
 
 ## 표시 선언 검증
 

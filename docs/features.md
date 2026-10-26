@@ -103,8 +103,8 @@ renderer retains a directly managed Markdown parser because the evaluated VitePr
 parser. The [documentation](rebuild/documentation-web.md) and [HTTP forwarding](rebuild/http-forward.md) records state
 the requirements, evaluated tools and retry conditions.
 
-Published dependency URLs remain in tracked manifests and locks while development uses installed-folder links. Composer
-selects PHPUnit within its declared constraint. React and React DOM 19.3.1 run client widget scripts from an effect after
+Native package managers select current sibling sources for local preparation. Composer uses one root declaration and
+lock and selects PHPUnit within its declared constraint. React and React DOM 19.3.1 run client widget scripts from an effect after
 rendering an inert template; server rendering and hydration retain script elements. The React dependency-policy exceptions
 are removed. The withdrawn sprintf-js advisory does not require a package update.
 
@@ -112,22 +112,24 @@ The refreshed dependency review covers 95 registry dependencies and 17 locks and
 The npm locks select patched Markdown, URI, HTTP client and schema packages, and the Rust comparison server lock selects
 Tokio 1.53.3. Go 1.27.3 satisfies the linked module's minimum and permits its advisory scan.
 
-The release configuration classifies the native PHP extension manifest as version-only. Package coverage and the existing
-0.0.7 manifest versions are checked separately from publication. A release still requires successful `ci-passed` and
-`push-gate` checks on its commit; owning unit checks do not establish that result.
+The release configuration classifies the native PHP extension manifest as version-only. C18.5 prepares version 0.0.8
+manifests, internal dependencies and native locks before CI. Package coverage and version checks are separate from
+publication. A release still requires successful `ci-passed` and `push-gate` checks on its commit; local preparation and
+owning unit checks do not establish that result.
 
-The [candidate reconsideration checklist](plans/release-readiness/checklist.md) remains bypassed until the candidate's
-required CI checks succeed. It re-evaluates the conditional VitePress decision, current security data and
-tracked dependency installs without development links before publication. The original impossible markers preserve task
-history; they do not make conditional decisions permanent or complete this candidate-stage work.
+The [local candidate preparation checklist](plans/release-readiness/checklist.md) is active before CI. C18.2 completes
+the current parser decision, C18.3 supports current React widget scripts, C18.4 updates npm and Svelte peers, C18.5 prepares
+the candidate version and C18.6 separates source-only PHP helper tests from the extension runtime tests. C18.1 integrates
+the completed work into local `main` and verifies current source dependencies and consumers. It is not deferred until CI
+or a separate permission. Original impossible markers preserve task history rather than pending work for this candidate.
 
 ## Local source development
 
-The installed npm kit and OrderedJSON folders and the Composer OrderedJSON folder resolve to their sibling sources.
-The local Composer profile records OrderedJSON 0.0.10 and PHPUnit 13.4.3 through native Composer resolution. Its installed
-records match the actual package manifests, and native validation, PHP platform checks and the local lock advisory audit
-pass. Archive installation uses the separate default manifest and lock. These development checks do not complete C18.1
-or establish passing CI on a release candidate.
+Installed npm and Composer polyspec packages resolve to current sibling sources. Root Composer declarations and the
+native lock describe the actual local package versions. Local preparation verifies the current OrderedJSON source,
+including its order, values and empty types, through the package manager's installed autoload. It does not substitute an
+older public OrderedJSON archive or maintain a second archive-compatibility installation profile. C18.1 records the final
+native validation, platform and consumer results before candidate CI.
 
 ## Display declaration verification
 

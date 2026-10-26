@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 8a08508ce209cc7a90fd70996a0b552b0145521d22db1c56290df2231f9906f2 -->
+<!-- source-sha256: fac10e401bb2fe0ed2e5b8a57812fd3bbc93e178f4dc82fa13d35856ebf179ed -->
 
 [English](repository.md).
 
@@ -10,9 +10,9 @@ GitHub ruleset은 없습니다. 작업은 checklist row마다 commit하며 로�
 ## main 게시
 
 각 개발 작업은 소유 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다. 거절한 원래 작업은 기록한
-원인을 유지합니다. 개발 작업이 완료되거나 수용한 종결 결정이 있고 활성 작업이 없을 때 `main`을 한 번 push합니다.
-[Candidate 검토](../plans/release-readiness/plan.ko.md)는 선언한 CI 선행 조건이 충족될 때까지 우회 상태로 둘 수 있으며
-publication 전에 재검토합니다.
+원인을 유지합니다. CI를 위해 push하기 전에 [로컬 candidate 준비](../plans/release-readiness/plan.ko.md)를 완료하고 완료된 모든
+개발 branch를 로컬 `main`에 반영하며 로컬 검증을 끝냅니다. Candidate 준비는 CI나 별도 허가를 기다리며 우회 상태로 두지
+않습니다. 준비를 완료하고 활성 작업이 없을 때 `main`을 push합니다.
 
 ```sh
 git push origin main
@@ -49,27 +49,20 @@ Native PHP extension은 전체 저장소에서 build합니다. `packages/php-ext
 version-only manifest이므로 version 변경은 `src/config.m4`가 읽는 version을 갱신하며 published asset에 Composer archive나
 platform별 binary를 추가하지 않습니다.
 
-1. push된 `main`의 CI가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`는 `config/release.json`이 적은 모든
-   manifest(`package.json`, `packages/`의 `composer.json`, `Cargo.toml`, `pyproject.toml`)의 version과 저장소 package에 대한 모든
-   dependency의 version을 X.Y.Z로 정하고, lock을 다시 만들며, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를
-   `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다.
-2. 그 commit에서 `git tag vX.Y.Z`(로컬 tag), `make release-assets TAG=vX.Y.Z`, `make release-consumer-lock TAG=vX.Y.Z`(online)가
-   그 version의 archive에 대한 사용자 project `tests/release-install/npm`과 `tests/release-install/composer`의 manifest와 lock을
-   씁니다. 로컬 tag는 지우고 그 file을 commit합니다. 그다음 `make release-consumer TAG=vX.Y.Z`가 그것들로 archive를 설치합니다.
-3. Push된 commit의 CI가 성공한 뒤 maintainer가 해당 commit에 검증용 로컬 tag를 만듭니다:
+1. Candidate CI 전에 `config/release.json`이 적은 모든 manifest(`package.json`, `packages/`의 `composer.json`,
+   `Cargo.toml`, `pyproject.toml`)와 저장소 package에 대한 모든 의존성의 version을 준비합니다. Native lock, consumer 선언과
+   양쪽 changelog의 version section을 갱신합니다. Version 준비와 완료된 모든 개발 변경은 CI 전에 로컬 `main`에 반영합니다.
+2. 현재 sibling source, native dependency manager와 candidate의 소유 검사로
+   [로컬 준비 checklist](../plans/release-readiness/checklist.ko.md)의 C18.1을 완료합니다. 로컬 package나 consumer artifact는
+   현재 병합한 source snapshot에서 만들고 같은 실행에서 소비합니다. 준비 과정은 tag를 생성하거나 이전 release를 checkout하지
+   않습니다. 과거 OrderedJSON archive는 현재 sibling source를 대신하지 않습니다.
+3. 로컬 준비가 끝나면 CI를 위해 `main`을 push합니다. Publication은 바로 그 commit에 대해 `ci-passed`와 `push-gate`가
+   성공해야 합니다. 그 뒤에만 maintainer가 publication tag를 만들어 push합니다:
 
    ```sh
    git tag vX.Y.Z <commit of main>
    git tag packages/generator/go/vX.Y.Z <commit of main>
    git tag packages/validator/go/vX.Y.Z <commit of main>
-   ```
-
-   이 tag를 push하기 전에 [candidate 재검토 checklist](../plans/release-readiness/checklist.ko.md)의 C18.1을 완료하며
-   새 candidate archive와 consumer 검사를 포함합니다. Tag workflow는 proof 뒤 자동 공개하므로 candidate 검토가 우회 또는
-   미완료 상태이면 publication tag를 push하지 않습니다. Candidate 입력이 바뀌면 변경 입력을 검증하고 필수 CI 결과를
-   확보한 뒤 진행하며 로컬 tag는 검증한 해당 commit을 가리켜야 합니다. Maintainer가 그다음 tag를 push합니다:
-
-   ```sh
    git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
    ```
 

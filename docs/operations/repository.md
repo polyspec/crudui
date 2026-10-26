@@ -10,9 +10,10 @@ pushes `main`.
 ## Publishing main
 
 Each development task is committed with its changelog entry when its owning unit tests pass, and the row becomes `[o]`.
-Rejected original tasks retain their documented cause. `main` is pushed once development tasks are complete or have
-accepted terminal decisions and no task is active. The [candidate review](../plans/release-readiness/plan.md) may remain
-bypassed until its declared CI prerequisite is met; it is reconsidered before publication:
+Rejected original tasks retain their documented cause. Complete the [local candidate preparation](../plans/release-readiness/plan.md),
+merge every completed development branch into local `main`, and finish its local verification before pushing for CI.
+Candidate preparation is not bypassed while waiting for CI or a separate permission. `main` is pushed when preparation
+is complete and no task is active:
 
 ```sh
 git push origin main
@@ -52,29 +53,21 @@ The native PHP extension is built from the complete repository. Its `packages/ph
 manifest in `config/release.json`, so a version change updates the version that `src/config.m4` reads without adding a
 Composer archive or a platform-specific binary to the published assets.
 
-1. After CI succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)` sets the version of
-   every manifest that `config/release.json` lists (`package.json`, the `composer.json` of `packages/`, `Cargo.toml`,
-   `pyproject.toml`), and of every dependency on a package of the repository, to X.Y.Z, regenerates the locks,
-   and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new empty `## Unreleased`.
-2. On that commit, `git tag vX.Y.Z` (a local tag), `make release-assets TAG=vX.Y.Z` and
-   `make release-consumer-lock TAG=vX.Y.Z` (online) write the manifests and locks of the consumer projects
-   `tests/release-install/npm` and `tests/release-install/composer` for the archives of the version; the local tag is
-   deleted, and the files are committed. `make release-consumer TAG=vX.Y.Z` then installs the archives from them.
-3. After CI succeeded for the pushed commit, the maintainer creates local verification tags at that commit:
+1. Before candidate CI, prepare the version of every manifest that `config/release.json` lists (`package.json`, the
+   `composer.json` of `packages/`, `Cargo.toml`, `pyproject.toml`) and every dependency on this repository's packages.
+   Regenerate native locks, consumer declarations and the versioned sections of both changelogs. The version preparation
+   and all completed development changes reach local `main` before CI.
+2. Complete C18.1 of the [local preparation checklist](../plans/release-readiness/checklist.md) with current sibling
+   sources, the native dependency managers and the candidate's owning checks. Any local package or consumer artifacts
+   are built from the current merged source snapshot and consumed in the same run. This preparation creates no tag and
+   checks out no previous release. An older OrderedJSON archive is not a substitute for the current sibling source.
+3. After local preparation is complete, push `main` for CI. Publication requires successful `ci-passed` and `push-gate`
+   results for that exact commit. Only then does the maintainer create the publication tags and push them:
 
    ```sh
    git tag vX.Y.Z <commit of main>
    git tag packages/generator/go/vX.Y.Z <commit of main>
    git tag packages/validator/go/vX.Y.Z <commit of main>
-   ```
-
-   Before pushing these tags, complete C18.1 of the
-   [candidate reconsideration checklist](../plans/release-readiness/checklist.md), including fresh candidate archives
-   and their consumer checks. A bypassed or incomplete candidate review prevents pushing publication tags, whose workflow
-   automatically publishes after its proof. If the candidate inputs change, verify the changed inputs and obtain the
-   required CI results before proceeding; the local tags must name that verified commit. The maintainer then pushes them:
-
-   ```sh
    git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
    ```
 

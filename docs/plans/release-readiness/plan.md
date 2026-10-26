@@ -1,39 +1,44 @@
 <!-- doc-id: plan-release-readiness -->
-# Release candidate reconsideration
+# Local release candidate preparation
 
 [한국어](plan.ko.md)
 
-## Dependency and checkpoint
+## Preparation order
 
-The [checklist](checklist.md) becomes active after `ci-passed` and `push-gate` succeed for the candidate commit and before
-publication. C18.1 is bypassed until that dependency holds. A development review does not complete this checkpoint.
-The maintainer supplies the candidate tag through `TAG`; this plan creates no tag.
+The [checklist](checklist.md) prepares the current local candidate before CI. C18.1 is active while its local integration,
+source dependencies and consumer verification are being completed. Neither CI results nor a separate permission are a
+prerequisite for this work. All completed development branches reach local `main` before the preparation is complete.
+Preparation uses the current source snapshot and current sibling checkouts; it does not create a tag, check out a prior
+release or verify against an older OrderedJSON archive.
 
-## Conditional decisions
+## Current decisions
 
-- C16.8: Query the current stable VitePress distribution and compare its bundled parser with the security fix. Adopt a
-  suitable fixed distribution, or retain the renderer with current evidence in the rebuild record.
-- C16.173: C18.3 supports React and React DOM 19.3.1 without a widget-script exception. Candidate verification retains
-  the script execution and server hydration checks when the dependency version changes.
-- C16.45, C16.170 and C16.171: Verify the tracked dependency declarations and candidate archives without development
-  links. The dependency manager must resolve the published versions and the consumer smoke commands must pass.
-- C16.169: Refresh advisory data. A withdrawn advisory does not require an update, but its withdrawal does not exempt
-  the candidate from new security findings.
+- C16.8: C18.2 completes the current parser decision. Fresh stable and next VitePress distributions still contain the
+  affected parser; the directly managed current markdown-it 15.0.3 parser includes the fix. The renderer remains in use
+  for this candidate. The rebuild record's maintenance trigger does not defer the current candidate decision.
+- C16.173: C18.3 supports current React and React DOM without the widget-script exception and retains script execution
+  and server hydration verification.
+- C16.45, C16.170 and C16.171: Native package managers resolve the current local sources. The root Composer declaration
+  and lock select the current sibling packages; a duplicate archive-compatibility profile is not part of local preparation.
+- C16.169: Current advisory review determines applicable findings. A withdrawn advisory does not require a version bump
+  and does not exempt the current dependency graph from security verification.
+- C18.4 prepares current npm dependencies and supported Svelte peers. C18.5 aligns version 0.0.8 declarations and native
+  locks. C18.6 separates PHP source-only helper tests from the extension runtime tests.
 
 ## Accepted decisions
 
-C16.13 is implemented by C16.13-1. C16.29-1 corrects forwarding and documents why the current adapter is retained; its
-rebuild record states when its tool comparison changes. C16.65 removes an invalid vocabulary restriction. C16.172 does
-not require matching another repository's exact PHPUnit constraint; Composer selects within the declared constraint.
-These decisions do not remove the candidate dependency and archive checks.
+C16.13 is implemented by C16.13-1. C16.29-1 corrects forwarding and records the application-specific requirements that
+retain the current adapter. C16.65 removes an invalid vocabulary restriction. C16.172 leaves constraint selection to
+Composer rather than matching another repository's exact declaration. These decisions do not remove the current
+source dependency, package or consumer checks.
 
 ## Completion
 
-Build the candidate archives with `make release-assets TAG="$TAG"` in the same run before `make release-consumer TAG="$TAG"`;
-consumer verification never reads archives left by an earlier run. Complete C18.1 before pushing the publication tags,
-because their workflow publishes automatically after its proof.
+Record the prepared source commit, review date, evaluated versions, native package-manager results and consumer results.
+Build any local candidate artifacts from the current merged source snapshot and consume only artifacts made in that run.
+Complete the remaining local corrections with their owning checks and merge every completed development branch into local
+`main`. C18.1 becomes complete only after this preparation and its local verification finish.
 
-Record the candidate commit, review date, evaluated versions, retained decisions and consumer results. A feasible change
-is implemented with its owning checks before publication. A changed candidate obtains its own required CI results.
-A condition that still prevents an optional replacement is recorded with current evidence and a new retry condition;
-it is never described as permanent solely because it was previously withdrawn.
+Successful CI remains a condition of later publication, not a reason to leave local preparation bypassed. A later change
+requires its owning verification and the publication checks of the resulting commit. Future maintenance triggers remain
+separate from the completed decision for this candidate.

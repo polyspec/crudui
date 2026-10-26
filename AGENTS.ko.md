@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 03d09747ea1405039ce1f8709dac6440874e751d5b7dd699cbabb8fe9a581bbf -->
+<!-- source-sha256: 8cc8a5b60b00c181a08c33c905872c5dabc7fb63a4baebfb4ebed64a20aad063 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -23,9 +23,9 @@
   `make records-check`를 실행합니다.
   Enforced by: `make hooks-check`
 - Own: version이 0.x인 동안에는 pull request, merge queue, GitHub ruleset이 없습니다. 작업은 로컬에서 commit하며 commit마다
-  checklist 행 하나를 담고, 소유한 unit test가 통과해야 그 행이 `[o]`가 됩니다. 개발 작업이 완료되거나 수용한 종결 결정이
-  있고 활성 작업이 없을 때 `main`을 한 번 push합니다. 선언한 선행 조건이 충족되지 않은 candidate 단계 검토는 해당 시점까지
-  우회 상태로 둘 수 있습니다. tag는 commit에 대해 CI check `ci-passed`와 push check `push-gate`가 성공한 뒤에만 만들며, release는
+  checklist 행 하나를 담고, 소유한 unit test가 통과해야 그 행이 `[o]`가 됩니다. 개발 작업과 로컬 candidate 준비를 완료하고 활성 작업이 없을 때 `main`을 한 번 push합니다.
+  Candidate 준비는 현재 sibling source로 CI 전에 수행하며 CI나 별도 허가를 기다리며 미루지 않습니다.
+  tag는 commit에 대해 CI check `ci-passed`와 push check `push-gate`가 성공한 뒤에만 만들며, release는
   그 tag에서 만듭니다(`docs/operations/repository.md`).
   Enforced by: none, push와 tag의 순서는 어떤 검사도 읽지 않는 절차입니다.
 
@@ -91,7 +91,7 @@
 ## Checklist
 
 - Own: 철회한 작업은 현재 원인에 따라 분류합니다. 조건부 결정은 재시도 조건과 `docs/plans/release-readiness/`의 candidate
-  단계 검토를 명시하고 publication 전에 재검토합니다. 이전 불가 또는 우회 상태는 결정을 영구화하거나 candidate 검토를
+  로컬 검토를 명시하고 candidate CI 전에 재검토합니다. 이전 불가 또는 우회 상태는 결정을 영구화하거나 candidate 검토를
   완료하지 않습니다.
   Enforced by: none, 분류와 candidate 검토는 절차입니다.
 
@@ -137,12 +137,11 @@
 - Own: release는 CI의 전체 suite를 통과한 `main`의 commit에 붙인 tag입니다. 저장소 전체는 `vX.Y.Z`, 그 directory의 Go module은
   `<directory>/vX.Y.Z`를 씁니다. tag는 maintainer만 만들고, 옮기고, push합니다.
   Enforced by: `make release-verify`
-- Own: push된 `main`에서 CI check `ci-passed`가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<task ID>)`이 먼저 옵니다. 이
-  commit은 `config/release.json`이 적은 manifest(`package.json`, `Cargo.toml`, `pyproject.toml`, `packages/`의 `composer.json`)와
+- Own: Candidate CI 전에 commit `chore(release): Release X.Y.Z (#<task ID>)`이 candidate를 준비합니다. 이 commit은 `config/release.json`이 적은 manifest(`package.json`, `Cargo.toml`, `pyproject.toml`, `packages/`의 `composer.json`)와
   저장소 package에 대한 모든 의존성의 version을 X.Y.Z로 설정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를
   `## X.Y.Z`로 바꾸며 그 아래에 빈 `## Unreleased`를 새로 둡니다.
   Enforced by: `make release-verify`
-- Own: 그다음 maintainer가 그 commit에 tag를 달아 push합니다. kit의 copy인 `.github/workflows/release.yml`은 `make release-tools`,
+- Own: 로컬 준비와 해당 commit의 CI 검사가 성공한 뒤 maintainer가 그 commit에 tag를 달아 push합니다. kit의 copy인 `.github/workflows/release.yml`은 `make release-tools`,
   `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`, `make release-proof`,
   `make release-undraft`(`@polyspec/kit`의 release 도구)를 실행합니다. 이 workflow는 `main`의 commit에서 `push-gate`와
   `ci-passed` 검사가 성공했고, 모든 manifest에 tag의 version이 있으며, `## X.Y.Z` section이 있음을 요구합니다. GitHub
