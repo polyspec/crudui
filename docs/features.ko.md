@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: 292fad2e1e0daba33ceb03bfbe062e1ff632ecec00863727e83f32308dc19f1f -->
+<!-- source-sha256: 2992dbb3c210ef8547eaebf0ed1a249691887c5e784758a845e3e40b3bd7cb34 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -92,6 +92,26 @@ PHP 8.4 이상을 지원합니다. `.php-version`은 CI toolchain을 선택하�
 Report는 `var/report/final-checklist/record.json`입니다. 실패의 수정과 소유 검사는 [kit 표준 checklist](plans/kit-standard/checklist.ko.md)에 기록합니다.
 
 이 실행은 `CRUDUI_CONFORMANCE_EVIDENCE`를 선언하지 않아 conformance 집계에 사용할 증거 directory가 없습니다. 전체 실행은 수정 전 실패를 기록하며 수정한 통합 tree를 검증하지 않습니다. 수정은 선택한 소유 검사로 검증합니다. Extension 전체 library 실행은 PHP 구현 전용 helper 파일도 로드했으므로 해당 내부 test에 대한 extension-only 결과를 입증하지 않습니다.
+
+## Release 준비
+
+2026-10-26 검토는 기존 불가 checklist 10개 행을 현재 원인에 따라 분류합니다. Unicode data는 잠긴 Unicode package를
+사용합니다. HTTP forwarding adapter는 양방향 connection-specific header를 제거합니다. 검토한 VitePress distribution은
+영향받는 parser를 내장하므로 문서 renderer는 직접 관리하는 Markdown parser를 유지합니다.
+[문서](rebuild/documentation-web.ko.md)와 [HTTP forwarding](rebuild/http-forward.ko.md) 기록은 요구, 검토한 도구와 재검토
+조건을 설명합니다.
+
+추적 manifest와 lock은 published dependency URL을 유지하고 개발 중에는 installed-folder link를 사용합니다. Composer는
+선언한 제약 내에서 PHPUnit을 선택합니다. React는 client widget-script 실행을 위한 dependency-policy exception을 유지합니다.
+철회된 sprintf-js advisory는 package update를 요구하지 않습니다.
+
+갱신한 dependency review는 registry dependency 92개와 lock 17개를 검토하며 보안 advisory가 없습니다. npm lock은 수정된
+Markdown, URI, HTTP client와 schema package를 선택하며 Rust comparison server lock은 Tokio 1.53.3을 선택합니다.
+Go 1.27.3은 linked module의 최소 버전을 충족하며 advisory scan을 실행할 수 있습니다.
+
+Release 설정은 native PHP extension manifest를 version-only로 분류합니다. Package coverage와 기존 0.0.7 manifest version은
+publication과 구분해 검사합니다. Release에는 해당 commit의 `ci-passed`와 `push-gate` 성공이 필요하며 소유 unit 검사는
+그 결과를 입증하지 않습니다.
 
 ## 표시 선언 검증
 

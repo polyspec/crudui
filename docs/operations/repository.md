@@ -46,6 +46,10 @@ suite of CI before the tag, so the release runs no test again. Only the maintain
 packages, the manifests that a tag covers and the Go modules are declared in `config/release.json`
 (`node_modules/@polyspec/kit/dist/schema/release.schema.json`).
 
+The native PHP extension is built from the complete repository. Its `packages/php-ext/composer.json` is a version-only
+manifest in `config/release.json`, so a version change updates the version that `src/config.m4` reads without adding a
+Composer archive or a platform-specific binary to the published assets.
+
 1. After CI succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)` sets the version of
    every manifest that `config/release.json` lists (`package.json`, the `composer.json` of `packages/`, `Cargo.toml`,
    `pyproject.toml`), and of every dependency on a package of the repository, to X.Y.Z, regenerates the locks,

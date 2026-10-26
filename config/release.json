@@ -70,6 +70,7 @@
     "package.json": "version",
     "packages/cli/package.json": "version",
     "examples/cross-check-console/server/package.json": "version",
+    "packages/php-ext/composer.json": "version",
     "packages/form-binding/package.json": "archive",
     "packages/generator/ts/package.json": "archive",
     "packages/html/package.json": "archive",

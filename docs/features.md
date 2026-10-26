@@ -95,6 +95,26 @@ The report is `var/report/final-checklist/record.json`. The failures are tracked
 
 The run did not declare `CRUDUI_CONFORMANCE_EVIDENCE`, so its conformance aggregation has no evidence directory. The full run records failures before the corrections; it does not verify the combined corrected tree. The corrections are verified by their selected owning checks. The extension-wide library run also loaded PHP implementation-only helper files, so it does not establish an extension-only result for those internal tests.
 
+## Release preparation
+
+The 2026-10-26 review classifies the ten impossible checklist rows by their current cause. Unicode data uses the locked
+Unicode package. The HTTP forwarding adapter filters connection-specific headers in both directions. The documentation
+renderer retains a directly managed Markdown parser because the evaluated VitePress distributions embed the affected
+parser. The [documentation](rebuild/documentation-web.md) and [HTTP forwarding](rebuild/http-forward.md) records state
+the requirements, evaluated tools and retry conditions.
+
+Published dependency URLs remain in tracked manifests and locks while development uses installed-folder links. Composer
+selects PHPUnit within its declared constraint. React retains the dependency-policy exception for client widget-script
+execution. The withdrawn sprintf-js advisory does not require a package update.
+
+The refreshed dependency review covers 92 registry dependencies and 17 locks and records no security advisories.
+The npm locks select patched Markdown, URI, HTTP client and schema packages, and the Rust comparison server lock selects
+Tokio 1.53.3. Go 1.27.3 satisfies the linked module's minimum and permits its advisory scan.
+
+The release configuration classifies the native PHP extension manifest as version-only. Package coverage and the existing
+0.0.7 manifest versions are checked separately from publication. A release still requires successful `ci-passed` and
+`push-gate` checks on its commit; owning unit checks do not establish that result.
+
 ## Display declaration verification
 
 On 2026-09-24 the working tree of the display declaration change passed on macOS arm64 with PHP

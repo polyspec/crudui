@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 4492dfd2312db3a5bacb8a157397f74f9f807eec8b58c92605b6da5777a170fc -->
+<!-- source-sha256: 0b79daeaafb430d6f0e2cafe94f21ae185672d5f601eee953197de0ea1f06509 -->
 
 [English](repository.md).
 
@@ -42,6 +42,10 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
 (`tests/build/package-names.test.mts`). `main`의 모든 commit은 tag 전에 CI의 전체 suite를 통과했으므로 release는 test를 다시
 실행하지 않습니다. tag는 maintainer만 만들어 push합니다. tag가 release하는 package, 덮는 manifest, Go module은
 `config/release.json`(`node_modules/@polyspec/kit/dist/schema/release.schema.json`)에 선언합니다.
+
+Native PHP extension은 전체 저장소에서 build합니다. `packages/php-ext/composer.json`은 `config/release.json`의
+version-only manifest이므로 version 변경은 `src/config.m4`가 읽는 version을 갱신하며 published asset에 Composer archive나
+platform별 binary를 추가하지 않습니다.
 
 1. push된 `main`의 CI가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`는 `config/release.json`이 적은 모든
    manifest(`package.json`, `packages/`의 `composer.json`, `Cargo.toml`, `pyproject.toml`)의 version과 저장소 package에 대한 모든

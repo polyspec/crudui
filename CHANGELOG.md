@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Terminal checklist decisions and release inputs are reviewed (C17.52)
+
+- The checklist states the current grounds for retained dependency declarations and tool choices. The dependency review records no advisories across 17 locks, and the withdrawn sprintf-js exception is removed. The native PHP extension manifest participates in version updates. Release coverage, manifest versions and selected owning checks pass; release publication still requires the commit checks.
+
 ### 2026-10-26 — Unicode contract uses packaged property ranges (C16.13-1)
 
 - The Unicode contract reads the property ranges of @unicode/unicode-16.0.0 at its locked release. The stored UCD files and parser are removed. Unicode 16.0.0, all 35 general categories, all 170 scripts and every code point range remain unchanged.

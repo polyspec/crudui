@@ -91,13 +91,5 @@
       ]
     }
   ],
-  "advisoryExceptions": [
-    {
-      "lock": "package-lock.json",
-      "package": "sprintf-js",
-      "advisory": "1241202",
-      "reason": "GHSA-hp3w-g68c-fv3c (npm advisory 1241202) covers every release of sprintf-js, so no release fixes it. This repository pulls sprintf-js 1.0.3 in through two paths that end in @rushstack/ts-command-line 5.3.17 -> argparse 1.0.10 -> sprintf-js: the direct development dependency @microsoft/api-documenter 7.30.18, which scripts/gen-api-docs.mts runs as `api-documenter markdown --input-folder <model> --output-folder <output>`, and @polyspec/kit -> @microsoft/api-extractor 7.59.4, which the lint-ts of kit runs; argparse formats the help and error texts of these commands with its own format strings, both run with fixed arguments only, and no input of a user reaches sprintf-js",
-      "removalCondition": "a release of sprintf-js fixes GHSA-hp3w-g68c-fv3c, or @microsoft/api-extractor no longer depends on argparse; make dependency-review then reports the exception as stale"
-    }
-  ]
+  "advisoryExceptions": []
 }

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a1771276c20c50458957c736f78a4c5c487b3ae38949227640e64d00c2d524fb -->
+<!-- source-sha256: d0884b0104f685148650f6dc7703a47d93e5f585c0429f641391c91078788434 -->
 
 ## Unreleased
+
+### 2026-10-26 — 종결 checklist 결정과 release 입력을 검토한다 (C17.52)
+
+- Checklist는 유지하는 의존성 선언과 도구 선택의 현재 근거를 설명한다. Dependency review는 lock 17개에서 advisory가 없음을 기록하며 철회된 sprintf-js exception을 제거한다. Native PHP extension manifest는 version 갱신에 포함된다. Release coverage, manifest version과 선택한 소유 검사가 통과하며 release publication에는 해당 commit의 검사 성공이 필요하다.
 
 ### 2026-10-26 — Unicode contract가 package의 property 범위를 사용한다 (C16.13-1)
 
