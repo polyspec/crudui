@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 39c5f8da0b4efd1df158739519f2322d7e6ec2b6d0fba5ed317528f14115bd80 -->
+<!-- source-sha256: 9cb6e79be3ee126eb081018a838c230592d750f3f6865b9fd50d6779850b7ab1 -->
 
 ## Unreleased
+
+### 2026-10-26 — Dependency 검사가 선언된 Go workspace를 사용한다 (C18.1-5)
+
+- Dependency review와 dependency policy 검사는 추적 root go.work로 저장소 Go module을 해석한다. Candidate module version은 registry 의존성이 아닌 local workspace member로 유지한다. Release consumer 검증은 GOWORK를 끈 상태로 실행한다. Native make 환경 test는 두 범위를 검증한다.
 
 ### 2026-10-26 — 기본 Composer project가 현재 source를 설치한다 (C18.1-1)
 

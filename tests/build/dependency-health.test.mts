@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mts';
 import { checked, readJson, type JTDSchemaType } from '../json.mts';
-import { makeDryRun } from './make-dry-run.mts';
+import { makeDryRun, makeEnvironment } from './make-dry-run.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -538,3 +538,29 @@ test('production dependency checks reject a devDependency-only import', t => {
     assert.deepEqual(run(kind), { status: 0, names: [] }, kind);
   }
 });
+
+
+for (const [target, workspace] of [
+  ['dependency-review', path.join(root, 'go.work')],
+  ['dependency-policy-check', path.join(root, 'go.work')],
+  ['release-consumer-lock', 'off'],
+] as const) {
+  test(`Go workspace: ${target} exports its declared module scope`, { timeout: 10_000 }, () => {
+    const fixture = mkdtempSync(path.join(root, 'var', 'go-workspace-'));
+    try {
+      const probe = path.join(fixture, 'environment.mjs');
+      writeFileSync(probe, 'console.log(JSON.stringify({ workspace: process.env.GOWORK }));\n');
+      const quote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`;
+      const result = spawnSync('make', ['--silent', '--no-print-directory', target,
+        `NODE=${quote(process.execPath)} ${quote(probe)}`, 'TAG=v0.0.8'],
+      { cwd: root, env: makeEnvironment(), encoding: 'utf8', timeout: 5_000 });
+      assert.equal(result.error, undefined);
+      assert.equal(result.status, 0, result.stderr);
+      const report = checked<{ workspace: string }>(JSON.parse(result.stdout),
+        { properties: { workspace: { type: 'string' } } }, `${target} process environment`);
+      assert.equal(report.workspace, workspace);
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+}

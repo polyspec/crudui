@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Dependency checks use the declared Go workspace (C18.1-5)
+
+- Dependency review and dependency policy checks resolve repository Go modules through the tracked root go.work. Candidate module versions remain local workspace members rather than registry dependencies. Release consumer verification continues with GOWORK disabled. Native make environment tests verify both scopes.
+
 ### 2026-10-26 — The default Composer project installs current sources (C18.1-1)
 
 - The private root Composer manifest and native lock resolve CRUDUI 0.0.8 and the current OrderedJSON 0.0.10 sibling source through path symlinks with configuration references. The default PHP install refreshes these source packages without a release download. The duplicate local manifest and lock are removed, and the existing Composer check validates the canonical project. Native installed records, PHP 8.4.26 platform requirements, selected dependency checks and the FormJson test pass with PHPUnit 13.4.3.
