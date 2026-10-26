@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 91a62f30d0cb5b6052ebfbf8894cfa7e7b961750dd7093f221ba1bfed785bbaf -->
+<!-- source-sha256: 41716380e03d01cc71430554a89bc83697467f0a850c3c8a58bb622c680ad45e -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -19,3 +19,4 @@
 | C18.4 | Npm candidate 의존성을 갱신하고 지원하는 Svelte tool peer를 확인한다 (우선순위: 높음). | package.json, package-lock.json, packages/svelte/tools/package-lock.json, config/dependency-policy.json, config/toolchain.json | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="locked dependency graph\|workspace packages use the root dependency lock file\|tracked npm dependency graphs approve" tests/build/dependency-health.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- scripts/json-schema.test.mts tests/build/install-browsers.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/cli -- tests/yaml-schema.test.ts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/form-binding -- tests/binding.test.ts`; `npm run typecheck -w @polyspec/crudui-generator-svelte`; `npm run lint -w @polyspec/crudui-generator-svelte` | [o] |
 | C18.5 | Candidate CI 전에 version 0.0.8 manifest, native 의존성 lock과 release 기록을 준비한다 (우선순위: 높음). | release manifests, native locks, feature manifest, consumer manifests and changelogs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/release-fixtures.test.mts`, `make release-coverage`, `make release-versions TAG=v0.0.8` | [o] |
 | C18.6 | Case 누락 없이 PHP source 내부 unit과 shared extension 공개 test를 구분한다 (우선순위: 높음). | PHPUnit suites, source and extension bindings, native test listing coverage, owner and parity declarations | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/php-test-scope.test.mts`; `make parity-declarations-check` | [o] |
+| C18.7 | Native 개발 source 링크를 유지하며 공개된 kit 0.0.56을 반영한다 (우선순위: 높음). | package.json, package-lock.json, shared kit copies, config/dependency-review.json | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/dependency-health.test.mts tests/build/rust-node-entry-points.test.mts`; `make kit-check` | [ ] |
