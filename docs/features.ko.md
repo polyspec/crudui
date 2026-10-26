@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: e68d72a4698dfd6284a2a7450f603b0bb101a65d0065a32893827bcb4c59c9a8 -->
+<!-- source-sha256: 292fad2e1e0daba33ceb03bfbe062e1ff632ecec00863727e83f32308dc19f1f -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -91,7 +91,7 @@ PHP 8.4 이상을 지원합니다. `.php-version`은 CI toolchain을 선택하�
 2026-10-26에 PHP 8.4.26에서 전체 실행 39개 target을 완료했으며 20개가 통과하고 19개가 실패했습니다.
 Report는 `var/report/final-checklist/record.json`입니다. 실패의 수정과 소유 검사는 [kit 표준 checklist](plans/kit-standard/checklist.ko.md)에 기록합니다.
 
-이 실행은 `CRUDUI_CONFORMANCE_EVIDENCE`를 선언하지 않아 conformance 집계에 사용할 증거 directory가 없습니다. 전체 실행은 수정 전 실패를 기록하며 수정한 통합 tree를 검증하지 않습니다. 수정은 선택한 소유 검사로 검증합니다.
+이 실행은 `CRUDUI_CONFORMANCE_EVIDENCE`를 선언하지 않아 conformance 집계에 사용할 증거 directory가 없습니다. 전체 실행은 수정 전 실패를 기록하며 수정한 통합 tree를 검증하지 않습니다. 수정은 선택한 소유 검사로 검증합니다. Extension 전체 library 실행은 PHP 구현 전용 helper 파일도 로드했으므로 해당 내부 test에 대한 extension-only 결과를 입증하지 않습니다.
 
 ## 표시 선언 검증
 

@@ -93,7 +93,7 @@ PHP 8.4 and later are supported. `.php-version` selects the CI toolchain; it doe
 On 2026-10-26, a full run on PHP 8.4.26 completed 39 targets: 20 passed and 19 failed.
 The report is `var/report/final-checklist/record.json`. The failures are tracked with their corrections and owning checks in the [kit standard checklist](plans/kit-standard/checklist.md).
 
-The run did not declare `CRUDUI_CONFORMANCE_EVIDENCE`, so its conformance aggregation has no evidence directory. The full run records failures before the corrections; it does not verify the combined corrected tree. The corrections are verified by their selected owning checks.
+The run did not declare `CRUDUI_CONFORMANCE_EVIDENCE`, so its conformance aggregation has no evidence directory. The full run records failures before the corrections; it does not verify the combined corrected tree. The corrections are verified by their selected owning checks. The extension-wide library run also loaded PHP implementation-only helper files, so it does not establish an extension-only result for those internal tests.
 
 ## Display declaration verification
 

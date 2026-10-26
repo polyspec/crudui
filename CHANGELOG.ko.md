@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e6e69b2687e8c48d67ad464f014be8c7028d3be89a5dfc425a44fa0e5e820057 -->
+<!-- source-sha256: 3a2a2bf22a2f47942f9e0d9d1ea25f925205cb2d01e83051d1017eada3ce1435 -->
 
 ## Unreleased
+
+### 2026-10-26 — 완료된 checklist 수정을 통합한다 (C17.47)
+
+- 통합 변경은 rendering, validation budget, native dispatch, API 오류, source 문서와 test 준비의 선택된 소유 검사를 유지한다. 영문·한국어 작업 기록과 변경 항목이 일치한다. PHP source 변경은 source 문서 unit을 선택한다. 전체 실행 결과와 conformance 증거 한계는 docs/features.md에 기록한다.
 
 ### 2026-10-26 — Runtime 검사가 선언된 tool 경로와 dry-run helper를 사용한다 (C17.36-1)
 

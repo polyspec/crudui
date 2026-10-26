@@ -813,6 +813,15 @@
       "tests": [
         "tests/build/dependency-health.test.mts"
       ]
+    },
+    {
+      "paths": [
+        "packages/generator/php/src/**",
+        "packages/validator/php/src/**"
+      ],
+      "tests": [
+        "scripts/php-doc-coverage.test.mts"
+      ]
     }
   ],
   "inputs": [

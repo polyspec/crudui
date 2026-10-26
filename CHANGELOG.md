@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — The completed checklist fixes are integrated (C17.47)
+
+- The integrated changes preserve the selected owner checks for rendering, validation budgets, native dispatch, API errors, source documentation and test preparation. English and Korean task records and change entries match. PHP source changes select the source documentation unit. The full-run result and its conformance evidence limitation are recorded in docs/features.md.
+
 ### 2026-10-26 — Runtime checks use declared tool paths and the dry-run helper (C17.36-1)
 
 - The make dry-run helper reads target-specific variables with the make database option. Runtime checks resolve the test runner path and extension from make and the bootstrap path from the Makefile include. The offline target checks classify the local PHP arginfo generator as offline.
