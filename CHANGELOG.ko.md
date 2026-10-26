@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c55469f1b72f444bc0ec886481d85eb6166e7d11248ac415b154f07ece172558 -->
+<!-- source-sha256: 9e55ee910ff53dc16528dca68a8feac74fda8db63d66a11b8b230c4258df5a68 -->
 
 ## Unreleased
+
+### 2026-10-26 — Native Composer 준비 함수를 내부에 둔다 (C18.1-8)
+
+- Record-server setup은 native Composer 준비 함수를 내부에서 호출한다. 외부 호출자가 없는 함수의 export를 제거한다. Unused-export 예외 없이 TypeScript lint의 모든 단계가 통과한다.
 
 ### 2026-10-26 — 작업 로그와 test result를 분리한다 (C18.1-7)
 

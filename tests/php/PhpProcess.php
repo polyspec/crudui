@@ -50,7 +50,9 @@ final class PhpProcess
         if ($libraries && $nativeOrderedJson) {
             $autoload = $environment['FORM_PHP_NATIVE_AUTOLOAD'] ?? getenv('FORM_PHP_NATIVE_AUTOLOAD');
             if (!is_string($autoload) || $autoload === '') {
-                throw new RuntimeException('FORM_PHP_NATIVE_AUTOLOAD must name the native application Composer autoloader');
+                throw new RuntimeException(
+                    'FORM_PHP_NATIVE_AUTOLOAD must name the native application Composer autoloader'
+                );
             }
         } else {
             $autoload = $environment['FORM_PHP_AUTOLOAD'] ?? dirname(__DIR__, 2) . '/vendor/autoload.php';

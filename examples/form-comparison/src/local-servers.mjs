@@ -68,7 +68,7 @@ export async function orderedJsonProvider({ root = repositoryRoot, mode }) {
 }
 
 /** Prepare the explicit native Composer profile with its own native dependency and autoload records. */
-export async function prepareNativePhpAutoload({ directory, root = repositoryRoot, write = text => process.stdout.write(text) }) {
+async function prepareNativePhpAutoload({ directory, root = repositoryRoot, write = text => process.stdout.write(text) }) {
   const vendorDirectory = path.join(directory, 'vendor');
   const manifest = path.join(root, 'examples/form-comparison/servers/php/native/composer.json');
   await mkdir(directory, { recursive: true });

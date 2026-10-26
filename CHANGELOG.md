@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Keep native Composer preparation internal (C18.1-8)
+
+- Record-server setup calls its native Composer preparation helper internally. The helper has no external callers and is no longer exported. All TypeScript lint steps pass without an unused-export exception.
+
 ### 2026-10-26 — Keep operation logs separate from test results (C18.1-7)
 
 - Workspace builds, API generation, browser installation and repeated builds report operation steps, failures, elapsed times and heartbeats without reading or writing test-result metadata. Regression fixtures verify that enclosing test results survive successful and failed child commands. Native command fixtures represent an undefined working directory explicitly.
