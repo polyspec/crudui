@@ -107,7 +107,7 @@ Published dependency URLs remain in tracked manifests and locks while developmen
 selects PHPUnit within its declared constraint. React retains the dependency-policy exception for client widget-script
 execution. The withdrawn sprintf-js advisory does not require a package update.
 
-The refreshed dependency review covers 92 registry dependencies and 17 locks and records no security advisories.
+The refreshed dependency review covers 95 registry dependencies and 17 locks and records no security advisories.
 The npm locks select patched Markdown, URI, HTTP client and schema packages, and the Rust comparison server lock selects
 Tokio 1.53.3. Go 1.27.3 satisfies the linked module's minimum and permits its advisory scan.
 

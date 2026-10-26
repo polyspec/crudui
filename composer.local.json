@@ -35,21 +35,24 @@
             "type": "path",
             "url": "packages/validator/php",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "reference": "config"
             }
         },
         {
             "type": "path",
             "url": "packages/generator/php",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "reference": "config"
             }
         },
         {
             "type": "path",
             "url": "../ordered-json/packages/php",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "reference": "config"
             }
         }
     ],

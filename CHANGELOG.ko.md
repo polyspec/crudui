@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 29b35976a40de83f5bbf980955aec7aeb3376655c45b52a56321ef412df26224 -->
+<!-- source-sha256: 81ef04cd0e907a22cdda9b77ef49dff86d0e7effb51b03227acd17c029cf4ba7 -->
 
 ## Unreleased
+
+### 2026-10-26 — Native source 설치 입력을 명시적으로 유지한다 (C17.56-1)
+
+- 앱은 native npm source 링크 뒤 필요한 lint 명령을 직접 선언하며 기존 lock version을 유지한다. Composer 로컬 path reference는 native 설정 hash를 사용하여 관련 없는 저장소 commit이 source lock을 바꾸지 않는다. 검토한 release dependency lock에는 advisory가 없다.
 
 ### 2026-10-26 — Native 개발 설치가 현재 sibling source를 사용한다 (C17.56)
 

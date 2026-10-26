@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: cb4b0423090ec05a6155fffff20e4970f68c5b0b087191888e1ff8c6cb079e05 -->
+<!-- source-sha256: 13bc3c1974879768fec68c81f3b24908502b7366ff512c2f158c7fa7fe83774a -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -105,7 +105,7 @@ Report는 `var/report/final-checklist/record.json`입니다. 실패의 수정과
 선언한 제약 내에서 PHPUnit을 선택합니다. React는 client widget-script 실행을 위한 dependency-policy exception을 유지합니다.
 철회된 sprintf-js advisory는 package update를 요구하지 않습니다.
 
-갱신한 dependency review는 registry dependency 92개와 lock 17개를 검토하며 보안 advisory가 없습니다. npm lock은 수정된
+갱신한 dependency review는 registry dependency 95개와 lock 17개를 검토하며 보안 advisory가 없습니다. npm lock은 수정된
 Markdown, URI, HTTP client와 schema package를 선택하며 Rust comparison server lock은 Tokio 1.53.3을 선택합니다.
 Go 1.27.3은 linked module의 최소 버전을 충족하며 advisory scan을 실행할 수 있습니다.
 

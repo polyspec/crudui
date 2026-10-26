@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Native source installation inputs remain explicit (C17.56-1)
+
+- The application declares the lint commands needed after native npm source linking, retaining their existing locked versions. Composer local path references use native configuration hashes so unrelated repository commits do not change its source lock. The reviewed release dependency locks contain no advisories.
+
 ### 2026-10-26 — Native development installs use current sibling sources (C17.56)
 
 - Composer local development selects composer.local.json and its native lock, resolves compatible 0.0.x source packages and records their actual versions. The default archive manifest and lock remain unchanged. Installed-version checks reject stale source metadata. The Composer command variable preserves the native manifest selector, and Knip checks resolve the installed kit dependency through Node package metadata.

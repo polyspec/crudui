@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-26T09:27:30.632Z",
+  "reviewed": "2026-10-26T11:23:44.624Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "3b76a77a471483d0f792f989cc1d19052d7efaf28efc13c09dbfd309c72db03c",
+      "sha256": "1311c7fdc2825bcd70403ea43b5334602e1d773e6de290e2066cab897f8d5e79",
       "advisories": []
     },
     {
@@ -184,9 +184,30 @@
     {
       "ecosystem": "npm",
       "manifest": "package.json",
+      "package": "knip",
+      "version": "6.42.0",
+      "latest": "6.43.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
       "package": "markdown-it",
       "version": "15.0.3",
       "latest": "15.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "oxlint",
+      "version": "1.88.0",
+      "latest": "1.89.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "oxlint-tsgolint",
+      "version": "7.0.2004",
+      "latest": "7.0.2005"
     },
     {
       "ecosystem": "npm",
@@ -655,7 +676,7 @@
       "manifest": "composer.json",
       "package": "phpunit/phpunit",
       "version": "13.4.2",
-      "latest": "13.4.2"
+      "latest": "13.4.3"
     },
     {
       "ecosystem": "pypi",
