@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Dependency checks discover native Go workspaces (C18.1-5-1)
+
+- Dependency review and policy checks use native Go workspace discovery. A module-specific workspace retains local provider modules alongside repository modules, and other modules discover the tracked root workspace. Release consumers retain GOWORK=off. Native Go reports the generator, validator and OrderedJSON modules as local main modules.
+
 ### 2026-10-26 — Dependency checks use the declared Go workspace (C18.1-5)
 
 - Dependency review and dependency policy checks resolve repository Go modules through the tracked root go.work. Candidate module versions remain local workspace members rather than registry dependencies. Release consumer verification continues with GOWORK disabled. Native make environment tests verify both scopes.

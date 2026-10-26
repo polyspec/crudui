@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 96c30f6672a79d887a7f02309b0d6a473aabd36852bcff54e1d7112e4da1275a -->
+<!-- source-sha256: 741bb2e01010f1208f78e60c5f9d81534f40ce2138a5371de4cebd5b78c7a1c8 -->
 
 ## Unreleased
+
+### 2026-10-26 — Dependency 검사가 native Go workspace를 발견한다 (C18.1-5-1)
+
+- Dependency review와 policy 검사는 native Go workspace 발견을 사용한다. Module별 workspace는 저장소 module과 local provider module을 함께 유지하며 다른 module은 추적 root workspace를 발견한다. Release consumer는 GOWORK=off를 유지한다. Native Go는 generator, validator와 OrderedJSON module을 local main module로 보고한다.
 
 ### 2026-10-26 — Dependency 검사가 선언된 Go workspace를 사용한다 (C18.1-5)
 

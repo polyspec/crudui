@@ -38,8 +38,8 @@ ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_
 # them is made in polyspec/kit, never here.
 include ../kit/scripts/kit/kit-bootstrap.mk
 
-# Dependency checks resolve repository Go modules from the tracked workspace; archive consumers remain isolated.
-dependency-review dependency-policy-check: export GOWORK := $(CURDIR)/go.work
+# Dependency checks discover each native Go workspace, including local providers; archive consumers remain isolated.
+dependency-review dependency-policy-check: export GOWORK := auto
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
