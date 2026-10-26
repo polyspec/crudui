@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9cb6e79be3ee126eb081018a838c230592d750f3f6865b9fd50d6779850b7ab1 -->
+<!-- source-sha256: 96c30f6672a79d887a7f02309b0d6a473aabd36852bcff54e1d7112e4da1275a -->
 
 ## Unreleased
 
 ### 2026-10-26 — Dependency 검사가 선언된 Go workspace를 사용한다 (C18.1-5)
 
 - Dependency review와 dependency policy 검사는 추적 root go.work로 저장소 Go module을 해석한다. Candidate module version은 registry 의존성이 아닌 local workspace member로 유지한다. Release consumer 검증은 GOWORK를 끈 상태로 실행한다. Native make 환경 test는 두 범위를 검증한다.
+
+### 2026-10-26 — Python build 도구가 검토한 patch release를 사용한다 (C18.1-4)
+
+- Generator, validator와 conformance helper가 setuptools 84.2.1을 build backend로 선언한다. Toolchain은 backend wheel SHA-256과 Ruff 0.17.2의 native mise platform lock을 기록한다. 정확한 backend wheel의 hash 검증, helper의 offline build, 기록된 Ruff와 runtime 검사가 통과한다.
 
 ### 2026-10-26 — 기본 Composer project가 현재 source를 설치한다 (C18.1-1)
 
