@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 05945f94061edd7c06802e6cc0ee95e4da046df7352464974dbe694621b256c1 -->
+<!-- source-sha256: d79f212785610477ff618fb69e130915691c4b92034194e8a9e6a15ec0f0f90f -->
 
 ## Unreleased
 
@@ -31,6 +31,10 @@
 ### 2026-10-26 — CLI manifest test가 전체 package 표를 검증한다 (C17.41)
 
 - CLI manifest test는 모든 package entry, visibility와 value export를 현재 contract의 표 전체와 정확히 비교한다. Fixture는 public과 internal entry, export 순서와 빈 export 목록을 검증한다.
+
+### 2026-10-26 — Go button 계약 검사가 소유 package를 선택한다 (C17.42)
+
+- bindButtons와 formButtonsHtml 검증 명령은 TestButtonsSuite가 있는 Go generator package를 선택한다. Shared button case 22개를 모두 실행하며 일치하는 button test가 없는 example server package는 선택하지 않는다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

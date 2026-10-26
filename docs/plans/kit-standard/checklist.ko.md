@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f1d4a6b7c785e562b25986510e99a61cbd14c38f6e0002008c5a2e16f148007c -->
+<!-- source-sha256: 67dc87f5f350291f367c3cc11bf54e34e6fce6311ac446d23c563a4414fdde53 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -375,3 +375,4 @@
 | C17.39 | Cross-check console test는 선언된 PHP extension build를 읽고 validation fixture export는 명시적으로 제공된 requirement metadata를 보존한다. | examples/cross-check-console/server/validator-processes.test.mjs, examples/cross-check-console/server/fixture-export.test.mjs, examples/cross-check-console/client/fixture-export.js, examples/cross-check-console/client/app.js, examples/cross-check-console/README.md and its Korean twin | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd examples/cross-check-console/server --root . --dir . validator-processes.test.mjs fixture-export.test.mjs` | [o] |
 | C17.40 | 모든 display renderer는 Vue와 Svelte source rendering을 포함하여 CUDF-023에 따라 JavaScript link URL을 대체한다. | packages/generator/ts/src/util.ts, packages/generator/ts/src/internal.ts, packages/generator/ts/src/form-render.ts, packages/html/src/index.ts, packages/vue/src/components/List.ts, packages/svelte/src/components/List.svelte and packages/svelte/src/components/Detail.svelte | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form-render.test.ts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd examples/cross-check-console/server -- --root . --dir . render-list-runner.test.mjs render-detail-runner.test.mjs` | [o] |
 | C17.41 | CLI manifest markdown test가 오래된 export 목록 없이 현재 contract의 전체 package export 표를 정확히 검증한다. | packages/cli/tests/manifest.test.ts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/cli -- tests/manifest.test.ts` | [o] |
+| C17.42 | Go button 계약 명령은 TestButtonsSuite를 소유한 generator package를 선택하고 일치하는 test가 없는 package를 선택하지 않으며 모든 shared button case를 실행한다. | contracts/features.json | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite .`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/contract-manifest.test.mts` | [o] |

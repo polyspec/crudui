@@ -560,7 +560,7 @@
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite ./..."
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite ."
         },
         {
           "id": "test-3",
@@ -616,7 +616,7 @@
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite ./..."
+          "command": "node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite ."
         },
         {
           "id": "test-3",
