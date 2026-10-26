@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1c5022617588cdfa5f365a3b91a43381dba59894f6cdee2896e1c1859b7346bb -->
+<!-- source-sha256: 8f969ab389845a110f15eeedbd25503f2a6e6f67692a5c85e171cf713b530b38 -->
 
 ## Unreleased
+
+### 2026-10-26 — Contract version을 workspace metadata와 대조한다 (C18.1-6)
+
+- Feature manifest 검사는 과거 literal version 대신 root package version을 읽는다. 현재 candidate를 허용하며 일치하지 않는 contract version에는 expected와 actual 값을 보고한다. Candidate checklist의 번역은 같은 task 순서를 유지한다.
 
 ### 2026-10-26 — 로컬 candidate 준비를 완료한다 (C18.1)
 

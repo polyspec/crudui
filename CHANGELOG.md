@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Compare contract versions with workspace metadata (C18.1-6)
+
+- The feature manifest checker reads the root package version instead of requiring an earlier literal version. It accepts the current candidate and rejects a mismatched contract version with the expected and actual values. Candidate checklist translations retain the same task order.
+
 ### 2026-10-26 — Complete local candidate preparation (C18.1)
 
 - Candidate preparation uses current local provider sources, native dependency records and the reviewed compatible toolchain. Every candidate preparation task is complete. Current npm, Composer and Python archives pass isolated installation checks, and native PHP uses its own Composer profile. Shared configuration copies match the installed kit source. CI and publication remain separate operations.

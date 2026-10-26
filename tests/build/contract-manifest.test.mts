@@ -70,6 +70,7 @@ function repository(): Repository {
       fixtures: [],
     },
     files: {
+      'package.json': JSON.stringify({ name: '@polyspec/crudui-workspace', version: '0.0.7' }),
       'fixture.json': '{}\n',
       'check.test.mjs': '\n',
       'guide.md': "# Guide\n\n```js\nimport { compile } from '@polyspec/crudui-core';\n```\n",
@@ -147,6 +148,19 @@ const core = (repo: Repository): ManifestPackage => repo.manifest.packages[0];
 
 test('a synthetic repository with exact entries passes', () => {
   assert.deepEqual(errorsFor(), []);
+});
+
+test('the manifest accepts the version of the checkout package', () => {
+  assert.deepEqual(errorsFor(repo => {
+    repo.manifest.version = '0.0.8';
+    repo.files['package.json'] = JSON.stringify({ name: '@polyspec/crudui-workspace', version: '0.0.8' });
+  }), []);
+});
+
+test('the manifest rejects a version different from the checkout package', () => {
+  assert.deepEqual(errorsFor(repo => {
+    repo.files['package.json'] = JSON.stringify({ name: '@polyspec/crudui-workspace', version: '0.0.8' });
+  }), ['manifest version must match the package version: expected 0.0.8, actual 0.0.7']);
 });
 
 test('a package.json code entry without a manifest entry fails', () => {
