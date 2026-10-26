@@ -13,7 +13,7 @@
       "tool": "typescript",
       "channel": "6.0.3",
       "scope": "packages/svelte",
-      "reason": "svelte-check 4.7.6 and @sveltejs/package 3.0.0, which type-check and package the Svelte components, require the TypeScript 6 API: their peer ranges are ^5.0.0 || ^6.0.0 and ^6.0.0, and TypeScript 7 has no such API.",
+      "reason": "svelte-check 4.7.7 and @sveltejs/package 3.0.1, which type-check and package the Svelte components, require the TypeScript 6 API: their peer ranges are ^5.0.0 || ^6.0.0 and ^6.0.0, and TypeScript 7 has no such API.",
       "retry": "Retry TypeScript 7.0.2 in packages/svelte when svelte-check and @sveltejs/package admit TypeScript 7 in their peer ranges."
     }
   ],
