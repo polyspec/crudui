@@ -7,6 +7,10 @@
 
 - The Unicode contract reads the property ranges of @unicode/unicode-16.0.0 at its locked release. The stored UCD files and parser are removed. Unicode 16.0.0, all 35 general categories, all 170 scripts and every code point range remain unchanged.
 
+### 2026-10-26 — Document the evaluated documentation-site parser releases (C16.8-1)
+
+- Documentation build tools reference their rebuild record. The checked Markdown renderer remains in use because both evaluated VitePress distributions embed the reference parser without the security fix. Routes, link checks and development-server behavior remain covered by their owning units.
+
 ### 2026-10-26 — Rust fixture readers match errors explicitly (C17.38-1)
 
 - Rust fixture readers use explicit Result matching for file reads and JSON parsing. Failures retain the fixture path and underlying error, and the selected Clippy checks use the repository configuration. The diagnostic example names the same error handling form.

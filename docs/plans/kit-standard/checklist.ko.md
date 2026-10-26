@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 00a4d1835e7da22a44ca5714d6153bc5a37e63c4a6d7e1f1874257b75d7772ef -->
+<!-- source-sha256: e5d00ed5a995e74da523595a5311b4b89e156326e8e83b6e630ae1e15a197e0d -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -25,7 +25,8 @@
 | C16.7-11 | kit에 local 전체 실행이 없으므로 config/owner-checks.json은 fullSuite target을 적지 않는다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C16.7-12 | make kit-check가 통과한다. Makefile은 kit의 모든 gate를 CHECK_TARGETS에 나열하고 PRINCIPLES.md는 kit과 같다 | Makefile, PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-check` | [o] |
 | C16.7-13 | package-names test는 path를 Composer package 이름으로 보지 않는다 | tests/build/package-names.test.mts | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/package-names.test.mts` | [o] |
-| C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [-] 원인: 사용자 2026-10-22: 버전 고정 작업 없음; 저장소 간 버전 정렬(S4)은 kit K448에서 제거되므로 이 행에는 남은 작업이 없다 |
+| C16.8 | 문서 site는 VitePress로 빌드하고 docs/.vitepress/dist를 제거한다 (scripts/docs-web과 scripts/documentation-links.mts를 대체) | package.json, docs/.vitepress, scripts/docs-web, scripts/documentation-links.mts, config/rebuild.json | `make rebuild-check`, `make layout-check` | [-] 원인: 검토한 stable과 next VitePress distribution은 GHSA-gfr2-rv44-r23c 수정이 없는 reference parser를 내장하므로 검사된 renderer를 docs/rebuild/documentation-web.md에 따라 유지한다; C16.8-1에서 검토했다 |
+| C16.8-1 | P1: 검토한 VitePress release를 기록하고 내장 parser에 보안 수정이 없으면 검사된 문서 renderer를 유지한다 | docs/rebuild/documentation-web.md, config/rebuild.json, checklist decisions | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/docs/web-build.test.mts tests/docs/development-server.test.mts scripts/documentation-links.test.mts`, `make rebuild-check` | [o] |
 | C16.9 | PHP extension을 phpize로 빌드한다 (scripts/php-extension-builder.mts, build-crudui-php-extension.mts, build-ordered-json-php-extension.mts, tool-resolution.mts를 대체). kit이 component 저장소의 S10을 정할 때까지 보류 | packages/php-ext, scripts, config/rebuild.json | `make lint-php-ext`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- --test-name-pattern="builds with phpize" packages/php-ext/tests/engine.test.mjs` | [o] |
 | C16.10 | scripts의 명령은 kit이 export하는 process-group runner로 실행한다 (scripts/run-command.mts를 대체) | scripts, config/rebuild.json | `sh -c 'test ! -e scripts/run-command.mts && ! git grep -qE "run-command\.mts" -- scripts benchmarks tests config package.json && make rebuild-check'` | [o] |
 | C16.11 | scripts는 JSON을 scripts/values.mts가 아니라 ajv schema로 읽는다 (21개 파일이 호출) | scripts, tests/build, config/rebuild.json | `make rebuild-check` | [o] |

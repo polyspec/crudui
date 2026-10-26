@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9ce8c10313032d25d017616e66a4d3982189b4187639673ea1bd826891c5d8ea -->
+<!-- source-sha256: cf2530341441ffa7959be6947383da93b63d94b99b57e97f64460cecc8c025f2 -->
 
 ## Unreleased
 
 ### 2026-10-26 — Unicode contract가 package의 property 범위를 사용한다 (C16.13-1)
 
 - Unicode contract는 잠긴 release의 @unicode/unicode-16.0.0에서 property 범위를 읽는다. 저장한 UCD 파일과 parser를 제거한다. Unicode 16.0.0, general category 35개, script 170개와 모든 code point 범위를 유지한다.
+
+### 2026-10-26 — 검토한 문서 site parser release를 기록한다 (C16.8-1)
+
+- 문서 build 도구는 rebuild record를 참조합니다. 검토한 두 VitePress distribution의 내장 reference parser에 보안 수정이 없어 검사된 Markdown renderer를 유지합니다. Route, link 검사와 development-server 동작은 소유 unit으로 검증합니다.
 
 ### 2026-10-26 — Rust fixture reader가 오류를 명시적으로 match한다 (C17.38-1)
 

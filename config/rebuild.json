@@ -463,28 +463,28 @@
       "tool": "ajv and ajv-formats validate the schemas and their examples; yaml reads the YAML ones"
     },
     "scripts/docs-web/build.mts": {
-      "kind": "replaced",
-      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/documentation-web.md"
     },
     "scripts/docs-web/cli.mts": {
-      "kind": "replaced",
-      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/documentation-web.md"
     },
     "scripts/docs-web/paths.mts": {
-      "kind": "replaced",
-      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/documentation-web.md"
     },
     "scripts/docs-web/server.mts": {
-      "kind": "replaced",
-      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/documentation-web.md"
     },
     "scripts/docs-web/watch.mts": {
-      "kind": "replaced",
-      "reason": "replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/documentation-web.md"
     },
     "scripts/documentation-links.mts": {
-      "kind": "replaced",
-      "reason": "the markdown-it rule that rewrites repository links for scripts/docs-web goes with it; replaced by VitePress, the documentation site tool that S5 and K245 name (docs/.vitepress, docs/public); item C16.8 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/documentation-web.md"
     },
     "scripts/features-manifest.mts": {
       "kind": "ecosystem",
