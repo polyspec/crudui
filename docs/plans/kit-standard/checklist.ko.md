@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 43a616a08275fffe6e60dd1b9dbdd6976c0ec04f295e090d3fa932300f6b3616 -->
+<!-- source-sha256: 65356749258614eab6e91cafc014f45df0c835ec4226122802cd6e8f876740a9 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -377,3 +377,4 @@
 | C17.41 | CLI manifest markdown test가 오래된 export 목록 없이 현재 contract의 전체 package export 표를 정확히 검증한다. | packages/cli/tests/manifest.test.ts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/cli -- tests/manifest.test.ts` | [o] |
 | C17.42 | Go button 계약 명령은 TestButtonsSuite를 소유한 generator package를 선택하고 일치하는 test가 없는 package를 선택하지 않으며 모든 shared button case를 실행한다. | contracts/features.json | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite .`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/contract-manifest.test.mts` | [o] |
 | C17.43 | Condition editor fallback textarea가 독립된 border를 유지하고 Chromium, Firefox, WebKit의 좁고 넓은 viewport 안에 배치된다. | packages/generator/ts/styles/crudui.css, tests/viewport.test.mts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern=condition-editor tests/viewport.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/style-properties.test.mts` | [o] |
+| C17.44 | PHP server unit fixture는 module에 선언된 php-config와 PHP-FPM 경로를 제공하고 모든 결과에서 launcher cleanup 완료를 기다린다. | examples/form-comparison/src/php-server.test.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- examples/form-comparison/src/php-server.test.mjs` | [o] |

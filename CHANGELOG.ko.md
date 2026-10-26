@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 21a4803404fefe77700d21123f2e7db8e49763103ca9a21f6566256116f28e06 -->
+<!-- source-sha256: 4a34a0b9ef969f512a195f06fc468695643d167809403327852f0d8f58bc56cb -->
 
 ## Unreleased
 
@@ -39,6 +39,10 @@
 ### 2026-10-26 — Condition fallback textarea가 viewport 안에 배치된다 (C17.43)
 
 - Stylesheet는 flex로 배치한 control과 affix widget에만 결합 border와 음수 결합 margin을 적용한다. 구조화된 condition widget는 독립된 border와 0의 결합 margin을 유지하여 Chromium, Firefox, WebKit의 좁고 넓은 viewport에서 fallback textarea가 viewport 안에 배치된다.
+
+### 2026-10-26 — PHP server fixture가 선언된 PHP 설치 경로를 사용한다 (C17.44)
+
+- PHP server unit fixture는 launcher module에서 해석하는 경로에 php-config와 PHP-FPM을 배치한다. 각 test는 readiness 실패와 cleanup 실패를 포함한 모든 결과에서 launcher 종료를 기다린 뒤 sandbox를 제거한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 
