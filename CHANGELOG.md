@@ -11,6 +11,10 @@
 
 - Text-validity fixtures call the installed validator and generator APIs, and decode accepted templates with decodeFormTemplate. The validator text helper test uses the same installed API for its loader check. The button fixture declares its four evaluated buttons as a tuple, and the validation fixture declares its generated records explicitly. The root TypeScript check passes without compiling package implementation sources under the root configuration.
 
+### 2026-10-26 — PHP generation failures retain their API error type (C17.49)
+
+- The API parity report checks invalid mixed button inputs as FormError with INVALID_FORM_INPUT and the declared list message. Choice-source failures from the validator are converted to FormError with the same code and message before leaving the generator API. The report compares both extension loading modes with the PHP library.
+
 ### 2026-10-26 — Native graph checks declare submission budgets (C17.10-1)
 
 - The native graph boundary fixtures declare depth 512 or 1000000 values, and the 200000-row Go uniqueness test declares its submission value budget. Their graph sizes, expected outcomes and the default submission limits remain unchanged. PHP measures checked trees depth-first without retaining all sibling nodes. The PHP and Go field models retain dataLimits, including omitted members and empty declarations.

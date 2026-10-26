@@ -6,6 +6,7 @@ namespace Polyspec\Crudui\Generator;
 
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Validator\Validate\GroupSource;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
 use stdClass;
 
 /** Read choice lists: `items` arrays of value and label pairs kept in list order. */
@@ -38,8 +39,13 @@ final class ChoiceList
         if (!GroupSource::isSource($spec->items ?? null)) {
             return $spec;
         }
+        try {
+            $choices = GroupSource::choices((array) $spec->items, $data);
+        } catch (FormInputError $error) {
+            throw new FormError($error->getErrorCode(), $error->getMessage());
+        }
         $items = [];
-        foreach (GroupSource::choices((array) $spec->items, $data) as [$value, $label]) {
+        foreach ($choices as [$value, $label]) {
             $items[] = (object) ['value' => $value, 'label' => $label];
         }
         $resolved = clone $spec;

@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3302e9700901a88426ab184dcbada70c62ba4359da389946970c36aed9a5c0de -->
+<!-- source-sha256: 206270a750a8dc5c92a02f29096a06c0d5cf6d631854e24bcd7c1717e0ec00ce -->
 
 ## Unreleased
 
@@ -11,6 +11,10 @@
 ### 2026-10-26 — Root fixture 검사가 설치된 package API를 사용한다 (C17.37)
 
 - Text-validity fixture는 설치된 validator와 generator API를 호출하고 decodeFormTemplate으로 승인한 template을 decode한다. Validator text helper test도 loader 검사에 같은 설치 API를 사용한다. Button fixture는 평가한 button 네 개를 tuple로 선언하고 validation fixture는 생성 record의 타입을 명시한다. Root TypeScript 검사는 package 구현 source를 root configuration으로 compile하지 않고 통과한다.
+
+### 2026-10-26 — PHP generation 실패가 API error type을 유지한다 (C17.49)
+
+- API parity report가 잘못된 mixed button 입력을 INVALID_FORM_INPUT code와 선언된 list message를 가진 FormError로 검사한다. Validator의 choice-source 실패는 같은 code와 message를 유지한 FormError로 변환되어 generator API를 나간다. Report는 extension loading mode 두 가지를 PHP library와 비교한다.
 
 ### 2026-10-26 — Native graph 검사가 submission budget을 선언한다 (C17.10-1)
 

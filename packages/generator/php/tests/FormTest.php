@@ -13,6 +13,28 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FormTest extends TestCase
 {
+    public function testRepeatedLiteralChoiceUsesGenerationError(): void
+    {
+        $spec = self::object(
+            '{"type":"group","properties":{'
+            . '"variants":{"type":"group","multiple":"only","properties":{"name":{"type":"text"}}},'
+            . '"pick":{"type":"select","items":{"from":"variants.*.name",'
+            . '"choices":[{"value":"Red","label":"Red"}]}}}}'
+        );
+        $data = self::object('{"variants":{"r1":{"name":"Red"}}}');
+        try {
+            Generator::bindForm(Generator::compileForm($spec), $data);
+            self::fail('A row that repeats a literal choice must fail generation');
+        } catch (FormError $error) {
+            self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
+            self::assertSame(
+                'Group source value repeats a literal choice at variants.r1.name: Red',
+                $error->getMessage()
+            );
+            self::assertSame('', $error->getPath());
+        }
+    }
+
     public function testInvalidUtf8ValuesAndObjectKeysPreserveTheCompleteFormState(): void
     {
         $form = new Form(

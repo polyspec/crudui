@@ -15,7 +15,6 @@ use ReflectionMethod;
 use RuntimeException;
 use stdClass;
 use Throwable;
-use TypeError;
 
 /**
  * The report of the public PHP API of one runtime: the signatures of its classes, the number of checks it passed and
@@ -356,9 +355,13 @@ final class ApiReport
             'An associative array field changed binding'
         );
         self::fails(fn()=>Generator::bindButtons($buttonTemplate, null), FormError::class, 'INVALID_FORM_INPUT');
-        self::fails(fn()=>Generator::formButtonsHtml(null), TypeError::class);
         foreach (
             [
+                null,
+                false,
+                0,
+                'buttons',
+                new stdClass(),
                 ['k' => (object)['tag' => 'a','text' => '','attrs' => new stdClass()]],
                 [1 => (object)['tag' => 'a','text' => '','attrs' => new stdClass()]]
             ] as $unlisted
