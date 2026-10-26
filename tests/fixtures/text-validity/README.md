@@ -42,6 +42,8 @@ that starts with `spec`, `files` or `data`, in the case's `validate` inputs. The
 - `self-twice`: an object whose members `self` and `again` are the object itself, a PHP array
   that holds two references to itself.
 
+The accepted native boundary cases declare `dataLimits.depth` 512 or `dataLimits.values` 1000000, so the smaller default submission budget does not preempt the native value limit.
+
 Every case runs as one test within the runner's per-test limit; a walk that grows with the tree a
 value denotes (2^40 nodes for a shared list forty levels deep) does not finish within it. Wall-clock
 thresholds are not asserted, since a machine's speed would decide them.

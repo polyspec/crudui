@@ -1,6 +1,6 @@
 # 입력 텍스트 픽스처
 <!-- doc-id: tests-fixtures-text-validity-readme -->
-<!-- source-sha256: 05e3fdb91e4699714d092ce64592b8c1155391b23622453595f8434bccada127 -->
+<!-- source-sha256: 048dbac18922262d8fbbc97fcf67e3330f763054087b9a215b5b8837fceea40d -->
 
 [English](README.md).
 
@@ -41,6 +41,8 @@
 - `flat`: `leaf`인 항목 `size`개를 담은 목록 하나
 - `self-twice`: 멤버 `self`와 `again`이 객체 자신인 객체. PHP에서는 자기 자신에 대한 참조 두 개를
   담은 배열입니다
+
+Native 경계에서 허용되는 case는 `dataLimits.depth` 512 또는 `dataLimits.values` 1000000을 선언하므로 더 작은 기본 submission budget이 native value limit 검사를 먼저 거부하지 않습니다.
 
 모든 케이스는 실행기의 테스트별 제한 시간 안에서 테스트 하나로 실행됩니다. 값이 나타내는 트리에 비례해
 커지는 순회(40단계 공유 목록이면 2^40개 노드)는 그 안에 끝나지 않습니다. 절대 시간 기준은 기계 속도에 따라

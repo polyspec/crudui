@@ -11,6 +11,10 @@
 
 - Text-validity fixtures call the installed validator and generator APIs, and decode accepted templates with decodeFormTemplate. The validator text helper test uses the same installed API for its loader check. The button fixture declares its four evaluated buttons as a tuple, and the validation fixture declares its generated records explicitly. The root TypeScript check passes without compiling package implementation sources under the root configuration.
 
+### 2026-10-26 — Native graph checks declare submission budgets (C17.10-1)
+
+- The native graph boundary fixtures declare depth 512 or 1000000 values, and the 200000-row Go uniqueness test declares its submission value budget. Their graph sizes, expected outcomes and the default submission limits remain unchanged. PHP measures checked trees depth-first without retaining all sibling nodes. The PHP and Go field models retain dataLimits, including omitted members and empty declarations.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

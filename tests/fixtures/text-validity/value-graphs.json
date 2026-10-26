@@ -89,7 +89,7 @@
     "requirements": [
       "CUIT-022"
     ],
-    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
+    "spec": { "type": "group", "dataLimits": { "depth": 512 }, "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "chain", "size": 511, "leaf": "x" },
     "expect": { "valid": true, "errors": [], "hidden": [] }
@@ -115,7 +115,7 @@
     "requirements": [
       "CUIT-021"
     ],
-    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
+    "spec": { "type": "group", "dataLimits": { "values": 1000000 }, "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "flat", "size": 999998, "leaf": "x" },
     "expect": { "valid": true, "errors": [], "hidden": [] }

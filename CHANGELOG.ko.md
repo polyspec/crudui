@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 51d667579aa63f4387b163151985b6403261fb51481b14cb3610ddddd1bee71a -->
+<!-- source-sha256: e7bec828781379cdc71d39a60d753128ab6af98820a56c5ab724cde11d3ab6d5 -->
 
 ## Unreleased
 
@@ -11,6 +11,10 @@
 ### 2026-10-26 — Root fixture 검사가 설치된 package API를 사용한다 (C17.37)
 
 - Text-validity fixture는 설치된 validator와 generator API를 호출하고 decodeFormTemplate으로 승인한 template을 decode한다. Validator text helper test도 loader 검사에 같은 설치 API를 사용한다. Button fixture는 평가한 button 네 개를 tuple로 선언하고 validation fixture는 생성 record의 타입을 명시한다. Root TypeScript 검사는 package 구현 source를 root configuration으로 compile하지 않고 통과한다.
+
+### 2026-10-26 — Native graph 검사가 submission budget을 선언한다 (C17.10-1)
+
+- Native graph 경계 fixture는 depth 512 또는 values 1000000을 선언하고 200000행 Go uniqueness test는 submission value budget을 선언한다. Graph 크기, 기대 결과와 기본 submission limit을 유지한다. PHP는 모든 sibling node를 보관하지 않고 검사된 tree를 depth-first로 측정한다. PHP와 Go field model은 생략된 member와 빈 선언을 포함한 dataLimits를 유지한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

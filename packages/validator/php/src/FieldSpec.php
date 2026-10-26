@@ -68,7 +68,7 @@ final class FieldSpec
     /** Messages: error message overrides keyed by registered rule name. */
     public const ROLE_MESSAGES = 'messages';
 
-    /** Form declaration: buttons/action, honored on the form root only. */
+    /** Form declaration: buttons, action and dataLimits, honored on the form root only. */
     public const ROLE_FORM = 'form';
 
     /**
@@ -101,6 +101,7 @@ final class FieldSpec
         'options'     => self::ROLE_SLOT,
         'buttons'     => self::ROLE_FORM,
         'action'      => self::ROLE_FORM,
+        'dataLimits'  => self::ROLE_FORM,
     ];
 
     // --- role slots ----------------------------------------------------------

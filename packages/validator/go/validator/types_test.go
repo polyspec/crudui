@@ -332,3 +332,15 @@ func TestTopLevelKeysAreTheSchemaFieldKeys(t *testing.T) {
 func TestDesignLayout(t *testing.T) {
 	roundTrip(t, `{"type":"group","design":{"layout":"inline","wrapper":{"class":"section"}}}`)
 }
+
+// TestFormDataLimitsRoundTrip keeps optional submission bounds in the form model (CUSC-087).
+func TestFormDataLimitsRoundTrip(t *testing.T) {
+	for _, input := range []string{
+		`{"type":"group","dataLimits":{}}`,
+		`{"type":"group","dataLimits":{"depth":512}}`,
+		`{"type":"group","dataLimits":{"values":1000000}}`,
+		`{"type":"group","dataLimits":{"depth":512,"values":1000000}}`,
+	} {
+		roundTrip(t, input)
+	}
+}

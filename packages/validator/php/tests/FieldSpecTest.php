@@ -276,4 +276,14 @@ final class FieldSpecTest extends TestCase
             FieldSpec::validate(['messages' => ['requird' => 'a']])
         );
     }
+
+    /** Form data limits are a form declaration retained by the model (CUSC-087). */
+    public function testFormDataLimitsRoundTrip(): void
+    {
+        foreach (['{}', '{"depth":512}', '{"values":1000000}', '{"depth":512,"values":1000000}'] as $limits) {
+            $input = '{"type":"group","dataLimits":' . $limits . '}';
+            self::assertTrue(FieldSpec::roundTrips($input));
+            self::assertSame([], FieldSpec::validate(FieldSpec::parse($input)));
+        }
+    }
 }

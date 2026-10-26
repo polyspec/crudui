@@ -84,7 +84,7 @@ func TestUniqueManyValues(t *testing.T) {
 // each row makes 2 * 10^10 row visits and does not end before the per-test timeout of
 // the run-tests tool of @polyspec/kit, which fails the test.
 func TestUniqueManyRows(t *testing.T) {
-	decoded, err := compose.DecodeOrdered([]byte(`{"type":"group","properties":{"rows":{"type":"group","multiple":true,"properties":{"code":{"type":"text","validate":{"unique":true}}}}}}`))
+	decoded, err := compose.DecodeOrdered([]byte(`{"type":"group","dataLimits":{"values":1000000},"properties":{"rows":{"type":"group","multiple":true,"properties":{"code":{"type":"text","validate":{"unique":true}}}}}}`))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -146,6 +146,18 @@ type FieldSpec struct {
 	// Action is the submission target kept unchanged in the template. Honored on the
 	// form root only.
 	Action *FormAction `json:"action,omitempty"`
+
+	// DataLimits bounds submitted data on the form root (CUSC-087).
+	DataLimits *FormDataLimits `json:"dataLimits,omitempty"`
+}
+
+// FormDataLimits declares the submission depth and value limits (CUSC-087).
+// A missing member uses the validation default (CUVR-083).
+type FormDataLimits struct {
+	// Depth is the maximum number of nested container levels.
+	Depth *int `json:"depth,omitempty"`
+	// Values is the maximum number of submitted value nodes.
+	Values *int `json:"values,omitempty"`
 }
 
 // FormButton is one form button. A button or link needs text; a link needs href.

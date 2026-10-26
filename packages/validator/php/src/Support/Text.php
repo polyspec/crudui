@@ -65,18 +65,20 @@ final class Text
     {
         $levels = 0;
         $nodes = 0;
-        $pending = [[$value, 1]];
-        while ($pending !== []) {
-            [$node, $level] = array_pop($pending);
-            ++$nodes;
-            if ($node instanceof stdClass || is_array($node)) {
-                $levels = max($levels, $level);
-                foreach ($node as $child) {
-                    $pending[] = [$child, $level + 1];
-                }
+        self::measure($value, 1, $levels, $nodes);
+        return [$levels, $nodes];
+    }
+
+    /** Count a checked value depth-first without retaining all siblings in a pending list. */
+    private static function measure(mixed $value, int $level, int &$levels, int &$nodes): void
+    {
+        ++$nodes;
+        if ($value instanceof stdClass || is_array($value)) {
+            $levels = max($levels, $level);
+            foreach ($value as $child) {
+                self::measure($child, $level + 1, $levels, $nodes);
             }
         }
-        return [$levels, $nodes];
     }
 
     /** Count a node at $depth; false when it takes the value beyond its limits. */
