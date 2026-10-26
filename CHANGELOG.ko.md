@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cf2530341441ffa7959be6947383da93b63d94b99b57e97f64460cecc8c025f2 -->
+<!-- source-sha256: fc8477f12608137ab94e25b7663b573622a30f825b0e1c4a6d56201c086ceb93 -->
 
 ## Unreleased
 
@@ -11,6 +11,10 @@
 ### 2026-10-26 — 검토한 문서 site parser release를 기록한다 (C16.8-1)
 
 - 문서 build 도구는 rebuild record를 참조합니다. 검토한 두 VitePress distribution의 내장 reference parser에 보안 수정이 없어 검사된 Markdown renderer를 유지합니다. Route, link 검사와 development-server 동작은 소유 unit으로 검증합니다.
+
+### 2026-10-26 — HTTP 전달이 양방향 연결 header를 제거한다 (C16.29-1)
+
+- Form comparison은 전달 전에 Connection이 지정한 요청 header를 제거하며 target routing, 조기 응답, 구조화된 upstream 실패와 upload 취소를 보존한다. 전달 unit test는 이 동작을 검사한다. 재구현 기록은 Node.js adapter와 http-proxy를 비교하고 현재 구현을 설명한다.
 
 ### 2026-10-26 — Rust fixture reader가 오류를 명시적으로 match한다 (C17.38-1)
 

@@ -11,6 +11,10 @@
 
 - Documentation build tools reference their rebuild record. The checked Markdown renderer remains in use because both evaluated VitePress distributions embed the reference parser without the security fix. Routes, link checks and development-server behavior remain covered by their owning units.
 
+### 2026-10-26 — HTTP forwarding filters connection headers in both directions (C16.29-1)
+
+- The form comparison removes request headers named by Connection before forwarding and preserves target routing, early responses, structured upstream failures and upload cancellation. The forwarding unit tests cover these behaviors. The rebuild record compares the Node.js adapter with http-proxy and records the current implementation.
+
 ### 2026-10-26 — Rust fixture readers match errors explicitly (C17.38-1)
 
 - Rust fixture readers use explicit Result matching for file reads and JSON parsing. Failures retain the fixture path and underlying error, and the selected Clippy checks use the repository configuration. The diagnostic example names the same error handling form.

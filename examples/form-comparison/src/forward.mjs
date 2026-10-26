@@ -20,7 +20,7 @@ export function forward(target, request, response) {
   let answered = false;
   const outgoing = http.request({
     hostname: '127.0.0.1', port: target.port, path: target.path, method: request.method,
-    headers: { ...request.headers, host: `127.0.0.1:${target.port}` },
+    headers: { ...endToEnd(request.headers), host: `127.0.0.1:${target.port}` },
   }, incoming => {
     answered = true;
     request.unpipe(outgoing);

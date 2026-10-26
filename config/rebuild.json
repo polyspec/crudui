@@ -251,8 +251,8 @@
       "reason": "the module (src/form-views.ts) of the form comparison example, an application of CRUDUI; it implements no tool of an ecosystem"
     },
     "examples/form-comparison/src/forward.mjs": {
-      "kind": "replaced",
-      "reason": "replaced by the http-proxy package, which forwards a request and drops the hop-by-hop headers; item C16.29 registers the replacement"
+      "kind": "record",
+      "record": "docs/rebuild/http-forward.md"
     },
     "examples/form-comparison/src/frame-document.mjs": {
       "kind": "policy",
