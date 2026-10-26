@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — The PHP extension renders structured condition HTML consistently (C17.35)
+
+- The C renderer writes the structured condition editor as raw HTML: textarea text retains quotes, editor inputs use HTML void tags, and editor text and affixes use the same escaping as the shared renderer. The comparison tests pass all 11 cases, including the three previously failing rendering checks.
+
 ### 2026-10-26 — The php-ext test source lists link rule_condition_tree.c and canonical.c (C17.33)
 
 - The php-ext comparison and contract tests compile the sources that the widget and the number text need (rule_condition_tree.c, canonical.c), so they link again. The comparison divergence that the link now shows is C17.34.

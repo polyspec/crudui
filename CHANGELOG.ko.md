@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b1650adef02877f8b9f655fc6be53e4a505e414d7155a8df569220d52aa03889 -->
+<!-- source-sha256: 61b376dc63d6068106e77a01bfc0743d4e8a1d8d1b8f27c70a9f1664fcd1e1a2 -->
 
 ## Unreleased
+
+### 2026-10-26 — PHP 확장이 구조화된 조건 편집기 HTML을 일관되게 렌더링한다 (C17.35)
+
+- C renderer는 구조화된 condition editor를 raw HTML로 작성한다. textarea text의 따옴표를 유지하고, editor input에 HTML void tag를 사용하며, editor text와 affix에 shared renderer와 같은 escaping을 적용한다. comparison test 11개가 통과하며 이전에 실패한 rendering 검사 3개를 포함한다.
 
 ### 2026-10-26 — php-ext 테스트 소스 목록이 rule_condition_tree.c와 canonical.c를 링크한다 (C17.33)
 

@@ -71,7 +71,7 @@ static bool write_control(render_buffer *out, const ps_value *widget, bool searc
     ps_text tag = text_member(widget, "tag");
     if (!tag.length) tag = PS_TEXT("input");
     const ps_value *attrs = member(widget, "attrs");
-    bool raw = search || has_events(attrs);
+    bool raw = search || ps_is_string(member(widget, "layout"), "condition") || has_events(attrs);
     if (!ps_html_start_element(out, tag, attrs, raw, !raw)) return false;
     if (ps_html_void_tag(tag)) return true;
     if (ps_text_is(tag, "select")) {
@@ -248,7 +248,7 @@ static bool start_condition_node(render_buffer *out, const char *tag, const char
 {
     ps_value *attrs = ps_object_value();
     bool ok = attrs && attr_string(attrs, "class", class_name) && attr_text(attrs, "data-condition-path", path) &&
-        start_element(out, tag, attrs, false, false);
+        start_element(out, tag, attrs, true, false);
     ps_value_free(attrs);
     return ok;
 }
@@ -259,7 +259,7 @@ static bool write_condition_button(render_buffer *out, const char *action, ps_te
     bool ok = attrs && attr_string(attrs, "type", "button") &&
         attr_string(attrs, "class", "crudui-action crudui-action--text") &&
         attr_string(attrs, "data-condition-action", action) &&
-        start_element(out, "button", attrs, false, false) && escaped(out, label, false) &&
+        start_element(out, "button", attrs, true, false) && raw_text(out, label) &&
         end_element(out, "button", false);
     ps_value_free(attrs);
     return ok;
@@ -270,7 +270,7 @@ static bool write_condition_option(render_buffer *out, ps_text choice, ps_text s
     ps_value *attrs = ps_object_value();
     bool ok = attrs && attr_text(attrs, "value", choice) &&
         (!ps_text_equal(choice, selected) || attr_string(attrs, "selected", "")) &&
-        start_element(out, "option", attrs, false, false) && escaped(out, choice, false) &&
+        start_element(out, "option", attrs, true, false) && raw_text(out, choice) &&
         end_element(out, "option", false);
     ps_value_free(attrs);
     return ok;
@@ -281,7 +281,7 @@ static bool start_condition_select(render_buffer *out, const char *class_name, c
 {
     ps_value *attrs = ps_object_value();
     bool ok = attrs && attr_string(attrs, "class", class_name) && attr_string(attrs, "data-condition-part", part) &&
-        (!label || attr_clone(attrs, "aria-label", label)) && start_element(out, "select", attrs, false, false);
+        (!label || attr_clone(attrs, "aria-label", label)) && start_element(out, "select", attrs, true, false);
     ps_value_free(attrs);
     return ok;
 }
@@ -290,7 +290,7 @@ static bool write_condition_input(render_buffer *out, const char *class_name, co
 {
     ps_value *attrs = ps_object_value();
     bool ok = attrs && attr_string(attrs, "class", class_name) && attr_string(attrs, "data-condition-part", part) &&
-        attr_clone(attrs, "value", value) && ps_html_start_element(out, PS_TEXT("input"), attrs, false, true);
+        attr_clone(attrs, "value", value) && ps_html_start_element(out, PS_TEXT("input"), attrs, true, false);
     ps_value_free(attrs);
     return ok;
 }
@@ -363,7 +363,7 @@ static bool write_condition_node(render_buffer *out, const ps_value *node, const
 static bool write_condition_widget(render_buffer *out, const ps_value *model)
 {
     const ps_value *editor = member(model, "condition");
-    bool raw = has_events(member(model, "attrs"));
+    bool raw = true;
     ps_value *attrs = ps_object_value();
     bool ok = attrs && attr_string(attrs, "class", "crudui-widget crudui-widget--condition") &&
         start_element(out, "div", attrs, false, false) && write_affix(out, member(model, "prepend"), raw);
@@ -371,7 +371,7 @@ static bool write_condition_widget(render_buffer *out, const ps_value *model)
     if (ok && ps_has(editor, "error")) {
         ps_value *error = ps_object_value();
         ok = error && attr_string(error, "class", "crudui-condition__error") && attr_string(error, "role", "alert") &&
-            start_element(out, "p", error, false, false) && escaped(out, text_member(editor, "error"), false) &&
+            start_element(out, "p", error, false, false) && raw_text(out, text_member(editor, "error")) &&
             end_element(out, "p", false);
         ps_value_free(error);
     }
