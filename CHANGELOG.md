@@ -7,6 +7,10 @@
 
 - The private root Composer manifest and native lock resolve CRUDUI 0.0.8 and the current OrderedJSON 0.0.10 sibling source through path symlinks with configuration references. The default PHP install refreshes these source packages without a release download. The duplicate local manifest and lock are removed, and the existing Composer check validates the canonical project. Native installed records, PHP 8.4.26 platform requirements, selected dependency checks and the FormJson test pass with PHPUnit 13.4.3.
 
+### 2026-10-26 — Every candidate npm archive has a consumer smoke check (C18.1-2)
+
+- The release consumer installs all seven npm archives with locked framework and build dependencies. The Svelte consumer builds the installed package with Vite and the Svelte plugin, then checks its component and rendering exports. The npm and Composer consumer locks name the current 0.0.8 archives; clean consumer installs and smoke checks pass for all eleven npm, Composer and Python packages.
+
 ### 2026-10-26 — Complete the current documentation-tool candidate review (C18.2)
 
 - The pre-CI documentation review retains the directly managed latest patched Markdown parser, 15.0.3. Fresh stable and next VitePress archives still embed the affected reference parser. The rebuild record states the current registry channels, archive digests, parser selection and completed candidate decision.

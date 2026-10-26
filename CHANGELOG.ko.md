@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1d2819b1fb3d7f3f7f4bea915ebef243bc2d2e8be4ea0c1fbc508e869c968f8f -->
+<!-- source-sha256: 39c5f8da0b4efd1df158739519f2322d7e6ec2b6d0fba5ed317528f14115bd80 -->
 
 ## Unreleased
 
 ### 2026-10-26 — 기본 Composer project가 현재 source를 설치한다 (C18.1-1)
 
 - Private root Composer manifest와 native lock은 configuration reference를 사용하는 path symlink로 CRUDUI 0.0.8과 현재 OrderedJSON 0.0.10 sibling source를 해석한다. 기본 PHP 설치는 release download 없이 source package를 갱신한다. 중복 local manifest와 lock을 제거하고 기존 Composer 검사는 canonical project를 검증한다. Native 설치 기록, PHP 8.4.26 platform 요구, 선택한 의존성 검사와 FormJson test가 PHPUnit 13.4.3으로 통과한다.
+
+### 2026-10-26 — 모든 candidate npm archive에 consumer smoke 검사가 있다 (C18.1-2)
+
+- Release consumer는 framework와 build 의존성을 lock으로 고정하여 npm archive 일곱 개를 모두 설치한다. Svelte consumer는 설치한 package를 Vite와 Svelte plugin으로 build한 뒤 component와 rendering export를 검사한다. npm과 Composer consumer lock은 현재 0.0.8 archive를 가리키며, npm·Composer·Python package 총 열한 개의 clean consumer 설치와 smoke 검사가 통과한다.
 
 ### 2026-10-26 — 현재 문서 도구 candidate 검토를 완료한다 (C18.2)
 

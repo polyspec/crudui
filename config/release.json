@@ -124,6 +124,28 @@
           "node",
           "-e",
           "require('@polyspec/crudui-validator')"
+        ],
+        "@polyspec/crudui-form-binding": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import { bindForm } from '@polyspec/crudui-form-binding'; if (typeof bindForm !== 'function') throw new Error('Missing bindForm export');"
+        ],
+        "@polyspec/crudui-generator-react": [
+          "node",
+          "-e",
+          "require('@polyspec/crudui-generator-react'); require('@polyspec/crudui-generator-react/server');"
+        ],
+        "@polyspec/crudui-generator-vue": [
+          "node",
+          "-e",
+          "require('@polyspec/crudui-generator-vue');"
+        ],
+        "@polyspec/crudui-generator-svelte": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import { build } from 'vite'; import { svelte } from '@sveltejs/vite-plugin-svelte'; await build({ configFile: false, plugins: [svelte()], ssr: { noExternal: ['@polyspec/crudui-generator-svelte'] }, build: { ssr: 'node_modules/@polyspec/crudui-generator-svelte/dist/index.js', outDir: 'svelte-smoke', emptyOutDir: true, rollupOptions: { output: { entryFileNames: 'index.mjs' } } } }); const result = await import('./svelte-smoke/index.mjs'); if (typeof result.Form !== 'function' || typeof result.renderForm !== 'function') throw new Error('Missing Svelte component or renderer export');"
         ]
       }
     },
