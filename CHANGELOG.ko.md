@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3ec8bad40635227eaf6bbbdaea0c9ed0595a571cca5dc0d5ed77e7152176107d -->
+<!-- source-sha256: 692bd3f0dbc1a5a84da70685842c1ca55827eab8351159c49a44e04f71e3ad5d -->
 
 ## Unreleased
+
+### 2026-10-26 — 현재 문서 도구 candidate 검토를 완료한다 (C18.2)
+
+- CI 전 문서 검토는 직접 관리하는 최신 수정 Markdown parser 15.0.3을 유지합니다. 새 stable과 next VitePress archive에는 영향받는 reference parser가 남아 있습니다. Rebuild record는 현재 registry channel, archive digest, parser 선택과 완료된 candidate 결정을 기록합니다.
 
 ### 2026-10-26 — 공유 kit 설정을 추적 일반 파일로 둔다 (C17.56-2)
 
