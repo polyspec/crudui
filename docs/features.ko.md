@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: 4b7795cc6103fce6e0b85946c55feb76a4682f2d4c7c625ee1d66a2c844c500f -->
+<!-- source-sha256: e68d72a4698dfd6284a2a7450f603b0bb101a65d0065a32893827bcb4c59c9a8 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -85,6 +85,13 @@ CSR에는 선택한 클라이언트가 채우는 단계 셸만 포함됩니다. 
 보존하고 렌더링된 컨테이너 내용만 비교합니다. Vue의 `data-v-app`도 제거하지 않습니다.
 
 PHP 8.4 이상을 지원합니다. `.php-version`은 CI toolchain을 선택하며 지원하는 PHP 버전의 상한을 정하지 않습니다. 날짜가 있는 검증 section은 해당 실행의 버전과 결과를 기록합니다. 과거 PHP 8.5.10 측정값을 유지하며 이 기록은 현재 tree를 검증하지 않습니다.
+
+## Checklist 검증
+
+2026-10-26에 PHP 8.4.26에서 전체 실행 39개 target을 완료했으며 20개가 통과하고 19개가 실패했습니다.
+Report는 `var/report/final-checklist/record.json`입니다. 실패의 수정과 소유 검사는 [kit 표준 checklist](plans/kit-standard/checklist.ko.md)에 기록합니다.
+
+이 실행은 `CRUDUI_CONFORMANCE_EVIDENCE`를 선언하지 않아 conformance 집계에 사용할 증거 directory가 없습니다. 전체 실행은 수정 전 실패를 기록하며 수정한 통합 tree를 검증하지 않습니다. 수정은 선택한 소유 검사로 검증합니다.
 
 ## 표시 선언 검증
 

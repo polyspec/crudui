@@ -88,6 +88,13 @@ not removed.
 
 PHP 8.4 and later are supported. `.php-version` selects the CI toolchain; it does not set an upper bound on supported PHP releases. The dated verification sections record the versions and results of those runs. Their historical PHP 8.5.10 measurements remain unchanged and do not verify the current tree.
 
+## Checklist verification
+
+On 2026-10-26, a full run on PHP 8.4.26 completed 39 targets: 20 passed and 19 failed.
+The report is `var/report/final-checklist/record.json`. The failures are tracked with their corrections and owning checks in the [kit standard checklist](plans/kit-standard/checklist.md).
+
+The run did not declare `CRUDUI_CONFORMANCE_EVIDENCE`, so its conformance aggregation has no evidence directory. The full run records failures before the corrections; it does not verify the combined corrected tree. The corrections are verified by their selected owning checks.
+
 ## Display declaration verification
 
 On 2026-09-24 the working tree of the display declaration change passed on macOS arm64 with PHP
