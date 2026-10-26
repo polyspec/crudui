@@ -7,7 +7,7 @@
 
 - The root development dependency and npm lock pin the published kit 0.0.56 archive with its SHA-512 integrity. Native npm links retain the current kit and OrderedJSON source checkouts. Shared principles are synchronized with the installed kit source.
 - Make reads the installed package bootstrap. Each own CI Make job installs the locked package with the declared npm first. Svelte 5.57.3, PostCSS 8.5.32 and typescript-eslint 8.72.1 resolve through the existing compatible requirements. The release consumer declares the fsevents 2.3.3 script approval, and the Rust API fixture includes its operation logger.
-- Kit 0.0.56 link-state validation rejects the declared native OrderedJSON Composer path lock; native npm graph, Composer and dependency-policy validation pass.
+- The linked kit source accepts native Composer development path locks after K696. The dependency-health and Rust entry-point owner tests pass all 27 cases; link-state and kit-copy validation pass. The committed npm lock retains published kit 0.0.56; its archive predates K696.
 
 ### 2026-10-26 — Keep native Composer preparation internal (C18.1-8)
 
