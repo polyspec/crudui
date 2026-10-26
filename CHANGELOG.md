@@ -55,6 +55,10 @@
 
 - The HTML renderer uses the core condition widget serializer for the textarea, editor tree, error and affixes. Its structured condition widgets have the same attribute order, void element spelling and escaping as the React renderer.
 
+### 2026-10-26 — Native PHP record storage uses standard score conversion (C17.46)
+
+- The PHP record store converts validated decimal score text with PHP numeric conversion and preserves finite-number checks. It does not load the validator NumberValue implementation class in the native extension process. The native process assertion remains enabled; the score tests use the customer specification to retain decimal acceptance and radix refusal.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

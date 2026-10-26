@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\FormComparison;
 
 use InvalidArgumentException;
-use Polyspec\Crudui\Validator\Support\NumberValue;
 use RuntimeException;
 use stdClass;
 use Throwable;
@@ -135,18 +134,16 @@ final class RecordStore
         return FormShape::shaped($form, self::FORM, $native, 'form');
     }
 
-    /** Convert submitted number text as JavaScript's Number conversion does. */
+    /** Convert a validated decimal score to its stored number without loading validator internals. */
     public static function number(string $text): int|float
     {
         $whitespace = '\x{0009}-\x{000D}\x{0020}\x{00A0}\x{1680}\x{2000}-\x{200A}'
             . '\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
-        $trimmed = (string) preg_replace('/^[' . $whitespace . ']+|[' . $whitespace . ']+$/u', '', $text);
-        $value = NumberValue::parseString($text);
-        // NumberValue reads the Infinity literals as infinite numbers; this parser keeps its message for them.
-        $infinityLiterals = ['Infinity', '+Infinity', '-Infinity'];
-        if ($value === null || (is_infinite($value) && in_array($trimmed, $infinityLiterals, true))) {
+        $trimmed = preg_replace('/^[' . $whitespace . ']+|[' . $whitespace . ']+$/u', '', $text);
+        if ($trimmed === null || ($trimmed !== '' && !is_numeric($trimmed))) {
             throw new InvalidArgumentException('Expected a number');
         }
+        $value = (float) $trimmed;
         if (!is_finite($value)) {
             throw new InvalidArgumentException('Expected a finite number');
         }

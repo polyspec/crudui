@@ -70,6 +70,18 @@ final class ProcessorModeTest extends TestCase
         self::assertSame('native', $result->stdout);
     }
 
+    public function testThePhpExtensionModeConvertsScoreWithoutLoadingPhpClasses(): void
+    {
+        $recordStore = '\\Polyspec\\Crudui\\FormComparison\\RecordStore';
+        $result = PhpProcess::run(
+            [self::module('polyspec_crudui')],
+            '$score = ' . $recordStore . '::number("9021.25");'
+            . self::generation() . '::assertNativeClasses(); echo json_encode($score);',
+        );
+        self::assertSame(0, $result->status, $result->stderr . $result->stdout);
+        self::assertSame(9021.25, $result->json());
+    }
+
     public function testThePhpExtensionModeRefusesAClassThatPhpLoadedFromSource(): void
     {
         $result = self::extensionProcess(

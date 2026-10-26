@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 895d5300bababc757452c63ee648372c946907b80401a357498145277aa51a6e -->
+<!-- source-sha256: 9ce093432cac16ad49b9dc1cc7bd5f183fda5b56c352c7ac178f8116eec133f4 -->
 
 ## Unreleased
 
@@ -55,6 +55,10 @@
 ### 2026-10-26 — HTML condition widget이 공유 raw serializer를 사용한다 (C17.35-2)
 
 - HTML renderer는 textarea, editor tree, error와 affix에 core condition widget serializer를 사용한다. Structured condition widget의 attribute 순서, void element 표기와 escaping은 React renderer와 일치한다.
+
+### 2026-10-26 — Native PHP record 저장이 표준 score 변환을 사용한다 (C17.46)
+
+- PHP record store는 검증된 decimal score text를 PHP numeric conversion으로 변환하며 finite-number 검사를 유지한다. Native extension process에서 validator NumberValue 구현 class를 읽지 않는다. Native process 검사를 유지하며 score test는 customer specification으로 decimal 허용과 radix 거부를 검증한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f08e27bbaaaca39bffcaf8fa5cbc4f307b64ac00b60dc06a8f167c8b45f5c259 -->
+<!-- source-sha256: d38d7b728a84baf3b3e1ae4482682819393bf85afb7cc0ac727e9a433a107c41 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -381,3 +381,4 @@
 | C17.43 | Condition editor fallback textarea가 독립된 border를 유지하고 Chromium, Firefox, WebKit의 좁고 넓은 viewport 안에 배치된다. | packages/generator/ts/styles/crudui.css, tests/viewport.test.mts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern=condition-editor tests/viewport.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/style-properties.test.mts` | [o] |
 | C17.44 | PHP server unit fixture는 module에 선언된 php-config와 PHP-FPM 경로를 제공하고 모든 결과에서 launcher cleanup 완료를 기다린다. | examples/form-comparison/src/php-server.test.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- examples/form-comparison/src/php-server.test.mjs` | [o] |
 | C17.45 | Python native generator program이 buildOutline 요청을 설치된 generator API로 전달한다. | tests/native-generators/python.py | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts python --venv var/python --cwd packages/generator/python -- tests.test_outline`; `node tests/native-generators/run.mts --target python --check outline` | [o] |
+| C17.46 | PHP record server는 검증된 score text를 PHP numeric conversion으로 변환하며 native extension process에서 PHP 구현 class를 읽지 않는다. | examples/form-comparison/servers/php/src/RecordStore.php, examples/form-comparison/servers/php/tests/FormShapeTest.php, examples/form-comparison/servers/php/tests/ProcessorModeTest.php | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- tests/FormShapeTest.php`; `FORM_CRUDUI_MODULE="$PWD/var/php-ext/polyspec_crudui.so" node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testThePhpExtensionModeConvertsScoreWithoutLoadingPhpClasses tests/ProcessorModeTest.php` | [o] |

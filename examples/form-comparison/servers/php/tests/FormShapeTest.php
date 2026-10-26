@@ -9,12 +9,33 @@ use PHPUnit\Framework\TestCase;
 use Polyspec\Crudui\FormComparison\FormJson;
 use Polyspec\Crudui\FormComparison\FormRepository;
 use Polyspec\Crudui\FormComparison\RecordStore;
+use Polyspec\Crudui\Validator;
 use RuntimeException;
 use stdClass;
 
 /** RecordStore and FormRepository complete a submission to its stored shape and refuse one of another shape. */
 final class FormShapeTest extends TestCase
 {
+    public function testStoredScoresUseTheValidatedDecimalNumberGrammar(): void
+    {
+        $specs = json_decode((string) file_get_contents(dirname(__DIR__, 3) . '/fixtures/customer-specs.json'));
+        $spec = (object) ['type' => 'group', 'properties' => (object) ['score' => $specs->form->properties->score]];
+        $scores = [
+            ['9021.25', 9021.25], ['0', 0], ['.5', 0.5], ['1e2', 100], ["\u{00A0}16\u{2029}", 16],
+        ];
+        foreach ($scores as [$text, $number]) {
+            self::assertTrue(Validator::validate($spec, (object) ['score' => $text])->valid, $text);
+            self::assertSame($number, RecordStore::number($text));
+        }
+        foreach (['0x10', '0b10', '0o10', 'Infinity', 'NaN', '1e400'] as $text) {
+            self::assertFalse(Validator::validate($spec, (object) ['score' => $text])->valid, $text);
+        }
+        self::assertSame(0, RecordStore::number(''));
+        self::assertSame(0, RecordStore::number("\u{FEFF}\u{00A0}"));
+        $this->expectException(InvalidArgumentException::class);
+        RecordStore::number('1e400');
+    }
+
     public function testSubmissionsCompleteToTheStoredShapeAndMalformedOnesFail(): void
     {
         $json = '{"id":"1","name":"N","status":"active","joined":"2024-01-01","score":"1",'
