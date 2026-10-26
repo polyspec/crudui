@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c3a7778d03341468c62ea2a94ed2d037e0c8f249d6fc9827020a2d61bd8f7dcd -->
+<!-- source-sha256: 895d5300bababc757452c63ee648372c946907b80401a357498145277aa51a6e -->
 
 ## Unreleased
 
@@ -51,6 +51,10 @@
 ### 2026-10-26 — Condition editor 식별자가 apostrophe를 보존한다 (C17.35-1)
 
 - PHP extension은 condition wrapper 식별자에 shared renderer와 같은 raw attribute escaping을 적용한다. 기존 tree fixture는 apostrophe를 포함한 idPrefix를 사용하며 exact HTML 비교를 통과한다.
+
+### 2026-10-26 — HTML condition widget이 공유 raw serializer를 사용한다 (C17.35-2)
+
+- HTML renderer는 textarea, editor tree, error와 affix에 core condition widget serializer를 사용한다. Structured condition widget의 attribute 순서, void element 표기와 escaping은 React renderer와 일치한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

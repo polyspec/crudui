@@ -51,6 +51,10 @@
 
 - The PHP extension writes the condition wrapper identifier with the same raw attribute escaping as the shared renderer. The existing tree fixture uses an idPrefix containing an apostrophe and the exact HTML comparison passes.
 
+### 2026-10-26 — HTML condition widgets use the shared raw serializer (C17.35-2)
+
+- The HTML renderer uses the core condition widget serializer for the textarea, editor tree, error and affixes. Its structured condition widgets have the same attribute order, void element spelling and escaping as the React renderer.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

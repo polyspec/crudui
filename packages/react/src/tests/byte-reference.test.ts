@@ -33,6 +33,27 @@ function record(value: unknown, name: string): Record<string, unknown> {
 }
 
 describe('React server output has the bytes of the HTML renderer', () => {
+  test('structured condition widgets preserve quoted identifiers, values and affixes', () => {
+    const field = `name'"<&>`;
+    const spec = {
+      type: 'group',
+      properties: {
+        when: {
+          type: 'condition', design: { editor: 'structured' },
+          options: { fields: [field] }, validate: { conditionTree: 'judge' },
+          prepend: `Before'"<&>`, append: `After'"<&>`,
+        },
+      },
+    };
+    const data = { when: { all: [{ field, op: 'eq', value: `value'"<&>` }, { judge: `approve'"<&>` }] } };
+    const form = createForm(compileForm(spec), data, { idPrefix: `scope'"<&>` });
+    const html = htmlForm(form);
+    expect(renderForm(form)).toBe(html);
+    expect(html).toContain(`data-condition-for="scope'%22%3C%26%3E:when"`);
+    expect(html).toContain(`Before'"&lt;&amp;&gt;`);
+    expect(html).toContain(`value="approve'&quot;&lt;&amp;>">`);
+  });
+
   for (const c of valid(formCases)) {
     test(`form ${c.name}`, () => {
       const form = createForm(compileForm(c.spec, c.options), record(c.data ?? {}, c.name), c.options);

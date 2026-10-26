@@ -21,7 +21,7 @@ import {
   type UnsupportedVM,
   type WidgetModel,
 } from '@polyspec/crudui-generator-core';
-import { CONDITION_OPS, buildListLayout, formRenderModel, optionSections, parseStyle, sanitizeUrl, type FormRenderModel } from '@polyspec/crudui-generator-core/internal';
+import { conditionHtml, buildListLayout, formRenderModel, optionSections, parseStyle, sanitizeUrl, type FormRenderModel } from '@polyspec/crudui-generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -221,56 +221,10 @@ function widget(widget: AnyWidget): string {
     case 'button':
       return `<button${attrs(raw ? widget.attrs : styleLast(widget.attrs), raw)}>${textContent(widget.text ?? '', raw)}</button>`;
     case 'condition':
-      return conditionWidget(widget, raw);
+      return conditionHtml(widget);
     default:
       return '';
   }
-}
-
-/** A structured condition widget: the textarea with the editor of its tree, or the named error before it. */
-function conditionWidget(widget: WidgetModel, raw: boolean): string {
-  const editor = widget.condition;
-  let body = affix(widget.prepend, raw);
-  if (editor && 'error' in editor) body += element('p', { class: 'crudui-condition__error', role: 'alert' }, escape(editor.error));
-  body += control(widget, raw, '');
-  if (editor && !('error' in editor)) {
-    body += element('div', { class: 'crudui-condition', 'data-condition-for': editor.for }, conditionNode(editor.root, editor));
-  }
-  return `<div class="crudui-widget crudui-widget--condition">${body}${affix(widget.append, raw)}</div>`;
-}
-
-type ConditionEditor = Exclude<NonNullable<WidgetModel['condition']>, { error: string }>;
-type ConditionNode = ConditionEditor['root'];
-
-function conditionButton(action: string, label: string): string {
-  return element('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-condition-action': action }, escape(label));
-}
-
-function conditionSelect(values: AttrValues, choices: readonly string[], selected: string): string {
-  return element('select', values, choices.map((choice) => element('option', { value: choice, ...(choice === selected ? { selected: '' } : {}) }, escape(choice))).join(''));
-}
-
-/** One condition of the editor: a group, a field comparison or a judged text (CUMK-067). */
-function conditionNode(node: ConditionNode, editor: ConditionEditor): string {
-  const remove = node.path === '' ? '' : conditionButton('remove', editor.labels.remove);
-  if (node.kind === 'group') {
-    return element('fieldset', { class: 'crudui-condition__group', 'data-condition-path': node.path },
-      conditionSelect({ class: 'crudui-condition__mode', 'data-condition-part': 'mode', 'aria-label': editor.labels.mode }, ['all', 'any'], node.mode) +
-      element('ol', { class: 'crudui-condition__list' }, node.items.map((item) => element('li', { class: 'crudui-condition__item' }, conditionNode(item, editor))).join('')) +
-      conditionButton('add-comparison', editor.labels.addComparison) + conditionButton('add-group', editor.labels.addGroup) +
-      (editor.judge ? conditionButton('add-judge', editor.labels.addJudge) : '') + remove);
-  }
-  if (node.kind === 'judge') {
-    return element('div', { class: 'crudui-condition__judge', 'data-condition-path': node.path },
-      inputHtml({ class: 'crudui-condition__text', 'data-condition-part': 'judge', value: node.text }) + remove);
-  }
-  const fields = editor.fields;
-  const field = fields === null
-    ? inputHtml({ class: 'crudui-condition__field', 'data-condition-part': 'field', value: node.field })
-    : conditionSelect({ class: 'crudui-condition__field', 'data-condition-part': 'field' }, fields.includes(node.field) ? fields : [node.field, ...fields], node.field);
-  return element('div', { class: 'crudui-condition__comparison', 'data-condition-path': node.path },
-    field + conditionSelect({ class: 'crudui-condition__op', 'data-condition-part': 'op' }, CONDITION_OPS, node.op) +
-    inputHtml({ class: 'crudui-condition__value', 'data-condition-part': 'value', value: node.value }) + remove);
 }
 
 /** `<div …>` with an optional valueless `hidden` attribute and then the declared attributes. */
