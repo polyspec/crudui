@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e7bec828781379cdc71d39a60d753128ab6af98820a56c5ab724cde11d3ab6d5 -->
+<!-- source-sha256: d342baad7cb4b1c3e76347536e09d9f5f5ec63003ec40847240498f36382922d -->
 
 ## Unreleased
 
@@ -15,6 +15,10 @@
 ### 2026-10-26 — Native graph 검사가 submission budget을 선언한다 (C17.10-1)
 
 - Native graph 경계 fixture는 depth 512 또는 values 1000000을 선언하고 200000행 Go uniqueness test는 submission value budget을 선언한다. Graph 크기, 기대 결과와 기본 submission limit을 유지한다. PHP는 모든 sibling node를 보관하지 않고 검사된 tree를 depth-first로 측정한다. PHP와 Go field model은 생략된 member와 빈 선언을 포함한 dataLimits를 유지한다.
+
+### 2026-10-26 — Rust fixture 오류가 경로와 원인을 명시한다 (C17.38)
+
+- Rust generator fixture reader는 파일 읽기와 JSON parsing 실패에 fixture 경로와 원래 오류를 명시한다. buttons, complete forms, form state, form rendering, list rendering, detail rendering, validity test target의 604개 case가 모두 통과한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

@@ -12,7 +12,10 @@ use std::path::Path;
 fn cases() -> Vec<Value> {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../tests/fixtures/buttons/cases.json");
-    let cases: Vec<Value> = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let text = std::fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
+    let cases: Vec<Value> = serde_json::from_str(&text)
+        .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()));
     assert!(!cases.is_empty(), "buttons holds no case");
     cases
 }

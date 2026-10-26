@@ -15,6 +15,10 @@
 
 - The native graph boundary fixtures declare depth 512 or 1000000 values, and the 200000-row Go uniqueness test declares its submission value budget. Their graph sizes, expected outcomes and the default submission limits remain unchanged. PHP measures checked trees depth-first without retaining all sibling nodes. The PHP and Go field models retain dataLimits, including omitted members and empty declarations.
 
+### 2026-10-26 — Rust fixture failures name their paths and causes (C17.38)
+
+- The Rust generator fixture readers retain the fixture path and the original error for file reads and JSON parsing. The buttons, complete forms, form state, form rendering, list rendering, detail rendering and validity test targets pass all 604 cases.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.
