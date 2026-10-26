@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Shared kit configuration uses tracked regular files (C17.56-2)
+
+- The shared principles, editor configuration and command settings are regular files synchronized by kit-sync. The managed workflows match the current installed kit source. Source package installation folders remain native links. The kit configuration check, document pairs and selected workflow trigger checks pass.
+
 ### 2026-10-26 — Native source installation inputs remain explicit (C17.56-1)
 
 - The application declares the lint commands needed after native npm source linking, retaining their existing locked versions. Composer local path references use native configuration hashes so unrelated repository commits do not change its source lock. The reviewed release dependency locks contain no advisories.

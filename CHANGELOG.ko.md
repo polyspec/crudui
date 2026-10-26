@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 81ef04cd0e907a22cdda9b77ef49dff86d0e7effb51b03227acd17c029cf4ba7 -->
+<!-- source-sha256: 3ec8bad40635227eaf6bbbdaea0c9ed0595a571cca5dc0d5ed77e7152176107d -->
 
 ## Unreleased
+
+### 2026-10-26 — 공유 kit 설정을 추적 일반 파일로 둔다 (C17.56-2)
+
+- 공유 principles, editor 설정과 command 설정은 kit-sync가 동기화한 일반 파일이다. 관리 workflow는 현재 설치한 kit source와 일치한다. Source package 설치 폴더는 native 링크를 유지한다. Kit 설정 검사, 문서 쌍과 선택 workflow trigger 검사가 통과한다.
 
 ### 2026-10-26 — Native source 설치 입력을 명시적으로 유지한다 (C17.56-1)
 
