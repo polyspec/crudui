@@ -14,6 +14,7 @@
 </script>
 
 <script lang="ts">
+  import { sanitizeUrl } from '@polyspec/crudui-generator-core/internal';
   import {
     headerClass,
     headerStyle,
@@ -44,7 +45,7 @@
   {:else if d.kind === 'badge'}
     <span class="crudui-badge" data-crudui-variant={d.variant || undefined}>{d.label}</span>
   {:else if d.kind === 'link'}
-    <a href={d.href} target={d.target ?? undefined}>{d.text}</a>
+    <a href={sanitizeUrl(d.href)} target={d.target ?? undefined}>{d.text}</a>
   {:else if d.kind === 'image'}
     <img src={d.src} alt={d.alt} width={d.width ?? undefined} height={d.height ?? undefined} />
   {:else if d.kind === 'bool'}

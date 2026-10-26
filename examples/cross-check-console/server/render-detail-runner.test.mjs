@@ -49,3 +49,21 @@ describe('renderAllDetail — every detail-render fixture case', () => {
     }, 120000);
   }
 });
+
+// CUDF-023 applies when HTML ignores control characters within the URL scheme.
+describe('detail JavaScript link URL serialization', () => {
+  const fixture = allCases.find(c => c.name === 'format-link-javascript-url');
+  for (const [name, href] of [
+    ['mixed-case scheme', 'JaVaScRiPt:alert(1)'],
+    ['scheme with ignored controls', '\tjava\nscript:alert(1)'],
+  ]) {
+    test(name, async () => {
+      const spec = structuredClone(fixture.spec);
+      spec.fields.name.format.href = href;
+      const out = await renderAllDetail(spec, fixture.record, fixture.options);
+      expect(out.results.every(result => result.ok)).toBe(true);
+      expect(out.parity, JSON.stringify(out.mismatch)).toBe(true);
+      expect(out.results.map(result => result.normalized)).toEqual(Array(4).fill(fixture.expected_html));
+    }, 120000);
+  }
+});

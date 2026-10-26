@@ -13,6 +13,7 @@
 </script>
 
 <script lang="ts">
+  import { sanitizeUrl } from '@polyspec/crudui-generator-core/internal';
   import type { DetailFieldVM, CellDisplay } from '@polyspec/crudui-generator-core';
   import { patched, firstMarkup } from './raw.js';
   import Actions from './Actions.svelte';
@@ -29,7 +30,7 @@
   {:else if display.kind === 'badge'}
     <span class="crudui-badge" data-crudui-variant={display.variant || undefined}>{display.label}</span>
   {:else if display.kind === 'link'}
-    <a href={display.href} target={display.target ?? undefined}>{display.text}</a>
+    <a href={sanitizeUrl(display.href)} target={display.target ?? undefined}>{display.text}</a>
   {:else if display.kind === 'image'}
     <img src={display.src} alt={display.alt} width={display.width ?? undefined} height={display.height ?? undefined} />
   {:else if display.kind === 'bool'}

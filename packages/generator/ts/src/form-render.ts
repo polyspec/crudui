@@ -6,7 +6,7 @@
 
 import { FormInputError } from '@polyspec/crudui-validator';
 import type { NodeVM } from './viewmodel';
-import { isRecord, pointerToken } from './util';
+import { isRecord, pointerToken, sanitizeUrl } from './util';
 
 /** The submission target of the form element; each member overrides the template's `action`. */
 export interface FormRenderAction {
@@ -59,12 +59,6 @@ export interface FormRenderModel {
 
 const MEMBERS = new Set(['action', 'hidden', 'formErrors', 'errors']);
 const ACTION_MEMBERS = new Set(['method', 'url', 'enctype']);
-
-// The reference renderer blocks a script URL with this expression, and the control characters
-// it skips are the point: a URL may hide them between the letters of the scheme.
-// eslint-disable-next-line no-control-regex -- the control characters of a URL are stripped before the test
-const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
-const BLOCKED_URL = "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')";
 
 /** Whether a value is an object of strings. */
 function isStringRecord(value: unknown): value is Record<string, string> {
@@ -188,7 +182,7 @@ export function formRenderModel(
     const encType = declared('enctype');
     const method = declared('method');
     form = {
-      ...(url !== undefined ? { action: javascriptProtocol.test(url) ? BLOCKED_URL : url } : {}),
+      ...(url !== undefined ? { action: sanitizeUrl(url) } : {}),
       ...(encType !== undefined ? { encType } : {}),
       ...(method !== undefined ? { method } : {}),
     };

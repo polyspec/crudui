@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7fd314bec404d5e3f1d03d546e36ac82659552e4376c7f61cd604e50f4976136 -->
+<!-- source-sha256: 6f9e87b10ab669cf7c33d05f01e52461b0d81717b972ef5486b963fda5652646 -->
 
 ## Unreleased
 
@@ -23,6 +23,10 @@
 ### 2026-10-26 — Cross-check 입력이 native build와 fixture requirement를 사용한다 (C17.39)
 
 - Native PHP process test는 기본적으로 var/php-ext/polyspec_crudui.so를 읽으며 PHP_EXTENSION override를 유지한다. Validation fixture export는 명시한 requirement ID의 순서를 보존하고 미주석 draft에 빈 requirement 목록을 작성한다. Exporter는 validation 결과, hidden path와 failure record를 보존한다.
+
+### 2026-10-26 — Display renderer가 JavaScript link URL을 대체한다 (C17.40)
+
+- Vue와 Svelte의 list 및 detail renderer는 CUDF-023이 요구하는 throwing URL로 JavaScript link URL을 대체한다. 내부 URL serializer는 form action과 HTML attribute도 처리한다. Display model은 선언된 href 값을 유지한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

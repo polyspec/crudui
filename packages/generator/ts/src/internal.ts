@@ -30,6 +30,6 @@ export {
   serializeAttrs,
   widgetRootHtml,
 } from './raw-markup';
-export { escAttr, escText } from './util';
+export { escAttr, escText, sanitizeUrl } from './util';
 export { CONDITION_OPS, applyConditionAction, applyConditionPart } from './condition-editor';
 export type { ConditionAction, ConditionPart } from './condition-editor';

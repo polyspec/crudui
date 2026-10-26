@@ -234,3 +234,14 @@ export function controlId(prefix: string, path: string): string {
 
 /** `name` as a reference token of a JSON Pointer (RFC 6901, section 3). */
 export const pointerToken = (name: string): string => name.replace(/~/g, '~0').replace(/\//g, '~1');
+
+// The URL scheme check accepts the control characters that HTML ignores within a scheme.
+// eslint-disable-next-line no-control-regex -- URL scheme recognition includes the control characters ignored by HTML
+const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
+
+/** Replace a JavaScript URL with the throwing URL required by CUDF-023. */
+export function sanitizeUrl(value: string): string {
+  return javascriptProtocol.test(value)
+    ? "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')"
+    : value;
+}

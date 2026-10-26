@@ -21,7 +21,7 @@ import {
   type UnsupportedVM,
   type WidgetModel,
 } from '@polyspec/crudui-generator-core';
-import { CONDITION_OPS, buildListLayout, formRenderModel, optionSections, parseStyle, type FormRenderModel } from '@polyspec/crudui-generator-core/internal';
+import { CONDITION_OPS, buildListLayout, formRenderModel, optionSections, parseStyle, sanitizeUrl, type FormRenderModel } from '@polyspec/crudui-generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -81,17 +81,6 @@ const reactAttributeNames: Record<string, string> = {
   autocomplete: 'autoComplete', readonly: 'readOnly', maxlength: 'maxLength', minlength: 'minLength', colspan: 'colSpan', rowspan: 'rowSpan',
 };
 const booleanAttributes = new Set(['readonly', 'disabled', 'required', 'multiple', 'autofocus', 'hidden']);
-// The reference renderer blocks a script URL with this expression, and the control characters
-// it skips are the point: a URL may hide them between the letters of the scheme.
-// eslint-disable-next-line no-control-regex -- the control characters of a URL are stripped before the test
-const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
-
-function sanitizeUrl(value: string): string {
-  return javascriptProtocol.test(value)
-    ? "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')"
-    : value;
-}
-
 /**
  * A `style` attribute's text: declarations as `property:value` joined by `;`, and a repeated
  * property keeps its first position with its last value.

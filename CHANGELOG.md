@@ -23,6 +23,10 @@
 
 - The native PHP process test reads var/php-ext/polyspec_crudui.so by default and preserves the PHP_EXTENSION override. Validation fixture export preserves explicit requirement IDs in order and writes an empty requirement list for an unannotated draft. The exporter retains validation results, hidden paths and failure records.
 
+### 2026-10-26 — Display renderers replace JavaScript link URLs (C17.40)
+
+- Vue and Svelte list and detail renderers replace JavaScript link URLs with the throwing URL required by CUDF-023. The internal URL serializer also handles form actions and HTML attributes. Display models retain their declared href values.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

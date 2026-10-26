@@ -21,7 +21,7 @@
  */
 
 import { h, type VNode } from 'vue';
-import { actionHtml, sortDir } from '@polyspec/crudui-generator-core/internal';
+import { actionHtml, sanitizeUrl, sortDir } from '@polyspec/crudui-generator-core/internal';
 import { rawContainer } from './raw.js';
 import type {
   ListViewModel,
@@ -71,7 +71,7 @@ export function cellDisplayVNode(display: CellDisplay): VNode | string {
       return h(
         'a',
         {
-          href: display.href,
+          href: sanitizeUrl(display.href),
           ...(display.target ? { target: display.target } : {}),
         },
         display.text
