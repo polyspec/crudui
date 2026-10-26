@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: e26cccaa9687aeedcb960a15429b4a3e9bf580b766e21c715dba1e86e00d10ed -->
+<!-- source-sha256: 8a08508ce209cc7a90fd70996a0b552b0145521d22db1c56290df2231f9906f2 -->
 
 [English](repository.md).
 
@@ -142,6 +142,25 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
 
 `make crudui-test-dependencies`는 root `composer.json`과 lock을 `composer validate --strict`로, 게시되는 `composer.json`은 lock이
 없으므로 `composer validate --no-check-lock`으로 검사합니다.
+
+### 로컬 source 설치
+
+npm source 폴더는 native `npm link --no-save --package-lock=false`로 연결한다. Release manifest와 lock은 유지하며 설치
+링크를 통해 source 변경이 즉시 보인다. 컴파일 package는 source 변경 뒤 native build가 필요하다.
+
+Composer 개발은 `composer.local.json`과 native `composer.local.lock`을 명시적으로 선택한다. Path repository는 이 checkout의
+두 PHP package와 `../ordered-json/packages/php`를 `vendor/`에 연결한다. OrderedJSON 요구는 0.0.x source version을 허용하며
+Composer가 실제 선택 version, 요구와 autoload를 기록한다. Version alias나 설치 기록 재작성은 사용하지 않는다.
+
+```sh
+COMPOSER=composer.local.json make crudui-install-composer
+make crudui-local-composer-check
+```
+
+로컬 설치는 native Composer source resolution에 위임하고 선택 provider와 의존 package를 갱신한다. Resolution이 바뀌면
+local lock도 바뀐다. 서로 다른 project에 `COMPOSER`를 전역 export하지 않는다. CI와 archive 설치는 selector를 지정하지 않고
+선언한 release artifact를 포함한 `composer.json`과 `composer.lock`을 사용한다. 개발 호환성은 선택한 native Composer profile로
+검사하며 release dependency policy는 선언한 release lock을 검토한다. Candidate archive 검증은 C18.1로 남는다.
 
 ### release archive 설치
 

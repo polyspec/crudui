@@ -821,6 +821,18 @@
       "tests": [
         "scripts/php-doc-coverage.test.mts"
       ]
+    },
+    {
+      "paths": [
+        "composer.local.json",
+        "composer.local.lock"
+      ],
+      "targets": [
+        "crudui-local-composer-check"
+      ],
+      "tests": [
+        "tests/build/dependency-health.test.mts"
+      ]
     }
   ],
   "inputs": [
@@ -890,6 +902,13 @@
         "packages/{validator,generator}/php/composer.json",
         "composer.{json,lock}",
         "config/dependency-{policy,review}.json"
+      ]
+    },
+    {
+      "check": "make crudui-local-composer-check",
+      "paths": [
+        "composer.local.json",
+        "composer.local.lock"
       ]
     }
   ]

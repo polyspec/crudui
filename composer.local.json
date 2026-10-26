@@ -1,0 +1,62 @@
+{
+    "name": "polyspec/crudui-development",
+    "description": "Local source development dependencies and autoload for CRUDUI",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.4",
+        "php-64bit": "^8.2",
+        "ext-mbstring": "*",
+        "polyspec/crudui-validator": "0.0.*",
+        "polyspec/crudui-generator": "0.0.*",
+        "polyspec/ordered-json": "0.0.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Polyspec\\Crudui\\FormComparison\\": "examples/form-comparison/servers/php/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Polyspec\\Crudui\\Generator\\Tests\\": "packages/generator/php/tests/",
+            "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator/php/tests/",
+            "Polyspec\\Crudui\\Conformance\\": "tests/conformance/php/",
+            "Polyspec\\Crudui\\Docs\\": "tests/docs/php/",
+            "Polyspec\\Crudui\\FormComparison\\Tests\\": "examples/form-comparison/servers/php/tests/",
+            "Polyspec\\CruduiTestSupport\\": "tests/php/",
+            "Polyspec\\Crudui\\Extension\\Tests\\": "packages/php-ext/tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/validator/php",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "packages/generator/php",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../ordered-json/packages/php",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "config": {
+        "platform": {
+            "php": "8.4.1"
+        }
+    },
+    "minimum-stability": "stable"
+}

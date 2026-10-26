@@ -52,7 +52,7 @@ async function writeExecutable(filename: string): Promise<void> {
  * them on to the sub-makes.
  */
 function toolVariables(directory: string): string[] {
-  const tools = [['NODE', 'node'], ['NPM', 'npm'], ['GO', 'go'], ['COMPOSER', 'composer']] as const;
+  const tools = [['NODE', 'node'], ['NPM', 'npm'], ['GO', 'go'], ['COMPOSER_BIN', 'composer']] as const;
   return tools.map(([name, command]) => `${name}=${path.join(directory, command)}`);
 }
 

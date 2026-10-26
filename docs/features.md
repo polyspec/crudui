@@ -120,6 +120,14 @@ required CI checks succeed. It re-evaluates the conditional VitePress and React 
 tracked dependency installs without development links before publication. The original impossible markers preserve task
 history; they do not make conditional decisions permanent or complete this candidate-stage work.
 
+## Local source development
+
+The installed npm kit and OrderedJSON folders and the Composer OrderedJSON folder resolve to their sibling sources.
+The local Composer profile records OrderedJSON 0.0.10 and PHPUnit 13.4.3 through native Composer resolution. Its installed
+records match the actual package manifests, and native validation, PHP platform checks and the local lock advisory audit
+pass. Archive installation uses the separate default manifest and lock. These development checks do not complete C18.1
+or establish passing CI on a release candidate.
+
 ## Display declaration verification
 
 On 2026-09-24 the working tree of the display declaration change passed on macOS arm64 with PHP

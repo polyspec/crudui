@@ -157,6 +157,29 @@ Development resolution is in the two root manifests, which are never published:
 `make crudui-test-dependencies` validates the root `composer.json` and its lock with `composer validate --strict`, and each
 published `composer.json` with `composer validate --no-check-lock`, since a published package has no lock.
 
+
+### Local source installation
+
+The npm source folders are connected with native `npm link --no-save --package-lock=false`. The release manifest and
+lock remain unchanged; source edits are immediately visible through the installed links. Compiled packages need their
+native build after source changes.
+
+Composer development explicitly selects `composer.local.json` and its native `composer.local.lock`. The path repositories
+link the two PHP packages of this checkout and `../ordered-json/packages/php` into `vendor/`. The OrderedJSON requirement
+accepts 0.0.x source versions; Composer records the actual selected version, requirements and autoload. No version alias
+or installed-record rewrite is used.
+
+```sh
+COMPOSER=composer.local.json make crudui-install-composer
+make crudui-local-composer-check
+```
+
+The local install delegates to native Composer source resolution and updates its selected providers and dependent
+packages. The local lock changes when that resolution changes. Do not export `COMPOSER` globally across unrelated projects.
+CI and archive installation leave the selector unset and use `composer.json` and `composer.lock`, including the declared
+release artifacts. Development compatibility is checked through the selected native Composer profile; release dependency
+policy continues to review its declared release locks. Candidate archive verification remains C18.1.
+
 ### Installing the release archives
 
 A consumer downloads the archives that it needs from the GitHub Release of a tag and installs them together, without a

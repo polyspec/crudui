@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { builtinModules } from 'node:module';
+import { builtinModules, findPackageJSON } from 'node:module';
 import { init, parse } from 'es-module-lexer';
 import path from 'node:path';
 import test from 'node:test';
@@ -412,6 +412,24 @@ test('Composer path repositories link the local packages', () => {
   assert.deepEqual(failures, []);
 });
 
+test('Composer installed records match the actual polyspec package versions', () => {
+  const vendor = path.resolve(root, process.env.COMPOSER_VENDOR_DIR ?? 'vendor');
+  const installed = readJson<{ packages: { name: string; version: string }[] }>(path.join(vendor, 'composer/installed.json'), {
+    properties: { packages: { elements: {
+      properties: { name: { type: 'string' }, version: { type: 'string' } }, additionalProperties: true,
+    } } }, additionalProperties: true,
+  });
+  let checked = 0;
+  for (const entry of installed.packages) {
+    if (!entry.name.startsWith('polyspec/')) continue;
+    const manifest = readJson(path.join(vendor, entry.name, 'composer.json'), composerSchema);
+    assert.equal(entry.version.replace(/^v/, ''), manifest.version,
+      `${entry.name}: installed Composer version must match its actual package manifest`);
+    checked += 1;
+  }
+  assert.ok(checked > 0, 'ran no polyspec package metadata check');
+});
+
 test('a published Composer package declares its version, and the development root requires that version', () => {
   const failures = [];
   for (const filename of trackedComposerFiles('composer.json')) {
@@ -476,7 +494,11 @@ test('production dependency checks reject a devDependency-only import', t => {
   writeFileSync(path.join(fixture, 'knip.json'), JSON.stringify({ entry: ['index.js!'], project: ['index.js!'] }));
   const run = (kind: string) => {
     writeFileSync(path.join(fixture, 'package.json'), JSON.stringify({ name: 'production-fixture', type: 'module', [kind]: { react: '19.2.8' } }));
-    const result = spawnSync(process.execPath, [path.join(root, 'node_modules/knip/bin/knip.js'),
+    const knipFile = findPackageJSON('knip', import.meta.resolve('@polyspec/kit/package.json'));
+    assert.ok(knipFile, 'the installed kit must provide its Knip dependency');
+    const knipManifest = readJson<{ bin: { knip: string } }>(knipFile, { properties: { bin: { properties: { knip: { type: 'string' } }, additionalProperties: true } }, additionalProperties: true });
+    const knip = path.resolve(path.dirname(knipFile), knipManifest.bin.knip);
+    const result = spawnSync(process.execPath, [knip,
       '--directory', fixture, '--production', '--strict', '--include', 'unlisted', '--no-gitignore',
       '--no-progress', '--no-config-hints', '--reporter', 'json'], { cwd: root, encoding: 'utf8' });
     assert.equal(result.error, undefined, result.error?.message ?? '');

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5ed4d02bc685474596ecbf8a5a8e3f7df172db6107d91a6c177fa064e0fc1512 -->
+<!-- source-sha256: 29b35976a40de83f5bbf980955aec7aeb3376655c45b52a56321ef412df26224 -->
 
 ## Unreleased
+
+### 2026-10-26 — Native 개발 설치가 현재 sibling source를 사용한다 (C17.56)
+
+- Composer 로컬 개발은 composer.local.json과 native lock을 선택하고 호환되는 0.0.x source package를 해석하여 실제 version을 기록한다. 기본 archive manifest와 lock은 유지한다. Installed-version 검사는 오래된 source metadata를 거부한다. Composer 명령 변수는 native manifest selector를 보존하며 Knip 검사는 Node package metadata로 설치한 kit의 의존성을 해석한다.
 
 ### 2026-10-26 — 조건부 철회는 candidate 재검토 단계를 유지한다 (C17.52-1)
 

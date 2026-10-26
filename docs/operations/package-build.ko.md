@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-operations-package-build -->
-<!-- source-sha256: c2489be7c1d43e6e944ef359da0137fbad33186912e3595ddf23ef13a1859147 -->
+<!-- source-sha256: 3a5a0addd4869b8598c31979bd63b915ed0fbcb0e4c2cf912ccb2a00c9fee33d -->
 
 [English](package-build.md).
 
@@ -138,10 +138,8 @@ Rust recipe는 Cargo 프록시 디렉터리를 `PATH`에 추가하지 않습니�
 패키지를 소스 디렉터리에 link하고 그 패키지 자신의 `composer.json`이 autoload를 선언하므로 복사본이 소스보다
 뒤처질 수 없습니다. 릴리스가 담는 내용은 개발용 `vendor/`의 복사본이 아니라 릴리스 아카이브 설치
 (`make release-consumer`)가 증명합니다.
-라이브러리 매니페스트는 릴리스 버전을 선언하지 않습니다. Git 저장소 메타데이터가
-릴리스 버전을 제공합니다. 로컬 경로 저장소 하나를 해석하는 프로젝트는 저장소의
-`options.versions` 매핑에 정확한 패키지 버전을 선언하며, 의존성 요구사항은 같은 버전을
-사용합니다.
+Composer는 각 로컬 package가 선언한 version을 읽고 개발 profile의 호환 요구를 해석합니다. 선택한 native lock과 설치
+metadata는 실제 source version을 기록합니다.
 
 ## 런타임과 의존성 버전
 
@@ -314,9 +312,9 @@ GitHub Pages는 `main`의 CI 문서 작업이 성공한 뒤 검사한 웹를
 
 ## PHP 의존성
 
-각 PHP package의 게시되는 `composer.json`은 실행·테스트 의존성을 선언하고, 개발
-root `composer.json`이 두 package를 해석하며 그 `composer.lock`이 확정된 버전을
-기록합니다. Composer가 root에 `vendor/`를 설치하며
-이 생성 디렉터리는 Git에서 제외합니다. 새 체크아웃은 PHP 검증·테스트·문서
-검사를 실행하기 전에 의존성을 설치해야 합니다. CI는 로컬 개발과 같은 설치
-명령을 사용합니다.
+각 PHP package는 runtime과 test 의존성을 선언합니다. CI와 archive 설치는 `composer.json`과 `composer.lock`을 사용합니다.
+로컬 source 개발은 `COMPOSER=composer.local.json make crudui-install-composer`로 `composer.local.json`과
+`composer.local.lock`을 명시적으로 선택합니다. Composer가 호환 source 요구를 해석하며 `vendor/`, 링크, 설치 metadata와
+autoload를 관리합니다. `make crudui-local-composer-check`는 로컬 profile과 PHP platform을 검증합니다. 생성 vendor
+디렉터리는 Git에서 제외합니다. PHP 검증, test와 문서 검사를 실행하기 전에 선택한 profile을 설치하며 로컬 source
+resolution에는 sibling checkout이 필요합니다.

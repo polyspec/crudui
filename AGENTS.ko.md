@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 33564ca640c6d83ac2de1e8a6212d25bc83d7f8d623ab827792582d3fb12c493 -->
+<!-- source-sha256: 03d09747ea1405039ce1f8709dac6440874e751d5b7dd699cbabb8fe9a581bbf -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -46,7 +46,7 @@
   commit SHA로, browser는 잠근 package가 고정한 build로 지정합니다. 어떤 실행도 최신 release나 channel을 registry에
   묻지 않으며, 도구는 스스로 다른 release를 설치하지 않습니다(`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). 저장소의
   도구는 checkout 안(`make install-tools`의 `var/tools`)에 설치하며 machine에는 설치하지 않습니다. polyspec 버전이 0.0.x인
-  동안 개발 checkout은 kit의 `docs/plans/local-links.md`가 설명하는 대로 설치된 polyspec package를 소스에 링크하며,
+  동안 개발 checkout은 kit의 `docs/operations/local-links.md`가 설명하는 대로 설치된 polyspec package를 소스에 링크하며,
   링크는 커밋하지 않습니다.
   Enforced by: `make toolchain-check`
 - Own: 이 저장소의 설정은 `config/*.json`(`toolchain`, `dependency-policy`, `dependency-review`, `checklist`, `documents`,
@@ -84,7 +84,7 @@
   Enforced by: none, 경로 규칙은 설계 판단입니다.
 - Own: 생성 파일은 Git에 추적하지 않습니다. 여기에는 의존성 설치(`node_modules/`, `vendor/`, 가상 환경), build 결과(`dist/`,
   `target/`, `*.tsbuildinfo`), cache, test 실행 산출물과 도구 다운로드(`var/`)가 포함됩니다. 추적하는 예외는 lock 파일
-  (`package-lock.json`, `composer.lock`, `Cargo.lock`, uv lock, `mise.lock`), 이 파일이 이름을 밝힌 생성 문서, test
+  (`package-lock.json`, `composer.lock`, `composer.local.lock`, `Cargo.lock`, uv lock, `mise.lock`), 이 파일이 이름을 밝힌 생성 문서, test
   fixture뿐입니다. 새 generator는 같은 commit에서 ignore 항목을 추가합니다.
   Enforced by: `make layout-check`
 

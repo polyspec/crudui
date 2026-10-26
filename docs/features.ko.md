@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: eb8d004721f3dcf324a417bd719aaa0e5ebf0992f988fbb7a99c510f34c9c3be -->
+<!-- source-sha256: cb4b0423090ec05a6155fffff20e4970f68c5b0b087191888e1ff8c6cb079e05 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -116,6 +116,13 @@ publication과 구분해 검사합니다. Release에는 해당 commit의 `ci-pas
 [Candidate 재검토 checklist](plans/release-readiness/checklist.ko.md)는 candidate의 필수 CI 검사가 성공할 때까지 우회 상태다.
 Publication 전에 조건부 VitePress와 React 결정, 현재 보안 data, 개발 링크 없는 추적 의존성 설치를 재평가한다. 원래 불가
 표시는 작업 이력을 보존하며 조건부 결정을 영구화하거나 이 candidate 단계 작업을 완료하지 않는다.
+
+## 로컬 source 개발
+
+설치한 npm kit과 OrderedJSON 폴더 및 Composer OrderedJSON 폴더는 sibling source로 해석한다. 로컬 Composer profile은
+native Composer resolution으로 OrderedJSON 0.0.10과 PHPUnit 13.4.3을 기록한다. 설치 기록은 실제 package manifest와
+일치하며 native validation, PHP platform 검사와 local lock advisory audit이 통과한다. Archive 설치는 별도의 기본
+manifest와 lock을 사용한다. 이 개발 검사는 C18.1을 완료하거나 release candidate의 CI 성공을 입증하지 않는다.
 
 ## 표시 선언 검증
 

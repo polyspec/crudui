@@ -59,7 +59,7 @@ UV := $(KIT_TOOLS)/mise/shims/uv
 # The go and Composer of mise.toml, by the absolute paths of their shims: make 3.81 runs a recipe line without shell syntax
 # from the PATH that make started with (kit K171).
 GO := $(KIT_TOOLS)/mise/shims/go
-COMPOSER := $(KIT_TOOLS)/mise/shims/composer
+COMPOSER_BIN := $(KIT_TOOLS)/mise/shims/composer
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -137,9 +137,22 @@ crudui-install-svelte-tools: ## Install the tools project of packages/svelte fro
 # repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload,
 # and its artifact repository var/composer-artifacts holds the release zip of polyspec/ordered-json that
 # config/release-assets.json pins, which make release-assets-fetch of kit downloads first.
-crudui-install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
-	$(MAKE) --no-print-directory release-assets-fetch
-	$(ONLINE) $(COMPOSER) install --no-interaction --prefer-dist
+# COMPOSER selects the native manifest; composer.local.json resolves sibling sources and composer.json resolves archives.
+ifeq ($(notdir $(or $(COMPOSER),composer.json)),composer.json)
+crudui-install-composer: release-assets-fetch
+endif
+crudui-install-composer: ## Install the native Composer manifest selected by COMPOSER into vendor/
+ifeq ($(notdir $(COMPOSER)),composer.local.json)
+	$(ONLINE) $(COMPOSER_BIN) update 'polyspec/*' --with-dependencies --no-interaction
+else
+	$(ONLINE) $(COMPOSER_BIN) install --no-interaction --prefer-dist
+endif
+
+crudui-local-composer-check: ## Validate the native local-source manifest, lock and PHP platform requirements
+	@status=0; \
+	COMPOSER=composer.local.json $(COMPOSER_BIN) validate --strict || status=1; \
+	COMPOSER=composer.local.json $(COMPOSER_BIN) check-platform-reqs || status=1; \
+	exit $$status
 
 crudui-install-python: ## Make the venv var/python and install the Python packages of the uv workspace into it in editable mode
 	$(MAKE) --no-print-directory python-venv DIR=$(PYTHON_VENV)
@@ -203,7 +216,7 @@ typecheck: ## Type-check every TypeScript package, the TypeScript of scripts/ an
 crudui-test-validator-js: ## The TypeScript validator suite
 	$(NPM) test -w @polyspec/crudui-validator
 crudui-test-validator-php: ## The PHP validator suite
-	$(COMPOSER) --working-dir=packages/validator/php test
+	$(COMPOSER_BIN) --working-dir=packages/validator/php test
 crudui-test-validator-go: ## The Go validator suite
 	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./...
 crudui-test-validator-rust: cargo-downloads-check ## The Rust validator suite

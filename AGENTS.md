@@ -48,7 +48,7 @@ only the rules of crudui.
   registry for a latest release or a channel, and no tool installs another release on its own
   (`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). A tool of the repository is installed into the checkout (`var/tools` by
   `make install-tools`), never into the machine. While the polyspec versions are 0.0.x, a development checkout links the
-  installed polyspec packages to their source as `docs/plans/local-links.md` of kit describes; links are never committed.
+  installed polyspec packages to their source as `docs/operations/local-links.md` of kit describes; links are never committed.
   Enforced by: `make toolchain-check`
 - Own: The configuration of this repository is `config/*.json` (`toolchain`, `dependency-policy`, `dependency-review`,
   `checklist`, `documents`, `generated`, `owner-checks`, `rebuild`, `release`) and `config/layout.yml`, which name the
@@ -88,7 +88,7 @@ only the rules of crudui.
   Enforced by: none, the path rules are a design judgement.
 - Own: Generated files are never tracked in Git. This covers dependency installs (`node_modules/`, `vendor/`, virtual
   environments), build output (`dist/`, `target/`, `*.tsbuildinfo`), caches, test run artifacts and tool downloads
-  (`var/`). The tracked exceptions are the lock files (`package-lock.json`, `composer.lock`, `Cargo.lock`, uv locks,
+  (`var/`). The tracked exceptions are the lock files (`package-lock.json`, `composer.lock`, `composer.local.lock`, `Cargo.lock`, uv locks,
   `mise.lock`), the committed generated documents that this file names, and test fixtures. A new generator adds its
   ignore entry in the same commit.
   Enforced by: `make layout-check`

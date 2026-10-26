@@ -147,10 +147,7 @@ Composer path repositories for repository-local packages keep Composer's default
 package to its source directory, and the package's own `composer.json` declares its autoload, so no copy can fall
 behind its source. What a release ships is proved by the install of the release archives
 (`make release-consumer`), not by a copy in the development `vendor/`.
-Library manifests do not declare their release version. Git repository metadata
-provides release versions. A project that resolves one local path repository
-declares the exact package version in that repository's `options.versions` map,
-and its requirement uses the same version.
+Composer reads the version declared by each local package and resolves the development profile's compatible requirements. The selected native lock and installed metadata record that actual source version.
 
 ## Runtime and dependency versions
 
@@ -357,10 +354,9 @@ after the CI documentation job succeeds on `main`.
 
 ## PHP dependencies
 
-The published `composer.json` of each PHP package declares its runtime and test
-dependencies; the development root `composer.json` resolves both packages, and
-its `composer.lock` records their resolved versions. Composer installs `vendor/`
-at the root;
-that generated directory is excluded from Git. A clean checkout must install
-these dependencies before invoking PHP validation, tests or documentation checks.
-CI uses the same installation command as local development.
+Each PHP package declares its runtime and test dependencies. CI and archive installation use `composer.json` and
+`composer.lock`. Local source development explicitly selects `composer.local.json` and `composer.local.lock` with
+`COMPOSER=composer.local.json make crudui-install-composer`. Composer resolves compatible source requirements and owns
+`vendor/`, links, installed metadata and autoload. `make crudui-local-composer-check` validates the local profile and PHP
+platform. The generated vendor directory is excluded from Git. A checkout installs the selected profile before PHP
+validation, tests or documentation checks; local source resolution requires the sibling checkout.

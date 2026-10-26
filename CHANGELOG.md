@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Native development installs use current sibling sources (C17.56)
+
+- Composer local development selects composer.local.json and its native lock, resolves compatible 0.0.x source packages and records their actual versions. The default archive manifest and lock remain unchanged. Installed-version checks reject stale source metadata. The Composer command variable preserves the native manifest selector, and Knip checks resolve the installed kit dependency through Node package metadata.
+
 ### 2026-10-26 — Conditional withdrawals retain a candidate checkpoint (C17.52-1)
 
 - Conditional tool and dependency decisions have a candidate-stage checklist with a cause and retry condition. Development completion does not complete the publication review. Repository procedures distinguish accepted terminal decisions from deferred candidate checks, and the PHP extension policy coverage record names its completed verification.
