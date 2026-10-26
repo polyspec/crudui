@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6f9e87b10ab669cf7c33d05f01e52461b0d81717b972ef5486b963fda5652646 -->
+<!-- source-sha256: 05945f94061edd7c06802e6cc0ee95e4da046df7352464974dbe694621b256c1 -->
 
 ## Unreleased
 
@@ -27,6 +27,10 @@
 ### 2026-10-26 — Display renderer가 JavaScript link URL을 대체한다 (C17.40)
 
 - Vue와 Svelte의 list 및 detail renderer는 CUDF-023이 요구하는 throwing URL로 JavaScript link URL을 대체한다. 내부 URL serializer는 form action과 HTML attribute도 처리한다. Display model은 선언된 href 값을 유지한다.
+
+### 2026-10-26 — CLI manifest test가 전체 package 표를 검증한다 (C17.41)
+
+- CLI manifest test는 모든 package entry, visibility와 value export를 현재 contract의 표 전체와 정확히 비교한다. Fixture는 public과 internal entry, export 순서와 빈 export 목록을 검증한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

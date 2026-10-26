@@ -27,6 +27,10 @@
 
 - Vue and Svelte list and detail renderers replace JavaScript link URLs with the throwing URL required by CUDF-023. The internal URL serializer also handles form actions and HTML attributes. Display models retain their declared href values.
 
+### 2026-10-26 — The CLI manifest test checks the complete package table (C17.41)
+
+- The CLI manifest test compares every package entry, visibility and value export with the current contract as one exact table. A fixture verifies public and internal entries, export order and an empty export list.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

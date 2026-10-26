@@ -22,13 +22,32 @@ describe('manifest markdown', () => {
   it('lists every package entry with its visibility and value exports', () => {
     const manifest = loadManifest();
     const markdown = renderManifestMarkdown(manifest);
-    expect(markdown).toContain('| Package | Layer | Entry | Visibility | Exports |');
-    for (const pkg of manifest.packages) {
-      for (const [entry, { visibility, exports }] of Object.entries(pkg.entries)) {
-        const row = `| \`${pkg.name}\` | ${pkg.layer} | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`;
-        expect(markdown.split('\n')).toContain(row);
-      }
-    }
-    expect(markdown).toContain('| `@polyspec/crudui-generator-core` | model | `./internal` | internal | `CELL_FORMATS`, `CELL_FORMAT_DEFAULT`, `CELL_RENDERERS`, `WIDGET_CANONICAL`, `WIDGET_COUNT`, `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `buildListLayout`, `formRenderModel`, `optionSections`, `paginationPages`, `parseStyle` |');
+    const expectedRows = manifest.packages.flatMap((pkg) => Object.entries(pkg.entries).map(([entry, { visibility, exports }]) =>
+      `| \`${pkg.name}\` | ${pkg.layer} | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`));
+    expect(expectedRows.length).toBeGreaterThan(0);
+    const table = markdown.split('## Packages\n\n')[1]?.split('\n\n## Fixtures')[0];
+    expect(table).toBe([
+      '| Package | Layer | Entry | Visibility | Exports |',
+      '| --- | --- | --- | --- | --- |',
+      ...expectedRows,
+    ].join('\n'));
+  });
+
+  it('preserves public and internal visibility, export order and empty exports', () => {
+    const manifest = loadManifest();
+    manifest.packages = [{
+      name: '@polyspec/fixture', path: 'packages/fixture', layer: 'model',
+      entries: {
+        '.': { visibility: 'public', exports: ['last', 'first'] },
+        './internal': { visibility: 'internal', exports: [] },
+      },
+    }];
+    const table = renderManifestMarkdown(manifest).split('## Packages\n\n')[1]?.split('\n\n## Fixtures')[0];
+    expect(table).toBe([
+      '| Package | Layer | Entry | Visibility | Exports |',
+      '| --- | --- | --- | --- | --- |',
+      '| `@polyspec/fixture` | model | `.` | public | `last`, `first` |',
+      '| `@polyspec/fixture` | model | `./internal` | internal |  |',
+    ].join('\n'));
   });
 });
