@@ -503,8 +503,8 @@
       "tool": "ajv/dist/standalone writes the validation code of the form template schema"
     },
     "scripts/generate-unicode-properties.mts": {
-      "kind": "replaced",
-      "reason": "replaced by the property ranges that the npm package @unicode/unicode-16.0.0 publishes; item C16.13 registers the replacement"
+      "kind": "policy",
+      "reason": "writes the shared CRUDUI Unicode contract from the property ranges of @unicode/unicode-16.0.0; every runtime consumes the same inclusive ranges"
     },
     "scripts/install-browsers.mts": {
       "kind": "ecosystem",

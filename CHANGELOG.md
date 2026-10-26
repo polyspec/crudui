@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Unicode contract uses packaged property ranges (C16.13-1)
+
+- The Unicode contract reads the property ranges of @unicode/unicode-16.0.0 at its locked release. The stored UCD files and parser are removed. Unicode 16.0.0, all 35 general categories, all 170 scripts and every code point range remain unchanged.
+
 ### 2026-10-26 — Rust fixture readers match errors explicitly (C17.38-1)
 
 - Rust fixture readers use explicit Result matching for file reads and JSON parsing. Failures retain the fixture path and underlying error, and the selected Clippy checks use the repository configuration. The diagnostic example names the same error handling form.

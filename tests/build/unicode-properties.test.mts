@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 import { readJson, type JTDSchemaType } from '../json.mts';
@@ -20,7 +21,10 @@ const contractSchema: JTDSchemaType<Contract> = {
 };
 const contract = readJson(new URL('contracts/unicode-properties.json', root), contractSchema);
 
-test('the Unicode property contract is generated from the stored UCD files', () => {
+test('the Unicode property contract is generated from the installed Unicode data package', () => {
+  assert.equal(existsSync(new URL('contracts/unicode', root)), false, 'the UCD source files are replaced by the dependency');
+  const generator = readFileSync(new URL('scripts/generate-unicode-properties.mts', root), 'utf8');
+  assert.match(generator, /@unicode\/unicode-16\.0\.0/);
   execFileSync(process.execPath, ['scripts/generate-unicode-properties.mts', '--check'], { cwd: root, stdio: 'pipe' });
 });
 
@@ -47,4 +51,14 @@ test('the contract ranges are sorted, disjoint and inside the code space', () =>
 test('White_Space is the set the specification lists', () => {
   assert.deepEqual(contract.whiteSpace, [[0x9, 0xd], [0x20, 0x20], [0x85, 0x85], [0xa0, 0xa0], [0x1680, 0x1680],
     [0x2000, 0x200a], [0x2028, 0x2029], [0x202f, 0x202f], [0x205f, 0x205f], [0x3000, 0x3000]]);
+});
+
+// This digest fixes the complete Unicode 16.0.0 property contract, including property names and range boundaries.
+test('the Unicode package preserves every supported property and code point range', () => {
+  const { whiteSpace, generalCategories, scripts } = contract;
+  const digest = createHash('sha256').update(JSON.stringify({ whiteSpace, generalCategories, scripts })).digest('hex');
+  assert.equal(digest, '8ab04e1c7719de2b0a76d62454c1c92c9735f9906445063af78718d9c429251c');
+  assert.equal(Object.keys(generalCategories).length, 35);
+  assert.equal(Object.keys(scripts).length, 170);
+  assert.equal(Object.hasOwn(scripts, 'Unknown'), false);
 });

@@ -1,106 +1,56 @@
 #!/usr/bin/env node
-/**
- * Generate contracts/unicode-properties.json from the Unicode Character Database files in
- * contracts/unicode/. Every runtime embeds this table, so the pattern language and the
- * whitespace definition use the same Unicode data everywhere.
- *
- *   node scripts/generate-unicode-properties.mts          write the contract
- *   node scripts/generate-unicode-properties.mts --check  fail when the contract is stale
- */
-import assert from 'node:assert/strict';
+/** Write the shared Unicode 16.0.0 contract from the installed Unicode property ranges. */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const sources = resolve(root, 'contracts/unicode');
-const target = resolve(root, 'contracts/unicode-properties.json');
+import unicode from '@unicode/unicode-16.0.0';
 
-/** Each `start..end ; value` line of a UCD file, grouped by value. */
+import { checkedShape, shapeOf } from './json-schema.mts';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const target = resolve(root, 'contracts/unicode-properties.json');
 type Range = [number, number];
 
-function readRanges(file: string): { version: string, byValue: Map<string, Range[]> } {
-  const text = readFileSync(resolve(sources, file), 'utf8');
-  const version = text.match(/^# \S+-(\d+\.\d+\.\d+)\.txt/)?.[1];
-  if (!version) throw new Error(`${file}: no version header`);
-  const byValue = new Map<string, Range[]>();
-  for (const line of text.split('\n')) {
-    const data = line.replace(/#.*/, '').trim();
-    if (!data) continue;
-    const [codes, value] = data.split(';').map((part) => part.trim());
-    assert.ok(codes !== undefined && value !== undefined);
-    const [start, end = start] = codes.split('..').map((code) => Number.parseInt(code, 16));
-    assert.ok(start !== undefined && end !== undefined);
-    let ranges = byValue.get(value);
-    if (!ranges) {
-      ranges = [];
-      byValue.set(value, ranges);
-    }
-    ranges.push([start, end]);
-  }
-  return { version, byValue };
-}
-
-/** Sorted, merged ranges. */
-function merge(ranges: Range[]): Range[] {
-  const sorted = [...ranges].sort((a, b) => a[0] - b[0]);
-  const merged: Range[] = [];
-  for (const [start, end] of sorted) {
-    const last = merged.at(-1);
-    if (last && start <= last[1] + 1) last[1] = Math.max(last[1], end);
-    else merged.push([start, end]);
-  }
-  return merged;
-}
-
-const categories = readRanges('DerivedGeneralCategory.txt');
-const scripts = readRanges('Scripts.txt');
-const properties = readRanges('PropList.txt');
-const versions = new Set([categories.version, scripts.version, properties.version]);
-if (versions.size !== 1) throw new Error(`UCD files disagree on the version: ${[...versions].join(', ')}`);
-
-// The two-letter categories of the pattern language; Cn (unassigned) and Cs (surrogates,
-// which no text holds) are not part of it. Each one-letter category is the union of its
-// two-letter categories in the full UCD partition.
-const GROUPS: Record<string, string[]> = {
-  L: ['Lu', 'Ll', 'Lt', 'Lm', 'Lo'],
-  M: ['Mn', 'Mc', 'Me'],
-  N: ['Nd', 'Nl', 'No'],
-  P: ['Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po'],
-  S: ['Sm', 'Sc', 'Sk', 'So'],
-  Z: ['Zs', 'Zl', 'Zp'],
-  C: ['Cc', 'Cf', 'Cs', 'Co', 'Cn'],
+// The contract names the categories by their standard short aliases.
+const categories = {
+  L: 'Letter', Lu: 'Uppercase_Letter', Ll: 'Lowercase_Letter', Lt: 'Titlecase_Letter',
+  Lm: 'Modifier_Letter', Lo: 'Other_Letter', M: 'Mark', Mn: 'Nonspacing_Mark',
+  Mc: 'Spacing_Mark', Me: 'Enclosing_Mark', N: 'Number', Nd: 'Decimal_Number',
+  Nl: 'Letter_Number', No: 'Other_Number', P: 'Punctuation', Pc: 'Connector_Punctuation',
+  Pd: 'Dash_Punctuation', Ps: 'Open_Punctuation', Pe: 'Close_Punctuation',
+  Pi: 'Initial_Punctuation', Pf: 'Final_Punctuation', Po: 'Other_Punctuation',
+  S: 'Symbol', Sm: 'Math_Symbol', Sc: 'Currency_Symbol', Sk: 'Modifier_Symbol',
+  So: 'Other_Symbol', Z: 'Separator', Zs: 'Space_Separator', Zl: 'Line_Separator',
+  Zp: 'Paragraph_Separator', C: 'Other', Cc: 'Control', Cf: 'Format', Co: 'Private_Use',
 };
-const LANGUAGE_CATEGORIES = ['L', 'Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'M', 'Mn', 'Mc', 'Me', 'N', 'Nd', 'Nl', 'No',
-  'P', 'Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po', 'S', 'Sm', 'Sc', 'Sk', 'So', 'Z', 'Zs', 'Zl', 'Zp',
-  'C', 'Cc', 'Cf', 'Co'];
 
-const generalCategories: Record<string, Range[]> = {};
-for (const name of LANGUAGE_CATEGORIES) {
-  const parts = GROUPS[name] ?? [name];
-  const ranges = parts.flatMap((part) => {
-    const found = categories.byValue.get(part);
-    if (!found) throw new Error(`DerivedGeneralCategory.txt has no ${part}`);
-    return found;
-  });
-  generalCategories[name] = merge(ranges);
+const rangeModule = shapeOf<{ default: { begin: number; end: number }[] }>({
+  type: 'object', required: ['default'], properties: { default: {
+    type: 'array', items: { type: 'object', required: ['begin', 'end'],
+      properties: { begin: { type: 'integer', minimum: 0 }, end: { type: 'integer', maximum: 0x110000 } } },
+  } },
+});
+
+/** Convert the package's exclusive end to the inclusive boundary of the shared contract. */
+async function propertyRanges(property: string, value: string): Promise<Range[]> {
+  const modulePath = `@unicode/unicode-16.0.0/${property}/${value}/ranges.mjs`;
+  const loaded: unknown = await import(modulePath);
+  const { default: ranges } = checkedShape(rangeModule, loaded, modulePath);
+  return ranges.map(({ begin, end }) => [begin, end - 1]);
 }
 
-const scriptTable: Record<string, Range[]> = {};
-for (const name of [...scripts.byValue.keys()].sort()) {
-  const ranges = scripts.byValue.get(name);
-  assert.ok(ranges);
-  scriptTable[name] = merge(ranges);
-}
-
-const whiteSpace = properties.byValue.get('White_Space');
-if (!whiteSpace) throw new Error('PropList.txt has no White_Space');
-
+const generalCategories = Object.fromEntries(await Promise.all(Object.entries(categories)
+  .map(async ([alias, name]): Promise<[string, Range[]]> => [alias, await propertyRanges('General_Category', name)])));
+// Unknown is not a Script accepted by the pattern language.
+const scriptNames = unicode.Script.filter(name => name !== 'Unknown').sort();
+const scriptTable = Object.fromEntries(await Promise.all(scriptNames
+  .map(async (name): Promise<[string, Range[]]> => [name, await propertyRanges('Script', name)])));
 const contract = {
   format: 'crudui/unicode-properties',
-  unicodeVersion: categories.version,
-  description: 'Code point ranges (inclusive) of the Unicode data used by CRUDUI: White_Space, the general categories and the scripts (Script property) of the pattern language. Generated from contracts/unicode by scripts/generate-unicode-properties.mts.',
-  whiteSpace: merge(whiteSpace),
+  unicodeVersion: '16.0.0',
+  description: 'Code point ranges (inclusive) of the Unicode data used by CRUDUI: White_Space, the general categories and the scripts (Script property) of the pattern language.',
+  whiteSpace: await propertyRanges('Binary_Property', 'White_Space'),
   generalCategories,
   scripts: scriptTable,
 };
@@ -115,5 +65,5 @@ if (process.argv.includes('--check')) {
   process.stdout.write(`[unicode] contracts/unicode-properties.json matches Unicode ${contract.unicodeVersion}\n`);
 } else {
   writeFileSync(target, json);
-  process.stdout.write(`[unicode] wrote ${Object.keys(scriptTable).length} scripts and ${LANGUAGE_CATEGORIES.length} categories of Unicode ${contract.unicodeVersion}\n`);
+  process.stdout.write(`[unicode] wrote ${Object.keys(scriptTable).length} scripts and ${Object.keys(categories).length} categories of Unicode ${contract.unicodeVersion}\n`);
 }

@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: c5ec3b7339f8438dee0a00c64cd1eda3f1887d78d06f4a010f0a8c3f8a1b2f7a -->
+<!-- source-sha256: 80462f9909aabd92cf8332622c408bef86d8e6e31eb326a285d002004d91e857 -->
 
 [English](validation-rules.md).
 
@@ -122,8 +122,8 @@ display:
 모든 런타임은 다음 정의를 적용하며, 아래 규칙은 이 밖의 공백·빈 값·텍스트 개념을 쓰지 않습니다.
 
 - **CUVR-018** **Unicode 데이터**는 [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json)에 기록된
-  Unicode 16.0.0입니다. `scripts/generate-unicode-properties.mts`가 `contracts/unicode/`의 Unicode Character
-  Database 파일에서 이 표를 만듭니다. 모든 런타임은 이 표를 내장하고 다른 Unicode 데이터를 쓰지 않으므로 모든
+  Unicode 16.0.0입니다. `scripts/generate-unicode-properties.mts`가 `@unicode/unicode-16.0.0`의 property 범위에서
+  이 표를 만듭니다. 모든 런타임은 이 표를 내장하고 다른 Unicode 데이터를 쓰지 않으므로 모든
   코드 포인트를 똑같이 분류합니다.
 
 - **CUVR-019** **공백**은 Unicode `White_Space` 속성을 가진 코드 포인트뿐입니다. U+0009–U+000D, U+0020,

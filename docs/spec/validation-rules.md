@@ -143,8 +143,8 @@ whitespace, emptiness or text.
 
 - **CUVR-018** **Unicode data** is Unicode 16.0.0 as recorded in
   [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json), which
-  `scripts/generate-unicode-properties.mts` derives from the Unicode Character Database files in
-  `contracts/unicode/`. Every runtime embeds that table and uses no other Unicode data, so every
+  `scripts/generate-unicode-properties.mts` writes from the property ranges of
+  `@unicode/unicode-16.0.0`. Every runtime embeds that table and uses no other Unicode data, so every
   runtime classifies every code point the same way.
 
 - **CUVR-019** **Whitespace** is exactly the code points with the Unicode `White_Space` property:

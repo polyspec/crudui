@@ -1,7 +1,7 @@
 {
   "format": "crudui/unicode-properties",
   "unicodeVersion": "16.0.0",
-  "description": "Code point ranges (inclusive) of the Unicode data used by CRUDUI: White_Space, the general categories and the scripts (Script property) of the pattern language. Generated from contracts/unicode by scripts/generate-unicode-properties.mts.",
+  "description": "Code point ranges (inclusive) of the Unicode data used by CRUDUI: White_Space, the general categories and the scripts (Script property) of the pattern language.",
   "whiteSpace": [
     [9, 13],
     [32, 32],
