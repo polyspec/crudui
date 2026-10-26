@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5a83267a11fe3c6e822ba45c47163150d6a94e49cf408727b5ed210e5736f10f -->
+<!-- source-sha256: 859c7c4f20c5ad7702e89c4748484b8f0ffc9c1115a010869954b4e734ef3c26 -->
 
 ## Unreleased
 
@@ -71,6 +71,10 @@
 ### 2026-10-26 — PHP engine fixture가 반복 scalar array를 간결하게 컴파일한다 (C17.48)
 
 - C fixture emitter는 loop와 개별 소유 clone으로 반복 scalar array를 만들며 길이와 모든 값을 보존한다. Validation program은 references.c를 link한다. 50,000-row uniqueness fixture는 충분한 submitted-data budget을 선언한다. Compiler flag와 시간 제한을 변경하지 않고 선택한 shared validation, uniqueness, scalar-array, undefined-behavior 검사가 통과한다.
+
+### 2026-10-26 — PHP extension이 모든 condition editor message를 반환한다 (C17.50)
+
+- PHP extension의 Form::getMessages 결과는 생성된 interface table의 conditionMode, conditionAddComparison, conditionAddGroup, conditionAddJudge, conditionRemove, conditionInvalid를 포함한다. 공개 결과는 Korean, English, Japanese, Chinese의 전체 interface-message contract와 일치한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

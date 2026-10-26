@@ -61,6 +61,12 @@ ps_value *ps_form_messages_value(const ps_form_messages *messages)
         {"outline", messages->outline}, {"data", messages->data},
         {"untitled", messages->untitled}, {"collapsed", messages->collapsed},
         {"count", messages->count}, {"children", messages->children},
+        {"conditionMode", messages->condition_mode},
+        {"conditionAddComparison", messages->condition_add_comparison},
+        {"conditionAddGroup", messages->condition_add_group},
+        {"conditionAddJudge", messages->condition_add_judge},
+        {"conditionRemove", messages->condition_remove},
+        {"conditionInvalid", messages->condition_invalid},
     };
     ps_value *value = ps_object_value();
     for (size_t i = 0; value && i < sizeof(entries) / sizeof(entries[0]); ++i)

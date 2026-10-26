@@ -475,6 +475,32 @@ test('PHP extension interface messages are generated from the contract', { timeo
     'Regenerate with: node packages/php-ext/tools/generate-interface-messages.mjs');
 });
 
+test('PHP extension interface messages value includes every contract key', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  const contract = JSON.parse(await readFile(path.join(root, 'contracts/interface-messages.json'), 'utf8'));
+  const builder = new EngineFixtureSource();
+  contract.languages.forEach((language, index) => {
+    builder.lines.push('  {');
+    const expected = builder.emit(contract.form[language]);
+    builder.lines.push(
+      `  ps_value *actual = ps_form_messages_value(ps_form_messages_for(${cText(language)}));`,
+      `  if (!actual || !ps_equal(actual, ${expected})) {`,
+      `    print_text("interface messages differ: ", ${cText(language)});`,
+      `    fprintf(stderr, "expected %zu keys from contracts/interface-messages.json for %s, actual %zu; message values must match\\n", ps_size(${expected}), ${cString(language)}, ps_size(actual)); return ${index + 1}; }`,
+      `  ps_value_free(actual); ps_value_free(${expected});`,
+      '  }',
+    );
+  });
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-interface-messages-'));
+  try {
+    await compileAndRunEngineFixture({ signal: t.signal, root, directory,
+      source: fixtureProgram(builder.lines), name: 'interface-messages',
+      sources: ['value.c', 'number_text.c', 'messages.c', 'interface_messages.c'],
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 /* A deterministic sequence of 64-bit patterns (xorshift64*). */
 function* bitPatterns(seed, count) {
   let state = seed;
