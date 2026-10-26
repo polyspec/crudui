@@ -8,17 +8,17 @@
     "packages": [
         {
             "name": "polyspec/crudui-generator",
-            "version": "0.0.7",
+            "version": "0.0.8",
             "dist": {
                 "type": "path",
                 "url": "packages/generator/php",
-                "reference": "19799dc004627ef21800ebcb50148c8b18bec504"
+                "reference": "d38302fb8a804ab27a9ff75f218bde8f9f346e7d"
             },
             "require": {
                 "ext-mbstring": "*",
                 "php": ">=8.4",
                 "php-64bit": "^8.2",
-                "polyspec/crudui-validator": "0.0.7"
+                "polyspec/crudui-validator": "0.0.8"
             },
             "require-dev": {
                 "phpunit/phpunit": "^13.4.1"
@@ -51,11 +51,11 @@
         },
         {
             "name": "polyspec/crudui-validator",
-            "version": "0.0.7",
+            "version": "0.0.8",
             "dist": {
                 "type": "path",
                 "url": "packages/validator/php",
-                "reference": "a3e6b1bed2fad6955a87b877ce3331fa48711d51"
+                "reference": "6dd07ff5c59278430f6ec22d63528901ed5b9da4"
             },
             "require": {
                 "php": ">=8.4"

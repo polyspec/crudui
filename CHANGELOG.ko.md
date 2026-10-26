@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3b6f2a7f77884683fad9a149f75b9c7e17b85dc8eaa7dbdafa4b7f3ad5a3097f -->
+<!-- source-sha256: 3859845a2e2ae7a4c26a9f6f06a7599888b9756e93af21e4ea3c54728b2f39c4 -->
 
 ## Unreleased
 
@@ -15,6 +15,12 @@
 ### 2026-10-26 — Candidate npm 의존성은 현재 호환 version을 사용한다 (C18.4)
 
 - npm lock은 browser 도구, YAML, DOM, Vite, Vitest와 lint 도구의 현재 호환 patch 및 minor version을 선택한다. Svelte 도구의 현재 peer 범위는 TypeScript 7을 지원하지 않아 TypeScript 6.0.3을 유지한다. 로컬 PHP 검증은 native 개발 profile로 현재 OrderedJSON source를 사용한다. 선택한 소유 test, Svelte typecheck와 lint가 통과한다.
+
+### 2026-10-26 — Candidate 검증을 위해 version 0.0.8을 준비한다 (C18.5)
+
+- Release manifest와 내부 의존성은 0.0.8을 명시합니다. npm, Cargo, uv와 local Composer profile은 workspace lock을 갱신하며 feature manifest와 consumer 선언은 candidate version을 사용합니다. 기존 변경 기록은 0.0.8 section에 둡니다. Tag는 생성하지 않습니다.
+
+## 0.0.8
 
 ### 2026-10-26 — 공유 kit 설정을 추적 일반 파일로 둔다 (C17.56-2)
 

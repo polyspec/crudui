@@ -3,7 +3,7 @@ module github.com/polyspec/crudui/examples/form-comparison/servers/go
 go 1.27.2
 
 require (
-	github.com/polyspec/crudui/packages/generator/go v0.0.0-20261014174035-0af05ab8b568
-	github.com/polyspec/crudui/packages/validator/go v0.0.0-20261014172735-4e1f5b993870
+	github.com/polyspec/crudui/packages/generator/go v0.0.8
+	github.com/polyspec/crudui/packages/validator/go v0.0.8
 	github.com/polyspec/ordered-json/packages/go v0.0.9
 )

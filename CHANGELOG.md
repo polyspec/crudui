@@ -15,6 +15,12 @@
 
 - The npm locks select current compatible patch and minor releases for browser tooling, YAML, DOM, Vite, Vitest and lint tools. The Svelte tools retain TypeScript 6.0.3 because their current peer ranges exclude TypeScript 7. Local PHP verification uses the current OrderedJSON source through its native development profile. Selected owning tests, Svelte type checking and lint pass.
 
+### 2026-10-26 — Prepare version 0.0.8 for candidate verification (C18.5)
+
+- Release manifests and internal dependencies name 0.0.8. npm, Cargo, uv and the local Composer profile refresh their workspace locks. The feature manifest and consumer declarations use the candidate version, and the existing change records form the 0.0.8 section. No tag is created.
+
+## 0.0.8
+
 ### 2026-10-26 — Shared kit configuration uses tracked regular files (C17.56-2)
 
 - The shared principles, editor configuration and command settings are regular files synchronized by kit-sync. The managed workflows match the current installed kit source. Source package installation folders remain native links. The kit configuration check, document pairs and selected workflow trigger checks pass.
