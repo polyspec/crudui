@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d79f212785610477ff618fb69e130915691c4b92034194e8a9e6a15ec0f0f90f -->
+<!-- source-sha256: 21a4803404fefe77700d21123f2e7db8e49763103ca9a21f6566256116f28e06 -->
 
 ## Unreleased
 
@@ -35,6 +35,10 @@
 ### 2026-10-26 — Go button 계약 검사가 소유 package를 선택한다 (C17.42)
 
 - bindButtons와 formButtonsHtml 검증 명령은 TestButtonsSuite가 있는 Go generator package를 선택한다. Shared button case 22개를 모두 실행하며 일치하는 button test가 없는 example server package는 선택하지 않는다.
+
+### 2026-10-26 — Condition fallback textarea가 viewport 안에 배치된다 (C17.43)
+
+- Stylesheet는 flex로 배치한 control과 affix widget에만 결합 border와 음수 결합 margin을 적용한다. 구조화된 condition widget는 독립된 border와 0의 결합 margin을 유지하여 Chromium, Firefox, WebKit의 좁고 넓은 viewport에서 fallback textarea가 viewport 안에 배치된다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

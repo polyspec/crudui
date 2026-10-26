@@ -264,14 +264,14 @@ textarea.crudui-input {
   flex: 1 1 auto;
 }
 
-/* Parts of one widget share their inner borders. */
-.crudui-widget > :not(:first-child) {
+/* Adjacent controls and affixes of a flex widget share their inner borders. */
+.crudui-widget:where(:not(.crudui-widget--condition)) > :not(:first-child) {
   margin-left: -1px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
 
-.crudui-widget > :not(:last-child) {
+.crudui-widget:where(:not(.crudui-widget--condition)) > :not(:last-child) {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }

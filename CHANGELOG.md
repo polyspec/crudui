@@ -35,6 +35,10 @@
 
 - The bindButtons and formButtonsHtml verification commands select the Go generator package containing TestButtonsSuite. All 22 shared button cases run, and the commands do not select the example server package, which has no matching button test.
 
+### 2026-10-26 — Condition fallback textareas stay inside the viewport (C17.43)
+
+- The stylesheet applies joined borders and the negative joining margin only to widgets arranged as flex controls with affixes. Structured condition widgets keep independent borders and zero joining margin, so fallback textareas remain inside narrow and wide viewports in Chromium, Firefox and WebKit.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.

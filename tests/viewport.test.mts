@@ -66,6 +66,36 @@ for (const engine of engines) {
         await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width"><style>${stylesheet}</style></head><body style="margin:0"></body></html>`);
       });
       teardown(`${engine} ${width} px page close`, () => page?.close());
+      test('condition-editor fallback controls preserve standalone geometry', async () => {
+        assert.ok(page, 'the page is open');
+        const item = cases.find(entry => entry.name === 'form-render: condition-editor-text-value');
+        assert.ok(item, 'the shared cases include a condition editor fallback');
+        const geometry = await page.mainFrame().evaluate((html: string) => {
+          document.body.innerHTML = html;
+          const widget = document.querySelector('.crudui-widget--condition');
+          const textarea = widget?.querySelector('textarea:not([hidden])');
+          if (!widget || !textarea) throw new Error('the condition editor must show its fallback textarea');
+          const referenceWidget = document.createElement('div');
+          referenceWidget.className = 'crudui-widget';
+          const reference = document.createElement('textarea');
+          reference.className = 'crudui-input';
+          referenceWidget.append(reference);
+          widget.after(referenceWidget);
+          const corners = (element: Element) => {
+            const style = getComputedStyle(element);
+            return [style.borderTopLeftRadius, style.borderTopRightRadius,
+              style.borderBottomRightRadius, style.borderBottomLeftRadius];
+          };
+          const controlBox = textarea.getBoundingClientRect();
+          const widgetBox = widget.getBoundingClientRect();
+          return { left: controlBox.left - widgetBox.left, right: controlBox.right - widgetBox.right,
+            corners: corners(textarea), standaloneCorners: corners(reference) };
+        }, item.html);
+        assert.equal(geometry.left, 0, 'the fallback starts at its widget edge');
+        assert.equal(geometry.right, 0, 'the fallback ends at its widget edge');
+        assert.deepEqual(geometry.corners, geometry.standaloneCorners,
+          'the fallback has the four borders of a standalone control');
+      });
       for (const item of cases) {
         test(`${item.name} fits the viewport`, async () => {
           assert.ok(page, 'the page is open');

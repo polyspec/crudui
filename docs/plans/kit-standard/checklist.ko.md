@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 67dc87f5f350291f367c3cc11bf54e34e6fce6311ac446d23c563a4414fdde53 -->
+<!-- source-sha256: 43a616a08275fffe6e60dd1b9dbdd6976c0ec04f295e090d3fa932300f6b3616 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -376,3 +376,4 @@
 | C17.40 | 모든 display renderer는 Vue와 Svelte source rendering을 포함하여 CUDF-023에 따라 JavaScript link URL을 대체한다. | packages/generator/ts/src/util.ts, packages/generator/ts/src/internal.ts, packages/generator/ts/src/form-render.ts, packages/html/src/index.ts, packages/vue/src/components/List.ts, packages/svelte/src/components/List.svelte and packages/svelte/src/components/Detail.svelte | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/generator/ts -- src/form-render.test.ts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd examples/cross-check-console/server -- --root . --dir . render-list-runner.test.mjs render-detail-runner.test.mjs` | [o] |
 | C17.41 | CLI manifest markdown test가 오래된 export 목록 없이 현재 contract의 전체 package export 표를 정확히 검증한다. | packages/cli/tests/manifest.test.ts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/cli -- tests/manifest.test.ts` | [o] |
 | C17.42 | Go button 계약 명령은 TestButtonsSuite를 소유한 generator package를 선택하고 일치하는 test가 없는 package를 선택하지 않으며 모든 shared button case를 실행한다. | contracts/features.json | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts go --cwd packages/generator/go -- -run TestButtonsSuite .`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/contract-manifest.test.mts` | [o] |
+| C17.43 | Condition editor fallback textarea가 독립된 border를 유지하고 Chromium, Firefox, WebKit의 좁고 넓은 viewport 안에 배치된다. | packages/generator/ts/styles/crudui.css, tests/viewport.test.mts | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern=condition-editor tests/viewport.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/style-properties.test.mts` | [o] |
