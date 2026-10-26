@@ -261,10 +261,6 @@
           "reason": "test: unit tests of the PHP rendered markup and style declarations; the contract is tested by the shared form-render suite (unit form-render)"
         },
         {
-          "glob": "packages/generator/php/tests/DocCoverageTest.php",
-          "reason": "test: unit tests of the PHP documentation gate of the generator package; PHP-only internals, not part of a shared contract"
-        },
-        {
           "glob": "packages/validator/php/tests/Validate/MessagePlaceholderTest.php",
           "reason": "test: unit tests of the PHP message placeholders; the contract is tested by the shared validate suite (unit validate)"
         },
@@ -323,10 +319,6 @@
         {
           "glob": "packages/validator/php/tests/Values/NumberTextTest.php",
           "reason": "test: unit tests of the PHP canonical number text; PHP-only internals, not part of a shared contract"
-        },
-        {
-          "glob": "packages/validator/php/tests/DocCoverageTest.php",
-          "reason": "test: unit tests of the PHP documentation gate of the validator package; PHP-only internals, not part of a shared contract"
         },
         {
           "glob": "packages/validator/php/tests/Compose/PatchTest.php",

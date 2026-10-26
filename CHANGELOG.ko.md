@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 859c7c4f20c5ad7702e89c4748484b8f0ffc9c1115a010869954b4e734ef3c26 -->
+<!-- source-sha256: e6e69b2687e8c48d67ad464f014be8c7028d3be89a5dfc425a44fa0e5e820057 -->
 
 ## Unreleased
 
@@ -75,6 +75,10 @@
 ### 2026-10-26 — PHP extension이 모든 condition editor message를 반환한다 (C17.50)
 
 - PHP extension의 Form::getMessages 결과는 생성된 interface table의 conditionMode, conditionAddComparison, conditionAddGroup, conditionAddJudge, conditionRemove, conditionInvalid를 포함한다. 공개 결과는 Korean, English, Japanese, Chinese의 전체 interface-message contract와 일치한다.
+
+### 2026-10-26 — PHP source 문서 검사를 문서 도구에서 실행한다 (C17.51)
+
+- 문서 도구 unit은 source PHP process에서 두 PHP package의 source provenance와 class 및 public-method 문서를 검사한다. Checker는 source 선언 대신 로드된 native class, 다른 file의 class와 누락된 문서를 거부한다. PHP library runtime test tree는 source 문서 test를 포함하지 않으며 해당 parity-internal 선언을 제거한다.
 
 ### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
 

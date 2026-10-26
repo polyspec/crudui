@@ -13,7 +13,7 @@ use RuntimeException;
 
 /**
  * The documentation and source provenance check of the public PHP packages: scripts/php-doc-coverage.php runs it on
- * both packages, and the DocCoverageTest of each package on its own source.
+ * both packages, and the documentation tooling units check each package source.
  */
 final class DocCoverage
 {

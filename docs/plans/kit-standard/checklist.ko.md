@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 159613a123cc331a98921b778c8f65058de7cabbf9f90b85c1d8b12121bff26d -->
+<!-- source-sha256: 1be3317077c27a42a92fbc568be460b3ef07c77546d0c1a5928f2979032044f6 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -386,3 +386,4 @@
 | C17.49 | PHP API parity report가 mixed button 입력의 code가 있는 generation 오류를 검사하고 choice source 실패가 library와 extension에서 generator FormError type을 유지한다. | packages/php-ext/tests/ApiReport.php, packages/generator/php/src/Internal/ChoiceList.php, packages/generator/php/tests/FormTest.php | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- --filter testRepeatedLiteralChoiceUsesGenerationError tests/FormTest.php`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/php-ext -- --filter testTheApiOfTheExtensionEqualsTheApiOfTheLibrary tests/ApiTest.php` | [o] |
 | C17.48 | PHP extension engine fixture 컴파일은 반복 array allocation을 펼치지 않고 모든 case를 보존하며 validator test program은 reference rule 구현을 link한다. | packages/php-ext/tests/engine/engine.test.mjs and packages/php-ext/tests/engine/support.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="repeated scalar\|validates all shared\|unique rule\|validation has no undefined" packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C17.50 | PHP extension의 공개 form message가 interface-message contract의 모든 condition-editor key와 value를 포함한다. | packages/php-ext/src/messages.c, packages/php-ext/tests/engine/engine.test.mjs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern=interface.messages packages/php-ext/tests/engine/engine.test.mjs`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php --php-extension var/php-ext/polyspec_crudui.so -- tests/InterfaceMessagesConformanceTest.php` | [o] |
+| C17.51 | PHP package source 문서와 provenance 검사는 기존 source 및 docblock 검사를 유지하며 extension runtime 계약 test 밖의 문서 도구 unit으로 실행한다. | scripts/php-doc-coverage.test.mts, the two package DocCoverageTest.php files and their parity internal declarations | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- scripts/php-doc-coverage.test.mts`; `make parity-declarations-check` | [o] |

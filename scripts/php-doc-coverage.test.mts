@@ -12,6 +12,7 @@ const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 
 // Polyspec\\Crudui\\Docs\\DocCoverage loads through the autoload-dev of the development root vendor/.
 const rootAutoload = fileURLToPath(new URL('../vendor/autoload.php', import.meta.url));
+const repository = fileURLToPath(new URL('..', import.meta.url));
 const literal = (value: string): string => "'" + value.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 /** The planted autoload.php of vendor (false: none) and an extra PHP file outside src. */
 interface CheckOptions {
@@ -59,4 +60,23 @@ test('PHP enums require source docs without requiring docs on runtime-generated 
 test('PHP checker rejects a source tree without declarations', () => {
   const result = check('<?php');
   assert.equal(result.status, 0, result.stderr); assert.match(checkedShape(STRINGS, JSON.parse(result.stdout), 'the problems of the PHP checker')[0] ?? '', /no class declarations found/);
+});
+
+// Package source documentation belongs to the documentation tool; PHP's source process loads no extension argument.
+for (const packageName of ['generator', 'validator']) {
+  test(`${packageName} PHP package source and public documentation match their loaded declarations`, () => {
+    const directory = join(repository, 'packages', packageName, 'php/src');
+    const command = `require ${literal(rootAutoload)}; echo json_encode(\\Polyspec\\Crudui\\Docs\\DocCoverage::gaps(${literal(directory)}));`;
+    const result = spawnSync(process.env.PHP ?? 'php', ['-r', command], { cwd: repository, encoding: 'utf8' });
+    assert.equal(result.error, undefined, result.error?.message ?? '');
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(checkedShape(STRINGS, JSON.parse(result.stdout), `${packageName} PHP source documentation`), []);
+  });
+}
+
+test('PHP checker rejects a native class in place of its declared package source', () => {
+  const result = check('<?php /** Source declaration. */ class DateTime {}', { autoload: '<?php' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(checkedShape(STRINGS, JSON.parse(result.stdout), 'native source mismatch'),
+    ['DateTime (loaded class does not match its source file)']);
 });

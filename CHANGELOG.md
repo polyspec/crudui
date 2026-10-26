@@ -75,6 +75,10 @@
 
 - The PHP extension Form::getMessages result includes conditionMode, conditionAddComparison, conditionAddGroup, conditionAddJudge, conditionRemove and conditionInvalid from its generated interface table. The public result matches the complete interface-message contract in Korean, English, Japanese and Chinese.
 
+### 2026-10-26 — PHP source documentation checks run with documentation tooling (C17.51)
+
+- The documentation tooling units check the source provenance and class and public-method documentation of both PHP packages in source PHP processes. The checker rejects native classes in place of source declarations, classes from another file and missing documentation. The PHP library runtime test trees contain no source documentation tests, and their former parity-internal declarations are removed.
+
 ### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
 
 - The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.
