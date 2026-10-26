@@ -11,7 +11,7 @@ declare(strict_types=1);
 use Polyspec\Crudui\FormComparison\ApiServer;
 use Polyspec\Crudui\FormComparison\ServerMode;
 
-require dirname(__DIR__, 4) . '/vendor/autoload.php';
+require dirname(__DIR__, 4) . '/tests/php/bootstrap.php';
 
 ServerMode::current();
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);

@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-operations-form-comparison -->
-<!-- source-sha256: 4137bb3e69ad29838b23f395443da136998f29d5e892a586ce70e80df12e7001 -->
+<!-- source-sha256: 7d23544f60af9664ea22d24560545e1702da05dfd3dace01c0aa5b99153fef65 -->
 
 [English](form-comparison.md).
 
@@ -212,9 +212,11 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 `record-stores.test.mjs`는
 체크아웃에서 시작한 다섯 서버 모두에 `src/record-contract.mjs`의 HTTP 계약 사례를 사례마다 자기
 제한 시간으로 실행합니다. 두 로컬 검사는 먼저 서버 프로그램을 빌드하며 각각 시간 한도 없이
-진행을 출력하는 단계입니다. `make release-assets-fetch`가 `var/ordered-json-php-ext`에 풀어 놓은 OrderedJSON PHP 확장 소스
-(release zip `polyspec-ordered-json-extension-php-0.0.9.zip`), 두 PHP 확장, Go 바이너리, Rust 디버그
-바이너리입니다. 그다음 로컬 구성은 다섯 프로세스를 동시에 시작하고 브라우저를 시작합니다.
+진행을 출력하는 단계입니다. 두 PHP 확장, Go 바이너리, Rust 디버그 바이너리를 빌드합니다.
+`LOCAL=1`은 `config/local-providers.json`에 선언한 OrderedJSON checkout을 선택합니다. Native extension은
+해당 provider의 `make build-php-ext`로 빌드하고 Rust 명령은 공개 native Cargo link 명령으로 해당 provider를 해석합니다.
+`LOCAL=1`이 없으면 `make release-assets-fetch`가 준비한 `var/ordered-json-php-ext`의 명시적 release source를 선택합니다.
+Local 선언이나 source가 없으면 실패하며 release archive를 대신 선택하지 않습니다. 그다음 로컬 구성은 다섯 프로세스를 동시에 시작하고 브라우저를 시작합니다.
 프로세스 시작과 브라우저 시작은 제한 시간이 없는 장기 작업입니다. 각각 준비 이벤트나 launch에서
 끝나고, 기다리는 동안 15초마다 경과 시간 줄을 출력합니다. 이 작업들을 실행하는 테스트 훅은
 제한 시간이 없는 setup입니다. 시작한 서버를 멈추지 않고 끝나는 테스트 프로세스는, 예를 들어 실패한 훅과
@@ -258,8 +260,10 @@ Rust 서버는 상태·생성·SSR 응답마다 이 파일을 읽고, 메인 페
 ## 빌드와 브라우저 준비
 
 `make build-php-ext`는 `polyspec_crudui.so`를 `phpize`, `configure`, `make`로 `var/php-ext`에 빌드합니다. local 실행은
-`ordered_json.so`도 같은 방법으로, OrderedJSON checkout의 `packages/php-ext/src` 사본에서 빌드합니다. 빌드의 PHP는
-`PATH`의 `phpize`와 `php-config`가 속한 것입니다. 명령이 실패한 뒤 다른 실행 파일이나 빌드 경로를 선택하지 않습니다.
+선택한 OrderedJSON extension을 local mode에서는 provider build로 빌드합니다. Release mode는 선언된 build path와
+`composer.json`을 함께 복사한 뒤 `phpize`, `configure`, `make`를 실행합니다. Provider의 `composer.json`이
+`php-ext.extension-name`, `php-ext.build-path`, version을 선언하며 이 값이 module 경로와 native PHP process에
+전달하는 `FORM_JSON_EXTENSION`을 결정합니다. 빌드의 PHP는 `PATH`의 `phpize`와 `php-config`가 속한 것입니다. 명령이 실패한 뒤 다른 실행 파일이나 빌드 경로를 선택하지 않습니다.
 
 폼 비교 CI 작업은 소스·생성기 생성 스위트를 실행하기 전에 루트 npm 그래프와 PHP
 검증기·생성기의 Composer 그래프를 설치합니다. 깨끗한 체크아웃은 무시된 `vendor/`
@@ -289,11 +293,15 @@ console은 그것이 import하는 소스 모듈(`browser-job.mjs`, `frame-readin
 이 절과 이어지는 세 절은 벤치마크 콘솔의 폼 매트릭스를 설명합니다. 정본 페이지는 위의 레코드
 리소스를 사용합니다. PHP, PHP 확장, Go, Rust는 동일한 컴파일, 렌더링, 검증, 영속 저장, SSR 요청 계약을
 구현합니다. 각 서버는 자체 생성기와 검증기를 사용합니다. PHP 확장 프로세스는
-`polyspec_crudui.so`와 `ordered_json.so`를 로드하고 PHP 프로세스는 두 확장을 로드하지
-않습니다.
-두 PHP 프로세스는 체크아웃의 Composer 오토로더를 불러옵니다. root `composer.json`은 path
-저장소로 검증기와 생성기를 요구하므로 각 패키지는 자신의 소스 디렉터리이고 자신의 `composer.json`이
-클래스를 선언합니다. PHP 확장 프로세스에서 `Polyspec\Crudui\` 아래에 선언된 모든 클래스는
+`polyspec_crudui.so`와 공급자 Composer metadata가 선언한 OrderedJSON 모듈을 로드하고 PHP 프로세스는
+두 확장을 로드하지 않습니다. PHP 프로세스는 root Composer 오토로더와 생성기·검증기 source package를
+불러옵니다. native 프로세스는 별도 `examples/form-comparison/servers/php/native/composer.json` profile을
+불러옵니다. 준비 단계는 표준 Composer로 이 profile의 잠긴 PHPUnit 의존성과 application PSR-4 class를
+실행별 vendor 디렉터리에 설치합니다. 확장이 해당 API를 제공하므로 이 profile에는 PHP 생성기·검증기와
+OrderedJSON library가 없습니다. `FORM_PHP_AUTOLOAD`가 생성된 오토로더를 선택하며 native PHPUnit은
+`COMPOSER`와 `COMPOSER_VENDOR_DIR`도 받습니다. pure PHPUnit controller는 OrderedJSON 확장을 로드하는
+child에 `FORM_PHP_NATIVE_AUTOLOAD`를 전달합니다. PHP 확장 프로세스에서
+`Polyspec\Crudui\` 아래에 선언된 모든 클래스는
 `Polyspec\Crudui\FormComparison\` 아래의 폼 비교 클래스를 빼고 확장의 내부 클래스여야
 합니다(`ReflectionClass::isInternal()`). 프로세스는 생성을 시작할 때와 각 응답 전에 이를 검사하고,
 PHP가 소스 파일에서 불러온 클래스가 있으면 그 요청은 HTTP 500과 그 클래스 이름으로 실패합니다.

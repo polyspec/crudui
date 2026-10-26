@@ -236,9 +236,11 @@ The combinations run against a local stack built from the checkout
 `check-pipeline.mjs`. `record-stores.test.mjs` runs the HTTP contract cases
 of `src/record-contract.mjs` against all five servers started from the checkout, each case with
 its own timeout. Both local checks first build the server programs, each as a step without a time
-limit that prints its progress: the PHP extension source of OrderedJSON, unpacked from the release zip
-`polyspec-ordered-json-extension-php-0.0.9.zip` into `var/ordered-json-php-ext` by `make release-assets-fetch`, both PHP
-extensions, the Go binary and the Rust debug binary. The local stack then starts its five processes at the same time and its browser.
+limit that prints its progress: both PHP extensions, the Go binary and the Rust debug binary.
+`LOCAL=1` selects the OrderedJSON checkout declared by `config/local-providers.json`; its native extension is built by
+that provider's `make build-php-ext`, and Rust commands resolve that provider through the public native Cargo link command.
+Without `LOCAL=1`, the explicit release source is `var/ordered-json-php-ext`, prepared by `make release-assets-fetch`.
+A missing local declaration or source fails; it does not select the release archive. The local stack then starts its five processes at the same time and its browser.
 A process start and the browser start are long operations without a limit: each ends at its
 readiness event or its launch and prints a line with its elapsed time every 15 seconds while it
 waits. The test hooks that run these operations are setups without a limit. A test process that
@@ -287,8 +289,10 @@ No build embeds a commit.
 ## Builds and browser readiness
 
 `make build-php-ext` builds `polyspec_crudui.so` into `var/php-ext` with `phpize`, `configure` and `make`. The local run builds
-`ordered_json.so` the same way, in a copy of `packages/php-ext/src` of the OrderedJSON checkout. The PHP of the build is the
-one that `phpize` and `php-config` on `PATH` belong to. A failed command does not select another executable or build
+the selected OrderedJSON extension through its provider build in local mode. Release mode copies its declared build path
+and `composer.json` together before running `phpize`, `configure` and `make`. The provider's `composer.json` declares
+`php-ext.extension-name`, `php-ext.build-path` and the version; those declarations determine the module path and the
+`FORM_JSON_EXTENSION` passed to native PHP processes. The PHP of the build is the one that `phpize` and `php-config` on `PATH` belong to. A failed command does not select another executable or build
 path.
 
 The form-comparison CI job installs the root npm graph and the Composer graphs
@@ -322,11 +326,15 @@ publishing progress, but reaching that limit cannot produce a successful result.
 This section and the next three describe the benchmark console's form matrix; the
 canonical page uses the record resource above. PHP, the PHP extension, Go and Rust
 implement the same compile, render, validation, persistence and SSR request contract. Each server uses its own
-generator and validator. The PHP extension process loads `polyspec_crudui.so` and
-`ordered_json.so`; the PHP process loads neither extension.
-Both PHP processes load the Composer autoloader of the checkout, whose root `composer.json` requires
-the validator and the generator through path repositories, so each package is its own source
-directory and its own `composer.json` declares its classes. In the PHP extension process every
+generator and validator. The PHP extension process loads `polyspec_crudui.so` and the OrderedJSON module named by
+its provider Composer metadata; the PHP process loads neither extension.
+The PHP process loads the root Composer autoloader and its generator and validator source packages.
+The native process loads the separate `examples/form-comparison/servers/php/native/composer.json` profile.
+Preparation installs that profile's locked PHPUnit dependency and application PSR-4 classes into a run-specific vendor
+directory with standard Composer. The profile excludes the PHP generator, validator and OrderedJSON libraries because
+the extensions provide those APIs. `FORM_PHP_AUTOLOAD` selects its generated autoloader; native PHPUnit also receives
+`COMPOSER` and `COMPOSER_VENDOR_DIR`. The pure PHPUnit controller passes `FORM_PHP_NATIVE_AUTOLOAD` to children that
+load the OrderedJSON extension. In the PHP extension process every
 declared class under `Polyspec\Crudui\`, other than the classes of the form comparison under
 `Polyspec\Crudui\FormComparison\`, must be internal to the extension (`ReflectionClass::isInternal()`):
 the process checks it when it starts its generation and again before each response, and a class

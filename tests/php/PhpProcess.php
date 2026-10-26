@@ -44,7 +44,23 @@ final class PhpProcess
         foreach ($modules as $module) {
             array_push($arguments, '-d', 'extension=' . $module);
         }
-        $autoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+        $orderedModule = $environment['FORM_ORDERED_JSON_MODULE'] ?? getenv('FORM_ORDERED_JSON_MODULE');
+        $orderedPath = is_string($orderedModule) ? realpath($orderedModule) : false;
+        $nativeOrderedJson = $orderedPath !== false && in_array($orderedPath, array_map(realpath(...), $modules), true);
+        if ($libraries && $nativeOrderedJson) {
+            $autoload = $environment['FORM_PHP_NATIVE_AUTOLOAD'] ?? getenv('FORM_PHP_NATIVE_AUTOLOAD');
+            if (!is_string($autoload) || $autoload === '') {
+                throw new RuntimeException('FORM_PHP_NATIVE_AUTOLOAD must name the native application Composer autoloader');
+            }
+        } else {
+            $autoload = $environment['FORM_PHP_AUTOLOAD'] ?? dirname(__DIR__, 2) . '/vendor/autoload.php';
+        }
+        if ($libraries && ($autoload === '' || !is_file($autoload))) {
+            throw new RuntimeException('FORM_PHP_AUTOLOAD must name an existing Composer autoloader: ' . $autoload);
+        }
+        if ($libraries) {
+            $environment['FORM_PHP_AUTOLOAD'] = $autoload;
+        }
         $prefix = $libraries ? 'require ' . var_export($autoload, true) . ';' : '';
         array_push($arguments, '-r', $prefix . $script);
         $pipes = [];

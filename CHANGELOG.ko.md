@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 741bb2e01010f1208f78e60c5f9d81534f40ce2138a5371de4cebd5b78c7a1c8 -->
+<!-- source-sha256: 16a12c5ea5363ebb192b59e2a3602f16767b4cb666ac0cf9a3551b4e20fe5c52 -->
 
 ## Unreleased
+
+### 2026-10-26 — Local native server는 선언한 현재 provider를 사용한다 (C18.1-3)
+
+- Local PHP와 Rust 준비는 `config/local-providers.json`이 선언한 OrderedJSON checkout을 선택합니다. PHP extension source, module name과 version은 provider Composer metadata를 사용합니다. Native PHP는 source SDK library가 없는 별도 잠긴 Composer application·PHPUnit profile을 사용하며 pure PHP는 source profile을 유지합니다. Runtime mode 검사는 선택한 native extension identity를 요구합니다.
+
 
 ### 2026-10-26 — Dependency 검사가 native Go workspace를 발견한다 (C18.1-5-1)
 

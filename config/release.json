@@ -100,7 +100,8 @@
     "scripts/go/go.mod": "the module of the Go table generators of this repository, never tagged",
     "benchmarks/validators/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged",
     "packages/svelte/tools/package.json": "the tools of packages/svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces",
-    "pyproject.toml": "the uv workspace of the Python packages (C14.29), never published; it declares no version"
+    "pyproject.toml": "the uv workspace of the Python packages (C14.29), never published; it declares no version",
+    "examples/form-comparison/servers/php/native/composer.json": "the native PHP application and PHPUnit profile, never published; it declares no version"
   },
   "goModules": {
     "packages/generator/go": "github.com/polyspec/crudui/packages/generator/go",

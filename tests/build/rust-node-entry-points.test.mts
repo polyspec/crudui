@@ -6,6 +6,7 @@ import {
 import os from 'node:os';
 import path from 'node:path';
 import test, { type TestContext } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { readManifest, script } from '../json.mts';
 
@@ -81,6 +82,7 @@ process.stdout.write('rustdoc 1.98.1 (test 2026-09-01)\n');
     ...process.env,
     LANG: 'C',
     LC_ALL: 'C',
+    LOCAL: '0',
     PATH: `${toolchain}${path.delimiter}${commandDirectory}`,
     RUST_COMMAND_LOG: commandLog,
     ...additions,
@@ -252,4 +254,24 @@ test('a Cargo command refuses a CARGO_TARGET_DIR outside its checkout', async t 
   assert.doesNotThrow(() => requireCheckoutTarget(crate, {}));
   // Outside a Git working tree, the checkout is the working directory.
   assert.doesNotThrow(() => requireCheckoutTarget(outside, { CARGO_TARGET_DIR: path.join(outside, 'target') }));
+});
+
+
+test('local Rust commands use the declared provider through the public native link command', async () => {
+  const { runRustCommand } = await import('../../scripts/run-rust-command.mts');
+  const cwd = path.join(repository, 'examples/form-comparison/servers/rust');
+  const calls: { executable: string; args: string[]; cwd?: string }[] = [];
+  await runRustCommand(['metadata', '--offline', '--format-version=1'], {
+    cwd, cargo: '/native/cargo', rustc: '/native/rustc', rustdoc: '/native/rustdoc',
+    environment: { ...process.env, LOCAL: '1' },
+    run: async (executable, args, options) => {
+      calls.push({ executable, args, cwd: options?.cwd });
+      return { stdout: executable.endsWith('rustc') ? 'rustc 1.99.0' : executable.endsWith('rustdoc') ? 'rustdoc 1.99.0' : 'cargo 1.99.0' };
+    },
+  });
+  assert.equal(calls.length, 4);
+  assert.equal(calls[3]?.executable, process.execPath);
+  assert.deepEqual(calls[3]?.args.slice(1), ['cargo', '--checkout', path.resolve(repository, '../ordered-json'),
+    cwd, 'metadata', '--offline', '--format-version=1']);
+  assert.equal(calls[3]?.args[0], fileURLToPath(import.meta.resolve('@polyspec/kit/link')));
 });

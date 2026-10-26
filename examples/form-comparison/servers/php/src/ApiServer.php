@@ -49,7 +49,7 @@ final class ApiServer
         echo FormJson::encode(
             $records
                 ? [...$body, ...$server]
-                : [...$body, ...$server, 'nativeJson' => extension_loaded('ordered_json')]
+                : [...$body, ...$server, 'nativeJson' => $server['server'] === 'php-ext']
         );
         exit;
     }

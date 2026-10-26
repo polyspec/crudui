@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\FormComparison;
 
+use Polyspec\OrderedJson\Value;
+use ReflectionClass;
 use RuntimeException;
 
 /**
- * The PHP server mode of the form comparison: FORM_PHP_SERVER names php or php-ext, and the ordered_json and crudui
- * extensions must be loaded exactly in php-ext.
+ * The PHP server mode of the form comparison: FORM_PHP_SERVER names php or php-ext. In php-ext, the JSON Value class
+ * belongs to the extension named by FORM_JSON_EXTENSION and the CRUDUI extension is loaded.
  */
 final class ServerMode
 {
@@ -19,8 +21,18 @@ final class ServerMode
         if (!in_array($mode, ['php', 'php-ext'], true)) {
             throw new RuntimeException('Unknown PHP server mode');
         }
-        if (extension_loaded('ordered_json') !== ($mode === 'php-ext')) {
+        $json = new ReflectionClass(Value::class);
+        if ($json->isInternal() !== ($mode === 'php-ext')) {
             throw new RuntimeException('OrderedJSON extension state does not match the selected server');
+        }
+        if ($mode === 'php-ext') {
+            $extension = getenv('FORM_JSON_EXTENSION');
+            if (!is_string($extension) || $extension === '') {
+                throw new RuntimeException('FORM_JSON_EXTENSION must name the selected OrderedJSON extension');
+            }
+            if (!extension_loaded($extension) || $json->getExtensionName() !== $extension) {
+                throw new RuntimeException('OrderedJSON extension state does not match the selected server');
+            }
         }
         if (extension_loaded('polyspec_crudui') !== ($mode === 'php-ext')) {
             throw new RuntimeException('CRUDUI extension state does not match the selected server');

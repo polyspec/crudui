@@ -13,8 +13,7 @@ final class FormJson
 {
     public static function decode(string $source): mixed
     {
-        // The PHP package parses with the ordered_json extension exactly when it is loaded, which
-        // ServerMode::current() requires for php-ext and forbids for php.
+        // The selected OrderedJSON implementation must match the verified PHP server mode.
         ServerMode::current();
         return self::data(\Polyspec\OrderedJson\parse($source));
     }

@@ -23,6 +23,10 @@
 
 - The release consumer installs all seven npm archives with locked framework and build dependencies. The Svelte consumer builds the installed package with Vite and the Svelte plugin, then checks its component and rendering exports. The npm and Composer consumer locks name the current 0.0.8 archives; clean consumer installs and smoke checks pass for all eleven npm, Composer and Python packages.
 
+### 2026-10-26 — Local native servers use the declared current provider (C18.1-3)
+
+- Local PHP and Rust preparation selects the OrderedJSON checkout declared in `config/local-providers.json`; PHP extension source, module name and version come from provider Composer metadata. Native PHP uses a separate locked Composer application and PHPUnit profile that excludes source SDK libraries. Pure PHP retains its source profile. Runtime mode checks require the selected native extension identity.
+
 ### 2026-10-26 — Complete the current documentation-tool candidate review (C18.2)
 
 - The pre-CI documentation review retains the directly managed latest patched Markdown parser, 15.0.3. Fresh stable and next VitePress archives still embed the affected reference parser. The rebuild record states the current registry channels, archive digests, parser selection and completed candidate decision.

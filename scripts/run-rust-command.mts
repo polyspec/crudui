@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { lstat, realpath } from 'node:fs/promises';
+import { lstat, realpath, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -133,10 +133,18 @@ export async function runRustCommand(
   await verify(cargo, ['--version'], /^cargo /);
   await verify(rustc, ['--version'], /^rustc /);
   await verify(rustdoc, ['--version'], /^rustdoc /);
-  await run(cargo, args, {
-    cwd,
-    environment: { ...environment, RUSTC: rustc, RUSTDOC: rustdoc },
-  });
+  const executionEnvironment = { ...environment, RUSTC: rustc, RUSTDOC: rustdoc };
+  if (environment.LOCAL === '1') {
+    const checkout = checkoutOf(cwd);
+    const declared: unknown = JSON.parse(await readFile(path.join(checkout, 'config/local-providers.json'), 'utf8'));
+    assert.ok(typeof declared === 'object' && declared !== null && 'orderedJsonRoot' in declared
+      && typeof declared.orderedJsonRoot === 'string' && declared.orderedJsonRoot !== '', 'config/local-providers.json declares orderedJsonRoot');
+    const provider = path.resolve(checkout, declared.orderedJsonRoot);
+    await run(process.execPath, [fileURLToPath(import.meta.resolve('@polyspec/kit/link')), 'cargo',
+      '--checkout', provider, cwd, ...args], { cwd, environment: executionEnvironment });
+  } else {
+    await run(cargo, args, { cwd, environment: executionEnvironment });
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

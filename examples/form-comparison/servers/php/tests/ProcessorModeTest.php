@@ -26,13 +26,13 @@ final class ProcessorModeTest extends TestCase
     public static function mismatchedExtensions(): iterable
     {
         yield 'php-ext without extensions' => ['php-ext', [], 'OrderedJSON extension state does not match'];
-        yield 'php-ext without crudui' => ['php-ext', ['ordered_json'], 'CRUDUI extension state does not match'];
-        yield 'php-ext without ordered_json' => [
+        yield 'php-ext without crudui' => ['php-ext', ['ordered-json'], 'CRUDUI extension state does not match'];
+        yield 'php-ext without OrderedJSON' => [
             'php-ext',
             ['polyspec_crudui'],
             'OrderedJSON extension state does not match',
         ];
-        yield 'php with ordered_json' => ['php', ['ordered_json'], 'OrderedJSON extension state does not match'];
+        yield 'php with OrderedJSON' => ['php', ['ordered-json'], 'OrderedJSON extension state does not match'];
         yield 'php with crudui' => ['php', ['polyspec_crudui'], 'CRUDUI extension state does not match'];
     }
 
@@ -44,6 +44,35 @@ final class ProcessorModeTest extends TestCase
             array_map(self::module(...), $extensions),
             '\\' . ServerMode::class . '::current();',
             ['FORM_PHP_SERVER' => $mode],
+        );
+        self::assertNotSame(0, $result->status);
+        self::assertStringContainsString($message, $result->stderr . $result->stdout);
+    }
+
+    public function testThePhpExtensionModeUsesTheSelectedOrderedJsonExtension(): void
+    {
+        $result = self::extensionProcess(
+            'echo json_encode([' . '\\' . ServerMode::class . '::current(), '
+            . '(new \\ReflectionClass(\\Polyspec\\OrderedJson\\Value::class))->getExtensionName()]);'
+        );
+        self::assertSame(0, $result->status, $result->stderr . $result->stdout);
+        self::assertSame(['php-ext', getenv('FORM_JSON_EXTENSION')], (array) $result->json());
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function unmatchedExtensionNames(): iterable
+    {
+        yield 'missing declaration' => ['', 'FORM_JSON_EXTENSION must name'];
+        yield 'another loaded extension' => ['json', 'OrderedJSON extension state does not match'];
+        yield 'unloaded declaration' => ['missing_ordered_json', 'OrderedJSON extension state does not match'];
+    }
+
+    #[DataProvider('unmatchedExtensionNames')]
+    public function testThePhpExtensionModeRequiresItsSelectedExtensionName(string $name, string $message): void
+    {
+        $result = self::extensionProcess(
+            '\\' . ServerMode::class . '::current();',
+            ['FORM_JSON_EXTENSION' => $name],
         );
         self::assertNotSame(0, $result->status);
         self::assertStringContainsString($message, $result->stderr . $result->stdout);
@@ -84,8 +113,9 @@ final class ProcessorModeTest extends TestCase
 
     public function testThePhpExtensionModeRefusesAClassThatPhpLoadedFromSource(): void
     {
+        $source = dirname(__DIR__, 5) . '/packages/validator/php/src/Support/JsonText.php';
         $result = self::extensionProcess(
-            'class_exists(\\' . JsonText::class . '::class);' . self::generation() . '::assertNativeClasses();',
+            'require ' . var_export($source, true) . ';' . self::generation() . '::assertNativeClasses();',
         );
         self::assertNotSame(0, $result->status);
         self::assertStringContainsString(
@@ -94,13 +124,17 @@ final class ProcessorModeTest extends TestCase
         );
     }
 
-    /** A child process of the PHP extension mode with both modules. */
-    private static function extensionProcess(string $script): PhpProcess
+    /**
+     * A child process of the PHP extension mode with both modules.
+     *
+     * @param array<string, string> $environment
+     */
+    private static function extensionProcess(string $script, array $environment = []): PhpProcess
     {
         return PhpProcess::run(
-            [self::module('ordered_json'), self::module('polyspec_crudui')],
+            [self::module('ordered-json'), self::module('polyspec_crudui')],
             $script,
-            ['FORM_PHP_SERVER' => 'php-ext'],
+            ['FORM_PHP_SERVER' => 'php-ext', ...$environment],
         );
     }
 

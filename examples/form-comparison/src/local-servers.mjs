@@ -40,17 +40,48 @@ export const anyLoopbackPort = '127.0.0.1:0';
  * into `destination`. The source ends with a dot so that cp copies its contents; `path.join` drops that segment,
  * so the string is made here.
  */
-export function orderedJsonCopyArguments(extension, destination) {
-  return ['-R', `${path.join(extension, 'src')}${path.sep}.`, destination];
+export function orderedJsonCopyArguments(extension, destination, buildPath) {
+  return ['-R', `${path.join(extension, buildPath)}${path.sep}.`, destination];
 }
 
-async function orderedJsonExtension(write) {
-  // The zip is a download of make release-assets-fetch; a check reads the unpacked source and downloads nothing.
-  const config = path.join(repositoryRoot, orderedJsonExtensionDirectory, 'src/config.m4');
-  if (!await stat(config).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; })) {
-    throw new Error(`the OrderedJSON PHP extension source ${config} is missing; run make release-assets-fetch, which unpacks it`);
+/** Select the explicitly requested native provider and read its own extension identity. */
+export async function orderedJsonProvider({ root = repositoryRoot, mode }) {
+  assert.ok(mode === 'local' || mode === 'release', `Unknown native dependency mode: ${mode}`);
+  let directory;
+  if (mode === 'local') {
+    const declared = JSON.parse(await readFile(path.join(root, 'config/local-providers.json'), 'utf8'));
+    assert.equal(typeof declared.orderedJsonRoot, 'string', 'config/local-providers.json declares orderedJsonRoot');
+    assert.notEqual(declared.orderedJsonRoot, '', 'orderedJsonRoot is not empty');
+    directory = path.join(path.resolve(root, declared.orderedJsonRoot), 'packages/php-ext');
+  } else {
+    directory = path.join(root, orderedJsonExtensionDirectory);
   }
-  progress(write, 'ordered-json PHP extension source: present');
+  const manifest = JSON.parse(await readFile(path.join(directory, 'composer.json'), 'utf8'));
+  const extensionName = manifest['php-ext']?.['extension-name'];
+  const buildPath = manifest['php-ext']?.['build-path'];
+  assert.ok(typeof extensionName === 'string' && /^[a-z][a-z0-9_]*$/.test(extensionName), `${directory}/composer.json declares a native extension name`);
+  assert.ok(typeof buildPath === 'string' && buildPath !== '' && !path.isAbsolute(buildPath)
+    && !path.relative(directory, path.resolve(directory, buildPath)).split(path.sep).includes('..'), `${directory}/composer.json declares a package-relative build path`);
+  assert.equal(typeof manifest.version, 'string', `${directory}/composer.json declares its version`);
+  assert.ok((await stat(path.join(directory, buildPath, 'config.m4'))).isFile(), `${directory}/${buildPath}/config.m4 is a file`);
+  return { directory, extensionName, buildPath, version: manifest.version, mode };
+}
+
+/** Prepare the explicit native Composer profile with its own native dependency and autoload records. */
+export async function prepareNativePhpAutoload({ directory, root = repositoryRoot, write = text => process.stdout.write(text) }) {
+  const vendorDirectory = path.join(directory, 'vendor');
+  const manifest = path.join(root, 'examples/form-comparison/servers/php/native/composer.json');
+  await mkdir(directory, { recursive: true });
+  const results = await runStages([[{
+    id: 'native-php-composer', command: process.env.COMPOSER_BIN ?? 'composer',
+    args: ['install', '--no-interaction', '--prefer-dist', '--no-scripts'], cwd: path.dirname(manifest),
+    environment: { COMPOSER: manifest, COMPOSER_VENDOR_DIR: vendorDirectory,
+      MISE_TRUSTED_CONFIG_PATHS: [process.env.MISE_TRUSTED_CONFIG_PATHS, root].filter(Boolean).join(path.delimiter) },
+  }]], { label: 'local-servers', write });
+  assert.equal(results[0]?.status, 'passed', `Native Composer installation ${results[0]?.status}`);
+  const autoload = path.join(vendorDirectory, 'autoload.php');
+  assert.ok((await stat(autoload)).isFile(), `Native Composer autoload is a file: ${autoload}`);
+  return { autoload, manifest, vendorDirectory };
 }
 
 /**
@@ -59,33 +90,44 @@ async function orderedJsonExtension(write) {
  * runs to its end without a time limit and prints its output and progress.
  */
 export async function prepareRecordServers({ buildDirectory, write = text => process.stdout.write(text) }) {
-  await orderedJsonExtension(write);
+  const mode = process.env.LOCAL === '1' ? 'local' : 'release';
+  const provider = await orderedJsonProvider({ mode });
+  const nativeComposer = await prepareNativePhpAutoload({ directory: path.join(buildDirectory, 'php-native'), write });
+  progress(write, `OrderedJSON ${provider.version}: ${provider.mode} ${provider.directory}`);
   const goBinary = path.join(buildDirectory, 'go-server');
   const step = (id, command, args, cwd = repositoryRoot, environment = {}) =>
     ({ id, command, args, cwd, environment });
-  // The OrderedJSON module builds with phpize in a copy of the unpacked source, which stays as it was unpacked.
   const copied = path.join(buildDirectory, 'ordered-json-php-ext');
+  const build = path.join(copied, provider.buildPath);
+  const providerRoot = path.resolve(provider.directory, '../..');
+  const nativeSteps = mode === 'local'
+    ? [[step('ordered-json-native', 'make', ['build-php-ext'], providerRoot)]]
+    : [
+      [step('ordered-json-php-directory', 'mkdir', ['-p', build])],
+      [step('ordered-json-php-copy', 'cp', orderedJsonCopyArguments(provider.directory, build, provider.buildPath)),
+        step('ordered-json-manifest-copy', 'cp', [path.join(provider.directory, 'composer.json'), path.join(copied, 'composer.json')])],
+      [step('ordered-json-phpize', 'phpize', [], build)],
+      [step('ordered-json-configure', './configure', [`--enable-${provider.extensionName.replaceAll('_', '-')}`], build)],
+      [step('ordered-json-make', 'make', [], build)],
+    ];
   const results = await runStages([[
-    step('ordered-json-php-directory', 'mkdir', ['-p', copied]),
-  ], [
     step('crudui-php-extension', 'make', ['build-php-ext']),
-    step('ordered-json-php-copy', 'cp', orderedJsonCopyArguments(path.join(repositoryRoot, orderedJsonExtensionDirectory), copied)),
     step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
     step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mts'),
       'build', '--locked'], path.join(exampleDirectory, 'servers/rust')),
-  ], [
-    step('ordered-json-phpize', 'phpize', [], copied),
-  ], [
-    step('ordered-json-configure', './configure', ['--enable-ordered-json'], copied),
-  ], [
-    step('ordered-json-make', 'make', [], copied),
-  ]], { label: 'local-servers', write });
+  ], ...nativeSteps], { label: 'local-servers', write });
   const failed = results.find(result => result.status !== 'passed');
   assert.equal(failed, undefined, `Building ${failed?.id} ${failed?.status}`);
   return {
     cruduiModule: path.join(repositoryRoot, 'var/php-ext/polyspec_crudui.so'),
-    orderedJsonModule: path.join(copied, 'modules/ordered_json.so'),
+    orderedJsonModule: mode === 'local'
+      ? path.join(providerRoot, 'var/php-ext', `${provider.extensionName}.so`)
+      : path.join(build, 'modules', `${provider.extensionName}.so`),
+    orderedJsonExtensionName: provider.extensionName,
+    nativePhpAutoload: nativeComposer.autoload,
+    nativeComposerManifest: nativeComposer.manifest,
+    nativeComposerVendor: nativeComposer.vendorDirectory,
     binaries: {
       go: goBinary,
       rust: path.join(exampleDirectory, 'servers/rust/target/debug/polyspec-crudui-form-comparison'),
@@ -135,6 +177,8 @@ export async function recordServerProcess(server, { dataDirectory, publicDirecto
         '-n', ...common, ...extensions, '-d', 'enable_post_data_reading=0', '-d', 'display_errors=0', '-d', 'log_errors=1'],
       environment: {
         FORM_PHP_SERVER: server,
+        FORM_JSON_EXTENSION: prepared.orderedJsonExtensionName,
+        ...(server === 'php-ext' ? { FORM_PHP_AUTOLOAD: prepared.nativePhpAutoload } : {}),
         FORM_DATA_DIRECTORY: dataDirectory,
         FORM_PUBLIC_DIRECTORY: publicDirectory,
         ...(server === 'php-ext' ? {

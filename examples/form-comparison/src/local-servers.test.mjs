@@ -15,6 +15,8 @@ import { pathToFileURL } from 'node:url';
 
 import { anyLoopbackPort, orderedJsonCopyArguments, publicServerDefinition, startProcess } from './local-servers.mjs';
 
+const { orderedJsonProvider } = await import('./local-servers.mjs');
+
 const localServers = pathToFileURL(path.join(import.meta.dirname, 'local-servers.mjs')).href;
 
 test('a process that exits without stopping its local servers stops them', async t => {
@@ -130,9 +132,49 @@ test('the copy of the unpacked OrderedJSON extension source puts config.m4 at th
   await mkdir(destination);
   await writeFile(path.join(extension, 'src/config.m4'), 'PHP_ARG_ENABLE([ordered-json])\n');
   await new Promise((resolve, reject) => {
-    spawn('cp', orderedJsonCopyArguments(extension, destination), { stdio: 'inherit' })
+    spawn('cp', orderedJsonCopyArguments(extension, destination, 'src'), { stdio: 'inherit' })
       .once('error', reject)
       .once('close', status => (status === 0 ? resolve() : reject(new Error(`cp ended with status ${status}`))));
   });
   await access(path.join(destination, 'config.m4'));
+});
+
+
+test('local OrderedJSON native sources come from the declared provider package', async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'crudui-ordered-json-provider-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const provider = path.join(root, 'provider');
+  await mkdir(path.join(root, 'config'), { recursive: true });
+  await mkdir(path.join(provider, 'packages/php-ext/src'), { recursive: true });
+  await writeFile(path.join(root, 'config/local-providers.json'), JSON.stringify({ orderedJsonRoot: 'provider' }));
+  await writeFile(path.join(provider, 'packages/php-ext/composer.json'), JSON.stringify({
+    name: 'polyspec/ordered-json-php-ext', version: '0.0.10',
+    'php-ext': { 'extension-name': 'polyspec_ordered_json', 'build-path': 'src' },
+  }));
+  await writeFile(path.join(provider, 'packages/php-ext/src/config.m4'), 'PHP_ARG_ENABLE([polyspec-ordered-json])\n');
+  const selected = await orderedJsonProvider({ root, mode: 'local' });
+  assert.deepEqual(selected, {
+    directory: path.join(provider, 'packages/php-ext'), extensionName: 'polyspec_ordered_json',
+    buildPath: 'src', version: '0.0.10', mode: 'local',
+  });
+  const release = path.join(root, 'var/ordered-json-php-ext');
+  await mkdir(path.join(release, 'src'), { recursive: true });
+  await writeFile(path.join(release, 'composer.json'), JSON.stringify({ version: '0.0.9',
+    'php-ext': { 'extension-name': 'ordered_json', 'build-path': 'src' } }));
+  await writeFile(path.join(release, 'src/config.m4'), 'PHP_ARG_ENABLE([ordered-json])\n');
+  await rm(provider, { recursive: true });
+  await assert.rejects(orderedJsonProvider({ root, mode: 'local' }), /ordered-json.*composer\.json|ENOENT/);
+});
+
+test('an explicit release native source retains its declared extension identity', async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'crudui-ordered-json-release-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = path.join(root, 'var/ordered-json-php-ext');
+  await mkdir(path.join(directory, 'src'), { recursive: true });
+  await writeFile(path.join(directory, 'composer.json'), JSON.stringify({ version: '0.0.9',
+    'php-ext': { 'extension-name': 'ordered_json', 'build-path': 'src' } }));
+  await writeFile(path.join(directory, 'src/config.m4'), 'PHP_ARG_ENABLE([ordered-json])\n');
+  assert.deepEqual(await orderedJsonProvider({ root, mode: 'release' }), {
+    directory, extensionName: 'ordered_json', buildPath: 'src', version: '0.0.9', mode: 'release',
+  });
 });

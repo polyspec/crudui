@@ -8,6 +8,10 @@
     {
       "manifest": "packages/php-ext/composer.json",
       "php": "8.4.1"
+    },
+    {
+      "manifest": "examples/form-comparison/servers/php/native/composer.json",
+      "php": "8.4.1"
     }
   ],
   "pythonManifests": [

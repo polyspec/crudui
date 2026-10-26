@@ -849,6 +849,18 @@
       "scripts": [
         "test:php-scope"
       ]
+    },
+    {
+      "paths": [
+        "config/local-providers.json",
+        "tests/php/bootstrap.php",
+        "examples/form-comparison/servers/php/native/composer.json",
+        "examples/form-comparison/servers/php/native/composer.lock"
+      ],
+      "tests": [
+        "examples/form-comparison/src/local-servers.test.mjs",
+        "tests/build/rust-node-entry-points.test.mts"
+      ]
     }
   ],
   "inputs": [
