@@ -1,26 +1,31 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-26T11:23:44.624Z",
+  "reviewed": "2026-10-26T13:46:01.866Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "1311c7fdc2825bcd70403ea43b5334602e1d773e6de290e2066cab897f8d5e79",
+      "sha256": "34be8507cad32fe1b303a9bf2bb9f495a6804d3b043d57463b2e4100c6c7e1e3",
       "advisories": []
     },
     {
       "lock": "packages/svelte/tools/package-lock.json",
-      "sha256": "0b49eb5f0813eb3e536adbb84b005cb6873b738376cd50897d38cb80e77ff5a4",
+      "sha256": "592493f49573c52e21eb79104a39075a4b3a4bfe5e95f61b38075336dde1bb41",
       "advisories": []
     },
     {
       "lock": "composer.lock",
-      "sha256": "c02eb4e00505f137ccf7104f5df1177e90b9ef70983c8f7648d8d7ceee7d0b54",
+      "sha256": "fa889927cbc995864126fb7fa4ffc1a0f1d13b3f9dd6db9dad30930aabba400a",
       "advisories": []
     },
     {
       "lock": "packages/php-ext/composer.lock",
       "sha256": "7738ef321d470584ca5121c479f8ba559fca12278263a3dcbea5335e0d11b1ed",
+      "advisories": []
+    },
+    {
+      "lock": "examples/form-comparison/servers/php/native/composer.lock",
+      "sha256": "d87351765934cf9b83e1139881ecdb30c0f3c379962e720e2c7c4442c6ac9ba3",
       "advisories": []
     },
     {
@@ -34,58 +39,33 @@
       "advisories": []
     },
     {
-      "lock": "benchmarks/validators/go/go.sum",
-      "sha256": "1e15f40e2eefc682ec50f66d3bc3dfb51ff11c275e33818065f830128d35084b",
-      "advisories": []
-    },
-    {
-      "lock": "examples/cross-check-console/validators/go/go.sum",
-      "sha256": "1e15f40e2eefc682ec50f66d3bc3dfb51ff11c275e33818065f830128d35084b",
-      "advisories": []
-    },
-    {
-      "lock": "examples/form-comparison/servers/go/go.sum",
-      "sha256": "b830734bf324d4a3cc2411cb08c04463d85ded2879195a7789aa123c2a3db6fc",
-      "advisories": []
-    },
-    {
-      "lock": "packages/generator/go/go.sum",
-      "sha256": "1e15f40e2eefc682ec50f66d3bc3dfb51ff11c275e33818065f830128d35084b",
-      "advisories": []
-    },
-    {
-      "lock": "tests/native-generators/programs/go/go.sum",
-      "sha256": "32a4ca440eb2562af9026d26d5afed0bcfb2835fe4b9fe357ff26b78c78dcadc",
-      "advisories": []
-    },
-    {
       "lock": "benchmarks/validators/rust/Cargo.lock",
-      "sha256": "6f5aa8385f185f262795d1139b556a8fb985779e9c2979914cd0abc3e4213c62",
+      "sha256": "8e673e472d1368a1672a85a2a333aa70be7bb6cd1ce384ca953870bfcbde40b3",
       "advisories": []
     },
     {
       "lock": "examples/cross-check-console/validators/rust/Cargo.lock",
-      "sha256": "342866d7f41ef050c4877e96dcfda44544d8061a82aa383165c22d2305edce3d",
+      "sha256": "d44193b53f83a77890fa4671ebb50dbdb3ab6efadb8a0353f024e9db119c70b5",
       "advisories": []
     },
     {
       "lock": "examples/form-comparison/servers/rust/Cargo.lock",
-      "sha256": "601a4fc3e4ce7ac35b2a05956146791b4cf57877c996a43adde474bec7b00239",
+      "sha256": "716998ad7d7bc212608e4dca180ad2c440296a6c9f1bc30256597d93ba4ce9b3",
       "advisories": []
     },
     {
       "lock": "packages/generator/rust/Cargo.lock",
-      "sha256": "46c459a8aed6b2f8461e830e057be04f2d72fb26de13998251e833ff4f2935a2",
+      "sha256": "5208511d5b054dc5961646d1edd2c753d695ec76efbd99f83b598816a93fb82e",
       "advisories": []
     },
     {
       "lock": "packages/validator/rust/Cargo.lock",
-      "sha256": "bad7feeea8f46f84d8f043fb90d0ad57db7378f4daf59f47b6d3bf12ab81dda2",
+      "sha256": "2bc74fa2c0869f5727b4828b1192da8f77102063bb5608c7fc424f617a693198",
       "advisories": []
     },
     {
       "lock": "tests/native-generators/programs/rust/Cargo.lock",
-      "sha256": "1f3d0bfe2d1e2f2ea10b3e4243cc72e73e630429a2fffca9366a521ceca60512",
+      "sha256": "9321870fb1f3661ccc8d16d8f10cc78a9a0b7afc7e471ddacc0cfff53effed11",
       "advisories": []
     }
   ],
@@ -94,7 +74,7 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "puppeteer",
-      "version": "25.14.0",
+      "version": "25.16.0",
       "latest": "25.16.0"
     },
     {
@@ -171,21 +151,21 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "js-yaml",
-      "version": "5.4.3",
+      "version": "5.5.0",
       "latest": "5.5.0"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "jsdom",
-      "version": "30.1.2",
+      "version": "30.1.3",
       "latest": "30.1.3"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "knip",
-      "version": "6.42.0",
+      "version": "6.43.0",
       "latest": "6.43.0"
     },
     {
@@ -199,14 +179,14 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "oxlint",
-      "version": "1.88.0",
+      "version": "1.89.0",
       "latest": "1.89.0"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "oxlint-tsgolint",
-      "version": "7.0.2004",
+      "version": "7.0.2005",
       "latest": "7.0.2005"
     },
     {
@@ -227,28 +207,28 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "postcss",
-      "version": "8.5.30",
+      "version": "8.5.31",
       "latest": "8.5.31"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "puppeteer-core",
-      "version": "25.14.0",
+      "version": "25.16.0",
       "latest": "25.16.0"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "react",
-      "version": "19.2.8",
+      "version": "19.3.1",
       "latest": "19.3.1"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "react-dom",
-      "version": "19.2.8",
+      "version": "19.3.1",
       "latest": "19.3.1"
     },
     {
@@ -269,14 +249,14 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "vite",
-      "version": "8.3.4",
+      "version": "8.3.5",
       "latest": "8.3.5"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -311,7 +291,7 @@
       "ecosystem": "npm",
       "manifest": "packages/cli/package.json",
       "package": "js-yaml",
-      "version": "5.4.3",
+      "version": "5.5.0",
       "latest": "5.5.0"
     },
     {
@@ -325,7 +305,7 @@
       "ecosystem": "npm",
       "manifest": "packages/cli/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -353,7 +333,7 @@
       "ecosystem": "npm",
       "manifest": "packages/form-binding/package.json",
       "package": "jsdom",
-      "version": "30.1.2",
+      "version": "30.1.3",
       "latest": "30.1.3"
     },
     {
@@ -374,7 +354,7 @@
       "ecosystem": "npm",
       "manifest": "packages/form-binding/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -409,7 +389,7 @@
       "ecosystem": "npm",
       "manifest": "packages/generator/ts/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -437,7 +417,7 @@
       "ecosystem": "npm",
       "manifest": "packages/html/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -479,21 +459,21 @@
       "ecosystem": "npm",
       "manifest": "packages/react/package.json",
       "package": "jsdom",
-      "version": "30.1.2",
+      "version": "30.1.3",
       "latest": "30.1.3"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/react/package.json",
       "package": "react",
-      "version": "19.2.8",
+      "version": "19.3.1",
       "latest": "19.3.1"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/react/package.json",
       "package": "react-dom",
-      "version": "19.2.8",
+      "version": "19.3.1",
       "latest": "19.3.1"
     },
     {
@@ -514,7 +494,7 @@
       "ecosystem": "npm",
       "manifest": "packages/react/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -535,14 +515,14 @@
       "ecosystem": "npm",
       "manifest": "packages/svelte/package.json",
       "package": "vite",
-      "version": "8.3.4",
+      "version": "8.3.5",
       "latest": "8.3.5"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/svelte/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -584,7 +564,7 @@
       "ecosystem": "npm",
       "manifest": "packages/validator/ts/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -612,7 +592,7 @@
       "ecosystem": "npm",
       "manifest": "packages/vue/package.json",
       "package": "vitest",
-      "version": "5.0.4",
+      "version": "5.0.5",
       "latest": "5.0.5"
     },
     {
@@ -633,8 +613,8 @@
       "ecosystem": "npm",
       "manifest": "packages/svelte/tools/package.json",
       "package": "eslint",
-      "version": "10.12.0",
-      "latest": "10.12.0"
+      "version": "10.13.0",
+      "latest": "10.13.0"
     },
     {
       "ecosystem": "npm",
@@ -647,8 +627,8 @@
       "ecosystem": "npm",
       "manifest": "packages/svelte/tools/package.json",
       "package": "svelte-check",
-      "version": "4.7.6",
-      "latest": "4.7.6"
+      "version": "4.7.7",
+      "latest": "4.7.7"
     },
     {
       "ecosystem": "npm",
@@ -661,99 +641,43 @@
       "ecosystem": "npm",
       "manifest": "packages/svelte/tools/package.json",
       "package": "typescript-eslint",
-      "version": "8.71.2",
-      "latest": "8.71.2"
-    },
-    {
-      "ecosystem": "composer",
-      "manifest": "composer.json",
-      "package": "polyspec/ordered-json",
-      "version": "0.0.9",
-      "latest": "0.0.9"
+      "version": "8.72.0",
+      "latest": "8.72.0"
     },
     {
       "ecosystem": "composer",
       "manifest": "composer.json",
       "package": "phpunit/phpunit",
-      "version": "13.4.2",
+      "version": "13.4.3",
+      "latest": "13.4.3"
+    },
+    {
+      "ecosystem": "composer",
+      "manifest": "examples/form-comparison/servers/php/native/composer.json",
+      "package": "phpunit/phpunit",
+      "version": "13.4.3",
       "latest": "13.4.3"
     },
     {
       "ecosystem": "pypi",
       "manifest": "packages/generator/python/pyproject.toml",
       "package": "setuptools",
-      "version": "84.0.0",
+      "version": "84.2.1",
       "latest": "84.2.1"
     },
     {
       "ecosystem": "pypi",
       "manifest": "packages/validator/python/pyproject.toml",
       "package": "setuptools",
-      "version": "84.0.0",
+      "version": "84.2.1",
       "latest": "84.2.1"
     },
     {
       "ecosystem": "pypi",
       "manifest": "mise.toml",
       "package": "ruff",
-      "version": "0.17.0",
+      "version": "0.17.2",
       "latest": "0.17.2"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "benchmarks/validators/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/validator/go",
-      "version": "v0.0.0-20261014172735-4e1f5b993870",
-      "latest": "v0.0.7"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "examples/cross-check-console/validators/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/validator/go",
-      "version": "v0.0.0-20261014172735-4e1f5b993870",
-      "latest": "v0.0.7"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "examples/form-comparison/servers/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/generator/go",
-      "version": "v0.0.0-20261014174035-0af05ab8b568",
-      "latest": "v0.0.7"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "examples/form-comparison/servers/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/validator/go",
-      "version": "v0.0.0-20261014172735-4e1f5b993870",
-      "latest": "v0.0.7"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "examples/form-comparison/servers/go/go.mod",
-      "package": "github.com/polyspec/ordered-json/packages/go",
-      "version": "v0.0.9",
-      "latest": "v0.0.9"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "packages/generator/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/validator/go",
-      "version": "v0.0.0-20261014172735-4e1f5b993870",
-      "latest": "v0.0.7"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "tests/native-generators/programs/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/generator/go",
-      "version": "v0.0.0-20261014174035-0af05ab8b568",
-      "latest": "v0.0.7"
-    },
-    {
-      "ecosystem": "go",
-      "manifest": "tests/native-generators/programs/go/go.mod",
-      "package": "github.com/polyspec/crudui/packages/validator/go",
-      "version": "v0.0.0-20261014172735-4e1f5b993870",
-      "latest": "v0.0.7"
     }
   ],
   "vcs": []

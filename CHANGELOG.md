@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+### 2026-10-26 — Complete local candidate preparation (C18.1)
+
+- Candidate preparation uses current local provider sources, native dependency records and the reviewed compatible toolchain. Every candidate preparation task is complete. Current npm, Composer and Python archives pass isolated installation checks, and native PHP uses its own Composer profile. Shared configuration copies match the installed kit source. CI and publication remain separate operations.
+
+## 0.0.8
+
 ### 2026-10-26 — Dependency checks discover native Go workspaces (C18.1-5-1)
 
 - Dependency review and policy checks use native Go workspace discovery. A module-specific workspace retains local provider modules alongside repository modules, and other modules discover the tracked root workspace. Release consumers retain GOWORK=off. Native Go reports the generator, validator and OrderedJSON modules as local main modules.
@@ -43,7 +49,6 @@
 
 - Release manifests and internal dependencies name 0.0.8. npm, Cargo, uv and the local Composer profile refresh their workspace locks. The feature manifest and consumer declarations use the candidate version, and the existing change records form the 0.0.8 section. No tag is created.
 
-## 0.0.8
 ### 2026-10-26 — PHP implementation units have a separate source suite (C18.6)
 
 - PHP source runs select public and source-internal suites, while extension runs select every public case with no PHP library sources. Mixed classes retain public assertions and separate helper assertions. Native PHPUnit listings preserve all original cases and prove scope coverage. Fixture decoding uses the public OrderedJSON API, and shared native expression and composition bindings remain unchanged.

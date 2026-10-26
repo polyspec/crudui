@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: 42b430c37100343a84ace5c8c7a3892051acb2db10414f8809628c2b0494a6be -->
+<!-- source-sha256: e79ba3ef405749bbca973605793d493d95cad5bdb6d3173eeb0f9e9185df8e32 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -18,7 +18,7 @@
 | display-switching | 브라우저 바인딩이 부모 값에 따른 `design.show`로 필드와 그룹을 보이고 숨기며, 상대 경로는 반복 행을 한 단계로 다루고, 검증 결과는 숨은 경로를 담으며, 검증기 다섯 개가 조건부 필수 필드의 공유 사례를 통과한다 | implemented | pending | not-deployed | [표시](../packages/form-binding/README.ko.md#표시), [표시 여부](spec/validation-rules.ko.md#평가), [상대 경로](spec/expressions.ko.md#5-평가); [바인딩 사례](../packages/form-binding/tests/display.test.ts), [숨은 경로 사례](../packages/validator/ts/src/hidden-paths.test.ts), [공유 검증 사례](../tests/fixtures/validate/visibility.mts) `switch-*`, `visibility-row-parent-*`, `visibility-show-literal-identifier`, [공유 expression 사례](../packages/validator/ts/scripts/generate-expr-cases.mts) `path-row-*`, [공유 폼 사례](../packages/react/scripts/written-form-render-cases.ts) `design-show-row-parent-*`. native와 브라우저 비교는 CI에서 실행한다 |
 | choice-groups | `select` 필드의 선택 목록에 있는 그룹 항목을 여덟 렌더러가 옵션을 가진 `optgroup` 요소로 렌더링하고, 검증기 다섯 개의 `in`이 그룹 안의 값을 필드의 선택지로 받는다 | implemented | passed | not-deployed | [명세](spec/schema.ko.md#선택지-그룹), [폼 마크업](spec/form-markup.ko.md#선택지-그룹); `@polyspec/crudui-generator-core`([모델과 검사 사례](../packages/generator/ts/src/choice-groups.test.ts)), `@polyspec/crudui-generator-html`([바이트 사례](../packages/html/src/choice-groups.test.ts)), React([바이트와 컴포넌트 사례](../packages/react/src/tests/choice-groups.test.tsx)), Vue([사례](../packages/vue/tests/choice-groups.test.mjs)), Svelte([사례](../packages/svelte/tests/choice-groups.test.mjs)), TypeScript 검증기의 `in`([사례](../packages/validator/ts/src/choice-groups.test.ts)), 그 타입, JSON Schema에 구현됨; [공유 폼 사례](../packages/react/scripts/generate-form-render-cases.mts) `choice-groups-*`, 목록 사례 `reject-format-items-choice-group`, [공유 검증 사례](../tests/fixtures/validate/value-rules.mts) `value-in-choice-groups*`가 구현을 비교함; [네이티브 검사](../tests/native-generators/README.ko.md)의 PHP, PHP 확장, Go, Rust 렌더러와 PHP, PHP 확장, Go, Rust 검증기를 포함함 |
 | inline-layout | 각 필드의 레이블과 컨트롤을 한 줄에 두는 폼 배치를 여덟 렌더러가 제공한다 | implemented | passed | not-deployed | [명세](spec/schema.ko.md#배치), [폼 마크업](spec/form-markup.ko.md#배치); `@polyspec/crudui-generator-core`([모델과 검사 사례](../packages/generator/ts/src/inline-layout.test.ts)), `@polyspec/crudui-generator-html`([바이트 사례](../packages/html/src/inline-layout.test.ts)), 스타일시트([브라우저 배치 검사](../tests/form-styles.test.mts)), JSON Schema에 구현됨; inline 배치의 헤더에 쓰는 체크박스와 스위처 필드의 레이블은 노드 모델과 React([서버와 컴포넌트 사례](../packages/react/src/tests/inline-layout.test.tsx)), Vue([사례](../packages/vue/tests/inline-layout.test.mjs)), Svelte([사례](../packages/svelte/tests/inline-layout.test.mjs))에 구현됨; [공유 폼 사례](../packages/react/scripts/generate-form-render-cases.mts) `inline-layout-*`와 작성된 레이아웃 사례 여섯 개가 여덟 렌더러를 비교함; PHP, PHP 확장, Go, Rust는 [네이티브 검사](../tests/native-generators/README.ko.md)에서 통과함 |
-| collection-controls | 행 컨트롤의 선언된 글과 속성, 마지막 행 뒤의 추가 컨트롤을 여덟 렌더러가 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md#행) |
+| collection-controls | 현재 행 계약 밖의 제안: 행 컨트롤의 선언된 글과 속성, 마지막 행 뒤의 추가 컨트롤을 여덟 렌더러가 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md#행) |
 | validator-responses | 검증기 프로세스 상태와 완전한 응답 검사 | implemented | passed | not-deployed | [응답 검사](../examples/cross-check-console/server/validate-response.test.mjs), [검증기 프로세스 사례](../examples/cross-check-console/validators/README.ko.md) |
 | php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | implemented | passed | not-deployed | [PHP API 계약](operations/php-extension.ko.md) |
 | generator-php | PHP 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
@@ -106,7 +106,7 @@ Native package manager는 로컬 준비에서 현재 sibling source를 선택합
 script를 실행합니다. Server rendering과 hydration은 script element를 유지하며 React dependency-policy exception은 제거합니다.
 철회된 sprintf-js advisory는 package update를 요구하지 않습니다.
 
-갱신한 dependency review는 registry dependency 95개와 lock 17개를 검토하며 보안 advisory가 없습니다. npm lock은 수정된
+갱신한 dependency review는 registry dependency 87개와 lock 13개를 검토하며 보안 advisory가 없습니다. npm lock은 수정된
 Markdown, URI, HTTP client와 schema package를 선택하며 Rust comparison server lock은 Tokio 1.53.3을 선택합니다.
 Go 1.27.3은 linked module의 최소 버전을 충족하며 advisory scan을 실행할 수 있습니다.
 

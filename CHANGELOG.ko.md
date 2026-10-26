@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 16a12c5ea5363ebb192b59e2a3602f16767b4cb666ac0cf9a3551b4e20fe5c52 -->
+<!-- source-sha256: 1c5022617588cdfa5f365a3b91a43381dba59894f6cdee2896e1c1859b7346bb -->
 
 ## Unreleased
+
+### 2026-10-26 — 로컬 candidate 준비를 완료한다 (C18.1)
+
+- Candidate 준비는 현재 로컬 provider source, native 의존성 기록과 검토한 호환 toolchain을 사용한다. Candidate 준비 작업을 모두 완료한다. 현재 npm, Composer와 Python archive는 격리된 설치 검사를 통과하며 native PHP는 별도 Composer profile을 사용한다. 공유 설정 복사본은 설치된 kit source와 일치한다. CI와 publication은 별도 작업이다.
+
+## 0.0.8
 
 ### 2026-10-26 — Local native server는 선언한 현재 provider를 사용한다 (C18.1-3)
 
@@ -45,7 +51,6 @@
 
 - Release manifest와 내부 의존성은 0.0.8을 명시합니다. npm, Cargo, uv와 local Composer profile은 workspace lock을 갱신하며 feature manifest와 consumer 선언은 candidate version을 사용합니다. 기존 변경 기록은 0.0.8 section에 둡니다. Tag는 생성하지 않습니다.
 
-## 0.0.8
 ### 2026-10-26 — PHP 구현 unit을 별도 source suite로 실행한다 (C18.6)
 
 - PHP source 실행은 public 및 source-internal suite를 선택하며 extension은 PHP library source 없이 모든 public case를 선택한다. 혼합 class는 공개 assertion을 유지하고 helper assertion을 분리한다. Native PHPUnit 목록은 원래 case를 모두 보존하고 범위 coverage를 증명한다. Fixture decode는 공개 OrderedJSON API를 사용하며 공유 native expression 및 composition binding은 유지한다.
