@@ -354,9 +354,9 @@ after the CI documentation job succeeds on `main`.
 
 ## PHP dependencies
 
-Each PHP package declares its runtime and test dependencies. CI and archive installation use `composer.json` and
-`composer.lock`. Local source development explicitly selects `composer.local.json` and `composer.local.lock` with
-`COMPOSER=composer.local.json make crudui-install-composer`. Composer resolves compatible source requirements and owns
-`vendor/`, links, installed metadata and autoload. `make crudui-local-composer-check` validates the local profile and PHP
-platform. The generated vendor directory is excluded from Git. A checkout installs the selected profile before PHP
-validation, tests or documentation checks; local source resolution requires the sibling checkout.
+Each PHP package declares its runtime and test dependencies. The canonical private project uses `composer.json` and
+`composer.lock`. `make crudui-install-composer` resolves this checkout's path packages and the current
+`../ordered-json/packages/php` sibling source. Composer owns `vendor/`, native links, installed metadata and autoload;
+no separate manifest selector is needed. `make crudui-local-composer-check` validates that project and its PHP platform.
+The generated vendor directory is excluded from Git. Install source dependencies before PHP validation, tests or
+documentation checks. Release archive consumer projects are independent of this development project.

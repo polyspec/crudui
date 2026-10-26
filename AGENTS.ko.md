@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 8cc8a5b60b00c181a08c33c905872c5dabc7fb63a4baebfb4ebed64a20aad063 -->
+<!-- source-sha256: fb29af1e3cd3619d8d4ba24ef2966944a9ed56f69d4cefeca86d082012e1f1a0 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -84,7 +84,7 @@
   Enforced by: none, 경로 규칙은 설계 판단입니다.
 - Own: 생성 파일은 Git에 추적하지 않습니다. 여기에는 의존성 설치(`node_modules/`, `vendor/`, 가상 환경), build 결과(`dist/`,
   `target/`, `*.tsbuildinfo`), cache, test 실행 산출물과 도구 다운로드(`var/`)가 포함됩니다. 추적하는 예외는 lock 파일
-  (`package-lock.json`, `composer.lock`, `composer.local.lock`, `Cargo.lock`, uv lock, `mise.lock`), 이 파일이 이름을 밝힌 생성 문서, test
+  (`package-lock.json`, `composer.lock`, `Cargo.lock`, uv lock, `mise.lock`), 이 파일이 이름을 밝힌 생성 문서, test
   fixture뿐입니다. 새 generator는 같은 commit에서 ignore 항목을 추가합니다.
   Enforced by: `make layout-check`
 

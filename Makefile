@@ -133,25 +133,16 @@ INSTALL_PACKAGES_EXTRA := crudui-install-svelte-tools
 crudui-install-svelte-tools: ## Install the tools project of packages/svelte from its package-lock.json; ONLINE
 	$(ONLINE) $(NPM) ci --prefix packages/svelte/tools --no-audit --no-fund
 
-# The development root composer.json, never published, resolves the Composer packages of packages/: its path
-# repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload,
-# and its artifact repository var/composer-artifacts holds the release zip of polyspec/ordered-json that
-# config/release-assets.json pins, which make release-assets-fetch of kit downloads first.
-# COMPOSER selects the native manifest; composer.local.json resolves sibling sources and composer.json resolves archives.
-ifeq ($(notdir $(or $(COMPOSER),composer.json)),composer.json)
-crudui-install-composer: release-assets-fetch
-endif
-crudui-install-composer: ## Install the native Composer manifest selected by COMPOSER into vendor/
-ifeq ($(notdir $(COMPOSER)),composer.local.json)
+# The private root Composer project resolves this checkout's PHP packages and the current OrderedJSON sibling source.
+# Composer owns the path links, autoload files and installed metadata. Updating the path packages refreshes their native
+# metadata when a source manifest changes; no release archive is downloaded by the default development install.
+crudui-install-composer: ## Resolve and install the current local PHP source packages with Composer
 	$(ONLINE) $(COMPOSER_BIN) update 'polyspec/*' --with-dependencies --no-interaction
-else
-	$(ONLINE) $(COMPOSER_BIN) install --no-interaction --prefer-dist
-endif
 
-crudui-local-composer-check: ## Validate the native local-source manifest, lock and PHP platform requirements
+crudui-local-composer-check: ## Validate the canonical Composer manifest, lock and PHP platform requirements
 	@status=0; \
-	COMPOSER=composer.local.json $(COMPOSER_BIN) validate --strict || status=1; \
-	COMPOSER=composer.local.json $(COMPOSER_BIN) check-platform-reqs || status=1; \
+	$(COMPOSER_BIN) validate --strict || status=1; \
+	$(COMPOSER_BIN) check-platform-reqs || status=1; \
 	exit $$status
 
 crudui-install-python: ## Make the venv var/python and install the Python packages of the uv workspace into it in editable mode

@@ -9,10 +9,10 @@
         "ext-mbstring": "*",
         "polyspec/crudui-validator": "0.0.8",
         "polyspec/crudui-generator": "0.0.8",
-        "polyspec/ordered-json": "0.0.9"
+        "polyspec/ordered-json": "0.0.*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^13.4.2"
+        "phpunit/phpunit": "^13.4.3"
     },
     "autoload": {
         "psr-4": {
@@ -33,15 +33,27 @@
     "repositories": [
         {
             "type": "path",
-            "url": "packages/validator/php"
+            "url": "packages/validator/php",
+            "options": {
+                "symlink": true,
+                "reference": "config"
+            }
         },
         {
             "type": "path",
-            "url": "packages/generator/php"
+            "url": "packages/generator/php",
+            "options": {
+                "symlink": true,
+                "reference": "config"
+            }
         },
         {
-            "type": "artifact",
-            "url": "var/composer-artifacts"
+            "type": "path",
+            "url": "../ordered-json/packages/php",
+            "options": {
+                "symlink": true,
+                "reference": "config"
+            }
         }
     ],
     "config": {

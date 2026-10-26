@@ -139,13 +139,11 @@ Development resolution is in the two root manifests, which are never published:
   `@polyspec/ordered-json` is the root dev dependency of the release asset `polyspec-ordered-json-npm-0.0.9.tgz` of the tag
   `v0.0.9` of `polyspec/ordered-json`, pinned by its URL and integrity like `@polyspec/kit`, and `kit link` links it to a
   sibling checkout;
-- the root `composer.json` (`polyspec/crudui-workspace`, type `project`) has a `path` repository of
-  `packages/validator/php` and one of `packages/generator/php`, with Composer's default link, and requires
-  `polyspec/crudui-validator` and `polyspec/crudui-generator` at their exact versions, so `vendor/` links each package
-  to its source directory and loads it by the `autoload` of its own `composer.json`; its `autoload-dev` reads the tests
-  of both PHP packages and the test classes of `tests/`. `composer.lock` beside it records the resolution, and
-  `make crudui-install-composer` installs `vendor/` at the root, which PHPUnit (the bootstrap of each package is
-  `vendor/autoload.php`), the PHP checks and the PHP servers load.
+- the private root `composer.json` declares path repositories for `packages/validator/php`, `packages/generator/php`
+  and `../ordered-json/packages/php`, with native symlinks and configuration references. The CRUDUI packages use the
+  checkout's exact version; the OrderedJSON constraint accepts its current 0.0.x sibling source. `composer.lock`
+  records the selected source versions, requirements and autoload. PHPUnit, PHP checks and PHP servers load the
+  installed packages through `vendor/autoload.php`.
 
 `make crudui-test-dependencies` validates the root `composer.json` and its lock with `composer validate --strict`, and each
 published `composer.json` with `composer validate --no-check-lock`, since a published package has no lock.
@@ -157,21 +155,19 @@ The npm source folders are connected with native `npm link --no-save --package-l
 lock remain unchanged; source edits are immediately visible through the installed links. Compiled packages need their
 native build after source changes.
 
-Composer development explicitly selects `composer.local.json` and its native `composer.local.lock`. The path repositories
-link the two PHP packages of this checkout and `../ordered-json/packages/php` into `vendor/`. The OrderedJSON requirement
-accepts 0.0.x source versions; Composer records the actual selected version, requirements and autoload. No version alias
-or installed-record rewrite is used.
+The private Composer project uses the canonical `composer.json` and `composer.lock`; no separate local profile is
+selected. Composer links this checkout's PHP packages and the declared OrderedJSON sibling source into `vendor/` and
+owns their installed records and autoload. The install refreshes `polyspec/*` path packages and their dependencies
+through native Composer resolution, without aliases, metadata rewrites or published archive downloads.
 
 ```sh
-COMPOSER=composer.local.json make crudui-install-composer
+make crudui-install-composer
 make crudui-local-composer-check
 ```
 
-The local install delegates to native Composer source resolution and updates its selected providers and dependent
-packages. The local lock changes when that resolution changes. Do not export `COMPOSER` globally across unrelated projects.
-CI and archive installation leave the selector unset and use `composer.json` and `composer.lock`, including the declared
-release artifacts. Development compatibility is checked through the selected native Composer profile; release dependency
-policy continues to review its declared release locks. Candidate archive verification remains C18.1.
+The declared sibling checkout must exist before installation; a CI job using this development project must provide it.
+The lock changes when source resolution changes. PHP 8.4 and later are supported; the platform check validates the
+installed source requirements. Release archive consumer projects remain separate from this private development project.
 
 ### Installing the release archives
 

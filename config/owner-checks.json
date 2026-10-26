@@ -824,8 +824,8 @@
     },
     {
       "paths": [
-        "composer.local.json",
-        "composer.local.lock"
+        "composer.json",
+        "composer.lock"
       ],
       "targets": [
         "crudui-local-composer-check"
@@ -923,8 +923,8 @@
     {
       "check": "make crudui-local-composer-check",
       "paths": [
-        "composer.local.json",
-        "composer.local.lock"
+        "composer.json",
+        "composer.lock"
       ]
     },
     {

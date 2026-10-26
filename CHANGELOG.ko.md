@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: bafb99cf6fbe10629bc36c77d1741766e2be239e0a60230754a86f9c51d3415f -->
+<!-- source-sha256: 1d2819b1fb3d7f3f7f4bea915ebef243bc2d2e8be4ea0c1fbc508e869c968f8f -->
 
 ## Unreleased
+
+### 2026-10-26 — 기본 Composer project가 현재 source를 설치한다 (C18.1-1)
+
+- Private root Composer manifest와 native lock은 configuration reference를 사용하는 path symlink로 CRUDUI 0.0.8과 현재 OrderedJSON 0.0.10 sibling source를 해석한다. 기본 PHP 설치는 release download 없이 source package를 갱신한다. 중복 local manifest와 lock을 제거하고 기존 Composer 검사는 canonical project를 검증한다. Native 설치 기록, PHP 8.4.26 platform 요구, 선택한 의존성 검사와 FormJson test가 PHPUnit 13.4.3으로 통과한다.
 
 ### 2026-10-26 — 현재 문서 도구 candidate 검토를 완료한다 (C18.2)
 

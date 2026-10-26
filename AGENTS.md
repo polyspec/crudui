@@ -89,7 +89,7 @@ only the rules of crudui.
   Enforced by: none, the path rules are a design judgement.
 - Own: Generated files are never tracked in Git. This covers dependency installs (`node_modules/`, `vendor/`, virtual
   environments), build output (`dist/`, `target/`, `*.tsbuildinfo`), caches, test run artifacts and tool downloads
-  (`var/`). The tracked exceptions are the lock files (`package-lock.json`, `composer.lock`, `composer.local.lock`, `Cargo.lock`, uv locks,
+  (`var/`). The tracked exceptions are the lock files (`package-lock.json`, `composer.lock`, `Cargo.lock`, uv locks,
   `mise.lock`), the committed generated documents that this file names, and test fixtures. A new generator adds its
   ignore entry in the same commit.
   Enforced by: `make layout-check`

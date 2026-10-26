@@ -5,18 +5,15 @@
 defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
-The record servers of the [form comparison](form-comparison.md) read and write JSON with the
-packages of [OrderedJSON](https://github.com/polyspec/ordered-json) 0.0.9: `@polyspec/ordered-json` in JavaScript
-the `@polyspec/ordered-json` tarball of the release asset of the tag `v0.0.9` in JavaScript, and the `ordered_json`
-extension from the PHP extension zip `polyspec-ordered-json-extension-php-0.0.9.zip` of the same release, which
-`make release-assets-fetch` unpacks into `var/ordered-json-php-ext`; the Go module `github.com/polyspec/ordered-json/packages/go` at `v0.0.9` and the
-Rust crate `polyspec-ordered-json` of the Git tag `v0.0.9`. `Polyspec\OrderedJson` in PHP is the Composer package
-`polyspec/ordered-json` of the release zip that `config/release-assets.json` pins, which `make crudui-install-composer`
-downloads into the artifact repository `var/composer-artifacts` of the root `composer.json`. OrderedJSON's own
-parity check and tests verify the processor across its five implementations; crudui does not repeat them. crudui
-tests its use of the packages: `examples/form-comparison/src/json.test.mjs`, `FormJsonTest.php` of `servers/php`, `json_test.go` of the Go
-server and the JSON tests of the Rust server check that a record keeps its member order, numeric keys and keyed rows
-included, and its empty types, and that a number outside the form data range fails.
+The record servers of the [form comparison](form-comparison.md) read and write JSON with the installed
+[OrderedJSON](https://github.com/polyspec/ordered-json) packages. Development uses native source links. The private
+root Composer project declares `../ordered-json/packages/php`, records the actual 0.0.x source version in `composer.lock`
+and loads it through `vendor/autoload.php`. `make crudui-install-composer` refreshes source resolution without fetching
+published archives. Native PHP extension sources resolve from the declared development inputs. Published archive
+inputs in `config/release-assets.json` are independent of the default Composer source install.
+OrderedJSON tests its processor; CRUDUI tests package integration through `examples/form-comparison/src/json.test.mjs`,
+`FormJsonTest.php` of `servers/php`, `json_test.go` of the Go server and the Rust server's JSON tests. These check member
+order, numeric keys, keyed rows, empty types and rejection of numbers outside the form data range.
 
 The transport modules of the form comparison use the processor for JSON requests, responses and repository
 files. The processor returns `Value`

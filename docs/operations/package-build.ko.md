@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-operations-package-build -->
-<!-- source-sha256: 3a5a0addd4869b8598c31979bd63b915ed0fbcb0e4c2cf912ccb2a00c9fee33d -->
+<!-- source-sha256: 1e150314f2dd543b35cef485730eff83432a2ce02128dd7f4e7f85a2b5102009 -->
 
 [English](package-build.md).
 
@@ -312,9 +312,9 @@ GitHub Pages는 `main`의 CI 문서 작업이 성공한 뒤 검사한 웹를
 
 ## PHP 의존성
 
-각 PHP package는 runtime과 test 의존성을 선언합니다. CI와 archive 설치는 `composer.json`과 `composer.lock`을 사용합니다.
-로컬 source 개발은 `COMPOSER=composer.local.json make crudui-install-composer`로 `composer.local.json`과
-`composer.local.lock`을 명시적으로 선택합니다. Composer가 호환 source 요구를 해석하며 `vendor/`, 링크, 설치 metadata와
-autoload를 관리합니다. `make crudui-local-composer-check`는 로컬 profile과 PHP platform을 검증합니다. 생성 vendor
-디렉터리는 Git에서 제외합니다. PHP 검증, test와 문서 검사를 실행하기 전에 선택한 profile을 설치하며 로컬 source
-resolution에는 sibling checkout이 필요합니다.
+각 PHP package는 runtime과 test 의존성을 선언합니다. Canonical private project는 `composer.json`과 `composer.lock`을
+사용합니다. `make crudui-install-composer`는 이 checkout의 path package와 현재 `../ordered-json/packages/php` sibling
+source를 해석합니다. Composer는 `vendor/`, native 링크, 설치 metadata와 autoload를 관리하며 별도 manifest selector는
+필요하지 않습니다. `make crudui-local-composer-check`는 이 project와 PHP platform을 검증합니다. 생성 vendor 디렉터리는
+Git에서 제외합니다. PHP 검증, test와 문서 검사 전에 source 의존성을 설치합니다. Release archive consumer project는
+이 개발 project와 독립적입니다.

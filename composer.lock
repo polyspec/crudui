@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1763fef73f4ea71de778fe50368d1b4f",
+    "content-hash": "08dd5825bf04707f4c8aaaf9a6779f25",
     "packages": [
         {
             "name": "polyspec/crudui-generator",
-            "version": "0.0.7",
+            "version": "0.0.8",
             "dist": {
                 "type": "path",
                 "url": "packages/generator/php",
-                "reference": "58cf6fba75d6f2c672f343c458b10dda43d0332a"
+                "reference": "d4c6bcf3b619ce286e4e2d61a4cebb16f06306bd"
             },
             "require": {
                 "ext-mbstring": "*",
-                "php": ">=8.5",
+                "php": ">=8.4",
                 "php-64bit": "^8.2",
-                "polyspec/crudui-validator": "0.0.7"
+                "polyspec/crudui-validator": "0.0.8"
             },
             "require-dev": {
                 "phpunit/phpunit": "^13.4.1"
@@ -37,7 +37,7 @@
             },
             "scripts": {
                 "test": [
-                    "COMPOSER_VENDOR_DIR=../../../vendor node ../../../node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php"
+                    "COMPOSER_VENDOR_DIR=../../../vendor node ../../../node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal"
                 ]
             },
             "license": [
@@ -45,19 +45,20 @@
             ],
             "description": "Form templates, editable data and HTML rendering for CRUDUI",
             "transport-options": {
+                "symlink": true,
                 "relative": true
             }
         },
         {
             "name": "polyspec/crudui-validator",
-            "version": "0.0.7",
+            "version": "0.0.8",
             "dist": {
                 "type": "path",
                 "url": "packages/validator/php",
-                "reference": "2aba4a5d9c0bd977d9909a6c79b6f5e576f02618"
+                "reference": "d295d240bb9d5f401d3d7cd4ed261b457dd4dbb9"
             },
             "require": {
-                "php": ">=8.5"
+                "php": ">=8.4"
             },
             "require-dev": {
                 "phpunit/phpunit": "^13.4.1"
@@ -76,7 +77,7 @@
             },
             "scripts": {
                 "test": [
-                    "COMPOSER_VENDOR_DIR=../../../vendor node ../../../tests/conformance/run-suite.mts phpunit --cwd packages/validator/php"
+                    "COMPOSER_VENDOR_DIR=../../../vendor node ../../../tests/conformance/run-suite.mts phpunit --cwd packages/validator/php -- --testsuite public,php-source-internal"
                 ]
             },
             "license": [
@@ -89,27 +90,28 @@
             ],
             "description": "PHP validator for crudui system - validates form data against YAML specifications",
             "transport-options": {
+                "symlink": true,
                 "relative": true
             }
         },
         {
             "name": "polyspec/ordered-json",
-            "version": "0.0.9",
+            "version": "0.0.10",
             "dist": {
-                "type": "zip",
-                "url": "var/composer-artifacts/polyspec-ordered-json-php-0.0.9.zip",
-                "shasum": "5f93a2c0df5967163801cb3d4d087e44834bb456"
+                "type": "path",
+                "url": "../ordered-json/packages/php",
+                "reference": "6961adc887aa97ffdda5ff39a8ca1d78b881e783"
             },
             "require": {
                 "ext-json": "*",
                 "ext-pcre": "*",
-                "php": ">=8.5"
+                "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "13.4.2"
+                "phpunit/phpunit": "13.4.3"
             },
             "suggest": {
-                "ext-ordered_json": "Native backend from the polyspec/ordered-json-extension PIE package"
+                "ext-polyspec_ordered_json": "Native backend from the polyspec/ordered-json-php-ext PIE package"
             },
             "type": "library",
             "autoload": {
@@ -128,7 +130,11 @@
             "license": [
                 "MIT"
             ],
-            "description": "JSON document order at every depth, with optional native parser"
+            "description": "JSON document order at every depth, with optional native parser",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         }
     ],
     "packages-dev": [
@@ -752,16 +758,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.4.2",
+            "version": "13.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "7b9ba83328f01ce299ef82161720195bd827a4bb"
+                "reference": "2180c47c4229e5da117ff248753370443c074f10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7b9ba83328f01ce299ef82161720195bd827a4bb",
-                "reference": "7b9ba83328f01ce299ef82161720195bd827a4bb",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2180c47c4229e5da117ff248753370443c074f10",
+                "reference": "2180c47c4229e5da117ff248753370443c074f10",
                 "shasum": ""
             },
             "require": {
@@ -832,7 +838,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.2"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.3"
             },
             "funding": [
                 {
@@ -840,7 +846,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-10-12T15:29:04+00:00"
+            "time": "2026-10-16T05:56:47+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -1389,28 +1395,28 @@
         },
         {
             "name": "sebastian/git-state",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/git-state.git",
-                "reference": "792a952e0eba55b6960a48aeceb9f371aad1f76b"
+                "reference": "31a565f463686f0eefa85f899549256bf5805985"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/git-state/zipball/792a952e0eba55b6960a48aeceb9f371aad1f76b",
-                "reference": "792a952e0eba55b6960a48aeceb9f371aad1f76b",
+                "url": "https://api.github.com/repos/sebastianbergmann/git-state/zipball/31a565f463686f0eefa85f899549256bf5805985",
+                "reference": "31a565f463686f0eefa85f899549256bf5805985",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.0"
+                "phpunit/phpunit": "^13.4.3"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "1.0-dev"
+                    "dev-main": "1.1-dev"
                 }
             },
             "autoload": {
@@ -1434,7 +1440,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/git-state/issues",
                 "security": "https://github.com/sebastianbergmann/git-state/security/policy",
-                "source": "https://github.com/sebastianbergmann/git-state/tree/1.0.0"
+                "source": "https://github.com/sebastianbergmann/git-state/tree/1.1.0"
             },
             "funding": [
                 {
@@ -1454,7 +1460,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-21T12:54:28+00:00"
+            "time": "2026-10-21T05:59:52+00:00"
         },
         {
             "name": "sebastian/global-state",
@@ -2057,13 +2063,13 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.5",
+        "php": ">=8.4",
         "php-64bit": "^8.2",
         "ext-mbstring": "*"
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.5.0"
+        "php": "8.4.1"
     },
     "plugin-api-version": "2.9.0"
 }

@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: fac10e401bb2fe0ed2e5b8a57812fd3bbc93e178f4dc82fa13d35856ebf179ed -->
+<!-- source-sha256: f4dd8b0f148a5ff65eec4f4e7fc102bffc32a71a95fae22981482298ca47bddc -->
 
 [English](repository.md).
 
@@ -125,13 +125,11 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
   다른 polyspec 저장소의 package는 이 root에서만 공급합니다. `@polyspec/ordered-json`은 tag `v0.0.9`의 release asset
   `polyspec-ordered-json-npm-0.0.9.tgz`를 root devDependency로 두며, `@polyspec/kit`처럼 URL과 integrity로 고정하고,
   `kit link`가 sibling checkout에 연결합니다.
-- root `composer.json`(`polyspec/crudui-workspace`, type `project`)은 Composer 기본 link를 쓰는
-  `packages/validator/php`와 `packages/generator/php`의 `path` repository를 두고 `polyspec/crudui-validator`와
-  `polyspec/crudui-generator`를 정확한 version으로 요구합니다. 따라서 `vendor/`는 각 package를 source 디렉터리에
-  link하고 그 package 자신의 `composer.json`의 `autoload`로 load합니다. `autoload-dev`는 두 PHP package의 test와
-  `tests/`의 test class를 읽습니다. 옆의 `composer.lock`이 해석을 기록하고, `make crudui-install-composer`가 root에
-  `vendor/`를 설치하며, PHPUnit(각 package의 bootstrap은 `vendor/autoload.php`), PHP check, PHP server가 그것을
-  load합니다.
+- private root `composer.json`은 `packages/validator/php`, `packages/generator/php`, `../ordered-json/packages/php`를
+  native symlink와 configuration reference를 사용하는 path repository로 선언합니다. CRUDUI package는 checkout의
+  정확한 version을 사용하며 OrderedJSON 제약은 현재 0.0.x sibling source를 허용합니다. `composer.lock`은 선택한
+  source version, 요구와 autoload를 기록합니다. PHPUnit, PHP check와 PHP server는 설치한 package를
+  `vendor/autoload.php`로 load합니다.
 
 `make crudui-test-dependencies`는 root `composer.json`과 lock을 `composer validate --strict`로, 게시되는 `composer.json`은 lock이
 없으므로 `composer validate --no-check-lock`으로 검사합니다.
@@ -141,19 +139,19 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
 npm source 폴더는 native `npm link --no-save --package-lock=false`로 연결한다. Release manifest와 lock은 유지하며 설치
 링크를 통해 source 변경이 즉시 보인다. 컴파일 package는 source 변경 뒤 native build가 필요하다.
 
-Composer 개발은 `composer.local.json`과 native `composer.local.lock`을 명시적으로 선택한다. Path repository는 이 checkout의
-두 PHP package와 `../ordered-json/packages/php`를 `vendor/`에 연결한다. OrderedJSON 요구는 0.0.x source version을 허용하며
-Composer가 실제 선택 version, 요구와 autoload를 기록한다. Version alias나 설치 기록 재작성은 사용하지 않는다.
+Private Composer project는 canonical `composer.json`과 `composer.lock`을 사용하며 별도 local profile을 선택하지
+않습니다. Composer는 이 checkout의 PHP package와 선언한 OrderedJSON sibling source를 `vendor/`에 연결하고 설치 기록과
+autoload를 관리합니다. 설치는 native Composer resolution으로 `polyspec/*` path package와 의존성을 갱신하며 alias,
+metadata 재작성이나 published archive download를 사용하지 않습니다.
 
 ```sh
-COMPOSER=composer.local.json make crudui-install-composer
+make crudui-install-composer
 make crudui-local-composer-check
 ```
 
-로컬 설치는 native Composer source resolution에 위임하고 선택 provider와 의존 package를 갱신한다. Resolution이 바뀌면
-local lock도 바뀐다. 서로 다른 project에 `COMPOSER`를 전역 export하지 않는다. CI와 archive 설치는 selector를 지정하지 않고
-선언한 release artifact를 포함한 `composer.json`과 `composer.lock`을 사용한다. 개발 호환성은 선택한 native Composer profile로
-검사하며 release dependency policy는 선언한 release lock을 검토한다. Candidate archive 검증은 C18.1로 남는다.
+선언한 sibling checkout은 설치 전에 존재해야 하며 이 개발 project를 사용하는 CI job도 이를 제공해야 합니다.
+Source resolution이 바뀌면 lock도 바뀝니다. PHP 8.4 이상을 지원하며 platform check는 설치한 source 요구를 검증합니다.
+Release archive consumer project는 이 private 개발 project와 별도로 유지합니다.
 
 ### release archive 설치
 

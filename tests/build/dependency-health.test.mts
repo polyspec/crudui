@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mts';
 import { checked, readJson, type JTDSchemaType } from '../json.mts';
+import { makeDryRun } from './make-dry-run.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -412,6 +413,27 @@ test('Composer path repositories link the local packages', () => {
   assert.deepEqual(failures, []);
 });
 
+test('the canonical Composer project resolves the current sibling source package', () => {
+  const manifest = readJson(path.join(root, 'composer.json'), composerSchema);
+  const source = manifest.repositories?.find(repository => repository.url === '../ordered-json/packages/php');
+  assert.ok(source);
+  assert.equal(source.type, 'path');
+  assert.equal(source.options?.symlink, true);
+  assert.equal(manifest.require?.['polyspec/ordered-json'], '0.0.*');
+  assert.equal(manifest.repositories?.some(repository => repository.type === 'artifact'), false);
+  assert.equal(existsSync(path.join(root, 'composer.local.json')), false);
+  assert.equal(existsSync(path.join(root, 'composer.local.lock')), false);
+});
+
+test('default PHP installation updates local sources without fetching release archives', () => {
+  const result = makeDryRun(root, 'crudui-install-composer', { database: true });
+  assert.equal(result.status, 0, result.stderr);
+  const install = makeTargets(result.stdout)['crudui-install-composer'];
+  assert.ok(install);
+  assert.equal(install.prerequisites.includes('release-assets-fetch'), false);
+  assert.match(install.commands.join('\n'), /\bupdate ['"]?polyspec\/\*/);
+});
+
 test('Composer installed records match the actual polyspec package versions', () => {
   const vendor = path.resolve(root, process.env.COMPOSER_VENDOR_DIR ?? 'vendor');
   const installed = readJson<{ packages: { name: string; version: string }[] }>(path.join(vendor, 'composer/installed.json'), {
@@ -446,6 +468,8 @@ test('a published Composer package declares its version, and the development roo
         repository.url, 'composer.json');
       const target = readJson(targetFile, composerSchema);
       assert.ok(target.name !== undefined, `${targetFile} declares no name`);
+      // External source constraints are resolved by Composer; packages published by this repository share its version.
+      if (!path.relative(root, targetFile).startsWith(`packages${path.sep}`)) continue;
       if (manifest.require?.[target.name] !== target.version) {
         failures.push(`${filename}:repositories[${index}] requires ${target.name} ${manifest.require?.[target.name]}, which declares ${target.version}`);
       }

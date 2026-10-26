@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — The default Composer project installs current sources (C18.1-1)
+
+- The private root Composer manifest and native lock resolve CRUDUI 0.0.8 and the current OrderedJSON 0.0.10 sibling source through path symlinks with configuration references. The default PHP install refreshes these source packages without a release download. The duplicate local manifest and lock are removed, and the existing Composer check validates the canonical project. Native installed records, PHP 8.4.26 platform requirements, selected dependency checks and the FormJson test pass with PHPUnit 13.4.3.
+
 ### 2026-10-26 — Complete the current documentation-tool candidate review (C18.2)
 
 - The pre-CI documentation review retains the directly managed latest patched Markdown parser, 15.0.3. Fresh stable and next VitePress archives still embed the affected reference parser. The rebuild record states the current registry channels, archive digests, parser selection and completed candidate decision.

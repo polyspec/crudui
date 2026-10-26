@@ -1,20 +1,20 @@
 # JSON 문서 순서 검증
 <!-- doc-id: docs-operations-ordered-json -->
-<!-- source-sha256: e86ce738437e050b4439bb0b66ad1665d96744aa72cfc0a18279cebf576c01de -->
+<!-- source-sha256: c0c14c31d815de764af9c74a11ace4f8d7daab988f45e756ae729abfff1079be -->
 
 [English](ordered-json.md). [폼 런타임 계약](../spec/form-runtime.ko.md)은 필요한
 데이터 형태와 순서를 정의합니다. [기능 상태](../features.ko.md)는 검증과 런타임
 배포를 구분해 기록합니다.
 
-[폼 비교](form-comparison.ko.md)의 레코드 서버는 [OrderedJSON](https://github.com/polyspec/ordered-json)
-0.0.9의 패키지로 JSON을 읽고 씁니다. tag `v0.0.9`의 release asset인 JavaScript `@polyspec/ordered-json` tarball과, 같은 release의 PHP 확장 zip
-`polyspec-ordered-json-extension-php-0.0.9.zip`에서 `make release-assets-fetch`가 `var/ordered-json-php-ext`에 풀어 놓은 `ordered_json` 확장, `v0.0.9`의 Go module
-`github.com/polyspec/ordered-json/packages/go`, Git tag `v0.0.9`의 Rust crate `polyspec-ordered-json`입니다. PHP의
-`Polyspec\OrderedJson`은 `config/release-assets.json`이 고정하는 release zip의 Composer 패키지 `polyspec/ordered-json`이며,
-`make crudui-install-composer`가 이를 root `composer.json`의 artifact 저장소 `var/composer-artifacts`에 내려받습니다. 처리기 자체는 OrderedJSON의 parity 검사와 테스트가 다섯 구현에서 검증하며 crudui는 이를
-반복하지 않습니다. crudui는 패키지 사용을 테스트합니다. `examples/form-comparison/src/json.test.mjs`, `servers/php`의 `FormJsonTest.php`,
-Go 서버의 `json_test.go`, Rust 서버의 JSON 테스트는 레코드가 숫자 키와 키가 있는 행을 포함한 멤버 순서와 빈 타입을
-유지하고, 폼 데이터 범위 밖의 숫자가 실패하는지 확인합니다.
+[폼 비교](form-comparison.ko.md)의 레코드 서버는 설치한 [OrderedJSON](https://github.com/polyspec/ordered-json)
+package로 JSON을 읽고 씁니다. 개발은 native source link를 사용합니다. Private root Composer project는
+`../ordered-json/packages/php`를 선언하고 실제 0.0.x source version을 `composer.lock`에 기록하며
+`vendor/autoload.php`로 load합니다. `make crudui-install-composer`는 published archive를 내려받지 않고 source
+resolution을 갱신합니다. Native PHP extension source는 선언한 개발 입력에서 해석합니다.
+`config/release-assets.json`의 published archive 입력은 기본 Composer source 설치와 독립적입니다.
+OrderedJSON은 처리기를 test하며 CRUDUI는 `examples/form-comparison/src/json.test.mjs`, `servers/php`의 `FormJsonTest.php`,
+Go 서버의 `json_test.go`, Rust 서버의 JSON test로 package 연동을 검사합니다. 이 검사는 member order, numeric key,
+keyed row, empty type과 form data 범위 밖 숫자의 거부를 확인합니다.
 
 폼 비교의 전송 모듈은 JSON 요청·응답과 저장소 파일에 이 처리기를 사용합니다. 처리기는 `Value` 노드를 반환하며,
 JavaScript 객체 멤버는 `Map`입니다. 폼 세션은 일반 객체 데이터를 받습니다.
