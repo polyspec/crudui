@@ -35,11 +35,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -84,11 +88,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -126,11 +134,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -175,11 +187,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -219,11 +235,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -267,11 +287,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -313,11 +337,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -365,11 +393,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -423,11 +455,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -460,11 +496,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -508,11 +548,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -555,11 +599,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -623,11 +671,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -695,11 +747,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -762,11 +818,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -803,11 +863,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -848,11 +912,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -933,11 +1001,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -992,11 +1064,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
@@ -1032,11 +1108,15 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'mise.toml'
+          package-manager-cache: false
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
       - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included

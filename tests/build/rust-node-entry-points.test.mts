@@ -130,6 +130,7 @@ test('Rust documentation coverage uses one resolved toolchain', t => {
 test('Rust API generation uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-api-', [
     'scripts/gen-api-docs.mts',
+    'scripts/operation-progress.mts',
   ], [
     'docs/api',
     'docs/public/api',

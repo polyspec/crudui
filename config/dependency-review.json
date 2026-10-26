@@ -1,16 +1,16 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-26T13:46:01.866Z",
+  "reviewed": "2026-10-26T20:43:24.482Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "34be8507cad32fe1b303a9bf2bb9f495a6804d3b043d57463b2e4100c6c7e1e3",
+      "sha256": "33f095539c35a6fae917f71d53b34badfb6d0bdf21bb737d3233043600a641da",
       "advisories": []
     },
     {
       "lock": "packages/svelte/tools/package-lock.json",
-      "sha256": "592493f49573c52e21eb79104a39075a4b3a4bfe5e95f61b38075336dde1bb41",
+      "sha256": "ba9f6329899a77b688b6828ea8d2dc6abf2c546cc18210c040b980ca9e62e177",
       "advisories": []
     },
     {
@@ -207,8 +207,8 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "postcss",
-      "version": "8.5.31",
-      "latest": "8.5.31"
+      "version": "8.5.32",
+      "latest": "8.5.32"
     },
     {
       "ecosystem": "npm",
@@ -508,8 +508,8 @@
       "ecosystem": "npm",
       "manifest": "packages/svelte/package.json",
       "package": "svelte",
-      "version": "5.57.2",
-      "latest": "5.57.2"
+      "version": "5.57.3",
+      "latest": "5.57.3"
     },
     {
       "ecosystem": "npm",
@@ -635,14 +635,14 @@
       "manifest": "packages/svelte/tools/package.json",
       "package": "typescript",
       "version": "6.0.3",
-      "latest": "6.0.3"
+      "latest": "7.0.2"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/svelte/tools/package.json",
       "package": "typescript-eslint",
-      "version": "8.72.0",
-      "latest": "8.72.0"
+      "version": "8.72.1",
+      "latest": "8.72.1"
     },
     {
       "ecosystem": "composer",

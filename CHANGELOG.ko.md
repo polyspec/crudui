@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9e55ee910ff53dc16528dca68a8feac74fda8db63d66a11b8b230c4258df5a68 -->
+<!-- source-sha256: 271115c430074a075432100a4a1c003fac05f165d1dca9d8aa7e99cc4858f876 -->
 
 ## Unreleased
+
+### 2026-10-27 — kit 0.0.56을 반영한다 (C18.7)
+
+- Root 개발 의존성과 npm lock은 공개된 kit 0.0.56 archive 및 SHA-512 integrity를 고정한다. Native npm 링크는 현재 kit과 OrderedJSON source checkout을 유지한다. 공유 principles는 설치된 kit source와 동기화한다.
+- Make는 설치 package의 bootstrap을 읽으며 자체 CI의 Make job은 선언된 npm으로 locked package를 먼저 설치한다. Svelte 5.57.3, PostCSS 8.5.32와 typescript-eslint 8.72.1은 기존 호환 requirement로 해석한다. Release consumer에 fsevents 2.3.3 script 승인을 선언하고 Rust API fixture는 operation logger를 포함한다.
+- Kit 0.0.56의 link-state 검사는 선언된 native OrderedJSON Composer path lock을 거부한다. Native npm graph, Composer와 dependency-policy 검증은 통과한다.
 
 ### 2026-10-26 — Native Composer 준비 함수를 내부에 둔다 (C18.1-8)
 

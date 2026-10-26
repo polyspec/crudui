@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: fb29af1e3cd3619d8d4ba24ef2966944a9ed56f69d4cefeca86d082012e1f1a0 -->
+<!-- source-sha256: f546d6626587ad7ce2223df0758aeec062b27b27acbb4d36df6c93c3d6211ccc -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -34,12 +34,14 @@
 - Own: PHP 8.4 이상을 허용합니다. 검증 기록은 실제 실행한 PHP 버전을 적습니다.
   Enforced by: none, 지원하는 PHP 범위는 저장소 규칙입니다.
 
-- Own: 공유 도구는 package `@polyspec/kit`입니다. `package.json`은 polyspec/kit의 tag release asset에 고정하는 devDependency이며,
-  `package-lock.json`은 그 integrity를 고정합니다. checkout은 다른 target보다 먼저 `make install-tools TOOLS=npm`과
-  `make install-packages`를 실행합니다. package의 `kit.copies`에 적힌 파일(`scripts/kit/kit-bootstrap.mk`,
-  `scripts/kit/bootstrap/`, release workflow, `PRINCIPLES.md`, `config/layout.kit.yml`과 lint 설정)은 `make kit-sync`가
-  쓰고 `make kit-check`가 비교합니다. 이 파일들은 polyspec/kit에서만 바꾸며 여기서 편집하지 않습니다. 코드는 package의
-  export를 통해서만 kit module을 import합니다.
+- Own: 공유 도구는 root manifest와 lock이 고정한 설치 package `@polyspec/kit`입니다. 첫 make 실행 전에 native npm이
+  `packageManager`에서 정확한 npm release를 읽고 잠긴 설치를 실행합니다(`docs/operations/package-build.md`). Makefile은
+  `node_modules/@polyspec/kit/scripts/kit/kit-bootstrap.mk`를 include합니다. 설치 package가 bootstrap 파일을 제공하고
+  source 또는 packed 명령을 선택합니다. Sibling kit checkout은 선택 사항이며 bootstrap 파일은 `kit.copies`가 아닙니다.
+  설치 뒤 `make install-tools TOOLS=npm`과 `make install-packages`가 checkout 도구와 package를 준비합니다. 설치 package가
+  실제 `kit.copies`에 적은 release 및 gates workflow, `PRINCIPLES.md`, `.editorconfig`, layout과 manifest schema 등은
+  `make kit-sync`가 쓰고 `make kit-check`가 비교합니다. 이 파일들은 polyspec/kit에서만 바꾸며 여기서 편집하지 않습니다.
+  코드는 package export를 통해 kit module을 import합니다.
   Enforced by: `make kit-check`
 - Own: 모든 도구는 checkout이 기록한 정확한 release로 실행합니다(`mise.toml`과 `mise.lock`, `rust-toolchain.toml`,
   `config/toolchain.json`, `package.json`의 `packageManager`). image는 digest로, Debian package는 snapshot 날짜로, action은

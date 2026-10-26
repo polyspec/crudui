@@ -77,6 +77,51 @@ function field(value: unknown, key: string): unknown {
   return isRecord(value) ? value[key] : undefined;
 }
 
+// Native npm installs the pinned kit before the Makefile can include its bootstrap.
+const NATIVE_NPM_BOOTSTRAP = `npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root`;
+const nativeNpmBootstrap = (command: string | undefined): boolean => command?.trim() === NATIVE_NPM_BOOTSTRAP;
+
+/** Jobs that invoke make before an unconditional install with the declared npm release. */
+export function nativeBootstrapViolations(workflow: Workflow): string[] {
+  const findings: string[] = [];
+  for (const [id, job] of Object.entries(workflow.jobs)) {
+    const steps = job.steps ?? [];
+    const firstMake = steps.findIndex(step => /(?:^|\n)\s*make(?:\s|$)/.test(step.run ?? ''));
+    if (firstMake < 0) continue;
+    const installs = steps.map((step, index) => ({ step, index })).filter(({ step }) => nativeNpmBootstrap(step.run));
+    const install = installs[0];
+    if (installs.length !== 1 || !install) findings.push(`${id}: expected one native npm bootstrap reading packageManager`);
+    else if (install.step.if !== undefined) findings.push(`${id}: native npm bootstrap must be unconditional`);
+    else if (install.index >= firstMake) findings.push(`${id}: native npm bootstrap must precede the first make`);
+  }
+  return findings;
+}
+
+test('each make job bootstraps the installed kit with the declared npm before make', async () => {
+  assert.deepEqual(nativeBootstrapViolations({ jobs: {
+    missing: { steps: [{ run: 'make install-tools' }] },
+    late: { steps: [{ run: 'make install-tools' }, { run: NATIVE_NPM_BOOTSTRAP }] },
+    hardcoded: { steps: [{ run: NATIVE_NPM_BOOTSTRAP.replace('$(node -p \'require("./package.json").packageManager.split("+")[0]\')', 'npm@1.0.0') }, { run: 'make install-tools' }] },
+    conditional: { steps: [{ run: NATIVE_NPM_BOOTSTRAP, if: '${{ success() }}' }, { run: 'make install-tools' }] },
+    duplicate: { steps: [{ run: NATIVE_NPM_BOOTSTRAP }, { run: NATIVE_NPM_BOOTSTRAP }, { run: 'make install-tools' }] },
+    valid: { steps: [{ run: NATIVE_NPM_BOOTSTRAP }, { run: 'make install-tools' }] },
+    deployment: { steps: [{ uses: 'actions/deploy-pages@x' }] },
+  } }), [
+    'missing: expected one native npm bootstrap reading packageManager',
+    'late: native npm bootstrap must precede the first make',
+    'hardcoded: expected one native npm bootstrap reading packageManager',
+    'conditional: native npm bootstrap must be unconditional',
+    'duplicate: expected one native npm bootstrap reading packageManager',
+  ]);
+  let jobs = 0;
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml', 'dependency-review.yml']) {
+    const workflow = await workflowFile(file);
+    jobs += Object.values(workflow.jobs).filter(job => job.steps?.some(step => /(?:^|\n)\s*make(?:\s|$)/.test(step.run ?? ''))).length;
+    assert.deepEqual(nativeBootstrapViolations(workflow), [], file);
+  }
+  assert.ok(jobs > 0, 'the native bootstrap selection checks at least one make job');
+});
+
 // Steps that prepare a runner rather than check the repository.
 const preparation = [
   /^make(?: (?:crudui-)?install-[\w-]+)+(?: [A-Z]+="[^"]*")?$/,
@@ -97,6 +142,7 @@ export function workflowCommands(workflow: Workflow): string[] {
       if (typeof step.run !== 'string') continue;
       for (const line of step.run.split('\n').map((text) => text.trim()).filter(Boolean)) {
         for (const command of line.split(' && ')) {
+          if (nativeNpmBootstrap(command)) continue;
           // make ci-targets runs each target of TARGETS as make -k <target> (ci-targets of @polyspec/kit).
           const targets = /^make ci-targets TARGETS="([^"]+)"$/.exec(command);
           if (targets?.[1] !== undefined) commands.push(...targets[1].split(' ').map((target) => `make ${target}`));
@@ -126,7 +172,7 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
   assert.equal(job.if, '${{ always() }}');
   assert.deepEqual(job.needs, ids.slice(0, -1));
   assert.equal(job['runs-on'], 'ubuntu-24.04');
-  assert.deepEqual((job.steps ?? []).filter((step) => step.run !== undefined && !/^make (?:toolchain-check|install-tools|install-packages)\b/.test(step.run)).map((step) => step.run),
+  assert.deepEqual((job.steps ?? []).filter((step) => step.run !== undefined && !nativeNpmBootstrap(step.run) && !/^make (?:toolchain-check|install-tools|install-packages)\b/.test(step.run)).map((step) => step.run),
     ["make ci-passed RESULTS='${{ toJSON(needs) }}'"]);
 });
 
@@ -283,7 +329,7 @@ export function stepsOutsideMake(workflow: Workflow): string[] {
   const violations: string[] = [];
   for (const [id, job] of Object.entries(workflow.jobs)) {
     for (const step of job.steps ?? []) {
-      if (typeof step.run !== 'string') continue;
+      if (typeof step.run !== 'string' || nativeNpmBootstrap(step.run)) continue;
       for (const command of step.run.split(/\n|&&|\|\||;|\|/).map(text => text.trim()).filter(Boolean)) {
         const words = command.split(/\s+/).filter(word => !/^[A-Z_][A-Z0-9_]*=/.test(word));
         while (['sudo', 'env', 'xvfb-run', 'time'].includes(words[0] ?? '')) words.shift();

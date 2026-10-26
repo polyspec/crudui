@@ -7,6 +7,14 @@ How a change reaches `main`, which workflows run and how a release is made while
 request, merge queue or GitHub ruleset: work is committed locally, one checklist row per commit, and the maintainer
 pushes `main`.
 
+## Checkout bootstrap
+
+Before running make, install the root lock with the exact npm release declared in `packageManager`, using the
+[native npm bootstrap](package-build.md#runtime-and-dependency-versions). The Makefile then includes the bootstrap of the
+installed `@polyspec/kit` package. Its source or packed commands run without requiring a sibling kit checkout. Bootstrap
+files belong to the installed package and are not repository copies. Every workflow job that runs make performs this
+installation before its first make command.
+
 ## Publishing main
 
 Each development task is committed with its changelog entry when its owning unit tests pass, and the row becomes `[o]`.
@@ -77,7 +85,8 @@ Composer archive or a platform-specific binary to the published assets.
    creates a GitHub Release of that tag without assets; it does not depend on the run of `vX.Y.Z`.
 4. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
    match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. The workflow
-   is the copy of kit. After the setup steps (`make install-tools TOOLS=npm`, `make install-packages`, `make release-tools`,
+   is the copy of kit. It installs the kit package through native npm before make. After the setup steps
+   (`make install-tools TOOLS=npm`, `make install-packages`, `make release-tools`,
    which installs the tools that `config/release.json` needs, and `make release-tools-path`) its steps run through make
    in this order; the steps of `node_modules/@polyspec/kit/dist/release.mjs` take the tag of the environment variable `TAG`:
    - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`), the tag

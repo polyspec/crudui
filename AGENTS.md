@@ -35,13 +35,15 @@ only the rules of crudui.
 - Own: PHP 8.4 and later are allowed. A verification record states the PHP version that actually ran.
   Enforced by: none, the supported PHP range is the repository rule.
 
-- Own: The shared tools are the package `@polyspec/kit`, a devDependency that `package.json` pins to the release asset of a
-  tag of polyspec/kit and `package-lock.json` pins with its integrity. A checkout runs `make install-tools TOOLS=npm` and
-  `make install-packages` before any other target. The files that `kit.copies` of the package lists
-  (`scripts/kit/kit-bootstrap.mk`, `scripts/kit/bootstrap/`, the release workflow, `PRINCIPLES.md`,
-  `config/layout.kit.yml` and the lint configurations) are written by `make kit-sync` and compared by `make kit-check`.
-  They are changed only in polyspec/kit, never edited here. Code imports a kit module only through an export of the
-  package.
+- Own: The shared tools are the installed package `@polyspec/kit`, pinned by the root manifest and lock. Before the
+  first make invocation, native npm reads the exact npm release from `packageManager` and runs the locked install
+  (`docs/operations/package-build.md`). The Makefile includes
+  `node_modules/@polyspec/kit/scripts/kit/kit-bootstrap.mk`; the installed package provides its bootstrap files and
+  selects its source or packed commands. A sibling kit checkout is optional, and bootstrap files are not `kit.copies`.
+  After installation, `make install-tools TOOLS=npm` and `make install-packages` prepare the checkout tools and packages.
+  Files that the installed package actually lists in `kit.copies`, including the release and gates workflows,
+  `PRINCIPLES.md`, `.editorconfig`, layout and manifest schemas, are written by `make kit-sync` and compared by
+  `make kit-check`. They are changed only in polyspec/kit, never edited here. Code imports kit modules through package exports.
   Enforced by: `make kit-check`
 - Own: Every tool runs at the exact release that the checkout records (`mise.toml` with `mise.lock`, `rust-toolchain.toml`,
   `config/toolchain.json`, `packageManager` of `package.json`). An image is named by its digest, its Debian packages by a

@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-operations-package-build -->
-<!-- source-sha256: 1e150314f2dd543b35cef485730eff83432a2ce02128dd7f4e7f85a2b5102009 -->
+<!-- source-sha256: 0f2d688fb92c79747dcc5936cefe6048b37ed51dbd946ed2b3cde89b3a56f7e8 -->
 
 [English](package-build.md).
 
@@ -152,6 +152,17 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 사용하지 않습니다. 어떤 실행도 채널의 최신 릴리스를 registry에 묻지 않고, 어떤 도구도 스스로
 다른 버전을 설치하지 않습니다.
 
+첫 `make` 전에 `packageManager`에 선언한 release의 native npm으로 root lock을 설치합니다:
+
+```sh
+npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
+```
+
+이 명령은 Makefile이 `node_modules/@polyspec/kit/scripts/kit/kit-bootstrap.mk`를 include하기 전에 `@polyspec/kit`을
+설치합니다. Package가 bootstrap 파일을 제공하며 이 파일은 `kit-sync`가 관리하는 저장소 사본이 아닙니다. 설치 package는
+source와 packed 명령을 지원하므로 sibling kit checkout은 선택 사항입니다. CI는 setup-node 뒤 첫 make 명령 전에 이
+bootstrap을 실행합니다. Bootstrap npm cache는 checkout의 `var/bootstrap/npm-cache`에 둡니다.
+
 - `mise.toml`의 `node`는 정확한 Node.js 릴리스를 기록합니다. `make install-tools TOOLS=npm`이 그것을 mise로
   `var/tools`에 설치하고 `var/tools/bin/node`가 실행하며, CI의 setup-node는 그 bootstrap을 시작하려고만 그것을 읽습니다(kit K171).
 - 루트 `package.json`의 `packageManager`는 정확한 npm 릴리스를 기록합니다. 설치하고 패키징하고
@@ -159,7 +170,7 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   npm 12의 object로 바뀐 것이 그 예입니다. `make install-tools`(`node_modules/@polyspec/kit/dist/install-tools.mjs`)는 정확히 그 릴리스를
   checkout의 무시되는 directory `var/tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
   machine의 npm에는 설치하지 않습니다. Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 두고,
-  모든 CI job은 npm을 make 대상으로 시작합니다.
+  Native bootstrap 뒤 CI는 저장소 도구를 make 대상으로 시작합니다.
 - checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.12.0, Python 3.14, PHP 8.4, Go 1.27.2, Rust 1.99.0,
   TypeScript 7.0.2)를 고정하고, `make toolchain-check`는 그 pin이 아닌 선언과 manifest 하한마다 실패합니다. 대상은
   `mise.toml`의 `node`, 모든 `package.json`의 `engines.node`(`>=26.12.0`), 모든 `composer.json`의 `require.php`(`>=8.4`), 모든

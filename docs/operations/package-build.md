@@ -162,6 +162,18 @@ latest stable release supported by the project. Pre-release versions are exclude
 unless a specification explicitly requires one. No run queries a registry for the
 latest release of a channel, and no tool installs another version on its own.
 
+Before the first `make`, install the root lock with native npm at the release declared in `packageManager`:
+
+```sh
+npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
+```
+
+This command installs `@polyspec/kit` before Makefile parsing includes
+`node_modules/@polyspec/kit/scripts/kit/kit-bootstrap.mk`. The package supplies its bootstrap files; they are not
+repository copies managed by `kit-sync`. The installed package supports source and packed commands, so a sibling kit
+checkout is optional. CI runs this bootstrap after setup-node and before its first make command. The bootstrap npm cache
+belongs to the checkout at `var/bootstrap/npm-cache`.
+
 - `node` of `mise.toml` records the exact Node.js release, which `make install-tools TOOLS=npm` installs into
   `var/tools` with mise and `var/tools/bin/node` runs; CI's setup-node reads it only to start that bootstrap (kit K171).
 - `packageManager` of the root `package.json` records the exact npm release,
@@ -170,7 +182,7 @@ latest release of a channel, and no tool installs another version on its own.
   npm 12. `make install-tools` (`node_modules/@polyspec/kit/dist/install-tools.mjs`) installs exactly
   that release into the ignored directory `var/tools/npm` of the checkout and never
   into the machine, whose npm every other checkout uses. The Makefile puts
-  `var/tools/bin` first on `PATH`, and every CI job starts npm through a make target.
+  `var/tools/bin` first on `PATH`. After the native bootstrap, CI starts repository tools through make targets.
 - The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.12.0, Python 3.14, PHP 8.4,
   Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2), and `make toolchain-check` fails on each declaration and manifest floor
   that is not the pin: `node` of `mise.toml`, `engines.node` of every `package.json` (`>=26.12.0`), `require.php` of every
