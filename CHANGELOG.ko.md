@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9d8a72e9de35c1346f094aed19b3d25d8cd5fb00d8836e5d6f774e18bd58ac40 -->
+<!-- source-sha256: a1771276c20c50458957c736f78a4c5c487b3ae38949227640e64d00c2d524fb -->
 
 ## Unreleased
 
@@ -19,6 +19,10 @@
 ### 2026-10-26 — Go toolchain이 linked module의 최소 버전과 일치한다 (C17.54)
 
 - 기록한 Go toolchain과 workspace는 Go 1.27.3을 요구한다. mise.lock은 네 platform의 archive를 고정한다. 기록한 toolchain으로 linked comparison module graph를 해석하며 runtime-version policy 검사가 통과한다.
+
+### 2026-10-26 — 의존성이 수정된 npm 및 Tokio 버전을 사용한다 (C17.53)
+
+- npm lock은 fast-uri 3.1.9, undici 8.12.3, zod 4.6.7, markdown-it 15.0.3을 선택하며 중첩 의존성에는 markdown-it 14.3.3을 사용한다. Rust form comparison lock은 Tokio 1.53.3을 선택한다. npm audit은 취약점이 없음을 보고하며 comparison lock의 Rust audit은 취약점과 경고가 없음을 보고한다. 선택한 dependency graph, JSON shape, documentation rendering 및 Rust server test가 통과한다.
 
 ### 2026-10-26 — Rust fixture reader가 오류를 명시적으로 match한다 (C17.38-1)
 

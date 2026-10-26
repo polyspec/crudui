@@ -19,6 +19,10 @@
 
 - The recorded Go toolchain and workspace require Go 1.27.3. mise.lock pins its archives on all four platforms. The linked comparison module graph resolves with the recorded toolchain, and the runtime-version policy checks pass.
 
+### 2026-10-26 — Dependencies use patched npm and Tokio versions (C17.53)
+
+- The npm lock selects fast-uri 3.1.9, undici 8.12.3, zod 4.6.7 and markdown-it 15.0.3, including markdown-it 14.3.3 for the nested dependency. The Rust form comparison lock selects Tokio 1.53.3. The npm audit reports no vulnerabilities, and the Rust audit of the comparison lock reports no vulnerabilities or warnings. Selected dependency graph, JSON shape, documentation rendering and Rust server tests pass.
+
 ### 2026-10-26 — Rust fixture readers match errors explicitly (C17.38-1)
 
 - Rust fixture readers use explicit Result matching for file reads and JSON parsing. Failures retain the fixture path and underlying error, and the selected Clippy checks use the repository configuration. The diagnostic example names the same error handling form.

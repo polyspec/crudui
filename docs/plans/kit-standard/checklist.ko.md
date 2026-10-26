@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: af5b605e964d734de3db27d5180e1c70d68ab4fcde29bf3b331aaab0f317d58f -->
+<!-- source-sha256: 8ea65d57938387a3243e925bec78f36ce2f8e46552d53535e00510968e8e3646 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -395,3 +395,4 @@
 | C17.51 | PHP package source 문서와 provenance 검사는 기존 source 및 docblock 검사를 유지하며 extension runtime 계약 test 밖의 문서 도구 unit으로 실행한다. | scripts/php-doc-coverage.test.mts, the two package DocCoverageTest.php files and their parity internal declarations | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- scripts/php-doc-coverage.test.mts`; `make parity-declarations-check` | [o] |
 | C17.52 | 종결 예외를 재검토하고 release 선행 조건을 준비한다 (우선순위: 높음). | checklist decisions, advisory records, release readiness | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/docs/repository-writing.test.mts` | [ ] |
 | C17.54 | Go workspace와 toolchain을 linked module의 최소 버전에 맞춘다 (우선순위: 높음). | mise.toml, mise.lock, go.work, Go toolchain unit verification | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/runtime-version-policy.test.mts` | [o] |
+| C17.53 | 취약한 npm 의존성과 Tokio를 수정 버전으로 갱신한다 (우선순위: 높음). | package.json, package-lock.json, examples/form-comparison/servers/rust/Cargo.lock | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="locked dependency graph\|workspace packages use the root dependency lock file\|tracked npm dependency graphs approve" tests/build/dependency-health.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- scripts/json-schema.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="documentation build preserves page routes" tests/docs/web-build.test.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts cargo -- --locked --manifest-path examples/form-comparison/servers/rust/Cargo.toml server_html_uses_framework_storage_and_native_submission` | [o] |
