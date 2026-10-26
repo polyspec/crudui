@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — Production imports require runtime dependencies (C17.15-1)
+
+- The production dependency check runs Knip on each workspace source entry with strict production dependency resolution. Its fixture rejects an import declared only in devDependencies and accepts dependencies and peerDependencies. The CLI declares ajv, ajv-formats and js-yaml as runtime dependencies. The check runs with lint-ts and resolves the open dependency finding of C17.15.
+
 ### 2026-10-26 — PHP verification records retain measured versions (C16.168)
 
 - The verification records state PHP 8.4 and later as the supported range and distinguish the selected CI toolchain from that range. The dated PHP 8.5.10 measurements remain historical evidence and do not claim verification of the current tree.

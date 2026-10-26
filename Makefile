@@ -516,3 +516,9 @@ CHECK_TARGETS = \
 	lint-rust \
 	lint-php-ext \
 	test-php-ext
+
+# Production imports are resolved from each package's own runtime dependencies.
+.PHONY: production-dependencies-check
+lint-ts: production-dependencies-check
+production-dependencies-check:
+	$(NODE) node_modules/knip/bin/knip.js --config config/knip-production.json --production --strict --include unlisted --no-progress --no-config-hints

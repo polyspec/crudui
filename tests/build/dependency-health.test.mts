@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
@@ -439,4 +439,31 @@ test('tracked npm dependency graphs approve every install script by exact versio
     }
   }
   assert.deepEqual(failures, []);
+});
+
+// Production entry points use their package's dependencies or peerDependencies.
+test('production dependency checks reject a devDependency-only import', t => {
+  const parent = path.join(root, 'var/tmp');
+  mkdirSync(parent, { recursive: true });
+  const fixture = mkdtempSync(path.join(parent, 'production-dependencies-'));
+  t.after(() => rmSync(fixture, { recursive: true, force: true }));
+  writeFileSync(path.join(fixture, 'index.js'), "import { createElement } from 'react'; export { createElement };\n");
+  writeFileSync(path.join(fixture, 'knip.json'), JSON.stringify({ entry: ['index.js!'], project: ['index.js!'] }));
+  const run = (kind: string) => {
+    writeFileSync(path.join(fixture, 'package.json'), JSON.stringify({ name: 'production-fixture', type: 'module', [kind]: { react: '19.2.8' } }));
+    const result = spawnSync(process.execPath, [path.join(root, 'node_modules/knip/bin/knip.js'),
+      '--directory', fixture, '--production', '--strict', '--include', 'unlisted', '--no-gitignore',
+      '--no-progress', '--no-config-hints', '--reporter', 'json'], { cwd: root, encoding: 'utf8' });
+    assert.equal(result.error, undefined, result.error?.message ?? '');
+    const report = checked<{ issues: { file: string; unlisted?: { name: string }[] }[] }>(JSON.parse(result.stdout), {
+      properties: { issues: { elements: { properties: { file: { type: 'string' } },
+        optionalProperties: { unlisted: { elements: { properties: { name: { type: 'string' } }, additionalProperties: true } } },
+        additionalProperties: true } } }, additionalProperties: true,
+    }, 'knip production report');
+    return { status: result.status, names: report.issues.flatMap(issue => issue.unlisted?.map(item => item.name) ?? []) };
+  };
+  assert.deepEqual(run('devDependencies'), { status: 1, names: ['react'] });
+  for (const kind of ['dependencies', 'peerDependencies']) {
+    assert.deepEqual(run(kind), { status: 0, names: [] }, kind);
+  }
 });

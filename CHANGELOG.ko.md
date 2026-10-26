@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a20e7e72b7489a291d607ee58f8a08e7aa16186bd7485c6c25e9af043f412c92 -->
+<!-- source-sha256: c43acb8f5ae7a30c5b9e66dfef12ffa029b7c9df3d4ce346f8e1e1713f24cb32 -->
 
 ## Unreleased
+
+### 2026-10-26 — Production import가 runtime dependency를 요구한다 (C17.15-1)
+
+- Production dependency 검사는 각 workspace source entry에 Knip의 strict production dependency resolution을 적용한다. Fixture는 devDependencies에만 선언한 import를 거부하고 dependencies와 peerDependencies를 허용한다. CLI는 ajv, ajv-formats, js-yaml을 runtime dependency로 선언한다. 검사는 lint-ts와 함께 실행하며 C17.15의 미해결 dependency 사항을 해결한다.
 
 ### 2026-10-26 — PHP 검증 기록이 측정한 버전을 보존한다 (C16.168)
 

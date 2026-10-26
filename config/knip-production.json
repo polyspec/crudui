@@ -1,0 +1,86 @@
+{
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": []
+    },
+    "packages/cli": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/form-binding": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/generator/ts": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/html": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/react": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/svelte": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/validator/ts": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    },
+    "packages/vue": {
+      "entry": [
+        "src/index.{ts,tsx,js,mjs}!",
+        "src/server.{ts,tsx,js,mjs}!"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,mjs,svelte}!"
+      ]
+    }
+  },
+  "ignoreWorkspaces": [
+    "."
+  ],
+  "ignore": [
+    "**/dist/**"
+  ]
+}

@@ -802,6 +802,17 @@
         "lint-php-ext",
         "duplication-check"
       ]
+    },
+    {
+      "paths": [
+        "config/knip-production.json"
+      ],
+      "targets": [
+        "production-dependencies-check"
+      ],
+      "tests": [
+        "tests/build/dependency-health.test.mts"
+      ]
     }
   ],
   "inputs": [
