@@ -86,6 +86,8 @@ the stage shell that the selected client fills. Initialization comparison preser
 framework-owned container markers and compares rendered container contents; Vue's `data-v-app` is
 not removed.
 
+PHP 8.4 and later are supported. `.php-version` selects the CI toolchain; it does not set an upper bound on supported PHP releases. The dated verification sections record the versions and results of those runs. Their historical PHP 8.5.10 measurements remain unchanged and do not verify the current tree.
+
 ## Display declaration verification
 
 On 2026-09-24 the working tree of the display declaration change passed on macOS arm64 with PHP

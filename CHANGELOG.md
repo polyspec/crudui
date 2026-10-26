@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-26 — PHP verification records retain measured versions (C16.168)
+
+- The verification records state PHP 8.4 and later as the supported range and distinguish the selected CI toolchain from that range. The dated PHP 8.5.10 measurements remain historical evidence and do not claim verification of the current tree.
+
 ### 2026-10-26 — The PHP extension renders structured condition HTML consistently (C17.35)
 
 - The C renderer writes the structured condition editor as raw HTML: textarea text retains quotes, editor inputs use HTML void tags, and editor text and affixes use the same escaping as the shared renderer. The comparison tests pass all 11 cases, including the three previously failing rendering checks.

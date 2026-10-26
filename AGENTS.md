@@ -11,9 +11,9 @@ only the rules of crudui.
   suite) prints step logs and has no time limit: its result is judged from its observed outcome and errors. A test that
   runs for tens of minutes, or that prints only its start and its end, is a defect.
   Enforced by: `make test-markers-check`
-- Refines P20: During development only the unit tests that own the change run. The end-to-end checks (browsers, containers, the form
-  comparison, the native and cross-check suites, full builds), `make owner-check` and the full run run in CI on the push
-  to `main`. A failure that CI reports gets a task like any other defect.
+- Refines P20: During development only the unit tests that own the change run. The full suite runs exactly once after
+  every item of the active checklists is complete, and never after each change or item. Long operations run in the
+  background and report their progress. A failure gets a task like any other defect.
   Enforced by: none, which unit tests a developer runs before a commit is a procedure that no check reads.
 - Own: A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the working tree. The
   tracked pre-push hook `.githooks/pre-push` runs `make push-gate-hook`, which refuses such a push and names each task in
@@ -28,6 +28,9 @@ only the rules of crudui.
   Enforced by: none, the order of pushes and tags is a procedure that no check reads.
 
 ## Tools and dependencies
+
+- Own: PHP 8.4 and later are allowed. A verification record states the PHP version that actually ran.
+  Enforced by: none, the supported PHP range is the repository rule.
 
 - Own: The shared tools are the package `@polyspec/kit`, a devDependency that `package.json` pins to the release asset of a
   tag of polyspec/kit and `package-lock.json` pins with its integrity. A checkout runs `make install-tools TOOLS=npm` and
@@ -53,7 +56,7 @@ only the rules of crudui.
 ## Layout, documents and changes
 
 - Refines S5: Keep contracts in `docs/spec/`, implementation and deployment status in `docs/features.md`, procedures in
-  `docs/operations/`, planned tasks with their verification and completion in `docs/plans/execution-checklist/checklist.md`, and
+  `docs/operations/`, planned tasks with their verification and completion in `docs/plans/<plan>/checklist.md`, and
   actual changes in `CHANGELOG.md`. Every change belongs to a task of the checklist; add the task before the work when it
   is missing.
   Enforced by: `make layout-check`
@@ -90,12 +93,12 @@ only the rules of crudui.
 
 ## Checklist
 
-- Refines P24: This repository has one checklist, `docs/plans/execution-checklist/checklist.md`. Split a task into sub-items or add tasks to it;
-  do not create another checklist.
+- Refines P24: This repository allows multiple checklists under `docs/plans/<plan>/checklist.md`. Each plan holds its
+  checklist and its Korean twin; task IDs are unique across all checklists.
   Enforced by: `make docs-check`
 - Own: Each wave is a heading `## Wave <n> — <title>` followed by a table with the columns ID, Task, Verification and Status.
   A task ID has the form `C<wave>.<number>`, and a task row starts with it. The state marker appears only at the start of
-  the Status cell of a task row. `docs/plans/execution-checklist/plan.md` holds the dependencies of each wave.
+  the Status cell of a task row. The plan's `plan.md` holds the dependencies of its waves.
   Enforced by: `make docs-check`
 - Own: A received instruction is classified first: a task of the checklist, a rule of this file, or an answer only. Unless the
   instruction states that it is urgent, record it as a task with its priority and continue the task in progress. Rules

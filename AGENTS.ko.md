@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: eefde491e3c32e973b2acf64d71a7c539313052d9b249cdbe482a250df875cd2 -->
+<!-- source-sha256: ac9cb5e03160969b4f08bb90807cfd466946697183f78eab26888cc8b6de2481 -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙만 적습니다.
 
@@ -11,9 +11,9 @@
   출력하며 시간 제한이 없습니다. 결과는 관측된 outcome과 error로 판단합니다. 수십 분 동안 실행되거나 시작과 끝만
   출력하는 test는 결함입니다.
   Enforced by: `make test-markers-check`
-- Refines P20: 개발 중에는 바뀐 것을 소유한 unit test만 실행합니다. end-to-end 검사(browser, container, form comparison, native 및
-  cross-check suite, 전체 build), `make owner-check`와 전체 실행은 `main`에 push될 때 CI에서 실행합니다. CI가 보고한
-  실패는 다른 결함과 같이 작업으로 올립니다.
+- Refines P20: 개발 중에는 바뀐 것을 소유한 unit test만 실행합니다. 전체 suite는 활성 checklist의 모든 항목을 완료한 뒤
+  정확히 한 번 실행하며, 수정이나 개별 항목마다 실행하지 않습니다. 긴 작업은 background에서 실행하고 진행 상태를
+  보고합니다. 실패는 다른 결함과 같이 작업으로 올립니다.
   Enforced by: none, commit 전에 어떤 unit test를 실행하는지는 어떤 검사도 읽지 않는 절차입니다.
 - Own: push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook
   `.githooks/pre-push`은 `make push-gate-hook`을 실행하며, 이 명령은 그런 push를 거부하고 진행 중인 작업을 각각 밝힙니다.
@@ -28,6 +28,9 @@
   Enforced by: none, push와 tag의 순서는 어떤 검사도 읽지 않는 절차입니다.
 
 ## 도구와 의존성
+
+- Own: PHP 8.4 이상을 허용합니다. 검증 기록은 실제 실행한 PHP 버전을 적습니다.
+  Enforced by: none, 지원하는 PHP 범위는 저장소 규칙입니다.
 
 - Own: 공유 도구는 package `@polyspec/kit`입니다. `package.json`은 polyspec/kit의 tag release asset에 고정하는 devDependency이며,
   `package-lock.json`은 그 integrity를 고정합니다. checkout은 다른 target보다 먼저 `make install-tools TOOLS=npm`과
@@ -52,7 +55,7 @@
 ## 구성, 문서와 변경
 
 - Refines S5: 계약은 `docs/spec/`, 구현과 배포 상태는 `docs/features.md`, 절차는 `docs/operations/`, 계획된 작업과 검증·완료는
-  `docs/plans/execution-checklist/checklist.md`, 실제 변경은 `CHANGELOG.md`에 둡니다. 모든 변경은 checklist의 작업에 속하며, 작업이
+  `docs/plans/<plan>/checklist.md`, 실제 변경은 `CHANGELOG.md`에 둡니다. 모든 변경은 checklist의 작업에 속하며, 작업이
   없으면 일을 시작하기 전에 작업을 추가합니다.
   Enforced by: `make layout-check`
 - Own: 완료된 기능은 그 기능을 완료하는 commit에서 `CHANGELOG.md`와 `CHANGELOG.ko.md`에 기록하며, 항목은 section
@@ -85,12 +88,12 @@
 
 ## Checklist
 
-- Refines P24: 이 저장소의 checklist는 `docs/plans/execution-checklist/checklist.md` 하나입니다. 작업을 하위 항목으로 나누거나 작업을 추가하며,
-  다른 checklist를 만들지 않습니다.
+- Refines P24: 이 저장소는 `docs/plans/<plan>/checklist.md`에 여러 checklist를 허용합니다. 각 plan은 checklist와 한국어
+  문서를 함께 두며, 작업 ID는 모든 checklist에서 고유합니다.
   Enforced by: `make docs-check`
 - Own: 각 wave는 `## Wave <n> — <title>` 제목이며, 그 아래에 ID, Task, Verification, Status 열의 표가 옵니다. 작업 ID는
   `C<wave>.<number>` 형식이며 작업 행은 ID로 시작합니다. 상태 표시는 작업 행의 Status 셀 맨 앞에만 둡니다.
-  `docs/plans/execution-checklist/plan.md`는 각 wave의 의존 관계를 담습니다.
+  각 plan의 `plan.md`는 해당 wave의 의존 관계를 담습니다.
   Enforced by: `make docs-check`
 - Own: 지시를 받으면 먼저 checklist의 작업인지, 이 파일의 규칙인지, 답변만 필요한지 분류합니다. 지시가 긴급하다고 밝히지 않았다면
   우선순위를 붙인 작업으로 기록하고 진행 중인 작업을 계속합니다. 규칙은 checklist나 changelog가 아니라 이 파일에 둡니다.
