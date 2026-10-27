@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 13f28172ccf35c0ffdfbbbd22e26dc2492db6ba2dddc58df19d1bc1f4672b975 -->
+<!-- source-sha256: 7270b2c1e5ddc341faee1cb17010d14d7cbe72f1456f6cd2b44a40f06412a14c -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -34,3 +34,4 @@
 | C18.10-9 | Rust field model에 schema data limit을 포함한다. (우선순위: 높음). | packages/validator/rust/src/types.rs and public type exports | `node scripts/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --lib top_level_keys_are_the_schema_field_keys` | [~] |
 | C18.10-10 | 유효하지 않은 UTF-8 native request를 public input error로 정규화한다. (우선순위: 높음). | tests/native-generators/javascript.mts | `node tests/native-generators/run.mts --target javascript,html --check text:request-not-utf8 --report var/native-utf8-report.json` | [~] |
 | C18.10-11 | Native fixture context와 link source를 현재 engine에 맞춘다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="allocation\|form state" packages/php-ext/tests/engine/engine.test.mjs` | [~] |
+| C18.10-12 | 검증된 structure fixture 목록의 정확한 개수를 유지한다. (우선순위: 높음). | packages/validator/python/tests/test_structure_validity.py | `node scripts/run-tests.mts python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity` | [ ] |
