@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 41bac5a1e9db015ef04e5e06d90e56b97a551665b0992b75cbfb9cba5d4994d5 -->
+<!-- source-sha256: 853c52389e90dfe76153d6f23a9be8c267fc9c8f5ada619c9ad94cc2e6244e3b -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -24,5 +24,5 @@
 | C18.9 | 공개 polyspec 의존성을 Kit 0.0.59와 OrderedJSON 0.0.10으로 갱신하고 Template 0.0.12 사용 여부를 검토하며 native source link를 유지한다 (우선순위: 높음). | dependency manifests and native locks, release assets and review records, shared copies and development procedures | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/dependency-health.test.mts tests/build/release-fixtures.test.mts`; `make kit-check`; `make dependency-policy-check` | [o] |
 | C18.10 | 최종 로컬 검증 후 독립 CI 검사를 병렬로 실행하여 CRUDUI 0.0.8을 준비하고 공개한다 (우선순위: 높음). | candidate release records, CI execution and exact-commit evidence, publication tags and public release proof | `make release-coverage`; `make release-versions TAG=v0.0.8`; final complete CI suite in parallel; exact-commit ci-passed and push-gate; public release workflow proof | [ ] |
 | C18.10-1 | Candidate module tag 생성 전에 선언한 local workspace로 release Go package를 빌드한다 (우선순위: 높음). | Makefile build-go environment and release preparation evidence | `make build-go` | [o] |
-| C18.10-2 | 모든 CI job에서 검사 전에 PHP와 선언한 native 의존성을 준비한다 (우선순위: 높음). | own CI workflow runtime setup and native Go dependency preparation | `node scripts/run-tests.mts node -- --test-name-pattern="toolchain\|setup-php\|Go workspace" tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make crudui-install-go-modules` | [ ] |
+| C18.10-2 | 모든 CI job에서 검사 전에 PHP와 선언한 native 의존성을 준비한다 (우선순위: 높음). | own CI workflow runtime setup and native Go dependency preparation | `node scripts/run-tests.mts node -- --test-name-pattern="toolchain\|setup-php\|Go workspace" tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make crudui-install-go-modules` | [~] |
 | C18.10-3 | CI test 전에 compiled public JavaScript entry와 native PHP test helper를 준비한다 (우선순위: 높음). | own CI build preparation and native PHP test bootstrap | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts`; `node scripts/run-tests.mts phpunit --cwd packages/php-ext -- --filter testTheExtensionValidatesEveryValidationFixtureAsTheLibraryDoes` | [ ] |
