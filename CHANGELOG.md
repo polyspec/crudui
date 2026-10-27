@@ -3,11 +3,11 @@
 
 ## Unreleased
 
+## 0.0.8
+
 ### 2026-10-27 — Canonicalize parallel pipeline reset evidence (C18.10-28)
 
 - Pipeline reports order reset records by the declared server identities and require every identity exactly once. Completion order does not change valid evidence, and missing, duplicate or unknown reset records remain visible and fail validation.
-
-## 0.0.8
 
 ### 2026-10-27 — Keep pipeline suites untimed (C18.10-27)
 
