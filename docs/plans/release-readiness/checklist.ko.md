@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 8cd205a91a87abe8fadb6230493b0791dc435a8e72c14c38b0d7af7137ca9eb6 -->
+<!-- source-sha256: 501eb67f3926572ce822da3571d8e99cefb8031ce2c2844cf8262abc1dae9e34 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -20,3 +20,4 @@
 | C18.5 | Candidate CI 전에 version 0.0.8 manifest, native 의존성 lock과 release 기록을 준비한다 (우선순위: 높음). | release manifests, native locks, feature manifest, consumer manifests and changelogs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/release-fixtures.test.mts`, `make release-coverage`, `make release-versions TAG=v0.0.8` | [o] |
 | C18.6 | Case 누락 없이 PHP source 내부 unit과 shared extension 공개 test를 구분한다 (우선순위: 높음). | PHPUnit suites, source and extension bindings, native test listing coverage, owner and parity declarations | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/php-test-scope.test.mts`; `make parity-declarations-check` | [o] |
 | C18.7 | Native 개발 source 링크를 유지하며 공개된 kit 0.0.56을 반영한다 (우선순위: 높음). | package.json, npm locks, installed-package Make bootstrap, own CI workflows, native dependency review, shared copies and compatibility fixtures | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/dependency-health.test.mts tests/build/rust-node-entry-points.test.mts`; `make kit-check` | [o] |
+| C18.8 | PHP 8.4.27 runtime과 Windows 8.4.27-1 package rebuild를 개발 기준으로 사용한다 (우선순위: 높음). | Composer platform declarations and locks, dependency policy, runtime policy owner tests, development procedures and changelogs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make dependency-policy-check` | [ ] |
