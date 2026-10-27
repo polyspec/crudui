@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Declare native source and fixture layout exceptions (C18.10-20)
+
+- Layout validation permits the declared external OrderedJSON source, the exact PHP fixture helpers and the shared Go evidence writer. Other root Composer path repositories retain repository-local resolution checks.
+
 ### 2026-10-27 — Prepare native caches before release builds (C18.10-19)
 
 - Release and candidate archive targets download the declared Cargo and Go dependencies before building package output. Go downloads resolve through the declared repository workspace, and archive preparation preserves download-before-build ordering under parallel Make.

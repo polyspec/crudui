@@ -70,10 +70,35 @@ rules:
     id: layout-generator-ports
     vars: { component: generator }
 
+  # S5: local-providers.json is the authoritative declaration of the external OrderedJSON source checkout.
+  # Runtime source resolution reads that declaration; native package managers own links to the declared provider.
+  - id: layout-config-paths
+    paths: ["config/*.json", "!config/local-providers.json"]
+
+  # S5: the root development Composer project declares the external OrderedJSON provider as a native path repository.
+  # Other Composer projects and all other root path repositories retain the repository-local resolution check.
+  - id: layout-composer-path
+    select: ["**/composer.json", "!tests/kit/fixture/**", "!composer.json"]
+
+  - id: layout-root-composer-path
+    kind: for_each_file
+    level: error
+    select: ["composer.json"]
+    require:
+      - kind: cross_file
+        relation: resolves
+        source:
+          file: "{path}"
+          extract:
+            json: "$.repositories[?@.type == 'path' && @.url != '../ordered-json/packages/php'].url"
+    message: "S5: root path repositories other than the declared OrderedJSON provider resolve inside the repository"
+
   # S9: the infrastructure of scripts/ and tests/ is TypeScript. The exceptions each drive or serve one language:
   # - scripts/php-doc-coverage.php and tests/docs/php/DocCoverage.php: the documentation check of the classes of the PHP
   #   packages, which PHP itself runs (DocCoverageTest of each package);
   # - tests/php/PhpProcess.php: the child PHP process of the PHPUnit tests of the form comparison and the PHP extension;
+  # - tests/php/FixtureJson.php: reads fixtures in PHP while preserving PHP number values, empty arrays and object values;
+  # - tests/php/bootstrap.php: selects the Composer autoloader for the PHP source or native application test process;
   # - tests/conformance/php/Evidence.php and the package of tests/conformance/python: the conformance evidence that the PHP
   #   and Python suites record in their own language;
   # - scripts/generator-contract.php and scripts/go: the shared steps of the table generators that run in their own
@@ -89,6 +114,8 @@ rules:
       - "!tests/kit/fixture/**"
       - "!tests/docs/php/DocCoverage.php"
       - "!tests/php/PhpProcess.php"
+      - "!tests/php/FixtureJson.php"
+      - "!tests/php/bootstrap.php"
       - "!scripts/php-doc-coverage.php"
       - "!scripts/generator-contract.php"
       - "!scripts/go/**"
@@ -107,8 +134,11 @@ rules:
       - "!tests/kit/fixture/**"
       - "!tests/native-generators/python.py"
 
-  # K244: the evidence writer of the conformance suites is an internal package of the Go validator, which its tests import
-  # by the path internal/conformance; a Go internal package is importable only from the tree of its parent, so it stays
-  # beside the validator until the evidence writer is exported by a package of its own.
+  # K244: these Go packages record fixture evidence and contain no test suite. The public test support package is
+  # imported by the validator and generator Go modules; the internal package exposes the writer to validator tests.
   - id: suites-at-root
-    paths: ["packages/**/integration", "packages/**/conformance", "!packages/validator/go/validator/internal/conformance"]
+    paths:
+      - "packages/**/integration"
+      - "packages/**/conformance"
+      - "!packages/validator/go/validator/internal/conformance"
+      - "!packages/validator/go/testsupport/conformance"

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a5815bfc8df0be71e91e9227c3f8bd301e0e5b106f5ae9d1feb58c1d64d97362 -->
+<!-- source-sha256: 7f15309a815bf39fb6f5d97c8eae6fe08c1362f7102f94cb3cadc4285a49cc2f -->
 
 ## Unreleased
+
+### 2026-10-27 — Native source와 fixture layout 예외를 선언한다 (C18.10-20)
+
+- Layout 검사는 선언된 외부 OrderedJSON source, 정확한 PHP fixture helper와 공유 Go evidence writer를 허용한다. 다른 root Composer path repository는 저장소 내부 경로 해석 검사를 유지한다.
 
 ### 2026-10-27 — Release build 전에 native cache를 준비한다 (C18.10-19)
 
