@@ -2586,7 +2586,7 @@
         {
           "implementation": "rust",
           "test": "packages/validator/rust/src/validate/unicode/mod.rs",
-          "id": "embedded_data_matches_the_contract"
+          "id": "validate::unicode::tests::embedded_data_matches_the_contract"
         },
         {
           "implementation": "python",

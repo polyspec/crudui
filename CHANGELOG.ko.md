@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7811a326e123a19998e1db4eee2dbcb7663716d5e6f1a1f742ee613cefc2e320 -->
+<!-- source-sha256: 31d2a5448a44e43b50bfa71bda175ae52ea973f67ac0ecf2eb8e35d7aabf5f34 -->
 
 ## Unreleased
+
+### 2026-10-27 — 정확한 Rust Unicode parity test를 선택한다 (C18.10-25)
+
+- Rust Unicode parity는 exact filter에 완전한 native test identifier를 사용하여 선언된 data 검사를 실제로 실행한다.
 
 ### 2026-10-27 — 병렬 pipeline report record를 기준 순서로 정렬한다 (C18.10-26)
 

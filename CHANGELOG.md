@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Select the qualified Rust Unicode parity test (C18.10-25)
+
+- Rust Unicode parity selects the fully qualified native test identifier with its exact filter, so the declared data check executes instead of matching zero cases.
+
 ### 2026-10-27 — Canonicalize parallel pipeline report records (C18.10-26)
 
 - Pipeline reports order every combination record by its declaration after parallel execution. Missing, duplicate and unknown identities still fail completeness validation, and invalid records remain in the report.

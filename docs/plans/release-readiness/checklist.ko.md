@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 3b717ade1b626198b65b4b8e08a88fae4a8a4acc52c4ae56a8d44b2581a75eca -->
+<!-- source-sha256: 603b607d34fd68ff483078d17b58102b98e9d6cc68939e27e7578f259c6c27a0 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -47,5 +47,5 @@
 | C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- packages/php-ext/tests/engine/engine.test.mjs`; focused locale and sanitizer cases | [o] |
 | C18.10-23 | Rust internal model test를 production contract 문서에서 분리한다 (priority: high). | native Rust test module and exact internal parity ownership | `make parity-declarations-check`; owning Rust model tests | [o] |
 | C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [o] |
-| C18.10-25 | 정확한 Rust Unicode parity test identifier를 선택한다 (priority: high). | qualified native Rust Unicode binding identifier | `make parity-check UNITS=unicode-data IMPLEMENTATIONS=rust`; one actual case executed | [~] |
+| C18.10-25 | 정확한 Rust Unicode parity test identifier를 선택한다 (priority: high). | qualified native Rust Unicode binding identifier | `make parity-check UNITS=unicode-data IMPLEMENTATIONS=rust`; one actual case executed | [o] |
 | C18.10-26 | 잘못된 record를 보존하며 병렬 pipeline 결과를 기준 순서로 정렬한다 (priority: high). | pipeline report ordering and strict missing duplicate unknown identity regressions | `node scripts/run-tests.mts node -- --test-name-pattern="pipeline completion order" examples/form-comparison/check-verification.test.mjs` | [o] |
