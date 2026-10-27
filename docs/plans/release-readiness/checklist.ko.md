@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 653b81967200b69a7a6a151fbff809a4decd6676b3be1246973d3e0683d38545 -->
+<!-- source-sha256: f69e25b34955f512b1d750134c71f8c8b98751e3d3596a1e08e614c0a0e7f481 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -32,4 +32,4 @@
 | C18.10-7 | Fixture 적용 범위를 선언하고 지원 runtime의 실제 case 결과를 기록한다. (우선순위: 높음). | fixture registry and schemas, conformance checker and existing runtime fixture recorders | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; focused fixture owner units | [o] |
 | C18.10-8 | 현재 CI 명령과 release mode server asset을 준비한다. (우선순위: 높음). | own Pages workflow, native command verification and form comparison preparation | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/make-tool-path.test.mts tests/build/test-commands.test.mts` | [~] |
 | C18.10-9 | Rust field model에 schema data limit을 포함한다. (우선순위: 높음). | packages/validator/rust/src/types.rs and public type exports | `node scripts/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --lib top_level_keys_are_the_schema_field_keys` | [~] |
-| C18.10-10 | 유효하지 않은 UTF-8 native request를 public input error로 정규화한다. (우선순위: 높음). | tests/native-generators/javascript.mts | `node tests/native-generators/run.mts --target javascript,html --check text:request-not-utf8 --report var/native-utf8-report.json` | [ ] |
+| C18.10-10 | 유효하지 않은 UTF-8 native request를 public input error로 정규화한다. (우선순위: 높음). | tests/native-generators/javascript.mts | `node tests/native-generators/run.mts --target javascript,html --check text:request-not-utf8 --report var/native-utf8-report.json` | [~] |
