@@ -91,7 +91,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     let request: unknown;
     // Standard input that is not UTF-8 is not JSON text; it is never decoded with replacements.
     try { request = JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(input)); }
-    catch (error) { if (!(error instanceof SyntaxError)) throw error; throw new FormInputError('Request must be valid JSON'); }
+    catch (error) {
+      const invalidEncoding = error instanceof TypeError && 'code' in error && error.code === 'ERR_ENCODING_INVALID_ENCODED_DATA';
+      if (!(error instanceof SyntaxError) && !invalidEncoding) throw error;
+      throw new FormInputError('Request must be valid JSON');
+    }
     process.stdout.write(`${JSON.stringify(createDispatch(renderers[name])(request))}\n`);
   } catch (error) {
     process.stdout.write(`${JSON.stringify({ error: errorRecord(error) })}\n`);

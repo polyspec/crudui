@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2c7f09682efb6ca9b1bb31b2d967d9d35b33d962a89c33978341c2c0257d24e5 -->
+<!-- source-sha256: d08b6e3407dd870fb6a7d93fe03d84293feb5772ea4d3f68e9f35b1cec9f4f1f -->
 
 ## Unreleased
+
+### 2026-10-27 — 잘못된 UTF-8이 있는 native JavaScript와 HTML 요청은 공개 invalid input error를 반환한다 (C18.10-10)
+
+- 잘못된 UTF-8이 있는 native JavaScript와 HTML 요청은 공개 invalid input error를 반환한다.
 
 ### 2026-10-27 — 공개 Rust field model은 schema data limit을 보존하고 잘못된 limit 표현을 거부한다 (C18.10-9)
 

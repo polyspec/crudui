@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Normalize invalid UTF-8 request errors (C18.10-10)
+
+- Native JavaScript and HTML requests with invalid UTF-8 return the public invalid input error.
+
 ### 2026-10-27 — Include field data limits in the Rust model (C18.10-9)
 
 - The public Rust field model preserves schema data limits and rejects invalid limit representations.
