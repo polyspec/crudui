@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Keep the structure fixture inventory exact (C18.10-12)
+
+- The structure fixture inventory includes every current valid schema case and retains all invalid cases.
+
 ### 2026-10-27 — Align fixture contexts with engine inputs (C18.10-11)
 
 - Native engine fixtures initialize the complete validation context and link the condition tree implementation.

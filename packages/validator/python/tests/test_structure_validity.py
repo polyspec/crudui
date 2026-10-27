@@ -133,8 +133,8 @@ class TestStructureValidityFixtureCounts(unittest.TestCase):
     def test_spec_validity_counts(self):
         cases = cases_of("spec-validity")
         assert_declares(self, cases)
-        self.assertEqual(len(cases), 34)
-        self.assertEqual(len([case for case in cases if case["engine"] == "pass"]), 20)
+        self.assertEqual(len(cases), 37)
+        self.assertEqual(len([case for case in cases if case["engine"] == "pass"]), 23)
         self.assertEqual(
             len([case for case in cases if isinstance(case["engine"], dict)]), 14
         )

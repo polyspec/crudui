@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 630ba51839c6d4c58c1ab76401a6931f6587d2096a6185de4a4b8802ba437e72 -->
+<!-- source-sha256: 88d0c920ddf42cd7fc82eb03f72532d6826970211848fdd4a714ebfed6252848 -->
 
 ## Unreleased
+
+### 2026-10-27 — Structure fixture 목록은 현재의 모든 유효 schema case와 기존 invalid case를 포함한다 (C18.10-12)
+
+- Structure fixture 목록은 현재의 모든 유효 schema case와 기존 invalid case를 포함한다.
 
 ### 2026-10-27 — Native engine fixture는 전체 validation context를 초기화하고 condition tree 구현을 연결한다 (C18.10-11)
 
