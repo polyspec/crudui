@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.8
+
 ### 2026-10-27 — Record fixture applicability and actual runtime evidence (C18.10-7)
 
 - Fixture declarations identify supported runtimes, operation-specific cases and shared support modules. Existing fixture units record actual results through the shared recorders, including native PHP execution. Suite records distinguish PHP source and extension runs. The default cross-product checks remain and reject missing or invalid applicability and evidence.
@@ -26,8 +28,6 @@
 ### 2026-10-27 — Prepare CI toolchains and native dependency scopes (C18.10-2)
 
 - Every full tool installation prepares PHP first. Workspace version replacements resolve unpublished internal Go modules locally, and native Go package discovery selects every package that contains tests. JavaScript validation prepares compiled public entries before import checks. GNU Make environment verification accepts the exact target-specific declaration format of Make 3 and Make 4.
-
-## 0.0.8
 
 ### 2026-10-27 — Prepare CRUDUI 0.0.8 publication (C18.10)
 

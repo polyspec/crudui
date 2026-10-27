@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a68b0dd0d240ad7909bad115af5c769b3dce984834a955428ab18ae5b511edad -->
+<!-- source-sha256: 5124ca9b2fcfec99a6ca1252de911ed614b3b0388d65e104765b987fe8562e5f -->
 
 ## Unreleased
+
+## 0.0.8
 
 ### 2026-10-27 — Fixture 적용 범위와 실제 runtime 증거를 기록한다 (C18.10-7)
 
@@ -27,8 +29,6 @@
 ### 2026-10-27 — CI toolchain과 native 의존성 범위를 준비한다 (C18.10-2)
 
 - 모든 전체 tool 설치 전에 PHP를 준비한다. Workspace version replacement는 미공개 internal Go module을 로컬에서 해석하며 native Go package discovery는 test가 있는 모든 package를 선택한다. JavaScript 검증은 import 검사 전에 compiled public entry를 준비한다. GNU Make 환경 검증은 Make 3와 Make 4의 정확한 target-specific 선언 형식을 허용한다.
-
-## 0.0.8
 
 ### 2026-10-27 — CRUDUI 0.0.8 공개를 준비한다 (C18.10)
 
