@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.8
+
 ### 2026-10-27 — Adopt Kit 0.0.60 (C18.10-18)
 
 - The development tool dependency and native npm lock pin the Kit 0.0.60 release archive. Shared principles match the published package, and local development resolves polyspec dependencies through native source links.
@@ -46,8 +48,6 @@
 ### 2026-10-27 — Prepare current CI commands and assets (C18.10-8)
 
 - CI jobs install the declared providers and hooks, use the canonical Go workspace and prepare release-mode server assets.
-
-## 0.0.8
 
 ### 2026-10-27 — Record fixture applicability and actual runtime evidence (C18.10-7)
 

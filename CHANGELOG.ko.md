@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1f4fefbd44bc3ebf8b45cbffe9f55dccf8be56a967ec8d3338bbdd9d2591f5b2 -->
+<!-- source-sha256: d52f81d45a52766f6370cfeaa361ad263fa91d9f5c88442ad16042e746363b77 -->
 
 ## Unreleased
+
+## 0.0.8
 
 ### 2026-10-27 — Kit 0.0.60을 반영한다 (C18.10-18)
 
@@ -47,8 +49,6 @@
 ### 2026-10-27 — CI job은 선언된 provider와 hook을 설치하고 기준 Go workspace를 사용하며 release mode server asset을 준비한다 (C18.10-8)
 
 - CI job은 선언된 provider와 hook을 설치하고 기준 Go workspace를 사용하며 release mode server asset을 준비한다.
-
-## 0.0.8
 
 ### 2026-10-27 — Fixture 적용 범위와 실제 runtime 증거를 기록한다 (C18.10-7)
 
