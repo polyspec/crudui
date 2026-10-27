@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 1557748911928bbbaf3c4dc50ddd40ba84338134fa037a0f00154bc8eb905ad3 -->
+<!-- source-sha256: 9b2bec7e7a98b1bafa6866fda8e8ed9d64f73e54301304b1e319311ac4f782a2 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -28,3 +28,4 @@
 | C18.10-3 | CI test 전에 compiled public JavaScript entry와 native PHP test helper를 준비한다 (우선순위: 높음). | own CI build preparation and native PHP test bootstrap | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts`; `node scripts/run-tests.mts phpunit --cwd packages/php-ext -- --filter testTheExtensionValidatesEveryValidationFixtureAsTheLibraryDoes` | [ ] |
 | C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [~] |
 | C18.10-5 | Composition form fixture를 해석하고 binding class 경계를 유지한다. (우선순위: 높음). | packages/form-binding/src/choices.ts, slots.ts and parity tests | `node scripts/run-tests.mts vitest --cwd packages/form-binding -- tests/parity.test.ts tests/class-boundary.test.ts tests/choices.test.ts` | [~] |
+| C18.10-6 | Native fixture compilation operation을 제한시간이 있는 engine test와 분리한다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs and support.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="PHP extension engine validates all shared\|PHP extension engine unique rule" packages/php-ext/tests/engine/engine.test.mjs` | [ ] |
