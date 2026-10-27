@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: e0e38692214de079230f11ef0e18327806c079f446e98c659967154955343bc0 -->
+<!-- source-sha256: f4c8527af04c7883160ba3f936542bb3dab2c4dcc427a1ab90b9f071ad9879b2 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -40,3 +40,4 @@
 | C18.10-15 | Rust lint policy에 맞게 fixture recorder 결과 type을 명시한다 (우선순위: 높음). | packages/generator/rust/tests/support/evidence.rs | exact generator fixture harness clippy with all Kit P8 lint flags; `git diff --check` | [o] |
 | C18.10-16 | 기존 outline과 rendering evidence의 지원 범위를 선언한다 (priority: high). | fixture applicability registry and owning conformance checks | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; CI evidence scope reconciliation | [~] |
 | C18.10-17 | 현재 candidate archive에서 release consumer lock을 다시 생성한다 (priority: high). | native npm and Composer consumer locks with current archive metadata | `make release-candidate-assets VERSION=0.0.8`; `make release-consumer-lock TAG=v0.0.8`; owning release consumer checks | [ ] |
+| C18.10-18 | K710을 포함한 공개 Kit release를 반영한다 (priority: high). | native npm release asset pin and lock, synchronized shared files and restored local source links | `make kit-check`; owning dependency checks and exact release asset integrity | [ ] |
