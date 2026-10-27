@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 787c52874db0b6059fccfc0904f4f2f4341faa55554f021cfba3b85db7ab3acd -->
+<!-- source-sha256: a71bb1bd40ff97c17a703db4493aa9f978c42e0330ffcec6f11d9c34644ee0fd -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -41,3 +41,4 @@
 | C18.10-16 | 기존 outline과 rendering evidence의 지원 범위를 선언한다 (priority: high). | fixture applicability registry and owning conformance checks | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; CI evidence scope reconciliation | [o] |
 | C18.10-17 | 현재 candidate archive에서 release consumer lock을 다시 생성한다 (priority: high). | native npm and Composer consumer locks with current archive metadata | `make release-candidate-assets VERSION=0.0.8`; `make release-consumer-lock TAG=v0.0.8`; owning release consumer checks | [o] |
 | C18.10-18 | K710을 포함한 공개 Kit release를 반영한다 (priority: high). | native npm release asset pin and lock, synchronized shared files and restored local source links | `make kit-check`; owning dependency checks and exact release asset integrity | [o] |
+| C18.10-19 | Cold release build 전에 native dependency cache를 준비한다 (priority: high). | application release build prerequisites and native cache preparation regression | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts`; native Make dependency ordering | [ ] |
