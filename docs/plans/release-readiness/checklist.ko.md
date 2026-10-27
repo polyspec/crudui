@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 1ac44e91833ed3fa7d22d46618400200302e4a30b5402d584daffa27400f73fb -->
+<!-- source-sha256: ebcdb4ee4e9afd577c0db2af6be661cd4e73b125fedc9a1e7551d9e23624a45c -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -38,4 +38,4 @@
 | C18.10-13 | Manifest에서 추적하는 feature contract 문서를 재생성한다. (우선순위: 높음). | docs/operations/feature-contracts.md and its Korean twin | `npm run manifest:docs:check` | [o] |
 | C18.10-14 | PHPUnit을 수정된 release로 갱신하고 native 의존성 검토를 갱신한다. (우선순위: 높음). | Composer locks and config/dependency-review.json | `make dependency-policy-check`; `node scripts/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testOrderedJsonKeepsOrderValuesAndEmptyTypes tests/FormJsonTest.php` | [o] |
 | C18.10-15 | Rust lint policy에 맞게 fixture recorder 결과 type을 명시한다 (우선순위: 높음). | packages/generator/rust/tests/support/evidence.rs | exact generator fixture harness clippy with all Kit P8 lint flags; `git diff --check` | [o] |
-| C18.10-16 | 기존 outline과 rendering evidence의 지원 범위를 선언한다 (priority: high). | fixture applicability registry and owning conformance checks | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; CI evidence scope reconciliation | [ ] |
+| C18.10-16 | 기존 outline과 rendering evidence의 지원 범위를 선언한다 (priority: high). | fixture applicability registry and owning conformance checks | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; CI evidence scope reconciliation | [~] |
