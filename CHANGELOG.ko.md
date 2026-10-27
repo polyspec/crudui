@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 652420c33e5e0c50ee92d8fd5667527a8c65ad5445b0c61cf1afc73ffdee53f8 -->
+<!-- source-sha256: 3b74796b58f11252e9e6f6f4fcda32e2b2641cb6f22564ba8a71da2a4e892511 -->
 
 ## Unreleased
+
+### 2026-10-27 — 병렬 pipeline reset evidence를 기준 순서로 정렬한다 (C18.10-28)
+
+- Pipeline report는 선언된 server identity 순서로 reset record를 정렬하고 각 identity가 정확히 한 번 존재하도록 검사한다. 완료 순서는 유효한 evidence를 바꾸지 않으며 누락, 중복 또는 알 수 없는 reset record는 report에 남아 검사에서 실패한다.
 
 ## 0.0.8
 

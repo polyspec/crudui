@@ -327,3 +327,28 @@ test('pipeline completion order rejects missing duplicate and unknown identities
     assert.deepEqual(report.combinations.map(({ id }) => id).sort(), combinations.map(({ id }) => id).sort());
   }
 });
+
+test('pipeline reset completion order preserves canonical identities and input records', () => {
+  const expected = pipelineEvidence();
+  const records = expected.resets;
+  for (const resets of [records.toReversed(), [...records.slice(1), records[0]]]) {
+    const before = structuredClone(resets);
+    const report = pipelineFlow.pipelineReport({ ...expected, resets, combinations: expected.combinations.toReversed() });
+    assert.equal(report.passed, true);
+    assert.deepEqual(report.resets, records);
+    assert.deepEqual(report.combinations, expected.combinations);
+    assert.deepEqual(resets, before);
+  }
+});
+
+test('pipeline reset completion order rejects missing duplicate and unknown identities without dropping evidence', () => {
+  const expected = pipelineEvidence();
+  const records = expected.resets;
+  for (const resets of [records.slice(1), [...records.slice(1), records[1]],
+    [{ ...records[0], id: 'reset/unknown' }, ...records.slice(1)]]) {
+    const report = pipelineFlow.pipelineReport({ ...expected, resets });
+    assert.equal(report.passed, false);
+    assert.equal(report.resets.length, resets.length);
+    assert.deepEqual(report.resets.map(({ id }) => id).sort(), resets.map(({ id }) => id).sort());
+  }
+});
