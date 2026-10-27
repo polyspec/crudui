@@ -6,6 +6,8 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { readJson } from '../json.mts';
+import { makeTargets } from '../../scripts/test-commands.mts';
+import { makeDryRun } from './make-dry-run.mts';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
@@ -33,4 +35,13 @@ test('the release consumer smoke covers every published npm package', () => {
   const expected = release.packages.filter(item => item.kind === 'npm').map(item => item.name).sort();
   assert.ok(expected.length > 0, 'config/release.json declares no published npm package');
   assert.deepEqual(Object.keys(release.consumers.npm.smoke).sort(), expected);
+});
+
+test('release and candidate archives build current package output before packing (C18.10-17)', () => {
+  const database = makeDryRun(ROOT, 'help', { database: true });
+  assert.equal(database.status, 0, database.stderr);
+  const targets = makeTargets(database.stdout);
+  for (const target of ['release-assets', 'release-candidate-assets']) {
+    assert.ok(targets[target]?.prerequisites.includes('build'), `${target}: current package output must be built before archiving`);
+  }
 });

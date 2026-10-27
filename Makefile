@@ -479,7 +479,7 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 # The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
 # release-versions, release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
-release-assets: build
+release-assets release-candidate-assets: build
 
 # Every target the CI workflow runs after installing tools and dependencies, in workflow order
 # (tests/build/ci-local.test.mts keeps this list equal to .github/workflows/ci.yml).
