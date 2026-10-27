@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 13827fb2d293d5eea349b70d49a210bab9c1b1cc083dca88203c5c3d76fc643c -->
+<!-- source-sha256: 2bd609fb71a4973104fa5264e3213ac40d0cbbeecacb71e85fa74004f20aad0b -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -37,4 +37,4 @@
 | C18.10-12 | 검증된 structure fixture 목록의 정확한 개수를 유지한다. (우선순위: 높음). | packages/validator/python/tests/test_structure_validity.py | `node scripts/run-tests.mts python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity` | [~] |
 | C18.10-13 | Manifest에서 추적하는 feature contract 문서를 재생성한다. (우선순위: 높음). | docs/operations/feature-contracts.md and its Korean twin | `npm run manifest:docs:check` | [~] |
 | C18.10-14 | PHPUnit을 수정된 release로 갱신하고 native 의존성 검토를 갱신한다. (우선순위: 높음). | Composer locks and config/dependency-review.json | `make dependency-policy-check`; `node scripts/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testOrderedJsonKeepsOrderValuesAndEmptyTypes tests/FormJsonTest.php` | [~] |
-| C18.10-15 | Rust lint policy에 맞게 fixture recorder 결과 type을 명시한다 (우선순위: 높음). | packages/generator/rust/tests/support/evidence.rs | exact generator fixture harness clippy with all Kit P8 lint flags; `git diff --check` | [ ] |
+| C18.10-15 | Rust lint policy에 맞게 fixture recorder 결과 type을 명시한다 (우선순위: 높음). | packages/generator/rust/tests/support/evidence.rs | exact generator fixture harness clippy with all Kit P8 lint flags; `git diff --check` | [~] |
