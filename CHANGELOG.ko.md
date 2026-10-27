@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 95224d3268b009d58566a8b86933b9423d81d69ec975ffa91a3e21673eb63655 -->
+<!-- source-sha256: 2c7f09682efb6ca9b1bb31b2d967d9d35b33d962a89c33978341c2c0257d24e5 -->
 
 ## Unreleased
+
+### 2026-10-27 — 공개 Rust field model은 schema data limit을 보존하고 잘못된 limit 표현을 거부한다 (C18.10-9)
+
+- 공개 Rust field model은 schema data limit을 보존하고 잘못된 limit 표현을 거부한다.
 
 ### 2026-10-27 — CI job은 선언된 provider와 hook을 설치하고 기준 Go workspace를 사용하며 release mode server asset을 준비한다 (C18.10-8)
 

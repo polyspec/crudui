@@ -362,6 +362,50 @@ pub struct FieldSpec {
     /// Submission target kept unchanged in the template. Honored on the form root only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub action: Option<FormAction>,
+
+    /// Submitted-data bounds, honored on the form root only (CUSC-087).
+    #[serde(
+        rename = "dataLimits",
+        default,
+        deserialize_with = "present_data_limits",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub data_limits: Option<FormDataLimits>,
+}
+
+/// Deserialize declared data limits without treating explicit null as an omitted value.
+fn present_data_limits<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<FormDataLimits>, D::Error> {
+    FormDataLimits::deserialize(deserializer).map(Some)
+}
+
+/// Declared submission bounds; the root validator checks integer values and their ranges.
+#[derive(Debug, Clone, PartialEq, Default, Serialize)]
+pub struct FormDataLimits {
+    /// Maximum container depth; an omitted value uses the validation default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub depth: Option<serde_json::Number>,
+
+    /// Maximum value-node count; an omitted value uses the validation default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub values: Option<serde_json::Number>,
+}
+
+impl<'de> Deserialize<'de> for FormDataLimits {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let members = Map::<String, Value>::deserialize(deserializer)?;
+        let mut limits = Self::default();
+        for (key, value) in members {
+            let bound = match key.as_str() {
+                "depth" => &mut limits.depth,
+                "values" => &mut limits.values,
+                _ => return Err(de::Error::unknown_field(&key, &["depth", "values"])),
+            };
+            *bound = Some(serde_json::from_value(value).map_err(de::Error::custom)?);
+        }
+        Ok(limits)
+    }
 }
 
 // ============================================================================
@@ -640,7 +684,9 @@ impl TryFrom<MultipleValue> for Multiple {
         Ok(match value {
             MultipleValue::Toggle(toggle) => Multiple::Toggle(toggle),
             MultipleValue::Only(keyword) => Multiple::Only(keyword),
-            MultipleValue::Config(settings) if settings.keys.is_some() && settings.only != Some(true) => {
+            MultipleValue::Config(settings)
+                if settings.keys.is_some() && settings.only != Some(true) =>
+            {
                 return Err("multiple.keys: expected multiple.only: true".to_string());
             }
             MultipleValue::Config(settings) => Multiple::Config(settings),
@@ -947,7 +993,8 @@ mod tests {
     // A keyed map declares only and keys under multiple; keys is a reference string.
     #[test]
     fn multiple_keyed_map_under_multiple() {
-        let f = parse(r#"{ "type": "text", "multiple": { "only": true, "keys": "..characters" } }"#);
+        let f =
+            parse(r#"{ "type": "text", "multiple": { "only": true, "keys": "..characters" } }"#);
         match f.multiple {
             Some(Multiple::Config(m)) => {
                 assert_eq!(m.only, Some(true));
@@ -955,7 +1002,10 @@ mod tests {
             }
             other => panic!("expected multiple config, got {other:?}"),
         }
-        assert_eq!(parse(r#"{ "type": "text", "multiple": "only" }"#).multiple, Some(Multiple::Only(OnlyKeyword::Only)));
+        assert_eq!(
+            parse(r#"{ "type": "text", "multiple": "only" }"#).multiple,
+            Some(Multiple::Only(OnlyKeyword::Only))
+        );
         for src in [
             r#"{ "type": "text", "multiple": "ONLY" }"#,
             r#"{ "type": "text", "multiple": { "only": true, "keys": 5 } }"#,
@@ -1189,7 +1239,8 @@ mod tests {
             "multiple": true, "lang": true, "label": "l", "description": "d", "placeholder": "p",
             "prepend": "p", "append": "a", "help": "h", "content": "c", "validate": true,
             "messages": {"required": "r"}, "design": true, "behavior": true, "options": true,
-            "buttons": [], "action": {"method": "post"}, "$ref": "Base.yml", "$patch": {},
+            "buttons": [], "action": {"method": "post"}, "dataLimits": {"depth": 64, "values": 100000},
+            "$ref": "Base.yml", "$patch": {},
         });
         let keys: Vec<&String> = schema["definitions"]["Field"]["properties"]
             .as_object()
@@ -1202,6 +1253,34 @@ mod tests {
             let field = serde_json::json!({ key.as_str(): samples[key.as_str()].clone() });
             let r: Result<FieldSpec, _> = serde_json::from_value(field);
             assert!(r.is_ok(), "{key}: {r:?}");
+        }
+    }
+
+    #[test]
+    fn form_data_limits_preserve_numeric_values_and_closed_members() {
+        for text in [
+            r#"{"dataLimits":{}}"#,
+            r#"{"dataLimits":{"depth":2.0}}"#,
+            r#"{"dataLimits":{"values":1000000}}"#,
+            r#"{"dataLimits":{"depth":512,"values":1}}"#,
+        ] {
+            let value: Value = serde_json::from_str(text).unwrap();
+            let field: FieldSpec = serde_json::from_value(value.clone()).unwrap();
+            assert!(field.data_limits.is_some());
+            assert_eq!(serde_json::to_value(&field).unwrap(), value);
+        }
+        for text in [
+            r#"{"dataLimits":null}"#,
+            r#"{"dataLimits":[]}"#,
+            r#"{"dataLimits":{"depth":null}}"#,
+            r#"{"dataLimits":{"values":true}}"#,
+            r#"{"dataLimits":{"depth":"2"}}"#,
+            r#"{"dataLimits":{"maximum":3}}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<FieldSpec>(text).is_err(),
+                "accepted {text}"
+            );
         }
     }
 

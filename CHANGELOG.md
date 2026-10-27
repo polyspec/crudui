@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Include field data limits in the Rust model (C18.10-9)
+
+- The public Rust field model preserves schema data limits and rejects invalid limit representations.
+
 ### 2026-10-27 — Prepare current CI commands and assets (C18.10-8)
 
 - CI jobs install the declared providers and hooks, use the canonical Go workspace and prepare release-mode server assets.

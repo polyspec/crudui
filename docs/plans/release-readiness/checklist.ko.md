@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: ddc08f14cb401e857546523e2c5540883c6ead14f57ba50cfe43931181e9e803 -->
+<!-- source-sha256: d1d8106a4541fd776b6a70ff6506299627c60fa70b164972c4cd3331acdce027 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -31,7 +31,7 @@
 | C18.10-6 | Native fixture compilation operation을 제한시간이 있는 engine test와 분리한다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs and support.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="PHP extension engine validates all shared\|PHP extension engine unique rule" packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C18.10-7 | Fixture 적용 범위를 선언하고 지원 runtime의 실제 case 결과를 기록한다. (우선순위: 높음). | fixture registry and schemas, conformance checker and existing runtime fixture recorders | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; focused fixture owner units | [o] |
 | C18.10-8 | 현재 CI 명령과 release mode server asset을 준비한다. (우선순위: 높음). | own Pages workflow, native command verification and form comparison preparation | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/make-tool-path.test.mts tests/build/test-commands.test.mts` | [o] |
-| C18.10-9 | Rust field model에 schema data limit을 포함한다. (우선순위: 높음). | packages/validator/rust/src/types.rs and public type exports | `node scripts/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --lib top_level_keys_are_the_schema_field_keys` | [~] |
+| C18.10-9 | Rust field model에 schema data limit을 포함한다. (우선순위: 높음). | packages/validator/rust/src/types.rs and public type exports | `node scripts/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --lib top_level_keys_are_the_schema_field_keys` | [o] |
 | C18.10-10 | 유효하지 않은 UTF-8 native request를 public input error로 정규화한다. (우선순위: 높음). | tests/native-generators/javascript.mts | `node tests/native-generators/run.mts --target javascript,html --check text:request-not-utf8 --report var/native-utf8-report.json` | [~] |
 | C18.10-11 | Native fixture context와 link source를 현재 engine에 맞춘다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="allocation\|form state" packages/php-ext/tests/engine/engine.test.mjs` | [~] |
 | C18.10-12 | 검증된 structure fixture 목록의 정확한 개수를 유지한다. (우선순위: 높음). | packages/validator/python/tests/test_structure_validity.py | `node scripts/run-tests.mts python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity` | [~] |

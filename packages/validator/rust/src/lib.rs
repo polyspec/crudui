@@ -17,8 +17,9 @@ pub use forbidden_scan::scan_forbidden_keys;
 pub use list::{validate_list, ValidateListOptions};
 pub use types::{
     BehaviorSlot, ConditionMap, ConditionValue, Content, DeclaredAttributes, DesignNode,
-    DesignSlot, ExtraMap, FieldSpec, Items, ItemsSource, LangSpec, Layout, Multiple, MultipleSpec,
-    OnlyKeyword, OptionsSlot, Polymorphic, ValidateSlot, WrapperNode, DEFAULT_KEY, FORBIDDEN_META_KEYS,
+    DesignSlot, ExtraMap, FieldSpec, FormDataLimits, Items, ItemsSource, LangSpec, Layout,
+    Multiple, MultipleSpec, OnlyKeyword, OptionsSlot, Polymorphic, ValidateSlot, WrapperNode,
+    DEFAULT_KEY, FORBIDDEN_META_KEYS,
 };
 
 pub use validate::{validate, FormInputError, ValidateError, ValidateOptions, Validator};
