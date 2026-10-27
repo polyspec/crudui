@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 0ef9e96eaffdeb562fbbf5ccbf7c8ee50539ea793112682c332e6242856cbbd6 -->
+<!-- source-sha256: 1557748911928bbbaf3c4dc50ddd40ba84338134fa037a0f00154bc8eb905ad3 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -27,4 +27,4 @@
 | C18.10-2 | 모든 CI job에서 검사 전에 PHP와 선언한 native 의존성을 준비한다 (우선순위: 높음). | own CI workflow runtime setup and native Go dependency preparation | `node scripts/run-tests.mts node -- --test-name-pattern="toolchain\|setup-php\|Go workspace" tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make crudui-install-go-modules` | [o] |
 | C18.10-3 | CI test 전에 compiled public JavaScript entry와 native PHP test helper를 준비한다 (우선순위: 높음). | own CI build preparation and native PHP test bootstrap | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts`; `node scripts/run-tests.mts phpunit --cwd packages/php-ext -- --filter testTheExtensionValidatesEveryValidationFixtureAsTheLibraryDoes` | [ ] |
 | C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [~] |
-| C18.10-5 | Composition form fixture를 해석하고 binding class 경계를 유지한다. (우선순위: 높음). | packages/form-binding/src/choices.ts, slots.ts and parity tests | `node scripts/run-tests.mts vitest --cwd packages/form-binding -- tests/parity.test.ts tests/class-boundary.test.ts tests/choices.test.ts` | [ ] |
+| C18.10-5 | Composition form fixture를 해석하고 binding class 경계를 유지한다. (우선순위: 높음). | packages/form-binding/src/choices.ts, slots.ts and parity tests | `node scripts/run-tests.mts vitest --cwd packages/form-binding -- tests/parity.test.ts tests/class-boundary.test.ts tests/choices.test.ts` | [~] |
