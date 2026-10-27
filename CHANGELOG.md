@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+## 0.0.8
+
+### 2026-10-27 — Prepare CRUDUI 0.0.8 publication (C18.10)
+
+- The release candidate records version 0.0.8 with Kit 0.0.59, OrderedJSON 0.0.10 and the PHP 8.4.27 development baseline. Runtime CI tests use four independent shards. Publication requires successful checks for the candidate commit.
+
 ### 2026-10-27 — Build Go release sources through the declared workspace (C18.10-1)
 
 - Go package builds use the repository workspace for unpublished internal module versions. Release consumers keep their isolated module resolution.
@@ -36,8 +42,6 @@
 ### 2026-10-26 — Complete local candidate preparation (C18.1)
 
 - Candidate preparation uses current local provider sources, native dependency records and the reviewed compatible toolchain. Every candidate preparation task is complete. Current npm, Composer and Python archives pass isolated installation checks, and native PHP uses its own Composer profile. Shared configuration copies match the installed kit source. CI and publication remain separate operations.
-
-## 0.0.8
 
 ### 2026-10-26 — Dependency checks discover native Go workspaces (C18.1-5-1)
 

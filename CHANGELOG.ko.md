@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e3b5f7dc553cadad499efaede06e62f42b1cec247501e28c526e249962a288c5 -->
+<!-- source-sha256: e97d55e002d38e639c3366e049434d620a4098a8e210f4926dd3cd33121cc73a -->
 
 ## Unreleased
+
+## 0.0.8
+
+### 2026-10-27 — CRUDUI 0.0.8 공개를 준비한다 (C18.10)
+
+- Release candidate는 Kit 0.0.59, OrderedJSON 0.0.10 및 PHP 8.4.27 개발 기준과 함께 version 0.0.8을 기록한다. Runtime CI test는 네 개의 독립 shard를 사용한다. 공개에는 candidate commit의 검사 성공이 필요하다.
 
 ### 2026-10-27 — 선언한 workspace로 Go release source를 빌드한다 (C18.10-1)
 
@@ -37,8 +43,6 @@
 ### 2026-10-26 — 로컬 candidate 준비를 완료한다 (C18.1)
 
 - Candidate 준비는 현재 로컬 provider source, native 의존성 기록과 검토한 호환 toolchain을 사용한다. Candidate 준비 작업을 모두 완료한다. 현재 npm, Composer와 Python archive는 격리된 설치 검사를 통과하며 native PHP는 별도 Composer profile을 사용한다. 공유 설정 복사본은 설치된 kit source와 일치한다. CI와 publication은 별도 작업이다.
-
-## 0.0.8
 
 ### 2026-10-26 — Local native server는 선언한 현재 provider를 사용한다 (C18.1-3)
 
