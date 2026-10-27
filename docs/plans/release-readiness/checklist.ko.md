@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: ccc97cfae6024babc370b0ae8722dcd2e5860669d8103fde07563509201f628f -->
+<!-- source-sha256: 002195e3afd7497560007e7cf7b1356453d4571051c9c900c300880a0bf4fc4d -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -46,4 +46,4 @@
 | C18.10-21 | Summary와 직접 stack 검사에 필요한 고정 native archive를 준비한다 (priority: high). | release-mode stack prerequisites and owning preparation regression | `node scripts/run-tests.mts node -- --test-name-pattern="release-mode stacks" tests/build/form-comparison-ci.test.mts` | [o] |
 | C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- packages/php-ext/tests/engine/engine.test.mjs`; focused locale and sanitizer cases | [~] |
 | C18.10-23 | Rust internal model test를 production contract 문서에서 분리한다 (priority: high). | native Rust test module and exact internal parity ownership | `make parity-declarations-check`; owning Rust model tests | [~] |
-| C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [ ] |
+| C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [~] |
