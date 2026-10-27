@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: bc77ee19d06e4e156927040c15cf0ae43b481aee565f550c61f3ed841a56e744 -->
+<!-- source-sha256: e3b5f7dc553cadad499efaede06e62f42b1cec247501e28c526e249962a288c5 -->
 
 ## Unreleased
+
+### 2026-10-27 — 선언한 workspace로 Go release source를 빌드한다 (C18.10-1)
+
+- Go package 빌드는 미공개 internal module version을 repository workspace에서 해석한다. Release consumer의 module resolution은 격리를 유지한다.
 
 ### 2026-10-27 — 공개 polyspec 의존성과 CI test 실행을 갱신한다 (C18.9)
 

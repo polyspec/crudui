@@ -20,6 +20,8 @@ NPM := $(CURDIR)/var/tools/bin/npm
 # installed release and never downloads the toolchain of a go.mod. `make install` installs them.
 export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
+# Builds resolve this repository's unpublished module versions through its declared workspace.
+build-go: export GOWORK := $(CURDIR)/go.work
 # A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, crudui-install-crates, dependency-review

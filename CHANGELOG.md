@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Build Go release sources through the declared workspace (C18.10-1)
+
+- Go package builds use the repository workspace for unpublished internal module versions. Release consumers keep their isolated module resolution.
+
 ### 2026-10-27 — Update the released polyspec dependencies and CI test execution (C18.9)
 
 - The root manifest and native locks pin Kit 0.0.59 and OrderedJSON 0.0.10. OrderedJSON PHP archives use the declared release digests, and CI prepares their tagged source for native development dependencies. Rust JSON conversion validates UTF-8 byte strings for object keys and values. Runtime CI tests run in four independent shards with separate reports. Test commands resolve the installed Kit public CLI export for source and packaged installations. PHP source tests include both public and internal suites without test prerequisites.
