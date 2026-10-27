@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8c97c565b43aa67a1ba7ab219c8b9616af15e3545899eb881f3d1fceb018f803 -->
+<!-- source-sha256: 8ab0ab3771138ce599b3a32b82f7cee1890aa7358d25bea5447710f81284c04f -->
 
 ## Unreleased
+
+### 2026-10-27 — 시간 제한 assertion 전에 native fixture program을 컴파일한다 (C18.10-6)
+
+- 공유 validation과 unique-rule program을 setup operation에서 컴파일한다. Test는 해당 run에서 만든 program만 실행하며 기존 assertion과 제한시간을 유지한다.
 
 ### 2026-10-27 — Composition fixture 입력을 해석하고 slot class 처리를 모은다 (C18.10-5)
 

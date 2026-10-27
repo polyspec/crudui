@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Compile native fixture programs before timed assertions (C18.10-6)
+
+- Shared validation and unique-rule programs compile as setup operations. Tests execute only programs produced by that run and retain their existing assertions and time limits.
+
 ### 2026-10-27 — Resolve composed fixture inputs and centralize slot classes (C18.10-5)
 
 - Parity rendering and binding receive the same resolved fixture specification. Unsupported field types remain explicitly unrenderable, and slot classes are read only by the slot module.

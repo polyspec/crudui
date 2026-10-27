@@ -3,12 +3,13 @@ import { readFileSync } from 'node:fs';
 import { access, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
+import test, { describe } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { setup, teardown } from '@polyspec/kit/test-hooks';
 import { dispatch } from '../../../../tests/native-generators/javascript.mts';
 import { contractPath, outputPath, unicodeDataSource } from '../../tools/generate-unicode-data.mjs';
 
-import { cString, cText, cTextInitializer, EngineFixtureSource, caseProgramStart, caseProgramEnd, caseReport, caseResults, recordCases, fixtureProgram, commaLocaleEnvironment, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, ENGINE_INSPECTION_BUDGET, compileAndRunEngineProgram, compileAndRunEngineFixture } from './support.mjs';
+import { cString, cText, cTextInitializer, EngineFixtureSource, caseProgramStart, caseProgramEnd, caseReport, caseResults, recordCases, fixtureProgram, commaLocaleEnvironment, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, ENGINE_INSPECTION_BUDGET, compileAndRunEngineProgram, compileAndRunEngineFixture, compileEngineFixture, runEngineProgram } from './support.mjs';
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -171,16 +172,30 @@ test('PHP extension fixture arrays preserve every repeated scalar value', { time
   }
 });
 
+describe('prepared engine validation programs', () => {
+const validationSources = [
+  'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+  'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
+];
+let directory;
+let preparedValidation;
+const preparedUnique = new Map();
+setup('compile validation and unique-rule fixtures', async () => {
+  directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
+  preparedValidation = await compileEngineFixture({ root, directory, source: sourceForValidation(), name: 'validation', sources: validationSources });
+  for (const { name, source } of uniquePrograms) {
+    preparedUnique.set(name, await compileEngineFixture({ root, directory, source: source(), name, sources: validationSources }));
+  }
+});
+teardown('remove validation and unique-rule fixtures', async () => {
+  if (directory) await rm(directory, { recursive: true, force: true });
+});
+
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
   try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation',
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-      ],
+    await runEngineProgram({
+      ...preparedValidation, signal: t.signal,
       onOutput: stdout => { output = stdout; },
     });
     // The program reports one result for each case of the shared cases.json files, in their order; a case that the
@@ -189,7 +204,6 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
       'the extension engine reports a result for each case of the shared validate, spec-validity, list-validity and detail-validity cases.json');
   } finally {
     recordCases(validationEvidence, output);
-    await rm(directory, { recursive: true, force: true });
   }
 });
 
@@ -265,25 +279,16 @@ function sourceForUniqueField() {
   }, ['    put(row, PS_TEXT("code"), ps_string_value(name));'], []);
 }
 
-for (const { title, name, source } of [
+const uniquePrograms = [
   { title: 'PHP extension engine unique rule walks the rows once', name: 'unique-rows', source: sourceForUniqueRows },
   { title: 'PHP extension engine unique rule on a field in rows walks the rows once', name: 'unique-field', source: sourceForUniqueField },
-]) {
+];
+for (const { title, name } of uniquePrograms) {
   test(title, { timeout: ENGINE_TEST_BUDGET }, async t => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), `crudui-extension-${name}-`));
-    try {
-      await compileAndRunEngineFixture({
-        signal: t.signal, root, directory, source: source(), name,
-        sources: [
-          'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-          'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-        ],
-      });
-    } finally {
-      await rm(directory, { recursive: true, force: true });
-    }
+    await runEngineProgram({ ...preparedUnique.get(name), signal: t.signal });
   });
 }
+});
 
 test('PHP extension engine validation does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
   await runUnderCommaLocale({

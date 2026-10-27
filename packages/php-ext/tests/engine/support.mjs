@@ -301,12 +301,12 @@ function runStep(label, command, args, { signal, env, outcome } = {}) {
 }
 
 /*
- * Compile a C program with the named sources of packages/php-ext/src and run it. Every C program
+ * Compile a C program with the named sources of packages/php-ext/src. Every C program
  * of these tests compiles here; the math library is linked because glibc keeps log10, ceil and
  * floor in libm, while macOS has them in its system library.
  */
-export async function compileAndRunEngineProgram({ root, directory, program, sources, name,
-  compilerFlags = [], runEnvironment, signal, onOutput }) {
+export async function compileEngineProgram({ root, directory, program, sources, name,
+  compilerFlags = [], signal }) {
   const executable = path.join(directory, name);
   const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
   const compile = await runStep(`${name}: compiling ${sources.length} sources`,
@@ -318,11 +318,29 @@ export async function compileAndRunEngineProgram({ root, directory, program, sou
     ], { signal });
   assert.equal(compile.signal, null);
   assert.equal(compile.status, 0, compile.stderr || compile.stdout);
+  return { executable, name };
+}
+
+/** Run an engine program produced by this run's compilation. */
+export async function runEngineProgram({ executable, name, runEnvironment, signal, onOutput }) {
   const run = await runStep(`${name}: running`, executable, [],
     { signal, env: runEnvironment ?? process.env });
   onOutput?.(run.stdout);
   assert.equal(run.signal, null, run.stderr || run.stdout);
   assert.equal(run.status, 0, run.stderr || run.stdout);
+}
+
+/** Compile and run one engine program. */
+export async function compileAndRunEngineProgram(options) {
+  const prepared = await compileEngineProgram(options);
+  await runEngineProgram({ ...options, ...prepared });
+}
+
+/** Write and compile a fixture for execution after the preparation hook. */
+export async function compileEngineFixture({ directory, source, name, ...options }) {
+  const program = path.join(directory, `${name}.c`);
+  await writeFile(program, source);
+  return compileEngineProgram({ ...options, directory, program, name });
 }
 
 /* Write a generated fixture program to the directory, then compile and run it. */
