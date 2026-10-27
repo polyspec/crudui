@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 4b600567f43462d9748a8054b726072e33e3d97b460391aab9420b965c5e2974 -->
+<!-- source-sha256: 68496bdf768fec5d55090ea06f57fc4308be5052ce2e7dbc11987d8c239af74a -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -43,3 +43,4 @@
 | C18.10-18 | K710을 포함한 공개 Kit release를 반영한다 (priority: high). | native npm release asset pin and lock, synchronized shared files and restored local source links | `make kit-check`; owning dependency checks and exact release asset integrity | [o] |
 | C18.10-19 | Cold release build 전에 native dependency cache를 준비한다 (priority: high). | application release build prerequisites and native cache preparation regression | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts`; native Make dependency ordering | [o] |
 | C18.10-20 | Native source와 language fixture의 layout 예외를 선언한다 (priority: high). | exact application layout exceptions with reasons for native source resolution and existing language helpers | `make layout-check`; exact five Gates findings removed without disabling other layout rules | [~] |
+| C18.10-21 | Summary와 직접 stack 검사에 필요한 고정 native archive를 준비한다 (priority: high). | release-mode stack prerequisites and owning preparation regression | `node scripts/run-tests.mts node -- --test-name-pattern="release-mode stacks" tests/build/form-comparison-ci.test.mts` | [ ] |
