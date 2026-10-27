@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 032a1aa910f85ec312e56d07937531cf100a693dc8214da0395bd174c259de8c -->
+<!-- source-sha256: fffe25204c0fc5a208f222b572d85ba28959df942538336f9d8bcff002704461 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -39,5 +39,5 @@
 | C18.10-14 | PHPUnit을 수정된 release로 갱신하고 native 의존성 검토를 갱신한다. (우선순위: 높음). | Composer locks and config/dependency-review.json | `make dependency-policy-check`; `node scripts/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testOrderedJsonKeepsOrderValuesAndEmptyTypes tests/FormJsonTest.php` | [o] |
 | C18.10-15 | Rust lint policy에 맞게 fixture recorder 결과 type을 명시한다 (우선순위: 높음). | packages/generator/rust/tests/support/evidence.rs | exact generator fixture harness clippy with all Kit P8 lint flags; `git diff --check` | [o] |
 | C18.10-16 | 기존 outline과 rendering evidence의 지원 범위를 선언한다 (priority: high). | fixture applicability registry and owning conformance checks | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; CI evidence scope reconciliation | [o] |
-| C18.10-17 | 현재 candidate archive에서 release consumer lock을 다시 생성한다 (priority: high). | native npm and Composer consumer locks with current archive metadata | `make release-candidate-assets VERSION=0.0.8`; `make release-consumer-lock TAG=v0.0.8`; owning release consumer checks | [~] |
+| C18.10-17 | 현재 candidate archive에서 release consumer lock을 다시 생성한다 (priority: high). | native npm and Composer consumer locks with current archive metadata | `make release-candidate-assets VERSION=0.0.8`; `make release-consumer-lock TAG=v0.0.8`; owning release consumer checks | [o] |
 | C18.10-18 | K710을 포함한 공개 Kit release를 반영한다 (priority: high). | native npm release asset pin and lock, synchronized shared files and restored local source links | `make kit-check`; owning dependency checks and exact release asset integrity | [ ] |

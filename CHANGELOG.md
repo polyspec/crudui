@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Prepare current candidate archives and consumer locks (C18.10-17)
+
+- Candidate archives build current package output before packing. Native npm and Composer regenerate consumer locks from those archives, and clean external consumers install and smoke-check all eleven release packages.
+
 ### 2026-10-27 — Declare actual outline and rendering evidence scopes (C18.10-16)
 
 - Fixture declarations identify the existing browser group source checks, rendered button operations and JavaScript outlines. Feature-specific runtime applicability records Python outline compilation and binding without claiming those operations in other runtimes.

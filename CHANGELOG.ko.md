@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d04e27fe982104ec4a93eeec7b301e255e37043f8707774da831013adc1c10e1 -->
+<!-- source-sha256: e7f05c6b300007fb2fe8c68d53d4fe20e8635b0f96b6a7736d3ba1b484c37128 -->
 
 ## Unreleased
+
+### 2026-10-27 — 현재 candidate archive와 consumer lock을 준비한다 (C18.10-17)
+
+- Candidate archive는 pack 전에 현재 package output을 빌드한다. Native npm과 Composer는 해당 archive에서 consumer lock을 다시 생성하며 깨끗한 외부 consumer는 release package 11개를 설치하고 smoke 검사를 실행한다.
 
 ### 2026-10-27 — 실제 outline과 rendering evidence 범위를 선언한다 (C18.10-16)
 
