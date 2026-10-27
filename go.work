@@ -1,11 +1,15 @@
 go 1.27.3
 
 use (
+	./benchmarks/validators/go
 	./examples/cross-check-console/validators/go
 	./examples/form-comparison/servers/go
 	./packages/generator/go
 	./packages/validator/go
 	./scripts/go
 	./tests/native-generators/programs/go
-	./benchmarks/validators/go
 )
+
+replace github.com/polyspec/crudui/packages/validator/go v0.0.8 => ./packages/validator/go
+
+replace github.com/polyspec/crudui/packages/generator/go v0.0.8 => ./packages/generator/go

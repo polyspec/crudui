@@ -190,7 +190,8 @@ crudui-install-crates: cargo-downloads-fetch ## Download the crates of every Car
 # root: the Go checks run with GOPROXY=off and read only that cache (C14.18). A CI job that runs Go runs it after make
 # install-tools.
 crudui-install-go-modules: ## Download the modules that the Go workspace requires; ONLINE
-	$(ONLINE) $(GO) mod download
+	@modules="$$($(ONLINE) $(GO) list -m -f '{{if not .Main}}{{.Path}}@{{.Version}}{{end}}' all)" || exit $$?; \
+	printf '%s\n' "$$modules" | xargs $(ONLINE) $(GO) mod download
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 crudui-test-runtimes: ## Exact runtime versions and test standards
@@ -228,11 +229,14 @@ typecheck: ## Type-check every TypeScript package, the TypeScript of scripts/ an
 	node_modules/.bin/tsc -p tsconfig.json
 	node_modules/.bin/tsc -p examples/form-comparison/src/tsconfig.json
 crudui-test-validator-js: ## The TypeScript validator suite
+	$(NODE) scripts/require-current-build.mts
 	$(NPM) test -w @polyspec/crudui-validator
 crudui-test-validator-php: ## The PHP validator suite
 	$(COMPOSER_BIN) --working-dir=packages/validator/php test
 crudui-test-validator-go: ## The Go validator suite
-	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./...
+	@packages="$$($(GO) -C packages/validator/go list -f '{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)" || exit $$?; \
+	test -n "$$packages" || { echo "crudui-test-validator-go: native Go discovery selected no test package" >&2; exit 1; }; \
+	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- $$packages
 crudui-test-validator-rust: cargo-downloads-check ## The Rust validator suite
 	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 crudui-test-validator-python: ## The Python validator suite
@@ -476,8 +480,8 @@ release-assets: build
 # (tests/build/ci-local.test.mts keeps this list equal to .github/workflows/ci.yml).
 CI_TARGETS = \
 	crudui-test-runtimes \
-	crudui-test-dependencies \
 	build \
+	crudui-test-dependencies \
 	lint \
 	lint-python \
 	lint-php \

@@ -123,7 +123,7 @@ jobs:
         run: make crudui-install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="crudui-test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck hooks-check"
+        run: make ci-targets TARGETS="build crudui-test-dependencies lint lint-python lint-php lint-rust lint-go typecheck hooks-check"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -155,10 +155,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-validator-js"
@@ -254,12 +260,18 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go"
+        run: make toolchain-check TOOLS="node npm go php"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-validator-go"
@@ -302,10 +314,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
+        run: make toolchain-check TOOLS="node npm rust php"
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -354,6 +372,12 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       # The suites and programs import the Python packages installed in var/python (S3).
@@ -361,7 +385,7 @@ jobs:
         run: make crudui-install-python
       # The Python is the one of mise.toml, which make install-tools installed at the digest of mise.lock.
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm python"
+        run: make toolchain-check TOOLS="node npm python php"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-validator-python crudui-test-generator-python"
@@ -522,10 +546,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="require-build crudui-test-cli"
@@ -563,10 +593,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Install the browsers that Puppeteer and Playwright pin
         run: make crudui-install-browsers BROWSERS="chrome firefox webkit --with-deps --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -885,10 +921,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Install the browsers that Puppeteer pins
         run: make crudui-install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -930,10 +972,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-php-engine"
@@ -1131,10 +1179,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       # Each artifact goes into conformance-evidence/<artifact name>, so no evidence file of one job replaces a file of
       # another with the same name; scripts/check-conformance.mts reads the directory with its subdirectories.
       - name: Collect the evidence of every suite
@@ -1175,9 +1229,15 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Fail unless every other job succeeded
         run: make ci-passed RESULTS='${{ toJSON(needs) }}'

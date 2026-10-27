@@ -204,7 +204,7 @@ test('the runtime script passes native Node sharding only when requested (C18.9)
   const manifest = parseJson<{ scripts: Record<string, string> }>(await read('package.json'), { properties: { scripts: { values: { type: 'string' } } }, additionalProperties: true }, 'package.json');
   const command = manifest.scripts['test:runtimes'];
   assert.ok(command);
-  const environment = { ...process.env, PATH: `${directory}${path.delimiter}${process.env.PATH ?? ''}` };
+  const environment: NodeJS.ProcessEnv = { ...process.env, PATH: `${directory}${path.delimiter}${process.env.PATH ?? ''}` };
   delete environment.CRUDUI_TEST_SHARD;
   const args = (shard?: string): string[] => {
     const result = spawnSync('/bin/sh', ['-c', command], { cwd: ROOT, env: { ...environment, ...(shard === undefined ? {} : { CRUDUI_TEST_SHARD: shard }) }, encoding: 'utf8' });
@@ -225,7 +225,7 @@ test('the runtime script passes native Node sharding only when requested (C18.9)
 // The native suites run in three jobs: the C engine of the PHP extension and the generators of the JavaScript, HTML, Go
 // and Rust targets, and the PHP API on the PHP of .php-version, each once; make crudui-test-native runs the three parts.
 const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: string[] }> = {
-  'php-engine': { targets: 'crudui-test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
+  'php-engine': { targets: 'crudui-test-php-engine', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
   'native-generators': { targets: 'crudui-test-native-generators crudui-test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
   'php-api': { targets: 'crudui-test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
 };
@@ -326,6 +326,19 @@ test('CI_TARGETS lists every checking command of the CI workflow, in the same or
   const local = makeCommands(await read('Makefile'));
   assert.ok(workflow.length > 10, 'the workflow has checking commands');
   assert.deepEqual(local, workflow);
+});
+
+test('CI builds public JavaScript entries before dependency checks and validator tests (C18.10-3)', async () => {
+  const workflow = workflowCommands(await workflowFile('ci.yml'));
+  const build = workflow.indexOf('make build');
+  const dependencies = workflow.indexOf('make crudui-test-dependencies');
+  assert.ok(build >= 0 && dependencies > build, 'dependency resolution checks read the built public entries');
+  const validator = makeDryRun(ROOT, 'crudui-test-validator-js');
+  assert.equal(validator.status, 0, validator.stderr);
+  const lines = validator.stdout.split('\n');
+  const prepare = lines.findIndex(line => line.endsWith('/var/tools/bin/node scripts/require-current-build.mts'));
+  const suite = lines.findIndex(line => line.endsWith('/var/tools/bin/npm test -w @polyspec/crudui-validator'));
+  assert.ok(prepare >= 0 && suite > prepare, 'the validator source suite prepares the public entries it imports');
 });
 
 // A recipe of the Makefile starts a tool of kit as $(KIT)/<tool>.mjs; the installed package has to ship it, or the target
@@ -593,5 +606,8 @@ test('install-link links into the venv of var/python', () => {
   // The make database names the target-specific variables of each target: `make -p` shows the one of install-link.
   const database = makeDryRun(ROOT, 'install-link', { database: true });
   assert.equal(database.status, 0, database.stderr);
-  assert.match(database.stdout, /^# UV_PROJECT_ENVIRONMENT := .*\/var\/python$/m, 'install-link has the venv of the repository as its environment');
+  const declaration = `UV_PROJECT_ENVIRONMENT := ${path.join(ROOT, 'var/python')}`;
+  const lines = database.stdout.split('\n');
+  assert.ok([`# ${declaration}`, `install-link: ${declaration}`].some(line => lines.includes(line)),
+    `expected install-link to declare ${declaration}; actual: ${lines.filter(line => line.includes('UV_PROJECT_ENVIRONMENT')).join('; ')}`);
 });

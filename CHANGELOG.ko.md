@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e97d55e002d38e639c3366e049434d620a4098a8e210f4926dd3cd33121cc73a -->
+<!-- source-sha256: ac7914f536f30185cff5cddc544c5cc072263c4e8a31ad8ed97b366fb0ba82e0 -->
 
 ## Unreleased
+
+### 2026-10-27 — CI toolchain과 native 의존성 범위를 준비한다 (C18.10-2)
+
+- 모든 전체 tool 설치 전에 PHP를 준비한다. Workspace version replacement는 미공개 internal Go module을 로컬에서 해석하며 native Go package discovery는 test가 있는 모든 package를 선택한다. JavaScript 검증은 import 검사 전에 compiled public entry를 준비한다. GNU Make 환경 검증은 Make 3와 Make 4의 정확한 target-specific 선언 형식을 허용한다.
 
 ## 0.0.8
 

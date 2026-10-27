@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Prepare CI toolchains and native dependency scopes (C18.10-2)
+
+- Every full tool installation prepares PHP first. Workspace version replacements resolve unpublished internal Go modules locally, and native Go package discovery selects every package that contains tests. JavaScript validation prepares compiled public entries before import checks. GNU Make environment verification accepts the exact target-specific declaration format of Make 3 and Make 4.
+
 ## 0.0.8
 
 ### 2026-10-27 — Prepare CRUDUI 0.0.8 publication (C18.10)

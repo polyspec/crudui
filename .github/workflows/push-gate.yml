@@ -47,10 +47,16 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+          coverage: none
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php"
       - name: Refuse a commit with a task in progress or broken records
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="push-gate-commit records-check"
