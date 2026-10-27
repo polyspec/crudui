@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Resolve composed fixture inputs and centralize slot classes (C18.10-5)
+
+- Parity rendering and binding receive the same resolved fixture specification. Unsupported field types remain explicitly unrenderable, and slot classes are read only by the slot module.
+
 ### 2026-10-27 — Validate packed versions against the root manifest (C18.10-4)
 
 - Package installation checks require the exact root manifest version for each published package.

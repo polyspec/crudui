@@ -7,6 +7,8 @@ import { readFileSync } from 'node:fs';
 
 import type { ValidationResult } from '@polyspec/crudui-validator';
 import { FormInputError } from '@polyspec/crudui-validator';
+import { composeProperties, composeSpec, MemoryLoader } from '@polyspec/crudui-validator/internal';
+import { UnsupportedFieldTypeError } from '@polyspec/crudui-generator-core';
 import { describe, expect, it } from 'vitest';
 
 import { collectData } from '../src/data';
@@ -23,6 +25,8 @@ interface Case {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+const isFileSet = (value: unknown): value is Record<string, Record<string, unknown>> =>
+  isRecord(value) && Object.values(value).every(isRecord);
 
 /**
  * The cases of the shared validation fixture, each checked to hold a name, an object specification and object data. A case
@@ -38,7 +42,17 @@ function readCases(text: string): Case[] {
       if (isRecord(item.expectFailure)) return [];
       throw new TypeError(`Case ${index} of the validation fixture has no object spec and data and expects no input failure`);
     }
-    return [{ name: item.name, spec: item.spec, data: item.data, ...('expected' in item ? { expected: item.expected } : {}) }];
+    let spec = item.spec;
+    if (isRecord(item.expected) && item.expected.valid === false) {
+      if (item.files !== undefined && !isFileSet(item.files)) {
+        throw new TypeError(`Case ${index} of the validation fixture has no composition file set`);
+      }
+      const loader = new MemoryLoader(item.files ?? {});
+      spec = ('$ref' in spec || '$patch' in spec) && !isRecord(spec.properties)
+        ? { type: 'group', properties: composeProperties(spec, loader) }
+        : composeSpec(spec, loader);
+    }
+    return [{ name: item.name, spec, data: item.data, ...('expected' in item ? { expected: item.expected } : {}) }];
   });
 }
 
@@ -49,7 +63,10 @@ const formErrors = (result: ValidationResult) => (result.valid ? [] : ['Check th
 function holdsData(item: Case): boolean {
   if (!isRecord(item.expected) || item.expected.valid !== false) return false;
   let html: string;
-  try { html = formHtml(item.spec, item.data); } catch (error) { if (!(error instanceof FormInputError)) throw error; return false; }
+  try { html = formHtml(item.spec, item.data); } catch (error) {
+    if (!(error instanceof FormInputError) && !(error instanceof UnsupportedFieldTypeError)) throw error;
+    return false;
+  }
   return JSON.stringify(collectData(formBodyOf(documentOf(html).document), 'form')) === JSON.stringify(item.data);
 }
 
@@ -66,6 +83,14 @@ function withoutInvalidMarks(form: HTMLFormElement): { html: string; invalid: st
 }
 
 describe('the cases of the validation fixture', () => {
+  it('resolves fixture files before deciding whether the rendered form holds the data', () => {
+    const item = cases.find(item => item.name === 'composed-member-order');
+    assert(item);
+    expect(Object.keys(item.spec.properties ?? {})).toStrictEqual(['10', 'b', 'a']);
+    expect(() => formHtml(item.spec, item.data)).not.toThrow();
+    expect(holdsData(item)).toBe(false);
+  });
+
   it('leave out a case whose specification or data is no object only when it expects an input failure', () => {
     const failure = { code: 'INVALID_FORM_INPUT', message: 'Form data must be an object', at: '' };
     expect(readCases(JSON.stringify([{ name: 'declared', spec: {}, data: ['a'], expectFailure: failure }]))).toStrictEqual([]);
@@ -79,6 +104,7 @@ describe('the cases of the validation fixture', () => {
 describe('error markup parity with renderForm', () => {
   it('selects the invalid fixture cases whose data a rendered form holds', () => {
     expect(selected.length).toBeGreaterThanOrEqual(50);
+    expect(selected.map(item => item.name)).toContain('compose-ref-patch-email');
   });
 
   for (const item of selected) {

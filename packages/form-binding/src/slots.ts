@@ -13,6 +13,11 @@ const NODE_BODY = 'crudui-node__body';
 const NODE_ERRORS = 'crudui-node__errors';
 const NODE_ERROR = 'crudui-node__error';
 
+/** The body child of a rendered node, when present. */
+export function nodeBody(node: Element): Element | undefined {
+  return Array.from(node.children).find(child => child.classList.contains(NODE_BODY));
+}
+
 /**
  * The body of the one CRUDUI form inside a form element.
  *
@@ -54,7 +59,7 @@ export function writeNodeErrors(node: HTMLElement, messages: readonly string[]):
     if (child.classList.contains(NODE_ERRORS)) child.remove();
   }
   if (!messages.length) return;
-  const body = children.find((child) => child.classList.contains(NODE_BODY));
+  const body = nodeBody(node);
   if (!body) throw new TypeError(`A CRUDUI node has no body: ${node.outerHTML.slice(0, 80)}`);
   body.after(errorList(node.ownerDocument, NODE_ERRORS, NODE_ERROR, messages));
 }

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c62b0078b94b5ac1ee94d0c2cf8dc592d9935b128e97b56196f4353ca6602e06 -->
+<!-- source-sha256: 8c97c565b43aa67a1ba7ab219c8b9616af15e3545899eb881f3d1fceb018f803 -->
 
 ## Unreleased
+
+### 2026-10-27 — Composition fixture 입력을 해석하고 slot class 처리를 모은다 (C18.10-5)
+
+- Parity rendering과 binding은 동일하게 해석한 fixture specification을 받는다. 지원하지 않는 field type은 명시적으로 렌더 불가이며 slot class는 slot module에서만 읽는다.
 
 ### 2026-10-27 — Root manifest를 기준으로 packed version을 검증한다 (C18.10-4)
 

@@ -9,6 +9,7 @@ import { isGroupSource } from '@polyspec/crudui-validator/internal';
 
 import { collectData, submitted } from './data.js';
 import { dataControls, isInput, isSelect, nodeOf, nodesByPath } from './nodes.js';
+import { nodeBody } from './slots.js';
 
 /** The render options of the server that the refreshed markup repeats. */
 export interface ChoiceOptions {
@@ -36,11 +37,6 @@ function declaration(fields: readonly FormFieldTemplate[], path: string): FormFi
   return found;
 }
 
-/** The `crudui-node__body` child of a node. */
-function bodyOf(node: Element): Element | undefined {
-  return Array.from(node.children).find(child => child.classList.contains('crudui-node__body'));
-}
-
 /**
  * A function that patches the body of every field node with a group source to the body that the
  * renderer writes for the data of the controls, and keeps the selection the controls held; a
@@ -56,12 +52,12 @@ export function choiceRefresh(spec: Record<string, unknown>, options: ChoiceOpti
     const rendered = body.ownerDocument.createElement('template');
     rendered.innerHTML = renderForm(form);
     const live = nodesByPath(body);
-    for (const node of rendered.content.querySelectorAll('.crudui-node--field[data-field-path]')) {
+    for (const node of rendered.content.querySelectorAll('[data-field-path]')) {
       const path = node.getAttribute('data-field-path') ?? '';
       if (!isGroupSource(declaration(template.fields, path)?.spec.items)) continue;
       const target = live.get(path);
-      const before = target && bodyOf(target);
-      const after = bodyOf(node);
+      const before = target && nodeBody(target);
+      const after = nodeBody(node);
       if (!target || !before || !after) continue;
       const own = dataControls(body).filter(control => nodeOf(body, control) === target);
       const held = new Set(own.flatMap(control => submitted(control)));
