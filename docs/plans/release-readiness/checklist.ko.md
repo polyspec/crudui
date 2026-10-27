@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 6f187a33273adca0f6d9b26e78017395b918b1f01e56f084899b1dad270cc18e -->
+<!-- source-sha256: c30699e06ed4f113ce22ef9f609c6d5cfbd60872677ac9606618e258435fd7d6 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -35,6 +35,6 @@
 | C18.10-10 | 유효하지 않은 UTF-8 native request를 public input error로 정규화한다. (우선순위: 높음). | tests/native-generators/javascript.mts | `node tests/native-generators/run.mts --target javascript,html --check text:request-not-utf8 --report var/native-utf8-report.json` | [o] |
 | C18.10-11 | Native fixture context와 link source를 현재 engine에 맞춘다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="allocation\|form state" packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C18.10-12 | 검증된 structure fixture 목록의 정확한 개수를 유지한다. (우선순위: 높음). | packages/validator/python/tests/test_structure_validity.py | `node scripts/run-tests.mts python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity` | [o] |
-| C18.10-13 | Manifest에서 추적하는 feature contract 문서를 재생성한다. (우선순위: 높음). | docs/operations/feature-contracts.md and its Korean twin | `npm run manifest:docs:check` | [~] |
+| C18.10-13 | Manifest에서 추적하는 feature contract 문서를 재생성한다. (우선순위: 높음). | docs/operations/feature-contracts.md and its Korean twin | `npm run manifest:docs:check` | [o] |
 | C18.10-14 | PHPUnit을 수정된 release로 갱신하고 native 의존성 검토를 갱신한다. (우선순위: 높음). | Composer locks and config/dependency-review.json | `make dependency-policy-check`; `node scripts/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testOrderedJsonKeepsOrderValuesAndEmptyTypes tests/FormJsonTest.php` | [~] |
 | C18.10-15 | Rust lint policy에 맞게 fixture recorder 결과 type을 명시한다 (우선순위: 높음). | packages/generator/rust/tests/support/evidence.rs | exact generator fixture harness clippy with all Kit P8 lint flags; `git diff --check` | [~] |

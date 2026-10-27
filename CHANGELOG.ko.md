@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 88d0c920ddf42cd7fc82eb03f72532d6826970211848fdd4a714ebfed6252848 -->
+<!-- source-sha256: 5b978ed70c79445910a8bc3629803b4218733c93a4aea0b50168680301edcf4c -->
 
 ## Unreleased
+
+### 2026-10-27 — Feature contract 문서는 현재 manifest command와 fixture 선언을 설명한다 (C18.10-13)
+
+- Feature contract 문서는 현재 manifest command와 fixture 선언을 설명한다.
 
 ### 2026-10-27 — Structure fixture 목록은 현재의 모든 유효 schema case와 기존 invalid case를 포함한다 (C18.10-12)
 

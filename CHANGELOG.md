@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Regenerate current feature contracts (C18.10-13)
+
+- Feature contract documents describe the current manifest commands and fixture declarations.
+
 ### 2026-10-27 — Keep the structure fixture inventory exact (C18.10-12)
 
 - The structure fixture inventory includes every current valid schema case and retains all invalid cases.
