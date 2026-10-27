@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 673b4540272e3f2b30265912cd5761355e922e7b86c1b498446b486b9130f24e -->
+<!-- source-sha256: e273df738a8e959479014ebd97263ade6aef67f9a345e4088945ec500fdb9812 -->
 
 ## Unreleased
+
+## 0.0.8
 
 ### 2026-10-27 — 모든 release mode stack 검사에 native archive를 준비한다 (C18.10-21)
 
@@ -15,8 +17,6 @@
 ### 2026-10-27 — Release build 전에 native cache를 준비한다 (C18.10-19)
 
 - Release와 candidate archive target은 package output을 빌드하기 전에 선언된 Cargo와 Go 의존성을 내려받는다. Go 다운로드는 선언된 저장소 workspace에서 해석하며 병렬 Make에서도 archive 준비는 다운로드 후 빌드 순서를 유지한다.
-
-## 0.0.8
 
 ### 2026-10-27 — Kit 0.0.60을 반영한다 (C18.10-18)
 

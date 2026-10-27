@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.8
+
 ### 2026-10-27 — Prepare native archives for every release-mode stack check (C18.10-21)
 
 - Summary and direct form comparison checks fetch the pinned OrderedJSON native archives before starting their release-mode stacks. Local source mode keeps its declared provider resolution.
@@ -14,8 +16,6 @@
 ### 2026-10-27 — Prepare native caches before release builds (C18.10-19)
 
 - Release and candidate archive targets download the declared Cargo and Go dependencies before building package output. Go downloads resolve through the declared repository workspace, and archive preparation preserves download-before-build ordering under parallel Make.
-
-## 0.0.8
 
 ### 2026-10-27 — Adopt Kit 0.0.60 (C18.10-18)
 
