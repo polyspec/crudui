@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Isolate service children from test flags (C18.10-29)
+
+- IPC services use their declared runtime arguments and application environment. Parent test instrumentation flags and test context do not propagate to service processes.
+
 ## 0.0.8
 
 ### 2026-10-27 — Canonicalize parallel pipeline reset evidence (C18.10-28)

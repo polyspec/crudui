@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 55ac065d38fe90f1b37402b857dacf5e7bf0aeec117e9fface112127971c28d9 -->
+<!-- source-sha256: 47d1771e78c2ca9417d42cc049d6a0f96a48003c1dbc4ee85d8d0d34f03110cc -->
 
 ## Unreleased
+
+### 2026-10-27 — Service child에서 test flag를 분리한다 (C18.10-29)
+
+- IPC service는 선언된 runtime argument와 application environment를 사용한다. 부모 test instrumentation flag와 test context는 service process에 전달하지 않는다.
 
 ## 0.0.8
 

@@ -221,12 +221,14 @@ process.on('exit', () => {
 export async function startProcess(definition, { write = text => process.stdout.write(text), ipc = false, message } = {}) {
   const started = performance.now();
   progress(write, `${definition.server}: starting on ${definition.address}`);
+  const environment = { ...process.env, ...definition.environment };
+  delete environment.NODE_TEST_CONTEXT;
   const options = {
-    env: { ...process.env, ...definition.environment }, detached: true,
+    env: environment, detached: true,
     stdio: ipc ? ['ignore', 'pipe', 'pipe', 'ipc'] : ['ignore', 'pipe', 'pipe'],
   };
   const child = ipc
-    ? fork(definition.args[0], definition.args.slice(1), { ...options, execPath: definition.command })
+    ? fork(definition.args[0], definition.args.slice(1), { ...options, execPath: definition.command, execArgv: [] })
     : spawn(definition.command, definition.args, options);
   if (message) child.send(message);
   startedGroups.add(child.pid);

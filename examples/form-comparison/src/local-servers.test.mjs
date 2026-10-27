@@ -75,6 +75,50 @@ test('a server on port 0 is reached on the address that its readiness line names
   }
 });
 
+test('an IPC service does not inherit the test process preload or test context', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-service-runtime-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const preload = path.join(directory, 'preload.mjs');
+  const service = path.join(directory, 'service.mjs');
+  const parent = path.join(directory, 'parent.mjs');
+  await writeFile(preload, 'globalThis.testPreload = true;');
+  await writeFile(service, [
+    "import http from 'node:http';",
+    'process.once("message", message => {',
+    '  const server = http.createServer((request, response) => response.end(JSON.stringify({',
+    '    execArgv: process.execArgv, context: process.env.NODE_TEST_CONTEXT ?? null,',
+    '    preload: globalThis.testPreload ?? false, argument: process.argv[2],',
+    '    environment: process.env.CRUDUI_SERVICE_FIXTURE, message,',
+    '  })));',
+    '  server.listen(0, "127.0.0.1", () => console.log("CRUDUI_READY stand-in 127.0.0.1:" + server.address().port));',
+    '});',
+  ].join('\n'));
+  await writeFile(parent, [
+    "import assert from 'node:assert/strict';",
+    `import { startProcess, anyLoopbackPort } from ${JSON.stringify(localServers)};`,
+    'assert.equal(globalThis.testPreload, true);',
+    'assert.equal(process.env.NODE_TEST_CONTEXT, "service-parent");',
+    `const running = await startProcess({ server: 'stand-in', address: anyLoopbackPort, command: process.execPath, args: [${JSON.stringify(service)}, 'service-argument'], environment: { CRUDUI_SERVICE_FIXTURE: 'preserved' }, ready: /^CRUDUI_READY stand-in (127\\.0\\.0\\.1:\\d+)$/m }, { write: () => {}, ipc: true, message: { status: 'ready' } });`,
+    'try {',
+    '  for (let request = 0; request < 2; request++) {',
+    '    const actual = await (await fetch(running.origin)).json();',
+    '    assert.deepEqual(actual, { execArgv: [], context: null, preload: false, argument: "service-argument", environment: "preserved", message: { status: "ready" } });',
+    '  }',
+    '} finally { await running.stop(); }',
+  ].join('\n'));
+  const child = spawn(process.execPath, ['--import', pathToFileURL(preload).href, parent], {
+    env: { ...process.env, NODE_TEST_CONTEXT: 'service-parent' }, stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let errors = '';
+  child.stdout.resume();
+  child.stderr.setEncoding('utf8').on('data', text => { errors += text; });
+  const status = await new Promise((resolve, reject) => {
+    child.once('error', reject);
+    child.once('exit', (code, signal) => resolve({ code, signal }));
+  });
+  assert.deepEqual(status, { code: 0, signal: null }, errors);
+});
+
 // Two verification runs at the same time each start the public server of a local stack: each takes
 // a port of the system, so both start and answer on ports of their own.
 test('the public servers of two local stacks start at the same time on ports of their own', async t => {
