@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 4b24a870e572d1fcbf31aa660d854e015c3a7542f97bb3728b07a0d83d7491bd -->
+<!-- source-sha256: fbb990cd0d0be593f46c1229168057f20c9977cbbc7e7dc49072439b596bdf14 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -26,4 +26,4 @@
 | C18.10-1 | Candidate module tag 생성 전에 선언한 local workspace로 release Go package를 빌드한다 (우선순위: 높음). | Makefile build-go environment and release preparation evidence | `make build-go` | [o] |
 | C18.10-2 | 모든 CI job에서 검사 전에 PHP와 선언한 native 의존성을 준비한다 (우선순위: 높음). | own CI workflow runtime setup and native Go dependency preparation | `node scripts/run-tests.mts node -- --test-name-pattern="toolchain\|setup-php\|Go workspace" tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make crudui-install-go-modules` | [o] |
 | C18.10-3 | CI test 전에 compiled public JavaScript entry와 native PHP test helper를 준비한다 (우선순위: 높음). | own CI build preparation and native PHP test bootstrap | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts`; `node scripts/run-tests.mts phpunit --cwd packages/php-ext -- --filter testTheExtensionValidatesEveryValidationFixtureAsTheLibraryDoes` | [ ] |
-| C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [ ] |
+| C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [~] |
