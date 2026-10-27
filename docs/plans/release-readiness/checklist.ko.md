@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: bd2c043044e94dfbe39c3010eba2e5696acfe11ad1245979761b3473628194a2 -->
+<!-- source-sha256: 23c2c068786a19d9d44a2b6bc479a8fe9446e64bb9b4d2ec92830fa946a11a95 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -30,3 +30,4 @@
 | C18.10-5 | Composition form fixture를 해석하고 binding class 경계를 유지한다. (우선순위: 높음). | packages/form-binding/src/choices.ts, slots.ts and parity tests | `node scripts/run-tests.mts vitest --cwd packages/form-binding -- tests/parity.test.ts tests/class-boundary.test.ts tests/choices.test.ts` | [o] |
 | C18.10-6 | Native fixture compilation operation을 제한시간이 있는 engine test와 분리한다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs and support.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="PHP extension engine validates all shared\|PHP extension engine unique rule" packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C18.10-7 | Fixture 적용 범위를 선언하고 지원 runtime의 실제 case 결과를 기록한다. (우선순위: 높음). | fixture registry and schemas, conformance checker and existing runtime fixture recorders | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; focused fixture owner units | [o] |
+| C18.10-8 | 현재 CI 명령과 release mode server asset을 준비한다. (우선순위: 높음). | own Pages workflow, native command verification and form comparison preparation | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/make-tool-path.test.mts tests/build/test-commands.test.mts` | [ ] |
