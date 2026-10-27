@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Validate packed versions against the root manifest (C18.10-4)
+
+- Package installation checks require the exact root manifest version for each published package.
+
 ### 2026-10-27 — Native report fixtures load their declared decoder dependency (C18.10-3)
 
 - The native report child loads FixtureJson and its selected OrderedJSON dependency without loading the CRUDUI library autoloader.

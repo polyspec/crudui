@@ -15,7 +15,9 @@ import { checkedShape, readShape, shapeDetail, shapeOf } from './json-schema.mts
 /** A JSON object: a package.json, a package lock or a module's object of JSON values, which the checks read by its keys. */
 const OBJECT = shapeOf<Record<string, unknown>>({ type: 'object' });
 /** The package.json of the repository, whose allowScripts setting the install project keeps. */
-const ROOT_MANIFEST = shapeOf<{ allowScripts?: unknown }>({ type: 'object' });
+const ROOT_MANIFEST = shapeOf<{ allowScripts?: unknown; version: string }>({
+  type: 'object', required: ['version'], properties: { version: { type: 'string' } },
+});
 /** A package.json of a workspace package: its devDependencies, which the svelte versions are read from. */
 const DEV_DEPENDENCIES = shapeOf<{ devDependencies?: Record<string, unknown> }>({ type: 'object' });
 /** A version of a package.json. */
@@ -46,7 +48,7 @@ const published = readFeatureManifest(root).packages.map(({ path }) => relative(
 const dependencies: Record<string, string> = {};
 // The packed packages for the install lock (scripts/install-lock.mts).
 const packed: Record<string, PackedPackage> = {};
-const { allowScripts } = readShape(ROOT_MANIFEST, join(root, 'package.json'));
+const { allowScripts, version } = readShape(ROOT_MANIFEST, join(root, 'package.json'));
 process.stdout.write(`Install project: ${directory}\n`);
 
 /*
@@ -107,7 +109,7 @@ try {
     const source = join(root, 'packages', folder);
     const manifest: unknown = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
     assert.ok(isPackedManifest(manifest), `${folder}/package.json has a name, a version and dependency fields of strings: ${shapeDetail(isPackedManifest.errors)}`);
-    assert.equal(manifest.version, '0.0.7', manifest.name);
+    assert.equal(manifest.version, version, manifest.name);
     const tarball = await packPackage(source, directory, manifest.name, run);
     dependencies[manifest.name] = `file:${tarball}`;
     packed[manifest.name] = { directory: `packages/${folder}`, tarball, manifest };

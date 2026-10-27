@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3ac5c33be894655d06914a66b3a0336550eb422bdf9113e40a6382d0f124c988 -->
+<!-- source-sha256: c62b0078b94b5ac1ee94d0c2cf8dc592d9935b128e97b56196f4353ca6602e06 -->
 
 ## Unreleased
+
+### 2026-10-27 — Root manifest를 기준으로 packed version을 검증한다 (C18.10-4)
+
+- Package 설치 검사는 각 공개 package에 root manifest의 정확한 version을 요구한다.
 
 ### 2026-10-27 — Native report fixture의 선언한 decoder 의존성을 로드한다 (C18.10-3)
 

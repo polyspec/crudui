@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 7c01d4fcaae39cd602ab1dc3261ed670dd9f0cf60c1882ce12592302afb6c7f8 -->
+<!-- source-sha256: 4a9a43e562b86979dc513598b72adec63e3c6a3ea4564661de570ade129edadd -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -26,7 +26,7 @@
 | C18.10-1 | Candidate module tag 생성 전에 선언한 local workspace로 release Go package를 빌드한다 (우선순위: 높음). | Makefile build-go environment and release preparation evidence | `make build-go` | [o] |
 | C18.10-2 | 모든 CI job에서 검사 전에 PHP와 선언한 native 의존성을 준비한다 (우선순위: 높음). | own CI workflow runtime setup and native Go dependency preparation | `node scripts/run-tests.mts node -- --test-name-pattern="toolchain\|setup-php\|Go workspace" tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make crudui-install-go-modules` | [o] |
 | C18.10-3 | CRUDUI library autoloader 없이 native PHP fixture helper 의존성을 로드한다 (우선순위: 높음). | packages/php-ext/tests/ApiTest.php native report bootstrap | `node scripts/run-tests.mts phpunit --cwd packages/php-ext -- --filter testTheExtensionValidatesEveryValidationFixtureAsTheLibraryDoes tests/ApiTest.php` | [o] |
-| C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [~] |
+| C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [o] |
 | C18.10-5 | Composition form fixture를 해석하고 binding class 경계를 유지한다. (우선순위: 높음). | packages/form-binding/src/choices.ts, slots.ts and parity tests | `node scripts/run-tests.mts vitest --cwd packages/form-binding -- tests/parity.test.ts tests/class-boundary.test.ts tests/choices.test.ts` | [~] |
 | C18.10-6 | Native fixture compilation operation을 제한시간이 있는 engine test와 분리한다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs and support.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="PHP extension engine validates all shared\|PHP extension engine unique rule" packages/php-ext/tests/engine/engine.test.mjs` | [~] |
 | C18.10-7 | Fixture 적용 범위를 선언하고 지원 runtime의 실제 case 결과를 기록한다. (우선순위: 높음). | fixture registry and schemas, conformance checker and existing runtime fixture recorders | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; focused fixture owner units | [~] |
