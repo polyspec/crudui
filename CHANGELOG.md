@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Canonicalize parallel pipeline report records (C18.10-26)
+
+- Pipeline reports order every combination record by its declaration after parallel execution. Missing, duplicate and unknown identities still fail completeness validation, and invalid records remain in the report.
+
 ### 2026-10-27 — Build the PHP extension before parity execution (C18.10-24)
 
 - Native PHP extension parity waits for the extension build before loading any extension binding.

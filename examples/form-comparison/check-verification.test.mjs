@@ -303,3 +303,27 @@ test('rejects failed evidence and evidence for another tree', async t => {
   await rm(path.join(directory, 'source.json'));
   await assert.rejects(verifyEvidence(directory), /ENOENT/);
 });
+
+test('pipeline completion order preserves canonical identities without mutating input records', () => {
+  const expected = pipelineEvidence();
+  const records = expected.combinations;
+  for (const combinations of [records.toReversed(), [...records.slice(7), ...records.slice(0, 7)]]) {
+    const before = structuredClone(combinations);
+    const report = pipelineFlow.pipelineReport({ ...expected, combinations });
+    assert.equal(report.passed, true);
+    assert.deepEqual(report.combinations, records);
+    assert.deepEqual(combinations, before);
+  }
+});
+
+test('pipeline completion order rejects missing duplicate and unknown identities without dropping records', () => {
+  const expected = pipelineEvidence();
+  const records = expected.combinations;
+  for (const combinations of [records.slice(1), [...records.slice(1), records[1]],
+    [{ ...records[0], id: 'unknown/html/csr' }, ...records.slice(1)]]) {
+    const report = pipelineFlow.pipelineReport({ ...expected, combinations });
+    assert.equal(report.passed, false);
+    assert.equal(report.combinations.length, combinations.length);
+    assert.deepEqual(report.combinations.map(({ id }) => id).sort(), combinations.map(({ id }) => id).sort());
+  }
+});

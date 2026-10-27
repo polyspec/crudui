@@ -321,13 +321,15 @@ export function pipelineUnits({ browser, origin }) {
 /** Summarize the unit results of one run. */
 export function pipelineReport({ origin, source, resets, combinations, startedAt, durationMs }) {
   const expected = pipelineCombinations().map(({ id }) => id);
+  // Keep every record and order known combinations by their declaration, independently of completion timing.
+  const orderedCombinations = combinations.toSorted((left, right) => expected.indexOf(left.id) - expected.indexOf(right.id));
   const failed = [...resets, ...combinations].filter(result => result.status !== 'passed');
   const passedCombinations = combinations.filter(result => result.status === 'passed').length;
   return {
     generatedAt: new Date().toISOString(), startedAt, durationMs, origin, source,
     servers: [...recordServers], total: expected.length, passedCombinations, failed: failed.length,
     passed: failed.length === 0 && resets.length === recordServers.length
-      && JSON.stringify(combinations.map(({ id }) => id)) === JSON.stringify(expected),
-    resets, combinations,
+      && JSON.stringify(orderedCombinations.map(({ id }) => id)) === JSON.stringify(expected),
+    resets, combinations: orderedCombinations,
   };
 }

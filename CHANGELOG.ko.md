@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 05ec23c100021b7681129c1ce736cc553585dc735cd6791a470bf9c8e421a54e -->
+<!-- source-sha256: 7811a326e123a19998e1db4eee2dbcb7663716d5e6f1a1f742ee613cefc2e320 -->
 
 ## Unreleased
+
+### 2026-10-27 — 병렬 pipeline report record를 기준 순서로 정렬한다 (C18.10-26)
+
+- Pipeline report는 병렬 실행 후 모든 combination record를 선언 순서로 정렬한다. 누락, 중복과 알 수 없는 identity는 완전성 검사에서 계속 실패하며 잘못된 record도 report에 남는다.
 
 ### 2026-10-27 — Parity 실행 전에 PHP extension을 빌드한다 (C18.10-24)
 
