@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: fb7c2b1d39c22799ade121040556769474f357fd2fc8e5741c0baac220f60d9f -->
+<!-- source-sha256: 843df7899dff24a7ef250f5f8416d8ff29010a33dce6d53cfdabaa90a27a045f -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -22,3 +22,4 @@
 | C18.7 | Native 개발 source 링크를 유지하며 공개된 kit 0.0.56을 반영한다 (우선순위: 높음). | package.json, npm locks, installed-package Make bootstrap, own CI workflows, native dependency review, shared copies and compatibility fixtures | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/dependency-health.test.mts tests/build/rust-node-entry-points.test.mts`; `make kit-check` | [o] |
 | C18.8 | PHP 8.4.27 runtime과 Windows 8.4.27-1 package rebuild를 개발 기준으로 사용한다 (우선순위: 높음). | Composer platform declarations and locks, dependency policy, runtime policy owner tests, development procedures and changelogs | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/runtime-version-policy.test.mts tests/build/dependency-health.test.mts`; `make dependency-policy-check` | [o] |
 | C18.9 | 공개 polyspec 의존성을 Kit 0.0.59와 OrderedJSON 0.0.10으로 갱신하고 Template 0.0.12 사용 여부를 검토하며 native source link를 유지한다 (우선순위: 높음). | dependency manifests and native locks, release assets and review records, shared copies and development procedures | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/dependency-health.test.mts tests/build/release-fixtures.test.mts`; `make kit-check`; `make dependency-policy-check` | [ ] |
+| C18.10 | 최종 로컬 검증 후 독립 CI 검사를 병렬로 실행하여 CRUDUI 0.0.8을 준비하고 공개한다 (우선순위: 높음). | candidate release records, CI execution and exact-commit evidence, publication tags and public release proof | `make release-coverage`; `make release-versions TAG=v0.0.8`; final complete local suite once; exact-commit ci-passed and push-gate; public release workflow proof | [ ] |
