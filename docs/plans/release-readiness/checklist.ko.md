@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 8f5ee9dc748112b318a5bf354083570f0b9ec7ff4336253cecd1a08567d072ff -->
+<!-- source-sha256: c64b45a2fb6543eb5efc3194231e3dcbf1fd6ac233d0bd6198b2bbb68259138d -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -42,3 +42,4 @@
 | C18.10-17 | 현재 candidate archive에서 release consumer lock을 다시 생성한다 (priority: high). | native npm and Composer consumer locks with current archive metadata | `make release-candidate-assets VERSION=0.0.8`; `make release-consumer-lock TAG=v0.0.8`; owning release consumer checks | [o] |
 | C18.10-18 | K710을 포함한 공개 Kit release를 반영한다 (priority: high). | native npm release asset pin and lock, synchronized shared files and restored local source links | `make kit-check`; owning dependency checks and exact release asset integrity | [o] |
 | C18.10-19 | Cold release build 전에 native dependency cache를 준비한다 (priority: high). | application release build prerequisites and native cache preparation regression | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts`; native Make dependency ordering | [o] |
+| C18.10-20 | Native source와 language fixture의 layout 예외를 선언한다 (priority: high). | exact application layout exceptions with reasons for native source resolution and existing language helpers | `make layout-check`; exact five Gates findings removed without disabling other layout rules | [ ] |
