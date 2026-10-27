@@ -5,7 +5,7 @@
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "c387087c01b00af9bc304fe17f0b291a220fd7715e227049d357396621aaaba2",
+      "sha256": "055c21ca182c65a6f8ba85029129fd968b78ac8e025577899ca4ac7958fd1bb8",
       "advisories": []
     },
     {

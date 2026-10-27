@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Adopt Kit 0.0.60 (C18.10-18)
+
+- The development tool dependency and native npm lock pin the Kit 0.0.60 release archive. Shared principles match the published package, and local development resolves polyspec dependencies through native source links.
+
 ### 2026-10-27 — Prepare current candidate archives and consumer locks (C18.10-17)
 
 - Candidate archives build current package output before packing. Native npm and Composer regenerate consumer locks from those archives, and clean external consumers install and smoke-check all eleven release packages.

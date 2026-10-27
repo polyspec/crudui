@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e7f05c6b300007fb2fe8c68d53d4fe20e8635b0f96b6a7736d3ba1b484c37128 -->
+<!-- source-sha256: 1f4fefbd44bc3ebf8b45cbffe9f55dccf8be56a967ec8d3338bbdd9d2591f5b2 -->
 
 ## Unreleased
+
+### 2026-10-27 — Kit 0.0.60을 반영한다 (C18.10-18)
+
+- 개발 도구 의존성과 native npm lock은 Kit 0.0.60 release archive를 고정한다. 공유 원칙은 공개 package와 일치하며 로컬 개발은 native source link로 polyspec 의존성을 해석한다.
 
 ### 2026-10-27 — 현재 candidate archive와 consumer lock을 준비한다 (C18.10-17)
 
