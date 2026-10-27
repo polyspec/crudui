@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d08b6e3407dd870fb6a7d93fe03d84293feb5772ea4d3f68e9f35b1cec9f4f1f -->
+<!-- source-sha256: 630ba51839c6d4c58c1ab76401a6931f6587d2096a6185de4a4b8802ba437e72 -->
 
 ## Unreleased
+
+### 2026-10-27 — Native engine fixture는 전체 validation context를 초기화하고 condition tree 구현을 연결한다 (C18.10-11)
+
+- Native engine fixture는 전체 validation context를 초기화하고 condition tree 구현을 연결한다.
 
 ### 2026-10-27 — 잘못된 UTF-8이 있는 native JavaScript와 HTML 요청은 공개 invalid input error를 반환한다 (C18.10-10)
 

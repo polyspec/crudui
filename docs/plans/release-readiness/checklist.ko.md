@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 84f664d88480895d8354bebc2c86e22266f68dcd7174c885a359872042c01797 -->
+<!-- source-sha256: 2113da8f5790790c84e04421917be71b2ea3d45678cc9a16fe064a5aae4f647f -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -33,7 +33,7 @@
 | C18.10-8 | 현재 CI 명령과 release mode server asset을 준비한다. (우선순위: 높음). | own Pages workflow, native command verification and form comparison preparation | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/make-tool-path.test.mts tests/build/test-commands.test.mts` | [o] |
 | C18.10-9 | Rust field model에 schema data limit을 포함한다. (우선순위: 높음). | packages/validator/rust/src/types.rs and public type exports | `node scripts/run-tests.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --lib top_level_keys_are_the_schema_field_keys` | [o] |
 | C18.10-10 | 유효하지 않은 UTF-8 native request를 public input error로 정규화한다. (우선순위: 높음). | tests/native-generators/javascript.mts | `node tests/native-generators/run.mts --target javascript,html --check text:request-not-utf8 --report var/native-utf8-report.json` | [o] |
-| C18.10-11 | Native fixture context와 link source를 현재 engine에 맞춘다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="allocation\|form state" packages/php-ext/tests/engine/engine.test.mjs` | [~] |
+| C18.10-11 | Native fixture context와 link source를 현재 engine에 맞춘다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="allocation\|form state" packages/php-ext/tests/engine/engine.test.mjs` | [o] |
 | C18.10-12 | 검증된 structure fixture 목록의 정확한 개수를 유지한다. (우선순위: 높음). | packages/validator/python/tests/test_structure_validity.py | `node scripts/run-tests.mts python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity` | [~] |
 | C18.10-13 | Manifest에서 추적하는 feature contract 문서를 재생성한다. (우선순위: 높음). | docs/operations/feature-contracts.md and its Korean twin | `npm run manifest:docs:check` | [~] |
 | C18.10-14 | PHPUnit을 수정된 release로 갱신하고 native 의존성 검토를 갱신한다. (우선순위: 높음). | Composer locks and config/dependency-review.json | `make dependency-policy-check`; `node scripts/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testOrderedJsonKeepsOrderValuesAndEmptyTypes tests/FormJsonTest.php` | [~] |

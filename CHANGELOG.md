@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Align fixture contexts with engine inputs (C18.10-11)
+
+- Native engine fixtures initialize the complete validation context and link the condition tree implementation.
+
 ### 2026-10-27 — Normalize invalid UTF-8 request errors (C18.10-10)
 
 - Native JavaScript and HTML requests with invalid UTF-8 return the public invalid input error.
