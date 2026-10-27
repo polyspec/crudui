@@ -106,14 +106,33 @@ final class ApiTest extends TestCase
 
     /**
      * The report of `$class` in a child process of the extension (`$native`) or of the PHP library; with
-     * `$composer` the process loads the autoloader of the checkout, without it only the file of the report class.
+     * `$composer` the process loads the checkout autoloader; otherwise it loads the report and its fixture decoder
+     * dependencies.
      *
      * @return array<string, mixed>
      */
     private static function report(string $class, bool $native, bool $composer): array
     {
         $file = __DIR__ . '/' . substr($class, strrpos($class, '\\') + 1) . '.php';
-        $script = ($composer ? '' : 'require ' . var_export($file, true) . ';')
+        $files = $composer ? [] : [$file];
+        if (!$composer && $class === ValidateReport::class) {
+            $orderedSource = (new \ReflectionClass(\Polyspec\OrderedJson\Value::class))->getFileName();
+            if ($orderedSource === false) {
+                throw new RuntimeException('The fixture decoder requires the installed OrderedJSON PHP source');
+            }
+            $directory = dirname($orderedSource);
+            $files = [
+                $directory . '/OrderedJson.php',
+                $directory . '/ParseError.php',
+                $orderedSource,
+                dirname(__DIR__, 3) . '/tests/php/FixtureJson.php',
+                $file,
+            ];
+        }
+        $script = implode('', array_map(
+            static fn(string $required): string => 'require ' . var_export($required, true) . ';',
+            $files,
+        ))
             . 'echo json_encode(\\' . $class . '::report(' . var_export($native, true) . '),'
             . ' JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);';
         $result = PhpProcess::run($native ? [self::extension()] : [], $script, [], $composer);

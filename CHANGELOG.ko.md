@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ac7914f536f30185cff5cddc544c5cc072263c4e8a31ad8ed97b366fb0ba82e0 -->
+<!-- source-sha256: 3ac5c33be894655d06914a66b3a0336550eb422bdf9113e40a6382d0f124c988 -->
 
 ## Unreleased
+
+### 2026-10-27 — Native report fixture의 선언한 decoder 의존성을 로드한다 (C18.10-3)
+
+- Native report child는 CRUDUI library autoloader 없이 FixtureJson과 선택한 OrderedJSON 의존성을 로드한다.
 
 ### 2026-10-27 — CI toolchain과 native 의존성 범위를 준비한다 (C18.10-2)
 
