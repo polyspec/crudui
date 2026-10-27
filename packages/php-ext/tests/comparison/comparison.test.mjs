@@ -138,7 +138,7 @@ function sourceForFixtures() {
   return fixtureProgram(lines);
 }
 
-describe('prepared engine binding programs', { timeout: Infinity }, () => {
+describe('prepared engine binding programs', () => {
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
   'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',

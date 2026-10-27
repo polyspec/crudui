@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 47d1771e78c2ca9417d42cc049d6a0f96a48003c1dbc4ee85d8d0d34f03110cc -->
+<!-- source-sha256: 9700610c7b9ac4dc6be937a17099ff410d910f8296f0c95f2803a9ec11bfa07d -->
 
 ## Unreleased
+
+### 2026-10-27 — Native untimed suite 기본값을 복원한다 (C18.10-30)
+
+- Native Node suite 전체 실행은 기본 무제한 시간을 사용한다. Validation fixture 준비와 pipeline suite는 모든 개별 case 제한시간과 assertion을 유지한다.
 
 ### 2026-10-27 — Service child에서 test flag를 분리한다 (C18.10-29)
 

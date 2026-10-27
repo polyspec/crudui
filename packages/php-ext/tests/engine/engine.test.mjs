@@ -172,7 +172,7 @@ test('PHP extension fixture arrays preserve every repeated scalar value', { time
   }
 });
 
-describe('prepared engine validation programs', { timeout: Infinity }, () => {
+describe('prepared engine validation programs', () => {
 const validationSources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
   'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
