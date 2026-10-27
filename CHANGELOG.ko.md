@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9700610c7b9ac4dc6be937a17099ff410d910f8296f0c95f2803a9ec11bfa07d -->
+<!-- source-sha256: eeff9bb1965f4769220fe00bb358b19216732894e3cc709430be73e8eeeeb1eb -->
 
 ## Unreleased
+
+## 0.0.8
 
 ### 2026-10-27 — Native untimed suite 기본값을 복원한다 (C18.10-30)
 
@@ -11,8 +13,6 @@
 ### 2026-10-27 — Service child에서 test flag를 분리한다 (C18.10-29)
 
 - IPC service는 선언된 runtime argument와 application environment를 사용한다. 부모 test instrumentation flag와 test context는 service process에 전달하지 않는다.
-
-## 0.0.8
 
 ### 2026-10-27 — 병렬 pipeline reset evidence를 기준 순서로 정렬한다 (C18.10-28)
 

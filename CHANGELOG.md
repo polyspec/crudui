@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.8
+
 ### 2026-10-27 — Restore native untimed suite defaults (C18.10-30)
 
 - Native Node suites use the default unlimited aggregate duration. Validation fixture preparation and pipeline suites retain every individual case deadline and assertion.
@@ -10,8 +12,6 @@
 ### 2026-10-27 — Isolate service children from test flags (C18.10-29)
 
 - IPC services use their declared runtime arguments and application environment. Parent test instrumentation flags and test context do not propagate to service processes.
-
-## 0.0.8
 
 ### 2026-10-27 — Canonicalize parallel pipeline reset evidence (C18.10-28)
 
