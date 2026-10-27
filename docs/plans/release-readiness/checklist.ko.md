@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: acc774f45093d01d24b5f8a05972eaac56ea90167a62dc110ba4dd40f2a04f10 -->
+<!-- source-sha256: c58ae49ab7a88ed4f1769a711595183955dd510310ca49b7241d89b2c3170b65 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -49,3 +49,4 @@
 | C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [o] |
 | C18.10-25 | 정확한 Rust Unicode parity test identifier를 선택한다 (priority: high). | qualified native Rust Unicode binding identifier | `make parity-check UNITS=unicode-data IMPLEMENTATIONS=rust`; one actual case executed | [o] |
 | C18.10-26 | 잘못된 record를 보존하며 병렬 pipeline 결과를 기준 순서로 정렬한다 (priority: high). | pipeline report ordering and strict missing duplicate unknown identity regressions | `node scripts/run-tests.mts node -- --test-name-pattern="pipeline completion order" examples/form-comparison/check-verification.test.mjs` | [o] |
+| C18.10-27 | Pipeline 전체 suite에는 제한을 두지 않고 개별 case 제한은 유지한다 (priority: high). | native Node suite options with unchanged individual pipeline deadlines | `node --check examples/form-comparison/pipeline.browser.mjs`; `node --check examples/form-comparison/check-pipeline.mjs`; CI owning pipeline checks | [ ] |
