@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: eeff9bb1965f4769220fe00bb358b19216732894e3cc709430be73e8eeeeb1eb -->
+<!-- source-sha256: 4d453c6a9d6dda33323f676ea9fed7f2279f8102d24f959e2543bed0c1f88b39 -->
 
 ## Unreleased
+
+### 2026-10-27 — CRUDUI 0.0.8을 공개한다 (C18.10)
+
+- Release v0.0.8은 CI와 push 검사를 통과한 commit `47612fe4297203d46232646eba8365a6fbda43ef`의 패키지 archive 11개를 공개한다. Release workflow는 공개 전에 checkout 밖에서 archive 11개를 모두 설치하고 검사한다. 두 Go module tag도 같은 commit을 가리킨다.
 
 ## 0.0.8
 

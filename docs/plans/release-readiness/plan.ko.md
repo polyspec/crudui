@@ -1,15 +1,14 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: c47a0832ca5787294cf6cb60d1d6c1bd7e456d3d982597d18cfd28130a71c2b7 -->
+<!-- source-sha256: d1806d074be9a923de6b0fa644682e9ef8787ae410d56c8e6000695cfdbc163d -->
 # 로컬 release candidate 준비
 
 [English](plan.md)
 
 ## 준비 순서
 
-[Checklist](checklist.ko.md)는 현재 로컬 candidate를 CI 전에 준비합니다. C18.1은 로컬 통합, source 의존성과 consumer 검증을
-완료하는 동안 활성 상태입니다. CI 결과나 별도 허가는 이 작업의 선행 조건이 아닙니다. 준비를 완료하기 전에 완료된 모든 개발
-branch를 로컬 `main`에 반영합니다. 준비는 현재 source snapshot과 현재 sibling checkout을 사용하며 tag를 생성하거나 이전
-release를 checkout하거나 과거 OrderedJSON archive로 검증하지 않습니다.
+[Checklist](checklist.ko.md)는 완료했습니다. CRUDUI 0.0.8은 commit
+`47612fe4297203d46232646eba8365a6fbda43ef`의 전체 CI와 push 검사, 세 tag의 release workflow를
+통과하고 공개했습니다. Release workflow는 공개 전에 checkout 밖에서 archive 11개를 설치하고 검사했습니다.
 
 ## 현재 결정
 

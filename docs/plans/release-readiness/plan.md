@@ -5,11 +5,9 @@
 
 ## Preparation order
 
-The [checklist](checklist.md) prepares the current local candidate before CI. C18.1 is active while its local integration,
-source dependencies and consumer verification are being completed. Neither CI results nor a separate permission are a
-prerequisite for this work. All completed development branches reach local `main` before the preparation is complete.
-Preparation uses the current source snapshot and current sibling checkouts; it does not create a tag, check out a prior
-release or verify against an older OrderedJSON archive.
+The [checklist](checklist.md) is complete. CRUDUI 0.0.8 is public from commit
+`47612fe4297203d46232646eba8365a6fbda43ef`, which passed full CI, push checks and all three tag release workflows.
+The release workflow installed and checked all 11 archives outside the checkout before publication.
 
 ## Current decisions
 

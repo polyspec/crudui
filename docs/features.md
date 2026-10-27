@@ -117,11 +117,8 @@ manifests, internal dependencies and native locks before CI. Package coverage an
 publication. A release still requires successful `ci-passed` and `push-gate` checks on its commit; local preparation and
 owning unit checks do not establish that result.
 
-The [local candidate preparation checklist](plans/release-readiness/checklist.md) is active before CI. C18.2 completes
-the current parser decision, C18.3 supports current React widget scripts, C18.4 updates npm and Svelte peers, C18.5 prepares
-the candidate version and C18.6 separates source-only PHP helper tests from the extension runtime tests. C18.1 integrates
-the completed work into local `main` and verifies current source dependencies and consumers. It is not deferred until CI
-or a separate permission. Original impossible markers preserve task history rather than pending work for this candidate.
+The [release preparation checklist](plans/release-readiness/checklist.md), C18.1–C18.10, is complete.
+Current source dependency and consumer checks, full CI, tag verification and public archive installation checks passed.
 
 ## Local source development
 
@@ -171,8 +168,8 @@ PHP 8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1:
 Conformance is checked from evidence. Every suite that runs a shared fixture records which feature,
 fixture case and runtime passed, and `make conformance` (and the final CI job) compares that evidence
 with `contracts/features.json`: a supported runtime without a passing record for every declared case
-fails. [Conformance](operations/conformance.md) defines the standard. The packages and the PHP extension
-are not deployed.
+fails. [Conformance](operations/conformance.md) defines the standard. Package publication is recorded below;
+the native PHP extension remains a version-only release component.
 
 ## Retained form comparison results
 
@@ -209,7 +206,10 @@ implementations pass. Earlier reports do not verify the current dependency graph
 
 ## Deployment
 
-Library deployment means package publication; no package is published.
+[CRUDUI 0.0.8](https://github.com/polyspec/crudui/releases/tag/v0.0.8) is public with 11 package archives.
+Commit `47612fe4297203d46232646eba8365a6fbda43ef` passed full CI and push checks.
+The release workflow installed and checked all 11 archives outside the checkout before publication.
+Both Go module tags identify the same commit.
 The table records completed browser checks for all four servers.
 Retained implementation failures remain in the reports.
 

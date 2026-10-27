@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: e79ba3ef405749bbca973605793d493d95cad5bdb6d3173eeb0f9e9185df8e32 -->
+<!-- source-sha256: e7b7cc90534f14d44d6fb04d7c702e23e004c13c8dddc310fd53b113253d4c79 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -114,11 +114,8 @@ Release 설정은 native PHP extension manifest를 version-only로 분류합니�
 내부 의존성과 native lock을 준비합니다. Package coverage와 version 검사는 publication과 구분합니다. Release에는 해당
 commit의 `ci-passed`와 `push-gate` 성공이 필요하며 로컬 준비와 소유 unit 검사는 그 결과를 입증하지 않습니다.
 
-[로컬 candidate 준비 checklist](plans/release-readiness/checklist.ko.md)는 CI 전에 활성화합니다. C18.2는 현재 parser 결정을
-완료하고 C18.3은 현재 React widget script를 지원합니다. C18.4는 npm과 Svelte peer를 갱신하고 C18.5는 candidate version을
-준비하며 C18.6은 PHP source-only helper test와 extension runtime test를 분리합니다. C18.1은 완료된 작업을 로컬 `main`에
-통합하고 현재 source 의존성과 consumer를 검증합니다. CI나 별도 허가를 기다리며 미루지 않습니다. 원래 불가 표시는 이력을
-보존하며 이 candidate에 남긴 작업을 뜻하지 않습니다.
+C18.1–C18.10의 [릴리즈 준비 checklist](plans/release-readiness/checklist.ko.md)는 완료했습니다.
+현재 source 의존성과 consumer 검증, 전체 CI, tag 검증과 공개 archive 설치 검증을 통과했습니다.
 
 ## 로컬 source 개발
 
@@ -166,8 +163,8 @@ Rust 1.98.0에서 다음 검사를 통과했습니다.
 적합성은 증거로 검사합니다. 공용 fixture를 실행하는 모든 검사가 통과한 기능·fixture 사례·런타임을
 기록하고, `make conformance`(와 CI의 마지막 작업)가 그 증거를 `contracts/features.json`과 비교합니다.
 지원한다고 선언한 런타임에 선언된 사례마다 통과 기록이 없으면 실패합니다. 기준은
-[적합성](operations/conformance.ko.md)에 정의되어 있습니다. 패키지와 PHP 확장은 배포하지
-않았습니다.
+[적합성](operations/conformance.ko.md)에 정의되어 있습니다. 패키지 공개는 아래에 기록합니다.
+Native PHP extension은 version-only release component입니다.
 
 ## 보존 폼 비교 결과
 
@@ -203,7 +200,10 @@ Git에서 제거했습니다. 새 이미지는 같은 잠금 버전의 PHP 의�
 
 ## 배포
 
-라이브러리 배포는 패키지 게시를 의미하며 게시된 패키지는 없습니다.
+[CRUDUI 0.0.8](https://github.com/polyspec/crudui/releases/tag/v0.0.8)은 패키지 archive 11개와 함께 공개했습니다.
+Commit `47612fe4297203d46232646eba8365a6fbda43ef`는 전체 CI와 push 검사를 통과했습니다.
+Release workflow는 공개 전에 checkout 밖에서 archive 11개를 모두 설치하고 검사했습니다.
+두 Go module tag도 같은 commit을 가리킵니다.
 표는 서버별로 완료된 최신 검사를 기록합니다.
 네 서버의 브라우저 검사가 완료되었습니다. 보존된 비교 구현의 실패는 보고서에 유지합니다.
 

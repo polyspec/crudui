@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Publish CRUDUI 0.0.8 (C18.10)
+
+- Release v0.0.8 publishes 11 package archives from commit `47612fe4297203d46232646eba8365a6fbda43ef` after successful CI and push checks. The release workflow installs and checks all 11 archives outside the checkout before publication. Both Go module tags identify the same commit.
+
 ## 0.0.8
 
 ### 2026-10-27 — Restore native untimed suite defaults (C18.10-30)
