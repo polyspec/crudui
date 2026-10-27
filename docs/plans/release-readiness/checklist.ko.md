@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 0568a96aa8a33cbdd85937180b8f3fe99ebb45529e88b69e83d0411ffc1c6c8e -->
+<!-- source-sha256: 412cb346ef87b22cb53d8e9167e00247f2c555e2e61b75ee9b7e686fed729f9e -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -44,4 +44,4 @@
 | C18.10-19 | Cold release build 전에 native dependency cache를 준비한다 (priority: high). | application release build prerequisites and native cache preparation regression | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts`; native Make dependency ordering | [o] |
 | C18.10-20 | Native source와 language fixture의 layout 예외를 선언한다 (priority: high). | exact application layout exceptions with reasons for native source resolution and existing language helpers | `make layout-check`; exact five Gates findings removed without disabling other layout rules | [o] |
 | C18.10-21 | Summary와 직접 stack 검사에 필요한 고정 native archive를 준비한다 (priority: high). | release-mode stack prerequisites and owning preparation regression | `node scripts/run-tests.mts node -- --test-name-pattern="release-mode stacks" tests/build/form-comparison-ci.test.mts` | [o] |
-| C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- packages/php-ext/tests/engine/engine.test.mjs`; focused locale and sanitizer cases | [ ] |
+| C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- packages/php-ext/tests/engine/engine.test.mjs`; focused locale and sanitizer cases | [~] |
