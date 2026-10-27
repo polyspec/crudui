@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 212690329d260bebc5bec49cb1df937bed51505aa7a73d6681f56ab19fbae840 -->
+<!-- source-sha256: 9dc646fbc4a15c5fd0bd2f1d84d677347bbf27fd13b9723192cdaf97c5eea08c -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -50,4 +50,4 @@
 | C18.10-25 | 정확한 Rust Unicode parity test identifier를 선택한다 (priority: high). | qualified native Rust Unicode binding identifier | `make parity-check UNITS=unicode-data IMPLEMENTATIONS=rust`; one actual case executed | [o] |
 | C18.10-26 | 잘못된 record를 보존하며 병렬 pipeline 결과를 기준 순서로 정렬한다 (priority: high). | pipeline report ordering and strict missing duplicate unknown identity regressions | `node scripts/run-tests.mts node -- --test-name-pattern="pipeline completion order" examples/form-comparison/check-verification.test.mjs` | [o] |
 | C18.10-27 | Pipeline 전체 suite에는 제한을 두지 않고 개별 case 제한은 유지한다 (priority: high). | native Node suite options with unchanged individual pipeline deadlines | `node --check examples/form-comparison/pipeline.browser.mjs`; `node --check examples/form-comparison/check-pipeline.mjs`; CI owning pipeline checks | [o] |
-| C18.10-28 | 정확한 identity 검사를 유지하며 병렬 reset evidence를 기준 순서로 정렬한다 (priority: high). | canonical reset records and missing duplicate unknown reset identity regressions | `node scripts/run-tests.mts node -- examples/form-comparison/check-verification.test.mjs` | [ ] |
+| C18.10-28 | 정확한 identity 검사를 유지하며 병렬 reset evidence를 기준 순서로 정렬한다 (priority: high). | canonical reset records and missing duplicate unknown reset identity regressions | `node scripts/run-tests.mts node -- examples/form-comparison/check-verification.test.mjs` | [~] |
