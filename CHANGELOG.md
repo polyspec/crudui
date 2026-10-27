@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Update PHPUnit to the patched release (C18.10-14)
+
+- Composer locks select PHPUnit 13.4.4 and the dependency review records the current native lock graph.
+
 ### 2026-10-27 — Regenerate current feature contracts (C18.10-13)
 
 - Feature contract documents describe the current manifest commands and fixture declarations.

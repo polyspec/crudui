@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5b978ed70c79445910a8bc3629803b4218733c93a4aea0b50168680301edcf4c -->
+<!-- source-sha256: 4647876798ee2028cdb290baf920563fda8a4287092132eacbb07d279ac15a35 -->
 
 ## Unreleased
+
+### 2026-10-27 — Composer lock은 PHPUnit 13.4.4를 선택하고 dependency review는 현재 native lock graph를 기록한다 (C18.10-14)
+
+- Composer lock은 PHPUnit 13.4.4를 선택하고 dependency review는 현재 native lock graph를 기록한다.
 
 ### 2026-10-27 — Feature contract 문서는 현재 manifest command와 fixture 선언을 설명한다 (C18.10-13)
 
