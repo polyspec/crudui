@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: ff70c9493f1cc9d7732e40e0753e11854932557ddc475aee159d9dae8f99c51c -->
+<!-- source-sha256: 59d9724e7d384084fb80addc512bc619b0e212adb2a642c12e4c57bf8d00a4ef -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -51,3 +51,4 @@
 | C18.10-26 | 잘못된 record를 보존하며 병렬 pipeline 결과를 기준 순서로 정렬한다 (priority: high). | pipeline report ordering and strict missing duplicate unknown identity regressions | `node scripts/run-tests.mts node -- --test-name-pattern="pipeline completion order" examples/form-comparison/check-verification.test.mjs` | [o] |
 | C18.10-27 | Pipeline 전체 suite에는 제한을 두지 않고 개별 case 제한은 유지한다 (priority: high). | native Node suite options with unchanged individual pipeline deadlines | `node --check examples/form-comparison/pipeline.browser.mjs`; `node --check examples/form-comparison/check-pipeline.mjs`; CI owning pipeline checks | [o] |
 | C18.10-28 | 정확한 identity 검사를 유지하며 병렬 reset evidence를 기준 순서로 정렬한다 (priority: high). | canonical reset records and missing duplicate unknown reset identity regressions | `node scripts/run-tests.mts node -- examples/form-comparison/check-verification.test.mjs` | [o] |
+| C18.10-29 | Service child runtime을 부모 test instrumentation과 분리한다 (priority: high). | native service fork arguments and environment with IPC regression | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [ ] |
