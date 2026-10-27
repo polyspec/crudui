@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 603b607d34fd68ff483078d17b58102b98e9d6cc68939e27e7578f259c6c27a0 -->
+<!-- source-sha256: acc774f45093d01d24b5f8a05972eaac56ea90167a62dc110ba4dd40f2a04f10 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -44,7 +44,7 @@
 | C18.10-19 | Cold release build 전에 native dependency cache를 준비한다 (priority: high). | application release build prerequisites and native cache preparation regression | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts`; native Make dependency ordering | [o] |
 | C18.10-20 | Native source와 language fixture의 layout 예외를 선언한다 (priority: high). | exact application layout exceptions with reasons for native source resolution and existing language helpers | `make layout-check`; exact five Gates findings removed without disabling other layout rules | [o] |
 | C18.10-21 | Summary와 직접 stack 검사에 필요한 고정 native archive를 준비한다 (priority: high). | release-mode stack prerequisites and owning preparation regression | `node scripts/run-tests.mts node -- --test-name-pattern="release-mode stacks" tests/build/form-comparison-ci.test.mts` | [o] |
-| C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- packages/php-ext/tests/engine/engine.test.mjs`; focused locale and sanitizer cases | [o] |
+| C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- --test-name-pattern="engine validation does not depend on a comma decimal locale\|engine validation has no (undefined behavior\|address sanitizer) findings\|engine binds every shared form fixture without changing inputs\|engine binding has no undefined behavior findings" packages/php-ext/tests/engine/engine.test.mjs packages/php-ext/tests/comparison/comparison.test.mjs` | [o] |
 | C18.10-23 | Rust internal model test를 production contract 문서에서 분리한다 (priority: high). | native Rust test module and exact internal parity ownership | `make parity-declarations-check`; owning Rust model tests | [o] |
 | C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [o] |
 | C18.10-25 | 정확한 Rust Unicode parity test identifier를 선택한다 (priority: high). | qualified native Rust Unicode binding identifier | `make parity-check UNITS=unicode-data IMPLEMENTATIONS=rust`; one actual case executed | [o] |

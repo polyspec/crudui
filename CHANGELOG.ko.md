@@ -1,8 +1,10 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 31d2a5448a44e43b50bfa71bda175ae52ea973f67ac0ecf2eb8e35d7aabf5f34 -->
+<!-- source-sha256: c3d5e60cce84ea61138f71d8cd5d375f759f2be69dd8ec202cead2e09f0b0420 -->
 
 ## Unreleased
+
+## 0.0.8
 
 ### 2026-10-27 — 정확한 Rust Unicode parity test를 선택한다 (C18.10-25)
 
@@ -23,8 +25,6 @@
 ### 2026-10-27 — Rust model test와 contract 문서를 분리한다 (C18.10-23)
 
 - Rust field model test는 동일한 test identity와 assertion을 유지하며 native child test module을 사용한다. Parity 선언은 production contract 문서와 해당 test module을 별도로 분류한다.
-
-## 0.0.8
 
 ### 2026-10-27 — 모든 release mode stack 검사에 native archive를 준비한다 (C18.10-21)
 

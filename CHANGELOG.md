@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.8
+
 ### 2026-10-27 — Select the qualified Rust Unicode parity test (C18.10-25)
 
 - Rust Unicode parity selects the fully qualified native test identifier with its exact filter, so the declared data check executes instead of matching zero cases.
@@ -22,8 +24,6 @@
 ### 2026-10-27 — Separate Rust model tests from contract documentation (C18.10-23)
 
 - Rust field model tests use a native child test module with the same test identities and assertions. Parity declarations classify that test module independently of production contract documentation.
-
-## 0.0.8
 
 ### 2026-10-27 — Prepare native archives for every release-mode stack check (C18.10-21)
 
