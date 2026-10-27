@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: c57d48433cdad7bd4dc9d92633dc5fc1ac172af45c438fae9c0226f052b3fb36 -->
+<!-- source-sha256: 514d7d13f564b2948273338076d799867f3f2d18ffb56aa98b88e39f6750f325 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -29,4 +29,4 @@
 | C18.10-4 | Package 설치 version을 authoritative root manifest에서 읽는다. (우선순위: 높음). | scripts/check-packages.mts | `node scripts/run-tests.mts node -- tests/build/install-lock.test.mts tests/build/package-install-pack.test.mts` | [~] |
 | C18.10-5 | Composition form fixture를 해석하고 binding class 경계를 유지한다. (우선순위: 높음). | packages/form-binding/src/choices.ts, slots.ts and parity tests | `node scripts/run-tests.mts vitest --cwd packages/form-binding -- tests/parity.test.ts tests/class-boundary.test.ts tests/choices.test.ts` | [~] |
 | C18.10-6 | Native fixture compilation operation을 제한시간이 있는 engine test와 분리한다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs and support.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="PHP extension engine validates all shared\|PHP extension engine unique rule" packages/php-ext/tests/engine/engine.test.mjs` | [~] |
-| C18.10-7 | Fixture 적용 범위를 선언하고 지원 runtime의 실제 case 결과를 기록한다. (우선순위: 높음). | fixture registry and schemas, conformance checker and existing runtime fixture recorders | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; focused fixture owner units | [ ] |
+| C18.10-7 | Fixture 적용 범위를 선언하고 지원 runtime의 실제 case 결과를 기록한다. (우선순위: 높음). | fixture registry and schemas, conformance checker and existing runtime fixture recorders | `node scripts/run-tests.mts node -- tests/build/conformance-evidence.test.mts`; focused fixture owner units | [~] |
