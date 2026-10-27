@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 77ddd2e93481cdccd4d2269b6234623798aee07dd17ac2d6aad7a8bd9d015556 -->
+<!-- source-sha256: 0c3865ae17c5e13bc6ecf14741c5c9ffcbe535a3558ea13f7ad1990d465c8b50 -->
 
 ## Unreleased
+
+### 2026-10-27 — PHP 개발 기준을 8.4.27로 설정한다 (C18.8)
+
+- Composer platform 선언과 native lock은 PHP 8.4.27을 기준으로 개발 및 release consumer 의존성을 해석한다. Windows 설치는 8.4.27-1 package rebuild를 사용한다. Library 요구는 PHP 8.4 이상을 유지하며 shared installer는 8.4 minor를 선택한다.
 
 ### 2026-10-27 — kit 0.0.56을 반영한다 (C18.7)
 

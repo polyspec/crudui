@@ -175,8 +175,10 @@ make crudui-local-composer-check
 ```
 
 The declared sibling checkout must exist before installation; a CI job using this development project must provide it.
-The lock changes when source resolution changes. PHP 8.4 and later are supported; the platform check validates the
-installed source requirements. Release archive consumer projects remain separate from this private development project.
+The lock changes when source resolution changes. PHP 8.4 and later are supported; Composer resolves development
+dependencies against PHP 8.4.27. Windows installations use the 8.4.27-1 package rebuild, whose runtime reports 8.4.27.
+The `.php-version` file selects the 8.4 minor for the shared installer. The platform check validates the installed source
+requirements. Release archive consumer projects remain separate from this private development project.
 
 ### Installing the release archives
 

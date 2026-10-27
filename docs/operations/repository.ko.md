@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 124536ac5c98e6d40daf21f3dbeb3a1384546f437e87bf01782db09bf0656cf5 -->
+<!-- source-sha256: f9a695a48ee5ad0b1765aaf3f37b4df74bfe4fb626a99f27e56e7a16c01a9260 -->
 
 [English](repository.md).
 
@@ -158,7 +158,9 @@ make crudui-local-composer-check
 ```
 
 선언한 sibling checkout은 설치 전에 존재해야 하며 이 개발 project를 사용하는 CI job도 이를 제공해야 합니다.
-Source resolution이 바뀌면 lock도 바뀝니다. PHP 8.4 이상을 지원하며 platform check는 설치한 source 요구를 검증합니다.
+Source resolution이 바뀌면 lock도 바뀝니다. PHP 8.4 이상을 지원하며 Composer는 PHP 8.4.27을 기준으로 개발 의존성을 해석합니다.
+Windows 설치는 runtime version이 8.4.27인 8.4.27-1 package rebuild를 사용합니다. `.php-version`은 shared installer의 8.4 minor를 선택합니다.
+Platform check는 설치한 source 요구를 검증합니다.
 Release archive consumer project는 이 private 개발 project와 별도로 유지합니다.
 
 ### release archive 설치

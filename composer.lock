@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "08dd5825bf04707f4c8aaaf9a6779f25",
+    "content-hash": "de40c0d10187d41960b3b8c2ab72ff88",
     "packages": [
         {
             "name": "polyspec/crudui-generator",
@@ -2069,7 +2069,7 @@
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.4.1"
+        "php": "8.4.27"
     },
     "plugin-api-version": "2.9.0"
 }

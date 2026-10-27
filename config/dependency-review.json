@@ -15,17 +15,17 @@
     },
     {
       "lock": "composer.lock",
-      "sha256": "fa889927cbc995864126fb7fa4ffc1a0f1d13b3f9dd6db9dad30930aabba400a",
+      "sha256": "057c1a66f2b8db77e0ef6d58fbba6c718aae46834eb90e986f36ebb5a6709ca6",
       "advisories": []
     },
     {
       "lock": "packages/php-ext/composer.lock",
-      "sha256": "7738ef321d470584ca5121c479f8ba559fca12278263a3dcbea5335e0d11b1ed",
+      "sha256": "256fd655964ba798704b3108249c590a9f0d85cda5bf8a179b59f1fce92a6874",
       "advisories": []
     },
     {
       "lock": "examples/form-comparison/servers/php/native/composer.lock",
-      "sha256": "d87351765934cf9b83e1139881ecdb30c0f3c379962e720e2c7c4442c6ac9ba3",
+      "sha256": "52c8f8aa410258119bc4285d7b0ec9a55a589983411e90f80325deac7392b095",
       "advisories": []
     },
     {

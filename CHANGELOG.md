@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Set the PHP development baseline to 8.4.27 (C18.8)
+
+- Composer platform declarations and native locks use PHP 8.4.27 for development and release consumer resolution. Windows installations use the 8.4.27-1 package rebuild. The library requirement remains PHP 8.4 and later; the shared installer selects the 8.4 minor.
+
 ### 2026-10-27 — Adopt kit 0.0.56 (C18.7)
 
 - The root development dependency and npm lock pin the published kit 0.0.56 archive with its SHA-512 integrity. Native npm links retain the current kit and OrderedJSON source checkouts. Shared principles are synchronized with the installed kit source.
