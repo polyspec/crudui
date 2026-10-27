@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 96aab27285180ed3282be69f12b693e8c6d1d2e7aa32e40359a0354af8049798 -->
+<!-- source-sha256: d04e27fe982104ec4a93eeec7b301e255e37043f8707774da831013adc1c10e1 -->
 
 ## Unreleased
+
+### 2026-10-27 — 실제 outline과 rendering evidence 범위를 선언한다 (C18.10-16)
+
+- Fixture 선언은 기존 browser group source 검사, 렌더링한 button operation과 JavaScript outline을 식별한다. Feature별 runtime 적용 범위는 Python outline의 compilation과 binding을 기록하며 다른 runtime에서 해당 operation을 실행했다고 선언하지 않는다.
 
 ### 2026-10-27 — Rust fixture recorder는 lint policy에서 요구하는 버릴 결과의 type을 명시한다 (C18.10-15)
 

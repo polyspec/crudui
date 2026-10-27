@@ -21,7 +21,7 @@ This page is generated from [contracts/features.json](../../contracts/features.j
 | `connectForm` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
 | `patchContent` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass | 2 command(s) |
 | `updateView` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
-| `buildOutline` | implemented | `@polyspec/crudui-generator-core` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
+| `buildOutline` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
 | `connectOutline` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
 | `runAction` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 6 command(s) |
 | `viewState` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 7 command(s) |

@@ -14,6 +14,11 @@ feature to its exact case names when a family tests several operations. Every ca
 owning feature must select cases, and every supported feature runtime must still have applicable cases. Unknown
 runtimes, unknown cases and empty selections fail the check.
 
+`featureRuntimes` restricts one owning feature to the fixture runtimes in which that operation actually runs. An omitted
+feature keeps the fixture's default runtime coverage. Each override must select nonempty runtimes supported by that
+feature and allowed by the fixture. Python outline cases compile and bind their template before building the outline;
+other outline checks record only the target operations that they execute.
+
 A `support-module` entry names its actual shared module and the registered case fixtures in `supports` that execute
 through it. It declares no invented case and supplies no passing evidence. Each supported fixture must be registered
 and proven by a feature; the module file must exist. The form-state registration module supports the state fixture units.

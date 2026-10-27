@@ -118,6 +118,34 @@ test('operation-specific feature cases require every existing case and reject un
   assert.notDeepEqual(checkConformance({ ...input, registry: [{ ...entry, runtimes: ['unknown'] }] }).invalidApplicability, []);
 });
 
+test('feature-specific runtime applicability records Python outline setup without claiming it ran in other runtimes', () => {
+  const core = 'tests/fixtures/compose/cases.json';
+  const features = [
+    { id: 'compileForm', support: { python: 'pass', rust: 'pass' }, fixtures: [fixture, core] },
+    { id: 'buildOutline', support: { python: 'pass', rust: 'pass' }, fixtures: [fixture] },
+  ];
+  const entry = { path: fixture, kind: 'outline', runtimes: ['python', 'rust'], featureRuntimes: { compileForm: ['python'] } };
+  const coreEntry = { path: core, kind: 'model' };
+  const input = { features, registry: [entry, coreEntry],
+    cases: { [fixture]: ['outline'], [core]: ['compose'] }, families: [], evidence: [
+      { feature: 'compileForm', fixture, runtime: 'python', case: 'outline', passed: true },
+      { feature: 'compileForm', fixture: core, runtime: 'python', case: 'compose', passed: true },
+      { feature: 'compileForm', fixture: core, runtime: 'rust', case: 'compose', passed: true },
+      { feature: 'buildOutline', fixture, runtime: 'python', case: 'outline', passed: true },
+      { feature: 'buildOutline', fixture, runtime: 'rust', case: 'outline', passed: true },
+  ] };
+  const result = checkConformance(input);
+  assert.deepEqual(result.invalidApplicability, []);
+  assert.deepEqual(result.missing, []);
+  assert.deepEqual(result.undeclaredEvidence, []);
+  for (const featureRuntimes of [{ compileForm: [] }, { compileForm: ['php'] }, { unknown: ['python'] }]) {
+    assert.notDeepEqual(checkConformance({ ...input, registry: [{ ...entry, featureRuntimes }, coreEntry] }).invalidApplicability, []);
+  }
+  assert.notDeepEqual(checkConformance({ ...input, registry: [{ ...entry, runtimes: ['python'], featureRuntimes: { compileForm: ['rust'] } }, coreEntry] }).invalidApplicability, []);
+  const fabricated = { feature: 'compileForm', fixture, runtime: 'rust', case: 'outline', passed: true };
+  assert.notDeepEqual(checkConformance({ ...input, evidence: [...input.evidence, fabricated] }).undeclaredEvidence, []);
+});
+
 test('a support module is covered only through registered proven case fixtures and never supplies fabricated cases', () => {
   const module = { path: 'tests/fixtures/form-state/units.mts', kind: 'support-module', supports: [fixture] };
   const input = { ...base, registry: [...registry, module], families: [...base.families, 'tests/fixtures/form-state'],

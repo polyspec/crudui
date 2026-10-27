@@ -49,6 +49,7 @@ export interface ManifestFixture {
   export?: string;
   runtimes?: string[];
   featureCases?: Record<string, string[]>;
+  featureRuntimes?: Record<string, string[]>;
   supports?: string[];
 }
 

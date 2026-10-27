@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Declare actual outline and rendering evidence scopes (C18.10-16)
+
+- Fixture declarations identify the existing browser group source checks, rendered button operations and JavaScript outlines. Feature-specific runtime applicability records Python outline compilation and binding without claiming those operations in other runtimes.
+
 ### 2026-10-27 — Declare the fixture recorder result type (C18.10-15)
 
 - The Rust fixture recorder declares the discarded result type required by the lint policy.

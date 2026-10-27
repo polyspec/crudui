@@ -1,6 +1,6 @@
 # 기능 계약
 <!-- doc-id: docs-operations-feature-contracts -->
-<!-- source-sha256: e3e0fd3aa0c9dffc9acbd91c0756ff1a9796450b6ab880af27c2a349623b18de -->
+<!-- source-sha256: a9aeafabba0eca54f953f0424a87ca93dfb675c448e4fdb4add4bf04667da837 -->
 
 [English](feature-contracts.md).
 
@@ -22,7 +22,7 @@
 | `connectForm` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
 | `patchContent` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass | 2 command(s) |
 | `updateView` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 2 command(s) |
-| `buildOutline` | implemented | `@polyspec/crudui-generator-core` | javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
+| `buildOutline` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>javascript-html: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 3 command(s) |
 | `connectOutline` | implemented | `@polyspec/crudui-generator-core` | javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass | 1 command(s) |
 | `runAction` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 6 command(s) |
 | `viewState` | implemented | `@polyspec/crudui-generator-core` | javascript: pass<br>javascript-dom: pass<br>react: pass<br>vue: pass<br>svelte: pass<br>php: pass<br>go: pass<br>rust: pass<br>php-native: pass<br>python: pass | 7 command(s) |

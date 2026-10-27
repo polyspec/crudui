@@ -36,6 +36,7 @@ export interface RegisteredFixture {
   cases?: string[];
   runtimes?: string[];
   featureCases?: Record<string, string[]>;
+  featureRuntimes?: Record<string, string[]>;
   supports?: string[];
 }
 
@@ -131,7 +132,7 @@ export function checkConformance(
   const proven = new Set(features.flatMap(feature => feature.fixtures));
   for (const fixture of registry) {
     if (fixture.kind === 'support-module') {
-      if (!fixture.supports?.length || fixture.cases || fixture.export || fixture.runtimes || fixture.featureCases) {
+      if (!fixture.supports?.length || fixture.cases || fixture.export || fixture.runtimes || fixture.featureCases || fixture.featureRuntimes) {
         problems.invalidApplicability.push(`${fixture.path}: a support module names only the case fixtures it supports`);
       }
       for (const supported of fixture.supports ?? []) {
@@ -145,6 +146,13 @@ export function checkConformance(
     const owners = features.filter(feature => feature.fixtures.includes(fixture.path));
     if (fixture.runtimes && (fixture.runtimes.length === 0 || fixture.runtimes.some(runtime => !owners.some(feature => feature.support[runtime] === 'pass')))) {
       problems.invalidApplicability.push(`${fixture.path}: runtimes must name supported runtimes of its owning features`);
+    }
+    for (const [feature, runtimes] of Object.entries(fixture.featureRuntimes ?? {})) {
+      const owner = owners.find(item => item.id === feature);
+      if (!owner || runtimes.length === 0 || runtimes.some(runtime => owner.support[runtime] !== 'pass'
+        || (fixture.runtimes !== undefined && !fixture.runtimes.includes(runtime)))) {
+        problems.invalidApplicability.push(`${fixture.path}: ${feature} runtime override ${JSON.stringify(runtimes)} must select supported applicable runtimes`);
+      }
     }
     if (fixture.featureCases) {
       const selected = new Set<string>();
@@ -173,7 +181,8 @@ export function checkConformance(
       const registration = fixtures.get(fixture);
       const selected = registration?.featureCases ? registration.featureCases[feature.id] ?? [] : names;
       for (const [runtime, support] of Object.entries(feature.support)) {
-        if (support !== 'pass' || (registration?.runtimes && !registration.runtimes.includes(runtime))) continue;
+        if (support !== 'pass' || (registration?.runtimes && !registration.runtimes.includes(runtime))
+          || (registration?.featureRuntimes?.[feature.id] && !registration.featureRuntimes[feature.id]?.includes(runtime))) continue;
         for (const name of selected) {
           const id = key(feature.id, fixture, runtime, name);
           required.add(id);
@@ -206,7 +215,8 @@ export function checkConformance(
     const reason = !feature ? 'unknown feature'
       : !feature.fixtures.includes(item.fixture) ? 'fixture not declared by the feature'
         : support === undefined ? 'runtime not declared by the feature'
-          : fixtures.get(item.fixture)?.runtimes && !fixtures.get(item.fixture)?.runtimes?.includes(item.runtime) ? 'runtime not applicable to the fixture'
+          : (fixtures.get(item.fixture)?.runtimes && !fixtures.get(item.fixture)?.runtimes?.includes(item.runtime))
+            || (fixtures.get(item.fixture)?.featureRuntimes?.[item.feature] && !fixtures.get(item.fixture)?.featureRuntimes?.[item.feature]?.includes(item.runtime)) ? 'runtime not applicable to the fixture'
             : 'case not in the fixture';
     problems.undeclaredEvidence.push({ ...item, reason });
   }

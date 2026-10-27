@@ -355,7 +355,15 @@
     },
     {
       "path": "tests/fixtures/form-outline/cases.json",
-      "kind": "outline-html"
+      "kind": "outline-html",
+      "featureRuntimes": {
+        "compileForm": [
+          "python"
+        ],
+        "bindForm": [
+          "python"
+        ]
+      }
     },
     {
       "path": "tests/fixtures/list-render/cases.json",
@@ -636,6 +644,19 @@
         "tests/fixtures/form-choices/cases.json",
         "tests/fixtures/view-functions/cases.json"
       ]
+    },
+    {
+      "path": "tests/fixtures/form-session/group-source.mts",
+      "kind": "browser-session",
+      "cases": [
+        "exerciseGroupSource"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
+      ]
     }
   ],
   "supportValues": [
@@ -655,7 +676,8 @@
       "fixtures": [
         "tests/fixtures/compose/cases.json",
         "tests/fixtures/form-render/cases.json",
-        "tests/fixtures/text-validity/compileForm/cases.json"
+        "tests/fixtures/text-validity/compileForm/cases.json",
+        "tests/fixtures/form-outline/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -670,7 +692,8 @@
       "tests": [
         "packages/generator/ts/src/form.test.ts",
         "packages/react/src/tests/form-render.conformance.test.ts",
-        "packages/generator/ts/src/input-text.test.ts"
+        "packages/generator/ts/src/input-text.test.ts",
+        "packages/generator/python/tests/test_outline.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -705,7 +728,8 @@
       "fixtures": [
         "tests/fixtures/form-render/cases.json",
         "tests/fixtures/text-validity/bindForm/cases.json",
-        "tests/fixtures/template-shape/cases.json"
+        "tests/fixtures/template-shape/cases.json",
+        "tests/fixtures/form-outline/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -726,7 +750,8 @@
         "packages/generator/go/template_shape_test.go",
         "packages/generator/rust/tests/template_shape.rs",
         "packages/generator/php/tests/TemplateShapeTest.php",
-        "packages/generator/python/tests/test_template_shape.py"
+        "packages/generator/python/tests/test_template_shape.py",
+        "packages/generator/python/tests/test_outline.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -764,7 +789,8 @@
       ],
       "fixtures": [
         "tests/fixtures/buttons/cases.json",
-        "tests/fixtures/template-shape/cases.json"
+        "tests/fixtures/template-shape/cases.json",
+        "tests/fixtures/form-render/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -830,7 +856,8 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/buttons/cases.json"
+        "tests/fixtures/buttons/cases.json",
+        "tests/fixtures/form-render/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -1264,7 +1291,8 @@
         "tests/fixtures/form-session/controls.mts",
         "tests/fixtures/form-session/initialization.mts",
         "tests/fixtures/form-session/data-rows.mts",
-        "tests/fixtures/form-session/typing.mts"
+        "tests/fixtures/form-session/typing.mts",
+        "tests/fixtures/form-session/group-source.mts"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -1276,7 +1304,8 @@
       "state": "form instance and host controls through owned events",
       "tests": [
         "packages/generator/ts/src/widget-controls.test.ts",
-        "tests/fixtures/form-session/scenario.mts"
+        "tests/fixtures/form-session/scenario.mts",
+        "tests/fixtures/form-session/group-source.mts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -1386,6 +1415,7 @@
         "tests/fixtures/form-outline/cases.json"
       ],
       "support": {
+        "javascript": "pass",
         "javascript-html": "pass",
         "react": "pass",
         "vue": "pass",

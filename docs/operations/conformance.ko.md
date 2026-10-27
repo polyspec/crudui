@@ -1,6 +1,6 @@
 # 적합성 증거
 <!-- doc-id: docs-operations-conformance -->
-<!-- source-sha256: bb2985b92e28efae9e737d93917d08a4518c8ad03c1a7e9c99855909b189c328 -->
+<!-- source-sha256: 54161d0aa3ec2ac0a8d1d6da7119caa098922088b678e1b8d756f52c27374a4e -->
 
 [English](conformance.md).
 
@@ -14,6 +14,11 @@ runtime을 나열하며, 이 값이 없으면 지원하는 모든 runtime을 계
 검사하는 family의 feature별 정확한 case 이름을 지정합니다. 모든 case는 feature에 속해야 하고, fixture를 소유하는
 모든 feature는 case를 선택해야 하며, 지원하는 feature runtime마다 적용 가능한 case가 있어야 합니다. Unknown runtime,
 unknown case와 empty selection은 실패합니다.
+
+`featureRuntimes`는 fixture를 소유한 feature의 operation이 실제 실행되는 runtime으로 해당 feature의 적용 범위를
+제한합니다. Override가 없는 feature는 fixture의 기본 runtime 범위를 유지합니다. Override는 해당 feature가 지원하고
+fixture가 허용하는 runtime을 비어 있지 않게 선택해야 합니다. Python outline case는 outline을 만들기 전에 template을
+compile하고 bind합니다. 다른 outline 검사는 target에서 실제로 실행한 operation만 기록합니다.
 
 `support-module` 항목은 실제 shared module 경로와 해당 module을 통해 실행되는 등록된 case fixture를 `supports`로
 선언합니다. 이 항목은 가짜 case를 선언하거나 passing evidence를 제공하지 않습니다. 연결된 fixture는 등록되어 feature로
