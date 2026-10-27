@@ -194,7 +194,7 @@ crudui-install-go-modules: ## Download the modules that the Go workspace require
 	printf '%s\n' "$$modules" | xargs $(ONLINE) $(GO) mod download
 
 ifneq ($(LOCAL),1)
-crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser: release-assets-fetch
+crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks: release-assets-fetch
 endif
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).

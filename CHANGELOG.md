@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Prepare native archives for every release-mode stack check (C18.10-21)
+
+- Summary and direct form comparison checks fetch the pinned OrderedJSON native archives before starting their release-mode stacks. Local source mode keeps its declared provider resolution.
+
 ### 2026-10-27 — Declare native source and fixture layout exceptions (C18.10-20)
 
 - Layout validation permits the declared external OrderedJSON source, the exact PHP fixture helpers and the shared Go evidence writer. Other root Composer path repositories retain repository-local resolution checks.

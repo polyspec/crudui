@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 7f15309a815bf39fb6f5d97c8eae6fe08c1362f7102f94cb3cadc4285a49cc2f -->
+<!-- source-sha256: 673b4540272e3f2b30265912cd5761355e922e7b86c1b498446b486b9130f24e -->
 
 ## Unreleased
+
+### 2026-10-27 — 모든 release mode stack 검사에 native archive를 준비한다 (C18.10-21)
+
+- Summary와 직접 form comparison 검사는 release mode stack을 시작하기 전에 고정된 OrderedJSON native archive를 내려받는다. 로컬 source mode는 선언된 provider 해석을 유지한다.
 
 ### 2026-10-27 — Native source와 fixture layout 예외를 선언한다 (C18.10-20)
 

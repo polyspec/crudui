@@ -195,7 +195,7 @@ test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () =>
 });
 
 test('release-mode stacks fetch pinned native archives while local stacks use source providers (C18.10-8)', () => {
-  for (const target of ['crudui-test-form-comparison-pipeline', 'crudui-test-form-comparison-browser']) {
+  for (const target of ['crudui-test-form-comparison-pipeline', 'crudui-test-form-comparison-browser', 'crudui-test-form-comparison-summary', 'crudui-test-form-comparison-checks']) {
     const release = makeDryRun(repository, target, { variables: ['LOCAL=0'] });
     assert.equal(release.status, 0, release.stderr);
     const fetch = /\/release-assets\.(?:mts|mjs) fetch\b/.exec(release.stdout);
