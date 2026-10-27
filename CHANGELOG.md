@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Build the PHP extension before parity execution (C18.10-24)
+
+- Native PHP extension parity waits for the extension build before loading any extension binding.
+
 ### 2026-10-27 — Compile native fixtures before timed assertions (C18.10-22)
 
 - Native validation and binding programs compile in setup operations. Locale execution reuses the current run validation program, and sanitizer flags, runtime assertions and case time limits remain unchanged.

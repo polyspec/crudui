@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: badcb4e3ef474849a78d86b0d85803be33960c6ef5df092d72e57352329bf9aa -->
+<!-- source-sha256: 2d07c8b2c9aa117ddb79a573c42476c3de46b4caf6a8c873ff9d3a0951c76c93 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -46,6 +46,6 @@
 | C18.10-21 | Summary와 직접 stack 검사에 필요한 고정 native archive를 준비한다 (priority: high). | release-mode stack prerequisites and owning preparation regression | `node scripts/run-tests.mts node -- --test-name-pattern="release-mode stacks" tests/build/form-comparison-ci.test.mts` | [o] |
 | C18.10-22 | Native fixture compilation을 timed assertion에서 분리한다 (priority: high). | engine and comparison setup operations with unchanged execution assertions | `node scripts/run-tests.mts node -- packages/php-ext/tests/engine/engine.test.mjs`; focused locale and sanitizer cases | [o] |
 | C18.10-23 | Rust internal model test를 production contract 문서에서 분리한다 (priority: high). | native Rust test module and exact internal parity ownership | `make parity-declarations-check`; owning Rust model tests | [o] |
-| C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [~] |
+| C18.10-24 | Extension parity 검사 전에 native PHP extension을 빌드한다 (priority: high). | application parity build prerequisite and owning preparation regression | `make parity-check UNITS=history-functions IMPLEMENTATIONS=php-extension`; owning native Make preparation check | [o] |
 | C18.10-25 | 정확한 Rust Unicode parity test identifier를 선택한다 (priority: high). | qualified native Rust Unicode binding identifier | `make parity-check UNITS=unicode-data IMPLEMENTATIONS=rust`; one actual case executed | [~] |
 | C18.10-26 | 잘못된 record를 보존하며 병렬 pipeline 결과를 기준 순서로 정렬한다 (priority: high). | pipeline report ordering and strict missing duplicate unknown identity regressions | `node scripts/run-tests.mts node -- --test-name-pattern="pipeline completion order" examples/form-comparison/check-verification.test.mjs` | [~] |

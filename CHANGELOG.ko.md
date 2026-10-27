@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cdb780011a5b87fc4b63dc2b6d50db2cc68db676a40440b24e3f5da141659829 -->
+<!-- source-sha256: 05ec23c100021b7681129c1ce736cc553585dc735cd6791a470bf9c8e421a54e -->
 
 ## Unreleased
+
+### 2026-10-27 — Parity 실행 전에 PHP extension을 빌드한다 (C18.10-24)
+
+- Native PHP extension parity는 extension binding을 불러오기 전에 extension build 완료를 기다린다.
 
 ### 2026-10-27 — Timed assertion 전에 native fixture를 컴파일한다 (C18.10-22)
 

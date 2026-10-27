@@ -555,6 +555,9 @@ CHECK_TARGETS = \
 	lint-php-ext \
 	test-php-ext
 
+# Extension parity loads the native module built from the current source.
+parity-check: build-php-ext
+
 # Production imports are resolved from each package's own runtime dependencies.
 .PHONY: production-dependencies-check
 lint-ts: production-dependencies-check
