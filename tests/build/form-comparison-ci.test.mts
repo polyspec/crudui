@@ -193,3 +193,17 @@ test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () =>
   }
   assert.deepEqual(failures, []);
 });
+
+test('release-mode stacks fetch pinned native archives while local stacks use source providers (C18.10-8)', () => {
+  for (const target of ['crudui-test-form-comparison-pipeline', 'crudui-test-form-comparison-browser']) {
+    const release = makeDryRun(repository, target, { variables: ['LOCAL=0'] });
+    assert.equal(release.status, 0, release.stderr);
+    const fetch = /\/release-assets\.(?:mts|mjs) fetch\b/.exec(release.stdout);
+    assert.ok(fetch, `${target} must prepare its declared native release archive`);
+    const run = release.stdout.indexOf('npm run test:form-comparison:');
+    assert.ok(run > fetch.index, `${target} must fetch before starting its stack checks`);
+    const local = makeDryRun(repository, target, { variables: ['LOCAL=1'] });
+    assert.equal(local.status, 0, local.stderr);
+    assert.doesNotMatch(local.stdout, /\/release-assets\.(?:mts|mjs) fetch\b/);
+  }
+});

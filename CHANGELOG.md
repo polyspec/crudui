@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Prepare current CI commands and assets (C18.10-8)
+
+- CI jobs install the declared providers and hooks, use the canonical Go workspace and prepare release-mode server assets.
+
 ## 0.0.8
 
 ### 2026-10-27 — Record fixture applicability and actual runtime evidence (C18.10-7)

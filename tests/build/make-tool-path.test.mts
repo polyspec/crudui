@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { chmod, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -10,32 +9,6 @@ import { runRustCommand, type CommandRunner } from '../../scripts/run-rust-comma
 
 const repository = path.resolve(import.meta.dirname, '../..');
 const make = process.env.MAKE || '/usr/bin/make';
-
-/** A string as a regular expression that matches it literally. */
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * The test runner path of the Makefile: make resolves KIT and KIT_EXT from the checkout or the installed package.
- */
-function kitTestRunner(): string {
-  const probe = mkdtempSync(path.join(os.tmpdir(), 'crudui-kit-probe-'));
-  try {
-    const probeFile = path.join(probe, 'kit-test-runner.mk');
-    writeFileSync(probeFile, 'print-kit-test-runner:\n\t@printf \'%s\\n\' \'$(KIT)/run-tests.$(KIT_EXT)\'\n');
-    const result = spawnSync(make, ['--no-print-directory', '-s', '-f', 'Makefile', '-f', probeFile, 'print-kit-test-runner'], {
-      cwd: repository,
-      encoding: 'utf8',
-    });
-    assert.equal(result.status, 0, result.stdout + result.stderr);
-    const [runner] = result.stdout.trim().split('\n');
-    assert.ok(runner, 'make printed no kit test runner path');
-    return runner;
-  } finally {
-    rmSync(probe, { recursive: true, force: true });
-  }
-}
 
 async function writeExecutable(filename: string): Promise<void> {
   await writeFile(filename, [
@@ -85,9 +58,18 @@ test('crudui-test-native runs the Rust tests through the test runner', async t =
   assert.equal(result.error, undefined, result.error?.message ?? '');
   assert.equal(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
-  const runner = kitTestRunner();
-  assert.match(commands,
-    new RegExp(`^node\\t${escapeRegExp(runner)} cargo -- --locked --manifest-path packages/generator/rust/Cargo\\.toml$`, 'm'));
+  assert.ok(commands.split('\n').includes('node\ttests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml'), commands);
+  const suite = path.join(repository, 'tests/conformance/run-suite.mts');
+  assert.match(await readFile(suite, 'utf8'), /import \{ parseArguments, run \} from '@polyspec\/kit\/run-tests';/);
+  const observed = path.join(directory, 'delegated.json');
+  const fixture = path.join(directory, 'delegated.test.mjs');
+  await writeFile(fixture, `import test from 'node:test';\nimport { writeFileSync } from 'node:fs';\ntest('delegated case', () => writeFileSync(${JSON.stringify(observed)}, JSON.stringify({ ran: true })));\n`);
+  const delegated = spawnSync(process.execPath, [suite, 'node', '--', fixture], {
+    cwd: repository, encoding: 'utf8', env: { ...process.env, CRUDUI_CONFORMANCE_EVIDENCE: '' },
+  });
+  assert.equal(delegated.status, 0, delegated.stdout + delegated.stderr);
+  assert.deepEqual(JSON.parse(await readFile(observed, 'utf8')), { ran: true });
+
 });
 
 test('crudui-test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', async t => {

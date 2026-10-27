@@ -39,8 +39,8 @@ ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_
 # development sources; the bootstrap selects the installed source or packed commands.
 include node_modules/@polyspec/kit/scripts/kit/kit-bootstrap.mk
 
-# Dependency checks discover each native Go workspace, including local providers; archive consumers remain isolated.
-dependency-review dependency-policy-check: export GOWORK := auto
+# Dependency records use the declared release workspace; source links and archive consumers keep their own resolution.
+dependency-review dependency-policy-check: export GOWORK := $(CURDIR)/go.work
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
@@ -58,7 +58,7 @@ CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-e
 PYTHON_VENV := $(CURDIR)/var/python
 # install-link (kit) links the Python packages in the environment that crudui-install-python makes: kit's link reads
 # UV_PROJECT_ENVIRONMENT, and without it the link finds no environment of the repository and fails (K360-2).
-install-link: export UV_PROJECT_ENVIRONMENT := $(PYTHON_VENV)
+install-link link: export UV_PROJECT_ENVIRONMENT := $(PYTHON_VENV)
 UV := $(KIT_TOOLS)/mise/shims/uv
 # The go and Composer of mise.toml, by the absolute paths of their shims: make 3.81 runs a recipe line without shell syntax
 # from the PATH that make started with (kit K171).
@@ -133,7 +133,7 @@ INSTALL_PACKAGES_EXTRA := crudui-install-svelte-tools
 
 # CI prepares the release source declared by the application before native path dependencies are installed.
 .PHONY: crudui-prepare-ci-providers
-install-packages: crudui-prepare-ci-providers
+install-packages: crudui-prepare-ci-providers hooks
 release-prepare:: crudui-prepare-ci-providers
 crudui-prepare-ci-providers: ## Prepare the declared OrderedJSON release source in CI; ONLINE
 	@if [ "$${GITHUB_ACTIONS:-}" = true ]; then \
@@ -192,6 +192,10 @@ crudui-install-crates: cargo-downloads-fetch ## Download the crates of every Car
 crudui-install-go-modules: ## Download the modules that the Go workspace requires; ONLINE
 	@modules="$$($(ONLINE) $(GO) list -m -f '{{if not .Main}}{{.Path}}@{{.Version}}{{end}}' all)" || exit $$?; \
 	printf '%s\n' "$$modules" | xargs $(ONLINE) $(GO) mod download
+
+ifneq ($(LOCAL),1)
+crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser: release-assets-fetch
+endif
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 crudui-test-runtimes: ## Exact runtime versions and test standards

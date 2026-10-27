@@ -10,12 +10,13 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 import { checkedShape, shapeOf } from '../../scripts/json-schema.mts';
+import { makeTargets } from '../../scripts/test-commands.mts';
 
 const isRecord = shapeOf<Record<string, unknown>>({ type: 'object' });
 const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 const strings = (value: unknown, what: string): string[] => checkedShape(STRINGS, value, what);
 import { checked, parseJson, type JTDSchemaType } from '../json.mts';
-import { kitToolPath, makeDryRun } from './make-dry-run.mts';
+import { kitToolPath, makeDryRun, makeEnvironment } from './make-dry-run.mts';
 
 const read = (file: string): Promise<string> => readFile(new URL(`../../${file}`, import.meta.url), 'utf8');
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
@@ -341,6 +342,22 @@ test('CI builds public JavaScript entries before dependency checks and validator
   assert.ok(prepare >= 0 && suite > prepare, 'the validator source suite prepares the public entries it imports');
 });
 
+test('Pages prepares dependencies through existing native install targets (C18.10-8)', async () => {
+  const job = jobOf(await workflowFile('pages.yml'), 'docs-web');
+  const installs = (job.steps ?? []).flatMap(step => /^make (?:crudui-)?install-(?:composer|go-modules|phpdocumentor|crates)$/.test(step.run ?? '') ? [step.run] : []);
+  const expected = ['crudui-install-composer', 'crudui-install-go-modules', 'crudui-install-phpdocumentor', 'crudui-install-crates'];
+  assert.deepEqual(installs, expected.map(target => `make ${target}`));
+  const database = makeDryRun(ROOT, 'help', { database: true });
+  assert.equal(database.status, 0, database.stderr);
+  const targets = makeTargets(database.stdout);
+  for (const target of expected) {
+    const rule = targets[target];
+    assert.ok(rule, `${target}: expected a declared preparation target`);
+    assert.ok(rule.commands.some(command => command.trim() !== '') || rule.prerequisites.length > 0,
+      `${target}: expected native preparation commands or prerequisites`);
+  }
+});
+
 // A recipe of the Makefile starts a tool of kit as $(KIT)/<tool>.mjs; the installed package has to ship it, or the target
 // fails with a missing module instead of its own error.
 test('every tool of kit that the Makefile starts is in the installed @polyspec/kit', async () => {
@@ -598,16 +615,28 @@ test('install-packages installs the svelte tools after its npm ci and runs no li
   assert.equal(svelte.status, 0, svelte.stderr);
   assert.match(svelte.stdout, /npm ci --prefix packages\/svelte\/tools/);
   assert.doesNotMatch(svelte.stdout, /link\.mjs|--no-print-directory link/, 'the svelte tools link nothing themselves');
+  const database = makeDryRun(ROOT, 'help', { database: true });
+  assert.equal(database.status, 0, database.stderr);
+  const targets = makeTargets(database.stdout);
+  assert.ok(targets['install-packages']?.prerequisites.includes('hooks'), 'dependency installation prepares the repository hooks');
+  assert.deepEqual(targets.hooks?.commands.filter(command => command.trim() !== ''), ['$(NODE) $(KIT)/git-hooks.$(KIT_EXT) install']);
 });
 
-// install-link (kit) links the Python packages in the environment that crudui-install-python makes: kit's link reads
-// UV_PROJECT_ENVIRONMENT, so the Makefile gives install-link the venv of var/python (C16.135).
-test('install-link links into the venv of var/python', () => {
-  // The make database names the target-specific variables of each target: `make -p` shows the one of install-link.
-  const database = makeDryRun(ROOT, 'install-link', { database: true });
-  assert.equal(database.status, 0, database.stderr);
-  const declaration = `UV_PROJECT_ENVIRONMENT := ${path.join(ROOT, 'var/python')}`;
-  const lines = database.stdout.split('\n');
-  assert.ok([`# ${declaration}`, `install-link: ${declaration}`].some(line => lines.includes(line)),
-    `expected install-link to declare ${declaration}; actual: ${lines.filter(line => line.includes('UV_PROJECT_ENVIRONMENT')).join('; ')}`);
+// Both native link entry points use the Python environment prepared for this checkout.
+test('install-link links into the venv of var/python', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-link-venv-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const probe = path.join(directory, 'environment.mjs');
+  await writeFile(probe, 'console.log(JSON.stringify({ venv: process.env.UV_PROJECT_ENVIRONMENT }));\n');
+  const quote = (value: string): string => `'${value.replaceAll("'", "'\"'\"'")}'`;
+  for (const target of ['install-link', 'link']) {
+    const result = spawnSync('make', ['--silent', '--no-print-directory', target, `NODE=${quote(process.execPath)} ${quote(probe)}`], {
+      cwd: ROOT, encoding: 'utf8', timeout: 5_000,
+      env: makeEnvironment({ ...process.env, UV_PROJECT_ENVIRONMENT: path.join(directory, 'foreign-venv') }),
+    });
+    assert.equal(result.error, undefined, `${target}: ${result.error?.message ?? ''}`);
+    assert.equal(result.status, 0, result.stderr);
+    const report = parseJson<{ venv: string }>(result.stdout, { properties: { venv: { type: 'string' } } }, `${target} process environment`);
+    assert.equal(report.venv, path.join(ROOT, 'var/python'), target);
+  }
 });

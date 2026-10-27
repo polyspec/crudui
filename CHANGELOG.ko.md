@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5124ca9b2fcfec99a6ca1252de911ed614b3b0388d65e104765b987fe8562e5f -->
+<!-- source-sha256: 95224d3268b009d58566a8b86933b9423d81d69ec975ffa91a3e21673eb63655 -->
 
 ## Unreleased
+
+### 2026-10-27 — CI job은 선언된 provider와 hook을 설치하고 기준 Go workspace를 사용하며 release mode server asset을 준비한다 (C18.10-8)
+
+- CI job은 선언된 provider와 hook을 설치하고 기준 Go workspace를 사용하며 release mode server asset을 준비한다.
 
 ## 0.0.8
 

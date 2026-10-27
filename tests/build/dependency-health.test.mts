@@ -543,8 +543,8 @@ test('production dependency checks reject a devDependency-only import', t => {
 
 
 for (const [target, workspace] of [
-  ['dependency-review', 'auto'],
-  ['dependency-policy-check', 'auto'],
+  ['dependency-review', path.join(root, 'go.work')],
+  ['dependency-policy-check', path.join(root, 'go.work')],
   ['release-consumer-lock', 'off'],
 ] as const) {
   test(`Go workspace: ${target} exports its declared module scope`, { timeout: 10_000 }, () => {

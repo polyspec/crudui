@@ -208,10 +208,10 @@ function stoppingRecipes(project: Project): string[] {
     const line = rule.commands[first];
     assert.ok(line !== undefined);
     for (const later of rule.commands.slice(first + 1)) violations.push(`${target}: \`${later}\` runs only when \`${line}\` passed`);
-    if (/\|\|\s*exit\b/.test(line)) violations.push(`${target}: a failing check ends the recipe with || exit`);
     // Each check of the line sets status=1 on failure before the next check, and the line exits
     // with the collected status.
     const segments = line.split(';').map(command => command.trim());
+    if (segments.some(command => isCheck(command) && /\|\|\s*exit\b/.test(command))) violations.push(`${target}: a failing check ends the recipe with || exit`);
     const checks = segments.flatMap((command, index) => (isCheck(command) ? [index] : []));
     const recorded = checks.every((index, position) => segments.slice(index, checks[position + 1] ?? segments.length)
       .some(command => /\bstatus=1\b/.test(command)));
@@ -234,6 +234,8 @@ test('a Makefile target runs every check after an earlier check failed', () => {
   const fixture = targetsOf([
     'lines:', '\tnpm run manifest:check', '\tnode scripts/check-documents.mjs', '\tnpm run docs:build',
     'loop:', '\t@for crate in a b; do node scripts/run-rust-command.mts fmt --check --manifest-path "$$crate" || exit 1; done',
+    'prepared:', '\t@packages="$$(go list ./...)" || exit $$?; node scripts/run-tests.mts go -- $$packages',
+    'check-exit:', '\t@node scripts/run-tests.mts node -- a.test.mjs || exit 1',
     'collected:', '\tnpm run build', '\t@status=0; npm run manifest:check || status=1; node scripts/check-documents.mjs || status=1; exit $$status',
     'chain:', '\t$(MAKE) docs-clean', '\t@runs=$$(mktemp -d) && $(MAKE) docs-web && diff -r "$$runs/a" "$$runs/b"',
     'unrecorded:', '\t@status=0; npm run manifest:check; node scripts/check-documents.mjs || status=1; exit $$status', '',
@@ -242,6 +244,7 @@ test('a Makefile target runs every check after an earlier check failed', () => {
     'lines: `node scripts/check-documents.mjs` runs only when `npm run manifest:check` passed',
     'lines: `npm run docs:build` runs only when `npm run manifest:check` passed',
     'loop: a failing check ends the recipe with || exit',
+    'check-exit: a failing check ends the recipe with || exit',
     'unrecorded: the checks of one line do not each set status=1 and exit with it',
   ]);
   assert.deepEqual(stoppingRecipes(declaredCommands()), []);
