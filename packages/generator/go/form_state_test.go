@@ -2,18 +2,26 @@ package generator
 
 import (
 	"encoding/json"
-	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"testing"
+
+	"github.com/polyspec/crudui/packages/validator/go/testsupport/conformance"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // The cases of tests/fixtures/{form-view,form-history,form-actions,view-functions,history-functions} are the
 // observations of the TypeScript reference; see tests/fixtures/form-state/README.md.
 
 var generatedKey = regexp.MustCompile(`__[0-9A-Za-z]{13}__`)
+
+// recordFixtureConformance records the actual case result with its declared fixture path.
+func recordFixtureConformance(t *testing.T, feature, family, name string) {
+	t.Helper()
+	conformance.Record(t, feature, "tests/fixtures/"+family+"/cases.json", name)
+}
 
 // fixtureCases reads the cases of a fixture family.
 func fixtureCases(t *testing.T, family string) []*Object {
@@ -250,6 +258,8 @@ func observeSessions(t *testing.T, family string, history bool) {
 	for _, c := range fixtureCases(t, family) {
 		c := c
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
+			feature := map[string]string{"form-view": "viewState", "form-history": "formHistory", "form-actions": "runAction", "form-choices": "createForm"}[family]
+			recordFixtureConformance(t, feature, family, stringAt(c, "name"))
 			spec, data, steps := read(c, "spec"), read(c, "data"), list(read(c, "steps"))
 			name := newNamer(marshal(t, spec), marshal(t, data), marshal(t, steps))
 			template, e := CompileForm(object(spec), CompileOptions{})
@@ -391,6 +401,7 @@ func TestViewFunctions(t *testing.T) {
 	for _, c := range fixtureCases(t, "view-functions") {
 		c := c
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
+			recordFixtureConformance(t, "viewState", "view-functions", stringAt(c, "name"))
 			got := NewObject("result", callViewFunction(t, stringAt(c, "op"), list(read(c, "args"))))
 			if g, w := marshal(t, got), marshal(t, read(c, "expected")); g != w {
 				t.Fatalf("\n got %s\nwant %s", g, w)

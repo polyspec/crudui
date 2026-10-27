@@ -2,16 +2,20 @@
 //! and `form_buttons_html` (CURP-009). Each observation equals the one that the TypeScript reference recorded, as JSON text,
 //! so the order of the attributes counts. A failure is observed with its code and message.
 
+#[path = "support/evidence.rs"]
+mod evidence;
+
 use libtest_mimic::{Arguments, Trial};
 use polyspec_crudui_generator::{
-    bind_buttons, compile_form, form_buttons_html, BindOptions, CompileOptions, FormResult, FormTemplate,
+    bind_buttons, compile_form, form_buttons_html, BindOptions, CompileOptions, FormResult,
+    FormTemplate,
 };
 use serde_json::{json, Value};
 use std::path::Path;
 
 fn cases() -> Vec<Value> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../tests/fixtures/buttons/cases.json");
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/buttons/cases.json");
     let text = match std::fs::read_to_string(&path) {
         Ok(value) => value,
         Err(error) => panic!("read {}: {error}", path.display()),
@@ -55,7 +59,11 @@ fn observe_case(case: &Value) -> Value {
     } else {
         observe(|| {
             let template = template_of(case)?;
-            let data = if case.get("data").is_some() { case["data"].clone() } else { json!({}) };
+            let data = if case.get("data").is_some() {
+                case["data"].clone()
+            } else {
+                json!({})
+            };
             let buttons = bind_buttons(&template, &data, &options_of(case))?;
             Ok(Value::Array(buttons))
         })
@@ -77,11 +85,26 @@ fn main() {
     let trials = cases()
         .into_iter()
         .map(|case| {
-            let name = case["name"].as_str().expect("a case has a name").to_string();
-            Trial::test(format!("every_case_reproduces_its_expectation::{name}"), move || {
-                check_case(&case);
-                Ok(())
-            })
+            let name = case["name"]
+                .as_str()
+                .expect("a case has a name")
+                .to_string();
+            Trial::test(
+                format!("every_case_reproduces_its_expectation::{name}"),
+                move || {
+                    evidence::prove(
+                        case["operation"]
+                            .as_str()
+                            .expect("a button case has an operation"),
+                        "tests/fixtures/buttons/cases.json",
+                        case["name"].as_str().expect("a case has a name"),
+                        || {
+                            check_case(&case);
+                            Ok(())
+                        },
+                    )
+                },
+            )
         })
         .collect();
     libtest_mimic::run(&Arguments::from_args(), trials).exit();

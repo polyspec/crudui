@@ -33,6 +33,11 @@ func TestTemplateShapeCases(t *testing.T) {
 			if err := json.Unmarshal(item["operation"], &operation); err != nil {
 				t.Fatal(err)
 			}
+			feature := operation
+			if operation == "createRecords" {
+				feature = "createForm"
+			}
+			recordFixtureConformance(t, feature, "template-shape", name)
 			if operation == "createRecords" {
 				checkRecordCase(t, item)
 				return

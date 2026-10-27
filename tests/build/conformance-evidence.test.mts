@@ -10,12 +10,13 @@ import { recordConformance } from '../conformance/evidence.mts';
 import { parseJson, type JTDSchemaType } from '../json.mts';
 
 /** A suite run record as tests/conformance/runs.mts writes it. */
-interface RunRecord { program: string; tool: string | null; cwd: string; args: string[]; started: string; status: number | null }
+interface RunRecord { program: string; tool: string | null; cwd: string; args: string[]; started: string; status: number | null; phpExtensions?: string[] }
 const runSchema: JTDSchemaType<RunRecord> = {
   properties: {
     program: { type: 'string' }, tool: { type: 'string', nullable: true }, cwd: { type: 'string' }, args: { elements: { type: 'string' } },
     started: { type: 'string' }, status: { type: 'int32', nullable: true },
   },
+  optionalProperties: { phpExtensions: { elements: { type: 'string' } } },
 };
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -77,6 +78,58 @@ test('unregistered families, unproven fixtures and named fixtures without cases 
   assert.deepEqual(problems.undeclaredFixtures, [
     { feature: 'renderList', fixture: 'tests/fixtures/form-session/scenario.mts' },
   ]);
+});
+
+test('explicit fixture runtimes preserve every supported runtime without requiring browser cases in core runtimes', () => {
+  const browser = 'tests/fixtures/form-session/scenario.mts';
+  const features = [{ id: 'viewState', support: { javascript: 'pass', 'javascript-dom': 'pass' }, fixtures: [fixture, browser] }];
+  const result = checkConformance({ features, registry: [
+    { path: fixture, kind: 'model', runtimes: ['javascript'] },
+    { path: browser, kind: 'browser', runtimes: ['javascript-dom'] },
+  ], cases: { [fixture]: ['core'], [browser]: ['browser'] }, families: [], evidence: [
+    { feature: 'viewState', fixture, runtime: 'javascript', case: 'core', passed: true },
+    { feature: 'viewState', fixture: browser, runtime: 'javascript-dom', case: 'browser', passed: true },
+  ] });
+  assert.deepEqual(result.invalidApplicability, []);
+  assert.deepEqual(result.missing, []);
+  const excluded = checkConformance({ features, registry: [{ path: fixture, kind: 'model', runtimes: ['javascript'] }],
+    cases: { [fixture]: ['core'] }, families: [], evidence: [] });
+  assert.ok(excluded.invalidApplicability.some(problem => problem.includes('javascript-dom has no applicable case')));
+});
+
+test('operation-specific feature cases require every existing case and reject unknown or empty selections', () => {
+  const features = [
+    { id: 'bindForm', support: { php: 'pass' }, fixtures: [fixture] },
+    { id: 'bindButtons', support: { php: 'pass' }, fixtures: [fixture] },
+  ];
+  const entry = { path: fixture, kind: 'model', featureCases: { bindForm: ['form'], bindButtons: ['buttons'] } };
+  const input = { features, registry: [entry], cases: { [fixture]: ['form', 'buttons'] }, families: [], evidence: [
+    { feature: 'bindForm', fixture, runtime: 'php', case: 'form', passed: true },
+    { feature: 'bindButtons', fixture, runtime: 'php', case: 'buttons', passed: true },
+  ] };
+  const result = checkConformance(input);
+  assert.deepEqual(result.invalidApplicability, []);
+  assert.deepEqual(result.missing, []);
+  for (const selection of [{ bindForm: [], bindButtons: ['buttons'] }, { bindForm: ['unknown'], bindButtons: ['buttons'] },
+    { bindForm: ['form'], bindButtons: ['buttons'], unknown: ['form'] }, { bindButtons: ['buttons'] }]) {
+    assert.notDeepEqual(checkConformance({ ...input, registry: [{ ...entry, featureCases: selection }] }).invalidApplicability, []);
+  }
+  assert.notDeepEqual(checkConformance({ ...input, registry: [{ ...entry, runtimes: [] }] }).invalidApplicability, []);
+  assert.notDeepEqual(checkConformance({ ...input, registry: [{ ...entry, runtimes: ['unknown'] }] }).invalidApplicability, []);
+});
+
+test('a support module is covered only through registered proven case fixtures and never supplies fabricated cases', () => {
+  const module = { path: 'tests/fixtures/form-state/units.mts', kind: 'support-module', supports: [fixture] };
+  const input = { ...base, registry: [...registry, module], families: [...base.families, 'tests/fixtures/form-state'],
+    evidence: [record('php', 'a'), record('php', 'b')] };
+  const result = checkConformance(input);
+  assert.deepEqual(result.invalidApplicability, []);
+  assert.deepEqual(result.unregisteredFamilies, []);
+  assert.deepEqual(result.unprovenFixtures, []);
+  assert.deepEqual(result.missing, []);
+  for (const changed of [{ ...module, supports: [] }, { ...module, supports: ['missing'] }, { ...module, cases: ['fake'] }]) {
+    assert.notDeepEqual(checkConformance({ ...input, registry: [...registry, changed] }).invalidApplicability, []);
+  }
 });
 
 test('the JavaScript recorder appends one line per case only when an evidence directory is set', async () => {
@@ -169,6 +222,20 @@ test('every runtime that a feature supports is proven by a declared suite', asyn
     .filter(([, support]) => support === 'pass').map(([runtime]) => runtime)));
   const proven = new Set(evidenceSuites.flatMap(suite => suite.runtimes));
   assert.deepEqual([...supported].filter(runtime => !proven.has(runtime)).sort(), []);
+});
+
+test('PHP source suite runs cannot stand for extension runs and run metadata never replaces case evidence', () => {
+  const source = evidenceSuites.find(suite => suite.name === 'generator PHP');
+  const native = evidenceSuites.find(suite => suite.name === 'generator PHP extension');
+  assert.ok(source && native);
+  const record = { program: 'tests/conformance/run-suite.mts', tool: 'phpunit', cwd: 'packages/generator/php',
+    args: ['tests/FormStateTest.php'], started: '2026-10-27T00:00:00.000Z', status: 0 };
+  assert.deepEqual([...suiteStates([source, native], [record])], [['generator PHP', 'passed'], ['generator PHP extension', 'did not run']]);
+  const extension = { ...record, phpExtensions: ['var/php-ext/polyspec_crudui.so'] };
+  assert.deepEqual([...suiteStates([source, native], [extension])], [['generator PHP', 'did not run'], ['generator PHP extension', 'passed']]);
+  const required = checkConformance({ ...base, features: [{ ...feature, support: { php: 'pass', 'php-native': 'pass' } }],
+    evidence: [{ feature: feature.id, fixture, runtime: 'php', case: 'a', passed: true }] });
+  assert.equal(required.missing.filter(item => item.runtime === 'php-native').length, 2);
 });
 
 test('the suite runner and the native suite leave a run record with their exit status', async () => {

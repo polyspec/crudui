@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it } from 'vitest';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 import * as core from './index';
 
 /**
@@ -41,7 +42,12 @@ const list: unknown[] = parsed;
 // Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name.
 for (const item of list) {
   const entry = fields(item);
-  it(String(entry.name), () => {
+  it(String(entry.name), () => provesConformance({
+    features: [entry.operation === 'bindButtons' ? 'bindButtons' : 'formButtonsHtml'],
+    fixture: 'tests/fixtures/buttons/cases.json',
+    runtime: 'javascript',
+    case: String(entry.name),
+  }, () => {
     const observed = entry.operation === 'bindButtons'
       ? observe(() => bindButtons(
         entry.spec !== undefined ? compileForm(entry.spec) : entry.template,
@@ -50,5 +56,5 @@ for (const item of list) {
       ))
       : observe(() => formButtonsHtml(entry.buttons));
     expect(JSON.stringify(observed)).toBe(JSON.stringify(entry.expected));
-  });
+  }));
 }

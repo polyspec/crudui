@@ -47,7 +47,12 @@ class TestButtonsSuite(unittest.TestCase):
     """Each case of the buttons fixture reproduces its expectation."""
 
 
-add_case_tests(TestButtonsSuite, "buttons", _check)
+add_case_tests(
+    TestButtonsSuite,
+    "buttons",
+    _check,
+    features=lambda case: [case["operation"]],
+)
 
 
 if __name__ == "__main__":

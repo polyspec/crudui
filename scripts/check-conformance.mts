@@ -34,6 +34,9 @@ export interface RegisteredFixture {
   kind: string;
   export?: string;
   cases?: string[];
+  runtimes?: string[];
+  featureCases?: Record<string, string[]>;
+  supports?: string[];
 }
 
 /** An evidence record of one run of a shared fixture case. */
@@ -54,6 +57,7 @@ export interface CaseProblem {
 }
 
 export interface ConformanceProblems {
+  invalidApplicability: string[];
   undeclaredFixtures: { feature: string, fixture: string }[];
   unregisteredFamilies: string[];
   unprovenFixtures: string[];
@@ -73,7 +77,7 @@ export interface ConformanceInput {
 /** A suite that records evidence, with the command that runs it and the runtimes it proves. */
 export interface EvidenceSuite {
   name: string;
-  run: { program: string, tool?: string, cwd?: string, argument?: string };
+  run: { program: string, tool?: string, cwd?: string, argument?: string, phpExtensions?: boolean };
   runtimes: string[];
 }
 
@@ -83,6 +87,7 @@ export interface RunRecord {
   tool: string | null;
   cwd: string;
   args: string[];
+  phpExtensions?: string[];
   started: string;
   status: number | null;
 }
@@ -117,10 +122,46 @@ export function checkConformance(
     recorded.set(id, (recorded.get(id) ?? true) && item.passed === true);
   }
   const required = new Set<string>();
+  const covered = new Set<string>();
   const declared = new Map<string, Feature>();
   const problems: ConformanceProblems = {
-    undeclaredFixtures: [], unregisteredFamilies: [], unprovenFixtures: [], missing: [], failed: [], undeclaredEvidence: [],
+    invalidApplicability: [], undeclaredFixtures: [], unregisteredFamilies: [], unprovenFixtures: [], missing: [], failed: [], undeclaredEvidence: [],
   };
+  const fixtures = new Map(registry.map(fixture => [fixture.path, fixture]));
+  const proven = new Set(features.flatMap(feature => feature.fixtures));
+  for (const fixture of registry) {
+    if (fixture.kind === 'support-module') {
+      if (!fixture.supports?.length || fixture.cases || fixture.export || fixture.runtimes || fixture.featureCases) {
+        problems.invalidApplicability.push(`${fixture.path}: a support module names only the case fixtures it supports`);
+      }
+      for (const supported of fixture.supports ?? []) {
+        if (!fixtures.has(supported) || !cases[supported]?.length || !proven.has(supported)) {
+          problems.invalidApplicability.push(`${fixture.path}: supported fixture ${supported} is not a registered, proven case fixture`);
+        }
+      }
+      continue;
+    }
+    if (fixture.supports) problems.invalidApplicability.push(`${fixture.path}: only a support module declares supports`);
+    const owners = features.filter(feature => feature.fixtures.includes(fixture.path));
+    if (fixture.runtimes && (fixture.runtimes.length === 0 || fixture.runtimes.some(runtime => !owners.some(feature => feature.support[runtime] === 'pass')))) {
+      problems.invalidApplicability.push(`${fixture.path}: runtimes must name supported runtimes of its owning features`);
+    }
+    if (fixture.featureCases) {
+      const selected = new Set<string>();
+      for (const owner of owners) if (!Object.hasOwn(fixture.featureCases, owner.id)) {
+        problems.invalidApplicability.push(`${fixture.path}: owning feature ${owner.id} selects no cases`);
+      }
+      for (const [feature, names] of Object.entries(fixture.featureCases)) {
+        if (!owners.some(owner => owner.id === feature) || names.length === 0 || names.some(name => !cases[fixture.path]?.includes(name))) {
+          problems.invalidApplicability.push(`${fixture.path}: ${feature} must select nonempty existing case names of an owning feature`);
+        }
+        for (const name of names) selected.add(name);
+      }
+      for (const name of cases[fixture.path] ?? []) if (!selected.has(name)) {
+        problems.invalidApplicability.push(`${fixture.path}: case ${name} has no owning feature`);
+      }
+    }
+  }
   for (const feature of features) {
     declared.set(feature.id, feature);
     for (const fixture of feature.fixtures) {
@@ -129,11 +170,14 @@ export function checkConformance(
         problems.undeclaredFixtures.push({ feature: feature.id, fixture });
         continue;
       }
+      const registration = fixtures.get(fixture);
+      const selected = registration?.featureCases ? registration.featureCases[feature.id] ?? [] : names;
       for (const [runtime, support] of Object.entries(feature.support)) {
-        if (support !== 'pass') continue;
-        for (const name of names) {
+        if (support !== 'pass' || (registration?.runtimes && !registration.runtimes.includes(runtime))) continue;
+        for (const name of selected) {
           const id = key(feature.id, fixture, runtime, name);
           required.add(id);
+          covered.add(JSON.stringify([feature.id, runtime]));
           if (!recorded.has(id)) problems.missing.push({ feature: feature.id, fixture, runtime, case: name });
           else if (!recorded.get(id)) problems.failed.push({ feature: feature.id, fixture, runtime, case: name });
         }
@@ -144,9 +188,13 @@ export function checkConformance(
   for (const family of families) {
     if (!registry.some(fixture => fixture.path.startsWith(`${family}/`))) problems.unregisteredFamilies.push(family);
   }
-  const proven = new Set(features.flatMap(feature => feature.fixtures));
+  for (const feature of features) for (const [runtime, support] of Object.entries(feature.support)) {
+    if (support === 'pass' && !covered.has(JSON.stringify([feature.id, runtime]))) {
+      problems.invalidApplicability.push(`${feature.id}: supported runtime ${runtime} has no applicable case`);
+    }
+  }
   for (const fixture of registry) {
-    if (!proven.has(fixture.path)) problems.unprovenFixtures.push(fixture.path);
+    if (fixture.kind !== 'support-module' && !proven.has(fixture.path)) problems.unprovenFixtures.push(fixture.path);
   }
   const reported = new Set<string>();
   for (const item of evidence) {
@@ -158,7 +206,8 @@ export function checkConformance(
     const reason = !feature ? 'unknown feature'
       : !feature.fixtures.includes(item.fixture) ? 'fixture not declared by the feature'
         : support === undefined ? 'runtime not declared by the feature'
-          : 'case not in the fixture';
+          : fixtures.get(item.fixture)?.runtimes && !fixtures.get(item.fixture)?.runtimes?.includes(item.runtime) ? 'runtime not applicable to the fixture'
+            : 'case not in the fixture';
     problems.undeclaredEvidence.push({ ...item, reason });
   }
   return problems;
@@ -171,6 +220,11 @@ export function checkConformance(
  */
 export const evidenceSuites: EvidenceSuite[] = [
   { name: 'validator JavaScript', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/validator/ts' }, runtimes: ['javascript'] },
+  { name: 'generator JavaScript', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/generator/ts' }, runtimes: ['javascript'] },
+  { name: 'generator Go', run: { program: 'tests/conformance/run-suite.mts', tool: 'go', cwd: 'packages/generator/go' }, runtimes: ['go'] },
+  { name: 'generator Rust', run: { program: 'tests/conformance/run-suite.mts', tool: 'cargo', argument: 'packages/generator/rust/Cargo.toml' }, runtimes: ['rust'] },
+  { name: 'generator PHP', run: { program: 'tests/conformance/run-suite.mts', tool: 'phpunit', cwd: 'packages/generator/php', phpExtensions: false }, runtimes: ['php'] },
+  { name: 'generator PHP extension', run: { program: 'tests/conformance/run-suite.mts', tool: 'phpunit', cwd: 'packages/generator/php', phpExtensions: true }, runtimes: ['php-native'] },
   { name: 'validator PHP', run: { program: 'tests/conformance/run-suite.mts', tool: 'phpunit', cwd: 'packages/validator/php' }, runtimes: ['php'] },
   { name: 'validator Python', run: { program: 'tests/conformance/run-suite.mts', tool: 'python', cwd: 'packages/validator/python' }, runtimes: ['python'] },
   { name: 'validator Go', run: { program: 'tests/conformance/run-suite.mts', tool: 'go', cwd: 'packages/validator/go' }, runtimes: ['go'] },
@@ -199,12 +253,13 @@ export function suiteStates(
 ): Map<string, string> {
   const states = new Map<string, string>();
   for (const suite of suites) {
-    const { program, tool, cwd, argument } = suite.run;
+    const { program, tool, cwd, argument, phpExtensions } = suite.run;
     const latest = new Map<string, RunRecord>();
     for (const record of runs) {
       if (record.program !== program || (tool !== undefined && record.tool !== tool)
-        || (cwd !== undefined && record.cwd !== cwd) || (argument !== undefined && !record.args.includes(argument))) continue;
-      const command = JSON.stringify([record.tool, record.cwd, record.args]);
+        || (cwd !== undefined && record.cwd !== cwd) || (argument !== undefined && !record.args.includes(argument))
+        || (phpExtensions !== undefined && Boolean(record.phpExtensions?.length) !== phpExtensions)) continue;
+      const command = JSON.stringify([record.tool, record.cwd, record.args, record.phpExtensions ?? []]);
       const previous = latest.get(command);
       if (!previous || previous.started < record.started) latest.set(command, record);
     }
@@ -276,7 +331,8 @@ function runRecord(value: unknown, file: string): RunRecord {
   if (status !== null && typeof status !== 'number') throw new Error(`status of ${file} is no number or null`);
   return {
     program: checkedShape(STRING, item.program, `program of ${file}`), tool, cwd: checkedShape(STRING, item.cwd, `cwd of ${file}`),
-    args: checkedShape(STRINGS, item.args, `args of ${file}`), started: checkedShape(STRING, item.started, `started of ${file}`), status,
+    args: checkedShape(STRINGS, item.args, `args of ${file}`),
+    ...(item.phpExtensions === undefined ? {} : { phpExtensions: checkedShape(STRINGS, item.phpExtensions, `phpExtensions of ${file}`) }), started: checkedShape(STRING, item.started, `started of ${file}`), status,
   };
 }
 
@@ -316,7 +372,9 @@ async function main(): Promise<void> {
   const registry = standard.fixtures;
   const cases: Record<string, string[] | undefined> = {};
   for (const fixture of registry) {
-    cases[fixture.path] = await fixtureCases(fixture);
+    if (fixture.kind === 'support-module') {
+      if (!(await readFile(path.join(ROOT, fixture.path), 'utf8')).trim()) throw new Error(`${fixture.path}: a support module must contain source`);
+    } else cases[fixture.path] = await fixtureCases(fixture);
   }
   const families = (await readdir(path.join(ROOT, 'tests/fixtures'), { withFileTypes: true }))
     .filter(entry => entry.isDirectory()).map(entry => `tests/fixtures/${entry.name}`).sort();
@@ -327,6 +385,7 @@ async function main(): Promise<void> {
   const out = (text: string): unknown => lines.line(text);
   lines.start('conformance: evidence against contracts/features.json', { group: true });
   out(`conformance: ${evidence.length} evidence records from ${files} files, ${runs.length} suite runs`);
+  for (const problem of problems.invalidApplicability) out(`✖ ${problem}`);
   for (const item of problems.undeclaredFixtures) out(`✖ ${item.feature} names ${item.fixture}, which is not a registered case fixture`);
   for (const family of problems.unregisteredFamilies) out(`✖ ${family} has no registered fixture`);
   for (const fixture of problems.unprovenFixtures) out(`✖ ${fixture} is proven by no feature`);
@@ -343,7 +402,7 @@ async function main(): Promise<void> {
     undeclared.set(id, (undeclared.get(id) ?? 0) + 1);
   }
   for (const [id, count] of undeclared) out(`✖ evidence without a declaration: ${id} (${count} cases)`);
-  const failing = problems.undeclaredFixtures.length + problems.unregisteredFamilies.length + problems.unprovenFixtures.length + problems.missing.length
+  const failing = problems.invalidApplicability.length + problems.undeclaredFixtures.length + problems.unregisteredFamilies.length + problems.unprovenFixtures.length + problems.missing.length
     + problems.failed.length + problems.undeclaredEvidence.length;
   if (failing) lines.fail('conformance: evidence against contracts/features.json', undefined, `${failing} problems`);
   else lines.pass('conformance: evidence against contracts/features.json');

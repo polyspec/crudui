@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8ab0ab3771138ce599b3a32b82f7cee1890aa7358d25bea5447710f81284c04f -->
+<!-- source-sha256: a68b0dd0d240ad7909bad115af5c769b3dce984834a955428ab18ae5b511edad -->
 
 ## Unreleased
+
+### 2026-10-27 — Fixture 적용 범위와 실제 runtime 증거를 기록한다 (C18.10-7)
+
+- Fixture 선언은 지원 runtime, operation별 case와 공유 support module을 식별한다. 기존 fixture unit은 native PHP 실행을 포함해 공유 recorder로 실제 결과를 기록한다. Suite record는 PHP source와 extension 실행을 구분한다. 기본 cross-product 검사는 유지하며 누락되거나 잘못된 적용 범위와 증거를 거부한다.
 
 ### 2026-10-27 — 시간 제한 assertion 전에 native fixture program을 컴파일한다 (C18.10-6)
 

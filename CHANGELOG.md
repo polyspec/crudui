@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Record fixture applicability and actual runtime evidence (C18.10-7)
+
+- Fixture declarations identify supported runtimes, operation-specific cases and shared support modules. Existing fixture units record actual results through the shared recorders, including native PHP execution. Suite records distinguish PHP source and extension runs. The default cross-product checks remain and reject missing or invalid applicability and evidence.
+
 ### 2026-10-27 — Compile native fixture programs before timed assertions (C18.10-6)
 
 - Shared validation and unique-rule programs compile as setup operations. Tests execute only programs produced by that run and retain their existing assertions and time limits.

@@ -12,6 +12,7 @@ func TestButtonsSuite(t *testing.T) {
 	for _, c := range fixtureCases(t, "buttons") {
 		c := c
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
+			recordFixtureConformance(t, stringAt(c, "operation"), "buttons", stringAt(c, "name"))
 			observed := observeButtonCase(t, c)
 			if got, want := marshal(t, observed), marshal(t, read(c, "expected")); got != want {
 				t.Fatalf("observed %s, expected %s", got, want)

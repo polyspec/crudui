@@ -151,7 +151,9 @@ class TestFormView(unittest.TestCase):
         _check_session(self, case, history=False)
 
 
-add_case_tests(TestFormView, "form-view", TestFormView.check_case)
+add_case_tests(
+    TestFormView, "form-view", TestFormView.check_case, features=["viewState"]
+)
 
 
 class TestFormHistory(unittest.TestCase):
@@ -161,7 +163,12 @@ class TestFormHistory(unittest.TestCase):
         _check_session(self, case, history=True)
 
 
-add_case_tests(TestFormHistory, "form-history", TestFormHistory.check_case)
+add_case_tests(
+    TestFormHistory,
+    "form-history",
+    TestFormHistory.check_case,
+    features=["formHistory"],
+)
 
 
 class TestFormChoices(unittest.TestCase):
@@ -171,7 +178,12 @@ class TestFormChoices(unittest.TestCase):
         _check_session(self, case, history=True)
 
 
-add_case_tests(TestFormChoices, "form-choices", TestFormChoices.check_case)
+add_case_tests(
+    TestFormChoices,
+    "form-choices",
+    TestFormChoices.check_case,
+    features=["createForm"],
+)
 
 
 def _nodes(spec, data, collapsed=None):
@@ -205,7 +217,12 @@ class TestFormActions(unittest.TestCase):
         _check_session(self, case, history=True)
 
 
-add_case_tests(TestFormActions, "form-actions", TestFormActions.check_case)
+add_case_tests(
+    TestFormActions,
+    "form-actions",
+    TestFormActions.check_case,
+    features=["runAction"],
+)
 
 
 class TestViewFunctions(unittest.TestCase):
@@ -218,4 +235,9 @@ class TestViewFunctions(unittest.TestCase):
         )
 
 
-add_case_tests(TestViewFunctions, "view-functions", TestViewFunctions.check_case)
+add_case_tests(
+    TestViewFunctions,
+    "view-functions",
+    TestViewFunctions.check_case,
+    features=["viewState"],
+)

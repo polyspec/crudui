@@ -69,6 +69,7 @@ func TestHistoryFunctions(t *testing.T) {
 	for _, c := range fixtureCases(t, "history-functions") {
 		c := c
 		t.Run(stringAt(c, "name"), func(t *testing.T) {
+			recordFixtureConformance(t, "formHistory", "history-functions", stringAt(c, "name"))
 			got := callHistoryFunction(t, stringAt(c, "op"), list(read(c, "args")))
 			if g, w := marshal(t, got), marshal(t, read(c, "expected")); g != w {
 				t.Fatalf("\n got %s\nwant %s", g, w)

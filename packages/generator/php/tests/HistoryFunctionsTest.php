@@ -6,6 +6,7 @@ namespace Polyspec\Crudui\Generator\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polyspec\Crudui\Conformance\Evidence;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
 use stdClass;
@@ -34,7 +35,19 @@ final class HistoryFunctionsTest extends TestCase
     #[DataProvider('cases')]
     public function testHistoryFunctionMatchesTheSharedFixture(stdClass $case): void
     {
-        self::assertEquals($case->expected, $this->observe($case->op, $case->args));
+        $passed = false;
+        try {
+            self::assertEquals($case->expected, $this->observe($case->op, $case->args));
+            $passed = true;
+        } finally {
+            Evidence::record(
+                'formHistory',
+                'tests/fixtures/history-functions/cases.json',
+                (new \ReflectionClass(Generator::class))->isInternal() ? 'php-native' : 'php',
+                $case->name,
+                $passed,
+            );
+        }
     }
 
     /** @param list<mixed> $args */

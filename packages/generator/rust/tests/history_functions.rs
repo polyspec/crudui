@@ -1,6 +1,9 @@
 //! The cases of tests/fixtures/history-functions (CURT-063, CURT-076 to CURT-080): the other implementations pass the same
 //! cases. Each case is a test `history_functions::<name>`.
 
+#[path = "support/evidence.rs"]
+mod evidence;
+
 use libtest_mimic::{Arguments, Failed, Trial};
 use polyspec_crudui_generator::{
     can_redo, can_undo, empty_history, record_change, redo_change, undo_change, History,
@@ -70,16 +73,23 @@ fn main() {
                 .expect("a case has a name")
                 .to_string();
             Trial::test(format!("history_functions::{name}"), move || {
-                let args = case["args"].as_array().cloned().unwrap_or_default();
-                let observed = observe(case["op"].as_str().unwrap_or_default(), &args);
-                if observed == case["expected"] {
-                    Ok(())
-                } else {
-                    Err(Failed::from(format!(
-                        "\n got {observed}\nwant {}",
-                        case["expected"]
-                    )))
-                }
+                evidence::prove(
+                    "formHistory",
+                    "tests/fixtures/history-functions/cases.json",
+                    &name,
+                    || {
+                        let args = case["args"].as_array().cloned().unwrap_or_default();
+                        let observed = observe(case["op"].as_str().unwrap_or_default(), &args);
+                        if observed == case["expected"] {
+                            Ok(())
+                        } else {
+                            Err(Failed::from(format!(
+                                "\n got {observed}\nwant {}",
+                                case["expected"]
+                            )))
+                        }
+                    },
+                )
             })
         })
         .collect();

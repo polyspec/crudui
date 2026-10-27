@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Polyspec\Crudui\Generator\Tests;
 
+use Polyspec\Crudui\Conformance\Evidence;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -32,13 +33,25 @@ final class ButtonsConformanceTest extends TestCase
     #[DataProvider('cases')]
     public function testCaseWritesItsExpectation(stdClass $case): void
     {
-        $observed = $case->operation === 'bindButtons'
-            ? self::observe(static fn (): array => self::bind($case))
-            : self::observe(static fn (): string => Generator::formButtonsHtml($case->buttons));
-        self::assertSame(
-            json_encode($case->expected, self::FLAGS),
-            json_encode($observed, self::FLAGS)
-        );
+        $passed = false;
+        try {
+            $observed = $case->operation === 'bindButtons'
+                ? self::observe(static fn (): array => self::bind($case))
+                : self::observe(static fn (): string => Generator::formButtonsHtml($case->buttons));
+            self::assertSame(
+                json_encode($case->expected, self::FLAGS),
+                json_encode($observed, self::FLAGS)
+            );
+            $passed = true;
+        } finally {
+            Evidence::record(
+                $case->operation,
+                'tests/fixtures/buttons/cases.json',
+                (new \ReflectionClass(Generator::class))->isInternal() ? 'php-native' : 'php',
+                $case->name,
+                $passed,
+            );
+        }
     }
 
     /** Compile the spec of a case, or pass its template as it is, then bind its buttons for its record. */

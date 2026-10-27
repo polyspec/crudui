@@ -47,6 +47,9 @@ export interface ManifestFixture {
   kind: string;
   cases?: string[];
   export?: string;
+  runtimes?: string[];
+  featureCases?: Record<string, string[]>;
+  supports?: string[];
 }
 
 /** contracts/features.json, in the shape of contracts/features.schema.json. */

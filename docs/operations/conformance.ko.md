@@ -1,13 +1,23 @@
 # 적합성 증거
 <!-- doc-id: docs-operations-conformance -->
-<!-- source-sha256: 638a8954a490a4144cfb9f4ae0d1c41973610bc376fd7db6403d271022bcd412 -->
+<!-- source-sha256: bb2985b92e28efae9e737d93917d08a4518c8ad03c1a7e9c99855909b189c328 -->
 
 [English](conformance.md).
 
 [`contracts/features.json`](../../contracts/features.json)은 모든 런타임을 재는 기준입니다. 각 기능은
-지원하는 런타임(`pass`, `partial`, `unsupported`)과 그 기능을 증명하는 공용 fixture를 선언합니다.
+지원하는 런타임(`pass`)과 그 기능을 증명하는 공용 fixture를 선언합니다.
 매니페스트의 `fixtures` 목록은 모든 fixture를 등록합니다. `cases.json` 가족, `cases`를 선언하거나 사례
 목록을 내보내는 export를 지정한 모듈 fixture입니다.
+
+Fixture family가 일부 implementation만 실행할 때 적용 범위를 명시합니다. Fixture의 `runtimes`는 실제 실행하는
+runtime을 나열하며, 이 값이 없으면 지원하는 모든 runtime을 계속 요구합니다. `featureCases`는 여러 operation을
+검사하는 family의 feature별 정확한 case 이름을 지정합니다. 모든 case는 feature에 속해야 하고, fixture를 소유하는
+모든 feature는 case를 선택해야 하며, 지원하는 feature runtime마다 적용 가능한 case가 있어야 합니다. Unknown runtime,
+unknown case와 empty selection은 실패합니다.
+
+`support-module` 항목은 실제 shared module 경로와 해당 module을 통해 실행되는 등록된 case fixture를 `supports`로
+선언합니다. 이 항목은 가짜 case를 선언하거나 passing evidence를 제공하지 않습니다. 연결된 fixture는 등록되어 feature로
+검증되어야 하며 module 파일도 존재해야 합니다. Form-state registration module은 state fixture unit을 지원합니다.
 
 ## 런타임 키
 
@@ -17,7 +27,7 @@
 | `javascript-html` | `@polyspec/crudui-generator-html` 문자열 렌더러 |
 | `javascript-dom` | `@polyspec/crudui-generator-html` 마크업 위의 `@polyspec/crudui-generator-core` DOM 바인딩 |
 | `react`, `vue`, `svelte` | 프레임워크 패키지 |
-| `php`, `go`, `rust` | 서버 라이브러리 |
+| `php`, `go`, `rust`, `python` | 서버 라이브러리 |
 | `php-native` | PHP C 확장 |
 
 JavaScript는 모델과 문자열 렌더러가 별도 패키지이므로 서버 출력에 키가 두 개입니다. PHP, Go, Rust는
@@ -31,19 +41,20 @@ JavaScript는 모델과 문자열 렌더러가 별도 패키지이므로 서버 
 [`tests/conformance/evidence.mts`](../../tests/conformance/evidence.mts),
 [`tests/conformance/php/Evidence.php`](../../tests/conformance/php/Evidence.php)의 class
 `Polyspec\Crudui\Conformance\Evidence`, Go 패키지
-`validator/internal/conformance`, Rust 테스트 모듈 `tests/common`입니다. `CRUDUI_CONFORMANCE_EVIDENCE`가
+`packages/validator/go/testsupport/conformance`, Rust 테스트 모듈 `tests/common`입니다. `CRUDUI_CONFORMANCE_EVIDENCE`가
 디렉터리를 지정할 때만 기록합니다.
 
 [`scripts/check-conformance.mts`](../../scripts/check-conformance.mts)는 그 디렉터리를 읽고 다음 경우에
 실패합니다.
 
 - 지원 런타임에 기능이 지정한 fixture 사례의 증거가 없거나 실패한 증거가 있을 때
-- 기준이 선언하지 않은 기능, fixture, 런타임, 사례의 증거가 있을 때(예: `unsupported`로 선언한 런타임의 테스트, `partial` 런타임의 fixture 밖 사례)
+- 기준이 선언하지 않은 기능, fixture, 런타임, 사례의 증거가 있을 때(예: fixture 적용 범위 밖 runtime이나 다른 operation에 배정한 case)
 - `tests/fixtures` 아래 디렉터리에 등록된 fixture가 없거나, 등록된 사례 fixture를 증명하는 기능이 없을 때
 - 기능이 등록된 사례 fixture가 아닌 fixture를 지정할 때
 
-`partial` 런타임은 기록한 사례로 측정합니다. 기록된 사례마다 통과해야 하고 요구되는 사례는 없습니다. 공용 fixture가
-부분 런타임이 지원하는 사례를 정하지 않기 때문입니다.
+Optional `phpExtensions` field는 runner가 요청한 PHP module을 repository root 기준 상대 경로로 기록합니다.
+Generator PHP source 실행과 extension 실행은 case 인자가 같아도 별도 suite command입니다. Suite 상태는 command 실행만
+설명하며, case 통과 증거는 계속 test의 실제 runtime에서 기록합니다.
 
 ## Suite 실행
 

@@ -3,8 +3,13 @@
 //! is decoded with `FormTemplate::from_json` first, which refuses a shape that is not the compiled one; the case's
 //! operation then runs on the decoded template, one trial per case.
 
+#[path = "support/evidence.rs"]
+mod evidence;
+
 use libtest_mimic::{Arguments, Failed, Trial};
-use polyspec_crudui_generator::{bind_buttons, bind_form, BindOptions, Form, FormResult, FormTemplate};
+use polyspec_crudui_generator::{
+    bind_buttons, bind_form, BindOptions, Form, FormResult, FormTemplate,
+};
 use polyspec_crudui_validator::text::JsonText;
 use serde_json::{json, Value};
 use std::path::Path;
@@ -59,13 +64,25 @@ fn check_records(case: &JsonText, expected: &Value) -> Result<(), Failed> {
     let records = member(case, "data");
     let paths = member(case, "paths");
     let mut results = Vec::new();
-    for (index, record) in records.as_array().expect("the records are a list").iter().enumerate() {
-        let template = FormTemplate::from_json(&template_value).expect("the serialized template decodes");
+    for (index, record) in records
+        .as_array()
+        .expect("the records are a list")
+        .iter()
+        .enumerate()
+    {
+        let template =
+            FormTemplate::from_json(&template_value).expect("the serialized template decodes");
         let form = Form::new(template, record, BindOptions::default()).expect("the record binds");
         let mut read = serde_json::Map::new();
-        for path in paths[index].as_array().expect("the paths of a record are a list") {
+        for path in paths[index]
+            .as_array()
+            .expect("the paths of a record are a list")
+        {
             let path = path.as_str().expect("a path is text");
-            read.insert(path.to_string(), form.get_value(path).expect("the path reads"));
+            read.insert(
+                path.to_string(),
+                form.get_value(path).expect("the path reads"),
+            );
         }
         results.push(Value::Object(read));
     }
@@ -86,16 +103,32 @@ fn main() {
             let name = member(&case, "name");
             let name = name.as_str().expect("a case has a name").to_string();
             Trial::test(format!("template_shape::{name}"), move || {
-                let expected = member(&case, "expect");
-                if member(&case, "operation").as_str() == Some("createRecords") {
-                    return check_records(&case, &expected);
-                }
-                let observed = outcome(run_case(&case));
-                if observed == expected {
-                    Ok(())
+                let operation = member(&case, "operation");
+                let operation = operation
+                    .as_str()
+                    .expect("a template case has an operation");
+                let feature = if operation == "createRecords" {
+                    "createForm"
                 } else {
-                    Err(Failed::from(format!("\n got {observed}\nwant {expected}")))
-                }
+                    operation
+                };
+                evidence::prove(
+                    feature,
+                    "tests/fixtures/template-shape/cases.json",
+                    &name,
+                    || {
+                        let expected = member(&case, "expect");
+                        if member(&case, "operation").as_str() == Some("createRecords") {
+                            return check_records(&case, &expected);
+                        }
+                        let observed = outcome(run_case(&case));
+                        if observed == expected {
+                            Ok(())
+                        } else {
+                            Err(Failed::from(format!("\n got {observed}\nwant {expected}")))
+                        }
+                    },
+                )
             })
         })
         .collect();

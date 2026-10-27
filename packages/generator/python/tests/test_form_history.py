@@ -9,7 +9,7 @@ import unittest
 
 from polyspec.crudui.generator import FormError, Generator
 
-from .conformance import cases_of
+from .conformance import add_case_tests
 
 
 def _run(op, args):
@@ -35,12 +35,13 @@ class FormHistoryConformanceTest(unittest.TestCase):
     """Every case of the fixture is one test."""
 
 
-def _add(case):
-    def test(self):
-        self.assertEqual(case["expected"], _outcome(case))
-
-    setattr(FormHistoryConformanceTest, f"test_{case['name']}", test)
+def _check(test, case):
+    test.assertEqual(case["expected"], _outcome(case))
 
 
-for _case in cases_of("history-functions"):
-    _add(_case)
+add_case_tests(
+    FormHistoryConformanceTest,
+    "history-functions",
+    _check,
+    features=["formHistory"],
+)

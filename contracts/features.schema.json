@@ -85,7 +85,10 @@
         "path": { "type": "string", "pattern": "^[^/].*" },
         "kind": { "type": "string", "minLength": 1 },
         "cases": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true },
-        "export": { "type": "string", "minLength": 1 }
+        "export": { "type": "string", "minLength": 1 },
+        "runtimes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true },
+        "featureCases": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true } },
+        "supports": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "uniqueItems": true }
       },
       "additionalProperties": false
     },

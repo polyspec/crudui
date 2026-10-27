@@ -12,6 +12,8 @@ import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
+from polyspec.crudui.conformance import Proving
+
 ROOT = Path(__file__).resolve().parents[4]
 
 
@@ -155,17 +157,26 @@ def failure_record(error):
     return None
 
 
-def add_case_tests(cls, group, check):
+def add_case_tests(cls, group, check, features=None):
     """Give cls one test method per case of the fixture group, test_<case>, that calls check(test, case).
 
     The parity check reads each case by the name of its test method, and a test method that names no
     case is reported as not in the suite, so every case has a method of its own that runs the one
-    assertion path of check.
+    assertion path of check. Optional features are a list or a function of the case; the existing
+    conformance recorder records whether the case's complete assertion path passes.
     """
     for case in cases_of(group):
 
         def test(self, case=case):
-            check(self, case)
+            if features is None:
+                check(self, case)
+                return
+            proved = features(case) if callable(features) else features
+            with Proving(
+                proved, f"tests/fixtures/{group}/cases.json", case["name"]
+            ) as proof:
+                check(self, case)
+                proof.passed = True
 
         test.__name__ = f"test_{case['name']}"
         setattr(cls, test.__name__, test)

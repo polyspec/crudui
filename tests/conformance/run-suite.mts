@@ -18,5 +18,8 @@ export const PROGRAM = 'tests/conformance/run-suite.mts';
 
 const argv = process.argv.slice(2);
 const options = parseArguments(argv, ROOT);
-recordSuiteRun({ program: PROGRAM, tool: options.tool, cwd: path.relative(ROOT, options.cwd) || '.', args: options.args });
+recordSuiteRun({
+  program: PROGRAM, tool: options.tool, cwd: path.relative(ROOT, options.cwd) || '.', args: options.args,
+  phpExtensions: options.phpExtensions.map(file => path.relative(ROOT, file)),
+});
 process.exitCode = await run(argv, { root: ROOT });

@@ -6,6 +6,7 @@ namespace Polyspec\Crudui\Generator\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polyspec\Crudui\Conformance\Evidence;
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
@@ -72,44 +73,56 @@ final class FormStateTest extends TestCase
     #[DataProvider('viewSessions')]
     public function testViewSessionsEqualTheRecordedObservations(stdClass $case): void
     {
-        $this->assertSession($case, false);
+        $this->assertSession($case, false, 'viewState', 'form-view');
     }
 
     #[DataProvider('historySessions')]
     public function testHistorySessionsEqualTheRecordedObservations(stdClass $case): void
     {
-        $this->assertSession($case, true);
+        $this->assertSession($case, true, 'formHistory', 'form-history');
     }
 
     /**
      * Run the steps of a session; `$history` adds the flags `canUndo` and `canRedo` of the form to each observation.
      */
-    private function assertSession(stdClass $case, bool $history): void
+    private function assertSession(stdClass $case, bool $history, string $feature, string $family): void
     {
-        $namer = new FixtureNamer(json_encode([$case->spec, $case->data, $case->steps], JSON_THROW_ON_ERROR));
-        $form = new Form(Generator::compileForm($case->spec), $case->data);
-        foreach ($case->steps as $index => $step) {
-            $observed = [];
-            try {
-                $result = self::perform($form, $step->op, $step->args, $case->spec);
-                // An action reports its result even when it is none, as the TypeScript reference does (null).
-                if ($result !== null || in_array($step->op, ['runAction', 'resolveAction'], true)) {
-                    $observed['result'] = $namer->walk($result);
+        $passed = false;
+        try {
+            $namer = new FixtureNamer(json_encode([$case->spec, $case->data, $case->steps], JSON_THROW_ON_ERROR));
+            $form = new Form(Generator::compileForm($case->spec), $case->data);
+            foreach ($case->steps as $index => $step) {
+                $observed = [];
+                try {
+                    $result = self::perform($form, $step->op, $step->args, $case->spec);
+                    // An action reports its result even when it is none, as the TypeScript reference does (null).
+                    if ($result !== null || in_array($step->op, ['runAction', 'resolveAction'], true)) {
+                        $observed['result'] = $namer->walk($result);
+                    }
+                } catch (FormError $error) {
+                    $observed['error'] = ['code' => $error->getErrorCode(), 'message' => $error->getMessage()];
                 }
-            } catch (FormError $error) {
-                $observed['error'] = ['code' => $error->getErrorCode(), 'message' => $error->getMessage()];
+                $observed['data'] = $namer->walk($form->getData());
+                $observed['revision'] = $form->getRevision();
+                if ($history) {
+                    $observed['canUndo'] = $form->canUndo();
+                    $observed['canRedo'] = $form->canRedo();
+                }
+                $observed['collapsed'] = $namer->walk(self::collapsedRows($form->getFields()));
+                self::assertSame(
+                    self::text($case->expected[$index]),
+                    self::text($observed),
+                    $case->name . ' step ' . $index . ' ' . self::text($step)
+                );
             }
-            $observed['data'] = $namer->walk($form->getData());
-            $observed['revision'] = $form->getRevision();
-            if ($history) {
-                $observed['canUndo'] = $form->canUndo();
-                $observed['canRedo'] = $form->canRedo();
-            }
-            $observed['collapsed'] = $namer->walk(self::collapsedRows($form->getFields()));
-            self::assertSame(
-                self::text($case->expected[$index]),
-                self::text($observed),
-                $case->name . ' step ' . $index . ' ' . self::text($step)
+            $passed = true;
+        } finally {
+            Evidence::record(
+                $feature,
+                "tests/fixtures/{$family}/cases.json",
+                (new \ReflectionClass(Generator::class))->isInternal() ? 'php-native' : 'php',
+                $case->name,
+                $passed,
             );
         }
     }
@@ -117,23 +130,35 @@ final class FormStateTest extends TestCase
     #[DataProvider('actionSessions')]
     public function testActionSessionsEqualTheRecordedObservations(stdClass $case): void
     {
-        $this->assertSession($case, true);
+        $this->assertSession($case, true, 'runAction', 'form-actions');
     }
 
     #[DataProvider('choiceSessions')]
     public function testChoiceSessionsEqualTheRecordedObservations(stdClass $case): void
     {
-        $this->assertSession($case, true);
+        $this->assertSession($case, true, 'createForm', 'form-choices');
     }
 
     #[DataProvider('viewFunctions')]
     public function testViewFunctionCallsEqualTheRecordedResults(stdClass $case): void
     {
-        self::assertSame(
-            self::text($case->expected),
-            self::text(['result' => self::call($case->op, $case->args)]),
-            $case->name
-        );
+        $passed = false;
+        try {
+            self::assertSame(
+                self::text($case->expected),
+                self::text(['result' => self::call($case->op, $case->args)]),
+                $case->name
+            );
+            $passed = true;
+        } finally {
+            Evidence::record(
+                'viewState',
+                'tests/fixtures/view-functions/cases.json',
+                (new \ReflectionClass(Generator::class))->isInternal() ? 'php-native' : 'php',
+                $case->name,
+                $passed,
+            );
+        }
     }
 
     private static function text(mixed $value): string

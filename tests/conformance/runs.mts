@@ -12,6 +12,7 @@ export interface SuiteRun {
   tool?: string;
   cwd: string;
   args: string[];
+  phpExtensions?: string[];
 }
 
 interface SuiteRunRecord {
@@ -19,6 +20,7 @@ interface SuiteRunRecord {
   tool: string | null;
   cwd: string;
   args: string[];
+  phpExtensions?: string[];
   started: string;
   status: number | null;
 }
@@ -29,13 +31,13 @@ interface SuiteRunRecord {
  * @param run the program relative to the repository root, the test tool it runs, the working
  *   directory relative to the root and the arguments
  */
-export function recordSuiteRun({ program, tool, cwd, args }: SuiteRun): void {
+export function recordSuiteRun({ program, tool, cwd, args, phpExtensions }: SuiteRun): void {
   const directory = process.env.CRUDUI_CONFORMANCE_EVIDENCE;
   if (!directory) return;
   const runs = path.join(directory, 'runs');
   mkdirSync(runs, { recursive: true });
   const file = path.join(runs, `${process.pid}-${randomBytes(6).toString('hex')}.json`);
-  const record: SuiteRunRecord = { program, tool: tool ?? null, cwd, args, started: new Date().toISOString(), status: null };
+  const record: SuiteRunRecord = { program, tool: tool ?? null, cwd, args, ...(phpExtensions?.length ? { phpExtensions } : {}), started: new Date().toISOString(), status: null };
   // The record is written to a private file and renamed, so a reader never sees a partial record.
   const write = () => {
     writeFileSync(`${file}.partial`, `${JSON.stringify(record)}\n`);

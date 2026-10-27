@@ -4,10 +4,19 @@
 [한국어](conformance.ko.md).
 
 [`contracts/features.json`](../../contracts/features.json) is the standard every runtime is
-measured against. Each feature declares the runtimes that support it (`pass`, `partial` or
-`unsupported`) and the shared fixtures that prove it. The manifest's `fixtures` list registers
-every fixture: a `cases.json` family, or a module fixture with its declared `cases` or the module
+measured against. Each feature declares its supported runtimes (`pass`) and the shared fixtures that prove it.
+The manifest's `fixtures` list registers every fixture: a `cases.json` family, or a module fixture with its declared `cases` or the module
 export that lists them.
+
+Fixture applicability is explicit when a family exercises only some implementations. A fixture's `runtimes` lists
+its actual execution runtimes; without it every supported runtime remains required. `featureCases` maps each owning
+feature to its exact case names when a family tests several operations. Every case must belong to a feature, every
+owning feature must select cases, and every supported feature runtime must still have applicable cases. Unknown
+runtimes, unknown cases and empty selections fail the check.
+
+A `support-module` entry names its actual shared module and the registered case fixtures in `supports` that execute
+through it. It declares no invented case and supplies no passing evidence. Each supported fixture must be registered
+and proven by a feature; the module file must exist. The form-state registration module supports the state fixture units.
 
 ## Runtime keys
 
@@ -17,7 +26,7 @@ export that lists them.
 | `javascript-html` | the `@polyspec/crudui-generator-html` string renderer |
 | `javascript-dom` | the `@polyspec/crudui-generator-core` DOM binding over `@polyspec/crudui-generator-html` markup |
 | `react`, `vue`, `svelte` | the framework packages |
-| `php`, `go`, `rust` | the server libraries |
+| `php`, `go`, `rust`, `python` | the server libraries |
 | `php-native` | the PHP C extension |
 
 JavaScript has two keys for server output because its model and its string renderer are separate
@@ -32,7 +41,7 @@ of that case succeeded. The recorders are
 [`tests/conformance/evidence.mts`](../../tests/conformance/evidence.mts),
 the class `Polyspec\Crudui\Conformance\Evidence` of
 [`tests/conformance/php/Evidence.php`](../../tests/conformance/php/Evidence.php), the Go package
-`validator/internal/conformance` and the Rust test module `tests/common`. They write only when
+`packages/validator/go/testsupport/conformance` and the Rust test module `tests/common`. They write only when
 `CRUDUI_CONFORMANCE_EVIDENCE` names a directory.
 
 [`scripts/check-conformance.mts`](../../scripts/check-conformance.mts) reads that directory and
@@ -41,13 +50,14 @@ fails when:
 - a supported runtime has no evidence, or failing evidence, for a case of a fixture its feature
   names;
 - evidence exists for a feature, fixture, runtime or case the standard does not declare, such as
-  a test for a runtime declared `unsupported`, or a case outside the fixture of a partial runtime;
+  a test for a runtime outside the fixture applicability, or a case assigned to another operation;
 - a directory under `tests/fixtures` has no registered fixture, or a registered case fixture is
   proven by no feature;
 - a feature names a fixture that is not a registered case fixture.
 
-A `partial` runtime is measured by the cases it records: each recorded case must pass, and no case
-is required, because the shared fixtures do not state which cases a partial runtime supports.
+The optional `phpExtensions` field records the PHP modules requested by the runner, relative to the repository root.
+A generator PHP source run and an extension run are separate suite commands even when their case arguments match.
+Suite status describes command execution only; passing case evidence still comes from the test's actual runtime.
 
 ## Suite runs
 

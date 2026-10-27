@@ -400,8 +400,8 @@ crudui-test-php-engine:
 crudui-test-native-generators: cargo-downloads-check
 	$(NODE) scripts/require-current-build.mts
 	@status=0; \
-	$(NODE) $(KIT)/run-tests.$(KIT_EXT) go --cwd packages/generator/go -- -race ./... || status=1; \
-	$(NODE) $(KIT)/run-tests.$(KIT_EXT) cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
+	$(NODE) tests/conformance/run-suite.mts go --cwd packages/generator/go -- -race ./... || status=1; \
+	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node -- tests/native-generators/protocol.test.mts || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
 	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
@@ -410,7 +410,8 @@ crudui-test-native-generators: cargo-downloads-check
 crudui-test-php-api: require-build build-php-ext
 	@status=0; \
 	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
-	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal || status=1; \
+	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal || status=1; \
+	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php --php-extension "$(PHP_EXTENSION)" --without-library packages/generator/php -- tests/FormStateTest.php tests/ButtonsConformanceTest.php tests/TemplateShapeTest.php tests/HistoryFunctionsTest.php || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 

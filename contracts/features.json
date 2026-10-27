@@ -375,6 +375,12 @@
       "kind": "browser-session",
       "cases": [
         "exerciseSessionDom"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
       ]
     },
     {
@@ -382,6 +388,12 @@
       "kind": "browser-session",
       "cases": [
         "exerciseControls"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
       ]
     },
     {
@@ -390,6 +402,12 @@
       "cases": [
         "compareServerTakeover",
         "compareInitialization"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
       ]
     },
     {
@@ -398,6 +416,12 @@
       "cases": [
         "exerciseOnlyRows",
         "exerciseHiddenValues"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
       ]
     },
     {
@@ -405,6 +429,12 @@
       "kind": "browser-session",
       "cases": [
         "exerciseTyping"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
       ]
     },
     {
@@ -412,6 +442,199 @@
       "kind": "browser-session",
       "cases": [
         "exerciseViewRerender"
+      ],
+      "runtimes": [
+        "javascript-dom",
+        "react",
+        "vue",
+        "svelte"
+      ]
+    },
+    {
+      "path": "tests/fixtures/buttons/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ],
+      "featureCases": {
+        "bindButtons": [
+          "default-submit-only",
+          "declared-buttons-en",
+          "declared-buttons-ko",
+          "declared-buttons-ja",
+          "declared-buttons-zh",
+          "record-does-not-change-buttons",
+          "link-href-is-kept-verbatim",
+          "localized-text-object",
+          "button-without-text-fails",
+          "template-not-compiled",
+          "template-with-unknown-button-type",
+          "language-not-a-string"
+        ],
+        "formButtonsHtml": [
+          "html-empty-list",
+          "html-one-submit",
+          "html-link-and-buttons",
+          "html-attributes-in-order",
+          "html-escapes-text-and-attributes",
+          "html-not-a-list",
+          "html-null-entry",
+          "html-tag-not-element",
+          "html-attribute-not-allowed",
+          "html-class-not-a-string"
+        ]
+      }
+    },
+    {
+      "path": "tests/fixtures/form-actions/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ]
+    },
+    {
+      "path": "tests/fixtures/form-choices/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ]
+    },
+    {
+      "path": "tests/fixtures/form-history/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ]
+    },
+    {
+      "path": "tests/fixtures/form-view/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ]
+    },
+    {
+      "path": "tests/fixtures/history-functions/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ]
+    },
+    {
+      "path": "tests/fixtures/template-shape/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ],
+      "featureCases": {
+        "bindForm": [
+          "bindForm-compiled",
+          "bindForm-optional-members",
+          "bindForm-missing-fields",
+          "bindForm-fields-not-a-list",
+          "bindForm-field-not-an-object",
+          "bindForm-field-without-children",
+          "bindForm-field-with-unknown-member",
+          "bindForm-missing-buttons",
+          "bindForm-buttons-not-a-list",
+          "bindForm-button-not-an-object",
+          "bindForm-unknown-member",
+          "bindForm-another-kind",
+          "bindForm-null-key-prefix",
+          "bindForm-string-action"
+        ],
+        "bindButtons": [
+          "bindButtons-compiled",
+          "bindButtons-optional-members",
+          "bindButtons-missing-fields",
+          "bindButtons-fields-not-a-list",
+          "bindButtons-field-not-an-object",
+          "bindButtons-field-without-children",
+          "bindButtons-field-with-unknown-member",
+          "bindButtons-missing-buttons",
+          "bindButtons-buttons-not-a-list",
+          "bindButtons-button-not-an-object",
+          "bindButtons-unknown-member",
+          "bindButtons-another-kind",
+          "bindButtons-null-key-prefix",
+          "bindButtons-string-action"
+        ],
+        "createForm": [
+          "createForm-compiled",
+          "createForm-optional-members",
+          "createForm-missing-fields",
+          "createForm-fields-not-a-list",
+          "createForm-field-not-an-object",
+          "createForm-field-without-children",
+          "createForm-field-with-unknown-member",
+          "createForm-missing-buttons",
+          "createForm-buttons-not-a-list",
+          "createForm-button-not-an-object",
+          "createForm-unknown-member",
+          "createForm-another-kind",
+          "createForm-null-key-prefix",
+          "createForm-string-action",
+          "create-two-records-from-serialized-template",
+          "create-three-records-independent"
+        ]
+      }
+    },
+    {
+      "path": "tests/fixtures/view-functions/cases.json",
+      "kind": "form-model",
+      "runtimes": [
+        "javascript",
+        "php",
+        "go",
+        "rust",
+        "php-native",
+        "python"
+      ]
+    },
+    {
+      "path": "tests/fixtures/form-state/units.mts",
+      "kind": "support-module",
+      "supports": [
+        "tests/fixtures/form-view/cases.json",
+        "tests/fixtures/form-history/cases.json",
+        "tests/fixtures/form-actions/cases.json",
+        "tests/fixtures/form-choices/cases.json",
+        "tests/fixtures/view-functions/cases.json"
       ]
     }
   ],
@@ -481,7 +704,8 @@
       ],
       "fixtures": [
         "tests/fixtures/form-render/cases.json",
-        "tests/fixtures/text-validity/bindForm/cases.json"
+        "tests/fixtures/text-validity/bindForm/cases.json",
+        "tests/fixtures/template-shape/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -497,7 +721,12 @@
         "packages/generator/ts/src/form.test.ts",
         "packages/react/src/tests/form-render.conformance.test.ts",
         "packages/generator/ts/src/node.test.ts",
-        "packages/generator/ts/src/input-text.test.ts"
+        "packages/generator/ts/src/input-text.test.ts",
+        "packages/generator/ts/src/template-shape.test.ts",
+        "packages/generator/go/template_shape_test.go",
+        "packages/generator/rust/tests/template_shape.rs",
+        "packages/generator/php/tests/TemplateShapeTest.php",
+        "packages/generator/python/tests/test_template_shape.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -517,6 +746,10 @@
         {
           "id": "test-3",
           "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+        },
+        {
+          "id": "test-4",
+          "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/template-shape.test.ts"
         }
       ]
     },
@@ -530,7 +763,8 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/buttons/cases.json"
+        "tests/fixtures/buttons/cases.json",
+        "tests/fixtures/template-shape/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -548,7 +782,12 @@
         "packages/generator/go/buttons_conformance_test.go",
         "packages/generator/python/tests/test_buttons.py",
         "packages/generator/rust/tests/buttons.rs",
-        "packages/generator/php/tests/ButtonsConformanceTest.php"
+        "packages/generator/php/tests/ButtonsConformanceTest.php",
+        "packages/generator/ts/src/template-shape.test.ts",
+        "packages/generator/go/template_shape_test.go",
+        "packages/generator/rust/tests/template_shape.rs",
+        "packages/generator/php/tests/TemplateShapeTest.php",
+        "packages/generator/python/tests/test_template_shape.py"
       ],
       "docs": [
         "docs/spec/form-markup.md",
@@ -574,6 +813,10 @@
         {
           "id": "test-5",
           "command": "node scripts/run-tests.mts phpunit --cwd packages/generator/php -- --filter ButtonsConformanceTest"
+        },
+        {
+          "id": "test-6",
+          "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/template-shape.test.ts"
         }
       ]
     },
@@ -645,7 +888,9 @@
       ],
       "fixtures": [
         "tests/native-generators/cases.mts",
-        "tests/fixtures/text-validity/createForm/cases.json"
+        "tests/fixtures/text-validity/createForm/cases.json",
+        "tests/fixtures/form-choices/cases.json",
+        "tests/fixtures/template-shape/cases.json"
       ],
       "support": {
         "javascript": "pass",
@@ -661,7 +906,13 @@
         "packages/generator/ts/src/form.test.ts",
         "tests/fixtures/form-session/scenario.mts",
         "packages/generator/ts/src/node.test.ts",
-        "packages/generator/ts/src/input-text.test.ts"
+        "packages/generator/ts/src/input-text.test.ts",
+        "packages/generator/ts/src/form-choices.test.ts",
+        "packages/generator/ts/src/template-shape.test.ts",
+        "packages/generator/go/template_shape_test.go",
+        "packages/generator/rust/tests/template_shape.rs",
+        "packages/generator/php/tests/TemplateShapeTest.php",
+        "packages/generator/python/tests/test_template_shape.py"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -681,6 +932,10 @@
         {
           "id": "test-3",
           "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/input-text.test.ts"
+        },
+        {
+          "id": "test-4",
+          "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/form-choices.test.ts src/template-shape.test.ts"
         }
       ]
     },
@@ -1214,9 +1469,11 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mts"
+        "tests/fixtures/form-session/scenario.mts",
+        "tests/fixtures/form-actions/cases.json"
       ],
       "support": {
+        "javascript": "pass",
         "javascript-dom": "pass",
         "react": "pass",
         "vue": "pass",
@@ -1235,7 +1492,8 @@
         "packages/generator/go/form_state_test.go",
         "packages/generator/rust/tests/form_state.rs",
         "packages/generator/php/tests/FormStateTest.php",
-        "packages/generator/python/tests/test_form_state.py"
+        "packages/generator/python/tests/test_form_state.py",
+        "packages/generator/ts/src/form-actions.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -1261,6 +1519,10 @@
         {
           "id": "test-5",
           "command": "node scripts/run-tests.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
+        },
+        {
+          "id": "test-6",
+          "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/form-actions.test.ts"
         }
       ]
     },
@@ -1279,6 +1541,7 @@
         "tests/fixtures/view-functions/cases.json"
       ],
       "support": {
+        "javascript": "pass",
         "javascript-dom": "pass",
         "react": "pass",
         "vue": "pass",
@@ -1298,7 +1561,8 @@
         "packages/generator/go/form_state_test.go",
         "packages/generator/python/tests/test_form_state.py",
         "packages/generator/rust/tests/form_state.rs",
-        "packages/generator/php/tests/FormStateTest.php"
+        "packages/generator/php/tests/FormStateTest.php",
+        "packages/generator/ts/src/view-functions.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md"
@@ -1327,6 +1591,10 @@
         {
           "id": "test-6",
           "command": "node scripts/run-tests.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php"
+        },
+        {
+          "id": "test-7",
+          "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/view-functions.test.ts"
         }
       ]
     },
@@ -1340,9 +1608,12 @@
         "RangeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mts"
+        "tests/fixtures/form-session/scenario.mts",
+        "tests/fixtures/form-history/cases.json",
+        "tests/fixtures/history-functions/cases.json"
       ],
       "support": {
+        "javascript": "pass",
         "javascript-dom": "pass",
         "react": "pass",
         "vue": "pass",
@@ -1362,7 +1633,9 @@
         "packages/generator/go/form_state_test.go",
         "packages/generator/rust/tests/history_functions.rs",
         "packages/generator/php/tests/HistoryFunctionsTest.php",
-        "packages/generator/python/tests/test_form_history.py"
+        "packages/generator/python/tests/test_form_history.py",
+        "packages/generator/ts/src/form-history.test.ts",
+        "packages/generator/ts/src/history-functions.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md"
@@ -1387,6 +1660,10 @@
         {
           "id": "test-5",
           "command": "node scripts/run-tests.mts phpunit --cwd packages/generator/php -- tests/HistoryFunctionsTest.php"
+        },
+        {
+          "id": "test-6",
+          "command": "node scripts/run-tests.mts vitest --cwd packages/generator/ts -- src/form-history.test.ts src/history-functions.test.ts"
         }
       ]
     },

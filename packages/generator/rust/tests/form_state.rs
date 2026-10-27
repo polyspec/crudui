@@ -4,13 +4,16 @@
 //! case does not write is one that an operation generated, and the observation names it `$1`, `$2` in the order of its
 //! first appearance (tests/fixtures/form-state/README.md).
 
+#[path = "support/evidence.rs"]
+mod evidence;
+
+use libtest_mimic::{Arguments, Trial};
 use polyspec_crudui_generator::{
     bind_form, collapsible_rows, compile_form, initial_view, rekey_row_view, remove_row_view,
-    resolve_action, run_action, set_all_expanded_view, toggle_row_view, ActionInput,
-    ActionResult, ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormError, FormResult,
+    resolve_action, run_action, set_all_expanded_view, toggle_row_view, ActionInput, ActionResult,
+    ActionTarget, AddRowOptions, BindOptions, CompileOptions, Form, FormError, FormResult,
     ViewState,
 };
-use libtest_mimic::{Arguments, Trial};
 use regex::Regex;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
@@ -123,7 +126,9 @@ fn collapsed_rows(nodes: &[Value]) -> Vec<Value> {
 fn field_choices(nodes: &[Value], path: &str) -> Option<Value> {
     for node in nodes {
         if node["kind"] == "field" && node["path"] == path {
-            let options = node["widget"]["options"].as_array().map_or(&[][..], Vec::as_slice);
+            let options = node["widget"]["options"]
+                .as_array()
+                .map_or(&[][..], Vec::as_slice);
             return Some(Value::Array(
                 options
                     .iter()
@@ -262,7 +267,12 @@ fn check_session(case: &Value, history: bool) {
     for (index, step) in steps.iter().enumerate() {
         let mut observed = Map::new();
         let op = step["op"].as_str().unwrap();
-        match perform(&mut form, &case["spec"], op, step["args"].as_array().unwrap()) {
+        match perform(
+            &mut form,
+            &case["spec"],
+            op,
+            step["args"].as_array().unwrap(),
+        ) {
             Ok(result) => {
                 // An action step reports its result even when it has none (null), as the reference does.
                 if result.is_some() || op == "runAction" || op == "resolveAction" {
@@ -356,23 +366,59 @@ fn check_view_call(case: &Value) {
 
 fn main() {
     let families: [(&str, &str, bool); 5] = [
-        ("form-view", "form_view_sessions_equal_the_recorded_observations", false),
-        ("form-history", "form_history_sessions_equal_the_recorded_observations", true),
-        ("form-actions", "form_actions_sessions_equal_the_recorded_observations", true),
-        ("form-choices", "form_choices_sessions_equal_the_recorded_observations", true),
-        ("view-functions", "view_function_calls_equal_the_recorded_results", false),
+        (
+            "form-view",
+            "form_view_sessions_equal_the_recorded_observations",
+            false,
+        ),
+        (
+            "form-history",
+            "form_history_sessions_equal_the_recorded_observations",
+            true,
+        ),
+        (
+            "form-actions",
+            "form_actions_sessions_equal_the_recorded_observations",
+            true,
+        ),
+        (
+            "form-choices",
+            "form_choices_sessions_equal_the_recorded_observations",
+            true,
+        ),
+        (
+            "view-functions",
+            "view_function_calls_equal_the_recorded_results",
+            false,
+        ),
     ];
     let mut trials = Vec::new();
     for (family, symbol, history) in families {
         for case in cases(family) {
-            let name = case["name"].as_str().expect("a case has a name").to_string();
+            let name = case["name"]
+                .as_str()
+                .expect("a case has a name")
+                .to_string();
             trials.push(Trial::test(format!("{symbol}::{name}"), move || {
-                if family == "view-functions" {
-                    check_view_call(&case);
-                } else {
-                    check_session(&case, history);
-                }
-                Ok(())
+                let feature = match family {
+                    "form-history" => "formHistory",
+                    "form-actions" => "runAction",
+                    "form-choices" => "createForm",
+                    _ => "viewState",
+                };
+                evidence::prove(
+                    feature,
+                    &format!("tests/fixtures/{family}/cases.json"),
+                    &name,
+                    || {
+                        if family == "view-functions" {
+                            check_view_call(&case);
+                        } else {
+                            check_session(&case, history);
+                        }
+                        Ok(())
+                    },
+                )
             }));
         }
     }

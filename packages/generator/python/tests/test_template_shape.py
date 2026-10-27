@@ -56,7 +56,14 @@ class TestGeneratorTemplateShape(unittest.TestCase):
     """The operations that take a template refuse a shape that is not the compiled one."""
 
 
-add_case_tests(TestGeneratorTemplateShape, "template-shape", check_case)
+add_case_tests(
+    TestGeneratorTemplateShape,
+    "template-shape",
+    check_case,
+    features=lambda case: [
+        "createForm" if case["operation"] == "createRecords" else case["operation"]
+    ],
+)
 
 
 class TestTemplateShapeFixtureCount(unittest.TestCase):

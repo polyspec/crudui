@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { describe, expect, it } from 'vitest';
 import { FormInputError } from '@polyspec/crudui-validator';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 import { bindButtons, bindForm, compileForm, createForm } from './index';
 import { isRecord } from './util';
 
@@ -57,7 +58,12 @@ function readPaths(template: unknown, record: unknown, paths: string[]): Record<
 // The record cases test CURT-050: records bound from one serialized template are independent.
 // Each case is a top-level test named by the case, so the parity check reads every case of the unit by its name.
 for (const item of cases) {
-  it(item.name, () => {
+  it(item.name, () => provesConformance({
+    features: [item.operation === 'createRecords' ? 'createForm' : item.operation],
+    fixture: 'tests/fixtures/template-shape/cases.json',
+    runtime: 'javascript',
+    case: item.name,
+  }, () => {
     if (item.operation === 'createRecords') {
       // CURT-050: each record is bound from the serialized template alone, and reads its own values.
       assert(Array.isArray(item.data) && item.paths, 'the records and their paths are lists');
@@ -75,7 +81,7 @@ for (const item of cases) {
     }
     assert(caught instanceof FormInputError, 'the operation throws a FormInputError');
     expect({ code: caught.code, message: caught.message, at: '' }).toStrictEqual(item.expect);
-  });
+  }));
 }
 
 describe('form template shape', () => {

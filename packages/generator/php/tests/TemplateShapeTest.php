@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\Generator\Tests;
 
 use Polyspec\Crudui\Form;
+use Polyspec\Crudui\Conformance\Evidence;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
 use Polyspec\CruduiTestSupport\FixtureJson;
@@ -41,22 +42,35 @@ final class TemplateShapeTest extends TestCase
     #[DataProvider('shapeCases')]
     public function testTheOperationAcceptsOrRefusesTheTemplate(string $operation, stdClass $case): void
     {
-        if ($operation === 'createRecords') {
-            // CURT-050: each record is bound from the serialized template alone, and reads its own values.
-            $results = [];
-            foreach ($case->data as $index => $record) {
-                $form = new Form($case->template, $record, []);
-                $read = [];
-                foreach ($case->paths[$index] as $path) {
-                    $read[$path] = $form->getValue($path);
+        $passed = false;
+        try {
+            if ($operation === 'createRecords') {
+                // CURT-050: each record is bound from the serialized template alone, and reads its own values.
+                $results = [];
+                foreach ($case->data as $index => $record) {
+                    $form = new Form($case->template, $record, []);
+                    $read = [];
+                    foreach ($case->paths[$index] as $path) {
+                        $read[$path] = $form->getValue($path);
+                    }
+                    $results[] = $read;
                 }
-                $results[] = $read;
+                self::assertSame(['results' => $results], (array) (json_decode(json_encode($case->expect), true)));
+                $passed = true;
+                return;
             }
-            self::assertSame(['results' => $results], (array) (json_decode(json_encode($case->expect), true)));
-            return;
+            $expected = \is_string($case->expect) ? $case->expect : (array) $case->expect;
+            self::assertSame($expected, self::outcome($operation, $case));
+            $passed = true;
+        } finally {
+            Evidence::record(
+                $operation === 'createRecords' ? 'createForm' : $operation,
+                'tests/fixtures/template-shape/cases.json',
+                (new \ReflectionClass(Generator::class))->isInternal() ? 'php-native' : 'php',
+                $case->name,
+                $passed,
+            );
         }
-        $expected = \is_string($case->expect) ? $case->expect : (array) $case->expect;
-        self::assertSame($expected, self::outcome($operation, $case));
     }
 
     /** @return array<string, mixed>|string The outcome in the expect shape of the fixture. */
