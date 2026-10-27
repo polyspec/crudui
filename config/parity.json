@@ -571,7 +571,7 @@
           "reason": "test: unit tests of the Rust detail renderer; the contract is tested by the shared detail-render suite (unit detail-render)"
         },
         {
-          "glob": "packages/validator/rust/src/types.rs",
+          "glob": "packages/validator/rust/src/types/tests.rs",
           "reason": "test: unit tests of the Rust validator's canonical field model and serde types (Rust-only data shapes that no other implementation has)"
         },
         {

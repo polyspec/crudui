@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e273df738a8e959479014ebd97263ade6aef67f9a345e4088945ec500fdb9812 -->
+<!-- source-sha256: 2a7d510e8886e6b290ac38812c067167ce1bd83c660b8f84cb035ef8fe57d2e0 -->
 
 ## Unreleased
+
+### 2026-10-27 — Rust model test와 contract 문서를 분리한다 (C18.10-23)
+
+- Rust field model test는 동일한 test identity와 assertion을 유지하며 native child test module을 사용한다. Parity 선언은 production contract 문서와 해당 test module을 별도로 분류한다.
 
 ## 0.0.8
 
