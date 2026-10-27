@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Declare the fixture recorder result type (C18.10-15)
+
+- The Rust fixture recorder declares the discarded result type required by the lint policy.
+
 ### 2026-10-27 — Update PHPUnit to the patched release (C18.10-14)
 
 - Composer locks select PHPUnit 13.4.4 and the dependency review records the current native lock graph.

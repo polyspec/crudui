@@ -13,7 +13,7 @@ pub fn prove(
     run: impl FnOnce() -> Result<(), Failed>,
 ) -> Result<(), Failed> {
     let mut result = Ok(());
-    let _ = conformance::prove_case(feature, fixture, case, || {
+    let _: Vec<String> = conformance::prove_case(feature, fixture, case, || {
         result = run();
         if result.is_err() {
             vec!["fixture trial failed".to_string()]
