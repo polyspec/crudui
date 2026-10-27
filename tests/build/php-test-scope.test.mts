@@ -57,6 +57,12 @@ test('PHP source entry points select public and source-internal suites', { timeo
   }
   const source = makeDryRun(root, 'test-php');
   assert.equal(source.status, 0, source.stderr);
-  assert.match(source.stdout, /phpunit --cwd packages\/generator\/php -- --testsuite php-source-internal/);
-  assert.match(source.stdout, /phpunit --cwd packages\/validator\/php -- --testsuite php-source-internal/);
+  for (const component of ['generator', 'validator']) {
+    assert.ok(source.stdout.includes(`phpunit --cwd packages/${component}/php -- --testsuite public,php-source-internal`));
+  }
+  assert.doesNotMatch(source.stdout, /runtime-targets|crudui-test-php-source-internals/);
+  const filtered = makeDryRun(root, 'test-php', { variables: ['CASES=ExamplePattern'] });
+  assert.equal(filtered.status, 0, filtered.stderr);
+  assert.equal([...filtered.stdout.matchAll(/--filter "\$CASES"/g)].length, 2);
+
 });

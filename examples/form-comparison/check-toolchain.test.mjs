@@ -16,6 +16,6 @@ test('includes the browser process check only in the complete runtime suite', as
   assert.ok(scripts['test:form-comparison:source'].includes('src/*.test.mjs'));
   assert.doesNotMatch(scripts['test:form-comparison:source'], /browser-job\.browser\.mjs|prepare\.test\.mjs/);
   assert.equal(scripts['test:form-comparison:browser'],
-    'node scripts/require-current-build.mts && node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- examples/form-comparison/src/browser-job.browser.mjs');
+    'node scripts/require-current-build.mts && node scripts/run-tests.mts node -- examples/form-comparison/src/browser-job.browser.mjs');
 });
 

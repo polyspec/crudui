@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -9,7 +9,7 @@ import { parse } from 'yaml';
 
 import { isVendored, ownedFiles } from '../../scripts/repository-files.mts';
 import { checked, parseJson, type JTDSchemaType } from '../json.mts';
-import { makeDryRun } from './make-dry-run.mts';
+import { kitToolPath, makeDryRun } from './make-dry-run.mts';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -217,8 +217,9 @@ test('make installs nothing on its own and make install installs the Rust toolch
   // Model the installing checkout in the dry run; an actual worktree uses the main checkout's tools and refuses installs.
   const install = makeDryRun(repository, 'install', { variables: ['KIT_WORKTREE='] });
   assert.equal(install.status, 0, install.stderr);
-  // KIT is the scripts/kit of the sibling checkout of kit, which node_modules/@polyspec/kit links (kit K613).
-  assert.ok(install.stdout.split('\n').some(line => /\/var\/tools\/bin\/node (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/install-tools\.mts\s*$/.test(line)), install.stdout);
+  const entry = /\/var\/tools\/bin\/node (\S+\/install-tools\.(?:mts|mjs))\s*$/m.exec(install.stdout)?.[1];
+  assert.ok(entry, install.stdout);
+  assert.equal(realpathSync(path.resolve(repository, entry)), kitToolPath('install-tools'));
 });
 
 test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and no auto-install', async () => {

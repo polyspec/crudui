@@ -173,8 +173,10 @@ export function makeNodeEntrypoints(targets: Record<string, MakeRule>, target: s
 
 function nativeTestNodeEntrypoints(): string[] {
   // The tools of @polyspec/kit, $(KIT)/<tool>.$(KIT_EXT), import the dependencies of the kit package, not those of the root.
+  const database = makeDryRun(root, 'help', { database: true });
+  assert.equal(database.status, 0, database.stderr);
   const entrypoints = makeNodeEntrypoints(
-    makeTargets(['Makefile', 'node_modules/@polyspec/kit/scripts/kit/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'crudui-test-native',
+    makeTargets(database.stdout), 'crudui-test-native',
   ).filter((file) => !file.startsWith('$(KIT)/')).flatMap(file => {
     const matches = globSync(file, { cwd: root });
     assert.notDeepEqual(matches, [], `make crudui-test-native selects no file for ${file}`);

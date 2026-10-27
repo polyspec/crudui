@@ -4,12 +4,12 @@
 // packages/svelte/tools with the TypeScript 6 of that project (C14.4). Each lint fails on a planted violation.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 import { parseJson } from '../json.mts';
-import { makeDryRun } from './make-dry-run.mts';
+import { kitToolPath, makeDryRun } from './make-dry-run.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const svelteWorkspace = path.join(root, 'packages/svelte');
@@ -18,7 +18,9 @@ const svelteTools = path.join(svelteWorkspace, 'tools');
 test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/svelte', () => {
   const run = makeDryRun(root, 'lint');
   assert.equal(run.status, 0, run.stderr);
-  assert.match(run.stdout, /\bnode (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/lint-ts\.mts\b/);
+  const entry = /\/var\/tools\/bin\/node (\S+\/lint-ts\.(?:mts|mjs))\b/.exec(run.stdout)?.[1];
+  assert.ok(entry, run.stdout);
+  assert.equal(realpathSync(path.resolve(root, entry)), kitToolPath('lint-ts'));
   assert.match(run.stdout, /\bnpm\b.* run lint -w @polyspec\/crudui-generator-svelte\b/);
 });
 

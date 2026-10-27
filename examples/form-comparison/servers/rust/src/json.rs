@@ -17,15 +17,19 @@ fn parse(bytes: &[u8]) -> Result<Ordered> {
     ordered_json::parse_bytes(bytes).map_err(|e| bad(e.to_string()))
 }
 
+fn string_from_ordered(value: &Ordered) -> Result<String> {
+    let bytes = value
+        .string_value()
+        .map_err(|error| bad(error.to_string()))?;
+    String::from_utf8(bytes).map_err(|error| bad(error.to_string()))
+}
+
 fn from_ordered(value: &Ordered, exact: bool) -> Result<Value> {
     Ok(match value.kind() {
         Kind::Object => {
             let mut result = Map::new();
             for (key, child) in value.members().unwrap().iter() {
-                result.insert(
-                    key.string_value().map_err(|e| bad(e.to_string()))?,
-                    from_ordered(child, exact)?,
-                );
+                result.insert(string_from_ordered(key)?, from_ordered(child, exact)?);
             }
             Value::Object(result)
         }
@@ -37,7 +41,7 @@ fn from_ordered(value: &Ordered, exact: bool) -> Result<Value> {
                 .map(|item| from_ordered(item, exact))
                 .collect::<Result<_>>()?,
         ),
-        Kind::String => Value::String(value.string_value().map_err(|e| bad(e.to_string()))?),
+        Kind::String => Value::String(string_from_ordered(value)?),
         Kind::Boolean => Value::Bool(value.boolean_value().unwrap()),
         Kind::Null => Value::Null,
         Kind::Number => {

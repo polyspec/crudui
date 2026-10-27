@@ -129,6 +129,20 @@ crudui-install: install-kit crudui-install-python crudui-install-composer instal
 # The extra lock projects that install-packages installs after its npm ci (K428): the tools of packages/svelte.
 INSTALL_PACKAGES_EXTRA := crudui-install-svelte-tools
 
+# CI prepares the release source declared by the application before native path dependencies are installed.
+.PHONY: crudui-prepare-ci-providers
+install-packages: crudui-prepare-ci-providers
+release-prepare:: crudui-prepare-ci-providers
+crudui-prepare-ci-providers: ## Prepare the declared OrderedJSON release source in CI; ONLINE
+	@if [ "$${GITHUB_ACTIONS:-}" = true ]; then \
+		provider="$$($(NODE) -p 'require("./config/local-providers.json").orderedJsonRoot')"; \
+		version="$$($(NODE) -p 'require("./config/release-assets.json").assets.find(asset => asset.name === "ordered-json").version')"; \
+		if [ ! -d "$$provider" ]; then \
+			echo "[crudui-prepare-ci-providers] cloning OrderedJSON v$$version into $$provider"; \
+			$(ONLINE) git clone --depth 1 --branch "v$$version" https://github.com/polyspec/ordered-json.git "$$provider" || exit $$?; \
+		fi; \
+	fi
+
 # The tools of packages/svelte that need the TypeScript 6 API (svelte-check, @sveltejs/package and the Svelte lint)
 # are a project of their own outside the npm workspaces, so that no package that npm hoists to the root reaches the
 # TypeScript 7 of the root (C14.4).
@@ -140,6 +154,11 @@ crudui-install-svelte-tools: ## Install the tools project of packages/svelte fro
 # metadata when a source manifest changes; no release archive is downloaded by the default development install.
 crudui-install-composer: ## Resolve and install the current local PHP source packages with Composer
 	$(ONLINE) $(COMPOSER_BIN) update 'polyspec/*' --with-dependencies --no-interaction
+	@if [ "$${GITHUB_ACTIONS:-}" = true ]; then \
+		provider="$$($(NODE) -p 'require("./config/local-providers.json").orderedJsonRoot')"; \
+		mkdir -p "$(CURDIR)/var/link/npm/lib/node_modules"; \
+		$(ONLINE) npm_config_allow_remote=root npm_config_prefix="$(CURDIR)/var/link/npm" $(NPM) link --no-save --no-audit --no-fund "$$provider/packages/js"; \
+	fi
 
 crudui-local-composer-check: ## Validate the canonical Composer manifest, lock and PHP platform requirements
 	@status=0; \
@@ -529,11 +548,9 @@ lint-ts: production-dependencies-check
 production-dependencies-check:
 	$(NODE) node_modules/knip/bin/knip.js --config config/knip-production.json --production --strict --include unlisted --no-progress --no-config-hints
 
-# Native source units remain part of the PHP source target; extension runs keep the public default.
-test-php: crudui-test-php-source-internals
-.PHONY: crudui-test-php-source-internals
-crudui-test-php-source-internals:
+# PHP source runs include public and implementation units; extension defaults remain public.
+test-php:
 	@status=0; \
-	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php -- --testsuite php-source-internal || status=1; \
-	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/validator/php -- --testsuite php-source-internal || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal $(if $(CASES),--filter "$$CASES") || status=1; \
+	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/validator/php -- --testsuite public,php-source-internal $(if $(CASES),--filter "$$CASES") || status=1; \
 	exit $$status

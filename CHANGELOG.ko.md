@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0c3865ae17c5e13bc6ecf14741c5c9ffcbe535a3558ea13f7ad1990d465c8b50 -->
+<!-- source-sha256: bc77ee19d06e4e156927040c15cf0ae43b481aee565f550c61f3ed841a56e744 -->
 
 ## Unreleased
+
+### 2026-10-27 — 공개 polyspec 의존성과 CI test 실행을 갱신한다 (C18.9)
+
+- Root manifest와 native lock은 Kit 0.0.59와 OrderedJSON 0.0.10을 고정한다. OrderedJSON PHP archive는 선언한 release digest를 사용하며 CI는 native 개발 의존성을 위해 해당 tag의 source를 준비한다. Rust JSON 변환은 object key와 value의 UTF-8 byte string을 검증한다. Runtime CI test는 report를 분리한 네 개의 독립 shard에서 실행한다. Test command는 source 및 packaged 설치에서 설치된 Kit public CLI export를 해석한다. PHP source test는 test prerequisite 없이 public 및 internal suite를 모두 실행한다.
 
 ### 2026-10-27 — PHP 개발 기준을 8.4.27로 설정한다 (C18.8)
 

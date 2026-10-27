@@ -14,6 +14,7 @@ import test from 'node:test';
 import { makeTargets } from '../../scripts/test-commands.mts';
 import { parseJson, manifestSchema } from '../json.mts';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
+import { makeDryRun } from './make-dry-run.mts';
 
 /** The prerequisites and recipe lines of a Makefile target. */
 interface MakeRule {
@@ -38,21 +39,15 @@ const CHECK = 'cargo-downloads-check';
 const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock', 'unlink'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
-// The install targets of the Makefile itself that run a recipe: by the rule of docs/operations/package-build.md only they
-// download, so they are the targets of this repository that lift the offline settings.
-const INSTALLS = Object.entries(makeTargets(makefile) as Record<string, MakeRule>)
-  .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.length > 0)
+// The evaluated database contains the commands and prerequisites of the checkout and its installed kit.
+const database = makeDryRun(ROOT, 'help', { database: true });
+assert.equal(database.status, 0, database.stderr);
+const makefiles = database.stdout;
+const rules: Record<string, MakeRule> = makeTargets(makefiles);
+const INSTALLS = Object.entries(rules)
+  .filter(([name, rule]) => (name.startsWith('install-') || name.startsWith('crudui-install-')) && rule.commands.some(command => command.includes('$(ONLINE)')))
   .map(([name]) => name);
-// The targets of the Makefile, its declared bootstrap include and the kit.mk of the installed @polyspec/kit.
-const kitMakefile = read('node_modules/@polyspec/kit/scripts/kit/kit.mk');
-const bootstrapIncludes = [...makefile.matchAll(/^include ([^\s]+\/kit-bootstrap\.mk)$/gm)];
-assert.equal(bootstrapIncludes.length, 1, 'Makefile declares exactly one kit bootstrap include');
-const bootstrap = bootstrapIncludes[0]?.[1];
-assert.ok(bootstrap, 'Makefile declares the kit bootstrap path');
-const makefiles = [makefile, read(bootstrap), kitMakefile].join('\n');
-// The online targets that kit.mk defines in the installed kit: a newer kit adds targets (worktree-setup, kit K348), and the
-// list names the ones of the kit that the lock pins as well as those that the installed kit defines.
-const KIT_ONLINE = Object.entries(makeTargets(kitMakefile) as Record<string, MakeRule>)
+const KIT_ONLINE = Object.entries(rules)
   .filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)')))
   .map(([name]) => name);
 const DOWNLOADS = [...new Set([...KIT_DOWNLOADS, ...KIT_ONLINE, ...INSTALLS])];
@@ -147,7 +142,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
 
 test('every target that runs cargo depends on cargo-downloads-check', () => {
   const targets: Record<string, MakeRule> = makeTargets(makefiles);
-  assert.deepEqual(targets[CHECK]?.commands, ['$(NODE) $(KIT)/check-cargo-downloads.$(KIT_EXT)']);
+  assert.deepEqual(targets[CHECK]?.commands.filter(command => command.trim() !== ''), ['$(NODE) $(KIT)/check-cargo-downloads.$(KIT_EXT)']);
   assert.ok(CARGO_FILES.has('scripts/gen-api-docs.mts') && CARGO_FILES.has('benchmarks/validators/run.js'), 'the cargo files must include the API documentation and the benchmark');
   assert.equal(runsCargo('node tests/native-generators/run.mts --report r.json'), true);
   assert.equal(runsCargo('node tests/native-generators/run.mts --target javascript,rust --report r.json'), true);

@@ -404,6 +404,7 @@
     {
       "paths": [
         "scripts/test-commands.mts",
+        "scripts/run-tests.mts",
         "packages/svelte/tools/eslint.config.js"
       ],
       "targets": [

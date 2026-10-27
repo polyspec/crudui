@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Update the released polyspec dependencies and CI test execution (C18.9)
+
+- The root manifest and native locks pin Kit 0.0.59 and OrderedJSON 0.0.10. OrderedJSON PHP archives use the declared release digests, and CI prepares their tagged source for native development dependencies. Rust JSON conversion validates UTF-8 byte strings for object keys and values. Runtime CI tests run in four independent shards with separate reports. Test commands resolve the installed Kit public CLI export for source and packaged installations. PHP source tests include both public and internal suites without test prerequisites.
+
 ### 2026-10-27 — Set the PHP development baseline to 8.4.27 (C18.8)
 
 - Composer platform declarations and native locks use PHP 8.4.27 for development and release consumer resolution. Windows installations use the 8.4.27-1 package rebuild. The library requirement remains PHP 8.4 and later; the shared installer selects the 8.4 minor.

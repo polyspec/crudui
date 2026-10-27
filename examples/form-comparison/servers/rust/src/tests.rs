@@ -494,10 +494,21 @@ fn ordered_json_retains_member_order_and_rejects_unrepresentable_numbers() {
     let input = r#"{"5":{"__0000000000007__":{}},"7":[],"1":null}"#;
     let decoded = json::decode(input.as_bytes()).unwrap();
     assert_eq!(json::encode(&decoded).unwrap(), input);
+    let unicode =
+        json::decode(r#"{"서울":"😀","\ud83d\ude00":"\uc11c\uc6b8"}"#.as_bytes()).unwrap();
+    assert_eq!(unicode["서울"], "😀");
+    assert_eq!(unicode["😀"], "서울");
+    assert_eq!(
+        json::decode(json::encode(&unicode).unwrap().as_bytes()).unwrap(),
+        unicode
+    );
     for invalid in [
         r#"{"a":1}false"#,
         r#"{"a":1e999}"#,
         r#"{"a":9007199254740992}"#,
+        r#"{"a":"\ud800"}"#,
+        r#"{"\ud800":1}"#,
+        r#"{"a":"\udc00"}"#,
     ] {
         assert!(json::decode(invalid.as_bytes()).is_err());
     }

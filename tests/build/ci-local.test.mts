@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { readFile, readdir } from 'node:fs/promises';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, realpathSync } from 'node:fs';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +15,7 @@ const isRecord = shapeOf<Record<string, unknown>>({ type: 'object' });
 const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 const strings = (value: unknown, what: string): string[] => checkedShape(STRINGS, value, what);
 import { checked, parseJson, type JTDSchemaType } from '../json.mts';
-import { makeDryRun } from './make-dry-run.mts';
+import { kitToolPath, makeDryRun } from './make-dry-run.mts';
 
 const read = (file: string): Promise<string> => readFile(new URL(`../../${file}`, import.meta.url), 'utf8');
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
@@ -25,7 +26,8 @@ interface StepInputs { path?: string; name?: string; key?: string; cache?: strin
 interface Step { name?: string; run?: string; uses?: string; if?: string; with?: StepInputs }
 /** A job of a GitHub Actions workflow; needs is a job id or a list of them. */
 interface Job {
-  name?: string; if?: string; needs?: unknown; 'runs-on'?: string; steps?: Step[]; strategy?: { matrix?: { php?: string[] } };
+  name?: string; if?: string; needs?: unknown; 'runs-on'?: string; steps?: Step[]; strategy?: { matrix?: { php?: string[]; shard?: string[] }; 'fail-fast'?: boolean };
+  env?: Record<string, string>;
   environment?: { name?: string };
 }
 /** A GitHub Actions workflow as `yaml` parses it; on and concurrency are compared as they are parsed. */
@@ -50,7 +52,8 @@ const workflowSchema: JTDSchemaType<Workflow> = {
       values: {
         optionalProperties: {
           name: { type: 'string' }, if: { type: 'string' }, needs: {}, 'runs-on': { type: 'string' }, steps: { elements: stepSchema },
-          strategy: { optionalProperties: { matrix: { optionalProperties: { php: { elements: { type: 'string' } } }, additionalProperties: true } }, additionalProperties: true },
+          strategy: { optionalProperties: { matrix: { optionalProperties: { php: { elements: { type: 'string' } }, shard: { elements: { type: 'string' } } }, additionalProperties: true }, 'fail-fast': { type: 'boolean' } }, additionalProperties: true },
+          env: { values: { type: 'string' } },
           environment: { optionalProperties: { name: { type: 'string' } }, additionalProperties: true },
         },
         additionalProperties: true,
@@ -176,6 +179,49 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
     ["make ci-passed RESULTS='${{ toJSON(needs) }}'"]);
 });
 
+test('runtime checks run in four independent CI shards with separate reports (C18.9)', async () => {
+  const workflow = await workflowFile('ci.yml');
+  const job = jobOf(workflow, 'runtime-tests');
+  assert.deepEqual(job.strategy?.matrix?.shard, ['1', '2', '3', '4']);
+  assert.equal(job.strategy?.['fail-fast'], false);
+  assert.equal(job.needs, undefined);
+  assert.equal(job.env?.CRUDUI_TEST_SHARD, '${{ matrix.shard }}/4');
+  assert.deepEqual((job.steps ?? []).flatMap(step => step.run?.startsWith('make ci-targets ') ? [step.run] : []),
+    ['make ci-targets TARGETS="crudui-test-runtimes"']);
+  const upload = (job.steps ?? []).find(step => step.with?.path === 'var/report/ci-targets');
+  assert.equal(upload?.with?.name, 'report-runtime-tests-${{ matrix.shard }}');
+  const artifacts = (job.strategy?.matrix?.shard ?? []).map(shard => upload?.with?.name?.replaceAll('${{ matrix.shard }}', shard));
+  assert.equal(new Set(artifacts).size, 4);
+  assert.ok(artifacts.every(name => name !== undefined && !name.includes('/')));
+  assert.equal(strings(jobOf(workflow, 'ci-passed').needs, 'CI completion dependencies').includes('runtime-tests'), true);
+  assert.equal((jobOf(workflow, 'build-lint').steps ?? []).some(step => step.run?.includes('TARGETS="crudui-test-runtimes')), false);
+});
+
+test('the runtime script passes native Node sharding only when requested (C18.9)', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-runtime-shard-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await writeFile(path.join(directory, 'node'), `#!${process.execPath}\nprocess.stdout.write(JSON.stringify(process.argv.slice(2)));\n`, { mode: 0o755 });
+  const manifest = parseJson<{ scripts: Record<string, string> }>(await read('package.json'), { properties: { scripts: { values: { type: 'string' } } }, additionalProperties: true }, 'package.json');
+  const command = manifest.scripts['test:runtimes'];
+  assert.ok(command);
+  const environment = { ...process.env, PATH: `${directory}${path.delimiter}${process.env.PATH ?? ''}` };
+  delete environment.CRUDUI_TEST_SHARD;
+  const args = (shard?: string): string[] => {
+    const result = spawnSync('/bin/sh', ['-c', command], { cwd: ROOT, env: { ...environment, ...(shard === undefined ? {} : { CRUDUI_TEST_SHARD: shard }) }, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    return strings(JSON.parse(result.stdout), 'runtime command arguments');
+  };
+  const plain = args();
+  assert.equal(plain.some(argument => argument.startsWith('--test-shard=')), false);
+  const files = plain.filter(argument => argument.startsWith('tests/'));
+  assert.ok(files.length > 4);
+  for (const shard of ['1/4', '2/4', '3/4', '4/4']) {
+    const selected = args(shard);
+    assert.deepEqual(selected.filter(argument => argument.startsWith('--test-shard=')), [`--test-shard=${shard}`]);
+    assert.deepEqual(selected.filter(argument => argument.startsWith('tests/')), files);
+  }
+});
+
 // The native suites run in three jobs: the C engine of the PHP extension and the generators of the JavaScript, HTML, Go
 // and Rust targets, and the PHP API on the PHP of .php-version, each once; make crudui-test-native runs the three parts.
 const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: string[] }> = {
@@ -286,10 +332,9 @@ test('CI_TARGETS lists every checking command of the CI workflow, in the same or
 // fails with a missing module instead of its own error.
 test('every tool of kit that the Makefile starts is in the installed @polyspec/kit', async () => {
   const makefile = await read('Makefile');
-  const tools = [...new Set([...makefile.matchAll(/\$\(KIT\)\/([\w-]+)\.\$\(KIT_EXT\)/g)].map((match) => `${match[1] ?? ''}.mts`))].sort();
+  const tools = [...new Set([...makefile.matchAll(/\$\(KIT\)\/([\w-]+)\.\$\(KIT_EXT\)/g)].map((match) => match[1] ?? ''))].sort();
   assert.ok(tools.length > 0, 'the Makefile starts tools of kit');
-  const sources = new URL('../../node_modules/@polyspec/kit/scripts/kit/', import.meta.url);
-  assert.deepEqual(tools.filter((tool) => !existsSync(new URL(tool, sources))), []);
+  assert.deepEqual(tools.filter((tool) => !existsSync(kitToolPath(tool))), []);
 });
 
 // CI runs every lint target of kit, so a finding fails CI. make lint runs crudui-lint: lint-ts, the lint-ts.mjs of kit, with
@@ -300,7 +345,9 @@ test('a CI job runs every lint target of kit', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const lint = makeDryRun(ROOT, 'lint');
   assert.equal(lint.status, 0, lint.stderr);
-  assert.match(lint.stdout, /\/var\/tools\/bin\/node (?:node_modules\/@polyspec\/kit|\.\.\/kit)\/scripts\/kit\/lint-ts\.mts\b/, 'make lint runs the lint-ts source of kit');
+  const entry = /\/var\/tools\/bin\/node (\S+\/lint-ts\.(?:mts|mjs))\b/.exec(lint.stdout)?.[1];
+  assert.ok(entry, lint.stdout);
+  assert.equal(realpathSync(path.resolve(ROOT, entry)), kitToolPath('lint-ts'));
   const run = (target: string): boolean => workflow.includes(`make ${target}`) || (target === 'lint-ts' && workflow.includes('make lint'));
   assert.deepEqual(LINT_TARGETS.filter((target) => !run(target)), []);
 });

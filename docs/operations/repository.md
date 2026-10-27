@@ -17,6 +17,9 @@ installation before its first make command.
 
 ## Publishing main
 
+CI prepares the OrderedJSON source tag declared in `config/release-assets.json` at the path in `config/local-providers.json`.
+Runtime policy tests run in four independent GitHub Actions shards; each shard records its own results.
+
 Each development task is committed with its changelog entry when its owning unit tests pass, and the row becomes `[o]`.
 Rejected original tasks retain their documented cause. Complete the [local candidate preparation](../plans/release-readiness/plan.md),
 merge every completed development branch into local `main`, and finish its local verification before pushing for CI.
@@ -145,8 +148,8 @@ Development resolution is in the two root manifests, which are never published:
 - the root `package.json` (`@polyspec/crudui-workspace`, private) lists `packages/*` under `workspaces`; npm links a
   workspace package whose version satisfies the exact version that another package requires, and
   `package-lock.json` records the links. A package of another polyspec repository is supplied only at this root:
-  `@polyspec/ordered-json` is the root dev dependency of the release asset `polyspec-ordered-json-npm-0.0.9.tgz` of the tag
-  `v0.0.9` of `polyspec/ordered-json`, pinned by its URL and integrity like `@polyspec/kit`, and `kit link` links it to a
+  `@polyspec/ordered-json` is the root dev dependency of the release asset `polyspec-ordered-json-npm-0.0.10.tgz` of the tag
+  `v0.0.10` of `polyspec/ordered-json`, pinned by its URL and integrity like `@polyspec/kit`, and `kit link` links it to a
   sibling checkout;
 - the private root `composer.json` declares path repositories for `packages/validator/php`, `packages/generator/php`
   and `../ordered-json/packages/php`, with native symlinks and configuration references. The CRUDUI packages use the

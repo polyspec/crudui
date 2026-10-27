@@ -570,6 +570,10 @@
       "kind": "policy",
       "reason": "runs the test commands that the polyspec feature contract declares, each to its end"
     },
+    "scripts/run-tests.mts": {
+      "kind": "ecosystem",
+      "tool": "the installed @polyspec/kit/run-tests CLI, resolved through its public package export"
+    },
     "scripts/run-rust-command.mts": {
       "kind": "policy",
       "reason": "refuses a CARGO_TARGET_DIR outside the checkout, a polyspec rule (Cargo judges freshness by modification time, so a shared target directory reuses the outputs of another checkout)"

@@ -5,7 +5,7 @@
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "33f095539c35a6fae917f71d53b34badfb6d0bdf21bb737d3233043600a641da",
+      "sha256": "c387087c01b00af9bc304fe17f0b291a220fd7715e227049d357396621aaaba2",
       "advisories": []
     },
     {
@@ -15,7 +15,7 @@
     },
     {
       "lock": "composer.lock",
-      "sha256": "057c1a66f2b8db77e0ef6d58fbba6c718aae46834eb90e986f36ebb5a6709ca6",
+      "sha256": "30f691fae19501b0957a9e8bb8c63a8e524e661388b893bf3b22888a1671b0e1",
       "advisories": []
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "lock": "examples/form-comparison/servers/rust/Cargo.lock",
-      "sha256": "716998ad7d7bc212608e4dca180ad2c440296a6c9f1bc30256597d93ba4ce9b3",
+      "sha256": "9c98de1afc6716badca7afadf6c987fb90f6659e5a9d85781dec252bd1227eb2",
       "advisories": []
     },
     {

@@ -78,8 +78,8 @@ test('a direct test tool call is found in each command form', () => {
     'phpunit', 'vendor/bin/phpunit tests',
   ]) assert.notDeepEqual(directTestTools(command), [], command);
   for (const command of [
-    'node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/a.test.mjs', 'node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --workspace packages/generator/ts',
-    'node $(KIT)/run-tests.$(KIT_EXT) go --cwd packages/generator/go -- ./...', 'node ../../node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/cli',
+    'node scripts/run-tests.mts node -- tests/a.test.mjs', 'node scripts/run-tests.mts vitest --workspace packages/generator/ts',
+    'node $(KIT)/run-tests.$(KIT_EXT) go --cwd packages/generator/go -- ./...', 'node ../../scripts/run-tests.mts vitest --cwd packages/cli',
     'npm run test:forms', 'node scripts/run-rust-command.mts build --release', 'composer install', 'go build ./...',
     'npm run build && npm test -w @polyspec/crudui-generator-html', 'composer --working-dir=packages/generator/php test',
   ]) assert.deepEqual(directTestTools(command), [], command);
@@ -96,7 +96,7 @@ test('project commands call test tools only through the test runner', () => {
 });
 
 test('a script a test command starts prints through the shared progress lines', () => {
-  assert.deepEqual(nodeScripts('node scripts/a.mjs --flag && FOO=1 node --import tsx b/c.js x; node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- d.test.mjs; npm test'), ['scripts/a.mjs', 'b/c.js']);
+  assert.deepEqual(nodeScripts('node scripts/a.mjs --flag && FOO=1 node --import tsx b/c.js x; node scripts/run-tests.mts node -- d.test.mjs; npm test'), ['scripts/a.mjs', 'b/c.js']);
   assert.equal(isTestCommand('package.json', 'test:forms'), true);
   assert.equal(isTestCommand('package.json', 'pretest'), true);
   assert.equal(isTestCommand('package.json', 'build'), false);
@@ -119,7 +119,7 @@ test('a script a test command starts prints through the shared progress lines', 
 });
 
 test('every node:test file runs in a project command', () => {
-  assert.deepEqual(nodeTestArguments('node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node --timeout 5 -- a.test.mjs b/*.test.mjs && node node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest -- c.test.ts'), ['a.test.mjs', 'b/*.test.mjs']);
+  assert.deepEqual(nodeTestArguments('node scripts/run-tests.mts node --timeout 5 -- a.test.mjs b/*.test.mjs && node scripts/run-tests.mts vitest -- c.test.ts'), ['a.test.mjs', 'b/*.test.mjs']);
   assert.equal(matchesArgument('tests/docs/a.test.mts', 'tests/docs/*.test.mts'), true);
   assert.equal(matchesArgument('tests/docs/x/a.test.mts', 'tests/docs/*.test.mts'), false);
   const arguments_ = tracked.flatMap(file => projectCommands(file, read(file)).flatMap(({ command }: ProjectCommand) => nodeTestArguments(command)));
@@ -181,8 +181,8 @@ function testPrerequisites(project: Project): string[] {
 // each with `$(MAKE) <target> || status=1` and exits with the collected status.
 test('no Makefile target takes a target that runs tests as a prerequisite', () => {
   const fixture = targetsOf([
-    'all: build test-a test-b', 'build:', '\tnpm run build', 'test-a:', '\tnode node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- a.test.mjs',
-    'test-b:', '\tnode node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- b.test.mjs', 'collect:',
+    'all: build test-a test-b', 'build:', '\tnpm run build', 'test-a:', '\tnode scripts/run-tests.mts node -- a.test.mjs',
+    'test-b:', '\tnode scripts/run-tests.mts node -- b.test.mjs', 'collect:',
     '\t@status=0; $(MAKE) test-a || status=1; $(MAKE) test-b || status=1; exit $$status', '',
   ].join('\n'));
   assert.deepEqual(testPrerequisites({ npm: {}, composer: {}, workspaces: {}, make: fixture }), ['all: test-a', 'all: test-b']);
@@ -223,7 +223,7 @@ function stoppingRecipes(project: Project): string[] {
 }
 
 test('a target that DOCS_CHECKS hooks into kit docs-check reaches the test runner only when it runs tests', () => {
-  const runs = 'DOCS_CHECKS += crudui-tests\ncrudui-tests:\n\tnode node_modules/@polyspec/kit/scripts/kit/run-tests.mts vitest --cwd packages/x -- src/a.test.ts\n';
+  const runs = 'DOCS_CHECKS += crudui-tests\ncrudui-tests:\n\tnode scripts/run-tests.mts vitest --cwd packages/x -- src/a.test.ts\n';
   const quiet = 'DOCS_CHECKS += crudui-lint\ncrudui-lint:\n\tnode scripts/lint.mts\n';
   const project = (text: string): Project => ({ npm: {}, composer: {}, workspaces: {}, make: makeTargets(text), hooks: makeHooks(text) });
   assert.equal(runsTests('make docs-check', project(runs)), true);
@@ -274,10 +274,10 @@ function stoppingCommand(command: string, project: Project, directory = '.'): st
 
 test('a package script or a CI step runs every check after an earlier check failed', () => {
   const project = declaredCommands();
-  const fixture = { ...project, npm: { '.': { 'test:a': 'node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- a.test.mjs' } } };
-  assert.deepEqual(stoppingCommand('npm run build && node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- a.test.mjs', fixture), []);
-  assert.deepEqual(stoppingCommand('node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- a.test.mjs && npm run test:a', fixture), [
-    '`npm run test:a` runs only when `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- a.test.mjs` passed',
+  const fixture = { ...project, npm: { '.': { 'test:a': 'node scripts/run-tests.mts node -- a.test.mjs' } } };
+  assert.deepEqual(stoppingCommand('npm run build && node scripts/run-tests.mts node -- a.test.mjs', fixture), []);
+  assert.deepEqual(stoppingCommand('node scripts/run-tests.mts node -- a.test.mjs && npm run test:a', fixture), [
+    '`npm run test:a` runs only when `node scripts/run-tests.mts node -- a.test.mjs` passed',
     'the checks do not each set status=1 and the command does not exit with the collected status',
   ]);
   assert.deepEqual(stoppingCommand('npm run build || exit 1; status=0; npm run test:a || status=1; node scripts/check-documents.mjs || status=1; exit $status', fixture), []);
@@ -309,7 +309,7 @@ test('a package script or a CI step runs every check after an earlier check fail
 // tests/build/public-packages.test.mts loads every published package through its exports, which name its `dist`, so
 // test:build builds the packages first and never reads the output of an earlier build.
 test('test:build builds the packages before the tests that load them', () => {
-  assert.match(script(manifestOf('package.json'), 'test:build'), /^node scripts\/require-current-build\.mts && node node_modules\/@polyspec\/kit\/scripts\/kit\/run-tests\.mts node -- .*tests\/build\/public-packages\.test\.mts/);
+  assert.match(script(manifestOf('package.json'), 'test:build'), /^node scripts\/require-current-build\.mts && node scripts\/run-tests\.mts node -- .*tests\/build\/public-packages\.test\.mts/);
   assert.match(read('tests/build/public-packages.test.mts'), /await import\(pkg\.manifest\.name\)/);
 });
 
@@ -338,7 +338,7 @@ test('CI has no time limit over a long operation, a test step or a job', () => {
 test('the benchmark driver test runs built drivers within the default test timeout', () => {
   const command = script(manifestOf('package.json'), 'test:bench');
   const build = command.indexOf('node benchmarks/validators/build-drivers.mjs');
-  const runner = command.indexOf('node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node');
+  const runner = command.indexOf('node scripts/run-tests.mts node');
   assert.ok(build !== -1 && runner > build, `test:bench builds the drivers before the test: ${command}`);
   assert.doesNotMatch(command, /--timeout/, 'test:bench keeps the 30-second timeout of each test');
   const source = read('tests/build/bench-drivers.test.mts');
@@ -366,7 +366,7 @@ test('no test asserts a bound on an elapsed time', () => {
 // time limit and compares its own two builds; its test reads no build record and runs within the default timeout.
 test('the reproducible build check compares its own builds and its test reads no record', () => {
   const command = script(manifestOf('package.json'), 'test:build:repeat');
-  assert.equal(command, 'status=0; node scripts/repeat-build.mts || status=1; node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/reproducible-build.test.mts || status=1; exit $status');
+  assert.equal(command, 'status=0; node scripts/repeat-build.mts || status=1; node scripts/run-tests.mts node -- tests/build/reproducible-build.test.mts || status=1; exit $status');
   const test = read('tests/build/reproducible-build.test.mts');
   assert.doesNotMatch(test, /npm', \['run', 'build'\]|REPEAT_BUILD|readFileSync\(join\(/, 'the test runs no build and reads no build record');
   assert.doesNotMatch(read('scripts/repeat-build.mts'), /writeFile|REPEAT_BUILD/, 'the check keeps no record between runs');

@@ -2,6 +2,8 @@
 // parent make passes down, so GNU Make 3.81 and GNU Make 4, also under a sub-make, print only the commands of the
 // target. tests/build/make-dry-run.test.mts fails for a dry run of make outside this module.
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /** The environment of a dry run: `env` with MAKEFLAGS=w and without the variables of a parent make. */
 export function makeEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
@@ -16,4 +18,10 @@ export function makeEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.Pr
  */
 export function makeDryRun(cwd: string, target: string, { env, variables = [], database = false }: { env?: NodeJS.ProcessEnv; variables?: string[]; database?: boolean } = {}): SpawnSyncReturns<string> {
   return spawnSync('make', ['--no-print-directory', '-n', ...(database ? ['-p'] : []), target, ...variables], { cwd, encoding: 'utf8', env: makeEnvironment(env) });
+}
+
+/** The installed kit CLI path selected by its public test-runner export. */
+export function kitToolPath(name: string): string {
+  const runner = fileURLToPath(import.meta.resolve('@polyspec/kit/run-tests'));
+  return path.join(path.dirname(runner), `${name}${path.extname(runner)}`);
 }

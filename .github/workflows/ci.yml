@@ -26,6 +26,60 @@ env:
   GOTOOLCHAIN: local
 
 jobs:
+  runtime-tests:
+    name: runtime checks · shard ${{ matrix.shard }}/4
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1', '2', '3', '4']
+    env:
+      CRUDUI_TEST_SHARD: '${{ matrix.shard }}/4'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup the Node.js of mise.toml, which starts the bootstrap
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: 'mise.toml'
+          package-manager-cache: false
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
+      # The runtime checks compare every running tool with the version that the checkout records.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: none
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
+      - name: Install PHP dependencies
+        run: make crudui-install-composer
+      - name: Download the modules that the Go workspace requires
+        run: make crudui-install-go-modules
+      - name: Check the recorded toolchain versions
+        run: make toolchain-check TOOLS="node npm go rust php python composer"
+      - name: Download the crates of every Cargo.lock
+        run: make crudui-install-crates
+      - name: Run the checks and write their report
+        if: ${{ !cancelled() }}
+        run: make ci-targets TARGETS="crudui-test-runtimes"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-runtime-tests-${{ matrix.shard }}
+          path: var/report/ci-targets
+          if-no-files-found: error
   build-lint:
     name: build, lint and types
     runs-on: ubuntu-24.04
@@ -69,7 +123,7 @@ jobs:
         run: make crudui-install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="crudui-test-runtimes crudui-test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck hooks-check"
+        run: make ci-targets TARGETS="crudui-test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck hooks-check"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1100,7 +1154,7 @@ jobs:
           if-no-files-found: error
   ci-passed:
     if: ${{ always() }}
-    needs: [build-lint, validator-js, validator-php, validator-go, validator-rust, python, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
+    needs: [runtime-tests, build-lint, validator-js, validator-php, validator-go, validator-rust, python, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

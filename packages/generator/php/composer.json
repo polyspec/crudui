@@ -25,6 +25,6 @@
         }
     },
     "scripts": {
-        "test": "COMPOSER_VENDOR_DIR=../../../vendor node ../../../node_modules/@polyspec/kit/scripts/kit/run-tests.mts phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal"
+        "test": "COMPOSER_VENDOR_DIR=../../../vendor node ../../../scripts/run-tests.mts phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal"
     }
 }
