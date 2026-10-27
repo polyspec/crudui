@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: f1c3517df4e6bca3f4ed2301e10bea4902a94c14aef196f5d62325cd87c596ea -->
+<!-- source-sha256: 9b0a23139be7770139c69511956e6210ea4537a95badb51b0a0d015956fcfcf2 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -36,3 +36,4 @@
 | C18.10-11 | Native fixture context와 link source를 현재 engine에 맞춘다. (우선순위: 높음). | packages/php-ext/tests/engine/engine.test.mjs | `node scripts/run-tests.mts node -- --test-name-pattern="allocation\|form state" packages/php-ext/tests/engine/engine.test.mjs` | [~] |
 | C18.10-12 | 검증된 structure fixture 목록의 정확한 개수를 유지한다. (우선순위: 높음). | packages/validator/python/tests/test_structure_validity.py | `node scripts/run-tests.mts python --venv var/python --cwd packages/validator/python -- tests.test_structure_validity` | [~] |
 | C18.10-13 | Manifest에서 추적하는 feature contract 문서를 재생성한다. (우선순위: 높음). | docs/operations/feature-contracts.md and its Korean twin | `npm run manifest:docs:check` | [~] |
+| C18.10-14 | PHPUnit을 수정된 release로 갱신하고 native 의존성 검토를 갱신한다. (우선순위: 높음). | Composer locks and config/dependency-review.json | `make dependency-policy-check`; `node scripts/run-tests.mts phpunit --cwd examples/form-comparison/servers/php -- --filter testOrderedJsonKeepsOrderValuesAndEmptyTypes tests/FormJsonTest.php` | [ ] |
