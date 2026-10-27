@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c3d5e60cce84ea61138f71d8cd5d375f759f2be69dd8ec202cead2e09f0b0420 -->
+<!-- source-sha256: cb50b2b71dda5b97099d1c138b1f66da69fb57080e808919d41f286e28125ab2 -->
 
 ## Unreleased
+
+### 2026-10-27 — Pipeline suite 전체에는 시간 제한을 두지 않는다 (C18.10-27)
+
+- Pipeline suite 전체에는 시간 제한을 두지 않는다. Store reset과 flow case는 기존 개별 제한시간과 동시 실행 수를 유지하여 suite 실행시간 때문에 남은 case 실행 전에 정상 stack이 중단되지 않도록 한다.
 
 ## 0.0.8
 

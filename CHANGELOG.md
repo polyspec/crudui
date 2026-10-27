@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Keep pipeline suites untimed (C18.10-27)
+
+- Pipeline suite aggregates have no time limit. Store reset and flow cases retain their existing individual deadlines and concurrency, so suite duration does not stop a healthy stack before the remaining cases execute.
+
 ## 0.0.8
 
 ### 2026-10-27 — Select the qualified Rust Unicode parity test (C18.10-25)

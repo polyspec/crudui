@@ -43,7 +43,7 @@ teardown('server stop', () => Promise.all(processes.map(async running => {
 })));
 teardown('directory removal', () => root && rm(root, { recursive: true, force: true }));
 
-describe('record stores reset', { concurrency: recordServers.length }, () => {
+describe('record stores reset', { concurrency: recordServers.length, timeout: Infinity }, () => {
   for (const server of recordServers) {
     test(server, { timeout: pipelineResetLimitMs }, async t => {
       assert.ok(origin, 'the local stack did not start');
@@ -53,7 +53,7 @@ describe('record stores reset', { concurrency: recordServers.length }, () => {
   }
 });
 
-describe('canonical flow', { concurrency: pipelineConcurrency }, () => {
+describe('canonical flow', { concurrency: pipelineConcurrency, timeout: Infinity }, () => {
   for (const combination of pipelineCombinations()) {
     test(combination.id, { timeout: pipelineUnitLimitMs }, async t => {
       assert.ok(origin && browser, 'the local stack did not start');

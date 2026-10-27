@@ -43,14 +43,14 @@ for (const name of ['SIGTERM', 'SIGINT']) {
   });
 }
 
-describe('store resets', { concurrency: recordServers.length }, () => {
+describe('store resets', { concurrency: recordServers.length, timeout: Infinity }, () => {
   for (const unit of pipelineResetUnits(origin)) unitTest(results.resets, unit);
 });
 
 // The combinations run only when every store reset passed, as the report requires.
 const resetsPassed = () => results.resets.every(result => result.status === 'passed')
   ? undefined : 'a store reset did not pass';
-describe('canonical flow', { concurrency: pipelineConcurrency }, () => {
+describe('canonical flow', { concurrency: pipelineConcurrency, timeout: Infinity }, () => {
   for (const unit of pipelineUnits({ browser, origin })) {
     unitTest(results.combinations, { ...unit, skipWhen: resetsPassed });
   }
