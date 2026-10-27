@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-27 — Compile native fixtures before timed assertions (C18.10-22)
+
+- Native validation and binding programs compile in setup operations. Locale execution reuses the current run validation program, and sanitizer flags, runtime assertions and case time limits remain unchanged.
+
 ### 2026-10-27 — Separate Rust model tests from contract documentation (C18.10-23)
 
 - Rust field model tests use a native child test module with the same test identities and assertions. Parity declarations classify that test module independently of production contract documentation.

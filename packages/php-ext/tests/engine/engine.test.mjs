@@ -172,17 +172,28 @@ test('PHP extension fixture arrays preserve every repeated scalar value', { time
   }
 });
 
-describe('prepared engine validation programs', () => {
+describe('prepared engine validation programs', { timeout: Infinity }, () => {
 const validationSources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
   'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
 ];
 let directory;
 let preparedValidation;
+let validationLocaleEnvironment;
+const preparedSanitizers = new Map();
 const preparedUnique = new Map();
 setup('compile validation and unique-rule fixtures', async () => {
   directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
-  preparedValidation = await compileEngineFixture({ root, directory, source: sourceForValidation(), name: 'validation', sources: validationSources });
+  const source = sourceForValidation();
+  preparedValidation = await compileEngineFixture({ root, directory, source, name: 'validation', sources: validationSources });
+  validationLocaleEnvironment = await commaLocaleEnvironment(directory);
+  for (const sanitizer of ['undefined', 'address']) {
+    preparedSanitizers.set(sanitizer, await compileEngineFixture({
+      root, directory, source, name: sanitizer === 'undefined' ? 'validation-sanitize' : 'validation-address',
+      sources: validationSources,
+      compilerFlags: [`-fsanitize=${sanitizer}`, '-fno-omit-frame-pointer'],
+    }));
+  }
   for (const { name, source } of uniquePrograms) {
     preparedUnique.set(name, await compileEngineFixture({ root, directory, source: source(), name, sources: validationSources }));
   }
@@ -288,59 +299,27 @@ for (const { title, name } of uniquePrograms) {
     await runEngineProgram({ ...preparedUnique.get(name), signal: t.signal });
   });
 }
-});
+
 
 test('PHP extension engine validation does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  await runUnderCommaLocale({
-    signal: t.signal, root, prefix: 'crudui-extension-validation-locale-', name: 'validation-locale',
-    source: sourceForValidation(),
-    sources: [
-      'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-      'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-    ],
-  });
+  await runEngineProgram({ ...preparedValidation, name: 'validation-locale', signal: t.signal, runEnvironment: validationLocaleEnvironment });
 });
 
 test('PHP extension engine validation has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-sanitize-'));
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-sanitize',
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-      ],
-      compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
-      runEnvironment: {
-        ...process.env,
-        UBSAN_OPTIONS: 'halt_on_error=1',
-      },
-    });
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
+  await runEngineProgram({
+    ...preparedSanitizers.get('undefined'), signal: t.signal,
+    runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
+  });
 });
 
 test('PHP extension engine validation has no address sanitizer findings', {
   timeout: ENGINE_SANITIZER_BUDGET,
 }, async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-address-'));
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-address',
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-      ],
-      compilerFlags: ['-fsanitize=address', '-fno-omit-frame-pointer'],
-      runEnvironment: {
-        ...process.env,
-        ASAN_OPTIONS: 'halt_on_error=1',
-      },
-    });
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
+  await runEngineProgram({
+    ...preparedSanitizers.get('address'), signal: t.signal,
+    runEnvironment: { ...process.env, ASAN_OPTIONS: 'halt_on_error=1' },
+  });
+});
 });
 
 function sourceForValidationAllocationFailures() {

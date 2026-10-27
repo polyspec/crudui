@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
+import test, { describe } from 'node:test';
+import { setup, teardown } from '@polyspec/kit/test-hooks';
 import { fileURLToPath } from 'node:url';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -12,7 +13,7 @@ import { buildDetail } from '@polyspec/crudui-generator-core';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../../tests/native-generators/cases.mts';
 import { dispatch, errorRecord } from '../../../../tests/native-generators/javascript.mts';
 
-import { cString, cText, EngineFixtureSource, assertCasesReported, casePassed, fixtureProgram, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, compileAndRunEngineFixture } from '../engine/support.mjs';
+import { cString, cText, EngineFixtureSource, assertCasesReported, casePassed, fixtureProgram, runUnderCommaLocale, ENGINE_TEST_BUDGET, ENGINE_SANITIZER_BUDGET, compileAndRunEngineFixture, compileEngineFixture, runEngineProgram } from '../engine/support.mjs';
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -137,46 +138,43 @@ function sourceForFixtures() {
   return fixtureProgram(lines);
 }
 
+describe('prepared engine binding programs', { timeout: Infinity }, () => {
+const sources = [
+  'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
+  'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
+];
+let directory;
+let preparedBinding;
+let preparedSanitizer;
+setup('compile binding fixtures', async () => {
+  directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
+  const source = sourceForFixtures();
+  preparedBinding = await compileEngineFixture({ root, directory, source, name: 'bind-fixtures', sources });
+  preparedSanitizer = await compileEngineFixture({
+    root, directory, source, name: 'bind-fixtures-sanitize', sources,
+    compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
+  });
+});
+teardown('remove binding fixtures', async () => {
+  if (directory) await rm(directory, { recursive: true, force: true });
+});
+
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
   // A case that compilation rejects is left to the compilation test only when the case expects an error.
   assert.deepEqual(fixtures.filter(fixture => !bindFixtures.includes(fixture) && !fixture.expectError).map(fixture => fixture.name), [],
     'every case of tests/fixtures/form-render/cases.json without expectError compiles, so the binding test binds it');
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   let output = '';
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
-      onOutput: stdout => { output = stdout; },
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
-      ],
-    });
-    assertCasesReported(output, bindFixtures.length + optionRejections.length,
-      'the extension engine binds each case of tests/fixtures/form-render/cases.json that compiles, and each option rejection');
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
+  await runEngineProgram({ ...preparedBinding, signal: t.signal, onOutput: stdout => { output = stdout; } });
+  assertCasesReported(output, bindFixtures.length + optionRejections.length,
+    'the extension engine binds each case of tests/fixtures/form-render/cases.json that compiles, and each option rejection');
 });
 
 test('PHP extension engine binding has no undefined behavior findings', { timeout: ENGINE_SANITIZER_BUDGET }, async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-sanitize-'));
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'rule_condition_tree.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'group_source.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c', 'canonical.c',
-      ],
-      compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
-      runEnvironment: {
-        ...process.env,
-        UBSAN_OPTIONS: 'halt_on_error=1',
-      },
-    });
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
+  await runEngineProgram({
+    ...preparedSanitizer, signal: t.signal,
+    runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
+  });
+});
 });
 
 }

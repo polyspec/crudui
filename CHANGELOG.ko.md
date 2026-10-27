@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2a7d510e8886e6b290ac38812c067167ce1bd83c660b8f84cb035ef8fe57d2e0 -->
+<!-- source-sha256: cdb780011a5b87fc4b63dc2b6d50db2cc68db676a40440b24e3f5da141659829 -->
 
 ## Unreleased
+
+### 2026-10-27 — Timed assertion 전에 native fixture를 컴파일한다 (C18.10-22)
+
+- Native validation과 binding program은 setup operation에서 컴파일한다. Locale 실행은 현재 run의 validation program을 재사용하며 sanitizer flag, runtime assertion과 case 제한시간은 유지한다.
 
 ### 2026-10-27 — Rust model test와 contract 문서를 분리한다 (C18.10-23)
 
