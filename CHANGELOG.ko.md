@@ -1,14 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cb50b2b71dda5b97099d1c138b1f66da69fb57080e808919d41f286e28125ab2 -->
+<!-- source-sha256: 652420c33e5e0c50ee92d8fd5667527a8c65ad5445b0c61cf1afc73ffdee53f8 -->
 
 ## Unreleased
+
+## 0.0.8
 
 ### 2026-10-27 — Pipeline suite 전체에는 시간 제한을 두지 않는다 (C18.10-27)
 
 - Pipeline suite 전체에는 시간 제한을 두지 않는다. Store reset과 flow case는 기존 개별 제한시간과 동시 실행 수를 유지하여 suite 실행시간 때문에 남은 case 실행 전에 정상 stack이 중단되지 않도록 한다.
-
-## 0.0.8
 
 ### 2026-10-27 — 정확한 Rust Unicode parity test를 선택한다 (C18.10-25)
 
