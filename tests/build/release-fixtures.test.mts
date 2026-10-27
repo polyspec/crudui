@@ -37,11 +37,17 @@ test('the release consumer smoke covers every published npm package', () => {
   assert.deepEqual(Object.keys(release.consumers.npm.smoke).sort(), expected);
 });
 
-test('release and candidate archives build current package output before packing (C18.10-17)', () => {
+test('release and candidate archives prepare caches before current package builds (C18.10-17, C18.10-19)', () => {
   const database = makeDryRun(ROOT, 'help', { database: true });
   assert.equal(database.status, 0, database.stderr);
   const targets = makeTargets(database.stdout);
+  const notParallel = database.stdout.split('\n').find(line => line.startsWith('.NOTPARALLEL:'));
+  assert.ok(notParallel, 'archive preparation requires native Make serialization');
+  const serialized = notParallel.slice('.NOTPARALLEL:'.length).trim().split(/\s+/);
   for (const target of ['release-assets', 'release-candidate-assets']) {
-    assert.ok(targets[target]?.prerequisites.includes('build'), `${target}: current package output must be built before archiving`);
+    assert.deepEqual(targets[target]?.prerequisites, ['crudui-prepare-release-build', 'build'], target);
+    assert.ok(serialized.includes(target), `${target}: native preparation must complete before the build`);
   }
+  assert.deepEqual(targets['crudui-prepare-release-build']?.prerequisites,
+    ['crudui-install-crates', 'crudui-install-go-modules']);
 });

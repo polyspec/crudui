@@ -542,10 +542,11 @@ test('production dependency checks reject a devDependency-only import', t => {
 });
 
 
-for (const [target, workspace] of [
-  ['dependency-review', path.join(root, 'go.work')],
-  ['dependency-policy-check', path.join(root, 'go.work')],
-  ['release-consumer-lock', 'off'],
+for (const [target, workspace, tool] of [
+  ['dependency-review', path.join(root, 'go.work'), 'NODE'],
+  ['dependency-policy-check', path.join(root, 'go.work'), 'NODE'],
+  ['crudui-install-go-modules', path.join(root, 'go.work'), 'GO'],
+  ['release-consumer-lock', 'off', 'NODE'],
 ] as const) {
   test(`Go workspace: ${target} exports its declared module scope`, { timeout: 10_000 }, () => {
     const fixture = mkdtempSync(path.join(root, 'var', 'go-workspace-'));
@@ -554,8 +555,8 @@ for (const [target, workspace] of [
       writeFileSync(probe, 'console.log(JSON.stringify({ workspace: process.env.GOWORK }));\n');
       const quote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`;
       const result = spawnSync('make', ['--silent', '--no-print-directory', target,
-        `NODE=${quote(process.execPath)} ${quote(probe)}`, 'TAG=v0.0.8'],
-      { cwd: root, env: makeEnvironment(), encoding: 'utf8', timeout: 5_000 });
+        `${tool}=${quote(process.execPath)} ${quote(probe)}`, 'TAG=v0.0.8'],
+      { cwd: root, env: makeEnvironment({ ...process.env, GOWORK: 'off' }), encoding: 'utf8', timeout: 5_000 });
       assert.equal(result.error, undefined);
       assert.equal(result.status, 0, result.stderr);
       const report = checked<{ workspace: string }>(JSON.parse(result.stdout),

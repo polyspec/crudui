@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d52f81d45a52766f6370cfeaa361ad263fa91d9f5c88442ad16042e746363b77 -->
+<!-- source-sha256: a5815bfc8df0be71e91e9227c3f8bd301e0e5b106f5ae9d1feb58c1d64d97362 -->
 
 ## Unreleased
+
+### 2026-10-27 — Release build 전에 native cache를 준비한다 (C18.10-19)
+
+- Release와 candidate archive target은 package output을 빌드하기 전에 선언된 Cargo와 Go 의존성을 내려받는다. Go 다운로드는 선언된 저장소 workspace에서 해석하며 병렬 Make에서도 archive 준비는 다운로드 후 빌드 순서를 유지한다.
 
 ## 0.0.8
 

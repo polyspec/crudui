@@ -21,7 +21,7 @@ NPM := $(CURDIR)/var/tools/bin/npm
 export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
 # Builds resolve this repository's unpublished module versions through its declared workspace.
-build-go: export GOWORK := $(CURDIR)/go.work
+build-go crudui-install-go-modules: export GOWORK := $(CURDIR)/go.work
 # A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, crudui-install-crates, dependency-review
@@ -33,7 +33,7 @@ export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
 .PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
-.NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
+.NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent release-assets release-candidate-assets
 
 # Shared commands come from the installed @polyspec/kit package. Native npm links may connect that package to local
 # development sources; the bootstrap selects the installed source or packed commands.
@@ -479,7 +479,9 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 # The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
 # release-versions, release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
-release-assets release-candidate-assets: build
+release-assets release-candidate-assets: crudui-prepare-release-build build
+.PHONY: crudui-prepare-release-build
+crudui-prepare-release-build: crudui-install-crates crudui-install-go-modules
 
 # Every target the CI workflow runs after installing tools and dependencies, in workflow order
 # (tests/build/ci-local.test.mts keeps this list equal to .github/workflows/ci.yml).
