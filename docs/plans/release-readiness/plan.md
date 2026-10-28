@@ -45,7 +45,7 @@ separate from the completed decision for this candidate.
 
 ## Scoped CI environment preparation (C18.12)
 
-Kit 0.0.62 provides selective `make install-tools TOOLS="..."` installation. Each CI job declares its required tools
+Kit 0.0.63 provides selective `make install-tools TOOLS="..."` installation. Each CI job declares its required tools
 and prepares its own locked dependencies and builds. PHP extension jobs explicitly prepare the pinned arginfo parser.
 The root release asset and native lock must select that release together. The local source link remains a development input.
 
@@ -101,13 +101,13 @@ all six Cargo locks retain the external package versions and checksums. PHP veri
 cases and two native constructor cases passing. Publication requires successful CI for the final candidate commit.
 
 
-## Kit 0.0.62 integration verification (C18.13-4)
+## Kit 0.0.63 integration verification (C18.13-4, C18.13-5)
 
-The root manifest and native lock select the published Kit 0.0.62 asset. `config/ci.json` declares the shared, six runtime
+The root manifest and native lock select the published Kit 0.0.63 asset. `config/ci.json` declares shared, six runtime
 and full parity preparation through the provider interface. Native planning, schema and ownership checks pass.
 Selected `node npm` and `node npm go` checks pass with PHP arginfo absent; its installation is restored after the probe.
 
-The runtime workflow invokes whole-repository source linking. A native read-only mixed-language fixture requires Go
-even for a Node-only environment. [Kit issue 14](https://github.com/polyspec/kit/issues/14) records the reproduction.
-C18.13-4 remains pending final runtime acceptance, and C18.13-5 requires the published runtime-scoping correction.
-Publication resumes after the corrected provider passes independent runtime preparation and complete candidate CI.
+The provider runtime workflow passes its runtime into native source linking. A real mixed-language Git fixture proves
+TypeScript links without foreign tools, while full linking retains its Go requirement. Make and workflow runtime
+forwarding and the native CI plan are verified by the owning tests. Complete isolated candidate CI and release proof
+remain mandatory under C18.13. The actual consumer CI result is reported to [Kit issue 14](https://github.com/polyspec/kit/issues/14).

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4de6089ce5f5e1cfb5d7121985fdd5a804e449651608d82aeb39978403890efd -->
+<!-- source-sha256: 797c0f39d1d68b334a1cb417e5f73bf132c47f7cdfcd89f2232f773782f91bf2 -->
 
 ## Unreleased
+
+### 2026-10-29 — Provider source 연결 범위를 runtime별로 지정한다 (C18.13-5)
+
+- Kit 0.0.63은 native source 연결에 각 runtime을 전달한다. Runtime job은 자체 ecosystem을 준비하고 연결하며 full parity는 전체 연결을 유지한다. Native 회귀 검사는 실제 Git manifest를 사용하고 전체 연결의 의존성 요구사항을 보존한다.
 
 ### 2026-10-29 — 선택한 toolchain 환경을 검증한다 (C18.13-4)
 

@@ -780,3 +780,40 @@ test('the native Kit CI planner validates every declared runtime and its locked 
   assert.ok(setup.setup.runtimes.go?.includes('crudui-install-go-modules'));
   assert.ok(setup.setup.runtimes.python?.includes('crudui-install-python'));
 });
+
+
+test('native TypeScript package links exclude foreign runtimes while default links retain them', async () => {
+  const { link } = await import('@polyspec/kit/link');
+  const fixture = await mkdtemp(path.join(tmpdir(), 'crudui-runtime-links-'));
+  const env = makeEnvironment(process.env);
+  for (const name of ['GO', 'COMPOSER_BIN', 'UV', 'CARGO', 'NPM', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE']) delete env[name];
+  try {
+    await Promise.all([
+      writeFile(path.join(fixture, 'package.json'), JSON.stringify({ name: 'runtime-link-fixture', private: true })),
+      writeFile(path.join(fixture, 'go.mod'), 'module example.invalid/runtime-link-fixture\n\ngo 1.27.3\n'),
+      writeFile(path.join(fixture, 'composer.json'), JSON.stringify({ name: 'fixture/runtime-link', type: 'project' })),
+      writeFile(path.join(fixture, 'pyproject.toml'), '[project]\nname = "runtime-link-fixture"\nversion = "0.0.0"\n'),
+    ]);
+    const git = (...args: string[]) => {
+      const result = spawnSync('git', args, { cwd: fixture, env, encoding: 'utf8' });
+      assert.equal(result.error, undefined, result.error?.message);
+      assert.equal(result.status, 0, result.stderr);
+      return result.stdout;
+    };
+    git('init', '--quiet');
+    git('add', '--', 'package.json', 'go.mod', 'composer.json', 'pyproject.toml');
+    assert.deepEqual(git('ls-files', '-z').split('\0').filter(Boolean).sort(),
+      ['composer.json', 'go.mod', 'package.json', 'pyproject.toml']);
+    assert.equal(existsSync(path.join(fixture, 'var', 'tools')), false);
+    const inputs = { checkouts: [], directories: [fixture], check: true, print: () => {}, env };
+    assert.equal(link({ ...inputs, runtime: 'ts' }), true);
+    assert.throws(() => link(inputs), Error);
+    const command = makeDryRun(ROOT, 'link', { variables: ['RUNTIME=ts'] });
+    assert.equal(command.status, 0, command.stderr);
+    assert.match(command.stdout, /\/link\.(?:mts|mjs) link --runtime ts --siblings(?:\n|$)/);
+    const gates = await workflowFile('gates.yml');
+    assert.ok((jobOf(gates, 'runtime').steps ?? []).some(step => step.run === 'make link RUNTIME=${{ matrix.runtime }}'));
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});

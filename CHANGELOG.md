@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-29 — Scope provider source links to each runtime (C18.13-5)
+
+- Kit 0.0.63 forwards each runtime into native source linking. Runtime jobs prepare and link their own ecosystems, while full parity retains complete linking. Native regression checks use real Git manifests and preserve full-link dependency requirements.
+
 ### 2026-10-29 — Verify selected toolchain environments (C18.13-4)
 
 - Selected Node/npm and Go environments pass the published Kit verifier without PHP arginfo. Extension build preparation retains its pinned generator and parser requirements. Final isolated candidate CI remains required before publication.
