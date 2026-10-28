@@ -45,8 +45,8 @@ separate from the completed decision for this candidate.
 
 ## Scoped CI environment preparation (C18.12)
 
-Kit 0.0.60 installs all declared tools for every non-npm request. C18.12 requires a released Kit with
-selective `make install-tools TOOLS="..."` support before changing the CI installation calls.
+Kit 0.0.61 provides selective `make install-tools TOOLS="..."` installation. Each CI job declares its required tools
+and prepares its own locked dependencies and builds. PHP extension jobs explicitly prepare the pinned arginfo parser.
 The root release asset and native lock must select that release together. The local source link remains a development input.
 
 Every job bootstraps the locked npm and installs its required npm packages. The table lists additional tools and inputs.
@@ -56,12 +56,12 @@ Tool aliases and transitive installation dependencies must match the released Ki
 | --- | --- | --- |
 | validator-js, cli | None | npm lock; build the required JavaScript packages, then run the selected suite |
 | validator-php | PHP and Composer | root Composer lock and declared source providers; install, then run the PHP validator suite |
-| validator-go | Go | go.work and native module sums; download modules, then build and test the Go validator |
-| validator-rust | Rust | rust-toolchain.toml and Cargo locks; fetch crates, then build and test the Rust validator offline |
+| validator-go | Go | go.work and native module sums; download modules, then build and test the Go validator and generator |
+| validator-rust | Rust | rust-toolchain.toml and Cargo locks; fetch crates, then build and test the Rust validator and generator offline |
 | python | Python and uv | uv.lock and workspace build declarations; synchronize the locked environment, then run both Python suites |
 | cross-language-equivalence | Go, Rust, PHP, Composer, Python and uv, with PHP extension build support | own native dependency installs, current JavaScript and extension builds, then both generator comparison commands |
-| cross-check-console | Go, Rust, PHP, Composer, Python and uv, with PHP extension build support | own native dependency installs and program builds, then shared validator comparisons |
-| native-generators | Go, Rust, PHP and Composer | generator unit suites, benchmark drivers and their required browser; preserve required native caches |
+| cross-check-console | Go, Rust, PHP, Composer, Python and uv, with PHP extension build support | own native dependency installs and program builds, then shared validator comparisons and benchmark driver regressions |
+| native-generators | Pinned Chrome | JavaScript protocol and widget unit suites; Go and Rust generator suites run in their language jobs |
 | php-api | PHP and Composer, with PHP extension build support | locked Composer install, current extension build and PHP unit suites |
 | php-engine | C compiler and sanitizers | current JavaScript fixture build and native engine compilation; verify whether any PHP execution remains before removing its setup |
 | form-runtime, package-browser | Pinned browsers | npm lock, required JavaScript builds and the browser builds pinned by their packages |

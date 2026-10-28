@@ -32,7 +32,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: crudui-review-dependencies crudui-test-cross-language-equivalence help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
+.PHONY: crudui-test-generator-go crudui-test-generator-rust crudui-test-generator-js crudui-review-dependencies crudui-test-cross-language-equivalence help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent release-assets release-candidate-assets
 
 # Shared commands come from the installed @polyspec/kit package. Native npm links may connect that package to local
@@ -155,7 +155,11 @@ crudui-install-svelte-tools: ## Install the tools project of packages/svelte fro
 # Composer owns the path links, autoload files and installed metadata. Updating the path packages refreshes their native
 # metadata when a source manifest changes; no release archive is downloaded by the default development install.
 crudui-install-composer: ## Resolve and install the current local PHP source packages with Composer
+ifeq ($(GITHUB_ACTIONS),true)
+	$(ONLINE) $(COMPOSER_BIN) install --no-interaction --prefer-dist
+else
 	$(ONLINE) $(COMPOSER_BIN) update 'polyspec/*' --with-dependencies --no-interaction
+endif
 	@if [ "$${GITHUB_ACTIONS:-}" = true ]; then \
 		provider="$$($(NODE) -p 'require("./config/local-providers.json").orderedJsonRoot')"; \
 		mkdir -p "$(CURDIR)/var/link/npm/lib/node_modules"; \
@@ -400,13 +404,23 @@ crudui-test-php-engine:
 	$(NODE) scripts/require-current-build.mts
 	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine/engine.test.mjs packages/php-ext/tests/contract/*.test.mjs packages/php-ext/tests/comparison/comparison.test.mjs
 
-crudui-test-native-generators: cargo-downloads-check
-	$(NODE) scripts/require-current-build.mts
+crudui-test-generator-go:
+	$(NODE) tests/conformance/run-suite.mts go --cwd packages/generator/go -- -race ./...
+
+crudui-test-generator-rust: cargo-downloads-check
+	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml
+
+crudui-test-generator-js: require-build
 	@status=0; \
-	$(NODE) tests/conformance/run-suite.mts go --cwd packages/generator/go -- -race ./... || status=1; \
-	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node -- tests/native-generators/protocol.test.mts || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
+	exit $$status
+
+crudui-test-native-generators:
+	@status=0; \
+	$(MAKE) --no-print-directory crudui-test-generator-go || status=1; \
+	$(MAKE) --no-print-directory crudui-test-generator-rust || status=1; \
+	$(MAKE) --no-print-directory crudui-test-generator-js || status=1; \
 	exit $$status
 
 crudui-test-php-api: require-build build-php-ext
@@ -504,13 +518,16 @@ CI_TARGETS = \
 	crudui-test-validator-js \
 	crudui-test-validator-php \
 	crudui-test-validator-go \
+	crudui-test-generator-go \
 	crudui-test-validator-rust \
+	crudui-test-generator-rust \
 	crudui-test-validator-python \
 	crudui-test-generator-python \
 	docs-check \
 	build-php-ext \
 	crudui-test-cross-check \
 	manifest-test \
+	crudui-test-bench \
 	require-build \
 	crudui-test-cli \
 	manifest-check \
@@ -525,8 +542,7 @@ CI_TARGETS = \
 	crudui-test-build-repeat \
 	crudui-test-inspector \
 	crudui-test-php-engine \
-	crudui-test-native-generators \
-	crudui-test-bench \
+	crudui-test-generator-js \
 	crudui-test-php-api \
 	crudui-test-cross-language-equivalence \
 	check-conformance

@@ -76,7 +76,7 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   // setup-php installs PHP alone; make install-tools installs the Go and the Composer of mise.toml (kit K127).
   assert.match(job, /tools: phpize, php-config\n/);
   // make install-tools installs the Rust toolchain of rust-toolchain.toml too (kit K151).
-  assert.match(job, /run: make install-tools\n/);
+  assert.match(job, /run: make install-tools TOOLS="node go rust php composer"\n/);
   assert.doesNotMatch(job, /install-rust/);
   // The Rust record server builds from the OrderedJSON checkout, which make crudui-install-crates installs before the crates.
   assert.match(job, /run: make crudui-install-crates\n/);
@@ -147,7 +147,7 @@ test('the native PHP job installs phpize and php-config for the PHP of .php-vers
 
 test('native job caches the generator packages and the programs that run them', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
-  const job = workflowJob(workflow, 'native-generators');
+  const job = workflowJob(workflow, 'cross-language-equivalence');
   // The Go module cache is keyed on the go.mod files of the generator and its programs (hashFiles of actions/cache).
   for (const entry of ['packages/generator/go/go.mod', 'tests/native-generators/programs/go/go.mod']) {
     assert.ok(job.includes(`'${entry}'`), entry);

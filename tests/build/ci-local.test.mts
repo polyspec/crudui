@@ -130,6 +130,7 @@ test('each make job bootstraps the installed kit with the declared npm before ma
 const preparation = [
   /^make(?: (?:crudui-)?install-[\w-]+)+(?: [A-Z]+="[^"]*")?$/,
   /^make check-ci-browser$/,
+  /^make kit-install-(?:php-arginfo|symbols)(?: EXTRACTORS="[^"]+")?$/,
   /^make toolchain-check TOOLS=(?:"[^"]*"|\S+)$/,
   /^sudo apt-get install -y --no-install-recommends nginx$/,
   /^php-fpm -v$/,
@@ -225,8 +226,8 @@ test('the runtime script passes native Node sharding only when requested (C18.9)
 
 // Native unit suites run separately from the cross-language comparison job.
 const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: string[] }> = {
-  'php-engine': { targets: 'crudui-test-php-engine', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
-  'native-generators': { targets: 'crudui-test-native-generators crudui-test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
+  'php-engine': { targets: 'crudui-test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
+  'native-generators': { targets: 'crudui-test-generator-js', tools: ['actions/checkout', 'actions/setup-node'] },
   'cross-language-equivalence': { targets: 'crudui-test-cross-language-equivalence', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
   'php-api': { targets: 'crudui-test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
 };
@@ -647,8 +648,8 @@ test('cross-language generator equivalence runs independently of language unit j
   const comparison = jobOf(workflow, 'cross-language-equivalence');
   assert.equal(comparison.needs, undefined);
   assert.ok((comparison.steps ?? []).some(step => step.run === 'make ci-targets TARGETS="crudui-test-cross-language-equivalence"'));
-  for (const name of ['native-generators', 'php-api']) {
-    const run = makeDryRun(ROOT, name === 'php-api' ? 'crudui-test-php-api' : 'crudui-test-native-generators');
+  for (const target of ['crudui-test-generator-js', 'crudui-test-generator-go', 'crudui-test-generator-rust', 'crudui-test-php-api']) {
+    const run = makeDryRun(ROOT, target);
     assert.equal(run.status, 0, run.stderr);
     assert.doesNotMatch(run.stdout, /tests\/native-generators\/run\.mts --/);
   }
@@ -666,7 +667,7 @@ test('dependency review prepares PHP before its single tool installation', async
   const job = jobOf(await workflowFile('dependency-review.yml'), 'review');
   const steps = job.steps ?? [];
   const php = steps.findIndex(step => step.uses?.startsWith('shivammathur/setup-php@'));
-  const installs = steps.flatMap((step, index) => step.run === 'make install-tools' ? [index] : []);
+  const installs = steps.flatMap((step, index) => /^make install-tools(?: TOOLS="(?!npm")[^"]+")?$/.test(step.run ?? '') ? [index] : []);
   assert.equal(installs.length, 1);
   assert.ok(php >= 0 && installs.every(index => php < index));
 });
@@ -683,4 +684,33 @@ test('dependency review isolates CI targets from dependency version target files
   const direct = makeDryRun(ROOT, 'dependency-review', { variables: ['UPDATE=1', 'TARGETS=versions.json'] });
   assert.equal(direct.status, 0, direct.stderr);
   assert.match(direct.stdout, /--update --targets versions\.json/);
+});
+
+
+test('language jobs install only their required tools and own both validator and generator checks', async () => {
+  const workflow = await workflowFile('ci.yml');
+  const expected: Record<string, { tools: string; targets: string }> = {
+    'validator-js': { tools: 'node', targets: 'crudui-test-validator-js' },
+    'validator-go': { tools: 'node go', targets: 'crudui-test-validator-go crudui-test-generator-go' },
+    'validator-rust': { tools: 'node rust', targets: 'crudui-test-validator-rust crudui-test-generator-rust' },
+    python: { tools: 'node python uv', targets: 'crudui-test-validator-python crudui-test-generator-python' },
+    'native-generators': { tools: 'node', targets: 'crudui-test-generator-js' },
+  };
+  for (const [id, contract] of Object.entries(expected)) {
+    const job = jobOf(workflow, id);
+    assert.equal(job.needs, undefined, id);
+    const commands = (job.steps ?? []).map(step => step.run);
+    assert.ok(commands.includes(`make install-tools TOOLS="${contract.tools}"`), id);
+    assert.ok(commands.includes(`make ci-targets TARGETS="${contract.targets}"`), id);
+    assert.equal((job.steps ?? []).some(step => step.uses?.startsWith('shivammathur/setup-php@')), false, id);
+  }
+  for (const id of ['cli', 'form-runtime', 'package-browser', 'php-engine', 'conformance', 'ci-passed']) {
+    const job = jobOf(workflow, id);
+    assert.ok((job.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node"'), id);
+    assert.equal((job.steps ?? []).some(step => step.uses?.startsWith('shivammathur/setup-php@')), false, id);
+  }
+  for (const [id, job] of Object.entries(workflow.jobs)) {
+    assert.equal((job.steps ?? []).some(step => step.run === 'make install-tools'), false, id);
+    assert.equal((job.steps ?? []).some(step => /^make install(?:\s|$)/.test(step.run ?? '')), false, id);
+  }
 });

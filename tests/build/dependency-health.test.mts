@@ -428,7 +428,7 @@ test('the canonical Composer project resolves the current sibling source package
 });
 
 test('default PHP installation updates local sources without fetching release archives', () => {
-  const result = makeDryRun(root, 'crudui-install-composer', { database: true });
+  const result = makeDryRun(root, 'crudui-install-composer', { database: true, env: { ...process.env, GITHUB_ACTIONS: 'false' } });
   assert.equal(result.status, 0, result.stderr);
   const install = makeTargets(result.stdout)['crudui-install-composer'];
   assert.ok(install);
@@ -567,3 +567,13 @@ for (const [target, workspace, tool] of [
     }
   });
 }
+
+
+test('CI PHP installation consumes the Composer lock without resolving updates', () => {
+  const result = makeDryRun(root, 'crudui-install-composer', { database: true, env: { ...process.env, GITHUB_ACTIONS: 'true' } });
+  assert.equal(result.status, 0, result.stderr);
+  const install = makeTargets(result.stdout)['crudui-install-composer'];
+  assert.ok(install);
+  assert.match(install.commands.join('\n'), /\binstall --no-interaction --prefer-dist/);
+  assert.doesNotMatch(install.commands.join('\n'), /\bupdate\b/);
+});

@@ -222,12 +222,12 @@ test('make installs nothing on its own and make install installs the Rust toolch
   assert.equal(realpathSync(path.resolve(repository, entry)), kitToolPath('install-tools'));
 });
 
-test('CI prepares PHP before installing the complete checkout toolchain (C18.10-2)', async () => {
+test('CI prepares PHP before installing selected PHP tools (C18.10-2)', async () => {
   const workflow = workflowOf(await read('.github/workflows/ci.yml'), '.github/workflows/ci.yml');
   const missing: string[] = [];
   for (const [id, job] of Object.entries(workflow.jobs)) {
     const steps = job.steps ?? [];
-    const install = steps.findIndex(step => step.run === 'make install-tools');
+    const install = steps.findIndex(step => step.run === 'make install-tools' || /^make install-tools TOOLS="[^"]*\b(?:php|composer|phpunit|phpcs|phpstan)\b/.test(stepText(step, 'run')));
     if (install < 0) continue;
     const setup = steps.findIndex(step => stepText(step, 'uses').startsWith('shivammathur/setup-php@')
       && step.with?.['php-version-file'] === '.php-version');
@@ -250,7 +250,7 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
   assert.deepEqual(violations, []);
 });
 
-// The tools of mise.toml that the jobs check; make install-tools installs every tool of mise.lock.
+// The core tools of mise.toml that legacy full-install jobs check.
 const MISE_TOOLS = ['go', 'python', 'composer'] as const;
 // make install-tools of kit installs the tools of mise.toml and the Rust toolchain of rust-toolchain.toml (kit K151).
 const INSTALL_TOOLS: readonly string[] = [...MISE_TOOLS, 'rust'];
@@ -280,6 +280,12 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
           if (!SETUP_PHP_TOOLS.includes(String(step.with?.tools))) violations.push(`${file} ${id}: setup-php installs ${String(step.with?.tools)}; it installs PHP alone or with its phpize and php-config, and make install-tools installs the Composer of mise.toml`);
         }
         if (/^make install-tools$/m.test(run)) tools.push(...INSTALL_TOOLS);
+        const selected = /^make install-tools TOOLS="([^"]+)"$/m.exec(run)?.[1]?.split(' ') ?? [];
+        tools.push(...selected);
+        if (selected.some(tool => ['composer', 'phpunit', 'phpcs', 'phpstan'].includes(tool))) tools.push('php');
+        if (selected.some(tool => ['phpunit', 'phpcs', 'phpstan'].includes(tool))) tools.push('composer');
+        if (selected.some(tool => ['deadcode', 'govulncheck', 'golangciLint'].includes(tool))) tools.push('go');
+        if (selected.includes('vulture')) tools.push('python', 'uv');
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
         if (/^make\b.*\binstall-rust\b/m.test(run)) violations.push(`${file} ${id}: make install-rust is gone; make install-tools installs the Rust toolchain of rust-toolchain.toml`);
         if (/^make\b.*\binstall-(?:tools|packages)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');

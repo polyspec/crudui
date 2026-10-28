@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0e308e499550e9de54ea62950e3e0ddcedcffa3980946d7f4f813ba54c4158ba -->
+<!-- source-sha256: e1a9204d18b9360639a074df346cfa51b766da4ad94b1e4d7c948e47924c56e6 -->
 
 ## Unreleased
+
+### 2026-10-28 — 선택한 잠긴 도구로 독립 언어 CI를 준비한다 (C18.12)
+
+- CI는 job별로 필요한 Kit 0.0.61 도구만 선택 설치한다. Go와 Rust job은 각 validator와 generator suite를 담당하며 JavaScript generator unit은 분리 실행한다. 언어 간 비교는 전체 필요 환경을 자체 준비한다. PHP extension fixture와 native parser lint는 필수 입력을 명시적으로 준비하며 CI Composer 설치는 lock을 갱신하지 않고 따른다.
 
 ### 2026-10-28 — 빌드 전용 의존성 권고 판단을 기록한다 (C18.12-3)
 

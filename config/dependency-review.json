@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-27T06:30:01.293Z",
+  "reviewed": "2026-10-28T12:05:58.490Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "055c21ca182c65a6f8ba85029129fd968b78ac8e025577899ca4ac7958fd1bb8",
+      "sha256": "5ae871868ed1ffa69a788cd510746ba6a5b6134e30ee05934cbe282bb7299d30",
       "advisories": []
     },
     {
@@ -87,14 +87,14 @@
       "manifest": "package.json",
       "package": "@microsoft/api-documenter",
       "version": "7.30.18",
-      "latest": "7.30.18"
+      "latest": "7.30.19"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "@microsoft/api-extractor",
       "version": "7.59.4",
-      "latest": "7.59.4"
+      "latest": "7.60.0"
     },
     {
       "ecosystem": "npm",
@@ -185,7 +185,7 @@
       "manifest": "package.json",
       "package": "oxlint",
       "version": "1.89.0",
-      "latest": "1.89.0"
+      "latest": "1.90.0"
     },
     {
       "ecosystem": "npm",
@@ -654,14 +654,14 @@
       "manifest": "composer.json",
       "package": "phpunit/phpunit",
       "version": "13.4.4",
-      "latest": "13.4.4"
+      "latest": "13.4.5"
     },
     {
       "ecosystem": "composer",
       "manifest": "examples/form-comparison/servers/php/native/composer.json",
       "package": "phpunit/phpunit",
       "version": "13.4.4",
-      "latest": "13.4.4"
+      "latest": "13.4.5"
     },
     {
       "ecosystem": "pypi",
@@ -682,7 +682,7 @@
       "manifest": "mise.toml",
       "package": "ruff",
       "version": "0.17.2",
-      "latest": "0.17.2"
+      "latest": "0.17.3"
     },
     {
       "ecosystem": "go",

@@ -1,5 +1,5 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: 149c5a6d0352427e7388c3de2b4dbe1ac9a3aa56d9c0b5cb15ffdef9dc2f6206 -->
+<!-- source-sha256: 9d6c9f343522ae3cd102985d01c562ba02855353614197a3ffc3eda46628a8ca -->
 # 로컬 release candidate 준비
 
 [English](plan.md)
@@ -43,8 +43,8 @@ commit의 publication 검사를 필요로 합니다. 향후 유지보수 검토 
 
 ## CI 환경별 설치 준비 (C18.12)
 
-Kit 0.0.60은 npm 외 요청에 선언한 도구 전체를 설치합니다. C18.12의 CI 설치 호출 변경에는
-`make install-tools TOOLS="..."` 선택 설치를 지원하는 Kit 공개 릴리즈가 필요합니다.
+Kit 0.0.61은 `make install-tools TOOLS="..."` 선택 설치를 제공합니다. 각 CI job은 필요한 도구를 선언하고
+자체 lock 의존성과 build를 준비합니다. PHP extension job은 고정 arginfo parser를 명시적으로 준비합니다.
 Root release asset과 native lock은 같은 릴리즈를 선택합니다. 로컬 source link는 개발 입력으로 유지합니다.
 
 모든 job은 잠긴 npm을 bootstrap하고 필요한 npm package를 설치합니다. 아래는 추가 도구와 입력입니다.
@@ -54,12 +54,12 @@ Root release asset과 native lock은 같은 릴리즈를 선택합니다. 로컬
 | --- | --- | --- |
 | validator-js, cli | 없음 | npm lock; 필요한 JavaScript package를 빌드하고 선택한 suite 실행 |
 | validator-php | PHP, Composer | Root Composer lock과 선언한 source provider; 설치 후 PHP validator suite 실행 |
-| validator-go | Go | go.work와 native module sum; module 다운로드 후 Go validator 빌드와 검사 |
-| validator-rust | Rust | rust-toolchain.toml과 Cargo lock; crate 다운로드 후 Rust validator를 offline으로 빌드하고 검사 |
+| validator-go | Go | go.work와 native module sum; module 다운로드 후 Go validator와 generator 빌드와 검사 |
+| validator-rust | Rust | rust-toolchain.toml과 Cargo lock; crate 다운로드 후 Rust validator와 generator를 offline으로 빌드하고 검사 |
 | python | Python, uv | uv.lock과 workspace build 선언; 잠긴 환경을 동기화하고 두 Python suite 실행 |
 | cross-language-equivalence | Go, Rust, PHP, Composer, Python, uv와 PHP extension 빌드 지원 | 자체 native 의존성 설치, 현재 JavaScript와 extension 빌드 후 두 generator 비교 명령 실행 |
-| cross-check-console | Go, Rust, PHP, Composer, Python, uv와 PHP extension 빌드 지원 | 자체 native 의존성 설치와 program 빌드 후 공용 validator 비교 |
-| native-generators | Go, Rust, PHP, Composer | Generator unit suite, benchmark driver와 필요한 browser; 필요한 native cache 유지 |
+| cross-check-console | Go, Rust, PHP, Composer, Python, uv와 PHP extension 빌드 지원 | 자체 native 의존성 설치와 program 빌드 후 공용 validator 비교와 benchmark driver regression |
+| native-generators | 고정 Chrome | JavaScript protocol과 widget unit suite; Go와 Rust generator suite는 각 언어 job에서 실행 |
 | php-api | PHP, Composer와 PHP extension 빌드 지원 | 잠긴 Composer 설치, 현재 extension 빌드와 PHP unit suite |
 | php-engine | C compiler와 sanitizer | 현재 JavaScript fixture 빌드와 native engine 컴파일; PHP setup 제거 전 실제 PHP 실행 여부 확인 |
 | form-runtime, package-browser | 고정 browser | npm lock, 필요한 JavaScript 빌드와 package가 고정한 browser build |

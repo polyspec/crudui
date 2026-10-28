@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-28 — Prepare independent language CI with selected locked tools (C18.12)
+
+- CI installs only the Kit 0.0.61 tool selectors required by each job. Go and Rust jobs own both validator and generator suites; JavaScript generator units run separately. Cross-language comparisons prepare their own complete environments. PHP extension fixtures and native parser lint receive explicit prerequisites, and CI Composer installation follows the lock without updating it.
+
 ### 2026-10-28 — Record the build-only dependency advisory decision (C18.12-3)
 
 - The dependency review preserves its existing npm severity threshold. The unpatched low-severity deepmerge advisory remains visible in raw audit results and is limited to trusted Svelte build configuration; no advisory exception or dependency override is added.
