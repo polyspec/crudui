@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 076c774e69905a7998d1050d696c95890aab4c8b5952a3f3699c112a304d804d -->
+<!-- source-sha256: 0f572c5520e5f4ab41af450afb179d46a091b508bf1201f864d720c0764ca7a0 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -62,4 +62,4 @@
 | C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [o] |
 | C18.13-2 | PHP 원인 예외와 동등한 native extension 생성자를 보존한다 (priority: high). | PHP caught cause propagation, equivalent C constructors and regression assertions | `make lint-php`; owning PHP and native constructor tests | [o] |
 | C18.13-3 | 문서, push, 의존성 검토 workflow의 남은 도구 설치 범위를 제한한다 (priority: high). | explicit job tool selectors and required native preparation in every application-owned workflow | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts tests/build/form-comparison-ci.test.mts` | [~] |
-| C18.13-4 | 선택한 도구만 검증하는 Kit 공개 수정을 반영한 뒤 candidate CI를 재시도한다 (priority: high). | published Kit pin and lock, successful fresh selected-tool checks without unrelated PHP preparation | `make toolchain-check TOOLS="node npm"`; `make toolchain-check TOOLS="node npm go"`; fresh isolated CI environments and complete parallel CI | [ ] |
+| C18.13-4 | 선택한 도구만 검증하는 Kit 공개 수정을 반영한 뒤 candidate CI를 재시도한다 (priority: high). | published Kit pin and lock, successful fresh selected-tool checks without unrelated PHP preparation | `make toolchain-check TOOLS="node npm"`; `make toolchain-check TOOLS="node npm go"`; fresh isolated CI environments and complete parallel CI | [~] |
