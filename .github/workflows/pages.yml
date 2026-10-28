@@ -52,8 +52,8 @@ jobs:
         with:
           php-version-file: .php-version
           tools: none
-      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
-        run: make install-tools
+      - name: Install the selected pinned documentation tools
+        run: make install-tools TOOLS="node go rust php composer"
       - name: Install PHP dependencies
         run: make crudui-install-composer
       - name: Cargo cache

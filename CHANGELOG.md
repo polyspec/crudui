@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-29 — Scope every application workflow installation (C18.13-3)
+
+- Documentation, push verification and dependency review workflows declare only their required tools. Push verification uses Node and npm without PHP. A native regression rejects whole-environment installation calls in all application-owned workflows.
+
 ## 0.0.9
 
 ### 2026-10-28 — Preserve native PHP exception causes (C18.13-2)

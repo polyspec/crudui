@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0190a2253baa0f0f5474bf82bd2bb512bceeec85e6df38f75cfe8888ecdafffe -->
+<!-- source-sha256: bcd6298757a73a03c3dac8ea03617bdfcc75d0bf0b1e9a6001a1b21597121f26 -->
 
 ## Unreleased
+
+### 2026-10-29 — 모든 앱 workflow의 설치 범위를 지정한다 (C18.13-3)
+
+- 문서, push 검증과 의존성 검토 workflow는 필요한 도구만 선언한다. Push 검증은 PHP 없이 Node와 npm을 사용한다. Native 회귀 검사는 앱 소유 모든 workflow에서 전체 환경 설치 호출을 거부한다.
 
 ## 0.0.9
 

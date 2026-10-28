@@ -714,3 +714,23 @@ test('language jobs install only their required tools and own both validator and
     assert.equal((job.steps ?? []).some(step => /^make install(?:\s|$)/.test(step.run ?? '')), false, id);
   }
 });
+
+test('every application workflow declares a bounded tool installation scope', async () => {
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml', 'dependency-review.yml']) {
+    const workflow = await workflowFile(file);
+    for (const [id, job] of Object.entries(workflow.jobs)) {
+      for (const step of job.steps ?? []) {
+        const run = step.run ?? '';
+        assert.doesNotMatch(run, /(?:^|\n)\s*make install-tools\s*(?:\n|$)/, `${file} ${id}`);
+        assert.doesNotMatch(run, /(?:^|\n)\s*make install\s*(?:\n|$)/, `${file} ${id}`);
+      }
+    }
+  }
+  const push = jobOf(await workflowFile('push-gate.yml'), 'push-gate');
+  assert.ok((push.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node"'));
+  assert.equal((push.steps ?? []).some(step => step.uses?.startsWith('shivammathur/setup-php@')), false);
+  const pages = jobOf(await workflowFile('pages.yml'), 'docs-web');
+  assert.ok((pages.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go rust php composer"'));
+  const review = jobOf(await workflowFile('dependency-review.yml'), 'review');
+  assert.ok((review.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go php composer cargoAudit govulncheck"'));
+});
