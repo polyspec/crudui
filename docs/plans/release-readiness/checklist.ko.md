@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: bf50c8a9b78570cf9a2b9906b3e5fd07910c2cfd99c24d3fde111f35130261ad -->
+<!-- source-sha256: f07e602c0e8b4161a456b1a79bc48bf4b29d7cbb95952be7db449432b3ac7073 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -60,3 +60,4 @@
 | C18.12-3 | 공개 전에 패치가 없는 빌드 전용 deepmerge 권고의 노출과 처리 근거를 기록한다 (priority: high). | exact advisory exposure decision, dependency policy and native review evidence | `make dependency-policy-check`; current native audit and package exposure evidence | [o] |
 | C18.13 | 언어별 검사와 독립 동등 검사 CI 통과 후 CRUDUI 0.0.9를 준비하고 공개한다 (priority: high). | candidate manifests and native locks, current consumer archives, exact-commit CI and verified public release | `make release-versions TAG=v0.0.9`; `make release-coverage`; successful exact-commit CI and public release proof | [ ] |
 | C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [~] |
+| C18.13-2 | PHP 원인 예외와 동등한 native extension 생성자를 보존한다 (priority: high). | PHP caught cause propagation, equivalent C constructors and regression assertions | `make lint-php`; owning PHP and native constructor tests | [ ] |
