@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 4f37757ff83a401ee82d75ee2bdf30e30838b72b9ef5f5281c4e71b1566eb67f -->
+<!-- source-sha256: b8beee9b502f97a4a256b715755756d9090eb70e6b9c1d50e0dc7a649181593e -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -64,3 +64,4 @@
 | C18.13-3 | 문서, push, 의존성 검토 workflow의 남은 도구 설치 범위를 제한한다 (priority: high). | explicit job tool selectors and required native preparation in every application-owned workflow | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts tests/build/form-comparison-ci.test.mts` | [o] |
 | C18.13-4 | 선택한 도구만 검증하는 Kit 공개 수정을 반영한 뒤 candidate CI를 재시도한다 (priority: high). | published Kit pin and lock, successful fresh selected-tool checks without unrelated PHP preparation | `make toolchain-check TOOLS="node npm"`; `make toolchain-check TOOLS="node npm go"`; native selected-tool verification; final isolated candidate CI is required by C18.13 | [o] |
 | C18.13-5 | 공개 전에 runtime 범위 source 연결의 정식 Kit 수정을 반영한다 (priority: high). | published Kit fix for issue14 and fresh runtime gates without unrelated language installation | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts tests/build/form-comparison-ci.test.mts`; final isolated CI and release proof remain required by C18.13 | [o] |
+| C18.13-6 | Candidate CI 전에 Kit 0.0.63으로 0.0.9 archive와 consumer proof를 확정한다 (priority: high). | current candidate archives, native consumer records and final release metadata | `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9`; `make release-consumer TAG=v0.0.9`; `make release-versions TAG=v0.0.9` | [ ] |
