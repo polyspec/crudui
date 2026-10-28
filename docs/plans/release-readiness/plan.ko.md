@@ -1,5 +1,5 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: f687f58a31c04117550d194b7605ee6090720349e0fbe73676fedad3ddf9027b -->
+<!-- source-sha256: 149c5a6d0352427e7388c3de2b4dbe1ac9a3aa56d9c0b5cb15ffdef9dc2f6206 -->
 # 로컬 release candidate 준비
 
 [English](plan.md)
@@ -81,3 +81,11 @@ Root release asset과 native lock은 같은 릴리즈를 선택합니다. 로컬
 - 검사는 offline 환경과 자동 설치 금지를 유지합니다. Cache가 없으면 network fallback 대신 실패합니다.
 - Conformance와 최종 CI는 관련 결과를 모두 요구합니다. Evidence summary만 evidence 생산 job을 기다립니다.
 - 변경 중에는 소유 workflow와 Make 검사만 실행합니다. 전체 모음은 활성 checklist 항목을 모두 완료한 뒤 한 번 실행합니다.
+
+
+## 빌드 의존성 권고 검토 (C18.12-3)
+
+GHSA-gcqx-w48m-w2h4는 Svelte Vite plugin이 신뢰한 저장소 build 설정 병합에 사용하는 deepmerge 4.3.1에 해당합니다.
+권고의 심각도는 low이며 패치 릴리즈는 없습니다. 공개 runtime package는 deepmerge에 의존하지 않습니다.
+기존 의존성 검토는 npm moderate, high, critical 항목을 기록하며 이 기준을 유지합니다.
+Raw npm audit는 low 항목과 이를 사용하는 plugin을 계속 보고합니다. 예외나 package override를 추가하지 않습니다.

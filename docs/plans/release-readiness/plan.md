@@ -83,3 +83,11 @@ Tool aliases and transitive installation dependencies must match the released Ki
 - Checks retain the offline environment and auto-install prohibitions. Missing caches fail instead of enabling network fallback.
 - Conformance and final CI require all relevant results. Only evidence summaries wait for the evidence-producing jobs.
 - Owning workflow and Make tests run during the change. The complete suite runs once after all active checklist items finish.
+
+
+## Build dependency advisory review (C18.12-3)
+
+GHSA-gcqx-w48m-w2h4 affects deepmerge 4.3.1, used by the Svelte Vite plugin to merge trusted repository build configuration.
+The advisory has low severity and no patched release. The published runtime packages do not depend on deepmerge.
+The existing dependency review records npm moderate, high and critical findings; this threshold remains unchanged.
+The raw npm audit still reports the low finding and its dependent plugin. No exception or package override is added.

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-28 — Record the build-only dependency advisory decision (C18.12-3)
+
+- The dependency review preserves its existing npm severity threshold. The unpatched low-severity deepmerge advisory remains visible in raw audit results and is limited to trusted Svelte build configuration; no advisory exception or dependency override is added.
+
 ### 2026-10-28 — Prepare scheduled dependency review correctly (C18.12-2)
 
 - Dependency review installs the declared PHP before its tool installation and performs that installation once. Its application target clears the CI target selection before invoking the shared review command; explicit local dependency version targets remain supported.

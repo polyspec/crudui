@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: bec2a2e3fa081f235546bd3545e9dc08fb30b183ee339471b467e23ec90d1b67 -->
+<!-- source-sha256: 2fca23a57d26ef1d3edc96328c8fdebbf6b47bc5ad65018263602ae08762fdae -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -57,5 +57,5 @@
 | C18.12 | 각 CI 언어 환경이 필요한 잠긴 도구와 의존성만 독립적으로 준비한다 (priority: high). | language scoped installation targets, self-contained workflow jobs, locked offline verification and explicit remaining shared-tool requirements | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [~] |
 | C18.12-1 | CI 도구 목록과 선택 설치 적용 검증 기준을 준비한다 (priority: high). | job-specific tool and dependency inventory, independent build contracts and adoption checks | `make records-check`; `git diff --check` | [o] |
 | C18.12-2 | 의존성 검토의 도구 준비 순서와 target 인자 전달을 수정한다 (priority: high). | scheduled workflow preparation order, application review target and native argument regression | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [o] |
-| C18.12-3 | 공개 전에 패치가 없는 빌드 전용 deepmerge 권고의 노출과 처리 근거를 기록한다 (priority: high). | exact advisory exposure decision, dependency policy and native review evidence | `make dependency-policy-check`; current native audit and package exposure evidence | [~] |
+| C18.12-3 | 공개 전에 패치가 없는 빌드 전용 deepmerge 권고의 노출과 처리 근거를 기록한다 (priority: high). | exact advisory exposure decision, dependency policy and native review evidence | `make dependency-policy-check`; current native audit and package exposure evidence | [o] |
 | C18.13 | 언어별 검사와 독립 동등 검사 CI 통과 후 CRUDUI 0.0.9를 준비하고 공개한다 (priority: high). | candidate manifests and native locks, current consumer archives, exact-commit CI and verified public release | `make release-versions TAG=v0.0.9`; `make release-coverage`; successful exact-commit CI and public release proof | [ ] |

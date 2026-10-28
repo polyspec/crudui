@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 78a2b84ba51f17713a275bfd5a6aec3b38e8ced9a9da0ebecd500e306c75cdf8 -->
+<!-- source-sha256: 0e308e499550e9de54ea62950e3e0ddcedcffa3980946d7f4f813ba54c4158ba -->
 
 ## Unreleased
+
+### 2026-10-28 — 빌드 전용 의존성 권고 판단을 기록한다 (C18.12-3)
+
+- 의존성 검토는 기존 npm 심각도 기준을 유지한다. 패치가 없는 low 심각도 deepmerge 권고는 raw audit 결과에 유지되며 신뢰한 Svelte build 설정에 한정된다. 권고 예외나 의존성 override를 추가하지 않는다.
 
 ### 2026-10-28 — 정기 의존성 검토 준비를 수정한다 (C18.12-2)
 
