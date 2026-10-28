@@ -15,6 +15,43 @@ use PHPUnit\Framework\TestCase;
  */
 final class RuleParametersTest extends TestCase
 {
+    public function testCompositionErrorPreservesPreviousCauseAndTrace(): void
+    {
+        $cause = new \InvalidArgumentException('Invalid parameter');
+        $error = new ComposeLoadError('INVALID_RULE_PARAMETER', 'Invalid declaration', ['rows', 'name'], $cause);
+        self::assertSame('INVALID_RULE_PARAMETER', $error->getErrorCode());
+        self::assertSame('Invalid declaration', $error->getMessage());
+        self::assertSame(['rows', 'name'], $error->getCompositionTrace());
+        self::assertSame(0, $error->getCode());
+        self::assertSame($cause, $error->getPrevious());
+        self::assertNull((new ComposeLoadError('INVALID_RULE_PARAMETER', 'Invalid declaration'))->getPrevious());
+    }
+
+    public function testInvalidPatternPreservesCompletePreviousCauseChain(): void
+    {
+        $spec = (object) [
+            'type' => 'group',
+            'properties' => (object) [
+                'name' => (object) ['type' => 'text', 'validate' => (object) ['pattern' => '\\q']],
+            ],
+        ];
+        try {
+            Validator::validate($spec, new \stdClass());
+            self::fail('Invalid pattern must fail declaration checking');
+        } catch (ComposeLoadError $error) {
+            self::assertSame('INVALID_RULE_PATTERN', $error->getErrorCode());
+            self::assertSame(['name'], $error->getCompositionTrace());
+            $parameter = $error->getPrevious();
+            self::assertInstanceOf(\Polyspec\Crudui\Validator\Values\InvalidRuleParameter::class, $parameter);
+            self::assertSame($parameter->getErrorCode(), $error->getErrorCode());
+            self::assertSame($parameter->getMessage(), $error->getMessage());
+            $syntax = $parameter->getPrevious();
+            self::assertInstanceOf(\Polyspec\Crudui\Validator\Patterns\PatternSyntaxError::class, $syntax);
+            self::assertSame('invalid escape', $syntax->reason);
+            self::assertSame(0, $syntax->offset);
+        }
+    }
+
     /** @return array{code: string, message: string, at: string} */
     private static function failure(string $spec, string $data = '{}'): array
     {

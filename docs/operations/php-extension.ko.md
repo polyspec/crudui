@@ -1,6 +1,6 @@
 # PHP 확장
 <!-- doc-id: docs-operations-php-extension -->
-<!-- source-sha256: a76411f0c98cf81dbb6407925c6b0286aaa6b33bdcbf92ec7cac220cfa18af52 -->
+<!-- source-sha256: 9346e16facd3085f854ed206ccfcce449c356e0670af34bad1164ba5422446de -->
 
 [English](php-extension.md).
 구현, 검증, 패키지 게시 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -8,7 +8,7 @@
 ## 범위와 모듈
 
 `crudui` PHP 확장은 PHP 프로세스에서 폼 생성과 검증을 제공합니다.
-패키지 경로는 `packages/php-ext`이고 버전은 `0.0.7`입니다.
+패키지 경로는 `packages/php-ext`이며 Composer manifest가 버전을 기록합니다.
 확장은 C로 폼 생성기와 검증기를 구현합니다.
 
 생성은 구조 컴파일, 데이터 바인딩, 폼 인스턴스, HTML 렌더링을 분리합니다.
@@ -30,6 +30,10 @@ PHP 패키지와 확장은 같은 공개 클래스를 제공합니다.
 `ComposeLoadError::getCompositionTrace()`는 원래 조합 경로 항목을 반환합니다.
 예외는 이 정보를 PHP 예외 호출 스택과 별도로 저장합니다.
 `getTrace()`는 PHP의 기본 동작을 유지합니다.
+
+`FormError`와 `ComposeLoadError`는 기본값이 `null`인 네 번째 선택 인자 `?Throwable $previous`를 받습니다.
+세 번째 인자는 기존 form path 또는 composition trace를 유지합니다. 두 구현의 `getPrevious()`는 전달한 원인을 반환합니다.
+PHP 입력, rule 또는 composition 실패를 감쌀 때 기존 원인 예외와 안정된 오류 필드를 보존합니다.
 
 | 프로세스 설정 | 클래스 구현 |
 | --- | --- |

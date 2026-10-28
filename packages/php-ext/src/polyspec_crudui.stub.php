@@ -63,7 +63,7 @@ namespace Polyspec\Crudui {
     final class FormError extends \RuntimeException {
         private readonly string $errorCode;
         private readonly string $path;
-        public function __construct(string $errorCode, string $message, string $path = '') {}
+        public function __construct(string $errorCode, string $message, string $path = '', ?\Throwable $previous = null) {}
         public function getErrorCode(): string {}
         public function getPath(): string {}
     }
@@ -73,7 +73,7 @@ namespace Polyspec\Crudui\Validator\Compose {
     final class ComposeLoadError extends \RuntimeException {
         private readonly string $errorCode;
         private readonly array $compositionTrace;
-        public function __construct(string $code, string $message, array $trace = []) {}
+        public function __construct(string $code, string $message, array $trace = [], ?\Throwable $previous = null) {}
         public function getErrorCode(): string {}
         public function getCompositionTrace(): array {}
         public function __get(string $name): mixed {}

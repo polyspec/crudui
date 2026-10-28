@@ -33,6 +33,7 @@ final class PatternParameter
             throw new InvalidRuleParameter(
                 InvalidRuleParameter::PATTERN,
                 "Invalid $rule pattern: {$error->reason} at {$error->offset}",
+                previous: $error,
             );
         }
     }

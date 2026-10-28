@@ -42,7 +42,7 @@ final class ChoiceList
         try {
             $choices = GroupSource::choices((array) $spec->items, $data);
         } catch (FormInputError $error) {
-            throw new FormError($error->getErrorCode(), $error->getMessage());
+            throw new FormError($error->getErrorCode(), $error->getMessage(), previous: $error);
         }
         $items = [];
         foreach ($choices as [$value, $label]) {

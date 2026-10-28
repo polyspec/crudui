@@ -13,6 +13,40 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FormTest extends TestCase
 {
+    public function testFormErrorPreservesPreviousCauseAndPath(): void
+    {
+        $cause = new \InvalidArgumentException('Invalid source value');
+        $error = new FormError('INVALID_FORM_INPUT', 'Invalid form', 'rows.r1.name', $cause);
+        self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
+        self::assertSame('Invalid form', $error->getMessage());
+        self::assertSame('rows.r1.name', $error->getPath());
+        self::assertSame(0, $error->getCode());
+        self::assertSame($cause, $error->getPrevious());
+        self::assertNull((new FormError('INVALID_FORM_INPUT', 'Invalid form'))->getPrevious());
+    }
+
+    public function testValueConversionPreservesPreviousCause(): void
+    {
+        $operations = [
+            static fn () => \Polyspec\Crudui\Generator\Value::object([1]),
+            static fn () => \Polyspec\Crudui\Generator\Value::spec([1]),
+            static fn () => \Polyspec\Crudui\Generator\Value::copy(new \DateTimeImmutable()),
+        ];
+        foreach ($operations as $operation) {
+            try {
+                $operation();
+                self::fail('Unsupported form values must fail');
+            } catch (FormError $error) {
+                self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
+                self::assertSame('', $error->getPath());
+                $previous = $error->getPrevious();
+                self::assertNotNull($previous);
+                self::assertTrue($previous instanceof \TypeError || $previous instanceof \InvalidArgumentException);
+                self::assertSame($previous->getMessage(), $error->getMessage());
+            }
+        }
+    }
+
     public function testRepeatedLiteralChoiceUsesGenerationError(): void
     {
         $spec = self::object(
@@ -32,6 +66,8 @@ final class FormTest extends TestCase
                 $error->getMessage()
             );
             self::assertSame('', $error->getPath());
+            self::assertInstanceOf(\Polyspec\Crudui\Validator\Validate\FormInputError::class, $error->getPrevious());
+            self::assertSame($error->getMessage(), $error->getPrevious()->getMessage());
         }
     }
 

@@ -17,7 +17,7 @@ final class Value
         try {
             return JsonValue::object($value);
         } catch (\TypeError | \InvalidArgumentException $error) {
-            throw new FormError('INVALID_FORM_INPUT', $error->getMessage());
+            throw new FormError('INVALID_FORM_INPUT', $error->getMessage(), previous: $error);
         }
     }
 
@@ -40,7 +40,7 @@ final class Value
         try {
             return JsonValue::orderedObject($value);
         } catch (\TypeError | \InvalidArgumentException $error) {
-            throw new FormError('INVALID_FORM_INPUT', $error->getMessage());
+            throw new FormError('INVALID_FORM_INPUT', $error->getMessage(), previous: $error);
         }
     }
 
@@ -56,7 +56,7 @@ final class Value
         try {
             return JsonValue::copy($value);
         } catch (\InvalidArgumentException $error) {
-            throw new FormError('INVALID_FORM_INPUT', $error->getMessage());
+            throw new FormError('INVALID_FORM_INPUT', $error->getMessage(), previous: $error);
         }
     }
 

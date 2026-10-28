@@ -79,32 +79,37 @@ PHP_METHOD(Polyspec_Crudui_FormError, __construct)
 {
     (void)return_value;
     zend_string *code, *message, *path = NULL;
-    ZEND_PARSE_PARAMETERS_START(2, 3)
+    zval *previous = NULL;
+    ZEND_PARSE_PARAMETERS_START(2, 4)
         Z_PARAM_STR(code)
         Z_PARAM_STR(message)
         Z_PARAM_OPTIONAL
         Z_PARAM_STR(path)
+        Z_PARAM_OBJECT_OF_CLASS_OR_NULL(previous, zend_ce_throwable)
     ZEND_PARSE_PARAMETERS_END();
     zval detail;
     if (path) ZVAL_STR_COPY(&detail, path); else ZVAL_EMPTY_STRING(&detail);
     initialize_error(crudui_form_error_ce, Z_OBJ_P(ZEND_THIS), code, message, &detail);
     zval_ptr_dtor(&detail);
+    if (previous) zend_update_property(zend_ce_exception, Z_OBJ_P(ZEND_THIS), ZEND_STRL("previous"), previous);
 }
 
 PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, __construct)
 {
     (void)return_value;
     zend_string *code, *message;
-    zval *trace = NULL, detail;
-    ZEND_PARSE_PARAMETERS_START(2, 3)
+    zval *trace = NULL, *previous = NULL, detail;
+    ZEND_PARSE_PARAMETERS_START(2, 4)
         Z_PARAM_STR(code)
         Z_PARAM_STR(message)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(trace)
+        Z_PARAM_OBJECT_OF_CLASS_OR_NULL(previous, zend_ce_throwable)
     ZEND_PARSE_PARAMETERS_END();
     if (trace) ZVAL_COPY(&detail, trace); else array_init(&detail);
     initialize_error(crudui_compose_error_ce, Z_OBJ_P(ZEND_THIS), code, message, &detail);
     zval_ptr_dtor(&detail);
+    if (previous) zend_update_property(zend_ce_exception, Z_OBJ_P(ZEND_THIS), ZEND_STRL("previous"), previous);
 }
 
 static void return_property(zend_class_entry *ce, zend_object *object, const char *name, size_t length, zval *return_value)

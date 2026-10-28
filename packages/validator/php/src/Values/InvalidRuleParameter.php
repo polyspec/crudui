@@ -19,9 +19,9 @@ final class InvalidRuleParameter extends \InvalidArgumentException
     public const PATTERN = 'INVALID_RULE_PATTERN';
 
     /** @param string $errorCode INVALID_RULE_PARAMETER or INVALID_RULE_PATTERN */
-    public function __construct(private readonly string $errorCode, string $message)
+    public function __construct(private readonly string $errorCode, string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, 0, $previous);
     }
 
     /** Return the load failure code. */

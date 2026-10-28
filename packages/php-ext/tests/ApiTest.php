@@ -60,6 +60,95 @@ final class ApiTest extends TestCase
         self::assertSame('INVALID_FORM_INPUT Recursive or excessively nested PHP value', $result->stdout);
     }
 
+    public function testNativeErrorConstructorsPreservePreviousThrowable(): void
+    {
+        $script = <<<'PHP'
+        $results = [];
+        foreach ([
+            Polyspec\Crudui\FormError::class,
+            Polyspec\Crudui\Validator\Compose\ComposeLoadError::class,
+        ] as $class) {
+            $detail = $class === Polyspec\Crudui\FormError::class ? 'rows[0]' : ['spec.fields.name'];
+            $cause = new Error('original failure');
+            $weak = WeakReference::create($cause);
+            $error = new $class('CODE', 'wrapped failure', $detail, previous: $cause);
+            $results[$class] = [
+                'same' => $error->getPrevious() === $cause,
+                'code' => $error->getErrorCode(),
+                'message' => $error->getMessage(),
+                'detail' => $class === Polyspec\Crudui\FormError::class
+                    ? $error->getPath()
+                    : $error->getCompositionTrace(),
+                'default' => (new $class('CODE', 'default'))->getPrevious() === null,
+                'null' => (new $class('CODE', 'null', previous: null))->getPrevious() === null,
+            ];
+            unset($cause);
+            gc_collect_cycles();
+            $results[$class]['retained'] = $weak->get() !== null;
+            unset($error);
+            gc_collect_cycles();
+            $results[$class]['released'] = $weak->get() === null;
+            try {
+                new $class('CODE', 'invalid', previous: new stdClass());
+                $results[$class]['rejectsInvalid'] = false;
+            } catch (TypeError) {
+                $results[$class]['rejectsInvalid'] = true;
+            }
+        }
+        echo json_encode($results, JSON_THROW_ON_ERROR);
+        PHP;
+        $result = PhpProcess::run([self::extension()], $script, [], false);
+        self::assertSame(0, $result->status, $result->stderr . $result->stdout);
+        self::assertSame('', $result->stderr);
+        $expected = [];
+        $classes = [
+            \Polyspec\Crudui\FormError::class,
+            \Polyspec\Crudui\Validator\Compose\ComposeLoadError::class,
+        ];
+        foreach ($classes as $class) {
+            $expected[$class] = [
+                'same' => true,
+                'code' => 'CODE',
+                'message' => 'wrapped failure',
+                'detail' => $class === \Polyspec\Crudui\FormError::class ? 'rows[0]' : ['spec.fields.name'],
+                'default' => true,
+                'null' => true,
+                'retained' => true,
+                'released' => true,
+                'rejectsInvalid' => true,
+            ];
+        }
+        self::assertSame($expected, json_decode($result->stdout, true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testNativeErrorConstructorSignaturesMatchSource(): void
+    {
+        $script = <<<'PHP'
+        $results = [];
+        foreach ([
+            Polyspec\Crudui\FormError::class,
+            Polyspec\Crudui\Validator\Compose\ComposeLoadError::class,
+        ] as $class) {
+            $results[$class] = array_map(
+                static fn(ReflectionParameter $parameter): array => [
+                    $parameter->getName(), (string) $parameter->getType(), $parameter->isOptional(),
+                    $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
+                ],
+                (new ReflectionMethod($class, '__construct'))->getParameters(),
+            );
+        }
+        echo json_encode($results, JSON_THROW_ON_ERROR);
+        PHP;
+        $native = PhpProcess::run([self::extension()], $script, [], false);
+        $source = PhpProcess::run([], $script);
+        self::assertSame(0, $native->status, $native->stderr);
+        self::assertSame(0, $source->status, $source->stderr);
+        self::assertSame(
+            json_decode($source->stdout, true, 512, JSON_THROW_ON_ERROR),
+            json_decode($native->stdout, true, 512, JSON_THROW_ON_ERROR),
+        );
+    }
+
     public function testTheExtensionValidatesEveryValidationFixtureAsTheLibraryDoes(): void
     {
         $pure = self::report(ValidateReport::class, false, true);

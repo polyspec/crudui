@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 75df45db1016a7e357c67eb7e07a3d46824e30ab */
+ * Stub hash: eb99d15179f38022ea98f93c0f03e6f7f674dc1c */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Polyspec_Crudui_Generator_compileForm, 0, 1, stdClass, 0)
 	ZEND_ARG_OBJ_TYPE_MASK(0, spec, stdClass, MAY_BE_ARRAY, NULL)
@@ -204,6 +204,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Polyspec_Crudui_FormError___construct, 0, 0
 	ZEND_ARG_TYPE_INFO(0, errorCode, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, message, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, path, IS_STRING, 0, "\'\'")
+	ZEND_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, previous, Throwable, 1, "null")
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Polyspec_Crudui_FormError_getErrorCode arginfo_class_Polyspec_Crudui_Generator_createRowKey
@@ -214,6 +215,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Polyspec_Crudui_Validator_Compose_ComposeLo
 	ZEND_ARG_TYPE_INFO(0, code, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, message, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, trace, IS_ARRAY, 0, "[]")
+	ZEND_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, previous, Throwable, 1, "null")
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Polyspec_Crudui_Validator_Compose_ComposeLoadError_getErrorCode arginfo_class_Polyspec_Crudui_Generator_createRowKey

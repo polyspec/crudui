@@ -68,8 +68,8 @@ try {
             throw new JsonException('Malformed UTF-8 characters', JSON_ERROR_UTF8);
         }
         $request = JsonText::decode($input);
-    } catch (JsonException) {
-        throw new InvalidArgumentException('Request must be valid JSON');
+    } catch (JsonException $error) {
+        throw new InvalidArgumentException('Request must be valid JSON', 0, $error);
     }
     if (!$request instanceof stdClass) {
         throw new InvalidArgumentException('Request must be an object');

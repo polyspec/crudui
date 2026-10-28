@@ -65,7 +65,12 @@ final class RuleParameters
                 default => null,
             };
         } catch (InvalidRuleParameter $error) {
-            throw new ComposeLoadError($error->getErrorCode(), $error->getMessage(), $declarationPath);
+            throw new ComposeLoadError(
+                $error->getErrorCode(),
+                $error->getMessage(),
+                $declarationPath,
+                previous: $error,
+            );
         }
     }
 

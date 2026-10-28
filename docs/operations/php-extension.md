@@ -8,7 +8,7 @@ Implementation, verification and publication are recorded in
 ## Scope and modules
 
 The `crudui` PHP extension provides form generation and validation in the PHP
-process. Its package is `packages/php-ext`, with version `0.0.7`.
+process. Its package is `packages/php-ext`; its Composer manifest records the version.
 The extension implements the form generator and validator in C.
 
 Generation separates structure compilation, data binding, form instances and
@@ -31,6 +31,10 @@ are identical. API calls do not change with the implementation.
 `ComposeLoadError::getCompositionTrace()` returns the original composition path
 entries. The exception stores them separately from PHP's exception call stack;
 `getTrace()` retains its standard PHP meaning.
+
+`FormError` and `ComposeLoadError` accept an optional fourth `?Throwable $previous` argument, defaulting to `null`.
+The third argument remains the form path or composition trace. `getPrevious()` returns the supplied cause in both
+implementations. Wrapping a PHP input, rule or composition failure preserves its previous exception and stable error fields.
 
 | Process configuration | Class implementation |
 | --- | --- |

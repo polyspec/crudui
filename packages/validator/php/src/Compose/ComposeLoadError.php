@@ -16,9 +16,9 @@ final class ComposeLoadError extends \RuntimeException
     /**
      * @param list<string> $trace
      */
-    public function __construct(string $code, string $message, array $trace = [])
+    public function __construct(string $code, string $message, array $trace = [], ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, 0, $previous);
         $this->errorCode = $code;
         $this->compositionTrace = $trace;
     }

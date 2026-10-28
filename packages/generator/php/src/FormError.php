@@ -8,9 +8,13 @@ namespace Polyspec\Crudui;
 final class FormError extends \RuntimeException
 {
     /** Create a generation error. */
-    public function __construct(private readonly string $errorCode, string $message, private readonly string $path = '')
-    {
-        parent::__construct($message);
+    public function __construct(
+        private readonly string $errorCode,
+        string $message,
+        private readonly string $path = '',
+        ?\Throwable $previous = null,
+    ) {
+        parent::__construct($message, 0, $previous);
     }
 
     /** Return the stable error code. */
