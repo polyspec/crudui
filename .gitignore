@@ -93,3 +93,13 @@ go.work.sum
 /packages/validator/go/go.work
 /packages/generator/go/go.work
 /scripts/go/go.work
+
+# Native Go module builds write platform executables beside their manifests.
+/benchmarks/validators/go/go
+/benchmarks/validators/go/go.exe
+/examples/cross-check-console/validators/go/go
+/examples/cross-check-console/validators/go/go.exe
+/examples/form-comparison/servers/go/go
+/examples/form-comparison/servers/go/go.exe
+/tests/native-generators/programs/go/go
+/tests/native-generators/programs/go/go.exe

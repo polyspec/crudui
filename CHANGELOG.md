@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-29 — Ignore native Go executable outputs (C18.13-7)
+
+- Native Go module executables are ignored at their exact generated paths on Unix and Windows. Source files remain visible, and candidate archives retain the clean committed-source requirement.
+
 ### 2026-10-29 — Scope provider source links to each runtime (C18.13-5)
 
 - Kit 0.0.63 forwards each runtime into native source linking. Runtime jobs prepare and link their own ecosystems, while full parity retains complete linking. Native regression checks use real Git manifests and preserve full-link dependency requirements.

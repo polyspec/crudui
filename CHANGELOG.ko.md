@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 797c0f39d1d68b334a1cb417e5f73bf132c47f7cdfcd89f2232f773782f91bf2 -->
+<!-- source-sha256: f5b0788755e0a80da1f7bf1f13280705450e5a96a421f78b1a25b9f6d1d45ba4 -->
 
 ## Unreleased
+
+### 2026-10-29 — Native Go 실행 파일 생성물을 ignore한다 (C18.13-7)
+
+- Unix와 Windows의 native Go module 실행 파일은 정확한 생성 경로에서 ignore한다. Source file은 계속 표시하며 candidate archive는 깨끗한 커밋 source 요구사항을 유지한다.
 
 ### 2026-10-29 — Provider source 연결 범위를 runtime별로 지정한다 (C18.13-5)
 
