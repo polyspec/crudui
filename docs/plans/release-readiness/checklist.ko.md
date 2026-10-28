@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: db5ea3af86006e6b71b68915599e0bc2d32915aa62a0c85567c8e5995b1f33c3 -->
+<!-- source-sha256: fce1b8e183f5e081ded105b6222f4793f8da3a9d2d89d0cf8bc1c20f971dae2a -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -54,3 +54,4 @@
 | C18.10-29 | Service child runtime을 부모 test instrumentation과 분리한다 (priority: high). | native service fork arguments and environment with IPC regression | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C18.10-30 | Native untimed suite 기본값과 개별 case 제한을 유지한다 (priority: high). | native Node suite options verified against the pinned Node runtime | `node --check examples/form-comparison/pipeline.browser.mjs`; native aggregate duration exceeds the default deadline while each case remains bounded; syntax and changed-file lint | [o] |
 | C18.11 | 언어 간 동등 검사를 언어별 단위 검사와 독립 실행한다 (priority: high). | independent comparison CI job, Make targets and owning regression tests | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/form-comparison-ci.test.mts` | [o] |
+| C18.12 | 각 CI 언어 환경이 필요한 잠긴 도구와 의존성만 독립적으로 준비한다 (priority: high). | language scoped installation targets, self-contained workflow jobs, locked offline verification and explicit remaining shared-tool requirements | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [ ] |
