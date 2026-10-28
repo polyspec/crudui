@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4d453c6a9d6dda33323f676ea9fed7f2279f8102d24f959e2543bed0c1f88b39 -->
+<!-- source-sha256: ce8ef1f0394f80c85ed412afc7ca2fe6e2a137276953416f839bc9ade51ce5e8 -->
 
 ## Unreleased
+
+### 2026-10-28 — 언어 간 비교를 독립 실행한다 (C18.11)
+
+- CI는 JavaScript, HTML, Go, Rust, Python, PHP와 native PHP extension의 생성기 동등 검사를 독립 job으로 실행한다. 언어별 unit job은 기존 검사를 유지한다. 비교 job은 자체 입력을 준비하고 두 report와 evidence를 업로드하며 conformance와 최종 CI 검사의 필수 결과가 된다.
 
 ### 2026-10-27 — CRUDUI 0.0.8을 공개한다 (C18.10)
 

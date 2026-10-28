@@ -32,7 +32,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
+.PHONY: crudui-test-cross-language-equivalence help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent release-assets release-candidate-assets
 
 # Shared commands come from the installed @polyspec/kit package. Native npm links may connect that package to local
@@ -390,13 +390,8 @@ bench-go: cargo-downloads-check bench-fixtures ## Go 검증기만 측정
 bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-# The native suites in three parts, which CI runs in three jobs (.github/workflows/ci.yml) and crudui-test-native runs in one
-# command. crudui-test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers, with the
-# contract tests of packages/php-ext/tests/contract that the parity units bind for the extension (K422), and needs no PHP; crudui-test-native-generators runs the Go and Rust generator suites, the widget and protocol tests and the shared
-# suite for the JavaScript, HTML, Go and Rust targets and needs no PHP; crudui-test-php-api builds and loads the extension and
-# runs the PHP generator suite, the PHP API tests and the shared suite for the PHP and native PHP targets, once for each
-# PHP release of the CI matrix. Within a part every suite runs even when an earlier one fails, so one run reports every
-# failure; any failure fails the target.
+# Native unit suites and cross-language generator equivalence run in independent CI jobs.
+# The aggregate target runs each part once and reports every failure.
 crudui-test-php-engine:
 	$(NODE) scripts/require-current-build.mts
 	$(NODE) tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine/engine.test.mjs packages/php-ext/tests/contract/*.test.mjs packages/php-ext/tests/comparison/comparison.test.mjs
@@ -408,7 +403,6 @@ crudui-test-native-generators: cargo-downloads-check
 	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node -- tests/native-generators/protocol.test.mts || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
-	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 crudui-test-php-api: require-build build-php-ext
@@ -416,6 +410,12 @@ crudui-test-php-api: require-build build-php-ext
 	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
 	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal || status=1; \
 	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php --php-extension "$(PHP_EXTENSION)" --without-library packages/generator/php -- tests/FormStateTest.php tests/ButtonsConformanceTest.php tests/TemplateShapeTest.php tests/HistoryFunctionsTest.php || status=1; \
+	exit $$status
+
+# Compare every declared generator runtime independently of the language unit suites.
+crudui-test-cross-language-equivalence: require-build build-php-ext cargo-downloads-check
+	@status=0; \
+	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -423,6 +423,7 @@ crudui-test-native:
 	@status=0; \
 	$(MAKE) --no-print-directory crudui-test-php-engine || status=1; \
 	$(MAKE) --no-print-directory crudui-test-native-generators || status=1; \
+	$(MAKE) --no-print-directory crudui-test-cross-language-equivalence || status=1; \
 	$(MAKE) --no-print-directory crudui-test-php-api || status=1; \
 	exit $$status
 
@@ -523,6 +524,7 @@ CI_TARGETS = \
 	crudui-test-native-generators \
 	crudui-test-bench \
 	crudui-test-php-api \
+	crudui-test-cross-language-equivalence \
 	check-conformance
 
 # The gates of kit that this checkout runs (kit-gates of kit.mk); kit-check fails for a gate that this list leaves out.

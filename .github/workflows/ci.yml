@@ -1001,7 +1001,7 @@ jobs:
           if-no-files-found: error
 
   native-generators:
-    name: Native generation · JavaScript, HTML, Go and Rust
+    name: Generator unit tests · Go and Rust
     runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
@@ -1076,14 +1076,6 @@ jobs:
           name: report-native-generators
           path: var/report/ci-targets
           if-no-files-found: error
-      - name: Preserve comparison report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: native-generators
-          path: .git/native-generators/report.json
-          include-hidden-files: true
-          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1093,7 +1085,7 @@ jobs:
           if-no-files-found: error
 
   php-api:
-    name: Native generation and PHP API
+    name: Generator unit tests and PHP API
     runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
@@ -1137,6 +1129,90 @@ jobs:
           name: report-php-api
           path: var/report/ci-targets
           if-no-files-found: error
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: conformance-evidence-php-api
+          path: conformance-evidence/
+          if-no-files-found: error
+
+  cross-language-equivalence:
+    name: Cross-language generator equivalence
+    runs-on: ubuntu-24.04
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup the Node.js of mise.toml, which starts the bootstrap
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: 'mise.toml'
+          package-manager-cache: false
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Bootstrap the installed kit package
+        run: |
+          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version-file: .php-version
+          tools: phpize, php-config
+      # The Go modules and builds of the generator and its programs, keyed on their go.mod files; make install-tools installs
+      # the Go of mise.toml.
+      - name: Cache the Go modules of the generator and its programs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: go-${{ runner.os }}-${{ hashFiles('packages/generator/go/go.mod', 'tests/native-generators/programs/go/go.mod', 'benchmarks/validators/go/go.mod') }}
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: |
+            packages/generator/rust
+            tests/native-generators/programs/rust
+            benchmarks/validators/rust
+      - name: Download the modules that the Go workspace requires
+        run: make crudui-install-go-modules
+      # The suites and programs import the Python packages installed in var/python (S3).
+      - name: Install the Python packages of the uv workspace into var/python
+        run: make crudui-install-python
+      - name: Check the recorded toolchain versions
+        run: make toolchain-check TOOLS="node npm go rust php composer"
+      - name: Install dependencies
+        run: make crudui-install-composer
+      - name: Download the crates of every Cargo.lock
+        run: make crudui-install-crates
+      - name: Run the checks and write their report
+        if: ${{ !cancelled() }}
+        run: make ci-targets TARGETS="crudui-test-cross-language-equivalence"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-cross-language-equivalence
+          path: var/report/ci-targets
+          if-no-files-found: error
+      - name: Preserve comparison report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-generators
+          path: .git/native-generators/report.json
+          include-hidden-files: true
+          if-no-files-found: error
       - name: Preserve comparison report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1149,13 +1225,13 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: conformance-evidence-php-api
+          name: conformance-evidence-cross-language-equivalence
           path: conformance-evidence/
           if-no-files-found: error
 
   conformance:
     name: conformance evidence against the standard
-    needs: [validator-js, validator-php, validator-go, validator-rust, python, cross-check-console, form-runtime, php-engine, native-generators, php-api]
+    needs: [validator-js, validator-php, validator-go, validator-rust, python, cross-check-console, form-runtime, php-engine, native-generators, php-api, cross-language-equivalence]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     env:
@@ -1208,7 +1284,7 @@ jobs:
           if-no-files-found: error
   ci-passed:
     if: ${{ always() }}
-    needs: [runtime-tests, build-lint, validator-js, validator-php, validator-go, validator-rust, python, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
+    needs: [runtime-tests, build-lint, validator-js, validator-php, validator-go, validator-rust, python, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, cross-language-equivalence, conformance]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

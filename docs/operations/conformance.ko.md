@@ -1,6 +1,6 @@
 # 적합성 증거
 <!-- doc-id: docs-operations-conformance -->
-<!-- source-sha256: 54161d0aa3ec2ac0a8d1d6da7119caa098922088b678e1b8d756f52c27374a4e -->
+<!-- source-sha256: e2cf39e0227f07f7f5dcc20789b55b0361b6289624f0457372a66e23ce77e171 -->
 
 [English](conformance.md).
 
@@ -84,6 +84,11 @@ process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `nul
 서버 런타임은 [`tests/native-generators/run.mts`](../../tests/native-generators/run.mts)가 JavaScript
 기준 출력과 바이트 단위로 비교합니다. 클라이언트 렌더러는 fixture의 정규화된 HTML과 비교하며, 정규화는
 프레임워크 자체가 만드는 차이에만 적용합니다.
+
+CI는 독립된 `cross-language-equivalence` job에서 `make crudui-test-cross-language-equivalence`를 실행합니다.
+언어별 unit job을 기다리지 않고 JavaScript, HTML, Go, Rust, Python, PHP와 native PHP extension을 비교합니다.
+이 job은 자체 build와 의존성을 준비하고 두 비교 report와 conformance evidence를 업로드합니다.
+`conformance`와 `ci-passed`는 모두 이 job의 결과를 필수로 확인합니다.
 
 `make conformance`는 디렉터리를 비우고 증거를 기록하는 모든 테스트를 실행한 뒤 검사를 실행합니다.
 CI는 작업마다 고유한 artifact 이름으로 증거를 올리고 모든 증거에 대해 검사를 한 번 실행합니다.

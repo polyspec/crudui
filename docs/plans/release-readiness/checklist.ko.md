@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 91627eb07a8f1c334a49e55da824b54e1470c41a5b4d28a367d9b80136381ee7 -->
+<!-- source-sha256: db5ea3af86006e6b71b68915599e0bc2d32915aa62a0c85567c8e5995b1f33c3 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -53,4 +53,4 @@
 | C18.10-28 | 정확한 identity 검사를 유지하며 병렬 reset evidence를 기준 순서로 정렬한다 (priority: high). | canonical reset records and missing duplicate unknown reset identity regressions | `node scripts/run-tests.mts node -- examples/form-comparison/check-verification.test.mjs` | [o] |
 | C18.10-29 | Service child runtime을 부모 test instrumentation과 분리한다 (priority: high). | native service fork arguments and environment with IPC regression | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C18.10-30 | Native untimed suite 기본값과 개별 case 제한을 유지한다 (priority: high). | native Node suite options verified against the pinned Node runtime | `node --check examples/form-comparison/pipeline.browser.mjs`; native aggregate duration exceeds the default deadline while each case remains bounded; syntax and changed-file lint | [o] |
-| C18.11 | 언어 간 동등 검사를 언어별 단위 검사와 독립 실행한다 (priority: high). | independent comparison CI job, Make targets and owning regression tests | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/form-comparison-ci.test.mts` | [~] |
+| C18.11 | 언어 간 동등 검사를 언어별 단위 검사와 독립 실행한다 (priority: high). | independent comparison CI job, Make targets and owning regression tests | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/form-comparison-ci.test.mts` | [o] |

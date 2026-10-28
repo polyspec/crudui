@@ -223,15 +223,15 @@ test('the runtime script passes native Node sharding only when requested (C18.9)
   }
 });
 
-// The native suites run in three jobs: the C engine of the PHP extension and the generators of the JavaScript, HTML, Go
-// and Rust targets, and the PHP API on the PHP of .php-version, each once; make crudui-test-native runs the three parts.
+// Native unit suites run separately from the cross-language comparison job.
 const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: string[] }> = {
   'php-engine': { targets: 'crudui-test-php-engine', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
   'native-generators': { targets: 'crudui-test-native-generators crudui-test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
+  'cross-language-equivalence': { targets: 'crudui-test-cross-language-equivalence', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
   'php-api': { targets: 'crudui-test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'] },
 };
 
-test('the native suites run in three jobs, each once, and make crudui-test-native runs all three', async () => {
+test('native unit suites and cross-language comparisons each run once', async () => {
   const workflow = await workflowFile('ci.yml');
   for (const [id, expected] of Object.entries(NATIVE_JOBS)) {
     const job = jobOf(workflow, id);
@@ -638,5 +638,25 @@ test('install-link links into the venv of var/python', async (t) => {
     assert.equal(result.status, 0, result.stderr);
     const report = parseJson<{ venv: string }>(result.stdout, { properties: { venv: { type: 'string' } } }, `${target} process environment`);
     assert.equal(report.venv, path.join(ROOT, 'var/python'), target);
+  }
+});
+
+
+test('cross-language generator equivalence runs independently of language unit jobs', async () => {
+  const workflow = await workflowFile('ci.yml');
+  const comparison = jobOf(workflow, 'cross-language-equivalence');
+  assert.equal(comparison.needs, undefined);
+  assert.ok((comparison.steps ?? []).some(step => step.run === 'make ci-targets TARGETS="crudui-test-cross-language-equivalence"'));
+  for (const name of ['native-generators', 'php-api']) {
+    const run = makeDryRun(ROOT, name === 'php-api' ? 'crudui-test-php-api' : 'crudui-test-native-generators');
+    assert.equal(run.status, 0, run.stderr);
+    assert.doesNotMatch(run.stdout, /tests\/native-generators\/run\.mts --/);
+  }
+  const run = makeDryRun(ROOT, 'crudui-test-cross-language-equivalence');
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /--target javascript,html,go,rust,python/);
+  assert.match(run.stdout, /--target php,php-native/);
+  for (const id of ['conformance', 'ci-passed']) {
+    assert.ok(strings(jobOf(workflow, id).needs, `${id} dependencies`).includes('cross-language-equivalence'));
   }
 });

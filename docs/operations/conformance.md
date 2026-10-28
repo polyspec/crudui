@@ -90,6 +90,11 @@ Server runtimes are compared byte for byte with the JavaScript reference output 
 compared with the fixture's normalized HTML, where only differences a framework itself causes are
 normalized.
 
+CI runs `make crudui-test-cross-language-equivalence` in the independent `cross-language-equivalence` job.
+It compares JavaScript, HTML, Go, Rust, Python, PHP and the native PHP extension without waiting for language unit jobs.
+The job prepares its own build and dependencies and uploads both comparison reports and conformance evidence.
+Both `conformance` and `ci-passed` require this job.
+
 `make conformance` clears the directory, runs every suite that records evidence and runs the
 check. CI uploads each job's evidence under an artifact name of its own and runs the check once
 over all of it: the conformance job downloads each artifact into a directory of its own, and the
