@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "de40c0d10187d41960b3b8c2ab72ff88",
+    "content-hash": "f7c7a25c54f87cb7b1cc6716d4db08af",
     "packages": [
         {
             "name": "polyspec/crudui-generator",
-            "version": "0.0.8",
+            "version": "0.0.9",
             "dist": {
                 "type": "path",
                 "url": "packages/generator/php",
-                "reference": "e402d55b035731372132aef91d6f3a3a7bae24dd"
+                "reference": "838ced2b8615458d9ebddbe5e61502095f07761a"
             },
             "require": {
                 "ext-mbstring": "*",
                 "php": ">=8.4",
                 "php-64bit": "^8.2",
-                "polyspec/crudui-validator": "0.0.8"
+                "polyspec/crudui-validator": "0.0.9"
             },
             "require-dev": {
                 "phpunit/phpunit": "^13.4.1"
@@ -51,11 +51,11 @@
         },
         {
             "name": "polyspec/crudui-validator",
-            "version": "0.0.8",
+            "version": "0.0.9",
             "dist": {
                 "type": "path",
                 "url": "packages/validator/php",
-                "reference": "d295d240bb9d5f401d3d7cd4ed261b457dd4dbb9"
+                "reference": "4109a67d9db22d8f981b2f3fbd86e46ded566245"
             },
             "require": {
                 "php": ">=8.4"
@@ -100,7 +100,7 @@
             "dist": {
                 "type": "path",
                 "url": "../ordered-json/packages/php",
-                "reference": "6961adc887aa97ffdda5ff39a8ca1d78b881e783"
+                "reference": "13668bd8b0b89959a3118388fac6aedae5888d3c"
             },
             "require": {
                 "ext-json": "*",
@@ -108,7 +108,7 @@
                 "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "13.4.3"
+                "phpunit/phpunit": "13.4.5"
             },
             "suggest": {
                 "ext-polyspec_ordered_json": "Native backend from the polyspec/ordered-json-php-ext PIE package"

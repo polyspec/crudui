@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+## 0.0.9
+
+### 2026-10-28 — Prepare the 0.0.9 release candidate (C18.13-1)
+
+- Release manifests and internal dependencies declare 0.0.9. Native package managers lock the candidate inputs, and release consumer fixtures install the archives built from the current source.
+
 ### 2026-10-28 — Prepare independent language CI with selected locked tools (C18.12)
 
 - CI installs only the Kit 0.0.61 tool selectors required by each job. Go and Rust jobs own both validator and generator suites; JavaScript generator units run separately. Cross-language comparisons prepare their own complete environments. PHP extension fixtures and native parser lint receive explicit prerequisites, and CI Composer installation follows the lock without updating it.

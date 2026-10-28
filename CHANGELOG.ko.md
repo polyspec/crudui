@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e1a9204d18b9360639a074df346cfa51b766da4ad94b1e4d7c948e47924c56e6 -->
+<!-- source-sha256: 35bd623c3352b66fb4b47e520c415a8b3a1f6cd17a253544bd00afb86e0d4cca -->
 
 ## Unreleased
+
+## 0.0.9
+
+### 2026-10-28 — 0.0.9 릴리즈 후보를 준비한다 (C18.13-1)
+
+- Release manifest와 내부 의존성은 0.0.9를 선언한다. Native package manager는 후보 입력을 잠그며 release consumer fixture는 현재 source에서 빌드한 archive를 설치한다.
 
 ### 2026-10-28 — 선택한 잠긴 도구로 독립 언어 CI를 준비한다 (C18.12)
 
