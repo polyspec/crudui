@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 495c9fd1af1cbd4ba9c952478ba50c340bda6324d03255eabad01bb128d55d85 -->
+<!-- source-sha256: 7454c89b466a966d3f1a4251da093cbc8849e4fffc2fb86022eedccb2b85dffa -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -61,3 +61,4 @@
 | C18.13 | 언어별 검사와 독립 동등 검사 CI 통과 후 CRUDUI 0.0.9를 준비하고 공개한다 (priority: high). | candidate manifests and native locks, current consumer archives, exact-commit CI and verified public release | `make release-versions TAG=v0.0.9`; `make release-coverage`; successful exact-commit CI and public release proof | [ ] |
 | C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [o] |
 | C18.13-2 | PHP 원인 예외와 동등한 native extension 생성자를 보존한다 (priority: high). | PHP caught cause propagation, equivalent C constructors and regression assertions | `make lint-php`; owning PHP and native constructor tests | [o] |
+| C18.13-3 | 문서, push, 의존성 검토 workflow의 남은 도구 설치 범위를 제한한다 (priority: high). | explicit job tool selectors and required native preparation in every application-owned workflow | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts tests/build/form-comparison-ci.test.mts` | [ ] |
