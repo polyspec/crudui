@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+## 0.0.9
+
+### 2026-10-29 — Finalize the 0.0.9 candidate with scoped Kit gates (C18.13-6)
+
+- Kit 0.0.63 builds the current candidate archives, and clean external consumers install and check all 11 packages. Native Composer consumer records use explicit local zip package metadata. Final release metadata preserves the mandatory complete candidate CI and public release proof.
+
 ### 2026-10-29 — Ignore native Go executable outputs (C18.13-7)
 
 - Native Go module executables are ignored at their exact generated paths on Unix and Windows. Source files remain visible, and candidate archives retain the clean committed-source requirement.
@@ -18,8 +24,6 @@
 ### 2026-10-29 — Scope every application workflow installation (C18.13-3)
 
 - Documentation, push verification and dependency review workflows declare only their required tools. Push verification uses Node and npm without PHP. A native regression rejects whole-environment installation calls in all application-owned workflows.
-
-## 0.0.9
 
 ### 2026-10-28 — Preserve native PHP exception causes (C18.13-2)
 

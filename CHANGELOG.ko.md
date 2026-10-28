@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f5b0788755e0a80da1f7bf1f13280705450e5a96a421f78b1a25b9f6d1d45ba4 -->
+<!-- source-sha256: ef9a6304d05ba2e1c7e925028927ba6f0473742aeb8ffb6d5996deb5c672907d -->
 
 ## Unreleased
+
+## 0.0.9
+
+### 2026-10-29 — 범위가 지정된 Kit gate로 0.0.9 후보를 확정한다 (C18.13-6)
+
+- Kit 0.0.63은 현재 후보 archive를 빌드하고 깨끗한 외부 consumer는 package 11개를 모두 설치하고 검사한다. Native Composer consumer 기록은 명시적 로컬 zip package metadata를 사용한다. 최종 release metadata는 전체 candidate CI와 공개 release proof를 필수로 유지한다.
 
 ### 2026-10-29 — Native Go 실행 파일 생성물을 ignore한다 (C18.13-7)
 
@@ -19,8 +25,6 @@
 ### 2026-10-29 — 모든 앱 workflow의 설치 범위를 지정한다 (C18.13-3)
 
 - 문서, push 검증과 의존성 검토 workflow는 필요한 도구만 선언한다. Push 검증은 PHP 없이 Node와 npm을 사용한다. Native 회귀 검사는 앱 소유 모든 workflow에서 전체 환경 설치 호출을 거부한다.
-
-## 0.0.9
 
 ### 2026-10-28 — Native PHP 원인 예외를 보존한다 (C18.13-2)
 

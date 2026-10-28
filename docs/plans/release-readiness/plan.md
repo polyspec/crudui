@@ -111,3 +111,10 @@ The provider runtime workflow passes its runtime into native source linking. A r
 TypeScript links without foreign tools, while full linking retains its Go requirement. Make and workflow runtime
 forwarding and the native CI plan are verified by the owning tests. Complete isolated candidate CI and release proof
 remain mandatory under C18.13. The actual consumer CI result is reported to [Kit issue 14](https://github.com/polyspec/kit/issues/14).
+
+
+## Final candidate inputs (C18.13-6)
+
+Kit 0.0.63 built all 11 archives from source snapshot `1bed34da`. Clean consumer installs and the 20 release/manifest
+owner cases passed. Native consumer metadata names local zip archives through explicit package repositories.
+The final source metadata and consumer records reach main before the complete candidate CI and publication checks.

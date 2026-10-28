@@ -128,7 +128,7 @@ classified in `config/release.json`.
 `make release-assets` and the release proof runs on the draft, installs the archives of the tag from `var/release/assets` as a consumer
 does, in a new temporary directory outside the repository with empty npm and Composer caches. The committed projects are
 `tests/release-install/npm` (`package.json` with the tarballs as `file:` dependencies, and `package-lock.json`) and
-`tests/release-install/composer` (`composer.json` with an `artifact` repository of the zips, and `composer.lock`); the
+`tests/release-install/composer` (`composer.json` with explicit package repositories whose dist URLs name the local zip archives, and `composer.lock`); the
 scope `@polyspec` points at the unreachable registry `http://127.0.0.1:9/`. The polyspec packages come only from the
 archives; a third-party package is downloaded only as its lock pins it, by its exact version and digest. Every installed
 package is required at the version of the tag, and the smoke command of `consumers` in `config/release.json` runs in the

@@ -1,5 +1,5 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: 581c39924e406bb64f936938c80cdd2501dc1a3154838ff36d1159bc41cd4500 -->
+<!-- source-sha256: 55bf8a35dd152fea23adb20daa97e1ddbc605b236c326201ed5935bc64a7e117 -->
 # 로컬 release candidate 준비
 
 [English](plan.md)
@@ -109,3 +109,10 @@ Provider runtime workflow는 native source 연결에 해당 runtime을 전달합
 연결이 다른 언어 도구 없이 성공하며 전체 연결은 Go 요구사항을 유지함을 검증합니다. 소유 검사는 Make와 workflow의
 runtime 전달 및 native CI 계획을 검증합니다. C18.13은 전체 격리 candidate CI와 release proof를 계속 필수로 요구합니다.
 실제 consumer CI 결과는 [Kit issue 14](https://github.com/polyspec/kit/issues/14)에 회신합니다.
+
+
+## 최종 candidate 입력 (C18.13-6)
+
+Kit 0.0.63은 source snapshot `1bed34da`에서 archive 11개를 모두 빌드했습니다. 깨끗한 consumer 설치와 release/manifest
+소유 case 20개가 통과했습니다. Native consumer metadata는 명시적 package repository로 로컬 zip archive를 지정합니다.
+최종 source metadata와 consumer 기록을 main에 반영한 뒤 전체 candidate CI와 공개 검사를 실행합니다.

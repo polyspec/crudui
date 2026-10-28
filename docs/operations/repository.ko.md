@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 8f91a9b7917da37d00f07169ae5792ac33e6bde1ffa9a40842e41bbd9987e7f9 -->
+<!-- source-sha256: 808118aa1d85ed82bf08e4e8c4618d7b7f2b78fa1a72f678e2fb5ca646d3a6c8 -->
 
 [English](repository.md).
 
@@ -115,7 +115,7 @@ polyspec/kit의 test(`tests/kit/release.test.mts`와 `tests/kit/release-go-tags.
 개발자가 `make release-assets` 뒤에 실행하고 release 증명이 draft에서 실행하는 `make release-consumer TAG=vX.Y.Z`
 (`node_modules/@polyspec/kit/dist/release-consumer.mjs`)는 tag의 archive를 `var/release/assets`에서 사용자처럼, 빈 npm과 Composer cache를 둔 저장소 밖의
 새 임시 디렉터리에 설치합니다. commit된 project는 `tests/release-install/npm`(tarball을 `file:` 의존성으로 적은 `package.json`과
-`package-lock.json`)과 `tests/release-install/composer`(zip의 `artifact` repository를 둔 `composer.json`과 `composer.lock`)이며,
+`package-lock.json`)과 `tests/release-install/composer`(로컬 zip archive를 dist URL로 적은 명시적 package repository의 `composer.json`과 `composer.lock`)이며,
 scope `@polyspec`은 닿지 않는 registry `http://127.0.0.1:9/`를 가리킵니다. polyspec package는 archive에서만 오고, 제3자 package는
 lock이 정확한 version과 digest로 고정한 대로만 내려받습니다. 설치된 모든 package는 tag의 version이어야 하고,
 `config/release.json`의 `consumers`가 적은 smoke 명령이 설치된 project에서 실행됩니다. Go module tag는 archive를 release하지 않으므로
