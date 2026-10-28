@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "parityMode": "full",
+  "setup": {
+    "shared": [
+      "crudui-install-go-modules",
+      "crudui-install-crates",
+      "crudui-install-composer",
+      "crudui-install-phpdocumentor",
+      "require-build"
+    ],
+    "parity": [
+      "kit-install-php-arginfo",
+      "build-php-ext"
+    ],
+    "runtimes": {
+      "go": [
+        "crudui-install-go-modules",
+        "build-go"
+      ],
+      "php": [
+        "crudui-install-composer"
+      ],
+      "php-ext": [
+        "crudui-install-composer",
+        "require-build"
+      ],
+      "python": [
+        "crudui-install-python"
+      ],
+      "rust": [
+        "crudui-install-crates"
+      ],
+      "ts": [
+        "require-build"
+      ]
+    }
+  },
+  "tools": {
+    "shared": [
+      "go",
+      "rust",
+      "php",
+      "composer"
+    ]
+  }
+}

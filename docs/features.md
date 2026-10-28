@@ -229,7 +229,7 @@ results correct the earlier extension-wide test-scope limitation; they do not re
 
 ## Scoped CI environments
 
-Kit 0.0.61 installs each CI job's selected locked tools. Go and Rust jobs run their own validator and generator suites;
+Kit 0.0.62 installs each CI job's selected locked tools. Go and Rust jobs run their own validator and generator suites;
 JavaScript generator units run separately. Cross-language generator and validator comparisons prepare their own complete
 environments without waiting for language jobs. PHP extension jobs prepare arginfo explicitly, and CI Composer installation
 uses the lock without updates. Conformance consumes the isolated evidence; final CI requires all mandatory results.

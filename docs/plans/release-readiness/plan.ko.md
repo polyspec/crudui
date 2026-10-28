@@ -1,5 +1,5 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: 5fb368218a45e61465501cab0956c5cab3417b508b63bf0e1187e9ebc0218f97 -->
+<!-- source-sha256: 78250b62faff8825450c872b79d0120f0eae21d6dc4a7b08e1d7b8ffbf501652 -->
 # 로컬 release candidate 준비
 
 [English](plan.md)
@@ -43,7 +43,7 @@ commit의 publication 검사를 필요로 합니다. 향후 유지보수 검토 
 
 ## CI 환경별 설치 준비 (C18.12)
 
-Kit 0.0.61은 `make install-tools TOOLS="..."` 선택 설치를 제공합니다. 각 CI job은 필요한 도구를 선언하고
+Kit 0.0.62는 `make install-tools TOOLS="..."` 선택 설치를 제공합니다. 각 CI job은 필요한 도구를 선언하고
 자체 lock 의존성과 build를 준비합니다. PHP extension job은 고정 arginfo parser를 명시적으로 준비합니다.
 Root release asset과 native lock은 같은 릴리즈를 선택합니다. 로컬 source link는 개발 입력으로 유지합니다.
 
@@ -97,3 +97,15 @@ Candidate archive는 commit `508e5bb4`의 source를 담습니다. Native package
 깨끗한 외부 consumer가 archive 11개를 모두 설치하고 검사했습니다. Go workspace는 로컬 module 7개를 선택하며
 Cargo lock 6개는 외부 package version과 checksum을 유지합니다. PHP 검증은 8.4.27에서 실행해 source case 36개와
 native constructor case 2개가 통과했습니다. 공개에는 최종 candidate commit의 CI 성공이 필요합니다.
+
+
+## Kit 0.0.62 통합 검증 (C18.13-4)
+
+Root manifest와 native lock은 공개된 Kit 0.0.62 asset을 선택합니다. `config/ci.json`은 provider 인터페이스로 shared,
+6개 runtime과 full parity 준비를 선언합니다. Native 계획, schema와 owner 검사는 통과했습니다.
+PHP arginfo가 없는 상태에서 `node npm`과 `node npm go` 선택 검사가 통과했고 probe 후 기존 설치를 복구했습니다.
+
+Runtime workflow는 저장소 전체 source 연결을 호출합니다. Native 읽기 전용 여러 언어 fixture는 Node 전용 환경에서도
+Go를 요구합니다. [Kit issue 14](https://github.com/polyspec/kit/issues/14)에 재현을 기록했습니다.
+C18.13-4는 최종 runtime 검증을 기다리며 C18.13-5는 runtime 범위를 수정한 정식 공개 버전을 요구합니다.
+수정된 provider가 독립 runtime 준비와 전체 candidate CI를 통과한 뒤 공개를 재개합니다.

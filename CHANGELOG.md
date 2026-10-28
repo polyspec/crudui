@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-29 — Adopt the Kit 0.0.62 preparation contract (C18.13-4)
+
+- The manifest and native lock select Kit 0.0.62. The provider workflow is synchronized, and application CI declares shared, runtime and full parity setup through config/ci.json. Selected non-PHP toolchain checks pass without PHP arginfo. Runtime integration and publication remain pending the provider source-link correction.
+
 ### 2026-10-29 — Scope every application workflow installation (C18.13-3)
 
 - Documentation, push verification and dependency review workflows declare only their required tools. Push verification uses Node and npm without PHP. A native regression rejects whole-environment installation calls in all application-owned workflows.

@@ -694,6 +694,18 @@
     },
     {
       "paths": [
+        "config/ci.json"
+      ],
+      "targets": [
+        "kit-check"
+      ],
+      "tests": [
+        "tests/build/ci-local.test.mts",
+        "tests/build/runtime-version-policy.test.mts"
+      ]
+    },
+    {
+      "paths": [
         "config/owner-checks.json"
       ],
       "targets": [

@@ -628,7 +628,14 @@ test('install-link links into the venv of var/python', async (t) => {
   const directory = await mkdtemp(path.join(tmpdir(), 'crudui-link-venv-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const probe = path.join(directory, 'environment.mjs');
-  await writeFile(probe, 'console.log(JSON.stringify({ venv: process.env.UV_PROJECT_ENVIRONMENT }));\n');
+  await writeFile(probe, `
+if (process.argv.includes('--make-targets')) {
+  const { spawnSync } = await import('node:child_process');
+  const result = spawnSync(process.execPath, process.argv.slice(2), { stdio: 'inherit' });
+  process.exit(result.status ?? 1);
+}
+console.log(JSON.stringify({ venv: process.env.UV_PROJECT_ENVIRONMENT }));
+`);
   const quote = (value: string): string => `'${value.replaceAll("'", "'\"'\"'")}'`;
   for (const target of ['install-link', 'link']) {
     const result = spawnSync('make', ['--silent', '--no-print-directory', target, `NODE=${quote(process.execPath)} ${quote(probe)}`], {
@@ -715,6 +722,7 @@ test('language jobs install only their required tools and own both validator and
   }
 });
 
+
 test('every application workflow declares a bounded tool installation scope', async () => {
   for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml', 'dependency-review.yml']) {
     const workflow = await workflowFile(file);
@@ -733,4 +741,42 @@ test('every application workflow declares a bounded tool installation scope', as
   assert.ok((pages.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go rust php composer"'));
   const review = jobOf(await workflowFile('dependency-review.yml'), 'review');
   assert.ok((review.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go php composer cargoAudit govulncheck"'));
+});
+
+
+test('the native Kit CI planner validates every declared runtime and its locked setup', async () => {
+  const env = makeEnvironment(process.env);
+  delete env.GITHUB_OUTPUT;
+  const result = spawnSync('make', ['--silent', '--no-print-directory', 'kit-ci-plan'], {
+    cwd: ROOT, env, encoding: 'utf8',
+  });
+  assert.equal(result.error, undefined, result.error?.message);
+  assert.equal(result.status, 0, result.stderr);
+  const plan = parseJson<{
+    parityMode: string; parityImplementations: string[]; parityRuntimes: string[];
+    runtimes: { runtime: string; installTools: string[]; checkTools: string[] }[];
+  }>(result.stdout, {
+    properties: {
+      parityMode: { type: 'string' }, parityImplementations: { elements: { type: 'string' } },
+      parityRuntimes: { elements: { type: 'string' } },
+      runtimes: { elements: { properties: {
+        runtime: { type: 'string' }, installTools: { elements: { type: 'string' } }, checkTools: { elements: { type: 'string' } },
+      }, additionalProperties: true } },
+    }, additionalProperties: true,
+  }, 'the native Kit CI plan');
+  const runtimes = ['go', 'php', 'php-ext', 'python', 'rust', 'ts'];
+  assert.deepEqual(plan.runtimes.map(job => job.runtime).sort(), runtimes);
+  assert.deepEqual([...plan.parityRuntimes].sort(), runtimes);
+  assert.equal(plan.parityMode, 'full');
+  const parity = parseJson<{ implementations: { name: string }[] }>(await read('config/parity.json'), {
+    properties: { implementations: { elements: { properties: { name: { type: 'string' } }, additionalProperties: true } } },
+    additionalProperties: true,
+  }, 'config/parity.json');
+  assert.deepEqual([...plan.parityImplementations].sort(), parity.implementations.map(item => item.name).sort());
+  const setup = parseJson<{ setup: { runtimes: Record<string, string[]> } }>(await read('config/ci.json'), {
+    properties: { setup: { properties: { runtimes: { values: { elements: { type: 'string' } } } }, additionalProperties: true } },
+    additionalProperties: true,
+  }, 'config/ci.json');
+  assert.ok(setup.setup.runtimes.go?.includes('crudui-install-go-modules'));
+  assert.ok(setup.setup.runtimes.python?.includes('crudui-install-python'));
 });

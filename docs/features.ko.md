@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: fc76c7dae547b9c8b750aaa135cfbf3ce30a700aa6c9bc2fb4a5725896710692 -->
+<!-- source-sha256: 03418d6be7885f523d3cc1b8eb230db75cbba3718a0434f580c1d3834eeed468 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -222,7 +222,7 @@ composition engine unit은 94개 case를 통과했다. Native PHPUnit XML 목록
 
 ## CI 환경별 설치
 
-Kit 0.0.61은 CI job마다 선택한 잠긴 도구를 설치합니다. Go와 Rust job은 각각 validator와 generator suite를 실행하고
+Kit 0.0.62는 CI job마다 선택한 잠긴 도구를 설치합니다. Go와 Rust job은 각각 validator와 generator suite를 실행하고
 JavaScript generator unit은 분리 실행합니다. 언어 간 generator와 validator 비교는 언어별 job을 기다리지 않고 전체
 필요 환경을 자체 준비합니다. PHP extension job은 arginfo를 명시적으로 준비하고 CI Composer 설치는 lock을 갱신하지
 않고 따릅니다. Conformance는 격리된 evidence를 읽으며 최종 CI는 모든 필수 결과를 요구합니다.

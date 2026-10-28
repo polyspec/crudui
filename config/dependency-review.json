@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-28T12:27:59.101Z",
+  "reviewed": "2026-10-28T17:29:51.614Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "45e2b95a995729fed1d85ee56730e994d1e8c8eddd9568c6b2619aaf69b3f455",
+      "sha256": "ab1625ad3f298f9bfa3f4274161d463a8bd9a70a216cd6b049c4f441d766629c",
       "advisories": []
     },
     {
@@ -689,7 +689,7 @@
       "manifest": "examples/form-comparison/servers/go/go.mod",
       "package": "github.com/polyspec/ordered-json/packages/go",
       "version": "v0.0.10",
-      "latest": "v0.0.10"
+      "latest": "v0.0.11"
     }
   ],
   "vcs": []

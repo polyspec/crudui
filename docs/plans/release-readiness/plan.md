@@ -45,7 +45,7 @@ separate from the completed decision for this candidate.
 
 ## Scoped CI environment preparation (C18.12)
 
-Kit 0.0.61 provides selective `make install-tools TOOLS="..."` installation. Each CI job declares its required tools
+Kit 0.0.62 provides selective `make install-tools TOOLS="..."` installation. Each CI job declares its required tools
 and prepares its own locked dependencies and builds. PHP extension jobs explicitly prepare the pinned arginfo parser.
 The root release asset and native lock must select that release together. The local source link remains a development input.
 
@@ -99,3 +99,15 @@ The candidate archives contain the committed source of `508e5bb4`. Native packag
 and clean external consumers installed and checked all 11 archives. Go workspace resolution selects seven local modules;
 all six Cargo locks retain the external package versions and checksums. PHP verification ran on 8.4.27, with 36 source
 cases and two native constructor cases passing. Publication requires successful CI for the final candidate commit.
+
+
+## Kit 0.0.62 integration verification (C18.13-4)
+
+The root manifest and native lock select the published Kit 0.0.62 asset. `config/ci.json` declares the shared, six runtime
+and full parity preparation through the provider interface. Native planning, schema and ownership checks pass.
+Selected `node npm` and `node npm go` checks pass with PHP arginfo absent; its installation is restored after the probe.
+
+The runtime workflow invokes whole-repository source linking. A native read-only mixed-language fixture requires Go
+even for a Node-only environment. [Kit issue 14](https://github.com/polyspec/kit/issues/14) records the reproduction.
+C18.13-4 remains pending final runtime acceptance, and C18.13-5 requires the published runtime-scoping correction.
+Publication resumes after the corrected provider passes independent runtime preparation and complete candidate CI.
