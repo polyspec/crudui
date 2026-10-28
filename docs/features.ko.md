@@ -1,6 +1,6 @@
 # 기능 상태
 <!-- doc-id: docs-features -->
-<!-- source-sha256: e7b7cc90534f14d44d6fb04d7c702e23e004c13c8dddc310fd53b113253d4c79 -->
+<!-- source-sha256: fc76c7dae547b9c8b750aaa135cfbf3ce30a700aa6c9bc2fb4a5725896710692 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.
@@ -218,3 +218,11 @@ PHP library source-load guard를 활성화하고 generator 841개와 validator 6
 composition engine unit은 94개 case를 통과했다. Native PHPUnit XML 목록은 혼합 class 3개 분리 전후 원래 case ID를 모두
 보존하며 scope unit은 source와 public 선택의 완전성을 검증한다. 이 소유 결과는 앞선 extension 전체 실행의 test 범위 문제를
 수정하며 전체 candidate CI 검증을 대신하지 않는다.
+
+
+## CI 환경별 설치
+
+Kit 0.0.61은 CI job마다 선택한 잠긴 도구를 설치합니다. Go와 Rust job은 각각 validator와 generator suite를 실행하고
+JavaScript generator unit은 분리 실행합니다. 언어 간 generator와 validator 비교는 언어별 job을 기다리지 않고 전체
+필요 환경을 자체 준비합니다. PHP extension job은 arginfo를 명시적으로 준비하고 CI Composer 설치는 lock을 갱신하지
+않고 따릅니다. Conformance는 격리된 evidence를 읽으며 최종 CI는 모든 필수 결과를 요구합니다.

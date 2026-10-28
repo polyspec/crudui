@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 3307fc7744f0d0b748a37304bb2c5ba9c57a22d30b0fb0203930c4061f227f81 -->
+<!-- source-sha256: 495c9fd1af1cbd4ba9c952478ba50c340bda6324d03255eabad01bb128d55d85 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -59,5 +59,5 @@
 | C18.12-2 | 의존성 검토의 도구 준비 순서와 target 인자 전달을 수정한다 (priority: high). | scheduled workflow preparation order, application review target and native argument regression | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [o] |
 | C18.12-3 | 공개 전에 패치가 없는 빌드 전용 deepmerge 권고의 노출과 처리 근거를 기록한다 (priority: high). | exact advisory exposure decision, dependency policy and native review evidence | `make dependency-policy-check`; current native audit and package exposure evidence | [o] |
 | C18.13 | 언어별 검사와 독립 동등 검사 CI 통과 후 CRUDUI 0.0.9를 준비하고 공개한다 (priority: high). | candidate manifests and native locks, current consumer archives, exact-commit CI and verified public release | `make release-versions TAG=v0.0.9`; `make release-coverage`; successful exact-commit CI and public release proof | [ ] |
-| C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [~] |
+| C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [o] |
 | C18.13-2 | PHP 원인 예외와 동등한 native extension 생성자를 보존한다 (priority: high). | PHP caught cause propagation, equivalent C constructors and regression assertions | `make lint-php`; owning PHP and native constructor tests | [o] |

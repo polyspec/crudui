@@ -108,7 +108,7 @@ lock and selects PHPUnit within its declared constraint. React and React DOM 19.
 rendering an inert template; server rendering and hydration retain script elements. The React dependency-policy exceptions
 are removed. The withdrawn sprintf-js advisory does not require a package update.
 
-The refreshed dependency review covers 87 registry dependencies and 13 locks and records no security advisories.
+The refreshed dependency review covers 88 registry dependencies and 14 locks and records no security advisories.
 The npm locks select patched Markdown, URI, HTTP client and schema packages, and the Rust comparison server lock selects
 Tokio 1.53.3. Go 1.27.3 satisfies the linked module's minimum and permits its advisory scan.
 
@@ -225,3 +225,11 @@ extension passed all 841 generator and 633 validator cases with the PHP library 
 expression and composition engine units passed 94 cases. Native PHPUnit XML listings preserve all original case IDs
 across the three mixed-class splits, and the scope unit verifies complete source and public selections. These owning
 results correct the earlier extension-wide test-scope limitation; they do not replace full candidate CI verification.
+
+
+## Scoped CI environments
+
+Kit 0.0.61 installs each CI job's selected locked tools. Go and Rust jobs run their own validator and generator suites;
+JavaScript generator units run separately. Cross-language generator and validator comparisons prepare their own complete
+environments without waiting for language jobs. PHP extension jobs prepare arginfo explicitly, and CI Composer installation
+uses the lock without updates. Conformance consumes the isolated evidence; final CI requires all mandatory results.

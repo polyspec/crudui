@@ -5,7 +5,7 @@
 
 ## Preparation order
 
-C18.1–C18.10 of the [checklist](checklist.md) are complete. C18.12 prepares scoped CI environments.
+C18.1–C18.10 of the [checklist](checklist.md) are complete. C18.12 completes scoped CI environments; C18.13 prepares publication of 0.0.9.
 CRUDUI 0.0.8 is public from commit
 `47612fe4297203d46232646eba8365a6fbda43ef`, which passed full CI, push checks and all three tag release workflows.
 The release workflow installed and checked all 11 archives outside the checkout before publication.
@@ -91,3 +91,11 @@ GHSA-gcqx-w48m-w2h4 affects deepmerge 4.3.1, used by the Svelte Vite plugin to m
 The advisory has low severity and no patched release. The published runtime packages do not depend on deepmerge.
 The existing dependency review records npm moderate, high and critical findings; this threshold remains unchanged.
 The raw npm audit still reports the low finding and its dependent plugin. No exception or package override is added.
+
+
+## 0.0.9 candidate verification (C18.13-1)
+
+The candidate archives contain the committed source of `508e5bb4`. Native package managers resolved 0.0.9 inputs,
+and clean external consumers installed and checked all 11 archives. Go workspace resolution selects seven local modules;
+all six Cargo locks retain the external package versions and checksums. PHP verification ran on 8.4.27, with 36 source
+cases and two native constructor cases passing. Publication requires successful CI for the final candidate commit.

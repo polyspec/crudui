@@ -1,12 +1,12 @@
 <!-- doc-id: plan-release-readiness -->
-<!-- source-sha256: 9d6c9f343522ae3cd102985d01c562ba02855353614197a3ffc3eda46628a8ca -->
+<!-- source-sha256: 5fb368218a45e61465501cab0956c5cab3417b508b63bf0e1187e9ebc0218f97 -->
 # 로컬 release candidate 준비
 
 [English](plan.md)
 
 ## 준비 순서
 
-[Checklist](checklist.ko.md)의 C18.1–C18.10은 완료했습니다. C18.12는 CI 환경의 설치 범위를 준비합니다.
+[Checklist](checklist.ko.md)의 C18.1–C18.10은 완료했습니다. C18.12는 CI 환경의 설치 범위를 완료했고 C18.13은 0.0.9 공개를 준비합니다.
 CRUDUI 0.0.8은 commit
 `47612fe4297203d46232646eba8365a6fbda43ef`의 전체 CI와 push 검사, 세 tag의 release workflow를
 통과하고 공개했습니다. Release workflow는 공개 전에 checkout 밖에서 archive 11개를 설치하고 검사했습니다.
@@ -89,3 +89,11 @@ GHSA-gcqx-w48m-w2h4는 Svelte Vite plugin이 신뢰한 저장소 build 설정 �
 권고의 심각도는 low이며 패치 릴리즈는 없습니다. 공개 runtime package는 deepmerge에 의존하지 않습니다.
 기존 의존성 검토는 npm moderate, high, critical 항목을 기록하며 이 기준을 유지합니다.
 Raw npm audit는 low 항목과 이를 사용하는 plugin을 계속 보고합니다. 예외나 package override를 추가하지 않습니다.
+
+
+## 0.0.9 candidate 검증 (C18.13-1)
+
+Candidate archive는 commit `508e5bb4`의 source를 담습니다. Native package manager가 0.0.9 입력을 해석했고
+깨끗한 외부 consumer가 archive 11개를 모두 설치하고 검사했습니다. Go workspace는 로컬 module 7개를 선택하며
+Cargo lock 6개는 외부 package version과 checksum을 유지합니다. PHP 검증은 8.4.27에서 실행해 source case 36개와
+native constructor case 2개가 통과했습니다. 공개에는 최종 candidate commit의 CI 성공이 필요합니다.

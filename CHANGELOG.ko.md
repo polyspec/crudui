@@ -1,14 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f79cacb32bdbb52fff7cea8260efef20355353f4a6b85d78fbcf7167f5eb6f46 -->
+<!-- source-sha256: 0190a2253baa0f0f5474bf82bd2bb512bceeec85e6df38f75cfe8888ecdafffe -->
 
 ## Unreleased
+
+## 0.0.9
 
 ### 2026-10-28 — Native PHP 원인 예외를 보존한다 (C18.13-2)
 
 - PHP form과 composition 오류는 선택적인 원인 예외 생성자 인자로 잡은 원인을 보존한다. C extension은 같은 signature를 제공하고 예외 수명 동안 원인을 유지하며 잘못된 원인 type을 거부한다. 오류 code, message, form path와 composition trace는 기존 값을 유지한다.
-
-## 0.0.9
 
 ### 2026-10-28 — 0.0.9 릴리즈 후보를 준비한다 (C18.13-1)
 

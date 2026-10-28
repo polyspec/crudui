@@ -3,11 +3,11 @@
 
 ## Unreleased
 
+## 0.0.9
+
 ### 2026-10-28 — Preserve native PHP exception causes (C18.13-2)
 
 - PHP form and composition errors preserve caught causes through optional previous-exception constructor arguments. The C extension exposes matching signatures, retains causes for the exception lifetime and rejects invalid cause types. Error codes, messages, form paths and composition traces keep their existing values.
-
-## 0.0.9
 
 ### 2026-10-28 — Prepare the 0.0.9 release candidate (C18.13-1)
 
