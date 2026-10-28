@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: bcc67eff2a79a94e16f874732f64c94eb2824f792a08e22c68efe741ee5cbdd3 -->
+<!-- source-sha256: bf50c8a9b78570cf9a2b9906b3e5fd07910c2cfd99c24d3fde111f35130261ad -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -59,4 +59,4 @@
 | C18.12-2 | 의존성 검토의 도구 준비 순서와 target 인자 전달을 수정한다 (priority: high). | scheduled workflow preparation order, application review target and native argument regression | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [o] |
 | C18.12-3 | 공개 전에 패치가 없는 빌드 전용 deepmerge 권고의 노출과 처리 근거를 기록한다 (priority: high). | exact advisory exposure decision, dependency policy and native review evidence | `make dependency-policy-check`; current native audit and package exposure evidence | [o] |
 | C18.13 | 언어별 검사와 독립 동등 검사 CI 통과 후 CRUDUI 0.0.9를 준비하고 공개한다 (priority: high). | candidate manifests and native locks, current consumer archives, exact-commit CI and verified public release | `make release-versions TAG=v0.0.9`; `make release-coverage`; successful exact-commit CI and public release proof | [ ] |
-| C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [ ] |
+| C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [~] |
