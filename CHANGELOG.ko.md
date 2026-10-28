@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ce8ef1f0394f80c85ed412afc7ca2fe6e2a137276953416f839bc9ade51ce5e8 -->
+<!-- source-sha256: 6136b3d5f789d3b7edf4c3d1ab5bba255a86abcdaf1d5c015729fac2613dbb23 -->
 
 ## Unreleased
+
+### 2026-10-28 — CI 환경별 설치 준비를 정의한다 (C18.12-1)
+
+- CI 준비 계획은 job별 도구, native lock 입력, 독립 build 책임과 선택 설치 적용 검증 기준을 명시한다. Release 0.0.8은 공개 상태이며 설치 범위 적용은 별도 항목으로 관리한다.
 
 ### 2026-10-28 — 언어 간 비교를 독립 실행한다 (C18.11)
 

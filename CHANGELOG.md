@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-28 — Define scoped CI environment preparation (C18.12-1)
+
+- The CI preparation plan specifies each job's tools, native locked inputs, independent build responsibilities and selective installation acceptance checks. Release 0.0.8 remains published; scoped installation adoption is tracked separately.
+
 ### 2026-10-28 — Run cross-language comparisons independently (C18.11)
 
 - CI runs generator equivalence in an independent job for JavaScript, HTML, Go, Rust, Python, PHP and the native PHP extension. Language unit jobs retain their tests. The comparison job prepares its own inputs, uploads both reports and evidence, and is required by conformance and final CI checks.

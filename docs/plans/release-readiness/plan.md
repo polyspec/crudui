@@ -5,7 +5,8 @@
 
 ## Preparation order
 
-The [checklist](checklist.md) is complete. CRUDUI 0.0.8 is public from commit
+C18.1–C18.10 of the [checklist](checklist.md) are complete. C18.12 prepares scoped CI environments.
+CRUDUI 0.0.8 is public from commit
 `47612fe4297203d46232646eba8365a6fbda43ef`, which passed full CI, push checks and all three tag release workflows.
 The release workflow installed and checked all 11 archives outside the checkout before publication.
 
@@ -40,3 +41,45 @@ Complete the remaining local corrections with their owning checks and merge ever
 Successful CI remains a condition of later publication, not a reason to leave local preparation bypassed. A later change
 requires its owning verification and the publication checks of the resulting commit. Future maintenance triggers remain
 separate from the completed decision for this candidate.
+
+
+## Scoped CI environment preparation (C18.12)
+
+Kit 0.0.60 installs all declared tools for every non-npm request. C18.12 requires a released Kit with
+selective `make install-tools TOOLS="..."` support before changing the CI installation calls.
+The root release asset and native lock must select that release together. The local source link remains a development input.
+
+Every job bootstraps the locked npm and installs its required npm packages. The table lists additional tools and inputs.
+Tool aliases and transitive installation dependencies must match the released Kit interface; application code does not install toolchains.
+
+| Job | Additional environment | Locked inputs and owned operations |
+| --- | --- | --- |
+| validator-js, cli | None | npm lock; build the required JavaScript packages, then run the selected suite |
+| validator-php | PHP and Composer | root Composer lock and declared source providers; install, then run the PHP validator suite |
+| validator-go | Go | go.work and native module sums; download modules, then build and test the Go validator |
+| validator-rust | Rust | rust-toolchain.toml and Cargo locks; fetch crates, then build and test the Rust validator offline |
+| python | Python and uv | uv.lock and workspace build declarations; synchronize the locked environment, then run both Python suites |
+| cross-language-equivalence | Go, Rust, PHP, Composer, Python and uv, with PHP extension build support | own native dependency installs, current JavaScript and extension builds, then both generator comparison commands |
+| cross-check-console | Go, Rust, PHP, Composer, Python and uv, with PHP extension build support | own native dependency installs and program builds, then shared validator comparisons |
+| native-generators | Go, Rust, PHP and Composer | generator unit suites, benchmark drivers and their required browser; preserve required native caches |
+| php-api | PHP and Composer, with PHP extension build support | locked Composer install, current extension build and PHP unit suites |
+| php-engine | C compiler and sanitizers | current JavaScript fixture build and native engine compilation; verify whether any PHP execution remains before removing its setup |
+| form-runtime, package-browser | Pinned browsers | npm lock, required JavaScript builds and the browser builds pinned by their packages |
+| form-comparison | PHP, Composer and pinned Chrome | regression cases and their actual PHP inputs |
+| form-comparison-pipeline, form-comparison-browser, form-comparison-checks | Go, Rust, PHP, Composer, nginx and pinned Chrome | independent native stack preparation and pinned release inputs; summary also reads the declared browser reports |
+| docs-coverage | Go, Rust, PHP, Composer and declared documentation tools | native API documentation builds and document checks |
+| runtime-tests, build-lint | Every tool actually exercised by the selected checks | runtime policy, dependency verification and cross-language linting; split language lints before narrowing their installation scope |
+| conformance, ci-passed | None | conformance reads isolated evidence artifacts; final CI evaluates every required job result |
+| Dependency review workflow | Tools required by each declared dependency graph and its audit command | online registry review; prepare PHP before any selected PHP tool installation and keep target selection separate from dependency version targets |
+
+### Adoption verification
+
+- Bootstrap uses the npm release of packageManager; selected tools retain mise.lock, rust-toolchain.toml and declared hashes.
+- A fresh language job installs only its selected tools and required dependencies. An unrelated PHP, Go, Rust or Python setup is absent.
+- Required build steps run in that job. Native test commands may perform their own compilation, and no job downloads another language job's build output.
+- The two comparison jobs start without language-job dependencies and prepare every runtime they compare in their own environment.
+- Repeating installation with the same inputs reuses the correct versions and preserves the selected installed state.
+- Dependency installation is online and locked. CI Composer installation does not update the lock; local source refresh remains a separate operation.
+- Checks retain the offline environment and auto-install prohibitions. Missing caches fail instead of enabling network fallback.
+- Conformance and final CI require all relevant results. Only evidence summaries wait for the evidence-producing jobs.
+- Owning workflow and Make tests run during the change. The complete suite runs once after all active checklist items finish.
