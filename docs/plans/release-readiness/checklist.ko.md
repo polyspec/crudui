@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: ffb938857722519edd0fceeb1fc625c106ccdb53364b9a4e894be54a5bdf4072 -->
+<!-- source-sha256: dfe38d4c81abf1dcb38e751c80beb2e4418831097d3b2e0c122d3419cccf82f5 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -56,3 +56,4 @@
 | C18.11 | 언어 간 동등 검사를 언어별 단위 검사와 독립 실행한다 (priority: high). | independent comparison CI job, Make targets and owning regression tests | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/form-comparison-ci.test.mts` | [o] |
 | C18.12 | 각 CI 언어 환경이 필요한 잠긴 도구와 의존성만 독립적으로 준비한다 (priority: high). | language scoped installation targets, self-contained workflow jobs, locked offline verification and explicit remaining shared-tool requirements | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [ ] |
 | C18.12-1 | CI 도구 목록과 선택 설치 적용 검증 기준을 준비한다 (priority: high). | job-specific tool and dependency inventory, independent build contracts and adoption checks | `make records-check`; `git diff --check` | [o] |
+| C18.12-2 | 의존성 검토의 도구 준비 순서와 target 인자 전달을 수정한다 (priority: high). | scheduled workflow preparation order, application review target and native argument regression | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [ ] |
