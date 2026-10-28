@@ -660,3 +660,27 @@ test('cross-language generator equivalence runs independently of language unit j
     assert.ok(strings(jobOf(workflow, id).needs, `${id} dependencies`).includes('cross-language-equivalence'));
   }
 });
+
+
+test('dependency review prepares PHP before its single tool installation', async () => {
+  const job = jobOf(await workflowFile('dependency-review.yml'), 'review');
+  const steps = job.steps ?? [];
+  const php = steps.findIndex(step => step.uses?.startsWith('shivammathur/setup-php@'));
+  const installs = steps.flatMap((step, index) => step.run === 'make install-tools' ? [index] : []);
+  assert.equal(installs.length, 1);
+  assert.ok(php >= 0 && installs.every(index => php < index));
+});
+
+test('dependency review isolates CI targets from dependency version target files', async () => {
+  const job = jobOf(await workflowFile('dependency-review.yml'), 'review');
+  assert.ok((job.steps ?? []).some(step => step.run === 'make ci-targets TARGETS="crudui-review-dependencies"'));
+  const run = makeDryRun(ROOT, 'crudui-review-dependencies', { variables: ['TARGETS=crudui-review-dependencies'] });
+  assert.equal(run.status, 0, run.stderr);
+  const commands = run.stdout.split('\n').filter(line => /\/dependency-review\.(?:mts|mjs)(?:\s|$)/.test(line));
+  assert.equal(commands.length, 1, run.stdout);
+  assert.doesNotMatch(commands[0] ?? '', /--targets(?:\s|$)/);
+  // Explicit local version selection remains available on the shared command.
+  const direct = makeDryRun(ROOT, 'dependency-review', { variables: ['UPDATE=1', 'TARGETS=versions.json'] });
+  assert.equal(direct.status, 0, direct.stderr);
+  assert.match(direct.stdout, /--update --targets versions\.json/);
+});

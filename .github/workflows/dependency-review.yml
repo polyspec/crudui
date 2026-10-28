@@ -13,8 +13,7 @@ on:
 permissions:
   contents: read
 
-# The toolchains of the checkout at their recorded versions (docs/operations/package-build.md); this workflow runs no cargo
-# and no go.
+# Dependency review prepares the declared runtime and audit tools before online registry queries.
 env:
   RUSTUP_AUTO_INSTALL: '0'
   GOTOOLCHAIN: local
@@ -42,8 +41,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install npm and cargo-audit into var/tools
-        run: make install-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
@@ -55,7 +52,7 @@ jobs:
         run: make toolchain-check TOOLS="node npm rust php composer"
       - name: Review the dependencies
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="dependency-review"
+        run: make ci-targets TARGETS="crudui-review-dependencies"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

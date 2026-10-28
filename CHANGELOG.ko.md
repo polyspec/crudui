@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6136b3d5f789d3b7edf4c3d1ab5bba255a86abcdaf1d5c015729fac2613dbb23 -->
+<!-- source-sha256: 78a2b84ba51f17713a275bfd5a6aec3b38e8ced9a9da0ebecd500e306c75cdf8 -->
 
 ## Unreleased
+
+### 2026-10-28 — 정기 의존성 검토 준비를 수정한다 (C18.12-2)
+
+- 의존성 검토는 도구 설치 전에 선언한 PHP를 준비하며 도구 설치를 한 번 실행한다. 앱 target은 공용 검토 명령 호출 전에 CI target 선택 값을 비운다. 로컬에서 명시한 의존성 version target은 계속 지원한다.
 
 ### 2026-10-28 — CI 환경별 설치 준비를 정의한다 (C18.12-1)
 

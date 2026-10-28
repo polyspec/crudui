@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-28 — Prepare scheduled dependency review correctly (C18.12-2)
+
+- Dependency review installs the declared PHP before its tool installation and performs that installation once. Its application target clears the CI target selection before invoking the shared review command; explicit local dependency version targets remain supported.
+
 ### 2026-10-28 — Define scoped CI environment preparation (C18.12-1)
 
 - The CI preparation plan specifies each job's tools, native locked inputs, independent build responsibilities and selective installation acceptance checks. Release 0.0.8 remains published; scoped installation adoption is tracked separately.
