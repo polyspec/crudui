@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: 9c515ae6b5efcdc6b2cd69249f8e89dac0620437ac4b9921c75ca967359c2784 -->
+<!-- source-sha256: cafa64b075891b2badeaeecf6a5f0679b4de1b8b84949d9d82e623482a49487e -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -54,6 +54,6 @@
 | C18.10-29 | Service child runtime을 부모 test instrumentation과 분리한다 (priority: high). | native service fork arguments and environment with IPC regression | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C18.10-30 | Native untimed suite 기본값과 개별 case 제한을 유지한다 (priority: high). | native Node suite options verified against the pinned Node runtime | `node --check examples/form-comparison/pipeline.browser.mjs`; native aggregate duration exceeds the default deadline while each case remains bounded; syntax and changed-file lint | [o] |
 | C18.11 | 언어 간 동등 검사를 언어별 단위 검사와 독립 실행한다 (priority: high). | independent comparison CI job, Make targets and owning regression tests | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/form-comparison-ci.test.mts` | [o] |
-| C18.12 | 각 CI 언어 환경이 필요한 잠긴 도구와 의존성만 독립적으로 준비한다 (priority: high). | language scoped installation targets, self-contained workflow jobs, locked offline verification and explicit remaining shared-tool requirements | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [ ] |
+| C18.12 | 각 CI 언어 환경이 필요한 잠긴 도구와 의존성만 독립적으로 준비한다 (priority: high). | language scoped installation targets, self-contained workflow jobs, locked offline verification and explicit remaining shared-tool requirements | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [~] |
 | C18.12-1 | CI 도구 목록과 선택 설치 적용 검증 기준을 준비한다 (priority: high). | job-specific tool and dependency inventory, independent build contracts and adoption checks | `make records-check`; `git diff --check` | [o] |
 | C18.12-2 | 의존성 검토의 도구 준비 순서와 target 인자 전달을 수정한다 (priority: high). | scheduled workflow preparation order, application review target and native argument regression | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts` | [o] |
