@@ -3,9 +3,9 @@
 
 ## Unreleased
 
-### 2026-10-29 — Adopt the Kit 0.0.62 preparation contract (C18.13-4)
+### 2026-10-29 — Verify selected toolchain environments (C18.13-4)
 
-- The manifest and native lock select Kit 0.0.62. The provider workflow is synchronized, and application CI declares shared, runtime and full parity setup through config/ci.json. Selected non-PHP toolchain checks pass without PHP arginfo. Runtime integration and publication remain pending the provider source-link correction.
+- Selected Node/npm and Go environments pass the published Kit verifier without PHP arginfo. Extension build preparation retains its pinned generator and parser requirements. Final isolated candidate CI remains required before publication.
 
 ### 2026-10-29 — Scope every application workflow installation (C18.13-3)
 

@@ -1,12 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 24fd5a716f8b2355672ef40f1c9a08b1bda0935e7b5b6a052898179819e1401c -->
+<!-- source-sha256: 4de6089ce5f5e1cfb5d7121985fdd5a804e449651608d82aeb39978403890efd -->
 
 ## Unreleased
 
-### 2026-10-29 — Kit 0.0.62 준비 계약을 반영한다 (C18.13-4)
+### 2026-10-29 — 선택한 toolchain 환경을 검증한다 (C18.13-4)
 
-- Manifest와 native lock은 Kit 0.0.62를 선택한다. Provider workflow를 동기화하고 앱 CI는 config/ci.json으로 shared, runtime과 full parity 준비를 선언한다. PHP가 아닌 선택 toolchain 검사는 PHP arginfo 없이 통과한다. Runtime 통합과 공개는 provider source 연결 수정을 기다린다.
+- 선택한 Node/npm과 Go 환경은 PHP arginfo 없이 공개 Kit 검사를 통과한다. Extension build 준비는 고정 generator와 parser 요구사항을 유지한다. 공개 전에 최종 격리 candidate CI를 통과해야 한다.
 
 ### 2026-10-29 — 모든 앱 workflow의 설치 범위를 지정한다 (C18.13-3)
 

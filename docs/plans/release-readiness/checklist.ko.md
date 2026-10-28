@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-release-readiness -->
-<!-- source-sha256: f207ce4b23e435d3bbd582f0d27e8192a70aa4ab6c61d5eb84aec2bfd4074a9f -->
+<!-- source-sha256: 12c0a895057c8c631a80cdd1fbeceea8868ce97c39d0183174d033a34f9cfb93 -->
 # Release candidate 재검토 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -62,5 +62,5 @@
 | C18.13-1 | 0.0.9 candidate manifest와 native lock, 현재 release consumer를 준비한다 (priority: high). | versioned manifests and changelogs, native lock files, current archive and consumer verification | `make release-versions TAG=v0.0.9`; `make release-coverage`; `make release-candidate-assets VERSION=0.0.9`; `make release-consumer-lock TAG=v0.0.9` | [o] |
 | C18.13-2 | PHP 원인 예외와 동등한 native extension 생성자를 보존한다 (priority: high). | PHP caught cause propagation, equivalent C constructors and regression assertions | `make lint-php`; owning PHP and native constructor tests | [o] |
 | C18.13-3 | 문서, push, 의존성 검토 workflow의 남은 도구 설치 범위를 제한한다 (priority: high). | explicit job tool selectors and required native preparation in every application-owned workflow | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts tests/build/runtime-version-policy.test.mts tests/build/form-comparison-ci.test.mts` | [o] |
-| C18.13-4 | 선택한 도구만 검증하는 Kit 공개 수정을 반영한 뒤 candidate CI를 재시도한다 (priority: high). | published Kit pin and lock, successful fresh selected-tool checks without unrelated PHP preparation | `make toolchain-check TOOLS="node npm"`; `make toolchain-check TOOLS="node npm go"`; fresh isolated CI environments and complete parallel CI | [~] |
+| C18.13-4 | 선택한 도구만 검증하는 Kit 공개 수정을 반영한 뒤 candidate CI를 재시도한다 (priority: high). | published Kit pin and lock, successful fresh selected-tool checks without unrelated PHP preparation | `make toolchain-check TOOLS="node npm"`; `make toolchain-check TOOLS="node npm go"`; native selected-tool verification; final isolated candidate CI is required by C18.13 | [o] |
 | C18.13-5 | 공개 전에 runtime 범위 source 연결의 정식 Kit 수정을 반영한다 (priority: high). | published Kit fix for issue14 and fresh runtime gates without unrelated language installation | `make kit-ci-plan`; native scoped runtime link regression; complete parallel CI and exact-commit release proof | [ ] |
