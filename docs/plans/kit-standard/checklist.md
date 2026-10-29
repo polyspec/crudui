@@ -411,3 +411,4 @@
 | C17.66 | Remove enforcement references to the targets and hooks that kit deleted from the principles and agents documents | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | Adopt kit 0.0.72: pin the release asset, refresh the lock, sync kit, and remove link and link-state-check from the CI | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.68 | Remove the CI identity that dependency-health sets outside a workflow | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |
+| C17.69 | Make FormTest pass the generation error for a repeated literal choice | packages/generator/php/tests/FormTest.php | `make test-php-ext` | [ ] |

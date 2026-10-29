@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ceeb49504ecb762fff92a5b7a59af99a47b1e5de1b4f03729597e8b14a97ae0e -->
+<!-- source-sha256: 0a7588582b9b6428c1d48d686a1ffc3d0d3b4b355590768c78df30150a8418e4 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -412,3 +412,4 @@
 | C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.68 | dependency-health 테스트가 workflow 밖에서 설정하는 CI 신원을 제거한다 | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |
+| C17.69 | FormTest가 반복된 literal choice의 generation error를 전달하도록 맞춘다 | packages/generator/php/tests/FormTest.php | `make test-php-ext` | [ ] |
