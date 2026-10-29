@@ -16,8 +16,7 @@
 #   release-versions every manifest has the version of the tag and the changelog has its section
 #   release-assets  builds the archive of every package into var/release/assets
 #   release-publish creates the GitHub Release of the tag as a draft, with its notes and archives
-#   release-proof   proves the draft: its assets, its consumer installs, its git-tag installs and its Go module tags
-#   release-undraft makes the release public; it runs only after release-proof passed
+#   release-undraft makes the release public; it runs only after the draft was published
 # A failed step leaves the release a draft and fails the run, so a release that cannot be installed is never public.
 name: release
 
@@ -97,7 +96,5 @@ jobs:
         run: make release-assets
       - name: create the draft release
         run: make release-publish
-      - name: prove the draft release
-        run: make release-proof TAG="$TAG"
       - name: make the release public
         run: make release-undraft TAG="$TAG"

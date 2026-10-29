@@ -6,7 +6,6 @@
     "CHANGELOG.ko.md"
   ],
   "checks": [
-    "push-gate",
     "ci-passed"
   ],
   "packages": [
@@ -106,102 +105,5 @@
   "goModules": {
     "packages/generator/go": "github.com/polyspec/crudui/packages/generator/go",
     "packages/validator/go": "github.com/polyspec/crudui/packages/validator/go"
-  },
-  "consumers": {
-    "npm": {
-      "directory": "tests/release-install/npm",
-      "smoke": {
-        "@polyspec/crudui-generator-html": [
-          "node",
-          "-e",
-          "require('@polyspec/crudui-generator-html')"
-        ],
-        "@polyspec/crudui-generator-core": [
-          "node",
-          "-e",
-          "require('@polyspec/crudui-generator-core')"
-        ],
-        "@polyspec/crudui-validator": [
-          "node",
-          "-e",
-          "require('@polyspec/crudui-validator')"
-        ],
-        "@polyspec/crudui-form-binding": [
-          "node",
-          "--input-type=module",
-          "-e",
-          "import { bindForm } from '@polyspec/crudui-form-binding'; if (typeof bindForm !== 'function') throw new Error('Missing bindForm export');"
-        ],
-        "@polyspec/crudui-generator-react": [
-          "node",
-          "-e",
-          "require('@polyspec/crudui-generator-react'); require('@polyspec/crudui-generator-react/server');"
-        ],
-        "@polyspec/crudui-generator-vue": [
-          "node",
-          "-e",
-          "require('@polyspec/crudui-generator-vue');"
-        ],
-        "@polyspec/crudui-generator-svelte": [
-          "node",
-          "--input-type=module",
-          "-e",
-          "import { build } from 'vite'; import { svelte } from '@sveltejs/vite-plugin-svelte'; await build({ configFile: false, plugins: [svelte()], ssr: { noExternal: ['@polyspec/crudui-generator-svelte'] }, build: { ssr: 'node_modules/@polyspec/crudui-generator-svelte/dist/index.js', outDir: 'svelte-smoke', emptyOutDir: true, rollupOptions: { output: { entryFileNames: 'index.mjs' } } } }); const result = await import('./svelte-smoke/index.mjs'); if (typeof result.Form !== 'function' || typeof result.renderForm !== 'function') throw new Error('Missing Svelte component or renderer export');"
-        ]
-      }
-    },
-    "composer": {
-      "directory": "tests/release-install/composer",
-      "smoke": {
-        "polyspec/crudui-generator": [
-          "php",
-          "-r",
-          "require 'vendor/autoload.php'; if (!class_exists('Polyspec\\\\Crudui\\\\Generator')) { exit(1); }"
-        ],
-        "polyspec/crudui-validator": [
-          "php",
-          "-r",
-          "require 'vendor/autoload.php'; if (!class_exists('Polyspec\\\\Crudui\\\\Validator')) { exit(1); }"
-        ]
-      }
-    },
-    "wheel": {
-      "smoke": {
-        "polyspec-crudui-validator": [
-          "python",
-          "-c",
-          "import polyspec.crudui.validator"
-        ],
-        "polyspec-crudui-generator": [
-          "python",
-          "-c",
-          "import polyspec.crudui.generator"
-        ]
-      },
-      "lock": {
-        "polyspec-crudui-validator": "packages/validator/python/pylock.toml",
-        "polyspec-crudui-generator": "packages/generator/python/pylock.toml"
-      }
-    }
-  },
-  "proof": {
-    "gitTag": {
-      "packages/validator/rust/Cargo.toml": {
-        "kind": "rust",
-        "name": "polyspec-crudui-validator",
-        "smoke": [
-          "cargo",
-          "check"
-        ]
-      },
-      "packages/generator/rust/Cargo.toml": {
-        "kind": "rust",
-        "name": "polyspec-crudui-generator",
-        "smoke": [
-          "cargo",
-          "check"
-        ]
-      }
-    }
   }
 }

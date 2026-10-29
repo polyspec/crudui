@@ -34,13 +34,14 @@ const SELF = 'tests/build/offline-checks.test.mts';
 const CHECK = 'cargo-downloads-check';
 // The targets of the kit.mk and bootstrap of @polyspec/kit that download: the tools, the packages, the
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
-// the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). release-consumer installs the archives of a release in clean projects: the tool lifts the
+// the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). The tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock', 'unlink'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'release-assets-fetch', 'toolchain-lock', 'unlink'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
-// The evaluated database contains the commands and prerequisites of the checkout and its installed kit.
-const database = makeDryRun(ROOT, 'help', { database: true });
+// The evaluated database contains the commands and prerequisites of the checkout and its installed kit. KIT_WORKTREE is empty,
+// so the recipes of the checkout that downloads are the ones checked, in a worktree as on main (a worktree's install-tools refuses).
+const database = makeDryRun(ROOT, 'help', { database: true, variables: ['KIT_WORKTREE='] });
 assert.equal(database.status, 0, database.stderr);
 const makefiles = database.stdout;
 const rules: Record<string, MakeRule> = makeTargets(makefiles);
@@ -130,7 +131,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|dependency-review\.\$\(KIT_EXT\)(?! --provider-entries\b)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
+  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|dependency-review\.\$\(KIT_EXT\)(?! --provider-entries\b)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\))/;
   // The provider-entries mode rewrites local Composer metadata and returns before the registry review.
   assert.equal(downloading.test('$(NODE) $(KIT)/dependency-review.$(KIT_EXT) --record'), true);
   assert.equal(downloading.test('$(NODE) $(KIT)/dependency-review.$(KIT_EXT) --provider-entries'), false);

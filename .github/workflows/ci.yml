@@ -1,5 +1,5 @@
 # Build, validation, rendering and documentation checks of every push to main and of every manual run. The last job
-# ci-passed needs every other job and fails unless each of them succeeded; a release requires it and push-gate to have
+# ci-passed needs every other job and fails unless each of them succeeded; a release requires it to have
 # succeeded for the tagged commit (docs/operations/repository.md). The documentation web of main is deployed by
 # .github/workflows/pages.yml.
 

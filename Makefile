@@ -25,7 +25,7 @@ build-go crudui-install-go-modules: export GOWORK := $(CURDIR)/go.work
 # A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, crudui-install-crates
-# and release-consumer-lock, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
+# and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
 # (the kit.mk of @polyspec/kit) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
 export GOPROXY := off
@@ -482,7 +482,7 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 	exit $$status
 
 # The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
-# release-versions, release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
+# release-versions, release-assets, release-publish (docs/operations/repository.md, "Releases"). The
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
 release-assets release-candidate-assets: crudui-prepare-release-build build
 .PHONY: crudui-prepare-release-build
