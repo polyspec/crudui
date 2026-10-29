@@ -333,7 +333,6 @@ test('CI_TARGETS lists every checking command of the CI workflow, in the same or
 test('CI builds public JavaScript entries before dependency checks and validator tests (C18.10-3)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const build = workflow.indexOf('make build');
-  const dependencies = build;
   assert.ok(build >= 0, 'the public entries are built');
   const validator = makeDryRun(ROOT, 'crudui-test-validator-js');
   assert.equal(validator.status, 0, validator.stderr);
