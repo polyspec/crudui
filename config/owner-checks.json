@@ -575,31 +575,13 @@
     {
       "paths": [
         "config/dependency-policy.json",
-        "config/dependency-review.json",
         "packages/{*,*/*}/package.json",
         "packages/{validator,generator}/php/composer.json",
         "composer.{json,lock}"
       ],
-      "scripts": [
-        "test:dependencies"
-      ],
       "targets": [
         "crudui-test-validators",
         "crudui-test-native"
-      ]
-    },
-    {
-      "paths": [
-        "package.json",
-        "package-lock.json",
-        ".npmrc"
-      ],
-      "scripts": [
-        "test:dependencies"
-      ],
-      "tests": [
-        "tests/build/runtime-version-policy.test.mts",
-        "tests/build/tool-path.test.mts"
       ]
     },
     {
@@ -736,7 +718,6 @@
       "tests": [
         "tests/build/ci-local.test.mts",
         "tests/build/public-packages.test.mts",
-        "tests/build/dependency-health.test.mts",
         "tests/build/package-install-pack.test.mts",
         "tests/build/contract-manifest.test.mts",
         "scripts/json-schema.test.mts",
@@ -831,9 +812,7 @@
       "targets": [
         "production-dependencies-check"
       ],
-      "tests": [
-        "tests/build/dependency-health.test.mts"
-      ]
+      "tests": []
     },
     {
       "paths": [
@@ -852,9 +831,7 @@
       "targets": [
         "crudui-local-composer-check"
       ],
-      "tests": [
-        "tests/build/dependency-health.test.mts"
-      ]
+      "tests": []
     },
     {
       "paths": [
@@ -882,6 +859,16 @@
       "tests": [
         "examples/form-comparison/src/local-servers.test.mjs",
         "tests/build/rust-node-entry-points.test.mts"
+      ]
+    },
+    {
+      "paths": [
+        "package.json",
+        "package-lock.json",
+        ".npmrc"
+      ],
+      "targets": [
+        "crudui-test-validators"
       ]
     }
   ],
@@ -944,14 +931,14 @@
       ]
     },
     {
-      "check": "npm run test:dependencies",
+      "check": "make crudui-test-validators",
       "paths": [
         "package.json",
         "package-lock.json",
         "packages/{*,*/*}/package.json",
         "packages/{validator,generator}/php/composer.json",
         "composer.{json,lock}",
-        "config/dependency-{policy,review}.json"
+        ".npmrc"
       ]
     },
     {

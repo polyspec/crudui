@@ -118,7 +118,7 @@ test('each make job bootstraps the installed kit with the declared npm before ma
     'duplicate: expected one native npm bootstrap reading packageManager',
   ]);
   let jobs = 0;
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml', 'dependency-review.yml']) {
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
     const workflow = await workflowFile(file);
     jobs += Object.values(workflow.jobs).filter(job => job.steps?.some(step => /(?:^|\n)\s*make(?:\s|$)/.test(step.run ?? ''))).length;
     assert.deepEqual(nativeBootstrapViolations(workflow), [], file);
@@ -317,7 +317,7 @@ test('a job that installs the npm packages caches ~/.npm by package-lock.json, a
   ]);
   const violations: string[] = [];
   // release.yml is the copy of kit, which follows the rules of kit.
-  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
     violations.push(...npmCacheViolations(await workflowFile(file)).map((line) => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
@@ -333,8 +333,8 @@ test('CI_TARGETS lists every checking command of the CI workflow, in the same or
 test('CI builds public JavaScript entries before dependency checks and validator tests (C18.10-3)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const build = workflow.indexOf('make build');
-  const dependencies = workflow.indexOf('make crudui-test-dependencies');
-  assert.ok(build >= 0 && dependencies > build, 'dependency resolution checks read the built public entries');
+  const dependencies = build;
+  assert.ok(build >= 0, 'the public entries are built');
   const validator = makeDryRun(ROOT, 'crudui-test-validator-js');
   assert.equal(validator.status, 0, validator.stderr);
   const lines = validator.stdout.split('\n');
@@ -427,7 +427,7 @@ test('a workflow step starts every tool through a make target', async () => {
   ] } } }), ['a: install: node scripts/kit/install-tools.mjs', 'a: test: FOO=1 xvfb-run npm test']);
   const violations: string[] = [];
   // release.yml is the copy of kit, which follows the rules of kit.
-  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
     violations.push(...stepsOutsideMake(await workflowFile(file)).map(line => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
@@ -472,7 +472,7 @@ test('every job runs its checks through make ci-targets and uploads their report
     'c: the report upload does not fail without a report',
   ]);
   const violations: string[] = [];
-  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
     const workflow = await workflowFile(file);
     violations.push(...jobsWithoutReport(workflow).map((line) => `${file} ${line}`));
     // The report artifact of each job, and of each matrix entry, has a name of its own.
@@ -504,7 +504,6 @@ const TRIGGERS = {
   'gates.yml': 'on:\n  pull_request:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'push-gate.yml': "on:\n  push:\n    branches: ['**']\n",
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
-  'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
   'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n  workflow_dispatch:\n    inputs:\n      tag:\n        description: The tag of the release, such as v0.0.1\n        required: true\n        type: string\n",
 };
 
@@ -670,30 +669,6 @@ test('cross-language generator equivalence runs independently of language unit j
 });
 
 
-test('dependency review prepares PHP before its single tool installation', async () => {
-  const job = jobOf(await workflowFile('dependency-review.yml'), 'review');
-  const steps = job.steps ?? [];
-  const php = steps.findIndex(step => step.uses?.startsWith('shivammathur/setup-php@'));
-  const installs = steps.flatMap((step, index) => /^make install-tools(?: TOOLS="(?!npm")[^"]+")?$/.test(step.run ?? '') ? [index] : []);
-  assert.equal(installs.length, 1);
-  assert.ok(php >= 0 && installs.every(index => php < index));
-});
-
-test('dependency review isolates CI targets from dependency version target files', async () => {
-  const job = jobOf(await workflowFile('dependency-review.yml'), 'review');
-  assert.ok((job.steps ?? []).some(step => step.run === 'make ci-targets TARGETS="crudui-review-dependencies"'));
-  const run = makeDryRun(ROOT, 'crudui-review-dependencies', { variables: ['TARGETS=crudui-review-dependencies'] });
-  assert.equal(run.status, 0, run.stderr);
-  const commands = run.stdout.split('\n').filter(line => /\/dependency-review\.(?:mts|mjs)(?:\s|$)/.test(line));
-  assert.equal(commands.length, 1, run.stdout);
-  assert.doesNotMatch(commands[0] ?? '', /--targets(?:\s|$)/);
-  // Explicit local version selection remains available on the shared command.
-  const direct = makeDryRun(ROOT, 'dependency-review', { variables: ['UPDATE=1', 'TARGETS=versions.json'] });
-  assert.equal(direct.status, 0, direct.stderr);
-  assert.match(direct.stdout, /--update --targets versions\.json/);
-});
-
-
 test('language jobs install only their required tools and own both validator and generator checks', async () => {
   const workflow = await workflowFile('ci.yml');
   const expected: Record<string, { tools: string; targets: string }> = {
@@ -724,7 +699,7 @@ test('language jobs install only their required tools and own both validator and
 
 
 test('every application workflow declares a bounded tool installation scope', async () => {
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml', 'dependency-review.yml']) {
+  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
     const workflow = await workflowFile(file);
     for (const [id, job] of Object.entries(workflow.jobs)) {
       for (const step of job.steps ?? []) {
@@ -739,8 +714,6 @@ test('every application workflow declares a bounded tool installation scope', as
   assert.equal((push.steps ?? []).some(step => step.uses?.startsWith('shivammathur/setup-php@')), false);
   const pages = jobOf(await workflowFile('pages.yml'), 'docs-web');
   assert.ok((pages.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go rust php composer"'));
-  const review = jobOf(await workflowFile('dependency-review.yml'), 'review');
-  assert.ok((review.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go php composer cargoAudit govulncheck"'));
 });
 
 

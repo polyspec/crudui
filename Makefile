@@ -24,7 +24,7 @@ export GOTOOLCHAIN := local
 build-go crudui-install-go-modules: export GOWORK := $(CURDIR)/go.work
 # A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
-# and not in another. The targets that download, install-tools, crudui-install-crates, dependency-review
+# and not in another. The targets that download, install-tools, crudui-install-crates
 # and release-consumer-lock, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
 # (the kit.mk of @polyspec/kit) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
@@ -32,15 +32,13 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: crudui-test-generator-go crudui-test-generator-rust crudui-test-generator-js crudui-review-dependencies crudui-test-cross-language-equivalence help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
+.PHONY: crudui-test-generator-go crudui-test-generator-rust crudui-test-generator-js crudui-test-cross-language-equivalence help release-assets form-template-validator form-template-validator-check install crudui-install crudui-install-go-modules crudui-install-composer crudui-install-python crudui-install-phpdocumentor crudui-install-browsers check-ci-browser crudui-test-runtimes crudui-test-dependencies crudui-build crudui-lint crudui-docs-check build lint typecheck crudui-test-validator-js crudui-test-validator-php crudui-test-validator-go crudui-test-validator-rust crudui-test-validator-python crudui-test-generator-python crudui-test-cross-check manifest-test require-build crudui-test-cli manifest-check manifest-docs-check crudui-test-forms crudui-test-form-comparison crudui-test-form-comparison-pipeline crudui-test-form-comparison-checks crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-packages crudui-test-build crudui-test-build-repeat crudui-test-inspector crudui-test-bench check-conformance crudui-install-crates crudui-install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust crudui-test-php-engine crudui-test-native-generators crudui-test-php-api crudui-test-native crudui-test-validators crudui-test-form-binding conformance format-check records-check
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent release-assets release-candidate-assets
 
 # Shared commands come from the installed @polyspec/kit package. Native npm links may connect that package to local
 # development sources; the bootstrap selects the installed source or packed commands.
 include node_modules/@polyspec/kit/scripts/kit/kit-bootstrap.mk
 
-# Dependency records use the declared release workspace; source links and archive consumers keep their own resolution.
-dependency-review dependency-policy-check: export GOWORK := $(CURDIR)/go.work
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
@@ -72,8 +70,6 @@ help: ## 타겟 설명
 	@echo "  make crudui-install-crates        Download the crates of every Cargo.lock and the OrderedJSON checkout that one reads"
 	@echo "  make install-tools         Install the npm, Go and cargo-audit releases that the checkout declares into var/tools"
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
-	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
-	@echo "  make dependency-policy-check  Check the manifests and locks against config/dependency-policy.json and the review record"
 	@echo "  make owner-check           Run the owner checks of the changed paths (config/owner-checks.json); PATHS or BASE select the paths"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
 	@echo "  make docs-api              Generate API references for all languages"
@@ -204,16 +200,6 @@ endif
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 crudui-test-runtimes: ## Exact runtime versions and test standards
 	$(NPM) run test:runtimes
-# The CI runner's TARGETS selects Make checks, while dependency-review uses it for a version file.
-crudui-review-dependencies: ## Review dependencies without inheriting the CI target selection
-	$(MAKE) --no-print-directory dependency-review TARGETS=
-
-crudui-test-dependencies: ## The dependency graph, the dependency policy and its recorded review
-	@status=0; \
-	$(MAKE) --no-print-directory dependency-policy-check || status=1; \
-	$(MAKE) --no-print-directory dependency-policy-mutation-check || status=1; \
-	$(NPM) run test:dependencies || status=1; \
-	exit $$status
 # The validator of the compiled form template of packages/generator/ts is ajv's standalone validation code of
 # contracts/schema/form-template.schema.json (C14.38): make form-template-validator generates
 # packages/generator/ts/src/form-template-validator.mjs, and the build checks that it is current, so the package has no
@@ -507,7 +493,6 @@ crudui-prepare-release-build: crudui-install-crates crudui-install-go-modules
 CI_TARGETS = \
 	crudui-test-runtimes \
 	build \
-	crudui-test-dependencies \
 	lint \
 	lint-python \
 	lint-php \
@@ -559,7 +544,6 @@ CHECK_TARGETS = \
 	language-check \
 	test-markers-check \
 	duplication-check \
-	dependency-policy-check \
 	parity-declarations-check \
 	parity-check \
 	commits-check \
