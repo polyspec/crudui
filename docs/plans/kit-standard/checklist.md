@@ -407,3 +407,4 @@
 | C17.62 | Remove the python-lock alternative from the offline downloads regex (K789) | the python-lock alternative removed from tests/build/offline-checks.test.mts | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` passes | [ ] |
 | C17.63 | Remove the K805 commit-rule consumer state | pre-merge-commit hook, config/commit-identity.json, commits-check CI target removed; make hooks rewrites pre-commit | `make hooks` leaves no pre-merge-commit reference, and the CI target list has no commits-check | [ ] |
 | C17.64 | Remove crudui's make release-versions step (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
+| C17.65 | Remove the owner-check globs of files deleted by C17.61 and C17.63 | config/owner-checks.json | `make owner-validate` | [ ] |
