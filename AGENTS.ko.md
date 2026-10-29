@@ -16,12 +16,9 @@
   실행하지 않습니다. 긴 작업은 background에서 실행하고 진행 상태를
   보고합니다. 실패는 다른 결함과 같이 작업으로 올립니다.
   Enforced by: none, commit 전에 어떤 unit test를 실행하는지는 어떤 검사도 읽지 않는 절차입니다.
-- Own: push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook
-  `.githooks/pre-push`은 `make push-gate-hook`을 실행하며, 이 명령은 그런 push를 거부하고 진행 중인 작업을 각각 밝힙니다.
+- Own: push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다.
   모든 `make` 실행은 `core.hooksPath`를 `.githooks`로 설정하며, hook이 설치되지 않았으면 `make hooks-check`가 실패합니다.
-  `.github/workflows/push-gate.yml`의 job `push-gate`는 push되는 commit마다 `make push-gate-commit`을 실행한 뒤
-  `make records-check`를 실행합니다.
-  Enforced by: `make hooks-check`
+  Enforced by: none, K804 이후 어떤 hook이나 CI job도 push를 검사하지 않습니다.
 - Own: version이 0.x인 동안에는 pull request, merge queue, GitHub ruleset이 없습니다. 작업은 로컬에서 commit하며 commit마다
   checklist 행 하나를 담고, 소유한 unit test가 통과해야 그 행이 `[o]`가 됩니다. 개발 작업과 로컬 candidate 준비를 완료하고 활성 작업이 없을 때 `main`을 한 번 push합니다.
   Candidate 준비는 현재 sibling source로 CI 전에 수행하며 CI나 별도 허가를 기다리며 미루지 않습니다.
@@ -64,14 +61,14 @@
   Enforced by: `make layout-check`
 - Own: 완료된 기능은 그 기능을 완료하는 commit에서 `CHANGELOG.md`와 `CHANGELOG.ko.md`에 기록하며, 항목은 section
   `## Unreleased`의 맨 위에 `### <date> — <title> (<task ID>)` 형식으로 둡니다. 커밋하지 않은 변경은 기능 하나 안에 둡니다.
-  Enforced by: `make records-check`
+  Enforced by: none, `make records-check`는 손으로 실행하며 어떤 hook이나 CI job도 닿지 않습니다.
 - Own: 모든 경로는 `config/owner-checks.json`에 owner가 있으며, 각 검사가 읽는 경로도 그 파일에 적습니다. 새 경로는 같은
   변경에서 그 파일에 owner를 추가합니다.
   Enforced by: `make owner-validate`
 - Own: 주석, 문서, 변경 기록과 사용자에게 보이는 문구는 현재 동작을 직접 설명합니다. 주체, 동작, 대상과 결과를 밝히고, 필요한
   원인은 한 문장으로 적습니다. 비유, 의인화와 구어체를 쓰지 않습니다. 외부 출처, 복사나 각색 이력을 기록하지 않습니다.
   외부 프로젝트는 현재 계약이나 절차가 그 정체, API 또는 경로를 요구할 때만 이름을 적습니다.
-  Enforced by: `make records-check`
+  Enforced by: none, `make records-check`는 손으로 실행하며 어떤 hook이나 CI job도 닿지 않습니다.
 - Own: 개인 선호와 대화 맥락은 저장소 밖에 보관합니다.
   Enforced by: none, 어떤 맥락이 저장소 밖에 속하는지는 판단입니다.
 

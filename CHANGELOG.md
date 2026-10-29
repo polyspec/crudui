@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Remove enforcement references to deleted targets (C17.66)
+
+- PRINCIPLES.md and AGENTS.md name no deleted target or hook as enforcement: commits-check, pre-push, pre-merge-commit, dependency-policy-check and push-gate; a rule that no check reads says `none`.
+
 ## 0.0.9
 
 ### 2026-10-29 — Finalize the 0.0.9 candidate with scoped Kit gates (C18.13-6)

@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — 삭제된 target의 강제 참조를 제거한다 (C17.66)
+
+- PRINCIPLES.md와 AGENTS.md는 삭제된 target이나 hook을 강제 수단으로 적지 않는다: commits-check, pre-push, pre-merge-commit, dependency-policy-check, push-gate. 도구가 읽지 않는 규칙은 `none`으로 적는다.
+
 ## 0.0.9
 
 ### 2026-10-29 — 범위가 지정된 Kit gate로 0.0.9 후보를 확정한다 (C18.13-6)

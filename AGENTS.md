@@ -16,12 +16,9 @@ only the rules of crudui.
   each change or item. Long operations run in the
   background and report their progress. A failure gets a task like any other defect.
   Enforced by: none, which unit tests a developer runs before a commit is a procedure that no check reads.
-- Own: A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the working tree. The
-  tracked pre-push hook `.githooks/pre-push` runs `make push-gate-hook`, which refuses such a push and names each task in
-  progress. Every `make` run sets `core.hooksPath` to `.githooks`, and `make hooks-check` fails while the hook is not
-  installed. The job `push-gate` of `.github/workflows/push-gate.yml` runs `make push-gate-commit` on every pushed commit
-  and then `make records-check`.
-  Enforced by: `make hooks-check`
+- Own: A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the working tree.
+  Every `make` run sets `core.hooksPath` to `.githooks`, and `make hooks-check` fails while the hook is not installed.
+  Enforced by: none, no hook or CI job checks a push since K804.
 - Own: While the version is 0.x there is no pull request, merge queue or GitHub ruleset. Work is committed locally, one
   checklist row per commit, and the owning unit tests pass before the row becomes `[o]`. `main` is pushed once, when
   development tasks and local candidate preparation are complete and no task is active. Candidate preparation runs before
@@ -67,7 +64,7 @@ only the rules of crudui.
   Enforced by: `make layout-check`
 - Own: Each completed feature is recorded in `CHANGELOG.md` and `CHANGELOG.ko.md` in the commit that completes it, as an entry
   `### <date> — <title> (<task ID>)` at the top of the section `## Unreleased`. Uncommitted changes stay within one feature.
-  Enforced by: `make records-check`
+  Enforced by: none, `make records-check` is run by hand and no hook or CI job reaches it.
 - Own: Every path has an owner in `config/owner-checks.json`, with the paths that each check reads. A new path gets its owner in
   that file in the same change.
   Enforced by: `make owner-validate`
@@ -75,7 +72,7 @@ only the rules of crudui.
   subject, operation, target and result; state a necessary cause in one sentence. Do not use metaphors, personification or
   conversational wording. Do not record external source, copying or adaptation history. Name an external project only when
   its identity, API or path is required by the current contract or procedure.
-  Enforced by: `make records-check`
+  Enforced by: none, `make records-check` is run by hand and no hook or CI job reaches it.
 - Own: Keep personal preferences and conversation context outside the repository.
   Enforced by: none, which context belongs outside the repository is a judgement.
 

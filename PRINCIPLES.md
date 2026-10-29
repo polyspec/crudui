@@ -12,7 +12,7 @@ in kit, with its grounding.
 
 - P1 Everything is the responsibility of whoever works on it: the code, its tests, its documents, AGENTS and the memory. A task
   is not done while one of them is missing.
-  Enforced by: `make commits-check`, `make docs-check`
+  Enforced by: `make docs-check`
 - P2 A rule is followed because it is right, never because it exists. "It was there before" is no ground. A rule, a code path
   or a document found wrong is reported and corrected; a found oddity is reported at once, with the question whether a rule
   must be made or corrected, and it is fixed or confirmed convincingly before the work moves on.
@@ -26,7 +26,7 @@ in kit, with its grounding.
 - P5 A wrong change is judged by its harm and its correctness, not by its intent. A harmful change is reverted at once; a
   harmless change that is wrong or unneeded is removed; a correct change unrelated to the work is kept and committed on
   its own with its real reason, never recorded as part of the work it did not belong to.
-  Enforced by: `make commits-check`
+  Enforced by: none, no tool checks a commit message since K805.
 
 ## Standards
 
@@ -49,10 +49,10 @@ in kit, with its grounding.
   rejects a moved local ref and preserves a matching branch and worktree. Test or experiment code that cannot merge is
   cherry-picked when it is worth keeping and otherwise discarded, always before the commit; when it cannot be removed at once, a
   checklist sub-item states the condition of its removal.
-  Enforced by: `.githooks/pre-push`, `.githooks/pre-merge-commit`
+  Enforced by: none, no hook checks a push or a merge since K804 and K805.
 - P11 Code comments, identifiers, logs, error messages, test names and commit messages are written in English. Documents are
   English, each with a Korean twin that writes technical terms in English.
-  Enforced by: `make commits-check` for the commit messages, `make language-check` for the code
+  Enforced by: `make language-check` for the code
 
 ## Design
 
@@ -83,7 +83,7 @@ in kit, with its grounding.
   A test that cannot fail proves nothing, and a test that passes without running is a defect.
   A comment or document that a change makes stale is corrected in the commit of that change; one found after its row is done
   is a sub-item whose Verification is `make text-absent FILE=<path> TEXT=<stale text>`, which fails while the stale text is there.
-  Enforced by: `make commits-check`
+  Enforced by: none, no tool checks a commit message since K805.
 - P20 An item is completed by its own unit tests: red, implementation, green. Only the checks that own what changed run; the
   full suite is not run, neither per fix, per item nor at the end. The full suite runs only on the order of the conductor,
   which the Claude Code hook in `.claude/settings.json` enforces.
@@ -118,23 +118,23 @@ repository.
   sub-item `<id>-<n>` follows its item in one plan. `make plan-new` and `make item-new` write them, and `make plan-split` moves items to another plan.
   A change starts from its registered row: `make item-new` registers the row before any work, and its commit names the row
   (P28).
-  Enforced by: `make docs-check`, `make commits-check`
+  Enforced by: `make docs-check`
 - P25 An item is `[ ]` waiting, `[~]` active, `[v]` verification, `[o]` done, `[!] cause: <cause>; retry: <condition>` bypassed or
   `[-] cause: <cause>` impossible, and moves only along the transitions of `make item-state`. Verification means the implementation is
   committed and its declared unit tests passed. It permits a push, but blocks tag creation and release until it is done; a failed
   verification returns it to active. A new finding on a done item is a sub-item of its own; the done item keeps its state.
-  Enforced by: `make docs-check`, `make commits-check`
+  Enforced by: `make docs-check`
 - P26 An open item names, in its Verification cell, the commands of its own unit tests; no item is verified by a suite. A suite runs in CI, or once as an explicit final verification after all checklist
   items are terminal. `make item-test` runs the commands.
   Enforced by: `make docs-check`, `.claude/settings.json`
 - P27 A commit completes at most one item: it moves at most one state, and the commit that moves an item to done records it in
   CHANGELOG.md and its Korean twin. The uncommitted work is at most one item.
-  Enforced by: `make commits-check`
+  Enforced by: none, no tool checks a commit message since K805.
 - P28 A commit message is `type(scope): Subject (#id)` with a type of feat, fix, docs, style, refactor, test or chore, a Subject
   of at most 50 characters that starts with a capital letter and ends without a period, a blank line and a body wrapped at
   72 characters, with no footer of an AI tool: no co-author or session trailer of one. Its author and committer are a
   person, never an AI tool. `make commit` writes it.
-  Enforced by: `make commits-check`
+  Enforced by: none, no tool checks a commit message since K805.
 - P29 The make targets of a task have fixed names: `install`, `build`, `test`, `lint`, `docs-check`, and `build-<runtime>`,
   `test-<runtime>` and `lint-<runtime>` for each runtime of `packages/`, all defined by kit. A repository joins a task by a
   prerequisite of its own, such as `build: kit-build`, never by another target that starts with a task's name (K246).
@@ -174,7 +174,7 @@ repository.
   A merge commit on main is refused, so main moves by commits and fast-forwards only. The first commit of a repository, which
   creates main with no commit to compare with, is not gated. The hooks protect against an accidental ungated commit; a deliberate
   bypass (`--no-verify`, `core.hooksPath`, a raw `update-ref`) is out of scope (K404, K446, K404-1).
-  Enforced by: `.githooks/pre-commit`, `.githooks/pre-merge-commit`
+  Enforced by: `.githooks/pre-commit`
 
 ## Repository standards
 
@@ -198,7 +198,7 @@ tool lands, a standard binds the work as written here.
   `test_*.py`); a repository may add files but never narrow the set, and a file named like a test is run by a binding.
   Enforced by: `make parity-declarations-check`
 - S4 Versions: kit enforces no version or pin; each package manager and its lock decide.
-  Enforced by: `make toolchain-check`, `make dependency-policy-check`
+  Enforced by: `make toolchain-check`
 - S5 Folders: every monorepo has the same root folders (`packages/`, `contracts/`, `docs/`, `scripts/`, `tests/`,
   `examples/`, `benchmarks/`, `config/`). Runtime ports of the main spec live in `packages/<runtime>/`, other components in
   `packages/<component>/` and their ports in `packages/<component>/<runtime>/`; folder names carry no repository prefix. A
@@ -221,7 +221,7 @@ tool lands, a standard binds the work as written here.
   Enforced by: `make layout-check`, `make parity-declarations-check`
 - S8 Reporting oddities is the second bullet of "Responsibility"; no tool can enforce it. What S8 adds: every exception,
   profile and rebuild record carries its reason, in the place where it is declared.
-  Enforced by: `make rebuild-check`, `make dependency-policy-check`
+  Enforced by: `make rebuild-check`
 - S9 Cross-language orchestration and checks, kit included, are written in TypeScript, checked by `tsc` with
   `erasableSyntaxOnly`. Exceptions: a harness that drives one language's implementation is a test of that language; a
   language-specific static check is a plugin of that ecosystem's analyzer; a symbol extractor runs that ecosystem's tool.
@@ -242,4 +242,4 @@ tool lands, a standard binds the work as written here.
   Composer package that requires the library, since an internal class cannot extend a userland class. A Composer package of
   type `project` is an application: it is outside the extension run and the S10 library checks, and `make test-php` runs its
   tests as its own package.
-  Enforced by: `make lint-php-ext`, `make test-php-ext`, `make layout-check`, `make dependency-policy-check`
+  Enforced by: `make lint-php-ext`, `make test-php-ext`, `make layout-check`
