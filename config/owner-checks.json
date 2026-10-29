@@ -574,7 +574,6 @@
     },
     {
       "paths": [
-        "config/dependency-policy.json",
         "packages/{*,*/*}/package.json",
         "packages/{validator,generator}/php/composer.json",
         "composer.{json,lock}"

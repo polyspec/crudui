@@ -181,8 +181,7 @@
       "lock": {
         "polyspec-crudui-validator": "packages/validator/python/pylock.toml",
         "polyspec-crudui-generator": "packages/generator/python/pylock.toml"
-      },
-      "polyspec": {}
+      }
     }
   },
   "proof": {

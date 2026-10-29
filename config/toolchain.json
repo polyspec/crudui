@@ -1,13 +1,9 @@
 {
   "schema": 1,
-  "comment": "The toolchains of crudui that no other file declares. mise is the release that make install-tools TOOLS=npm installs with the sha256 of each platform; mise.toml declares the tools it installs (Go, uv and Python, alint for make layout-check, ruff and vulture for make lint-python, golangci-lint and deadcode for make lint-go, cargo-audit for make dependency-review, and Composer, which installs PHPCS and PHPStan of config/php-lint for make lint-php) and mise.lock locks them. PHP is verified at the declared release. pythonBackend is the one declaration of the build backend of the Python wheels, which install-tools installs and the release builds the wheels with (kit K166, C14.44). The exception keeps packages/svelte on TypeScript 6.",
+  "comment": "The toolchains of crudui that no other file declares. mise is the release that make install-tools TOOLS=npm installs with the sha256 of each platform; mise.toml declares the tools it installs (Go, uv and Python, alint for make layout-check, ruff and vulture for make lint-python, golangci-lint and deadcode for make lint-go, cargo-audit for make dependency-review, and Composer, which installs PHPCS and PHPStan of config/php-lint for make lint-php) and mise.lock locks them. PHP is verified at the declared release. The exception keeps packages/svelte on TypeScript 6.",
   "php": [
     "8.4"
   ],
-  "pythonBackend": {
-    "requirement": "setuptools==84.2.1",
-    "sha256": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2"
-  },
   "exceptions": [
     {
       "tool": "typescript",
