@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b7aa4db6442da109033b636d72246050a721a8cc0d91fa72fa87d60f45ff46ac -->
+<!-- source-sha256: 5d4e5d034b5b4e181471abe4b6d981a0d0ffad6aa6f5ca73083ed23b0b9dfd0a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -407,3 +407,4 @@
 | C17.61 | K798 release-consumer와 release-proof 채택 제거 | tests/release-install, config/release.json consumers and proof, release-fixtures cases, release.yml release-proof step removed | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts` and `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` pass | [ ] |
 | C17.62 | offline downloads 정규식에서 python-lock 대안 제거 (K789) | the python-lock alternative removed from tests/build/offline-checks.test.mts | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` passes | [ ] |
 | C17.63 | K805 commit 규칙의 소비자 상태 제거 | pre-merge-commit hook, config/commit-identity.json, commits-check CI target removed; make hooks rewrites pre-commit | `make hooks` leaves no pre-merge-commit reference, and the CI target list has no commits-check | [ ] |
+| C17.64 | crudui의 make release-versions 단계 제거 (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
