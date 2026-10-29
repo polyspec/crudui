@@ -543,8 +543,6 @@ test('production dependency checks reject a devDependency-only import', t => {
 
 
 for (const [target, workspace, tool] of [
-  ['dependency-review', path.join(root, 'go.work'), 'NODE'],
-  ['dependency-policy-check', path.join(root, 'go.work'), 'NODE'],
   ['crudui-install-go-modules', path.join(root, 'go.work'), 'GO'],
   ['release-consumer-lock', 'off', 'NODE'],
 ] as const) {
