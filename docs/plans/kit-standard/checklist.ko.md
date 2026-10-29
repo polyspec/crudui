@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 9694f4555a667dde5ea5571dea8e271e1f2da1cd72b2b24270446cd754a19fd3 -->
+<!-- source-sha256: 536d1a7b59db48040deb63b355c8f8e35cc7e487e6d9c3947ee9e6670bebc897 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -403,3 +403,4 @@
 | C17.57 | crudui composer.json에는 저장소 밖의 polyspec 패키지를 잇는 path repository가 없고, vendor/polyspec/ordered-json은 make link가 만든 평범한 symlink다 (K773, PRINCIPLES S11) | composer.json (the path repository ../ordered-json/packages/php deleted; the release requirement of polyspec/ordered-json kept as it is, with no version change) | `make link-state-check`; `make worktree-setup` | [ ] |
 | C17.58 | crudui는 kit이 삭제하는 네 대상(dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries)에 대한 실행 참조와 그것만을 위한 파일을 제거한다 (K784) | Makefile, config/owner-checks.json, config/toolchain.json, config/dependency-review.json (deleted), .github/workflows/dependency-review.yml (deleted), their tests under tests/build | `make owner-validate`; `make rules-check`; `make docs-check` | [ ] |
 | C17.59 | reference-transaction 훅 제거 (K801) | .githooks/reference-transaction removed | `make land` succeeds on the removal commit; `make hooks` lists no reference-transaction | [ ] |
+| C17.60 | K788/K789 python backend와 정책 선언 제거 | pythonBackend, consumers.wheel.polyspec, config/dependency-policy.json and their references removed | `make owner-validate` and `make land` succeed on the removal | [ ] |
