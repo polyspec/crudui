@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 6949255597e765fc38467930dc63b30804402d857364e0a6e22a3054e8dc1e3d -->
+<!-- source-sha256: 7256d0d9579b744d7d2ba178315148b112c17a7a192e5801400ced5cf5b81b9b -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -400,3 +400,4 @@
 | C17.56 | Native 개발 설치로 현재 sibling source package를 사용하고 철회 작업을 재평가한다 (우선순위: 높음). | composer.local.json, composer.local.lock, Makefile, config/owner-checks.json, config/layout.yml, tests/build/dependency-health.test.mts, tests/build/make-tool-path.test.mts, AGENTS.md, docs/features.md, docs/operations/repository.md, docs/operations/package-build.md | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- tests/build/dependency-health.test.mts tests/build/package-names.test.mts tests/build/make-tool-path.test.mts examples/form-comparison/src/json.test.mjs`; `make crudui-local-composer-check` | [o] |
 | C17.56-1 | Native source 설치 입력을 안정화하고 lint 도구를 선언한다 (우선순위: 높음). | composer.local.json, composer.local.lock, package.json, package-lock.json, config/dependency-review.json, docs/features.md | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="locked dependency graph\|production dependency checks\|Composer installed records" tests/build/dependency-health.test.mts`; `make crudui-local-composer-check`; `make dependency-policy-check` | [o] |
 | C17.56-2 | 현재 kit 공유 파일을 추적 일반 파일로 동기화한다 (우선순위: 높음). | kit-managed shared files and workflows | `make kit-check`; `node node_modules/@polyspec/kit/scripts/kit/check-documents.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="each workflow declares\|release trigger matches\|only the release workflow" tests/build/ci-local.test.mts` | [o] |
+| C17.57 | crudui composer.json에는 저장소 밖의 polyspec 패키지를 잇는 path repository가 없고, vendor/polyspec/ordered-json은 make link가 만든 평범한 symlink다 (K773, PRINCIPLES S11) | composer.json (the path repository ../ordered-json/packages/php deleted; the release requirement of polyspec/ordered-json kept as it is, with no version change) | `make link-state-check`; `make worktree-setup` | [ ] |
