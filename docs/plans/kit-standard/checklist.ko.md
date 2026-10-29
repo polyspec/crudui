@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 536d1a7b59db48040deb63b355c8f8e35cc7e487e6d9c3947ee9e6670bebc897 -->
+<!-- source-sha256: c8ddde9c5f5d1a618d3a7014dcdb4346c9c2804fd9fdcd28f3a70b067fb4dac1 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -404,3 +404,4 @@
 | C17.58 | crudui는 kit이 삭제하는 네 대상(dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries)에 대한 실행 참조와 그것만을 위한 파일을 제거한다 (K784) | Makefile, config/owner-checks.json, config/toolchain.json, config/dependency-review.json (deleted), .github/workflows/dependency-review.yml (deleted), their tests under tests/build | `make owner-validate`; `make rules-check`; `make docs-check` | [ ] |
 | C17.59 | reference-transaction 훅 제거 (K801) | .githooks/reference-transaction removed | `make land` succeeds on the removal commit; `make hooks` lists no reference-transaction | [ ] |
 | C17.60 | K788/K789 python backend와 정책 선언 제거 | pythonBackend, consumers.wheel.polyspec, config/dependency-policy.json and their references removed | `make owner-validate` and `make land` succeed on the removal | [ ] |
+| C17.61 | K798 release-consumer와 release-proof 채택 제거 | tests/release-install, config/release.json consumers and proof, release-fixtures cases, release.yml release-proof step removed | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts` and `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` pass | [ ] |
