@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — kit 0.0.74을 채택한다 (C17.67)
+
+- crudui는 공개된 /kit 0.0.74 asset과 그 lock을 고정한다. kit-sync는 그 버전의 CI와 release workflow 및 kit 소유 문서를 쓴다.
+
 ### 2026-10-30 — kit가 삭제한 네 target의 참조를 제거한다 (C17.58)
 
 - crudui는 kit가 삭제한 dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries를 더 이상 참조하지 않는다. 이들만을 위해 있던 파일은 제거한다.

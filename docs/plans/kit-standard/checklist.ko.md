@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d1bd25de985666a06af265ce20536066fb8486e922d2ac81d4ff13398f9a778e -->
+<!-- source-sha256: a3de592dca6435d22cb04b438673d43277f3ea0b9cff50532a48cb448e036225 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -410,4 +410,4 @@
 | C17.64 | crudui의 make release-versions 단계 제거 (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
 | C17.65 | C17.61과 C17.63이 삭제한 파일을 가리키는 owner-check glob을 제거한다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
-| C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [ ] |
+| C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |

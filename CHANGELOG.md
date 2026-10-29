@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Adopt kit 0.0.74 (C17.67)
+
+- crudui pins the released /kit 0.0.74 asset and its lock; kit-sync writes the CI and release workflows and the kit-owned documents of that version.
+
 ### 2026-10-30 — Remove references to the four deleted kit targets (C17.58)
 
 - crudui no longer names dependency-policy-check, dependency-policy-mutation-check, dependency-review or composer-provider-entries, which kit deleted; the files that existed only for them are removed.

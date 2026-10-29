@@ -26,7 +26,7 @@ in kit, with its grounding.
 - P5 A wrong change is judged by its harm and its correctness, not by its intent. A harmful change is reverted at once; a
   harmless change that is wrong or unneeded is removed; a correct change unrelated to the work is kept and committed on
   its own with its real reason, never recorded as part of the work it did not belong to.
-  Enforced by: none, no tool checks a commit message since K805.
+  Enforced by: none, a guided rule: the commit-msg hook checks only the AI footer and identity, the Red line and the test of a fix (K805)
 
 ## Standards
 
@@ -41,7 +41,7 @@ in kit, with its grounding.
   Enforced by: `make lint-ts`, `make lint-python`, `make lint-go`, `make lint-php`, `make lint-rust`, `make suppression-check`
 - P9 Correct first; fast only when it stays correct.
   Enforced by: none, the order of correctness and speed is a judgement.
-- P10 Work reaches main in one of two ways. Direct work on main is committed through the gated commits of P38. Parallel or
+- P10 Work reaches main in one of two ways. Direct work on main is committed through the commits of P38. Parallel or
   isolated work has its own worktree and branch, named `{type}/{shortname}-{checklist id}` and `{project}-{shortname}-{checklist id}`,
   made by `make worktree-setup`; it reaches main only by the fast-forward of `make land`,
   and `make land` removes its worktree and branch right after the merge unless `config/retained-branches.json` pins that exact
@@ -49,7 +49,7 @@ in kit, with its grounding.
   rejects a moved local ref and preserves a matching branch and worktree. Test or experiment code that cannot merge is
   cherry-picked when it is worth keeping and otherwise discarded, always before the commit; when it cannot be removed at once, a
   checklist sub-item states the condition of its removal.
-  Enforced by: none, no hook checks a push or a merge since K804 and K805.
+  Enforced by: none, make land is the way a branch reaches main, and no hook can see which way a change took.
 - P11 Code comments, identifiers, logs, error messages, test names and commit messages are written in English. Documents are
   English, each with a Korean twin that writes technical terms in English.
   Enforced by: `make language-check` for the code
@@ -83,7 +83,7 @@ in kit, with its grounding.
   A test that cannot fail proves nothing, and a test that passes without running is a defect.
   A comment or document that a change makes stale is corrected in the commit of that change; one found after its row is done
   is a sub-item whose Verification is `make text-absent FILE=<path> TEXT=<stale text>`, which fails while the stale text is there.
-  Enforced by: none, no tool checks a commit message since K805.
+  Enforced by: `.githooks/commit-msg` for the Red line of a done row and the test of a fix
 - P20 An item is completed by its own unit tests: red, implementation, green. Only the checks that own what changed run; the
   full suite is not run, neither per fix, per item nor at the end. The full suite runs only on the order of the conductor,
   which the Claude Code hook in `.claude/settings.json` enforces.
@@ -129,22 +129,22 @@ repository.
   Enforced by: `make docs-check`, `.claude/settings.json`
 - P27 A commit completes at most one item: it moves at most one state, and the commit that moves an item to done records it in
   CHANGELOG.md and its Korean twin. The uncommitted work is at most one item.
-  Enforced by: none, no tool checks a commit message since K805.
+  Enforced by: none, a guided rule: the commit-msg hook checks only the AI footer and identity, the Red line and the test of a fix (K805)
 - P28 A commit message is `type(scope): Subject (#id)` with a type of feat, fix, docs, style, refactor, test or chore, a Subject
   of at most 50 characters that starts with a capital letter and ends without a period, a blank line and a body wrapped at
   72 characters, with no footer of an AI tool: no co-author or session trailer of one. Its author and committer are a
   person, never an AI tool. `make commit` writes it.
-  Enforced by: none, no tool checks a commit message since K805.
+  Enforced by: `.githooks/commit-msg` for the AI footer and identity
 - P29 The make targets of a task have fixed names: `install`, `build`, `test`, `lint`, `docs-check`, and `build-<runtime>`,
   `test-<runtime>` and `lint-<runtime>` for each runtime of `packages/`, all defined by kit. A repository joins a task by a
   prerequisite of its own, such as `build: kit-build`, never by another target that starts with a task's name (K246).
-  Enforced by: `make kit-check`
+  Enforced by: none, a guided rule: the names of the targets of a repository are its own (K810).
 - P30 During 0.0.x development, applications connect declared local provider sources through native package-manager
   mechanisms. The package manager owns links, installed records, dependency resolution and generated metadata; a source
   is not disguised as an installed released version. Applications own compatible native development declarations and
   locks. Release declarations and locks remain records of released dependencies; kit does not synthesize link manifests,
   version aliases or lock metadata, and no tracked lock waits for a coordinated batch.
-  Enforced by: `make link-state-check`
+  Enforced by: none, the links exist only in development, where make link-state-check checks them; CI links nothing (K824)
 - P31 No gate is bypassed: a test, script or Makefile never sets the CI identity (`GITHUB_ACTIONS`, `CI`) outside a workflow, never
   names a gate of kit-gates in `make -o`, `--old-file` or `--assume-old`, and never uses `--no-verify` (K308).
   Enforced by: `make bypass-check`
@@ -169,12 +169,9 @@ repository.
 - P37 A result is reported only after its check has run, with the output of that run. A claim that a check passes, made
   without its output, is not a result.
   Enforced by: none, whether a result was checked before it was claimed is a judgement.
-- P38 main may be written directly, by one actor per checkout, through gated commits. A commit on main runs the gates that
-  `make land` selects for its staged paths, on the staged tree, and is refused only on a finding that HEAD lacks, which it names.
-  A merge commit on main is refused, so main moves by commits and fast-forwards only. The first commit of a repository, which
-  creates main with no commit to compare with, is not gated. The hooks protect against an accidental ungated commit; a deliberate
-  bypass (`--no-verify`, `core.hooksPath`, a raw `update-ref`) is out of scope (K404, K446, K404-1).
-  Enforced by: `.githooks/pre-commit`
+- P38 main may be written directly, by one actor per checkout, through commits; a branch reaches main by the fast-forward of
+  `make land`, which runs the gates that its changed paths select (K404, K446, K603).
+  Enforced by: none, make land is the way a branch reaches main, and no hook can see which way a change took.
 
 ## Repository standards
 
@@ -238,8 +235,12 @@ tool lands, a standard binds the work as written here.
   are the PHPUnit files of every library run with the extension loaded and none of the sources of the library (its dependencies and
   autoload-dev are loaded, its own autoload is not, so the library has no guard against the extension), and those of `packages/php-ext` when it holds any; its
   parity implementation shares the tests of the libraries by this layout, with no relative path in a configuration.
-  The PHP library is library code only: an application on a userland framework, such as a PHP console application, is its own
-  Composer package that requires the library, since an internal class cannot extend a userland class. A Composer package of
+  A Composer package of
   type `project` is an application: it is outside the extension run and the S10 library checks, and `make test-php` runs its
   tests as its own package.
-  Enforced by: `make lint-php-ext`, `make test-php-ext`, `make layout-check`
+  Enforced by: `make lint-php-ext`, `make test-php-ext`
+- S11 Local links: during development each polyspec package's install folder (node_modules, vendor, site-packages) is one
+  plain directory symlink to its checkout. No package-manager link step (npm link, Composer path repository, pip/uv editable)
+  (K591, K761, K765).
+  Enforced by: none, the links exist only in development, where make link-state-check checks them, and CI links nothing (K824);
+  the K761 link test of kit finds no npm link, composer update or editable install in the tool log

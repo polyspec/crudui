@@ -409,4 +409,4 @@
 | C17.64 | Remove crudui's make release-versions step (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
 | C17.65 | Remove the owner-check globs of files deleted by C17.61 and C17.63 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | Remove enforcement references to the targets and hooks that kit deleted from the principles and agents documents | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
-| C17.67 | Adopt kit 0.0.72: pin the release asset, refresh the lock, sync kit, and remove link and link-state-check from the CI | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [ ] |
+| C17.67 | Adopt kit 0.0.72: pin the release asset, refresh the lock, sync kit, and remove link and link-state-check from the CI | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
