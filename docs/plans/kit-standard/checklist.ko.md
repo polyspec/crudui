@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c307e40f2538deedc4f6863c5f89878f2fef4b2d94ea2149b9b3023676ecae49 -->
+<!-- source-sha256: c8ab3cc5d8e4f499b65d3a7cd6dfda33345cb87480e031438d8f4b6f25d721de -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -414,3 +414,4 @@
 | C17.68 | dependency-health 테스트가 workflow 밖에서 설정하는 CI 신원을 제거한다 | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |
 | C17.69 | FormTest가 반복된 literal choice의 generation error를 전달하도록 맞춘다 | packages/generator/php/tests/FormTest.php | `make test-php-ext` | [ ] |
 | C17.70 | RuleParametersTest가 잘못된 pattern의 이전 원인 사슬 전체를 보존하도록 맞춘다 | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext` | [ ] |
+| C17.71 | form-comparison Rust 서버가 CI에서 ordered-json 태그를 오프라인으로 해석하게 한다 | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
