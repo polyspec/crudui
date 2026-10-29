@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a2e05b981b2b7974cc3019d3fc62959e16f88533a74d4084330caf4040272b61 -->
+<!-- source-sha256: d1bd25de985666a06af265ce20536066fb8486e922d2ac81d4ff13398f9a778e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -401,7 +401,7 @@
 | C17.56-1 | Native source 설치 입력을 안정화하고 lint 도구를 선언한다 (우선순위: 높음). | composer.local.json, composer.local.lock, package.json, package-lock.json, config/dependency-review.json, docs/features.md | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="locked dependency graph\|production dependency checks\|Composer installed records" tests/build/dependency-health.test.mts`; `make crudui-local-composer-check`; `make dependency-policy-check` | [o] |
 | C17.56-2 | 현재 kit 공유 파일을 추적 일반 파일로 동기화한다 (우선순위: 높음). | kit-managed shared files and workflows | `make kit-check`; `node node_modules/@polyspec/kit/scripts/kit/check-documents.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="each workflow declares\|release trigger matches\|only the release workflow" tests/build/ci-local.test.mts` | [o] |
 | C17.57 | crudui composer.json에는 저장소 밖의 polyspec 패키지를 잇는 path repository가 없고, vendor/polyspec/ordered-json은 make link가 만든 평범한 symlink다 (K773, PRINCIPLES S11) | composer.json (the path repository ../ordered-json/packages/php deleted; the release requirement of polyspec/ordered-json kept as it is, with no version change) | `make link-state-check`; `make worktree-setup` | [ ] |
-| C17.58 | crudui는 kit이 삭제하는 네 대상(dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries)에 대한 실행 참조와 그것만을 위한 파일을 제거한다 (K784) | Makefile, config/owner-checks.json, config/toolchain.json, config/dependency-review.json (deleted), .github/workflows/dependency-review.yml (deleted), their tests under tests/build | `make owner-validate`; `make rules-check`; `make docs-check` | [ ] |
+| C17.58 | crudui는 kit이 삭제하는 네 대상(dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries)에 대한 실행 참조와 그것만을 위한 파일을 제거한다 (K784) | Makefile, config/owner-checks.json, config/toolchain.json, config/dependency-review.json (deleted), .github/workflows/dependency-review.yml (deleted), their tests under tests/build | `make owner-validate`; `make rules-check`; `make docs-check` | [o] |
 | C17.59 | reference-transaction 훅 제거 (K801) | .githooks/reference-transaction removed | `make land` succeeds on the removal commit; `make hooks` lists no reference-transaction | [ ] |
 | C17.60 | K788/K789 python backend와 정책 선언 제거 | pythonBackend, consumers.wheel.polyspec, config/dependency-policy.json and their references removed | `make owner-validate` and `make land` succeed on the removal | [ ] |
 | C17.61 | K798 release-consumer와 release-proof 채택 제거 | tests/release-install, config/release.json consumers and proof, release-fixtures cases, release.yml release-proof step removed | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts` and `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` pass | [ ] |

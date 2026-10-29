@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Remove references to the four deleted kit targets (C17.58)
+
+- crudui no longer names dependency-policy-check, dependency-policy-mutation-check, dependency-review or composer-provider-entries, which kit deleted; the files that existed only for them are removed.
+
 ### 2026-10-30 — Remove enforcement references to deleted targets (C17.66)
 
 - PRINCIPLES.md and AGENTS.md name no deleted target or hook as enforcement: commits-check, pre-push, pre-merge-commit, dependency-policy-check and push-gate; a rule that no check reads says `none`.

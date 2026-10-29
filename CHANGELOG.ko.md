@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — kit가 삭제한 네 target의 참조를 제거한다 (C17.58)
+
+- crudui는 kit가 삭제한 dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries를 더 이상 참조하지 않는다. 이들만을 위해 있던 파일은 제거한다.
+
 ### 2026-10-30 — 삭제된 target의 강제 참조를 제거한다 (C17.66)
 
 - PRINCIPLES.md와 AGENTS.md는 삭제된 target이나 hook을 강제 수단으로 적지 않는다: commits-check, pre-push, pre-merge-commit, dependency-policy-check, push-gate. 도구가 읽지 않는 규칙은 `none`으로 적는다.
