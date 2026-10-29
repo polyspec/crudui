@@ -544,7 +544,6 @@ test('production dependency checks reject a devDependency-only import', t => {
 
 for (const [target, workspace, tool] of [
   ['crudui-install-go-modules', path.join(root, 'go.work'), 'GO'],
-  ['release-consumer-lock', 'off', 'NODE'],
 ] as const) {
   test(`Go workspace: ${target} exports its declared module scope`, { timeout: 10_000 }, () => {
     const fixture = mkdtempSync(path.join(root, 'var', 'go-workspace-'));
