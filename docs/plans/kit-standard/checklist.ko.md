@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a3de592dca6435d22cb04b438673d43277f3ea0b9cff50532a48cb448e036225 -->
+<!-- source-sha256: ceeb49504ecb762fff92a5b7a59af99a47b1e5de1b4f03729597e8b14a97ae0e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -411,3 +411,4 @@
 | C17.65 | C17.61과 C17.63이 삭제한 파일을 가리키는 owner-check glob을 제거한다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
+| C17.68 | dependency-health 테스트가 workflow 밖에서 설정하는 CI 신원을 제거한다 | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |

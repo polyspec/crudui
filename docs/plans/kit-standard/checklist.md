@@ -410,3 +410,4 @@
 | C17.65 | Remove the owner-check globs of files deleted by C17.61 and C17.63 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | Remove enforcement references to the targets and hooks that kit deleted from the principles and agents documents | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | Adopt kit 0.0.72: pin the release asset, refresh the lock, sync kit, and remove link and link-state-check from the CI | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
+| C17.68 | Remove the CI identity that dependency-health sets outside a workflow | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |
