@@ -7,6 +7,10 @@
 
 - PRINCIPLES.md and AGENTS.md name no deleted target or hook as enforcement: commits-check, pre-push, pre-merge-commit, dependency-policy-check and push-gate; a rule that no check reads says `none`.
 
+### 2026-10-30 — Remove the owner-check globs of deleted files (C17.65)
+
+- config/owner-checks.json no longer names config/commit-identity.json or tests/release-install/**, which C17.63 and C17.61 deleted; owner-validate owns every tracked path.
+
 ## 0.0.9
 
 ### 2026-10-29 — Finalize the 0.0.9 candidate with scoped Kit gates (C18.13-6)

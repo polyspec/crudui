@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ef9a6304d05ba2e1c7e925028927ba6f0473742aeb8ffb6d5996deb5c672907d -->
+<!-- source-sha256: d4bd6c142ef903ff9b28af04228b8dc72cd70d7158dd392f72aba20e8d6c2f0e -->
 
 ## Unreleased
 
 ### 2026-10-30 — 삭제된 target의 강제 참조를 제거한다 (C17.66)
 
 - PRINCIPLES.md와 AGENTS.md는 삭제된 target이나 hook을 강제 수단으로 적지 않는다: commits-check, pre-push, pre-merge-commit, dependency-policy-check, push-gate. 도구가 읽지 않는 규칙은 `none`으로 적는다.
+
+### 2026-10-30 — 삭제된 파일의 owner-check glob을 제거한다 (C17.65)
+
+- config/owner-checks.json은 C17.63과 C17.61이 삭제한 config/commit-identity.json과 tests/release-install/**를 더 이상 가리키지 않는다. owner-validate는 추적되는 모든 경로를 소유한다.
 
 ## 0.0.9
 

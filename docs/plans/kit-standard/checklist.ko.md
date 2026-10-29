@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 80e434fdd5a05c4ab9b460cf203708c94610789d40eb44da75f8502990c5ce08 -->
+<!-- source-sha256: a2e05b981b2b7974cc3019d3fc62959e16f88533a74d4084330caf4040272b61 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -408,6 +408,6 @@
 | C17.62 | offline downloads 정규식에서 python-lock 대안 제거 (K789) | the python-lock alternative removed from tests/build/offline-checks.test.mts | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` passes | [ ] |
 | C17.63 | K805 commit 규칙의 소비자 상태 제거 | pre-merge-commit hook, config/commit-identity.json, commits-check CI target removed; make hooks rewrites pre-commit | `make hooks` leaves no pre-merge-commit reference, and the CI target list has no commits-check | [ ] |
 | C17.64 | crudui의 make release-versions 단계 제거 (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
-| C17.65 | C17.61과 C17.63이 삭제한 파일을 가리키는 owner-check glob을 제거한다 | config/owner-checks.json | `make owner-validate` | [ ] |
+| C17.65 | C17.61과 C17.63이 삭제한 파일을 가리키는 owner-check glob을 제거한다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [ ] |

@@ -629,8 +629,7 @@
         ".editorconfig",
         "config/pyproject.schema.json",
         "config/composer.schema.json",
-        "config/cargo.schema.json",
-        "config/commit-identity.json"
+        "config/cargo.schema.json"
       ],
       "targets": [
         "kit-check"
@@ -696,8 +695,7 @@
     },
     {
       "paths": [
-        "config/release.json",
-        "tests/release-install/**"
+        "config/release.json"
       ],
       "targets": [
         "release-coverage",
