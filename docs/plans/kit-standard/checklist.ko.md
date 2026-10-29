@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 7256d0d9579b744d7d2ba178315148b112c17a7a192e5801400ced5cf5b81b9b -->
+<!-- source-sha256: fb04fcb868c2725c0c3ac48ebcb4b825f8e9542e088e15ce117bfec8128c0f9a -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -401,3 +401,4 @@
 | C17.56-1 | Native source 설치 입력을 안정화하고 lint 도구를 선언한다 (우선순위: 높음). | composer.local.json, composer.local.lock, package.json, package-lock.json, config/dependency-review.json, docs/features.md | `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="locked dependency graph\|production dependency checks\|Composer installed records" tests/build/dependency-health.test.mts`; `make crudui-local-composer-check`; `make dependency-policy-check` | [o] |
 | C17.56-2 | 현재 kit 공유 파일을 추적 일반 파일로 동기화한다 (우선순위: 높음). | kit-managed shared files and workflows | `make kit-check`; `node node_modules/@polyspec/kit/scripts/kit/check-documents.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="each workflow declares\|release trigger matches\|only the release workflow" tests/build/ci-local.test.mts` | [o] |
 | C17.57 | crudui composer.json에는 저장소 밖의 polyspec 패키지를 잇는 path repository가 없고, vendor/polyspec/ordered-json은 make link가 만든 평범한 symlink다 (K773, PRINCIPLES S11) | composer.json (the path repository ../ordered-json/packages/php deleted; the release requirement of polyspec/ordered-json kept as it is, with no version change) | `make link-state-check`; `make worktree-setup` | [ ] |
+| C17.58 | crudui는 kit이 삭제하는 네 대상(dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries)에 대한 실행 참조와 그것만을 위한 파일을 제거한다 (K784) | Makefile, config/owner-checks.json, config/toolchain.json, config/dependency-review.json (deleted), .github/workflows/dependency-review.yml (deleted), their tests under tests/build | `make owner-validate`; `make rules-check`; `make docs-check` | [ ] |
