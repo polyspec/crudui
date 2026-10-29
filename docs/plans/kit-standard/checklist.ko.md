@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 2da4f2ac653bbb4e69efddee95ef0b0e34e4c80131115673f35e3e2f4db6aa1a -->
+<!-- source-sha256: 2a9d9b894d376b9d5912bf25927c2813861a50523f2fd9e056f079f3af627dfd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -409,4 +409,4 @@
 | C17.63 | K805 commit 규칙의 소비자 상태 제거 | pre-merge-commit hook, config/commit-identity.json, commits-check CI target removed; make hooks rewrites pre-commit | `make hooks` leaves no pre-merge-commit reference, and the CI target list has no commits-check | [ ] |
 | C17.64 | crudui의 make release-versions 단계 제거 (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
 | C17.65 | C17.61과 C17.63이 삭제한 파일을 가리키는 owner-check glob을 제거한다 | config/owner-checks.json | `make owner-validate` | [ ] |
-| C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [~] |
+| C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
