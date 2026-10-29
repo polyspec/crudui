@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c8ddde9c5f5d1a618d3a7014dcdb4346c9c2804fd9fdcd28f3a70b067fb4dac1 -->
+<!-- source-sha256: ae350c80017f51ffc8304319aad65a36f9e5ceb0cb232e7988d885538c764c3f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -405,3 +405,4 @@
 | C17.59 | reference-transaction 훅 제거 (K801) | .githooks/reference-transaction removed | `make land` succeeds on the removal commit; `make hooks` lists no reference-transaction | [ ] |
 | C17.60 | K788/K789 python backend와 정책 선언 제거 | pythonBackend, consumers.wheel.polyspec, config/dependency-policy.json and their references removed | `make owner-validate` and `make land` succeed on the removal | [ ] |
 | C17.61 | K798 release-consumer와 release-proof 채택 제거 | tests/release-install, config/release.json consumers and proof, release-fixtures cases, release.yml release-proof step removed | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts` and `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` pass | [ ] |
+| C17.62 | offline downloads 정규식에서 python-lock 대안 제거 (K789) | the python-lock alternative removed from tests/build/offline-checks.test.mts | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` passes | [ ] |
