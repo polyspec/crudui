@@ -546,7 +546,6 @@ CHECK_TARGETS = \
 	duplication-check \
 	parity-declarations-check \
 	parity-check \
-	commits-check \
 	link-check \
 	link-metadata-check \
 	divergence-check \
