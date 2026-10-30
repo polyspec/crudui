@@ -1,8 +1,8 @@
 // The checks run offline, and only the install targets download (docs/operations/package-build.md, "Offline checks"): the
 // Makefile exports the offline settings of cargo, go, npm and Composer, and `$(ONLINE)` lifts them for the recipe lines
 // of the install targets, dependency-review and the consumer installs of the release archives alone. cargo answers a missing crate offline with "retry
-// without --offline"; every target that runs cargo depends on cargo-downloads-check (check-cargo-downloads of @polyspec/kit),
-// which names the lock and `run make install` instead, so under make -k a target whose crates are missing does not run.
+// without --offline"; the crates of every Cargo.lock are fetched by install-kit (K864, fetch-cargo-downloads of @polyspec/kit),
+// so no target depends on a check of them.
 // A target runs cargo when a recipe line runs `run-tests.mts cargo` or `run-suite.mts cargo` or `run-rust-command.mts` with a command other than
 // fmt, or starts a file, an npm script or a package test that does, directly or through the files that it imports or
 // names.
@@ -31,12 +31,11 @@ interface Manifest {
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
 const SELF = 'tests/build/offline-checks.test.mts';
-const CHECK = 'cargo-downloads-check';
 // The targets of the kit.mk and bootstrap of @polyspec/kit that download: the tools, the packages, the
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
-// the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). The tool lifts the
+// the proof of a release, and the release archives of other repositories (kit K140, K865). The tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'release-assets-fetch', 'toolchain-lock'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'toolchain-lock'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 // The evaluated database contains the commands and prerequisites of the checkout and its installed kit. KIT_WORKTREE is empty,
@@ -131,7 +130,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|dependency-review\.\$\(KIT_EXT\)(?! --provider-entries\b)|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\))/;
+  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|fetch-cargo-downloads\.\$\(KIT_EXT\)|dependency-review\.\$\(KIT_EXT\)(?! --provider-entries\b)|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\))/;
   // The provider-entries mode rewrites local Composer metadata and returns before the registry review.
   assert.equal(downloading.test('$(NODE) $(KIT)/dependency-review.$(KIT_EXT) --record'), true);
   assert.equal(downloading.test('$(NODE) $(KIT)/dependency-review.$(KIT_EXT) --provider-entries'), false);
@@ -141,26 +140,4 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   assert.deepEqual(offline, []);
 });
 
-test('every target that runs cargo depends on cargo-downloads-check', () => {
-  const targets: Record<string, MakeRule> = makeTargets(makefiles);
-  assert.deepEqual(targets[CHECK]?.commands.filter(command => command.trim() !== ''), ['$(NODE) $(KIT)/check-cargo-downloads.$(KIT_EXT)']);
-  assert.ok(CARGO_FILES.has('scripts/gen-api-docs.mts') && CARGO_FILES.has('benchmarks/validators/run.js'), 'the cargo files must include the API documentation and the benchmark');
-  assert.equal(runsCargo('node tests/native-generators/run.mts --report r.json'), true);
-  assert.equal(runsCargo('node tests/native-generators/run.mts --target javascript,rust --report r.json'), true);
-  assert.equal(runsCargo('node tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report r.json'), false);
-  const depends = (name: string, seen = new Set<string>()): boolean => {
-    const rule = targets[name];
-    if (seen.has(name) || !rule) return false;
-    seen.add(name);
-    return rule.prerequisites.some(prerequisite => prerequisite === CHECK || depends(prerequisite, seen));
-  };
-  // The targets of make that run cargo depend on the check.
-  const missing = Object.entries(targets)
-    .filter(([name]) => ![...DOWNLOADS, 'install', CHECK].includes(name))
-    .filter(([, rule]) => rule.commands.some(command => runsCargo(command)))
-    .map(([name]) => name)
-    .filter(name => !depends(name))
-    .sort();
-  assert.deepEqual(missing, [], `targets that run cargo without ${CHECK}; a missing crate fails them with "retry without --offline"`);
-});
 

@@ -273,7 +273,7 @@
     },
     {
       "paths": [
-        "config/release-assets.json"
+        "composer.json"
       ],
       "scripts": [
         "test:form-comparison:library"
@@ -465,9 +465,6 @@
         "mise.toml",
         "mise.lock",
         ".mise/**"
-      ],
-      "targets": [
-        "toolchain-check"
       ],
       "tests": [
         "tests/build/runtime-version-policy.test.mts",

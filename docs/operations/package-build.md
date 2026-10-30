@@ -184,7 +184,7 @@ belongs to the checkout at `var/bootstrap/npm-cache`.
   into the machine, whose npm every other checkout uses. The Makefile puts
   `var/tools/bin` first on `PATH`. After the native bootstrap, CI starts repository tools through make targets.
 - The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.12.0, Python 3.14, PHP 8.4,
-  Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2), and `make toolchain-check` fails on each declaration and manifest floor
+  Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2), and the declarations and manifest floors are the recorded releases of the checkout
   that is not the pin: `node` of `mise.toml`, `engines.node` of every `package.json` (`>=26.12.0`), `require.php` of every
   `composer.json` (`>=8.4`), `requires-python` of every `pyproject.toml` (`>=3.14`), the `go` line of every `go.mod`
   (`1.27.2`, with no `toolchain` line), `rust-version` of every Cargo package and `typescript` of every manifest and
@@ -212,10 +212,7 @@ belongs to the checkout at `var/bootstrap/npm-cache`.
   major and minor of the running PHP, and the patch that a run ran on is its
   evidence, which `node_modules/@polyspec/kit/dist/check-toolchain.mjs` prints and
   `var/full-run.json` records with the other running releases.
-- `make toolchain-check TOOLS="<tool>..."` (`node_modules/@polyspec/kit/dist/check-toolchain.mjs`) fails for every named tool that
-  does not run at its recorded version and names the record, the expected and the
-  running version, and the fix; it prints the running release of every named tool. Every CI job runs it for the tools that it set up;
-  `make toolchain-check` without `TOOLS` runs it for all of them.
+- The recorded releases are installed by kit (K854: the tool check is removed; a tool that is missing fails the target that uses it).
 
 The repository tracks no container definition: Linux runs on the CI runners. Package lock files
 record resolved package versions; they do not select a runtime release.
@@ -317,12 +314,8 @@ recipe and the commands that it starts; only the download targets `install`, `in
 `dependency-review`, and the lock of the consumer projects of the release archives
 `release-consumer-lock`, which downloads the
 third-party packages that their locks pin, lift them with `$(ONLINE)`; `release-consumer` lifts the settings itself. `make crudui-install-crates` downloads the
-crates of every Cargo.lock, and `make install` runs it. Every target that runs cargo depends on
-`make cargo-downloads-check` (`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`), which runs
-`cargo fetch --locked --offline` for each lock and fails with each lock, the first
-error line of cargo and `run make install, which downloads them`, instead of cargo's
-advice to retry without `--offline`. The comparison pipeline reads the PHP extension source of
-OrderedJSON that `make release-assets-fetch` unpacks into `var/ordered-json-php-ext` and fails when it is missing;
+crates of every Cargo.lock, and `make install` runs it. The crates are fetched by install-kit (K864), so no target runs a separate check of them. The comparison pipeline reads the PHP extension source of
+OrderedJSON from the packages.json repository of OrderedJSON v0.0.13 (K865) and fails when it is missing;
 it downloads nothing. The Go module of the comparison servers requires the OrderedJSON module at `v0.0.9`, which `GOPROXY=off`
 reads from the module cache.
 

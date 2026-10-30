@@ -9,7 +9,7 @@
 설치하게 합니다. 그 전에는 다른 target이 실행되지 않습니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/operations/package-build.ko.md`,
 "런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
 모든 Cargo.lock의 crate(`make crudui-install-crates`),
-`scripts/install-phpdocumentor.mts`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
+`scripts/install-phpdocumentor.mts`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, 도구는 kit이 기록된 release로 설치합니다(K854: 도구 검사 삭제).
 `make install-tools`(`node_modules/@polyspec/kit/dist/install-tools.mjs`. `TOOLS="go cargoAudit"`가 설치할 도구를 지정하며, workflow job은 쓰는 도구만 설치합니다)로 checkout이 선언한 도구(npm, Go, uv와 Python, alint, ruff, vulture, golangci-lint, deadcode, PHPCS와 PHPStan을 포함한 Composer, cargo-audit)를
 checkout에 설치하며, 이 명령은 machine의 도구를 바꾸지 않습니다. make는 `var/tools/bin`의 명령을
 `PATH`의 맨 앞에 두고, npm을 직접 실행하는 shell은 `export PATH="$PWD/var/tools/bin:$PATH"`로 그렇게
@@ -33,7 +33,7 @@ CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙
 
 workflow의 모든 step은 make 대상을 실행합니다. 설치(`rust-toolchain.toml`의 Rust toolchain도 설치하는 `make install-tools`,
 `make install-packages`, `make crudui-install-composer`, `make crudui-install-crates`, `make crudui-install-browsers BROWSERS="..."`), 도구 검사
-(`make toolchain-check TOOLS="..."`), 각 검사(`make crudui-test-runtimes`, `make lint`, `make crudui-test-forms`와 `CI_COMMANDS`의 나머지)가
+각 검사(`make crudui-test-runtimes`, `make lint`, `make crudui-test-forms`와 `CI_COMMANDS`의 나머지)가
 그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
 `tests/build/ci-local.test.mts`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
 실패합니다.

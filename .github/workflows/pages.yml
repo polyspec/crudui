@@ -62,8 +62,6 @@ jobs:
           workspaces: packages/validator/rust
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install PHP API documentation generator
         run: make crudui-install-phpdocumentor
       - name: Download the crates of every Cargo.lock

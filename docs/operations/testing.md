@@ -10,7 +10,7 @@ the release that the checkout records (`docs/operations/package-build.md`, "Runt
 recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml`, the
 crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make crudui-install-crates`) and
 the phpDocumentor release that `scripts/install-phpdocumentor.mts` checks by its SHA-256,
-and `make toolchain-check` names every tool that runs at another release with the expected one.
+and the tools of the checkout are installed at their recorded releases by kit (K854).
 Install the tools that the checkout declares (npm, Go, uv and Python, alint, ruff, vulture, golangci-lint, deadcode,
 Composer with PHPCS and PHPStan, cargo-audit) into the checkout with `make install-tools`
 (`node_modules/@polyspec/kit/dist/install-tools.mjs`; `TOOLS="go cargoAudit"` names the tools to install, and a workflow job installs only the ones it uses), which never changes the tools of the
@@ -36,7 +36,7 @@ checklist task is `[~]` (below).
 
 Every step of the workflows runs a make target: the installs (`make install-tools`, which installs
 the Rust toolchain of `rust-toolchain.toml` too, `make install-packages`, `make crudui-install-composer`,
-`make crudui-install-crates`, `make crudui-install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
+`make crudui-install-crates`, `make crudui-install-browsers BROWSERS="..."`), each
 check (`make crudui-test-runtimes`, `make lint`, `make crudui-test-forms` and the others of `CI_COMMANDS`), so the
 recipes start every tool with the offline settings, `$(NPM)` and the toolchains of the checkout.
 `tests/build/ci-local.test.mts` fails for a step that starts node, npm, npx, cargo, go, php,

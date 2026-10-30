@@ -131,7 +131,6 @@ const preparation = [
   /^make(?: (?:crudui-)?install-[\w-]+)+(?: [A-Z]+="[^"]*")?$/,
   /^make check-ci-browser$/,
   /^make kit-install-(?:php-arginfo|symbols)(?: EXTRACTORS="[^"]+")?$/,
-  /^make toolchain-check TOOLS=(?:"[^"]*"|\S+)$/,
   /^sudo apt-get install -y --no-install-recommends nginx$/,
   /^php-fpm -v$/,
   /^nginx -v$/,
@@ -177,7 +176,7 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
   assert.equal(job.if, '${{ always() }}');
   assert.deepEqual(job.needs, ids.slice(0, -1));
   assert.equal(job['runs-on'], 'ubuntu-24.04');
-  assert.deepEqual((job.steps ?? []).filter((step) => step.run !== undefined && !nativeNpmBootstrap(step.run) && !/^make (?:toolchain-check|install-tools|install-packages)\b/.test(step.run)).map((step) => step.run),
+  assert.deepEqual((job.steps ?? []).filter((step) => step.run !== undefined && !nativeNpmBootstrap(step.run) && !/^make (?:install-tools|install-packages)\b/.test(step.run)).map((step) => step.run),
     ["make ci-passed RESULTS='${{ toJSON(needs) }}'"]);
 });
 
@@ -371,15 +370,17 @@ test('every tool of kit that the Makefile starts is in the installed @polyspec/k
 // the ESLint of the Svelte components.
 const LINT_TARGETS = ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts'];
 
-test('a CI job runs every lint target of kit', async () => {
+test('a CI job runs the lint of kit once and repeats none of the shared gates (K870)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const lint = makeDryRun(ROOT, 'lint');
   assert.equal(lint.status, 0, lint.stderr);
   const entry = /\/var\/tools\/bin\/node (\S+\/lint-ts\.(?:mts|mjs))\b/.exec(lint.stdout)?.[1];
   assert.ok(entry, lint.stdout);
   assert.equal(realpathSync(path.resolve(ROOT, entry)), kitToolPath('lint-ts'));
-  const run = (target: string): boolean => workflow.includes(`make ${target}`) || (target === 'lint-ts' && workflow.includes('make lint'));
-  assert.deepEqual(LINT_TARGETS.filter((target) => !run(target)), []);
+  const runs = (target: string): boolean => workflow.some(command => new RegExp(`TARGETS="[^"]*\\b${target}\\b`).test(command) || command === `make ${target}`);
+  assert.equal(runs('lint') || runs('lint-ts'), true, 'a CI job runs the lint of kit');
+  // K870: the shared gates run once in the gates of kit, and a repository CI does not run them again.
+  assert.deepEqual(['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'docs-check'].filter(target => runs(target)), []);
 });
 
 /** The steps that run a checking command without `if: ${{ !cancelled() }}`, as `job: step`. */
@@ -421,7 +422,6 @@ test('a workflow step starts every tool through a make target', async () => {
   assert.deepEqual(stepsOutsideMake({ jobs: { a: { steps: [
     { name: 'install', run: 'node scripts/kit/install-tools.mjs\necho "$PWD" >> "$GITHUB_PATH"' },
     { name: 'test', run: 'FOO=1 xvfb-run npm test && make lint' },
-    { name: 'ok', run: 'make toolchain-check TOOLS="node npm"' },
     { name: 'nginx', run: 'sudo apt-get install -y nginx\nphp-fpm -v && nginx -v' },
   ] } } }), ['a: install: node scripts/kit/install-tools.mjs', 'a: test: FOO=1 xvfb-run npm test']);
   const violations: string[] = [];

@@ -95,8 +95,7 @@ interface RecordedToolchain {
 /**
  * The releases that the checkout declares, by the names of this test: npm of packageManager, Rust of rust-toolchain.toml,
  * the minors of PHP of config/toolchain.json, and Node.js, Go, Python and Composer of mise.toml, which make install-tools
- * installs with mise (kit K127, K171). make toolchain-check compares them with the running tools and with the
- * pins of kit.
+ * installs with mise (kit K127, K171); kit's install-tools and install-kit check the recorded versions (K854).
  */
 async function recordedToolchain(root: string): Promise<RecordedToolchain> {
   const text = (file: string): Promise<string> => readFile(path.join(root, file), 'utf8');
@@ -266,8 +265,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
       const steps = job.steps ?? [];
       if (!steps.some(step => stepText(step, 'uses').startsWith('actions/checkout@'))) continue;
       const tools = ['node'];
-      let checked: { tools: string[]; index: number } | undefined;
-      for (const [index, step] of steps.entries()) {
+      for (const step of steps) {
         const uses = stepText(step, 'uses');
         const run = stepText(step, 'run');
         if (uses.startsWith('actions/setup-node@') && step.with?.['node-version-file'] !== 'mise.toml') violations.push(`${file} ${id}: setup-node must read mise.toml`);
@@ -289,16 +287,6 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
         if (/^make\b.*\binstall-rust\b/m.test(run)) violations.push(`${file} ${id}: make install-rust is gone; make install-tools installs the Rust toolchain of rust-toolchain.toml`);
         if (/^make\b.*\binstall-(?:tools|packages)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
-        const check = /^make toolchain-check TOOLS=(?:"([^"]+)"|(\S+))$/m.exec(run);
-        const listed = check?.[1] ?? check?.[2];
-        if (listed !== undefined) checked = { tools: listed.split(' '), index };
-      }
-      // A job checks every tool that it set up outside mise, and the tools of mise that it checks are installed.
-      if (!checked) violations.push(`${file} ${id}: no step runs make toolchain-check`);
-      else {
-        const unchecked = tools.filter(tool => !INSTALL_TOOLS.includes(tool) && !checked.tools.includes(tool));
-        const missing = checked.tools.filter(tool => !tools.includes(tool));
-        if (unchecked.length || missing.length) violations.push(`${file} ${id}: checks ${checked.tools.join(' ')}, sets up ${tools.join(' ')}`);
       }
     }
   }

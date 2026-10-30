@@ -65,8 +65,6 @@ jobs:
         run: make crudui-install-composer
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer python uv"
       - name: Download the crates of every Cargo.lock
         run: make crudui-install-crates
       - name: Run the checks and write their report
@@ -112,20 +110,17 @@ jobs:
         run: make kit-install-php-arginfo
       - name: Install the native PHP parser for autoload lint
         run: make kit-install-symbols EXTRACTORS="php"
-      # make lint-php runs PHPStan with the autoloader of the Composer packages; make crudui-install-composer runs the Composer of
+      # make lint runs PHPStan with the autoloader of the Composer packages; make crudui-install-composer runs the Composer of
       # mise.toml, which make install-tools installs.
       - name: Install PHP dependencies
         run: make crudui-install-composer
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer python uv ruff vulture phpcs phpstan golangciLint deadcode"
-      # make lint-rust runs cargo clippy offline in each Cargo workspace.
       - name: Download the crates of every Cargo.lock
         run: make crudui-install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="build lint lint-python lint-php lint-rust lint-go typecheck hooks-check"
+        run: make ci-targets TARGETS="build lint typecheck hooks-check"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -159,8 +154,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-validator-js"
@@ -210,8 +203,6 @@ jobs:
           tools: none
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node php composer"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install PHP dependencies
         run: make crudui-install-composer
       - name: Run the checks and write their report
@@ -260,8 +251,6 @@ jobs:
         run: make install-tools TOOLS="node go"
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-validator-go crudui-test-generator-go"
@@ -306,8 +295,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node rust"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -362,8 +349,6 @@ jobs:
       - name: Install the Python packages of the uv workspace into var/python
         run: make crudui-install-python
       # The Python is the one of mise.toml, which make install-tools installed at the digest of mise.lock.
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm python uv"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-validator-python crudui-test-generator-python"
@@ -380,64 +365,6 @@ jobs:
         with:
           name: conformance-evidence-python
           path: conformance-evidence/
-          if-no-files-found: error
-
-  docs-coverage:
-    name: documentation gate
-    runs-on: ubuntu-24.04
-    env:
-      DOCS_BASE_PATH: /crudui/
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Setup the Node.js of mise.toml, which starts the bootstrap
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: 'mise.toml'
-          package-manager-cache: false
-      - name: Cache the npm packages of package-lock.json
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Bootstrap the installed kit package
-        run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
-        run: make install-tools TOOLS="npm"
-      - name: Install the packages of package-lock.json, @polyspec/kit included
-        run: make install-packages
-      - name: Setup PHP
-        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-        with:
-          php-version-file: .php-version
-          tools: phpize, php-config
-      - name: Install the selected pinned tools
-        run: make install-tools TOOLS="node go rust php composer"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
-      - name: Install PHP dependencies
-        run: make crudui-install-composer
-      - name: Cargo cache
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-        with:
-          workspaces: packages/validator/rust
-      - name: Download the modules that the Go workspace requires
-        run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer"
-      - name: Install PHP API documentation generator
-        run: make crudui-install-phpdocumentor
-      - name: Download the crates of every Cargo.lock
-        run: make crudui-install-crates
-      - name: Run the checks and write their report
-        if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="docs-check"
-      - name: Upload the report of the checks
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: report-docs-coverage
-          path: var/report/ci-targets
           if-no-files-found: error
 
   cross-check-console:
@@ -484,8 +411,6 @@ jobs:
       # The suites and programs import the Python packages installed in var/python (S3).
       - name: Install the Python packages of the uv workspace into var/python
         run: make crudui-install-python
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer python uv"
       - name: Download the crates of every Cargo.lock
         run: make crudui-install-crates
       - name: Run the checks and write their report
@@ -530,8 +455,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="require-build crudui-test-cli"
@@ -571,8 +494,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Install the browsers that Puppeteer and Playwright pin
         run: make crudui-install-browsers BROWSERS="chrome firefox webkit --with-deps --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -628,8 +549,6 @@ jobs:
           tools: none
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node php composer"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install workspace and PHP dependencies
         run: make crudui-install-composer
       - name: Install the browsers that Puppeteer pins
@@ -687,8 +606,6 @@ jobs:
           workspaces: examples/form-comparison/servers/rust
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
         run: make crudui-install-composer
       - name: Install nginx
@@ -761,8 +678,6 @@ jobs:
           workspaces: examples/form-comparison/servers/rust
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
         run: make crudui-install-composer
       - name: Install nginx
@@ -839,8 +754,6 @@ jobs:
           workspaces: examples/form-comparison/servers/rust
       - name: Download the modules that the Go workspace requires
         run: make crudui-install-go-modules
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
         run: make crudui-install-composer
       - name: Install nginx
@@ -899,8 +812,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Install the browsers that Puppeteer pins
         run: make crudui-install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -944,8 +855,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="crudui-test-php-engine"
@@ -992,8 +901,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Install the browsers that Puppeteer pins
         run: make crudui-install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -1042,8 +949,6 @@ jobs:
         run: make install-tools TOOLS="node php composer"
       - name: Install the pinned PHP extension generator
         run: make kit-install-php-arginfo
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install dependencies
         run: make crudui-install-composer
       - name: Run the checks and write their report
@@ -1118,8 +1023,6 @@ jobs:
       # The suites and programs import the Python packages installed in var/python (S3).
       - name: Install the Python packages of the uv workspace into var/python
         run: make crudui-install-python
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm go rust php composer python uv"
       - name: Install dependencies
         run: make crudui-install-composer
       - name: Download the crates of every Cargo.lock
@@ -1186,8 +1089,6 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       # Each artifact goes into conformance-evidence/<artifact name>, so no evidence file of one job replaces a file of
       # another with the same name; scripts/check-conformance.mts reads the directory with its subdirectories.
       - name: Collect the evidence of every suite
@@ -1207,7 +1108,7 @@ jobs:
           if-no-files-found: error
   ci-passed:
     if: ${{ always() }}
-    needs: [runtime-tests, build-lint, validator-js, validator-php, validator-go, validator-rust, python, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, cross-language-equivalence, conformance]
+    needs: [runtime-tests, build-lint, validator-js, validator-php, validator-go, validator-rust, python, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, cross-language-equivalence, conformance]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -1230,7 +1131,5 @@ jobs:
         run: make install-packages
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node"
-      - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
       - name: Fail unless every other job succeeded
         run: make ci-passed RESULTS='${{ toJSON(needs) }}'

@@ -17,8 +17,8 @@ const execFileAsync = promisify(execFile);
 export const exampleDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const repositoryRoot = path.resolve(exampleDirectory, '../..');
 /**
- * The PHP extension source of OrderedJSON, unpacked from the release zip that config/release-assets.json
- * pins (make release-assets-fetch), relative to the repository root.
+ * The PHP extension source of OrderedJSON, fetched from the packages.json repository that
+ * pins of the packages.json repository (K865), relative to the repository root.
  */
 const orderedJsonExtensionDirectory = 'var/ordered-json-php-ext';
 

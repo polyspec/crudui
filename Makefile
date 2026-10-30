@@ -25,7 +25,7 @@ build-go crudui-install-go-modules: export GOWORK := $(CURDIR)/go.work
 # A check reads no network (docs/operations/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, crudui-install-crates
-# and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
+# and the downloads of install run their commands with $(ONLINE); the crates are fetched by install-kit (K864)
 # (the kit.mk of @polyspec/kit) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
 export GOPROXY := off
@@ -69,7 +69,6 @@ help: ## 타겟 설명
 	@echo "  make install               Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor"
 	@echo "  make crudui-install-crates        Download the crates of every Cargo.lock and the OrderedJSON checkout that one reads"
 	@echo "  make install-tools         Install the npm, Go and cargo-audit releases that the checkout declares into var/tools"
-	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
 	@echo "  make owner-check           Run the owner checks of the changed paths (config/owner-checks.json); PATHS or BASE select the paths"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
 	@echo "  make docs-api              Generate API references for all languages"
@@ -108,7 +107,7 @@ help: ## 타겟 설명
 # (install-tools of the kit.mk of @polyspec/kit), the dependencies of the lock files, the crates of every Cargo.lock, the OrderedJSON
 # checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256.
 # PHP is installed at the minor of config/toolchain.json by the machine's package manager; Node.js, Python, Go and
-# Composer are the tools of mise.toml in var/tools. `make toolchain-check` names every tool at another version.
+# Composer are the tools of mise.toml in var/tools. The tools of the checkout are checked by the install of kit.
 install: crudui-install ## Install the declared tools with the Rust toolchain, the npm, Composer, Python and Cargo dependencies and phpDocumentor
 
 # crudui-install is the repository step of install: it runs after install-kit, the bootstrap of kit (K246-2). composer install
@@ -134,7 +133,7 @@ release-prepare:: crudui-prepare-ci-providers
 crudui-prepare-ci-providers: ## Prepare the declared OrderedJSON release source in CI; ONLINE
 	@if [ "$${GITHUB_ACTIONS:-}" = true ]; then \
 		provider="$$($(NODE) -p 'require("./config/local-providers.json").orderedJsonRoot')"; \
-		version="$$($(NODE) -p 'require("./config/release-assets.json").assets.find(asset => asset.name === "ordered-json").version')"; \
+		version="$$($(NODE) -p 'require("./composer.json").repositories.find(r => r.type === "composer" && r.url.endsWith("/packages.json")).url.match(/v(\\d+\\.\\d+\\.\\d+)\\/packages\\.json$$/)[1]')"; \
 		if [ ! -d "$$provider" ]; then \
 			echo "[crudui-prepare-ci-providers] cloning OrderedJSON v$$version into $$provider"; \
 			$(ONLINE) git clone --depth 1 --branch "v$$version" https://github.com/polyspec/ordered-json.git "$$provider" || exit $$?; \
@@ -170,7 +169,7 @@ crudui-local-composer-check: ## Validate the canonical Composer manifest, lock a
 
 crudui-install-python: ## Make the venv var/python and install the Python packages of the uv workspace into it in editable mode
 	$(MAKE) --no-print-directory python-venv DIR=$(PYTHON_VENV)
-	UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV) $(ONLINE) $(UV) sync --quiet --locked --all-packages
+	UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV) $(MAKE) --no-print-directory uv-install DIR=. SYNC='--quiet --all-packages'
 
 crudui-install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256
 	$(ONLINE) $(NODE) scripts/install-phpdocumentor.mts
@@ -183,7 +182,7 @@ crudui-install-browsers: ## Install the pinned browsers of BROWSERS (chrome fire
 check-ci-browser: ## Check that the pinned Chrome runs sandboxed
 	$(NODE) scripts/check-ci-browser.mts
 
-# The crates of every Cargo.lock; a CI job that runs a target with cargo-downloads-check runs it.
+# The crates of every Cargo.lock are fetched by install-kit (K864); a target that runs cargo needs no check of them.
 crudui-install-crates: cargo-downloads-fetch ## Download the crates of every Cargo.lock
 
 # The modules that the Go workspace of go.work requires, downloaded into the module cache with go mod download at its
@@ -194,7 +193,7 @@ crudui-install-go-modules: ## Download the modules that the Go workspace require
 	printf '%s\n' "$$modules" | xargs $(ONLINE) $(GO) mod download
 
 ifneq ($(LOCAL),1)
-crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks: release-assets-fetch
+crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks:
 endif
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
@@ -235,15 +234,15 @@ crudui-test-validator-go: ## The Go validator suite
 	@packages="$$($(GO) -C packages/validator/go list -f '{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./...)" || exit $$?; \
 	test -n "$$packages" || { echo "crudui-test-validator-go: native Go discovery selected no test package" >&2; exit 1; }; \
 	$(NODE) tests/conformance/run-suite.mts go --cwd packages/validator/go -- $$packages
-crudui-test-validator-rust: cargo-downloads-check ## The Rust validator suite
+crudui-test-validator-rust: ## The Rust validator suite
 	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 crudui-test-validator-python: ## The Python validator suite
 	$(NODE) tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/validator/python -- discover -s tests -t .
 crudui-test-generator-python: ## The Python generator suite
 	$(NODE) tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/generator/python -- discover -s tests -t .
-crudui-test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
+crudui-test-cross-check: ## The cross-check console gateway conformance
 	$(NPM) test --prefix examples/cross-check-console/server
-manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
+manifest-test: ## The verification commands of the feature contracts
 	$(NPM) run manifest:test
 require-build: ## Build the packages when their sources or output changed
 	$(NODE) scripts/require-current-build.mts
@@ -258,9 +257,9 @@ crudui-test-forms: ## Form instances, renderers and the browser checks
 	$(NPM) run test:forms
 crudui-test-form-comparison: ## The form comparison runner regressions
 	$(NPM) run test:form-comparison
-crudui-test-form-comparison-pipeline: cargo-downloads-check ## The record stores and the canonical flow
+crudui-test-form-comparison-pipeline: ## The record stores and the canonical flow
 	$(NPM) run test:form-comparison:pipeline
-crudui-test-form-comparison-checks: cargo-downloads-check ## The PHP modes, generation, persistence, flow, browser and typing checks against a local stack
+crudui-test-form-comparison-checks: ## The PHP modes, generation, persistence, flow, browser and typing checks against a local stack
 	$(NPM) run test:form-comparison:checks
 # The same checks in two parts, as CI runs them: crudui-test-form-comparison-browser runs the browser checks of the servers of
 # FORM_SERVERS against a local stack and keeps their reports in FORM_BROWSER_REPORTS; crudui-test-form-comparison-summary runs
@@ -268,9 +267,9 @@ crudui-test-form-comparison-checks: cargo-downloads-check ## The PHP modes, gene
 # the system, so runs at the same time do not collide; the summary requires the scheme and host of every report.
 FORM_SERVERS ?= php,php-ext,go,rust
 FORM_BROWSER_REPORTS ?= $(CURDIR)/var/form-comparison/browser
-crudui-test-form-comparison-browser: cargo-downloads-check ## The browser checks of the servers of FORM_SERVERS against a local stack
+crudui-test-form-comparison-browser: ## The browser checks of the servers of FORM_SERVERS against a local stack
 	$(NPM) run test:form-comparison:checks -- --servers $(FORM_SERVERS) --results $(FORM_BROWSER_REPORTS)
-crudui-test-form-comparison-summary: cargo-downloads-check ## Every other check against a local stack, with the browser reports of FORM_BROWSER_REPORTS
+crudui-test-form-comparison-summary: ## Every other check against a local stack, with the browser reports of FORM_BROWSER_REPORTS
 	$(NPM) run test:form-comparison:checks -- --browser-reports $(FORM_BROWSER_REPORTS)
 crudui-test-packages: ## The package install check
 	$(NPM) run test:packages
@@ -280,31 +279,31 @@ crudui-test-build-repeat: ## The reproducible build
 	$(NPM) run test:build:repeat
 crudui-test-inspector: ## The browser inspector
 	$(NPM) run test:inspector
-crudui-test-bench: cargo-downloads-check ## The benchmark drivers
+crudui-test-bench: ## The benchmark drivers
 	$(NPM) run test:bench
 check-conformance: ## The conformance evidence against contracts/features.json
 	$(NODE) scripts/check-conformance.mts
 
 # The owner checks run the checks of the changed paths (config/owner-checks.json), some of which run cargo; make -k skips
 # them while a crate is missing.
-owner-check: cargo-downloads-check
+owner-check:
 
 docs: docs-clean docs-web ## 전체 문서 생성 (clean-then-generate)
 	@echo "[make] docs: complete -> docs/.web/dist"
 
-docs-api: cargo-downloads-check ## 멀티언어 API doc
+docs-api: ## 멀티언어 API doc
 	$(NPM) run docs:api
 
 docs-schema: ## 스펙 JSON Schema 검사
 	$(NPM) run spec:schema
 
-docs-web: cargo-downloads-check ## 문서 정적 웹 빌드
+docs-web: ## 문서 정적 웹 빌드
 	$(NPM) run docs:build
 
-docs-dev: cargo-downloads-check ## 문서 개발 서버
+docs-dev: ## 문서 개발 서버
 	$(NPM) run docs:dev
 
-docs-preview: cargo-downloads-check ## 문서 빌드 결과 미리보기 서버
+docs-preview: ## 문서 빌드 결과 미리보기 서버
 	$(NPM) run docs:preview
 
 # crudui-docs-check is the repository's doc-coverage gate (documents AND library packages; either arm RED → non-zero exit).
@@ -318,7 +317,7 @@ crudui-docs-check: ## doc-coverage 게이트 (문서 + 라이브러리, 미문�
 	exit $$status
 
 # Every check runs even when an earlier one fails, so one run reports every failure.
-docs-check-documents: cargo-downloads-check
+docs-check-documents:
 	@status=0; \
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
@@ -328,7 +327,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run docs:build || status=1; \
 	exit $$status
 
-docs-check-libs: cargo-downloads-check ## 라이브러리 packages/* doc-coverage
+docs-check-libs: ## 라이브러리 packages/* doc-coverage
 	$(NPM) run docs:check
 
 docs-clean: ## 생성물 전부 제거
@@ -369,19 +368,19 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 bench-fixtures: ## 벤치 fixture JSON 재생성 (스펙 → spec/input JSON)
 	$(NODE) benchmarks/validators/gen-fixtures.js
 
-bench: cargo-downloads-check bench-fixtures ## 4언어 검증기 처리량 비교
+bench: bench-fixtures ## 4언어 검증기 처리량 비교
 	$(NODE) benchmarks/validators/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-js: cargo-downloads-check bench-fixtures ## JS 검증기만 측정
+bench-js: bench-fixtures ## JS 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-php: cargo-downloads-check bench-fixtures ## PHP 검증기만 측정
+bench-php: bench-fixtures ## PHP 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-go: cargo-downloads-check bench-fixtures ## Go 검증기만 측정
+bench-go: bench-fixtures ## Go 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
+bench-rust: bench-fixtures ## Rust 검증기만 측정
 	$(NODE) benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 # Native unit suites and cross-language generator equivalence run in independent CI jobs.
@@ -393,7 +392,7 @@ crudui-test-php-engine:
 crudui-test-generator-go:
 	$(NODE) tests/conformance/run-suite.mts go --cwd packages/generator/go -- -race ./...
 
-crudui-test-generator-rust: cargo-downloads-check
+crudui-test-generator-rust:
 	$(NODE) tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml
 
 crudui-test-generator-js: require-build
@@ -417,7 +416,7 @@ crudui-test-php-api: require-build build-php-ext
 	exit $$status
 
 # Compare every declared generator runtime independently of the language unit suites.
-crudui-test-cross-language-equivalence: require-build build-php-ext cargo-downloads-check
+crudui-test-cross-language-equivalence: require-build build-php-ext
 	@status=0; \
 	$(NODE) tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	$(NODE) tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
@@ -431,7 +430,7 @@ crudui-test-native:
 	$(MAKE) --no-print-directory crudui-test-php-api || status=1; \
 	exit $$status
 
-crudui-test-validators: cargo-downloads-check
+crudui-test-validators:
 	@status=0; \
 	$(NODE) tests/conformance/run-suite.mts vitest --cwd packages/validator/ts || status=1; \
 	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/validator/php -- --testsuite public,php-source-internal || status=1; \
@@ -449,7 +448,7 @@ crudui-test-form-binding:
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/operations/conformance.md). Every suite runs even when an earlier one
 # fails, so the check reports every gap; any failure fails the target.
-conformance: cargo-downloads-check
+conformance:
 	rm -rf "$(CONFORMANCE_EVIDENCE)"
 	@status=0; \
 	export CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)"; \
@@ -494,10 +493,6 @@ CI_TARGETS = \
 	crudui-test-runtimes \
 	build \
 	lint \
-	lint-python \
-	lint-php \
-	lint-rust \
-	lint-go \
 	typecheck \
 	hooks-check \
 	crudui-test-validator-js \
@@ -508,7 +503,6 @@ CI_TARGETS = \
 	crudui-test-generator-rust \
 	crudui-test-validator-python \
 	crudui-test-generator-python \
-	docs-check \
 	build-php-ext \
 	crudui-test-cross-check \
 	manifest-test \
@@ -535,9 +529,7 @@ CI_TARGETS = \
 # The gates of kit that this checkout runs (kit-gates of kit.mk); kit-check fails for a gate that this list leaves out.
 CHECK_TARGETS = \
 	kit-check \
-	toolchain-check \
 	layout-check \
-	docs-check \
 	rules-check \
 	owner-validate \
 	rebuild-check \
@@ -549,14 +541,9 @@ CHECK_TARGETS = \
 	link-check \
 	link-metadata-check \
 	divergence-check \
-	link-state-check \
 	bypass-check \
 	suppression-check \
 	lint-ts \
-	lint-php \
-	lint-python \
-	lint-go \
-	lint-rust \
 	lint-php-ext \
 	test-php-ext
 

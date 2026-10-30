@@ -215,7 +215,7 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 진행을 출력하는 단계입니다. 두 PHP 확장, Go 바이너리, Rust 디버그 바이너리를 빌드합니다.
 `LOCAL=1`은 `config/local-providers.json`에 선언한 OrderedJSON checkout을 선택합니다. Native extension은
 해당 provider의 `make build-php-ext`로 빌드하고 Rust 명령은 공개 native Cargo link 명령으로 해당 provider를 해석합니다.
-`LOCAL=1`이 없으면 `make release-assets-fetch`가 준비한 `var/ordered-json-php-ext`의 명시적 release source를 선택합니다.
+`LOCAL=1`이 없으면 `make install`이 packages.json 저장소에서 받은(K865) `var/ordered-json-php-ext`의 명시적 release source를 선택합니다.
 Local 선언이나 source가 없으면 실패하며 release archive를 대신 선택하지 않습니다. 그다음 로컬 구성은 다섯 프로세스를 동시에 시작하고 브라우저를 시작합니다.
 프로세스 시작과 브라우저 시작은 제한 시간이 없는 장기 작업입니다. 각각 준비 이벤트나 launch에서
 끝나고, 기다리는 동안 15초마다 경과 시간 줄을 출력합니다. 이 작업들을 실행하는 테스트 훅은

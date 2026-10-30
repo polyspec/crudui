@@ -239,7 +239,7 @@ its own timeout. Both local checks first build the server programs, each as a st
 limit that prints its progress: both PHP extensions, the Go binary and the Rust debug binary.
 `LOCAL=1` selects the OrderedJSON checkout declared by `config/local-providers.json`; its native extension is built by
 that provider's `make build-php-ext`, and Rust commands resolve that provider through the public native Cargo link command.
-Without `LOCAL=1`, the explicit release source is `var/ordered-json-php-ext`, prepared by `make release-assets-fetch`.
+Without `LOCAL=1`, the explicit release source is `var/ordered-json-php-ext`, fetched by `make install` from the packages.json repository of OrderedJSON (K865).
 A missing local declaration or source fails; it does not select the release archive. The local stack then starts its five processes at the same time and its browser.
 A process start and the browser start are long operations without a limit: each ends at its
 readiness event or its launch and prints a line with its elapsed time every 15 seconds while it

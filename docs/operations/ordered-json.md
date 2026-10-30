@@ -10,7 +10,7 @@ The record servers of the [form comparison](form-comparison.md) read and write J
 root Composer project declares `../ordered-json/packages/php`, records the actual 0.0.x source version in `composer.lock`
 and loads it through `vendor/autoload.php`. `make crudui-install-composer` refreshes source resolution without fetching
 published archives. Native PHP extension sources resolve from the declared development inputs. Published archive
-inputs in `config/release-assets.json` are independent of the default Composer source install.
+inputs from the packages.json repository of OrderedJSON v0.0.13 are independent of the default Composer source install.
 OrderedJSON tests its processor; CRUDUI tests package integration through `examples/form-comparison/src/json.test.mjs`,
 `FormJsonTest.php` of `servers/php`, `json_test.go` of the Go server and the Rust server's JSON tests. These check member
 order, numeric keys, keyed rows, empty types and rejection of numbers outside the form data range.

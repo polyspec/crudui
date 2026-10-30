@@ -172,7 +172,7 @@ bootstrap을 실행합니다. Bootstrap npm cache는 checkout의 `var/bootstrap/
   machine의 npm에는 설치하지 않습니다. Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 두고,
   Native bootstrap 뒤 CI는 저장소 도구를 make 대상으로 시작합니다.
 - checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.12.0, Python 3.14, PHP 8.4, Go 1.27.2, Rust 1.99.0,
-  TypeScript 7.0.2)를 고정하고, `make toolchain-check`는 그 pin이 아닌 선언과 manifest 하한마다 실패합니다. 대상은
+  TypeScript 7.0.2)를 고정하고, 기록된 release는 선언과 manifest 하한이며 kit이 설치합니다(K854). 대상은
   `mise.toml`의 `node`, 모든 `package.json`의 `engines.node`(`>=26.12.0`), 모든 `composer.json`의 `require.php`(`>=8.4`), 모든
   `pyproject.toml`의 `requires-python`(`>=3.14`), 모든 `go.mod`의 `go` 줄(`1.27.2`, `toolchain` 줄 없음), 모든 Cargo package의
   `rust-version`, 모든 manifest와 lock의 `typescript`입니다. 벗어나는 값은 `config/toolchain.json`의 `exceptions` 항목으로 scope,
@@ -194,10 +194,7 @@ bootstrap을 실행합니다. Bootstrap npm cache는 checkout의 `var/bootstrap/
   `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php는 다른 도구와 같은 patch를 설치할 수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
   그 실행의 evidence이며 `node_modules/@polyspec/kit/dist/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
   함께 기록합니다.
-- `make toolchain-check TOOLS="<tool>..."`(`node_modules/@polyspec/kit/dist/check-toolchain.mjs`)은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
-  실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝히고, 지정한 모든 도구의 실행 중인 릴리스를
-  출력합니다. 모든 CI job은 자신이 설치한
-  도구에 대해 그것을 실행하고, `TOOLS` 없는 `make toolchain-check`는 모든 도구에 대해 실행합니다.
+- 기록된 release는 kit이 설치합니다(K854: 도구 검사는 삭제됨; 없는 도구는 그 도구를 쓰는 타깃을 실패시킵니다).
 
 저장소는 컨테이너 정의를 두지 않습니다. Linux는 CI runner에서 실행됩니다. 패키지 잠금 파일은 해석한
 패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
@@ -278,11 +275,7 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 `install-tools`, `dependency-review`와, lock이 고정한 제3자
 package를 내려받는 release archive의 사용자 project lock `release-consumer-lock`만 `$(ONLINE)`으로 이를 풉니다.
 `release-consumer`는 script가 스스로 풉니다. `make crudui-install-crates`는 모든 Cargo.lock의 crate를
-download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
-`make cargo-downloads-check`(`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
-lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
-안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
-실패합니다. comparison pipeline은 `make release-assets-fetch`가 `var/ordered-json-php-ext`에 풀어 놓은 OrderedJSON PHP 확장 소스를 읽고,
+download하고, `make install`이 이를 실행합니다. crate는 install-kit이 받습니다(K864). 따라서 어떤 대상도 따로 검사하지 않습니다. comparison pipeline은 OrderedJSON v0.0.13의 packages.json 저장소에서 가져온 OrderedJSON PHP 확장 소스를 읽고(K865),
 없으면 실패하며, 아무것도 download하지 않습니다. comparison의 Go module은 OrderedJSON module `v0.0.9`를 요구하고,
 `GOPROXY=off`가 module cache에서 이를 읽습니다.
 

@@ -17,7 +17,7 @@ installation before its first make command.
 
 ## Publishing main
 
-CI prepares the OrderedJSON source tag declared in `config/release-assets.json` at the path in `config/local-providers.json`.
+CI prepares the OrderedJSON source tag declared by the packages.json repository in `composer.json` at the path in `config/local-providers.json`.
 Runtime policy tests run in four independent GitHub Actions shards; each shard records its own results.
 
 Each development task is committed with its changelog entry when its owning unit tests pass, and the row becomes `[o]`.
@@ -208,7 +208,7 @@ registry:
   {
     "require": { "polyspec/crudui-generator": "X.Y.Z" },
     "repositories": [
-      { "type": "artifact", "url": "vendor/polyspec" }
+      { "type": "path", "url": "vendor/polyspec" }
     ]
   }
   ```

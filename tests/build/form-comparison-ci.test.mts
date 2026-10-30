@@ -194,14 +194,13 @@ test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () =>
   assert.deepEqual(failures, []);
 });
 
-test('release-mode stacks fetch pinned native archives while local stacks use source providers (C18.10-8)', () => {
+test('release-mode stacks take OrderedJSON from the packages.json repository while local stacks use source providers (C18.10-8, K865)', async () => {
+  const manifest = await readFile(path.join(repository, 'composer.json'), 'utf8');
+  assert.match(manifest, /"type": "composer",\s*"url": "https:\/\/github\.com\/polyspec\/ordered-json\/releases\/download\/v\d+\.\d+\.\d+\/packages\.json"/);
   for (const target of ['crudui-test-form-comparison-pipeline', 'crudui-test-form-comparison-browser', 'crudui-test-form-comparison-summary', 'crudui-test-form-comparison-checks']) {
     const release = makeDryRun(repository, target, { variables: ['LOCAL=0'] });
     assert.equal(release.status, 0, release.stderr);
-    const fetch = /\/release-assets\.(?:mts|mjs) fetch\b/.exec(release.stdout);
-    assert.ok(fetch, `${target} must prepare its declared native release archive`);
-    const run = release.stdout.indexOf('npm run test:form-comparison:');
-    assert.ok(run > fetch.index, `${target} must fetch before starting its stack checks`);
+    assert.doesNotMatch(release.stdout, /\/release-assets\.(?:mts|mjs) fetch\b/, `${target} takes no release archive of its own`);
     const local = makeDryRun(repository, target, { variables: ['LOCAL=1'] });
     assert.equal(local.status, 0, local.stderr);
     assert.doesNotMatch(local.stdout, /\/release-assets\.(?:mts|mjs) fetch\b/);

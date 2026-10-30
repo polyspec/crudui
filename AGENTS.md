@@ -49,7 +49,7 @@ only the rules of crudui.
   (`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). A tool of the repository is installed into the checkout (`var/tools` by
   `make install-tools`), never into the machine. While the polyspec versions are 0.0.x, a development checkout links the
   installed polyspec packages to their source as `docs/operations/local-links.md` of kit describes; links are never committed.
-  Enforced by: `make toolchain-check`
+  Enforced by: none
 - Own: The configuration of this repository is `config/*.json` (`toolchain`, `dependency-policy`, `dependency-review`,
   `checklist`, `documents`, `generated`, `owner-checks`, `rebuild`, `release`) and `config/layout.yml`, which name the
   exceptions of `config/layout.kit.yml`, each with its reason.

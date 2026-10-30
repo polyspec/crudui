@@ -272,7 +272,7 @@ function packageApprovalFailures(lockFile: string) {
 
 test('the locked dependency graph is valid and installed local packages satisfy the link rules', () => {
   const result = executeNpm(['ls', '--all', '--json', '--package-lock-only']);
-  const links = execute('make', ['link-state-check']);
+  const links = execute('make', ['link-check']);
   assert.equal(links.status, 0, links.stdout + links.stderr);
   assert.equal(result.status, 0, [
     ...(result.report.problems ?? []),
@@ -431,7 +431,6 @@ test('default PHP installation updates local sources without fetching release ar
   assert.equal(result.status, 0, result.stderr);
   const install = makeTargets(result.stdout)['crudui-install-composer'];
   assert.ok(install);
-  assert.equal(install.prerequisites.includes('release-assets-fetch'), false);
   assert.match(install.commands.join('\n'), /\bupdate ['"]?polyspec\/\*/);
 });
 

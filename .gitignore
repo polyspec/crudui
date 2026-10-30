@@ -103,3 +103,4 @@ go.work.sum
 /examples/form-comparison/servers/go/go.exe
 /tests/native-generators/programs/go/go
 /tests/native-generators/programs/go/go.exe
+/.links

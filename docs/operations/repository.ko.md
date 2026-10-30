@@ -16,7 +16,7 @@ Source 또는 packed 명령은 sibling kit checkout 없이 실행할 수 있습�
 
 ## main 게시
 
-CI는 `config/release-assets.json`에 선언된 OrderedJSON source tag를 `config/local-providers.json`의 경로에 준비합니다.
+CI는 `composer.json`의 packages.json 저장소가 선언한 OrderedJSON source tag를 `config/local-providers.json`의 경로에 준비합니다.
 Runtime policy test는 GitHub Actions의 네 개 독립 shard에서 실행하고 각각의 결과를 기록합니다.
 
 각 개발 작업은 소유 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다. 거절한 원래 작업은 기록한
@@ -190,7 +190,7 @@ Release archive consumer project는 이 private 개발 project와 별도로 유�
   {
     "require": { "polyspec/crudui-generator": "X.Y.Z" },
     "repositories": [
-      { "type": "artifact", "url": "vendor/polyspec" }
+      { "type": "path", "url": "vendor/polyspec" }
     ]
   }
   ```
