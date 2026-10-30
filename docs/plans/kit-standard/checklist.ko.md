@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 6062e4d7663fafd37cbdaa12ab2b05341a9ab92ad804bdc74ffa402cda477576 -->
+<!-- source-sha256: 973b1221f49c41afb26652ae0d3b41e77f6629c05c1ed2439d730cd52de8e36d -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -443,4 +443,4 @@
 | C17.96 | crudui는 ordered-json-ext에서 kit의 pie-build 대신 PIE 명령을 직접 실행한다. kit 0.0.81이 pie-build를 제거하므로, 설치된 installed.json의 한 항목 install-path를 기록한다 (link-owner와 합의한 방법) | Makefile, examples/form-comparison/src/local-servers.mjs, CHANGELOG.md, CHANGELOG.ko.md, tests/build/ordered-json-pie.test.mts, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/ordered-json-pie.test.mts` exit 0; `make ordered-json-ext` exit 0; `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` exit 0 | [o] |
 | C17.96-1 | crudui는 릴리스된 0.0.9 변경 기록의 두 항목(CHANGELOG.md:14, :27과 KO 쌍)을 origin 문구로 되돌리고, pie-build 제거(K931)를 0.0.81 예정으로 적으며, KO source-sha256을 다시 찍는다 (C17.96 감사) | CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md, Makefile, tests/build/ordered-json-pie.test.mts | `make documents-stamp` bare run moves nothing; `make test-markers-check` exit 0; `node scripts/run-tests.mts node -- tests/build/ordered-json-pie.test.mts` exit 0 | [ ] |
 | C17.97 | crudui는 0.0.9 게시를 CHANGELOG.md와 CHANGELOG.ko.md의 ## Unreleased에 기록한다 (release run 41090852507, CI run 41086677097, tag v0.0.9 on db740a10, asset 12개) | CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `gh release view v0.0.9 --repo polyspec/crudui` reports 12 assets and not a draft; `gh run view 41086677097 --repo polyspec/crudui` reports success on db740a10 | [o] |
-| C17.98 | crudui는 kit main이 요구하는(K933) packageManager npm@12.2.0의 sha512 다이제스트를 package.json:96에 적는다. kit 핀은 바꾸지 않는다 | package.json | `make kit-check` exit 0; the bootstrap of the worktree passes | [ ] |
+| C17.98 | crudui는 kit main이 요구하는(K933) packageManager npm@12.2.0의 sha512 다이제스트를 package.json:96에 적는다. kit 핀은 바꾸지 않는다 | package.json | `make kit-check` exit 0; the bootstrap of the worktree passes | [~] |
