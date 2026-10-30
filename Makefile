@@ -65,8 +65,8 @@ COMPOSER_BIN := $(KIT_TOOLS)/mise/shims/composer
 # The PIE of mise.toml (http:pie, C17.84) fetches and builds the OrderedJSON php-ext package of the release packages.json
 # into PIE_WORK; the local record servers read the package from there (examples/form-comparison/src/local-servers.mjs).
 PIE := $(KIT_TOOLS)/mise/shims/pie
-PIE_WORK := $(CURDIR)/var/pie/$(ORDERED_JSON_VERSION)
 ORDERED_JSON_VERSION := 0.0.14
+PIE_WORK := $(CURDIR)/var/pie/$(ORDERED_JSON_VERSION)
 ORDERED_JSON_PACKAGES := https://github.com/polyspec/ordered-json/releases/download/v$(ORDERED_JSON_VERSION)/packages.json
 
 # PIE resolves polyspec/ordered-json-php-ext in the Composer repository of the release, builds it with phpize into PIE_WORK
@@ -209,6 +209,9 @@ crudui-install-go-modules: ## Download the modules that the Go workspace require
 ifneq ($(LOCAL),1)
 crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks:
 endif
+# The targets that start the local form-comparison stack read the OrderedJSON php-ext that PIE builds into PIE_WORK (C17.84),
+# so a fresh checkout builds it before them (C17.85).
+crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks: ordered-json-ext
 
 # The checking commands of the CI workflow, one target each (CI_TARGETS).
 crudui-test-runtimes: ## Exact runtime versions and test standards

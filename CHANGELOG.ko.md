@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — form-comparison 브라우저와 기록 검사 전에 OrderedJSON php-ext를 빌드한다 (C17.85)
+
+- 로컬 stack을 시작하는 form-comparison 대상이 ordered-json-ext에 의존하여, 새 체크아웃은 읽기 전에 var/pie/<version>을 빌드한다.
+
 ### 2026-10-30 — PIE 작업 디렉터리를 OrderedJSON 버전으로 나눈다 (C17.84)
 
 - PIE_WORK는 var/pie/<version>이라, 이전 버전이 같은 작업 디렉터리에 추가한 저장소가 새 버전을 가리지 않는다.

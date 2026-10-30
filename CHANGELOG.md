@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Build the OrderedJSON php-ext before the form-comparison browser and record checks (C17.85)
+
+- The form-comparison targets that start the local stack depend on ordered-json-ext, so a fresh checkout builds var/pie/<version> before it reads it.
+
 ### 2026-10-30 — Key the PIE work directory by the OrderedJSON version (C17.84)
 
 - PIE_WORK is var/pie/<version>, so a later version never meets the repository that an older one added to the same working directory.

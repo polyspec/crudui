@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: adf730cacd0caae631ebdf0f7a3891551002cf00dad19a73d69ad4dddecf8b0f -->
+<!-- source-sha256: 5e0fc0a306952d6fff1f2b78323ba6b0a083a07417f80c10bdc64d8a689c84bd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -428,4 +428,4 @@
 | C17.82 | dependency-health의 CI 설치 분기를 읽기 전에 정의되었음을 단언해, make typecheck가 통과하게 한다(dependency-health.test.mts:572-573) | tests/build/dependency-health.test.mts | `make typecheck` | [o] |
 | C17.83 | kit이 더 이상 가지지 않는 --without-library 옵션을 crudui-test-php-api(Makefile:415)의 generator PHP 검사에서 뺀다. PHPUnit이 실행되고 적합성 증거가 생긴다 | Makefile | `node tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [o] |
 | C17.84 | 릴리스 OrderedJSON php-ext를 var/ordered-json-php-ext 대신 packages.json 저장소에서 Composer가 설치한 vendor/polyspec/ordered-json-php-ext에서 읽는다(local-servers.mjs:23, CI record stores와 browser 검사) | examples/form-comparison/src/local-servers.mjs; examples/form-comparison/src/local-servers.test.mjs; composer.json; composer.lock | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
-| C17.85 | crudui는 var/pie를 읽는 form-comparison 대상 전에 OrderedJSON php-ext를 빌드(make ordered-json-ext)하여 새 CI 체크아웃이 실패하지 않게 한다 (실행 41032798468) | Makefile | `make -n crudui-test-form-comparison-browser` plans ordered-json-ext before the check; `make ordered-json-ext` exit 0 from a checkout without var/pie | [ ] |
+| C17.85 | crudui는 var/pie를 읽는 form-comparison 대상 전에 OrderedJSON php-ext를 빌드(make ordered-json-ext)하여 새 CI 체크아웃이 실패하지 않게 한다 (실행 41032798468) | Makefile | `make -n crudui-test-form-comparison-browser` plans ordered-json-ext before the check; `make ordered-json-ext` exit 0 from a checkout without var/pie | [~] |
