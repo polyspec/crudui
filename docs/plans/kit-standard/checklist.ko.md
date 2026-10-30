@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e00be6b0ce617343a8dcdf1e6a54467239ceddd9678d888e43603508d4720d80 -->
+<!-- source-sha256: 3dfca69ba1e21a5d337c2107d7046098a40ec41bd74df8083999bb5b668494cd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -422,4 +422,4 @@
 | C17.76 | Rust form 서버의 ordered-json git 의존을 잠긴 커밋으로 고정해, 오프라인 cargo 단계가 태그 참조 없이 해석하게 한다(CI runtime rust) | examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock | `sh -c 'cd examples/form-comparison/servers/rust && CARGO_HOME=../../../../var/c1776-cargo-home cargo fetch --locked && CARGO_HOME=../../../../var/c1776-cargo-home cargo update --offline -p polyspec-ordered-json'` | [-] 원인: kit K856(8d1eea1d, kit main에 있음)이 원인이다. kit v0.0.76 link.mts:731의 cargo update --offline이 sibling patch로 cargo update --offline -p polyspec-ordered-json을 실행해 failed to find tag v0.0.13(exit 101)으로 실패했다. git db에 tag 참조가 없었기 때문이다. K856이 그 줄을 지웠고, 0.0.77은 cargo metadata에 --config patch를 붙여 tag를 다시 풀지 않는다. crudui 선언은 릴리스 상태에서 통과한다(clippy --offline --locked exit 0) |
 | C17.78 | kit K892가 타깃을 지워 고아가 된 prepare-commit-msg 훅을 제거해 crudui main의 모든 커밋이 다시 돌게 한다 | .githooks/prepare-commit-msg (removed in 29ca676f) | `sh -c '! test -e .githooks/prepare-commit-msg'` | [o] |
 | C17.77 | main에서 이미 실패하는 ci-local의 낡은 단언을 정리한다: kit 내부 단언은 삭제하고, crudui 동작 단언은 현재 workflow에 맞춘다(push-gate.yml, Kit CI 계획 스키마, TypeScript link 형태, native unit 묶음, generator 동등성, tag push, workflow trigger) | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
-| C17.79 | form-comparison 브라우저 검사는 각 서버마다 자기 job에서 돌고, 나머지 검사는 그 뒤에 한 번 돈다(form-comparison-ci.test.mts:131 이하 단언) | tests/build/form-comparison-ci.test.mts | `node scripts/run-tests.mts node -- tests/build/form-comparison-ci.test.mts` | [ ] |
+| C17.79 | form-comparison 브라우저 검사는 각 서버마다 자기 job에서 돌고, 나머지 검사는 그 뒤에 한 번 돈다(form-comparison-ci.test.mts:131 이하 단언) | tests/build/form-comparison-ci.test.mts | `node scripts/run-tests.mts node -- tests/build/form-comparison-ci.test.mts` | [-] 원인: C17.74에 합친다: 빨간 원인은 kit K864가 지운 crudui-test-form-comparison-browser의 cargo-downloads-check 선행이며, C17.74가 그 선행을 제거하므로 form-comparison-ci.test.mts의 browser jobs 단언이 함께 통과한다 |
