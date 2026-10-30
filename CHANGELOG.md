@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Read the CI OrderedJSON version with a regex that matches (C17.80)
+
+- The CI provider step reads the version of OrderedJSON from the packages.json URL with a single-backslash regex, so every CI job clones the release tag and none is empty.
+
 ### 2026-10-30 — Remove the prepare-commit-msg hook that kit K892 orphans (C17.78)
 
 - The commit hook of prepare-commit-msg is removed; kit no longer has its target, and every commit of the repository runs again.

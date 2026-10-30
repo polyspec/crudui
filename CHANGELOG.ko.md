@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — CI의 OrderedJSON 버전을 맞는 정규식으로 읽는다 (C17.80)
+
+- CI provider 단계는 packages.json URL에서 OrderedJSON 버전을 한 번 쓴 백슬래시 정규식으로 읽어, 모든 CI job이 빈 버전 대신 릴리스 tag를 clone한다.
+
 ### 2026-10-30 — kit K892가 고아로 만든 prepare-commit-msg 훅을 제거한다 (C17.78)
 
 - prepare-commit-msg 커밋 훅을 제거한다. kit에는 그 타깃이 없고, 저장소의 모든 커밋이 다시 돌아간다.

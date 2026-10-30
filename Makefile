@@ -133,7 +133,7 @@ release-prepare:: crudui-prepare-ci-providers
 crudui-prepare-ci-providers: ## Prepare the declared OrderedJSON release source in CI; ONLINE
 	@if [ "$${GITHUB_ACTIONS:-}" = true ]; then \
 		provider="$$($(NODE) -p 'require("./config/local-providers.json").orderedJsonRoot')"; \
-		version="$$($(NODE) -p 'require("./composer.json").repositories.find(r => r.type === "composer" && r.url.endsWith("/packages.json")).url.match(/v(\\d+\\.\\d+\\.\\d+)\\/packages\\.json$$/)[1]')"; \
+		version="$$($(NODE) -p 'require("./composer.json").repositories.find(r => r.type === "composer" && r.url.endsWith("/packages.json")).url.match(/v(\d+\.\d+\.\d+)\/packages\.json$$/)[1]')"; \
 		if [ ! -d "$$provider" ]; then \
 			echo "[crudui-prepare-ci-providers] cloning OrderedJSON v$$version into $$provider"; \
 			$(ONLINE) git clone --depth 1 --branch "v$$version" https://github.com/polyspec/ordered-json.git "$$provider" || exit $$?; \
