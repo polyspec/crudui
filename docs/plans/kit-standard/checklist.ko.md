@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 7aee5deb303644d77a106c7a79b77398df6d9e0d00f344052e76a69fd0260f62 -->
+<!-- source-sha256: 825d482e9d77c795ee01222eb257866c5494a3f596a242cfb5e5e4cc909bd89c -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -437,4 +437,4 @@
 | C17.91 | crudui-lint는 Svelte ESLint만 남기고, kit의 pipeline이 ts runtime의 kit-gates-runtime-ts로 lint-ts를 한 번 실행하므로 중복을 제거한다 (S12, ci.yml build-lint) | Makefile, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make -n lint` prints no lint-ts command; `make lint` exit 0; `make rules-check` exit 0 | [o] |
 | C17.91-1 | tests/build/ci-local.test.mts의 K870 test를 C17.91 규칙으로 바꾼다: make lint는 lint-ts를 실행하지 않고, kit pipeline이 TypeScript gate를 한 번 실행한다 | tests/build/ci-local.test.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | node scripts/run-tests.mts node -- tests/build/ci-local.test.mts exit 0; `make lint` prints no lint-ts command | [ ] |
 | C17.92 | crudui는 ci.yml의 자체 검사 대상을 S12가 허용하는 대로 config/ci.json targets(shared, parity, runtimes)에 선언하여 kit pipeline이 gate 뒤에 실행하게 한다 | config/ci.json, .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0; `make rules-check` exit 0; the moved targets run in the CI pipeline, since make ci-targets runs only in CI (the CI run of the pushed commit is the evidence) | [ ] |
-| C17.93 | OrderedJSON php-ext를 빌드하는 form-comparison job 세 개가 install-tools TOOLS에 pie를 선택하여 pie-build의 pie shim이 있게 한다 (C17.90, 실행 41062970946) | .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | with var/tools/mise/shims/pie removed, `make ordered-json-ext` exit 0 installs the shim through install-pie and records var/ordered-json-package; `make rules-check` exit 0 | [~] |
+| C17.93 | OrderedJSON php-ext를 빌드하는 form-comparison job 세 개가 install-tools TOOLS에 pie를 선택하여 pie-build의 pie shim이 있게 한다 (C17.90, 실행 41062970946) | .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | with var/tools/mise/shims/pie removed, `make ordered-json-ext` exit 0 installs the shim through install-pie and records var/ordered-json-package; `make rules-check` exit 0 | [o] |
