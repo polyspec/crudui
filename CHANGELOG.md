@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Declare the sha512 digest of npm 12.2.0 in packageManager (C17.98)
+
+- package.json's packageManager is npm@12.2.0+sha512.<hex>, the digest of the registry's dist.integrity, which the bootstrap of kit main requires (K933). It needs no kit pin change.
+
 ### 2026-10-31 — Record the publication of 0.0.9 (C17.97)
 
 - Release run 41090852507 took CI run 41086677097 of db740a10. The tag v0.0.9 is annotated (bb3dbf85) on db740a10, and the GitHub Release is public, not a draft, with 12 assets.

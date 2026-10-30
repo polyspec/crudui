@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — packageManager에 npm@12.2.0의 sha512 다이제스트를 적는다 (C17.98)
+
+- package.json의 packageManager는 npm@12.2.0+sha512.<hex>다. 이 값은 레지스트리의 dist.integrity이며, kit main의 bootstrap이 요구한다(K933). kit 핀 변경은 필요 없다.
+
 ### 2026-10-31 — 0.0.9 게시를 기록한다 (C17.97)
 
 - release run 41090852507이 db740a10의 CI run 41086677097을 사용했다. tag v0.0.9는 db740a10에 annotated(bb3dbf85)로 달렸고, GitHub Release는 draft가 아닌 공개 상태이며 asset은 12개다.
