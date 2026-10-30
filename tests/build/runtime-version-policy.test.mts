@@ -31,6 +31,7 @@ function stepText(step: WorkflowStep, member: 'uses' | 'run'): string {
 /** The parts of a workflow job that the tests read. */
 interface WorkflowJob {
   'runs-on'?: unknown;
+  uses?: unknown;
   steps?: WorkflowStep[];
   strategy?: { matrix?: { php?: unknown } };
 }
@@ -46,6 +47,7 @@ const workflowSchema: JTDSchemaType<Workflow> = {
       values: {
         optionalProperties: {
           'runs-on': {},
+          uses: {},
           steps: { elements: { optionalProperties: { run: {}, uses: {}, with: { values: {} } }, additionalProperties: true } },
           strategy: { optionalProperties: { matrix: { optionalProperties: { php: {} }, additionalProperties: true } }, additionalProperties: true },
         },
@@ -239,10 +241,11 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
   const violations: string[] = [];
   for (const { file, text, workflow } of await workflows()) {
     if (workflow.env?.RUSTUP_AUTO_INSTALL !== '0' || workflow.env?.GOTOOLCHAIN !== 'local') violations.push(`${file}: env must set RUSTUP_AUTO_INSTALL: '0' and GOTOOLCHAIN: local`);
-    for (const [id, job] of Object.entries(workflow.jobs)) {
+    // A job that calls a reusable workflow of this repository has no runner; the called workflow's jobs do.
+    for (const [id, job] of Object.entries(workflow.jobs).filter(([, job]) => job.uses === undefined)) {
       if (job['runs-on'] !== 'ubuntu-24.04') violations.push(`${file} ${id}: runs-on ${String(job['runs-on'])}`);
     }
-    for (const line of text.split('\n').filter(entry => /^\s*(?:- )?uses:/.test(entry))) {
+    for (const line of text.split('\n').filter(entry => /^\s*(?:- )?uses:/.test(entry) && !/^\s*(?:- )?uses: \.\//.test(entry))) {
       if (!/uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40} # v?\d+\.\d+\.\d+$/.test(line)) violations.push(`${file}: ${line.trim()} is not named by the commit SHA of a release with the release in a comment`);
     }
   }
