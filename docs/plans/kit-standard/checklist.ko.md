@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 01b8805677e3228f987d4635d79afd6489de9824cc9d088067c417eb552d6dbe -->
+<!-- source-sha256: 2fdcc323c2083a49bbe2df3e2f14fe020f5b9d580376ca4a407beb2c9599d6d2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -435,3 +435,4 @@
 | C17.89 | crudui는 Python CI job을 다른 validator job과 같은 형식의 validator · Python으로 이름 짓는다 (ci.yml:323) | .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `grep -n "name: validator · Python" .github/workflows/ci.yml` matches; `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` exit 0 | [o] |
 | C17.90 | crudui는 @polyspec/kit 0.0.79를 채택한다. 0.0.79는 자체 release에서 PHP arginfo 생성기를 설치하고 CI run id로 릴리스한다(release.yml workflow_dispatch의 run과 version, release-tag가 태그를 만든다). 0.0.79가 릴리스되면 시작한다 | package.json, package-lock.json, PRINCIPLES.md, PRINCIPLES.ko.md, CHANGELOG.md, CHANGELOG.ko.md | kit 0.0.79 tgz extracted in a scratch directory; source-sha256 of PRINCIPLES.ko.md equals the copy; `make kit-inject-check` exit 0; `make rules-check` exit 0 | [o] |
 | C17.91 | crudui-lint는 Svelte ESLint만 남기고, kit의 pipeline이 ts runtime의 kit-gates-runtime-ts로 lint-ts를 한 번 실행하므로 중복을 제거한다 (S12, ci.yml build-lint) | Makefile, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make -n lint` prints no lint-ts command; `make lint` exit 0; `make rules-check` exit 0 | [ ] |
+| C17.92 | crudui는 ci.yml의 자체 검사 대상을 S12가 허용하는 대로 config/ci.json targets(shared, parity, runtimes)에 선언하여 kit pipeline이 gate 뒤에 실행하게 한다 | config/ci.json, .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0; `make rules-check` exit 0; `make ci-targets TARGETS=...` of the moved targets exit 0 | [ ] |
