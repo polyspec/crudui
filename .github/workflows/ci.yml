@@ -207,7 +207,7 @@ jobs:
         run: make crudui-install-composer
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="crudui-test-validator-php"
+        run: make ci-targets TARGETS="crudui-test-validator-php crudui-test-php-source"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

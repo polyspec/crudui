@@ -339,7 +339,7 @@ library source-load guard를 활성화하고 실행한다. 구현 helper를 호�
 assertion을 public suite에 남기고 helper assertion을 source class로 분리한다.
 
 Source Composer test script는 두 suite를 모두 선택한다. PHP validator CI entry는 해당 script를 사용하고 PHP API CI entry는
-generator의 두 suite를 선택하며 `make test-php`는 source-internal suite를 포함한다. 공개 extension 실행은 모든 public case를
+generator의 두 suite를 선택하며 `make crudui-test-php-source`는 source-internal suite를 포함한다. 공개 extension 실행은 모든 public case를
 유지한다. 공유 expression과 composition fixture 검사는 PHP source binding과 별도의 native C engine binding을 유지한다.
 Contract requirement와 fixture case를 제거하지 않는다.
 

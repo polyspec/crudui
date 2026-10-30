@@ -375,7 +375,7 @@ the extension runs with the PHP library source-load guard enabled. Tests that ca
 suite. A mixed test class keeps public API assertions in the public suite and moves helper assertions into a source class.
 
 The source Composer test scripts select both suites. The PHP validator CI entry uses that script, the PHP API CI entry
-selects both generator suites, and `make test-php` includes the source-internal suites. Public extension runs retain every
+selects both generator suites, and `make crudui-test-php-source` includes the source-internal suites. Public extension runs retain every
 public case. Shared expression and composition fixture checks retain their PHP source bindings and their separate native
 C engine bindings. No contract requirement or fixture case is removed.
 

@@ -514,6 +514,7 @@ CI_TARGETS = \
 	hooks-check \
 	crudui-test-validator-js \
 	crudui-test-validator-php \
+	crudui-test-php-source \
 	crudui-test-validator-go \
 	crudui-test-generator-go \
 	crudui-test-validator-rust \
@@ -573,8 +574,9 @@ lint-ts: production-dependencies-check
 production-dependencies-check:
 	$(NODE) node_modules/knip/bin/knip.js --config config/knip-production.json --production --strict --include unlisted --no-progress --no-config-hints
 
-# PHP source runs include public and implementation units; extension defaults remain public.
-test-php:
+# PHP source runs include public and implementation units; extension defaults remain public. Named apart from kit's test-php,
+# which runs the PHP tests of config/parity.json with the runtime targets (C17.86).
+crudui-test-php-source:
 	@status=0; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal $(if $(CASES),--filter "$$CASES") || status=1; \
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) phpunit --cwd packages/validator/php -- --testsuite public,php-source-internal $(if $(CASES),--filter "$$CASES") || status=1; \

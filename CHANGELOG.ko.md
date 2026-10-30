@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — kit의 test-php가 그대로 실행되도록 source PHP suite 대상 이름을 바꾼다 (C17.86)
+
+- `make crudui-test-php-source`가 kit test-php를 덮어쓰던 Makefile의 test-php 레시피를 대체한다. CI는 validator-php 작업에서 실행하고 CI_TARGETS가 이름을 지정한다.
+
 ### 2026-10-30 — form-comparison 브라우저와 기록 검사 전에 OrderedJSON php-ext를 빌드한다 (C17.85)
 
 - 로컬 stack을 시작하는 form-comparison 대상이 ordered-json-ext에 의존하여, 새 체크아웃은 읽기 전에 var/pie/<version>을 빌드한다.

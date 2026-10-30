@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Rename the source PHP suites target so kit's test-php runs unchanged (C17.86)
+
+- `make crudui-test-php-source` replaces the test-php recipe of the Makefile, which overrode kit's test-php; CI runs it in the validator-php job and CI_TARGETS names it.
+
 ### 2026-10-30 — Build the OrderedJSON php-ext before the form-comparison browser and record checks (C17.85)
 
 - The form-comparison targets that start the local stack depend on ordered-json-ext, so a fresh checkout builds var/pie/<version> before it reads it.
