@@ -374,7 +374,7 @@ test('the CI provider step reads the OrderedJSON version of the packages.json UR
   const line = /^\t\tversion="\$\$\(\$\(NODE\) -p '(.*)'\)"; \\$/m.exec(makefile);
   assert.ok(line, 'the CI provider step reads the version with node');
   // Make expands $$ to $ and the recipe runs in sh; the expression is the same one that the recipe runs.
-  const expression = line[1]!.replace(/\$\$/g, '$');
+  const expression = (line[1] ?? '').replace(/\$\$/g, '$');
   const version = spawnSync('node', ['-p', expression], { cwd: ROOT, encoding: 'utf8' });
   assert.equal(version.status, 0, version.stderr);
   assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+$/);
