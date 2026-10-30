@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — kit 0.0.75을 채택한다 (C17.72)
+
+- crudui는 공개된 @polyspec/kit 0.0.75 asset과 그 lock을 고정한다. kit-sync는 그 버전의 workflow에 변경을 만들지 않는다.
+
 ### 2026-10-30 — kit 0.0.74을 채택한다 (C17.67)
 
 - crudui는 공개된 /kit 0.0.74 asset과 그 lock을 고정한다. kit-sync는 그 버전의 CI와 release workflow 및 kit 소유 문서를 쓴다.

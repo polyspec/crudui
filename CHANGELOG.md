@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Adopt kit 0.0.75 (C17.72)
+
+- crudui pins the released @polyspec/kit 0.0.75 asset and its lock; kit-sync finds no change to the workflows of that version.
+
 ### 2026-10-30 — Adopt kit 0.0.74 (C17.67)
 
 - crudui pins the released /kit 0.0.74 asset and its lock; kit-sync writes the CI and release workflows and the kit-owned documents of that version.

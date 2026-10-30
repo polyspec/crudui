@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 83cc34636a06f95ed91aaf8284b3857ec9fc99ba06da035a509b3d037e8fb436 -->
+<!-- source-sha256: 404bee7e49dd90291b76e28d8a24c2071fba368945978042dab4affdef7776d2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -412,7 +412,7 @@
 | C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.68 | dependency-health 테스트가 workflow 밖에서 설정하는 CI 신원을 제거한다 | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |
-| C17.69 | FormTest가 반복된 literal choice의 generation error를 전달하도록 맞춘다 | packages/generator/php/tests/FormTest.php | `make test-php-ext` | [ ] |
-| C17.70 | RuleParametersTest가 잘못된 pattern의 이전 원인 사슬 전체를 보존하도록 맞춘다 | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext` | [ ] |
+| C17.69 | FormTest가 반복된 literal choice의 generation error를 전달하도록 맞춘다 | packages/generator/php/tests/FormTest.php | `make test-php-ext CASES=testRepeatedLiteralChoiceUsesGenerationError` | [ ] |
+| C17.70 | RuleParametersTest가 잘못된 pattern의 이전 원인 사슬 전체를 보존하도록 맞춘다 | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext CASES=testInvalidPatternPreservesCompletePreviousCauseChain` | [ ] |
 | C17.71 | form-comparison Rust 서버가 CI에서 ordered-json 태그를 오프라인으로 해석하게 한다 | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
-| C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [ ] |
+| C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
