@@ -69,11 +69,18 @@ ORDERED_JSON_PACKAGES := https://github.com/polyspec/ordered-json/releases/downl
 ORDERED_JSON_PACKAGE_FILE := $(CURDIR)/var/ordered-json-package
 
 # kit's pie-build builds polyspec/ordered-json-php-ext of the release packages.json with PIE (K915) and prints the line
-# `package <folder>`, which is recorded for the checks (C17.84, H27.45, C17.90).
+# `package <folder>`, which is recorded for the checks (C17.84, H27.45, C17.90). The PIE that pie-build runs is the shim of
+# http:pie, which install-tools TOOLS=pie installs, so the target installs it first (C17.93): a job that builds the package
+# cannot forget it. The build writes its output to a file first, so a failed build fails the target.
+.PHONY: install-pie
+install-pie: ## Install the PIE of mise.toml (http:pie) that pie-build runs; ONLINE
+	$(MAKE) --no-print-directory install-tools TOOLS=pie
+
 .PHONY: ordered-json-ext
-ordered-json-ext: ## Build the OrderedJSON php-ext package of the release packages.json with PIE and record its folder (C17.84); ONLINE
+ordered-json-ext: install-pie ## Build the OrderedJSON php-ext package of the release packages.json with PIE and record its folder (C17.84); ONLINE
 	@mkdir -p $(CURDIR)/var
-	$(MAKE) -s pie-build PACKAGES=$(ORDERED_JSON_PACKAGES) PACKAGE=polyspec/ordered-json-php-ext VERSION=$(ORDERED_JSON_VERSION) | sed -n 's/^package //p' > $(ORDERED_JSON_PACKAGE_FILE)
+	$(MAKE) -s pie-build PACKAGES=$(ORDERED_JSON_PACKAGES) PACKAGE=polyspec/ordered-json-php-ext VERSION=$(ORDERED_JSON_VERSION) > $(CURDIR)/var/ordered-json-pie.log
+	sed -n 's/^package //p' $(CURDIR)/var/ordered-json-pie.log > $(ORDERED_JSON_PACKAGE_FILE)
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"

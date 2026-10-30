@@ -6,6 +6,10 @@
 
 ## 0.0.9
 
+### 2026-10-30 — OrderedJSON php-ext를 빌드하는 target이 PIE를 설치하고, 빌드가 실패하면 target도 실패한다 (C17.93)
+
+- `make ordered-json-ext`는 먼저 http:pie의 PIE를 설치하고(`make install-pie`, `install-tools TOOLS=pie`), 그 패키지를 빌드하는 job이 설치를 잊을 수 없게 한다. pie-build의 출력은 파일에 쓰여서 빌드가 실패하면 target도 실패한다.
+
 ### 2026-10-30 — Svelte 컴포넌트만 lint하고 TypeScript는 kit의 lint-ts gate가 실행한다 (C17.91)
 
 - `make lint`는 Svelte workspace의 ESLint만 실행한다. kit의 CI pipeline이 ts runtime gate로 lint-ts를 한 번 실행하므로 build-lint job은 그것을 다시 실행하지 않는다.

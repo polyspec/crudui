@@ -5,6 +5,10 @@
 
 ## 0.0.9
 
+### 2026-10-30 — Install PIE in the target that builds the OrderedJSON php-ext, and fail when the build fails (C17.93)
+
+- `make ordered-json-ext` installs the PIE of http:pie first (`make install-pie`, `install-tools TOOLS=pie`), so no job that builds the package can forget it, and writes the output of pie-build to a file, so a failed build fails the target.
+
 ### 2026-10-30 — Lint the Svelte components only; kit's lint-ts gate runs the TypeScript (C17.91)
 
 - `make lint` runs the ESLint of the Svelte workspace only; the CI pipeline of kit runs lint-ts once, as its ts runtime gate, so the build-lint job no longer repeats it.
