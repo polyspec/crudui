@@ -7,6 +7,10 @@
 
 - Release run 41090852507 took CI run 41086677097 of db740a10. The tag v0.0.9 is annotated (bb3dbf85) on db740a10, and the GitHub Release is public, not a draft, with 12 assets.
 
+### 2026-10-31 — Build the OrderedJSON php-ext with PIE directly, not kit's pie-build (C17.96)
+
+- `make ordered-json-ext` empties var/pie/polyspec/ordered-json-php-ext, runs `pie repository:add` and `pie build` there, and records the install-path of the one installed.json entry in var/ordered-json-package. kit 0.0.81 removes pie-build (K931), so the recipe no longer calls it.
+
 ## 0.0.9
 
 ### 2026-10-31 — The lint-coverage test asserts the Svelte lint of make lint, not kit's lint-ts (C17.91-2)
@@ -15,7 +19,7 @@
 
 ### 2026-10-30 — Install PIE in the target that builds the OrderedJSON php-ext, and fail when the build fails (C17.93)
 
-- `make ordered-json-ext` installs the PIE of http:pie first (`make install-pie`, `install-tools TOOLS=pie`), so no job that builds the package can forget it, and writes the output of pie-build to a file, so a failed build fails the target.
+- `make ordered-json-ext` installs the PIE of http:pie first (`make install-pie`, `install-tools TOOLS=pie`), so no job that builds the package can forget it, and it fails when the PIE build fails.
 ### 2026-10-30 — build-lint runs the Svelte lint, not kit's lint task that repeats the shared gates (C17.91-1)
 
 - ci.yml's build-lint job runs crudui-lint (the Svelte lint) instead of `lint`, whose recipe is kit's lint task and runs lint-<runtime> of every runtime, which repeats the gates of kit's pipeline; the K870 test asserts it.
@@ -28,7 +32,7 @@
 
 - The @polyspec/kit pin is 0.0.79. kit-sync brings ci-pipeline.yml and the 0.0.79 release.yml, and removes gates.yml. ci.yml calls the pipeline as its job `kit`, and the repository jobs follow it with `needs: kit`.
 - `make release-tag` creates the tags on the commit of a successful ci.yml run, and the dispatch names that run and the version. config/release.json no longer lists checks.
-- `make ordered-json-ext` builds the OrderedJSON php-ext with kit's pie-build (K915) and records its folder in var/ordered-json-package, which the local record servers read.
+- `make ordered-json-ext` builds the OrderedJSON php-ext with PIE directly (C17.96) and records the folder of its one installed.json entry in var/ordered-json-package, which the local record servers read.
 
 ### 2026-10-30 — Name the Python CI job validator · Python like the other validator jobs (C17.89)
 

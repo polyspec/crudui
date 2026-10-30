@@ -64,23 +64,28 @@ GO := $(KIT_TOOLS)/mise/shims/go
 COMPOSER_BIN := $(KIT_TOOLS)/mise/shims/composer
 ORDERED_JSON_VERSION := 0.0.14
 ORDERED_JSON_PACKAGES := https://github.com/polyspec/ordered-json/releases/download/v$(ORDERED_JSON_VERSION)/packages.json
-# The folder of the OrderedJSON php-ext package that pie-build builds, which the local record servers read
-# (examples/form-comparison/src/local-servers.mjs).
+# The folder that make ordered-json-ext records for the local record servers (examples/form-comparison/src/local-servers.mjs).
 ORDERED_JSON_PACKAGE_FILE := $(CURDIR)/var/ordered-json-package
+# PIE is the shim of the http:pie of mise.toml, which install-pie installs (C17.93). Each build starts in an empty working
+# directory of the package under var/pie (C17.96).
+PIE := $(KIT_TOOLS)/mise/shims/pie
+PIE_WORK := $(CURDIR)/var/pie/polyspec/ordered-json-php-ext
 
-# kit's pie-build builds polyspec/ordered-json-php-ext of the release packages.json with PIE (K915) and prints the line
-# `package <folder>`, which is recorded for the checks (C17.84, H27.45, C17.90). The PIE that pie-build runs is the shim of
-# http:pie, which install-tools TOOLS=pie installs, so the target installs it first (C17.93): a job that builds the package
-# cannot forget it. The build writes its output to a file first, so a failed build fails the target.
 .PHONY: install-pie
-install-pie: ## Install the PIE of mise.toml (http:pie) that pie-build runs; ONLINE
+install-pie: ## Install the PIE of mise.toml (http:pie) that the OrderedJSON build runs; ONLINE
 	$(MAKE) --no-print-directory install-tools TOOLS=pie
 
+# The OrderedJSON php-ext package of the release packages.json, built with PIE directly (C17.96): PIE adds the repository and
+# builds the package in an empty working directory, and the one installed.json entry of that build names the package folder,
+# which the record servers read from ORDERED_JSON_PACKAGE_FILE. kit's pie-build is not used, since kit 0.0.81 removes it (K931).
 .PHONY: ordered-json-ext
-ordered-json-ext: install-pie ## Build the OrderedJSON php-ext package of the release packages.json with PIE and record its folder (C17.84); ONLINE
+ordered-json-ext: install-pie ## Build the OrderedJSON php-ext package of the release packages.json with PIE and record its folder (C17.84, C17.96); ONLINE
 	@mkdir -p $(CURDIR)/var
-	$(MAKE) -s pie-build PACKAGES=$(ORDERED_JSON_PACKAGES) PACKAGE=polyspec/ordered-json-php-ext VERSION=$(ORDERED_JSON_VERSION) > $(CURDIR)/var/ordered-json-pie.log
-	sed -n 's/^package //p' $(CURDIR)/var/ordered-json-pie.log > $(ORDERED_JSON_PACKAGE_FILE)
+	rm -rf $(PIE_WORK)
+	mkdir -p $(PIE_WORK)
+	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) repository:add composer $(ORDERED_JSON_PACKAGES) --no-interaction
+	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) build polyspec/ordered-json-php-ext:$(ORDERED_JSON_VERSION) --no-interaction
+	@$(NODE) -e "const fs = require('node:fs'); const path = require('node:path'); const work = process.argv[1]; const builds = []; for (const target of fs.existsSync(work) ? fs.readdirSync(work) : []) { const composer = path.join(work, target, 'vendor', 'composer'); const file = path.join(composer, 'installed.json'); if (!fs.existsSync(file)) continue; for (const entry of JSON.parse(fs.readFileSync(file, 'utf8')).packages ?? []) { const binary = entry.extra?.['pie-built-binary']; if (entry.name === 'polyspec/ordered-json-php-ext' && typeof binary === 'string' && typeof entry['install-path'] === 'string') builds.push(path.resolve(composer, entry['install-path'])); } } if (builds.length !== 1) throw new Error('PIE recorded ' + builds.length + ' builds of polyspec/ordered-json-php-ext in ' + work + ', not one'); fs.writeFileSync(process.argv[2], builds[0] + '\n');" $(PIE_WORK) $(ORDERED_JSON_PACKAGE_FILE)
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"

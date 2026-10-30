@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 887a3deb80954a158aba4a7dfcf5fef2326a696dd82eae2b7d5b73535c768575 -->
+<!-- source-sha256: f15132e05d72dd06dcfa4989da137c0cb3adfad24027c0295a4a1b9268144b88 -->
 
 ## Unreleased
 
 ### 2026-10-31 — 0.0.9 게시를 기록한다 (C17.97)
 
 - release run 41090852507이 db740a10의 CI run 41086677097을 사용했다. tag v0.0.9는 db740a10에 annotated(bb3dbf85)로 달렸고, GitHub Release는 draft가 아닌 공개 상태이며 asset은 12개다.
+
+### 2026-10-31 — kit의 pie-build 대신 PIE를 직접 실행해 OrderedJSON php-ext를 빌드한다 (C17.96)
+
+- `make ordered-json-ext`는 var/pie/polyspec/ordered-json-php-ext를 비운 뒤 그 안에서 `pie repository:add`와 `pie build`를 실행하고, installed.json의 한 항목 install-path를 var/ordered-json-package에 기록한다. kit 0.0.81이 pie-build를 제거하므로(K931) 레시피는 더 이상 pie-build를 부르지 않는다.
 
 ## 0.0.9
 
@@ -16,7 +20,7 @@
 
 ### 2026-10-30 — OrderedJSON php-ext를 빌드하는 target이 PIE를 설치하고, 빌드가 실패하면 target도 실패한다 (C17.93)
 
-- `make ordered-json-ext`는 먼저 http:pie의 PIE를 설치하고(`make install-pie`, `install-tools TOOLS=pie`), 그 패키지를 빌드하는 job이 설치를 잊을 수 없게 한다. pie-build의 출력은 파일에 쓰여서 빌드가 실패하면 target도 실패한다.
+- `make ordered-json-ext`는 먼저 http:pie의 PIE를 설치하고(`make install-pie`, `install-tools TOOLS=pie`), 그 패키지를 빌드하는 job이 설치를 잊을 수 없게 한다. PIE 빌드가 실패하면 target도 실패한다.
 ### 2026-10-30 — build-lint는 kit의 lint task가 아니라 Svelte lint만 실행한다 (C17.91-1)
 
 - ci.yml의 build-lint job은 `lint` 대신 crudui-lint(Svelte lint)를 실행한다. `lint`의 recipe는 kit의 lint task라서 모든 runtime의 lint-<runtime>을 실행하며, kit pipeline의 gate를 중복한다. K870 test가 이를 단언한다.
@@ -29,7 +33,7 @@
 
 - @polyspec/kit 핀은 0.0.79다. kit-sync가 ci-pipeline.yml과 0.0.79의 release.yml을 가져오고 gates.yml을 지운다. ci.yml은 pipeline을 `kit` job으로 호출하고 저장소 job은 `needs: kit`로 그 뒤를 따른다.
 - `make release-tag`는 성공한 ci.yml run의 commit에 tag를 만들고, dispatch는 그 run과 version을 받는다. config/release.json은 더 이상 checks를 적지 않는다.
-- `make ordered-json-ext`는 kit의 pie-build(K915)로 OrderedJSON php-ext를 빌드하고 그 폴더를 var/ordered-json-package에 기록하며, 로컬 record server가 그것을 읽는다.
+- `make ordered-json-ext`는 PIE를 직접 실행해 OrderedJSON php-ext를 빌드하고(C17.96), installed.json의 한 항목 폴더를 var/ordered-json-package에 기록하며, 로컬 record server가 그것을 읽는다.
 
 ### 2026-10-30 — Python CI job를 다른 validator job과 같은 validator · Python 이름으로 바꾼다 (C17.89)
 

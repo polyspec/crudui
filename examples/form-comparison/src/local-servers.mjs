@@ -17,8 +17,8 @@ const execFileAsync = promisify(execFile);
 export const exampleDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const repositoryRoot = path.resolve(exampleDirectory, '../..');
 /**
- * The file that make ordered-json-ext writes with the folder of the OrderedJSON php-ext package that kit's pie-build
- * built with PIE from the packages.json repository of the release (K915, C17.84, C17.90).
+ * The file that make ordered-json-ext writes with the folder of the OrderedJSON php-ext package that PIE built from the
+ * packages.json repository of the release (C17.84, C17.90, C17.96).
  */
 const orderedJsonPackageFile = 'var/ordered-json-package';
 
