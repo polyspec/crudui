@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3b5649046d084494a809061a7c68770645939275b80ae129ae2f3e60a0f45f4c -->
+<!-- source-sha256: 033e6db3927b0fcab76120ea317bf183ef941e370e15184577e0168ff20511fc -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -425,3 +425,4 @@
 | C17.79 | form-comparison 브라우저 검사는 각 서버마다 자기 job에서 돌고, 나머지 검사는 그 뒤에 한 번 돈다(form-comparison-ci.test.mts:131 이하 단언) | tests/build/form-comparison-ci.test.mts | `node scripts/run-tests.mts node -- tests/build/form-comparison-ci.test.mts` | [-] 원인: C17.74에 합친다: 빨간 원인은 kit K864가 지운 crudui-test-form-comparison-browser의 cargo-downloads-check 선행이며, C17.74가 그 선행을 제거하므로 form-comparison-ci.test.mts의 browser jobs 단언이 함께 통과한다 |
 | C17.80 | CI provider 레시피(Makefile:136)가 packages.json URL에서 OrderedJSON 버전을 맞는 정규식으로 읽게 한다 | Makefile | `node --test --test-name-pattern "CI provider step reads the OrderedJSON version" tests/build/ci-local.test.mts` | [o] |
 | C17.81 | crudui가 쓰는 OrderedJSON 릴리스를 0.0.14로 통일한다: composer.json의 packages.json 저장소, Rust form 서버의 tag와 lock, 릴리스 문서와 composer lock(0.0.9 릴리스 전) | composer.json; composer.lock; examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; docs/operations/ordered-json.md; docs/operations/ordered-json.ko.md; docs/operations/package-build.md; docs/operations/package-build.ko.md | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [o] |
+| C17.82 | dependency-health의 CI 설치 분기를 읽기 전에 정의되었음을 단언해, make typecheck가 통과하게 한다(dependency-health.test.mts:572-573) | tests/build/dependency-health.test.mts | `make typecheck` | [ ] |
