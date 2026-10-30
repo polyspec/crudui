@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3fc265de4075bbf6c2aad36dfb6a48b13c79f60c4e2c5cfca9ad6a7ad5e7f733 -->
+<!-- source-sha256: 2a15c6b6f501e569394228dff739bc9539de37ca4f32abbd854a71e03ab82ee1 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -421,3 +421,4 @@
 | C17.75 | dependency-health의 canonical Composer 테스트를 C17.57의 packages.json 저장소 설계로 옮긴다 | tests/build/dependency-health.test.mts | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [o] |
 | C17.76 | Rust form 서버의 ordered-json git 의존을 잠긴 커밋으로 고정해, 오프라인 cargo 단계가 태그 참조 없이 해석하게 한다(CI runtime rust) | examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock | `sh -c 'cd examples/form-comparison/servers/rust && CARGO_HOME=../../../../var/c1776-cargo-home cargo fetch --locked && CARGO_HOME=../../../../var/c1776-cargo-home cargo update --offline -p polyspec-ordered-json'` | [-] 원인: kit K856(8d1eea1d, kit main에 있음)이 원인이다. kit v0.0.76 link.mts:731의 cargo update --offline이 sibling patch로 cargo update --offline -p polyspec-ordered-json을 실행해 failed to find tag v0.0.13(exit 101)으로 실패했다. git db에 tag 참조가 없었기 때문이다. K856이 그 줄을 지웠고, 0.0.77은 cargo metadata에 --config patch를 붙여 tag를 다시 풀지 않는다. crudui 선언은 릴리스 상태에서 통과한다(clippy --offline --locked exit 0) |
 | C17.78 | kit K892가 타깃을 지워 고아가 된 prepare-commit-msg 훅을 제거해 crudui main의 모든 커밋이 다시 돌게 한다 | .githooks/prepare-commit-msg (removed in 29ca676f) | `sh -c '! test -e .githooks/prepare-commit-msg'` | [o] |
+| C17.77 | main에서 이미 실패하는 ci-local의 낡은 단언을 정리한다: kit 내부 단언은 삭제하고, crudui 동작 단언은 현재 workflow에 맞춘다(push-gate.yml, Kit CI 계획 스키마, TypeScript link 형태, native unit 묶음, generator 동등성, tag push, workflow trigger) | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
