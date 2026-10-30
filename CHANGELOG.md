@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Remove the prepare-commit-msg hook that kit K892 orphans (C17.78)
+
+- The commit hook of prepare-commit-msg is removed; kit no longer has its target, and every commit of the repository runs again.
+
 ### 2026-10-30 — Check the canonical Composer project through its release packages.json (C17.75)
 
 - The dependency-health test checks that the canonical Composer project resolves polyspec/ordered-json from its release packages.json and declares no path repository outside the checkout.

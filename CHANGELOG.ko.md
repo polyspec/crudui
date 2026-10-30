@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — kit K892가 고아로 만든 prepare-commit-msg 훅을 제거한다 (C17.78)
+
+- prepare-commit-msg 커밋 훅을 제거한다. kit에는 그 타깃이 없고, 저장소의 모든 커밋이 다시 돌아간다.
+
 ### 2026-10-30 — canonical Composer 프로젝트를 릴리즈 packages.json으로 검사한다 (C17.75)
 
 - dependency-health 테스트는 canonical Composer 프로젝트가 polyspec/ordered-json을 릴리즈 packages.json에서 해결하고, 저장소 밖을 가리키는 path 저장소를 선언하지 않음을 검사한다.
