@@ -1,7 +1,8 @@
 // `make lint` lints the Svelte components of packages/svelte with the ESLint of their tools project, which runs the TypeScript 6
 // of that project (C14.4), and the TypeScript lint of kit (`make lint-ts`: oxlint with the copied .oxlintrc.json over every file
 // that Git does not ignore, knip and API Extractor) is the gate of kit's CI pipeline for the ts runtime, which runs it once, so
-// the CI build-lint job runs crudui-lint (ci-local asserts it, C17.91-1). Each lint fails on a planted violation.
+// local make lint is kit's lint task (every runtime's lint) plus crudui-lint; CI runs crudui-lint once in build-lint (ci-local, C17.91-1).
+// Each lint fails on a planted violation.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -15,9 +16,10 @@ const root = path.resolve(import.meta.dirname, '../..');
 const svelteWorkspace = path.join(root, 'packages/svelte');
 const svelteTools = path.join(svelteWorkspace, 'tools');
 
-test('make lint runs the Svelte lint of packages/svelte, and the CI build-lint job runs only that lint (C17.91)', () => {
+test('make lint runs kit\'s lint task of every runtime and the Svelte lint of packages/svelte (C17.91-2)', () => {
   const run = makeDryRun(root, 'lint');
   assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /runtime-targets\.(?:mts|mjs)\s+task lint\b/, run.stdout);
   assert.match(run.stdout, /\bnpm\b.* run lint -w @polyspec\/crudui-generator-svelte\b/);
 });
 
