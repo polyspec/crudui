@@ -412,7 +412,7 @@ crudui-test-php-api: require-build build-php-ext
 	@status=0; \
 	PHP_EXTENSION="$(PHP_EXTENSION)" $(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
 	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- --testsuite public,php-source-internal || status=1; \
-	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php --php-extension "$(PHP_EXTENSION)" --without-library packages/generator/php -- tests/FormStateTest.php tests/ButtonsConformanceTest.php tests/TemplateShapeTest.php tests/HistoryFunctionsTest.php || status=1; \
+	$(NODE) tests/conformance/run-suite.mts phpunit --cwd packages/generator/php --php-extension "$(PHP_EXTENSION)" -- tests/FormStateTest.php tests/ButtonsConformanceTest.php tests/TemplateShapeTest.php tests/HistoryFunctionsTest.php || status=1; \
 	exit $$status
 
 # Compare every declared generator runtime independently of the language unit suites.

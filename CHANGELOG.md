@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Drop the phpunit option that kit no longer has from the generator suite (C17.83)
+
+- The php-api suite of the generator no longer passes --without-library to PHPUnit, which rejects it, so the conformance evidence of the generator PHP extension suite is recorded.
+
 ### 2026-10-30 — Assert the CI install branch before reading it, so typecheck passes (C17.82)
 
 - dependency-health asserts the CI branch match is defined before reading its group, which makes make typecheck pass in CI.

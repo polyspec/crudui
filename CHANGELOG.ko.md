@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — kit이 더 이상 없는 phpunit 옵션을 generator 검사에서 뺀다 (C17.83)
+
+- php-api generator 검사는 PHPUnit이 거부하는 --without-library를 넘기지 않으므로 generator PHP 확장 검사의 적합성 증거가 기록된다.
+
 ### 2026-10-30 — CI 설치 분기 매치를 읽기 전에 정의되었다고 단언한다 (C17.82)
 
 - dependency-health는 CI 분기 매치를 읽기 전에 정의되었음을 단언해, CI의 make typecheck가 통과한다.
