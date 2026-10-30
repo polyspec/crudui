@@ -414,3 +414,4 @@
 | C17.69 | Make FormTest pass the generation error for a repeated literal choice | packages/generator/php/tests/FormTest.php | `make test-php-ext` | [ ] |
 | C17.70 | Make RuleParametersTest keep the complete previous cause chain of an invalid pattern | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext` | [ ] |
 | C17.71 | Make the form-comparison Rust server resolve the ordered-json tag offline in CI | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
+| C17.72 | Adopt kit 0.0.75: pin the release asset, refresh the lock, and sync kit | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [ ] |

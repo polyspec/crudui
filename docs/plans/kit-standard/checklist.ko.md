@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: c8ab3cc5d8e4f499b65d3a7cd6dfda33345cb87480e031438d8f4b6f25d721de -->
+<!-- source-sha256: 83cc34636a06f95ed91aaf8284b3857ec9fc99ba06da035a509b3d037e8fb436 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -415,3 +415,4 @@
 | C17.69 | FormTest가 반복된 literal choice의 generation error를 전달하도록 맞춘다 | packages/generator/php/tests/FormTest.php | `make test-php-ext` | [ ] |
 | C17.70 | RuleParametersTest가 잘못된 pattern의 이전 원인 사슬 전체를 보존하도록 맞춘다 | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext` | [ ] |
 | C17.71 | form-comparison Rust 서버가 CI에서 ordered-json 태그를 오프라인으로 해석하게 한다 | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
+| C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [ ] |
