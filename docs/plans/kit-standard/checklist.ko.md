@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 0fe1c0851e65697394de4ca0bc4e5bab604022b10076b3ac31719777fd578486 -->
+<!-- source-sha256: ecc27c019374701e8426c8da257aa6e0f4c5016a3a90b2ce097159e1b37ccad2 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -417,5 +417,5 @@
 | C17.71 | form-comparison Rust 서버가 CI에서 ordered-json 태그를 오프라인으로 해석하게 한다 | examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; config/release-assets.json (ordered-json 0.0.13 declared) | `make lint-rust` | [o] |
 | C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.73 | kit 0.0.77의 문서 검사(K895)에 맞춰 실행 체크리스트 문서의 날것 <단어> 자리표시자를 코드 표기로 고친다 | docs/plans/execution-checklist/checklist.md; docs/plans/execution-checklist/checklist.ko.md | `sh -c 'make docs-web >/dev/null 2>&1 && ! grep -q "<command>" docs/.web/dist/plans/execution-checklist/checklist.html'` | [o] |
-| C17.74 | kit 0.0.77의 링크 선언 파일(K869)에 맞춰 ci-local의 --siblings 단언을 고친다 | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
+| C17.74 | kit 0.0.77 2차 묶음을 채택한다: 링크 선언 파일(K869)과 ci-local의 --siblings 단언, Makefile:173의 raw uv sync를 make uv-install로 옮기기(K850), toolchain-check 제거(K854), 런타임이 필요로 하면 deps-node(K859), link-state-check를 link-check로 바꾸고 .links 파일과 .gitignore 항목, prepare-commit-msg 훅 삭제 | tests/build/ci-local.test.mts; Makefile; .github/workflows/ci.yml; .github/workflows/pages.yml; config/owner-checks.json; AGENTS.md; AGENTS.ko.md; tests/build/runtime-version-policy.test.mts; tests/build/dependency-health.test.mts; .gitignore; .githooks/prepare-commit-msg; docs/operations (package-build, testing, tests-build README) | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts`; `sh -c '! git grep -q toolchain-check'` | [ ] |
 | C17.75 | dependency-health의 canonical Composer 테스트를 C17.57의 packages.json 저장소 설계로 옮긴다 | tests/build/dependency-health.test.mts | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [o] |
