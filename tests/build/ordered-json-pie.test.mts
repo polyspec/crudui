@@ -1,6 +1,6 @@
 // `make ordered-json-ext` builds the OrderedJSON php-ext of the release packages.json with PIE directly: PIE is the shim that
 // install-pie installs, the repository and the build run in an empty PIE_WORK, and the one installed.json entry names the
-// package folder that the local record servers read (C17.96). kit's pie-build is not used: kit 0.0.81 removes it (K931).
+// package folder that the local record servers read (C17.96). kit's pie-build is not used: kit main removes it (K931), to be released in 0.0.81.
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';

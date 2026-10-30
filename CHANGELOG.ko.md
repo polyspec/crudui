@@ -22,7 +22,7 @@
 
 ### 2026-10-31 — kit의 pie-build 대신 PIE를 직접 실행해 OrderedJSON php-ext를 빌드한다 (C17.96)
 
-- `make ordered-json-ext`는 var/pie/polyspec/ordered-json-php-ext를 비운 뒤 그 안에서 `pie repository:add`와 `pie build`를 실행하고, installed.json의 한 항목 install-path를 var/ordered-json-package에 기록한다. kit main이 pie-build를 제거하므로(K931), 0.0.81에 포함될 예정이다 레시피는 더 이상 pie-build를 부르지 않는다.
+- `make ordered-json-ext`는 var/pie/polyspec/ordered-json-php-ext를 비운 뒤 그 안에서 `pie repository:add`와 `pie build`를 실행하고, installed.json의 한 항목 install-path를 var/ordered-json-package에 기록한다. kit main이 pie-build를 제거하므로(K931) 0.0.81에 포함될 예정이고, 레시피는 더 이상 pie-build를 부르지 않는다.
 
 ## 0.0.9
 
