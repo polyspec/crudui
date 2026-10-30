@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — main에서 이미 실패하던 ci-local 단언을 맞춘다 (C17.77)
+
+- main에서 이미 실패하던 ci-local 단언을 kit 내부면 삭제하고, crudui 동작이면 현재 workflow에 맞춘다(push-gate.yml은 없어졌고 release 검사는 ci-passed다).
+
 ### 2026-10-30 — OrderedJSON 릴리스를 0.0.14로 통일한다 (C17.81)
 
 - crudui는 composer.json의 packages.json 릴리스에서 OrderedJSON 0.0.14를 고정하고, composer.lock과 Rust form 서버 Cargo.lock에 잠그며, 릴리스 문서에 0.0.14를 적는다.

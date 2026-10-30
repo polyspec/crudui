@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Align the stale ci-local assertions with main (C17.77)
+
+- The ci-local assertions that main already failed are removed (kit internals) or aligned to the current workflows (push-gate.yml is gone; the release checks are ci-passed).
+
 ### 2026-10-30 — Unify the OrderedJSON release to 0.0.14 (C17.81)
 
 - crudui pins OrderedJSON 0.0.14 from its packages.json release in composer.json, locks it in composer.lock and the Rust form server, and names 0.0.14 in the release docs.
