@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Remove the unlink target from the offline downloads list (C17.62)
+
+- The offline-checks test no longer counts unlink as a download target: the kit runs it offline, so it lifts nothing.
+
 ### 2026-10-30 — Resolve the ordered-json tag of the form-comparison Rust server offline (C17.71)
 
 - The Rust form-comparison server pins ordered-json by tag v0.0.13 and the lock by its commit, and config/release-assets.json declares ordered-json 0.0.13, so cargo resolves the same source as the sibling checkout.

@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — 오프라인 다운로드 목록에서 unlink 대상을 뺀다 (C17.62)
+
+- offline-checks 테스트는 unlink를 다운로드 대상으로 세지 않는다. kit은 unlink를 오프라인으로 실행하므로 오프라인 설정을 풀지 않는다.
+
 ### 2026-10-30 — form-comparison Rust 서버가 ordered-json 태그를 오프라인으로 해석한다 (C17.71)
 
 - form-comparison Rust 서버는 ordered-json을 태그 v0.0.13으로, lock은 그 커밋으로 고정하고, config/release-assets.json은 ordered-json 0.0.13을 선언하므로 cargo는 sibling checkout과 같은 소스를 해석한다.

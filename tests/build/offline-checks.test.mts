@@ -36,7 +36,7 @@ const CHECK = 'cargo-downloads-check';
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
 // the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). The tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'release-assets-fetch', 'toolchain-lock', 'unlink'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'release-assets-fetch', 'toolchain-lock'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 // The evaluated database contains the commands and prerequisites of the checkout and its installed kit. KIT_WORKTREE is empty,
