@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Record the publication of 0.0.9 (C17.97)
+
+- Release run 41090852507 took CI run 41086677097 of db740a10. The tag v0.0.9 is annotated (bb3dbf85) on db740a10, and the GitHub Release is public, not a draft, with 12 assets.
+
 ## 0.0.9
 
 ### 2026-10-31 — The lint-coverage test asserts the Svelte lint of make lint, not kit's lint-ts (C17.91-2)

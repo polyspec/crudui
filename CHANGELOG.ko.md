@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — 0.0.9 게시를 기록한다 (C17.97)
+
+- release run 41090852507이 db740a10의 CI run 41086677097을 사용했다. tag v0.0.9는 db740a10에 annotated(bb3dbf85)로 달렸고, GitHub Release는 draft가 아닌 공개 상태이며 asset은 12개다.
+
 ## 0.0.9
 
 ### 2026-10-31 — lint-coverage test는 kit의 lint-ts가 아니라 make lint의 Svelte lint를 단언한다 (C17.91-2)
