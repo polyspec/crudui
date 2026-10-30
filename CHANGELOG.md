@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Adopt @polyspec/kit 0.0.78 (C17.88)
+
+- The @polyspec/kit pin of package.json and package-lock.json is the 0.0.78 release tgz, which carries K909, K916 and K918. make kit-sync writes the vendored PRINCIPLES copies as 0.0.78 writes them, and kit-inject-check passes against the installed 0.0.78.
+
 ### 2026-10-30 — Restore the vendored PRINCIPLES copies to kit's text (C17.87)
 
 - PRINCIPLES.md and PRINCIPLES.ko.md are kit's copies again (make kit-sync), so kit-inject-check passes; the S10 line names kit's `make test-php`.

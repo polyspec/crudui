@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — @polyspec/kit 0.0.78을 채택한다 (C17.88)
+
+- package.json과 package-lock.json의 @polyspec/kit 핀은 K909, K916, K918을 담은 0.0.78 release tgz다. make kit-sync는 vendored PRINCIPLES 사본을 0.0.78이 쓰는 대로 쓰며, kit-inject-check는 설치된 0.0.78에 대해 통과한다.
+
 ### 2026-10-30 — vendored PRINCIPLES 사본을 kit 문구로 되돌린다 (C17.87)
 
 - PRINCIPLES.md와 PRINCIPLES.ko.md는 다시 kit의 사본이다(make kit-sync). kit-inject-check가 통과하며, S10 줄은 kit의 `make test-php`를 가리킨다.
