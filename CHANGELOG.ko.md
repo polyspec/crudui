@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.0.9
+
 ### 2026-10-30 — @polyspec/kit 0.0.78을 채택한다 (C17.88)
 
 - package.json과 package-lock.json의 @polyspec/kit 핀은 K909, K916, K918을 담은 0.0.78 release tgz다. make kit-sync는 vendored PRINCIPLES 사본을 0.0.78이 쓰는 대로 쓰며, kit-inject-check는 설치된 0.0.78에 대해 통과한다.
@@ -127,8 +129,6 @@
 ### 2026-10-30 — 삭제된 파일의 owner-check glob을 제거한다 (C17.65)
 
 - config/owner-checks.json은 C17.63과 C17.61이 삭제한 config/commit-identity.json과 tests/release-install/**를 더 이상 가리키지 않는다. owner-validate는 추적되는 모든 경로를 소유한다.
-
-## 0.0.9
 
 ### 2026-10-29 — 범위가 지정된 Kit gate로 0.0.9 후보를 확정한다 (C18.13-6)
 

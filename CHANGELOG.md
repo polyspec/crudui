@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 0.0.9
+
 ### 2026-10-30 — Adopt @polyspec/kit 0.0.78 (C17.88)
 
 - The @polyspec/kit pin of package.json and package-lock.json is the 0.0.78 release tgz, which carries K909, K916 and K918. make kit-sync writes the vendored PRINCIPLES copies as 0.0.78 writes them, and kit-inject-check passes against the installed 0.0.78.
@@ -126,8 +128,6 @@
 ### 2026-10-30 — Remove the owner-check globs of deleted files (C17.65)
 
 - config/owner-checks.json no longer names config/commit-identity.json or tests/release-install/**, which C17.63 and C17.61 deleted; owner-validate owns every tracked path.
-
-## 0.0.9
 
 ### 2026-10-29 — Finalize the 0.0.9 candidate with scoped Kit gates (C18.13-6)
 
