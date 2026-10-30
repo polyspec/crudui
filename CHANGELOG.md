@@ -5,6 +5,10 @@
 
 ## 0.0.9
 
+### 2026-10-30 — Lint the Svelte components only; kit's lint-ts gate runs the TypeScript (C17.91)
+
+- `make lint` runs the ESLint of the Svelte workspace only; the CI pipeline of kit runs lint-ts once, as its ts runtime gate, so the build-lint job no longer repeats it.
+
 ### 2026-10-30 — Adopt @polyspec/kit 0.0.79: one CI pipeline, release by run id, PIE through kit (C17.90)
 
 - The @polyspec/kit pin is 0.0.79. kit-sync brings ci-pipeline.yml and the 0.0.79 release.yml, and removes gates.yml. ci.yml calls the pipeline as its job `kit`, and the repository jobs follow it with `needs: kit`.

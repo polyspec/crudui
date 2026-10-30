@@ -225,14 +225,12 @@ form-template-validator: ## Generate the form template validator of packages/gen
 	$(NODE) scripts/generate-form-template-validator.mts
 form-template-validator-check: ## Check that the form template validator of packages/generator/ts is current
 	$(NODE) scripts/generate-form-template-validator.mts --check
-# make lint-ts of kit lints every TypeScript and JavaScript source with oxlint, knip and API Extractor; oxlint has no Svelte
-# rules, so the components of packages/svelte are linted by the ESLint of that workspace. Both run after a failure.
-lint: crudui-lint ## Lint the repository: make lint-ts of kit and the Svelte components
+# The TypeScript and JavaScript sources are linted by kit's gate lint-ts, which the CI pipeline runs once for the ts runtime
+# (kit-gates-runtime-ts, C17.91). oxlint has no Svelte rules, so the components of packages/svelte are linted here by the
+# ESLint of that workspace.
+lint: crudui-lint ## Lint the Svelte components with the ESLint of their workspace; the TypeScript gate is lint-ts of kit
 crudui-lint:
-	@status=0; \
-	$(NODE) $(KIT)/lint-ts.$(KIT_EXT) || status=1; \
-	$(NPM) run lint -w @polyspec/crudui-generator-svelte || status=1; \
-	exit $$status
+	$(NPM) run lint -w @polyspec/crudui-generator-svelte
 # The root tsconfig.json checks the TypeScript of scripts/ and tests/ (S9 of kit) strictly. It sets skipLibCheck: the
 # declarations that @tailwindcss/node 4.3.3 publishes import seven modules (./ast, ./candidate, ...) that the package does
 # not ship, so a check of the declaration files of node_modules fails on that package and not on this code.

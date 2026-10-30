@@ -6,6 +6,10 @@
 
 ## 0.0.9
 
+### 2026-10-30 — Svelte 컴포넌트만 lint하고 TypeScript는 kit의 lint-ts gate가 실행한다 (C17.91)
+
+- `make lint`는 Svelte workspace의 ESLint만 실행한다. kit의 CI pipeline이 ts runtime gate로 lint-ts를 한 번 실행하므로 build-lint job은 그것을 다시 실행하지 않는다.
+
 ### 2026-10-30 — @polyspec/kit 0.0.79를 채택한다: 하나의 CI pipeline, run id 기반 release, kit의 PIE 경로 (C17.90)
 
 - @polyspec/kit 핀은 0.0.79다. kit-sync가 ci-pipeline.yml과 0.0.79의 release.yml을 가져오고 gates.yml을 지운다. ci.yml은 pipeline을 `kit` job으로 호출하고 저장소 job은 `needs: kit`로 그 뒤를 따른다.
