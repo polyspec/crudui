@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9a538dd086624e6e47f0a8cc949654f72ebee2848aa43b33373964fbef67b398 -->
+<!-- source-sha256: 0086c17ae066500c3b4fb58c7ca98d2f1688ae6b1549c9297d168b12554a50c4 -->
 
 ## Unreleased
+
+### 2026-10-31 — 읽히지 않는 npm 필드를 지우고 KO 변경 기록을 다시 찍는다 (C17.98-1)
+
+- tests/build/runtime-version-policy.test.mts의 RecordedToolchain은 더 이상 npm 필드를 읽지 않는다. 감사가 찾은 두 번째 packageManager 파서다. CHANGELOG.md의 KO 쌍은 make documents-stamp로 다시 찍었다.
 
 ### 2026-10-31 — packageManager에 npm@12.2.0의 sha512 다이제스트를 적는다 (C17.98)
 

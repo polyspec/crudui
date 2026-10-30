@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Remove the unread npm field and restamp the KO changelog (C17.98-1)
+
+- RecordedToolchain of tests/build/runtime-version-policy.test.mts no longer reads an npm field, the second packageManager parser of the audit; the KO twin of CHANGELOG.md is restamped with make documents-stamp.
+
 ### 2026-10-31 — Declare the sha512 digest of npm 12.2.0 in packageManager (C17.98)
 
 - package.json's packageManager is npm@12.2.0+sha512.<hex>, the digest of the registry's dist.integrity, which the bootstrap of kit main requires (K933). It needs no kit pin change.
