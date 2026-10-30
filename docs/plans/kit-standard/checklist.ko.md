@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 442fcceaa0ade129027f6a6dfcb917595bcd7bb23aa6da84bcb1bff35b34bdcc -->
+<!-- source-sha256: d6eb656c9df7e8fc46401e50f711a69651c5aef94439cb3b23b2937cd44f581f -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -416,3 +416,4 @@
 | C17.70 | RuleParametersTest가 잘못된 pattern의 이전 원인 사슬 전체를 보존하도록 맞춘다 | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext CASES=testInvalidPatternPreservesCompletePreviousCauseChain` | [o] |
 | C17.71 | form-comparison Rust 서버가 CI에서 ordered-json 태그를 오프라인으로 해석하게 한다 | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
 | C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
+| C17.73 | kit 0.0.77의 문서 검사(K895)에 맞춰 실행 체크리스트 문서의 날것 <단어> 자리표시자를 코드 표기로 고친다 | docs/plans/execution-checklist/checklist.md; docs/plans/execution-checklist/checklist.ko.md | `make docs-check` | [ ] |
