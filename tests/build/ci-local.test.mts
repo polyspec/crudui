@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -368,6 +368,17 @@ test('every tool of kit that the Makefile starts is in the installed @polyspec/k
 
 // CI runs every lint target of kit, so a finding fails CI. make lint runs crudui-lint: lint-ts, the lint-ts.mjs of kit, with
 // the ESLint of the Svelte components.
+
+test('the CI provider step reads the OrderedJSON version of the packages.json URL (C17.80)', () => {
+  const makefile = readFileSync(path.join(ROOT, 'Makefile'), 'utf8');
+  const line = /^\t\tversion="\$\$\(\$\(NODE\) -p '(.*)'\)"; \\$/m.exec(makefile);
+  assert.ok(line, 'the CI provider step reads the version with node');
+  // Make expands $$ to $ and the recipe runs in sh; the expression is the same one that the recipe runs.
+  const expression = line[1]!.replace(/\$\$/g, '$');
+  const version = spawnSync('node', ['-p', expression], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(version.status, 0, version.stderr);
+  assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+$/);
+});
 
 test('a CI job runs the lint of kit once and repeats none of the shared gates (K870)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
