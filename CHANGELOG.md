@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Read the CI install branch of Composer from the Makefile text (C17.68)
+
+- The dependency-health test reads the CI branch of crudui-install-composer from the Makefile instead of running it with the CI identity, so no test impersonates CI.
+
 ### 2026-10-30 — Remove the leftover reference-transaction references (C17.59)
 
 - No file or reference of the reference-transaction hook (K801) remains in the checkout; the hooks that make hooks writes are pre-commit, commit-msg and prepare-commit-msg.

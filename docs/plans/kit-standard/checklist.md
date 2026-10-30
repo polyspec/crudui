@@ -410,7 +410,7 @@
 | C17.65 | Remove the owner-check globs of files deleted by C17.61 and C17.63 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | Remove enforcement references to the targets and hooks that kit deleted from the principles and agents documents | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | Adopt kit 0.0.72: pin the release asset, refresh the lock, sync kit, and remove link and link-state-check from the CI | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
-| C17.68 | Remove the CI identity that dependency-health sets outside a workflow | tests/build/dependency-health.test.mts | `make bypass-check` | [ ] |
+| C17.68 | Remove the CI identity that dependency-health sets outside a workflow | tests/build/dependency-health.test.mts | `make bypass-check` | [~] |
 | C17.69 | Make FormTest pass the generation error for a repeated literal choice | packages/generator/php/tests/FormTest.php | `make test-php-ext CASES=testRepeatedLiteralChoiceUsesGenerationError` | [o] |
 | C17.70 | Make RuleParametersTest keep the complete previous cause chain of an invalid pattern | packages/validator/php/tests/Validate/RuleParametersTest.php | `make test-php-ext CASES=testInvalidPatternPreservesCompletePreviousCauseChain` | [o] |
 | C17.71 | Make the form-comparison Rust server resolve the ordered-json tag offline in CI | examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; config/release-assets.json (ordered-json 0.0.13 declared) | `make lint-rust` | [o] |

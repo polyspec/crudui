@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — CI 설치 분기를 Makefile 본문에서 읽는다 (C17.68)
+
+- dependency-health 테스트는 crudui-install-composer의 CI 분기를 CI 신원으로 실행하지 않고 Makefile 본문에서 읽는다. 어떤 테스트도 CI를 가장하지 않는다.
+
 ### 2026-10-30 — reference-transaction 잔여 참조를 제거한다 (C17.59)
 
 - reference-transaction 훅(K801)의 파일과 참조가 저장소에 남아 있지 않다. make hooks가 쓰는 훅은 pre-commit, commit-msg, prepare-commit-msg다.
