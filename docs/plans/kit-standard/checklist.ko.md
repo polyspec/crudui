@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 3711b03f49afe73a9f64ef70afba868c4e7d4c01dbd7a688bfaa0e5ff55584fa -->
+<!-- source-sha256: ad9092defc870ea88543c571bb9b5ee83af8ab1d843801498bac94e13b47eb07 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -430,3 +430,4 @@
 | C17.84 | 릴리스 OrderedJSON php-ext를 var/ordered-json-php-ext 대신 packages.json 저장소에서 Composer가 설치한 vendor/polyspec/ordered-json-php-ext에서 읽는다(local-servers.mjs:23, CI record stores와 browser 검사) | examples/form-comparison/src/local-servers.mjs; examples/form-comparison/src/local-servers.test.mjs; composer.json; composer.lock | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C17.85 | crudui는 var/pie를 읽는 form-comparison 대상 전에 OrderedJSON php-ext를 빌드(make ordered-json-ext)하여 새 CI 체크아웃이 실패하지 않게 한다 (실행 41032798468) | Makefile | `make -n crudui-test-form-comparison-browser` plans ordered-json-ext before the check; `make ordered-json-ext` exit 0 from a checkout without var/pie | [o] |
 | C17.86 | crudui는 test-php 레시피(Makefile:574)를 crudui-test-php-source로 바꿔 kit의 test-php가 그대로 실행되게 하고, CI가 그 대상으로 source-internal PHP suite에 도달하게 한다 (PRINCIPLES.md:244, docs/operations/testing.md, tests/build/php-test-scope.test.mts) | Makefile, CI_TARGETS of Makefile, .github/workflows/ci.yml, PRINCIPLES.md, PRINCIPLES.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md, tests/build/php-test-scope.test.mts, CHANGELOG.md, CHANGELOG.ko.md | `make -n test-php CASES=UniqueValuesTest` prints no overriding-commands warning; `make test-php CASES='UniqueValuesTest\|OutlineTest'` exit 0 (kit test-php runs both PHP packages); `node scripts/run-tests.mts node -- tests/build/php-test-scope.test.mts` exit 0; `make rules-check` exit 0 | [o] |
+| C17.87 | crudui는 C17.86이 손으로 바꾼 vendored PRINCIPLES.md와 PRINCIPLES.ko.md를 make kit-sync로 kit 0.0.77 문구로 되돌려 kit-inject-check가 통과하게 한다 (실행 41044985845) | PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-inject-check` exit 0; `make rules-check` exit 0 | [ ] |
