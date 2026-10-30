@@ -320,7 +320,7 @@ jobs:
           if-no-files-found: error
 
   python:
-    name: python
+    name: validator · Python
     runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence

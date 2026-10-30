@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Python CI job를 다른 validator job과 같은 validator · Python 이름으로 바꾼다 (C17.89)
+
+- ci.yml에서 Python validator와 generator suite를 실행하는 job을 JavaScript, PHP, Go, Rust validator job과 같은 validator · Python으로 이름 짓는다.
+
 ## 0.0.9
 
 ### 2026-10-30 — @polyspec/kit 0.0.78을 채택한다 (C17.88)

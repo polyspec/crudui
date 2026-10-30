@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Name the Python CI job validator · Python like the other validator jobs (C17.89)
+
+- The job of ci.yml that runs the Python validator and generator suites is named validator · Python, as the JavaScript, PHP, Go and Rust validator jobs are named.
+
 ## 0.0.9
 
 ### 2026-10-30 — Adopt @polyspec/kit 0.0.78 (C17.88)
