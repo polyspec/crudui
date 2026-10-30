@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Unify the OrderedJSON release to 0.0.14 (C17.81)
+
+- crudui pins OrderedJSON 0.0.14 from its packages.json release in composer.json, locks it in composer.lock and the Rust form server, and names 0.0.14 in the release docs.
+
 ### 2026-10-30 — Read the CI OrderedJSON version with a regex that matches (C17.80)
 
 - The CI provider step reads the version of OrderedJSON from the packages.json URL with a single-backslash regex, so every CI job clones the release tag and none is empty.

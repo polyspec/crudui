@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — OrderedJSON 릴리스를 0.0.14로 통일한다 (C17.81)
+
+- crudui는 composer.json의 packages.json 릴리스에서 OrderedJSON 0.0.14를 고정하고, composer.lock과 Rust form 서버 Cargo.lock에 잠그며, 릴리스 문서에 0.0.14를 적는다.
+
 ### 2026-10-30 — CI의 OrderedJSON 버전을 맞는 정규식으로 읽는다 (C17.80)
 
 - CI provider 단계는 packages.json URL에서 OrderedJSON 버전을 한 번 쓴 백슬래시 정규식으로 읽어, 모든 CI job이 빈 버전 대신 릴리스 tag를 clone한다.

@@ -555,8 +555,8 @@ dependencies = [
 
 [[package]]
 name = "polyspec-ordered-json"
-version = "0.0.13"
-source = "git+https://github.com/polyspec/ordered-json?tag=v0.0.13#50aa77eac0b339db0b7f67fedea24eaf75057bed"
+version = "0.0.14"
+source = "git+https://github.com/polyspec/ordered-json?tag=v0.0.14#8e78e62bd8b9e309a568f799ccff17f09fa23a26"
 dependencies = [
  "serde",
  "serde_json",

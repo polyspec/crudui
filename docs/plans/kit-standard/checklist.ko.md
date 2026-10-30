@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b79d11f9d34cec4339ed6bdbbec05e9043606656f9f5cb1f93ff89887c645e1c -->
+<!-- source-sha256: b43d85efb644866d3fe43cf0320daf3048704de640927353c043124a6bb27b80 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -424,4 +424,4 @@
 | C17.77 | main에서 이미 실패하는 ci-local의 낡은 단언을 정리한다: kit 내부 단언은 삭제하고, crudui 동작 단언은 현재 workflow에 맞춘다(push-gate.yml, Kit CI 계획 스키마, TypeScript link 형태, native unit 묶음, generator 동등성, tag push, workflow trigger) | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
 | C17.79 | form-comparison 브라우저 검사는 각 서버마다 자기 job에서 돌고, 나머지 검사는 그 뒤에 한 번 돈다(form-comparison-ci.test.mts:131 이하 단언) | tests/build/form-comparison-ci.test.mts | `node scripts/run-tests.mts node -- tests/build/form-comparison-ci.test.mts` | [-] 원인: C17.74에 합친다: 빨간 원인은 kit K864가 지운 crudui-test-form-comparison-browser의 cargo-downloads-check 선행이며, C17.74가 그 선행을 제거하므로 form-comparison-ci.test.mts의 browser jobs 단언이 함께 통과한다 |
 | C17.80 | CI provider 레시피(Makefile:136)가 packages.json URL에서 OrderedJSON 버전을 맞는 정규식으로 읽게 한다 | Makefile | `node --test --test-name-pattern "CI provider step reads the OrderedJSON version" tests/build/ci-local.test.mts` | [o] |
-| C17.81 | crudui가 쓰는 OrderedJSON 릴리스를 0.0.14로 통일한다: composer.json의 packages.json 저장소, Rust form 서버의 tag와 lock, 릴리스 문서와 composer lock(0.0.9 릴리스 전) | composer.json; composer.lock; examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; docs/operations/ordered-json.md; docs/operations/ordered-json.ko.md; docs/operations/package-build.md; docs/operations/package-build.ko.md | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [ ] |
+| C17.81 | crudui가 쓰는 OrderedJSON 릴리스를 0.0.14로 통일한다: composer.json의 packages.json 저장소, Rust form 서버의 tag와 lock, 릴리스 문서와 composer lock(0.0.9 릴리스 전) | composer.json; composer.lock; examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; docs/operations/ordered-json.md; docs/operations/ordered-json.ko.md; docs/operations/package-build.md; docs/operations/package-build.ko.md | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [~] |

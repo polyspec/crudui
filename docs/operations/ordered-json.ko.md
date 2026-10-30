@@ -11,7 +11,7 @@ package로 JSON을 읽고 씁니다. 개발은 native source link를 사용합�
 `../ordered-json/packages/php`를 선언하고 실제 0.0.x source version을 `composer.lock`에 기록하며
 `vendor/autoload.php`로 load합니다. `make crudui-install-composer`는 published archive를 내려받지 않고 source
 resolution을 갱신합니다. Native PHP extension source는 선언한 개발 입력에서 해석합니다.
-OrderedJSON v0.0.13 packages.json 저장소의 published archive 입력은 기본 Composer source 설치와 독립적입니다.
+OrderedJSON v0.0.14 packages.json 저장소의 published archive 입력은 기본 Composer source 설치와 독립적입니다.
 OrderedJSON은 처리기를 test하며 CRUDUI는 `examples/form-comparison/src/json.test.mjs`, `servers/php`의 `FormJsonTest.php`,
 Go 서버의 `json_test.go`, Rust 서버의 JSON test로 package 연동을 검사합니다. 이 검사는 member order, numeric key,
 keyed row, empty type과 form data 범위 밖 숫자의 거부를 확인합니다.
