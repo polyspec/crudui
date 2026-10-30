@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — canonical Composer 프로젝트를 릴리즈 packages.json으로 검사한다 (C17.75)
+
+- dependency-health 테스트는 canonical Composer 프로젝트가 polyspec/ordered-json을 릴리즈 packages.json에서 해결하고, 저장소 밖을 가리키는 path 저장소를 선언하지 않음을 검사한다.
+
 ### 2026-10-30 — CI 설치 분기를 Makefile 본문에서 읽는다 (C17.68)
 
 - dependency-health 테스트는 crudui-install-composer의 CI 분기를 CI 신원으로 실행하지 않고 Makefile 본문에서 읽는다. 어떤 테스트도 CI를 가장하지 않는다.

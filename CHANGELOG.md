@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Check the canonical Composer project through its release packages.json (C17.75)
+
+- The dependency-health test checks that the canonical Composer project resolves polyspec/ordered-json from its release packages.json and declares no path repository outside the checkout.
+
 ### 2026-10-30 — Read the CI install branch of Composer from the Makefile text (C17.68)
 
 - The dependency-health test reads the CI branch of crudui-install-composer from the Makefile instead of running it with the CI identity, so no test impersonates CI.

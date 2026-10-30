@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 5f955ce8b5c993643ff1030684b792ff6fe925449b46ac280d88da367f9ee745 -->
+<!-- source-sha256: bb612d41596a7a1c0d9aef93b43fae3bbc66d36b71681ac7fc5071a74543b657 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -418,4 +418,4 @@
 | C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.73 | kit 0.0.77의 문서 검사(K895)에 맞춰 실행 체크리스트 문서의 날것 <단어> 자리표시자를 코드 표기로 고친다 | docs/plans/execution-checklist/checklist.md; docs/plans/execution-checklist/checklist.ko.md | `sh -c 'make docs-web >/dev/null 2>&1 && ! grep -q "<command>" docs/.web/dist/plans/execution-checklist/checklist.html'` | [o] |
 | C17.74 | kit 0.0.77의 링크 선언 파일(K869)에 맞춰 ci-local의 --siblings 단언을 고친다 | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
-| C17.75 | dependency-health의 canonical Composer 테스트를 C17.57의 packages.json 저장소 설계로 옮긴다 | tests/build/dependency-health.test.mts | `node scripts/run-tests.mts node -- tests/build/dependency-health.test.mts` | [ ] |
+| C17.75 | dependency-health의 canonical Composer 테스트를 C17.57의 packages.json 저장소 설계로 옮긴다 | tests/build/dependency-health.test.mts | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [~] |

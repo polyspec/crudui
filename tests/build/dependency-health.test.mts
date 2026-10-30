@@ -415,12 +415,11 @@ test('Composer path repositories link the local packages', () => {
   assert.deepEqual(failures, []);
 });
 
-test('the canonical Composer project resolves the current sibling source package', () => {
+test('the canonical Composer project resolves polyspec/ordered-json from its release packages.json', () => {
   const manifest = readJson(path.join(root, 'composer.json'), composerSchema);
-  const source = manifest.repositories?.find(repository => repository.url === '../ordered-json/packages/php');
-  assert.ok(source);
-  assert.equal(source.type, 'path');
-  assert.equal(source.options?.symlink, true);
+  const release = manifest.repositories?.find(repository => repository.type === 'composer' && repository.url?.endsWith('/packages.json'));
+  assert.ok(release, 'the composer repository of the release packages.json is declared');
+  assert.equal(manifest.repositories?.some(repository => repository.url?.startsWith('../')), false);
   assert.equal(manifest.require?.['polyspec/ordered-json'], '0.0.*');
   assert.equal(manifest.repositories?.some(repository => repository.type === 'artifact'), false);
   assert.equal(existsSync(path.join(root, 'composer.local.json')), false);
