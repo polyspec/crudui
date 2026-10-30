@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — form-comparison Rust 서버가 ordered-json 태그를 오프라인으로 해석한다 (C17.71)
+
+- form-comparison Rust 서버는 ordered-json을 태그 v0.0.13으로, lock은 그 커밋으로 고정하고, config/release-assets.json은 ordered-json 0.0.13을 선언하므로 cargo는 sibling checkout과 같은 소스를 해석한다.
+
 ### 2026-10-30 — ordered-json을 릴리즈 packages.json에서 해결한다 (C17.57)
 
 - 루트 Composer 프로젝트는 저장소 밖의 path로 ordered-json을 연결하지 않고, polyspec/ordered-json 0.0.13을 릴리즈 packages.json에서 해결한다. 개발에서는 make link가 설치 폴더를 sibling checkout에 심볼릭 링크한다.

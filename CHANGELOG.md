@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Resolve the ordered-json tag of the form-comparison Rust server offline (C17.71)
+
+- The Rust form-comparison server pins ordered-json by tag v0.0.13 and the lock by its commit, and config/release-assets.json declares ordered-json 0.0.13, so cargo resolves the same source as the sibling checkout.
+
 ### 2026-10-30 — Resolve ordered-json from its release packages.json (C17.57)
 
 - The root Composer project no longer links ordered-json from a path outside the repository; it resolves polyspec/ordered-json 0.0.13 from the release packages.json, and make link links the installed folder to the sibling checkout for development.
