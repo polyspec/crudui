@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Escape the raw placeholders of the execution checklist (C17.73)
+
+- The execution checklist shows its placeholders as code, so the site renders the timeout line of C7.8 instead of dropping its `<command>`.
+
 ### 2026-10-30 — Keep the input failure of a repeated literal choice (C17.69)
 
 - The PHP extension keeps the input failure of a repeated literal choice as the previous exception of the form error.
