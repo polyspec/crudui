@@ -7,13 +7,11 @@
 // fmt, or starts a file, an npm script or a package test that does, directly or through the files that it imports or
 // names.
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 import { makeTargets } from '../../scripts/test-commands.mts';
-import { parseJson, manifestSchema } from '../json.mts';
-import { checkedFiles } from '@polyspec/kit/tracked-files';
 import { makeDryRun } from './make-dry-run.mts';
 
 /** The prerequisites and recipe lines of a Makefile target. */
@@ -22,15 +20,8 @@ interface MakeRule {
   commands: string[];
 }
 
-/** The part of a package.json that runsCargo reads. */
-interface Manifest {
-  name?: string;
-  scripts?: Record<string, string>;
-}
-
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
-const SELF = 'tests/build/offline-checks.test.mts';
 // The targets of the kit.mk and bootstrap of @polyspec/kit that download: the tools, the packages, the
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
 // the proof of a release, and the release archives of other repositories (kit K140, K865). The tool lifts the
@@ -58,68 +49,8 @@ function variable(name: string): string {
   return match?.[1] !== undefined ? match[1].replace(/\\\n/g, ' ') : '';
 }
 
-/** The files that run cargo: those that start scripts/run-rust-command.mts, and those that import such a file. */
-function cargoFiles(): Set<string> {
-  const sources = checkedFiles(ROOT).filter(file => /\.(?:mts|mjs|js)$/.test(file) && file !== SELF);
-  const texts = new Map(sources.map(file => [file, read(file)]));
-  const ENTRY = 'scripts/run-rust-command.mts';
-  // The test runner starts cargo only for `run-tests.mts cargo`, which a command names, and scripts/test-commands.mts
-  // reads commands without running them.
-  const readers = new Set(['tests/conformance/run-suite.mts', 'scripts/test-commands.mts']);
-  const found = new Set([ENTRY]);
-  for (let added = true; added;) {
-    added = false;
-    for (const [file, text] of texts) {
-      if (found.has(file) || readers.has(file)) continue;
-      const test = /\.test\.m[jt]s$/.test(file);
-      // The tests of the entry point import it and run it with stub toolchains.
-      const imports = [...text.matchAll(/(?:from|import\()\s*'(\.[^']+)'/g)].some(([, specifier]) => {
-        assert.ok(specifier !== undefined);
-        const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier));
-        return found.has(target) && !(test && target === ENTRY);
-      });
-      // A program starts cargo by the path of the entry point; a test that names it copies it into a fixture.
-      const names = !test && text.includes('run-rust-command.mts');
-      if (imports || names) {
-        found.add(file);
-        added = true;
-      }
-    }
-  }
-  return found;
-}
 
-const CARGO_FILES = cargoFiles();
 
-/** Whether a shell command, run in `directory`, starts cargo. */
-function runsCargo(command: string, directory = '.', seen = new Set<string>()): boolean {
-  if (/(?:run-tests\.(?:mts|\$\(KIT_EXT\))|run-suite\.mts) cargo\b/.test(command) || /run-rust-command\.mts (?!fmt\b)/.test(command)) return true;
-  const manifestOf = (dir: string): Manifest => parseJson(read(path.posix.join(dir, 'package.json')), manifestSchema, path.posix.join(dir, 'package.json'));
-  const script = (dir: string, name: string): boolean => {
-    const key = `${dir}:${name}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    const text = manifestOf(dir).scripts?.[name];
-    return text ? runsCargo(text, dir, seen) : false;
-  };
-  for (const [, name] of command.matchAll(/(?:\$\(NPM\)|\bnpm) run ([\w:.-]+)/g)) if (name !== undefined && script(directory, name)) return true;
-  for (const [, prefix] of command.matchAll(/(?:\$\(NPM\)|\bnpm) test --prefix (\S+)/g)) if (prefix !== undefined && script(prefix, 'test')) return true;
-  for (const [, workspace] of command.matchAll(/(?:\$\(NPM\)|\bnpm) test -w (\S+)/g)) {
-    const directories = checkedFiles(ROOT).filter(file => /^packages\/[^/]+\/package\.json$/.test(file)).map(path.posix.dirname);
-    const found = directories.find(dir => manifestOf(dir).name === workspace);
-    if (found && script(found, 'test')) return true;
-  }
-  // tests/native-generators/run.mts builds the Rust program only for its target rust, which runs when --target names it
-  // or when no --target selects the targets.
-  const nativeTargets = /\btests\/native-generators\/run\.mts\b[^;|&]*?--target (\S+)/.exec(command);
-  if (nativeTargets?.[1] !== undefined && !nativeTargets[1].replace(/["']/g, '').split(',').includes('rust')) command = command.replace(/\S*tests\/native-generators\/run\.mts\b/, '');
-  // `run-rust-command.mts fmt` formats sources and reads no crate.
-  return command.replace(/\S*run-rust-command\.mts fmt\b/g, '').split(/[\s'"]+/).some(token => {
-    const file = path.posix.normalize(path.posix.join(directory, token.replace(/^\$\(CURDIR\)\//, '')));
-    if (!token || !/^[\w./-]+$/.test(token) || !existsSync(path.join(ROOT, file))) return false;
-    return statSync(path.join(ROOT, file)).isDirectory() ? false : CARGO_FILES.has(file);
-  });
-}
 
 test('the Makefile runs cargo, go, npm and Composer offline, and only the install targets lift it', () => {
   for (const setting of ['export CARGO_NET_OFFLINE := true', 'export GOPROXY := off', 'export npm_config_offline := true', 'export COMPOSER_DISABLE_NETWORK := 1']) {

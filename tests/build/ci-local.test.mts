@@ -368,7 +368,6 @@ test('every tool of kit that the Makefile starts is in the installed @polyspec/k
 
 // CI runs every lint target of kit, so a finding fails CI. make lint runs crudui-lint: lint-ts, the lint-ts.mjs of kit, with
 // the ESLint of the Svelte components.
-const LINT_TARGETS = ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts'];
 
 test('a CI job runs the lint of kit once and repeats none of the shared gates (K870)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
