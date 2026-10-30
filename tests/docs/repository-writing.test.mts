@@ -17,7 +17,7 @@ const sourceExtensions = new Set([
 ]);
 const descriptiveJsonKeys = new Set(['description', 'message', 'note', 'summary', 'title']);
 // The word gate is not discouraged: it is the term of kit for its checks (PRINCIPLES P31, make kit-gates,
-// .github/workflows/gates.yml), which the records of this repository name.
+// .github/workflows/ci-pipeline.yml), which the records of this repository name.
 const discouraged: Array<[label: string, pattern: RegExp]> = [
   ['color-coded test status', /\b(?:RED|GREEN)\b/g],
   ['test-path metaphor', /\blanes?\b/gi],

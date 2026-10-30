@@ -134,18 +134,19 @@
 # Release
 
 - Own: release는 CI의 전체 suite를 통과한 `main`의 commit에 붙인 tag입니다. 저장소 전체는 `vX.Y.Z`, 그 directory의 Go module은
-  `<directory>/vX.Y.Z`를 씁니다. tag는 maintainer만 만들고, 옮기고, push합니다.
-  Enforced by: `make release-verify`
+  `<directory>/vX.Y.Z`를 씁니다. tag는 maintainer만 만들고, 옮기고, push합니다. release dispatch는 `main`에서 성공한
+  `.github/workflows/ci.yml` run의 id를 받고, `make release-tag`가 그 run의 commit에 tag를 만듭니다.
+  Enforced by: `make release-tag`
 - Own: Candidate CI 전에 commit `chore(release): Release X.Y.Z (#<task ID>)`이 candidate를 준비합니다. 이 commit은 `config/release.json`이 적은 manifest(`package.json`, `Cargo.toml`, `pyproject.toml`, `packages/`의 `composer.json`)와
   저장소 package에 대한 모든 의존성의 version을 X.Y.Z로 설정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를
   `## X.Y.Z`로 바꾸며 그 아래에 빈 `## Unreleased`를 새로 둡니다.
-  Enforced by: `make release-verify`
+  Enforced by: `make release-tag`
 - Own: 로컬 준비와 해당 commit의 CI 검사가 성공한 뒤 maintainer가 그 commit에 tag를 달아 push합니다. kit의 copy인 `.github/workflows/release.yml`은 `make release-tools`,
-  `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`, `make release-proof`,
-  `make release-undraft`(`@polyspec/kit`의 release 도구)를 실행합니다. 이 workflow는 `main`의 commit에서 `push-gate`와
-  `ci-passed` 검사가 성공했고, 모든 manifest에 tag의 version이 있으며, `## X.Y.Z` section이 있음을 요구합니다. GitHub
+  `make release-tag`, `make release-versions`, `make release-assets`, `make release-publish`, `make release-proof`,
+  `make release-undraft`(`@polyspec/kit`의 release 도구)를 실행합니다. 이 workflow는 `main`에서 성공한 `ci.yml` run의 id,
+  모든 manifest의 tag version, `## X.Y.Z` section이 있음을 요구합니다. GitHub
   Release를 draft로 만들어 그 section을 notes로 두고 `packages/`의 archive를 붙이며, checkout 바깥에서 draft를 검증한 뒤 공개합니다.
   release 본문의 한도인 125000자를 넘는 section은 tag 시점의 `CHANGELOG.md` section으로 연결하는 한 줄로 바꿉니다. crate는
   archive로 배포하지 않으며 git tag로 사용합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다
   (`docs/operations/repository.md`).
-  Enforced by: `make release-verify`
+  Enforced by: `make release-tag`

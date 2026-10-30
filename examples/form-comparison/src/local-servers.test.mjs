@@ -201,7 +201,9 @@ test('local OrderedJSON native sources come from the declared provider package',
     directory: path.join(provider, 'packages/php-ext'), extensionName: 'polyspec_ordered_json',
     buildPath: 'src', version: '0.0.10', mode: 'local',
   });
-  const release = path.join(root, 'var/pie/0.0.14/work-1/vendor/polyspec/ordered-json-php-ext');
+  const release = path.join(root, 'pie/vendor/polyspec/ordered-json-php-ext');
+  await mkdir(path.join(root, 'var'), { recursive: true });
+  await writeFile(path.join(root, 'var/ordered-json-package'), `${release}\n`);
   await mkdir(path.join(release, 'src'), { recursive: true });
   await writeFile(path.join(release, 'composer.json'), JSON.stringify({ version: '0.0.9',
     'php-ext': { 'extension-name': 'ordered_json', 'build-path': 'src' } }));
@@ -210,10 +212,12 @@ test('local OrderedJSON native sources come from the declared provider package',
   await assert.rejects(orderedJsonProvider({ root, mode: 'local' }), /ordered-json.*composer\.json|ENOENT/);
 });
 
-test('the release native source is the OrderedJSON php-ext package that PIE fetched (C17.84)', async t => {
+test('the release native source is the OrderedJSON php-ext package that make ordered-json-ext recorded (C17.84, C17.90)', async t => {
   const root = await mkdtemp(path.join(tmpdir(), 'crudui-ordered-json-release-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const directory = path.join(root, 'var/pie/0.0.14/work-1/vendor/polyspec/ordered-json-php-ext');
+  const directory = path.join(root, 'pie/vendor/polyspec/ordered-json-php-ext');
+  await mkdir(path.join(root, 'var'), { recursive: true });
+  await writeFile(path.join(root, 'var/ordered-json-package'), `${directory}\n`);
   await mkdir(path.join(directory, 'src'), { recursive: true });
   await writeFile(path.join(directory, 'composer.json'), JSON.stringify({ version: '0.0.9',
     'php-ext': { 'extension-name': 'ordered_json', 'build-path': 'src' } }));

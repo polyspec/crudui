@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { execFile, fork, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -17,27 +17,18 @@ const execFileAsync = promisify(execFile);
 export const exampleDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const repositoryRoot = path.resolve(exampleDirectory, '../..');
 /**
- * The PHP extension source of OrderedJSON that PIE fetched from the packages.json repository of the release (make
- * ordered-json-ext, C17.84): PIE's working directory holds the package under its vendor folder, one per build.
+ * The file that make ordered-json-ext writes with the folder of the OrderedJSON php-ext package that kit's pie-build
+ * built with PIE from the packages.json repository of the release (K915, C17.84, C17.90).
  */
-const pieWorkDirectory = 'var/pie';
-const orderedJsonExtensionPath = path.join('vendor', 'polyspec', 'ordered-json-php-ext');
+const orderedJsonPackageFile = 'var/ordered-json-package';
 
 /**
- * The folder of the OrderedJSON php-ext package that PIE fetched, or undefined. PIE's working directory is keyed by the
- * version (var/pie/<version>, Makefile PIE_WORK), so an older version never shadows the new repository (C17.84).
+ * The folder of the OrderedJSON php-ext package that make ordered-json-ext recorded, or undefined.
  */
 async function pieOrderedJsonDirectory(root) {
-  const versions = await readdir(path.join(root, pieWorkDirectory)).catch(() => []);
-  for (const version of versions.sort()) {
-    const work = path.join(root, pieWorkDirectory, version);
-    const entries = await readdir(work).catch(() => []);
-    for (const entry of entries.sort()) {
-      const folder = path.join(work, entry, orderedJsonExtensionPath);
-      if (await stat(path.join(folder, 'composer.json')).then(file => file.isFile(), () => false)) return folder;
-    }
-  }
-  return undefined;
+  const folder = (await readFile(path.join(root, orderedJsonPackageFile), 'utf8').catch(() => '')).trim();
+  if (folder === '') return undefined;
+  return (await stat(path.join(folder, 'composer.json')).then(file => file.isFile(), () => false)) ? folder : undefined;
 }
 
 /** Print one progress line of the local server harness. */
@@ -73,7 +64,7 @@ export async function orderedJsonProvider({ root = repositoryRoot, mode }) {
     directory = path.join(path.resolve(root, declared.orderedJsonRoot), 'packages/php-ext');
   } else {
     directory = await pieOrderedJsonDirectory(root);
-    assert.ok(directory, `${pieWorkDirectory} holds no OrderedJSON php-ext package; run make ordered-json-ext, which PIE fetches and builds (C17.84)`);
+    assert.ok(directory, `${orderedJsonPackageFile} names no OrderedJSON php-ext package; run make ordered-json-ext, which PIE builds (C17.84, C17.90)`);
   }
   const manifest = JSON.parse(await readFile(path.join(directory, 'composer.json'), 'utf8'));
   const extensionName = manifest['php-ext']?.['extension-name'];

@@ -72,30 +72,22 @@ Composer archive or a platform-specific binary to the published assets.
    sources, the native dependency managers and the candidate's owning checks. Any local package or consumer artifacts
    are built from the current merged source snapshot and consumed in the same run. This preparation creates no tag and
    checks out no previous release. An older OrderedJSON archive is not a substitute for the current sibling source.
-3. After local preparation is complete, push `main` for CI. Publication requires successful `ci-passed` and `push-gate`
-   results for that exact commit. Only then does the maintainer create the publication tags and push them:
+3. After local preparation is complete, push `main` for CI. When `ci.yml` succeeds on that exact commit, the maintainer
+   dispatches the release with the id of that run and the version:
 
    ```sh
-   git tag vX.Y.Z <commit of main>
-   git tag packages/generator/go/vX.Y.Z <commit of main>
-   git tag packages/validator/go/vX.Y.Z <commit of main>
-   git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
+   gh workflow run release.yml -f run=<id of the successful ci.yml run of main> -f version=X.Y.Z
    ```
 
-   The three tags are pushed together (`make release-go-tags TAG=vX.Y.Z` checks them): `make release-verify` of `vX.Y.Z`
-   requires the Go module tags at the same commit, and the push starts one run of `release.yml` for each tag. GitHub starts
-   no run when more than three tags are pushed at once. The run of a Go module tag has no archive to build or install and
-   creates a GitHub Release of that tag without assets; it does not depend on the run of `vX.Y.Z`.
-4. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
-   match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. The workflow
-   is the copy of kit. It installs the kit package through native npm before make. After the setup steps
-   (`make install-tools TOOLS=npm`, `make install-packages`, `make release-tools`,
-   which installs the tools that `config/release.json` needs, and `make release-tools-path`) its steps run through make
-   in this order; the steps of `node_modules/@polyspec/kit/dist/release.mjs` take the tag of the environment variable `TAG`:
-   - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`), the tag
-     `<directory>/vX.Y.Z` of every Go module at the same commit, and the check runs `push-gate` and `ci-passed` of the
-     commit completed with conclusion `success` (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`); it fails with
-     each missing or failed check;
+   `make release-tag` creates `vX.Y.Z` and the tag `<directory>/vX.Y.Z` of every Go module on that run's commit, as annotated
+   tags, and refuses a tag elsewhere or a lightweight one. No tag push starts a run (K911); a Go module tag has no run of its
+   own and creates no archive.
+4. `.github/workflows/release.yml` runs on that dispatch with the token permission `contents: write`. The workflow is the
+   copy of kit. It installs the kit package through native npm before make. After the setup steps (`make install-tools
+   TOOLS=npm`, `make install-packages`, `make release-tools`, which installs the tools that `config/release.json` needs, and
+   `make release-tools-path`) its steps run through make in this order; the steps take the tag from the input `version`:
+   - `make release-tag` requires a successful run `run` of `ci.yml` on `main` whose commit is on `origin/main`, and creates
+     or passes the tags of the commit (see step 3);
    - `make release-versions` requires the version of the tag in every manifest that `config/release.json` lists, the
      module path of every Go module, and the section `## X.Y.Z` of `CHANGELOG.md` and `CHANGELOG.ko.md`; it fails with the
      file and both versions;

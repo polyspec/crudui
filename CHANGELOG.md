@@ -3,11 +3,17 @@
 
 ## Unreleased
 
+## 0.0.9
+
+### 2026-10-30 — Adopt @polyspec/kit 0.0.79: one CI pipeline, release by run id, PIE through kit (C17.90)
+
+- The @polyspec/kit pin is 0.0.79. kit-sync brings ci-pipeline.yml and the 0.0.79 release.yml, and removes gates.yml. ci.yml calls the pipeline as its job `kit`, and the repository jobs follow it with `needs: kit`.
+- `make release-tag` creates the tags on the commit of a successful ci.yml run, and the dispatch names that run and the version. config/release.json no longer lists checks.
+- `make ordered-json-ext` builds the OrderedJSON php-ext with kit's pie-build (K915) and records its folder in var/ordered-json-package, which the local record servers read.
+
 ### 2026-10-30 — Name the Python CI job validator · Python like the other validator jobs (C17.89)
 
 - The job of ci.yml that runs the Python validator and generator suites is named validator · Python, as the JavaScript, PHP, Go and Rust validator jobs are named.
-
-## 0.0.9
 
 ### 2026-10-30 — Adopt @polyspec/kit 0.0.78 (C17.88)
 

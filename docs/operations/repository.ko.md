@@ -66,28 +66,20 @@ platform별 binary를 추가하지 않습니다.
    [로컬 준비 checklist](../plans/release-readiness/checklist.ko.md)의 C18.1을 완료합니다. 로컬 package나 consumer artifact는
    현재 병합한 source snapshot에서 만들고 같은 실행에서 소비합니다. 준비 과정은 tag를 생성하거나 이전 release를 checkout하지
    않습니다. 과거 OrderedJSON archive는 현재 sibling source를 대신하지 않습니다.
-3. 로컬 준비가 끝나면 CI를 위해 `main`을 push합니다. Publication은 바로 그 commit에 대해 `ci-passed`와 `push-gate`가
-   성공해야 합니다. 그 뒤에만 maintainer가 publication tag를 만들어 push합니다:
+3. 로컬 준비가 끝나면 CI를 위해 `main`을 push합니다. `ci.yml`이 그 정확한 commit에서 성공하면 maintainer가 그 run의 id와 version으로
+   release를 dispatch합니다:
 
    ```sh
-   git tag vX.Y.Z <commit of main>
-   git tag packages/generator/go/vX.Y.Z <commit of main>
-   git tag packages/validator/go/vX.Y.Z <commit of main>
-   git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
+   gh workflow run release.yml -f run=<main의 성공한 ci.yml run id> -f version=X.Y.Z
    ```
 
-   tag 셋을 함께 push합니다(`make release-go-tags TAG=vX.Y.Z`가 검사합니다). `vX.Y.Z`의 `make release-verify`가 같은 commit의 Go module
-   tag를 요구하고, push는 tag마다 `release.yml` 실행 하나를 시작하기 때문입니다. GitHub는 한 번에 tag를 셋보다 많이 push하면
-   실행을 시작하지 않습니다. Go module tag의 실행은 build하거나 설치할 archive가 없고 asset 없는 그 tag의 GitHub Release를 만들며,
-   `vX.Y.Z`의 실행에 의존하지 않습니다.
-4. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
-   않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 이 workflow는
-   kit의 copy입니다. Make 전에 native npm으로 kit package를 설치합니다. 준비 step(`make install-tools TOOLS=npm`,
-   `make install-packages`, `config/release.json`이 필요로 하는 도구를
-   설치하는 `make release-tools`, `make release-tools-path`) 뒤의 step은 이 순서로 make를 통해 실행되며, `node_modules/@polyspec/kit/dist/release.mjs`의 step은 환경 변수 `TAG`의 tag를 받습니다.
-   - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), 모든 Go module의 tag
-     `<directory>/vX.Y.Z`가 같은 commit에 있는지, commit의 check run `push-gate`와 `ci-passed`가 conclusion `success`로
-     끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`) 확인하고, 빠졌거나 실패한 check마다 적어 실패합니다.
+   `make release-tag`가 그 run의 commit에 `vX.Y.Z`와 모든 Go module의 tag `<directory>/vX.Y.Z`를 annotated tag로 만들며,
+   다른 곳의 tag나 lightweight tag는 거부합니다. tag push는 실행을 시작하지 않습니다(K911). Go module tag는 자신의 실행이 없고 archive를 만들지 않습니다.
+4. `.github/workflows/release.yml`은 그 dispatch에서 token 권한 `contents: write`로 실행됩니다. 이 workflow는 kit의 copy입니다.
+   Make 전에 native npm으로 kit package를 설치합니다. 준비 step(`make install-tools TOOLS=npm`, `make install-packages`,
+   `config/release.json`이 필요로 하는 도구를 설치하는 `make release-tools`, `make release-tools-path`) 뒤의 step은 이 순서로 make를
+   통해 실행되며, tag는 입력 `version`에서 받습니다.
+   - `make release-tag`는 `main`의 성공한 `ci.yml` run `run`의 commit이 `origin/main`에 있는지 확인하고, 그 commit의 tag를 만들거나 이미 있으면 통과합니다(3단계 참조);
    - `make release-versions`는 `config/release.json`이 적은 모든 manifest의 version이 tag와 같은지, 모든 Go module의 module
      path, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 section `## X.Y.Z`가 있는지 확인하고, 파일과 두 version을 적어 실패합니다.
    - `make release-assets`는 `make build`를 실행하고 `config/release.json`의 package archive를 `var/release/assets`에 씁니다.

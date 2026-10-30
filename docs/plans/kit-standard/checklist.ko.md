@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a40345fbee9876da65ad6ec2c0f5f8c4709fa6a0909da36623c615023ac2723d -->
+<!-- source-sha256: 20f5fbe97b379a7c833638f6199aff681b6a0cb83ac90d23a2aeaf91a80135c7 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -433,4 +433,4 @@
 | C17.87 | crudui는 C17.86이 손으로 바꾼 vendored PRINCIPLES.md와 PRINCIPLES.ko.md를 make kit-sync로 kit 0.0.77 문구로 되돌려 kit-inject-check가 통과하게 한다 (실행 41044985845) | PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-inject-check` exit 0; `make rules-check` exit 0 | [o] |
 | C17.88 | crudui는 @polyspec/kit 0.0.78(K909, K916, K918)을 채택한다: 핀과 lock을 npm으로 갱신하고, make kit-sync로 0.0.78 사본을 쓰고, 채택을 CHANGELOG에 기록한다 | package.json, package-lock.json, PRINCIPLES.md, PRINCIPLES.ko.md, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | extract polyspec-kit-npm-0.0.78.tgz in a scratch directory; its PRINCIPLES.ko.md source-sha256 equals the copy in this checkout; `make kit-inject-check` exit 0; `make rules-check` exit 0 | [o] |
 | C17.89 | crudui는 Python CI job을 다른 validator job과 같은 형식의 validator · Python으로 이름 짓는다 (ci.yml:323) | .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `grep -n "name: validator · Python" .github/workflows/ci.yml` matches; `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` exit 0 | [o] |
-| C17.90 | crudui는 @polyspec/kit 0.0.79를 채택한다. 0.0.79는 자체 release에서 PHP arginfo 생성기를 설치하고 CI run id로 릴리스한다(release.yml workflow_dispatch의 run과 version, release-tag가 태그를 만든다). 0.0.79가 릴리스되면 시작한다 | package.json, package-lock.json, PRINCIPLES.md, PRINCIPLES.ko.md, CHANGELOG.md, CHANGELOG.ko.md | kit 0.0.79 tgz extracted in a scratch directory; source-sha256 of PRINCIPLES.ko.md equals the copy; `make kit-inject-check` exit 0; `make rules-check` exit 0 | [ ] |
+| C17.90 | crudui는 @polyspec/kit 0.0.79를 채택한다. 0.0.79는 자체 release에서 PHP arginfo 생성기를 설치하고 CI run id로 릴리스한다(release.yml workflow_dispatch의 run과 version, release-tag가 태그를 만든다). 0.0.79가 릴리스되면 시작한다 | package.json, package-lock.json, PRINCIPLES.md, PRINCIPLES.ko.md, CHANGELOG.md, CHANGELOG.ko.md | kit 0.0.79 tgz extracted in a scratch directory; source-sha256 of PRINCIPLES.ko.md equals the copy; `make kit-inject-check` exit 0; `make rules-check` exit 0 | [~] |

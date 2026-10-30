@@ -185,7 +185,7 @@ test('runtime checks run in four independent CI shards with separate reports (C1
   const job = jobOf(workflow, 'runtime-tests');
   assert.deepEqual(job.strategy?.matrix?.shard, ['1', '2', '3', '4']);
   assert.equal(job.strategy?.['fail-fast'], false);
-  assert.equal(job.needs, undefined);
+  assert.equal(job.needs, 'kit');
   assert.equal(job.env?.CRUDUI_TEST_SHARD, '${{ matrix.shard }}/4');
   assert.deepEqual((job.steps ?? []).flatMap(step => step.run?.startsWith('make ci-targets ') ? [step.run] : []),
     ['make ci-targets TARGETS="crudui-test-runtimes"']);
@@ -264,7 +264,7 @@ test('every evidence artifact has a name of its own and the conformance job read
   assert.equal(new Set(names).size, names.length, names.join(', '));
   assert.ok(names.every((name) => name !== undefined && /^conformance-evidence-[\w.-]+$/.test(name)), names.join(', '));
   const conformance = jobOf(workflow, 'conformance');
-  const needs = strings(conformance.needs, 'needs of the conformance job');
+  const needs = strings(conformance.needs, 'needs of the conformance job').filter((id) => id !== 'kit');
   assert.deepEqual([...needs].sort(), [...new Set(uploads.map((upload) => upload.id))].sort());
   const download = (conformance.steps ?? []).find((step) => String(step.uses ?? '').startsWith('actions/download-artifact@'));
   assert.deepEqual(download?.with, { pattern: 'conformance-evidence-*', path: 'conformance-evidence' });
@@ -503,15 +503,14 @@ test('no run of a commit of main is stopped by a later push', async () => {
 
 // main receives a push of the maintainer while the version is 0.x: CI runs on a push to main and on a manual run, the
 // push check on every pushed branch, the documentation web is built and deployed from main and on a manual run, the
-// dependency review runs on its schedule and on a manual run, the gates of kit (the copy gates.yml) run on pull requests,
-// on main and on a manual run, and the release (the copy release.yml) runs on a pushed tag vX.Y.Z or
-// <directory>/vX.Y.Z at any depth, or on a manual run that names the tag: in a tag filter * does not match /, so **/v* covers packages/<directory>/vX.Y.Z. No
-// other workflow exists, and each declares exactly these lines.
+// dependency review runs on its schedule and on a manual run, the CI pipeline of kit (the copy ci-pipeline.yml) runs when
+// ci.yml calls it, and the release (the copy release.yml) runs on a manual run that names a successful CI run and the version.
+// No other workflow exists, and each declares exactly these lines.
 const TRIGGERS = {
   'ci.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
-  'gates.yml': 'on:\n  pull_request:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
+  'ci-pipeline.yml': 'on:\n  workflow_call:\n',
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
-  'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n  workflow_dispatch:\n    inputs:\n      tag:\n        description: The tag of the release, such as v0.0.1\n        required: true\n        type: string\n",
+  'release.yml': "on:\n  workflow_dispatch:\n    inputs:\n      run:\n        description: The id of the successful CI run of main whose commit is released\n        required: true\n        type: string\n      version:\n        description: The version of the release, X.Y.Z, such as 0.0.1\n        required: true\n        type: string\n",
 };
 
 test('each workflow declares exactly its triggers', async () => {
@@ -524,25 +523,11 @@ test('each workflow declares exactly its triggers', async () => {
 });
 
 /** Whether a GitHub tag filter matches a tag: `**` matches any characters, `*` any characters but `/`. */
-function tagFilterMatches(filter: string, tag: string): boolean {
-  const source = filter.split('**').map((part) => part.split('*').map((text) => text.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*')).join('.*');
-  return new RegExp(`^${source}$`).test(tag);
-}
-
-/** The tags of a release that none of `filters` matches: vX.Y.Z and <directory>/vX.Y.Z of every tracked Go module. */
-function unmatchedReleaseTags(filters: string[], goModules: string[]): string[] {
-  const tags = ['v1.2.3', ...goModules.map((file) => `${path.posix.dirname(file)}/v1.2.3`)];
-  return tags.filter((tag) => !filters.some((filter) => tagFilterMatches(filter, tag)));
-}
-
-test('the release trigger matches vX.Y.Z and the tag of every Go module of packages/', async () => {
-  const goModules = execFileSync('git', ['ls-files', 'packages/*/go.mod'], { cwd: new URL('../..', import.meta.url), encoding: 'utf8' }).split('\n').filter(Boolean);
-  assert.ok(goModules.length > 0);
-  const tags = strings(field(field((await workflowFile('release.yml')).on, 'push'), 'tags'), 'the tag filters of release.yml');
-  assert.deepEqual(unmatchedReleaseTags(tags, goModules), []);
-  // In a tag filter * does not match /, so the filter of one level */v* misses packages/<directory>/vX.Y.Z.
-  assert.deepEqual(unmatchedReleaseTags(['v*', '*/v*'], goModules), goModules.map((file) => `${path.posix.dirname(file)}/v1.2.3`));
-  assert.ok(tagFilterMatches('**/v*', 'packages/validator/go/v0.1.0') && !tagFilterMatches('v*', 'go/v0.1.0'));
+test('the release is a dispatch of a successful CI run and the version (K911)', async () => {
+  const release = await workflowFile('release.yml');
+  assert.deepEqual(Object.keys(field(release, 'on') as object), ['workflow_dispatch']);
+  const inputs = field(field(release.on, 'workflow_dispatch'), 'inputs') as Record<string, unknown>;
+  assert.deepEqual(Object.keys(inputs).sort(), ['run', 'version']);
 });
 
 test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {
@@ -606,8 +591,8 @@ test('only the release workflow starts on a tag push', async () => {
     if (tags || tagsIgnore) violations.push(`${name}: push names tags`);
   }
   assert.deepEqual(violations, []);
-  const { checks } = parseJson<{ checks: string[] }>(await read('config/release.json'), { properties: { checks: { elements: { type: 'string' } } }, additionalProperties: true }, 'config/release.json');
-  assert.deepEqual(checks, ['ci-passed']);
+  // kit 0.0.79 releases by the run id of ci.yml, so config/release.json names no check (K911).
+  assert.equal(Object.hasOwn(JSON.parse(await read('config/release.json')), 'checks'), false);
 });
 
 // make install-packages runs the svelte tools after its npm ci (INSTALL_PACKAGES_EXTRA, kit K428) and links nothing: make
@@ -658,7 +643,7 @@ console.log(JSON.stringify({ venv: process.env.UV_PROJECT_ENVIRONMENT }));
 test('cross-language generator equivalence runs independently of language unit jobs', async () => {
   const workflow = await workflowFile('ci.yml');
   const comparison = jobOf(workflow, 'cross-language-equivalence');
-  assert.equal(comparison.needs, undefined);
+  assert.equal(comparison.needs, 'kit');
   assert.ok((comparison.steps ?? []).some(step => step.run === 'make ci-targets TARGETS="crudui-test-cross-language-equivalence"'));
   for (const target of ['crudui-test-generator-js', 'crudui-test-generator-go', 'crudui-test-generator-rust', 'crudui-test-php-api']) {
     const run = makeDryRun(ROOT, target);
@@ -686,7 +671,7 @@ test('language jobs install only their required tools and own both validator and
   };
   for (const [id, contract] of Object.entries(expected)) {
     const job = jobOf(workflow, id);
-    assert.equal(job.needs, undefined, id);
+    assert.equal(job.needs, 'kit', id);
     const commands = (job.steps ?? []).map(step => step.run);
     assert.ok(commands.includes(`make install-tools TOOLS="${contract.tools}"`), id);
     assert.ok(commands.includes(`make ci-targets TARGETS="${contract.targets}"`), id);

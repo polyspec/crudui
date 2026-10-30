@@ -142,18 +142,20 @@ The same tree gives the same result on every date and machine, and a failed run 
 # Releases
 
 - Own: A release is a tag of a commit of `main`, which passed the full suite of CI: `vX.Y.Z` for the repository,
-  `<directory>/vX.Y.Z` for the Go module of that directory. Only the maintainer creates, moves or pushes a tag.
-  Enforced by: `make release-verify`
+  `<directory>/vX.Y.Z` for the Go module of that directory. Only the maintainer creates, moves or pushes a tag; the release
+  dispatch names the id of a successful run of `.github/workflows/ci.yml` on `main`, and `make release-tag` creates the tags on
+  that run's commit.
+  Enforced by: `make release-tag`
 - Own: Before candidate CI, the commit `chore(release): Release X.Y.Z (#<task ID>)` prepares the candidate: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
   `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency on a package of the repository, to X.Y.Z,
   and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new empty `## Unreleased`.
-  Enforced by: `make release-verify`
+  Enforced by: `make release-tag`
 - Own: After local preparation and successful CI checks for that commit, the maintainer tags it and pushes the tag. `.github/workflows/release.yml`, the copy of kit, runs
-  `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
-  `make release-proof` and `make release-undraft` (the release tool of `@polyspec/kit`). It requires the commit on `main`
-  with the checks `push-gate` and `ci-passed` concluded success, the version of the tag in every manifest and the section
+  `make release-tools`, `make release-tag`, `make release-versions`, `make release-assets`, `make release-publish`,
+  `make release-proof` and `make release-undraft` (the release tool of `@polyspec/kit`). It takes the run id of a successful
+  `ci.yml` run on `main`, the version in every manifest of the tag and the section
   `## X.Y.Z`; it creates the GitHub Release as a draft with that section as its notes and the archives of `packages/`,
   proves the draft from outside the checkout and then makes it public. A section over 125000 characters, the limit of a
   release body, is replaced by one line that links the section of `CHANGELOG.md` at the tag. A crate is not released as an
   archive; it is consumed by git tag. A Go module tag builds and attaches nothing (`docs/operations/repository.md`).
-  Enforced by: `make release-verify`
+  Enforced by: `make release-tag`

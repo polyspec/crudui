@@ -62,20 +62,18 @@ UV := $(KIT_TOOLS)/mise/shims/uv
 # from the PATH that make started with (kit K171).
 GO := $(KIT_TOOLS)/mise/shims/go
 COMPOSER_BIN := $(KIT_TOOLS)/mise/shims/composer
-# The PIE of mise.toml (http:pie, C17.84) fetches and builds the OrderedJSON php-ext package of the release packages.json
-# into PIE_WORK; the local record servers read the package from there (examples/form-comparison/src/local-servers.mjs).
-PIE := $(KIT_TOOLS)/mise/shims/pie
 ORDERED_JSON_VERSION := 0.0.14
-PIE_WORK := $(CURDIR)/var/pie/$(ORDERED_JSON_VERSION)
 ORDERED_JSON_PACKAGES := https://github.com/polyspec/ordered-json/releases/download/v$(ORDERED_JSON_VERSION)/packages.json
+# The folder of the OrderedJSON php-ext package that pie-build builds, which the local record servers read
+# (examples/form-comparison/src/local-servers.mjs).
+ORDERED_JSON_PACKAGE_FILE := $(CURDIR)/var/ordered-json-package
 
-# PIE resolves polyspec/ordered-json-php-ext in the Composer repository of the release, builds it with phpize into PIE_WORK
-# and installs nothing into the PHP; the checks read the package from PIE_WORK (C17.84, H27.45).
+# kit's pie-build builds polyspec/ordered-json-php-ext of the release packages.json with PIE (K915) and prints the line
+# `package <folder>`, which is recorded for the checks (C17.84, H27.45, C17.90).
 .PHONY: ordered-json-ext
-ordered-json-ext: ## Fetch and build the OrderedJSON php-ext package of the release packages.json with PIE into var/pie (C17.84); ONLINE
-	$(ONLINE) $(KIT_TOOLS)/bin/mise install --locked http:pie
-	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) repository:add composer $(ORDERED_JSON_PACKAGES) --no-interaction
-	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) build polyspec/ordered-json-php-ext:$(ORDERED_JSON_VERSION) --no-interaction
+ordered-json-ext: ## Build the OrderedJSON php-ext package of the release packages.json with PIE and record its folder (C17.84); ONLINE
+	@mkdir -p $(CURDIR)/var
+	$(MAKE) -s pie-build PACKAGES=$(ORDERED_JSON_PACKAGES) PACKAGE=polyspec/ordered-json-php-ext VERSION=$(ORDERED_JSON_VERSION) | sed -n 's/^package //p' > $(ORDERED_JSON_PACKAGE_FILE)
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -209,7 +207,7 @@ crudui-install-go-modules: ## Download the modules that the Go workspace require
 ifneq ($(LOCAL),1)
 crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks:
 endif
-# The targets that start the local form-comparison stack read the OrderedJSON php-ext that PIE builds into PIE_WORK (C17.84),
+# The targets that start the local form-comparison stack read the OrderedJSON php-ext that make ordered-json-ext records (C17.84, C17.90),
 # so a fresh checkout builds it before them (C17.85).
 crudui-test-form-comparison-pipeline crudui-test-form-comparison-browser crudui-test-form-comparison-summary crudui-test-form-comparison-checks: ordered-json-ext
 
@@ -497,7 +495,7 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 	$(NODE) $(KIT)/run-tests.$(KIT_EXT) node --timeout 10 -- scripts/documentation-links.test.mts tests/docs/changelog.test.mts tests/docs/repository-writing.test.mts tests/docs/example-readmes.test.mts tests/docs/fixture-readmes.test.mts || status=1; \
 	exit $$status
 
-# The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
+# The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-tag,
 # release-assets, release-publish (docs/operations/repository.md, "Releases"). The
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
 release-assets release-candidate-assets: crudui-prepare-release-build build
