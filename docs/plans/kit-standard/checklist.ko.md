@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: d6eb656c9df7e8fc46401e50f711a69651c5aef94439cb3b23b2937cd44f581f -->
+<!-- source-sha256: 881afac5f39d3b17ac2510b1dae65f870eae1487f6b185743cb23d1df7ce8aad -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -417,3 +417,4 @@
 | C17.71 | form-comparison Rust 서버가 CI에서 ordered-json 태그를 오프라인으로 해석하게 한다 | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
 | C17.72 | kit 0.0.75를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화한다 | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.73 | kit 0.0.77의 문서 검사(K895)에 맞춰 실행 체크리스트 문서의 날것 <단어> 자리표시자를 코드 표기로 고친다 | docs/plans/execution-checklist/checklist.md; docs/plans/execution-checklist/checklist.ko.md | `make docs-check` | [ ] |
+| C17.74 | kit 0.0.77의 링크 선언 파일(K869)에 맞춰 ci-local의 --siblings 단언을 고친다 | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |

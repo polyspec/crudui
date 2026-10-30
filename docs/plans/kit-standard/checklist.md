@@ -416,3 +416,4 @@
 | C17.71 | Make the form-comparison Rust server resolve the ordered-json tag offline in CI | examples/form-comparison/servers/rust/Cargo.toml | `make lint-rust` | [ ] |
 | C17.72 | Adopt kit 0.0.75: pin the release asset, refresh the lock, and sync kit | package.json, package-lock.json | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
 | C17.73 | Fix the bare <word> placeholders of the execution checklist documents for the documents check of kit 0.0.77 (K895) | docs/plans/execution-checklist/checklist.md; docs/plans/execution-checklist/checklist.ko.md | `make docs-check` | [ ] |
+| C17.74 | Update the --siblings assertion of ci-local for the link declaration file of kit 0.0.77 (K869) | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
