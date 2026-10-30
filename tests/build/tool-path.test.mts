@@ -11,6 +11,7 @@ import { parse } from 'yaml';
 import { isVendored } from '../../scripts/repository-files.mts';
 import { makeTargets } from '../../scripts/test-commands.mts';
 import { checked, readManifest, type JTDSchemaType } from '../json.mts';
+import { recordedNpmRelease } from './npm-release.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const TOOLS_BIN = path.join(ROOT, 'var', 'tools', 'bin');
@@ -61,9 +62,7 @@ test('every recipe starts npm by its path in the checkout', () => {
 });
 
 test('a recipe of make runs the recorded npm of the checkout', () => {
-  const manager = readManifest(path.join(ROOT, 'package.json')).packageManager ?? '';
-  const recorded = /^npm@(\d+\.\d+\.\d+)(?:\+sha512\.[0-9a-f]{128})?$/.exec(manager)?.[1];
-  assert.ok(recorded, `package.json must record packageManager as npm@<major>.<minor>.<patch>; it records ${manager}`);
+  const recorded = recordedNpmRelease(readManifest(path.join(ROOT, 'package.json')).packageManager);
   // The probe recipe has no shell syntax, so make starts the program itself, as it does for `$(NPM) run docs:api`.
   const run = spawnSync('make', ['--no-print-directory', '-s', '-f', 'Makefile', '-f', '-', 'probe-npm'], {
     cwd: ROOT, encoding: 'utf8', input: 'probe-npm:\n\t$(NPM) --version\n', env: { ...process.env, MAKEFLAGS: '', MAKELEVEL: '' },

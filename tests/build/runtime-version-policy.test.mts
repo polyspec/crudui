@@ -10,6 +10,7 @@ import { parse } from 'yaml';
 import { isVendored, ownedFiles } from '../../scripts/repository-files.mts';
 import { checked, parseJson, type JTDSchemaType } from '../json.mts';
 import { kitToolPath, makeDryRun } from './make-dry-run.mts';
+import { recordedNpmRelease } from './npm-release.mts';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -121,9 +122,7 @@ async function findContainerDefinitions(): Promise<string[]> {
 /** The exact npm release that `packageManager` of package.json records. */
 async function recordedNpm(): Promise<string | undefined> {
   const manifest = parseJson(await readFile(path.join(repository, 'package.json'), 'utf8'), manifestSchema, 'package.json');
-  const match = /^npm@(\d+\.\d+\.\d+)$/.exec(manifest.packageManager ?? '');
-  assert.ok(match, `package.json must record one exact npm release as packageManager npm@<major>.<minor>.<patch>; it records ${manifest.packageManager}`);
-  return match[1];
+  return recordedNpmRelease(manifest.packageManager);
 }
 
 test('the npm that runs here is the release that package.json records', async () => {
