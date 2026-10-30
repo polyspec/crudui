@@ -87,7 +87,6 @@ const toolchainSchema: JTDSchemaType<ToolchainConfig> = {
 /** The releases that recordedToolchain reads. */
 interface RecordedToolchain {
   node: string | undefined;
-  npm: string | undefined;
   go: string | undefined;
   rust: string | undefined;
   php: string[];
@@ -96,7 +95,7 @@ interface RecordedToolchain {
 }
 
 /**
- * The releases that the checkout declares, by the names of this test: npm of packageManager, Rust of rust-toolchain.toml,
+ * The releases that the checkout declares, by the names of this test: Rust of rust-toolchain.toml,
  * the minors of PHP of config/toolchain.json, and Node.js, Go, Python and Composer of mise.toml, which make install-tools
  * installs with mise (kit K127, K171); kit's install-tools and install-kit check the recorded versions (K854).
  */
@@ -107,7 +106,6 @@ async function recordedToolchain(root: string): Promise<RecordedToolchain> {
   const mise = await text('mise.toml');
   return {
     node: /^node = "([^"]+)"$/m.exec(mise)?.[1],
-    npm: /^npm@(\d+\.\d+\.\d+)/.exec(manifest.packageManager ?? '')?.[1],
     go: /^go = "([^"]+)"$/m.exec(mise)?.[1],
     rust: /^channel = "([^"]+)"$/m.exec(await text('rust-toolchain.toml'))?.[1],
     php: config.php, python: /^python = "([^"]+)"$/m.exec(mise)?.[1], composer: /^"http:composer" = \{ version = "([^"]+)"/m.exec(mise)?.[1],
