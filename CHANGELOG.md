@@ -3,6 +3,26 @@
 
 ## Unreleased
 
+### 2026-10-30 — Remove the leftover reference-transaction references (C17.59)
+
+- No file or reference of the reference-transaction hook (K801) remains in the checkout; the hooks that make hooks writes are pre-commit, commit-msg and prepare-commit-msg.
+
+### 2026-10-30 — Remove the leftover python backend declarations (C17.60)
+
+- No pythonBackend, dependency-policy.json or python backend declaration remains; the kit that removed them no longer checks them.
+
+### 2026-10-30 — Remove the leftover release-consumer and release-proof adoption (C17.61)
+
+- The release-consumer tests and the release-proof adoption are gone; the release fixtures and offline checks pass.
+
+### 2026-10-30 — Remove the leftover commit-rule consumer state (C17.63)
+
+- No pre-merge-commit hook, commit-identity declaration or commits-check target remains; make hooks writes only pre-commit.
+
+### 2026-10-30 — Remove the leftover make release-versions step (C17.64)
+
+- The release workflow no longer runs make release-versions.
+
 ### 2026-10-30 — Remove the unlink target from the offline downloads list (C17.62)
 
 - The offline-checks test no longer counts unlink as a download target: the kit runs it offline, so it lifts nothing.

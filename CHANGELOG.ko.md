@@ -4,6 +4,26 @@
 
 ## Unreleased
 
+### 2026-10-30 — reference-transaction 잔여 참조를 제거한다 (C17.59)
+
+- reference-transaction 훅(K801)의 파일과 참조가 저장소에 남아 있지 않다. make hooks가 쓰는 훅은 pre-commit, commit-msg, prepare-commit-msg다.
+
+### 2026-10-30 — python 백엔드 잔여 선언을 제거한다 (C17.60)
+
+- pythonBackend, dependency-policy.json, python 백엔드 선언이 남아 있지 않다. 그것들을 지운 kit은 더 이상 검사하지 않는다.
+
+### 2026-10-30 — release 소비자와 release 증명 잔여 채택을 제거한다 (C17.61)
+
+- release 소비자 테스트와 release 증명 채택이 없다. release fixture와 오프라인 검사가 통과한다.
+
+### 2026-10-30 — commit 규칙 소비자 상태 잔여를 제거한다 (C17.63)
+
+- pre-merge-commit 훅, commit-identity 선언, commits-check 대상이 남아 있지 않다. make hooks는 pre-commit만 쓴다.
+
+### 2026-10-30 — make release-versions 단계 잔여를 제거한다 (C17.64)
+
+- release 워크플로는 더 이상 make release-versions를 실행하지 않는다.
+
 ### 2026-10-30 — 오프라인 다운로드 목록에서 unlink 대상을 뺀다 (C17.62)
 
 - offline-checks 테스트는 unlink를 다운로드 대상으로 세지 않는다. kit은 unlink를 오프라인으로 실행하므로 오프라인 설정을 풀지 않는다.

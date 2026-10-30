@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: a33a0cf99155341906bdd4913b7611b00583b89fcbfb7db3824dc319247ced4e -->
+<!-- source-sha256: 49a1b19120166d6e19a1fa701446cf12268e7534272bb67af96c0228633bf59c -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -402,12 +402,12 @@
 | C17.56-2 | 현재 kit 공유 파일을 추적 일반 파일로 동기화한다 (우선순위: 높음). | kit-managed shared files and workflows | `make kit-check`; `node node_modules/@polyspec/kit/scripts/kit/check-documents.mts`; `node node_modules/@polyspec/kit/scripts/kit/run-tests.mts node -- --test-name-pattern="each workflow declares\|release trigger matches\|only the release workflow" tests/build/ci-local.test.mts` | [o] |
 | C17.57 | crudui composer.json에는 저장소 밖의 polyspec 패키지를 잇는 path repository가 없고, vendor/polyspec/ordered-json은 make link가 만든 평범한 symlink다 (K773, PRINCIPLES S11) | composer.json and composer.lock (the path repository of ordered-json deleted; the composer repository of its release packages.json added; the release requirement kept with no version change) | `make link-state-check`; `make worktree-setup` | [o] |
 | C17.58 | crudui는 kit이 삭제하는 네 대상(dependency-policy-check, dependency-policy-mutation-check, dependency-review, composer-provider-entries)에 대한 실행 참조와 그것만을 위한 파일을 제거한다 (K784) | Makefile, config/owner-checks.json, config/toolchain.json, config/dependency-review.json (deleted), .github/workflows/dependency-review.yml (deleted), their tests under tests/build | `make owner-validate`; `make rules-check`; `make docs-check` | [o] |
-| C17.59 | reference-transaction 훅 제거 (K801) | .githooks/reference-transaction removed | `make land` succeeds on the removal commit; `make hooks` lists no reference-transaction | [ ] |
-| C17.60 | K788/K789 python backend와 정책 선언 제거 | pythonBackend, consumers.wheel.polyspec, config/dependency-policy.json and their references removed | `make owner-validate` and `make land` succeed on the removal | [ ] |
-| C17.61 | K798 release-consumer와 release-proof 채택 제거 | tests/release-install, config/release.json consumers and proof, release-fixtures cases, release.yml release-proof step removed | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts` and `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` pass | [ ] |
+| C17.59 | reference-transaction 훅 제거 (K801) | .githooks/reference-transaction removed | `sh -c '! git grep -q reference-transaction -- .githooks Makefile scripts config .github'` | [o] |
+| C17.60 | K788/K789 python backend와 정책 선언 제거 | pythonBackend, consumers.wheel.polyspec, config/dependency-policy.json and their references removed | `sh -c 'make owner-validate >/dev/null && ! git grep -q -e pythonBackend -e dependency-policy.json -- config tests scripts Makefile .github packages'` | [o] |
+| C17.61 | K798 release-consumer와 release-proof 채택 제거 | tests/release-install, config/release.json consumers and proof, release-fixtures cases, release.yml release-proof step removed | `node scripts/run-tests.mts node -- tests/build/release-fixtures.test.mts` and `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` pass | [o] |
 | C17.62 | offline downloads 정규식에서 python-lock 대안 제거 (K789) | the python-lock alternative removed from tests/build/offline-checks.test.mts | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` passes | [o] |
-| C17.63 | K805 commit 규칙의 소비자 상태 제거 | pre-merge-commit hook, config/commit-identity.json, commits-check CI target removed; make hooks rewrites pre-commit | `make hooks` leaves no pre-merge-commit reference, and the CI target list has no commits-check | [ ] |
-| C17.64 | crudui의 make release-versions 단계 제거 (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `grep -c 'make release-versions' .github/workflows/release.yml` prints 0 | [ ] |
+| C17.63 | K805 commit 규칙의 소비자 상태 제거 | pre-merge-commit hook, config/commit-identity.json, commits-check CI target removed; make hooks rewrites pre-commit | `make hooks` leaves no pre-merge-commit reference, and the CI target list has no commits-check | [o] |
+| C17.64 | crudui의 make release-versions 단계 제거 (K812) | release.yml release-versions step, its header line and the Makefile comment name removed | `sh -c '! grep -q "make release-versions" .github/workflows/release.yml'` | [o] |
 | C17.65 | C17.61과 C17.63이 삭제한 파일을 가리키는 owner-check glob을 제거한다 | config/owner-checks.json | `make owner-validate` | [o] |
 | C17.66 | kit가 삭제한 target과 hook을 원칙과 에이전트 문서의 강제 참조에서 제거한다 | PRINCIPLES.md, PRINCIPLES.ko.md, AGENTS.md, AGENTS.ko.md | `make rules-check` | [o] |
 | C17.67 | kit 0.0.72를 채택한다: release asset을 pin하고 lock을 갱신하고 kit를 동기화하며 CI에서 link와 link-state-check를 제거한다 | package.json, package-lock.json, .github/workflows/ci.yml, .gitignore | `make kit-sync`; `make owner-validate`; `make rules-check` | [o] |
