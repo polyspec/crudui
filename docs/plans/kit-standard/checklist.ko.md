@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: ca60ff594523d9a90cb599bc17a401f3eb71532f010d0919d3609f111b972897 -->
+<!-- source-sha256: 91f35cc2278c49d9db888a1a33d2126602df738145e6d4529659425dcfc05b06 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -432,3 +432,4 @@
 | C17.86 | crudui는 test-php 레시피(Makefile:574)를 crudui-test-php-source로 바꿔 kit의 test-php가 그대로 실행되게 하고, CI가 그 대상으로 source-internal PHP suite에 도달하게 한다 (PRINCIPLES.md:244, docs/operations/testing.md, tests/build/php-test-scope.test.mts) | Makefile, CI_TARGETS of Makefile, .github/workflows/ci.yml, PRINCIPLES.md, PRINCIPLES.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md, tests/build/php-test-scope.test.mts, CHANGELOG.md, CHANGELOG.ko.md | `make -n test-php CASES=UniqueValuesTest` prints no overriding-commands warning; `make test-php CASES='UniqueValuesTest\|OutlineTest'` exit 0 (kit test-php runs both PHP packages); `node scripts/run-tests.mts node -- tests/build/php-test-scope.test.mts` exit 0; `make rules-check` exit 0 | [o] |
 | C17.87 | crudui는 C17.86이 손으로 바꾼 vendored PRINCIPLES.md와 PRINCIPLES.ko.md를 make kit-sync로 kit 0.0.77 문구로 되돌려 kit-inject-check가 통과하게 한다 (실행 41044985845) | PRINCIPLES.md, PRINCIPLES.ko.md | `make kit-inject-check` exit 0; `make rules-check` exit 0 | [o] |
 | C17.88 | crudui는 @polyspec/kit 0.0.78(K909, K916, K918)을 채택한다: 핀과 lock을 npm으로 갱신하고, make kit-sync로 0.0.78 사본을 쓰고, 채택을 CHANGELOG에 기록한다 | package.json, package-lock.json, PRINCIPLES.md, PRINCIPLES.ko.md, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | extract polyspec-kit-npm-0.0.78.tgz in a scratch directory; its PRINCIPLES.ko.md source-sha256 equals the copy in this checkout; `make kit-inject-check` exit 0; `make rules-check` exit 0 | [o] |
+| C17.89 | crudui는 Python CI job을 다른 validator job과 같은 형식의 validator · Python으로 이름 짓는다 (ci.yml:323) | .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `grep -n "name: validator · Python" .github/workflows/ci.yml` matches; `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` exit 0 | [ ] |
