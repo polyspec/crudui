@@ -102,7 +102,7 @@ interface RecordedToolchain {
 async function recordedToolchain(root: string): Promise<RecordedToolchain> {
   const text = (file: string): Promise<string> => readFile(path.join(root, file), 'utf8');
   const config = parseJson(await text('config/toolchain.json'), toolchainSchema, 'config/toolchain.json');
-  const manifest = parseJson(await text('package.json'), manifestSchema, 'package.json');
+  parseJson(await text('package.json'), manifestSchema, 'package.json');
   const mise = await text('mise.toml');
   return {
     node: /^node = "([^"]+)"$/m.exec(mise)?.[1],
