@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 6d9cbae13e5413e5f119f428f632e7295831f4c9af2402b46c994935d1b543a7 -->
+<!-- source-sha256: fcc7e8f60f77ce683f9f9ffd2a2618bd5930bd00c2bdecff1b2be28f9a1f7181 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -423,4 +423,4 @@
 | C17.78 | kit K892가 타깃을 지워 고아가 된 prepare-commit-msg 훅을 제거해 crudui main의 모든 커밋이 다시 돌게 한다 | .githooks/prepare-commit-msg (removed in 29ca676f) | `sh -c '! test -e .githooks/prepare-commit-msg'` | [o] |
 | C17.77 | main에서 이미 실패하는 ci-local의 낡은 단언을 정리한다: kit 내부 단언은 삭제하고, crudui 동작 단언은 현재 workflow에 맞춘다(push-gate.yml, Kit CI 계획 스키마, TypeScript link 형태, native unit 묶음, generator 동등성, tag push, workflow trigger) | tests/build/ci-local.test.mts | `node scripts/run-tests.mts node -- tests/build/ci-local.test.mts` | [ ] |
 | C17.79 | form-comparison 브라우저 검사는 각 서버마다 자기 job에서 돌고, 나머지 검사는 그 뒤에 한 번 돈다(form-comparison-ci.test.mts:131 이하 단언) | tests/build/form-comparison-ci.test.mts | `node scripts/run-tests.mts node -- tests/build/form-comparison-ci.test.mts` | [-] 원인: C17.74에 합친다: 빨간 원인은 kit K864가 지운 crudui-test-form-comparison-browser의 cargo-downloads-check 선행이며, C17.74가 그 선행을 제거하므로 form-comparison-ci.test.mts의 browser jobs 단언이 함께 통과한다 |
-| C17.80 | CI provider 레시피(Makefile:136)가 packages.json URL에서 OrderedJSON 버전을 맞는 정규식으로 읽게 한다 | Makefile | `node --test --test-name-pattern "CI provider step reads the OrderedJSON version" tests/build/ci-local.test.mts` | [~] |
+| C17.80 | CI provider 레시피(Makefile:136)가 packages.json URL에서 OrderedJSON 버전을 맞는 정규식으로 읽게 한다 | Makefile | `node --test --test-name-pattern "CI provider step reads the OrderedJSON version" tests/build/ci-local.test.mts` | [o] |
