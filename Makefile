@@ -77,7 +77,7 @@ install-pie: ## Install the PIE of mise.toml (http:pie) that the OrderedJSON bui
 
 # The OrderedJSON php-ext package of the release packages.json, built with PIE directly (C17.96): PIE adds the repository and
 # builds the package in an empty working directory, and the one installed.json entry of that build names the package folder,
-# which the record servers read from ORDERED_JSON_PACKAGE_FILE. kit's pie-build is not used, since kit 0.0.81 removes it (K931).
+# which the record servers read from ORDERED_JSON_PACKAGE_FILE. kit's pie-build is not used, since kit main removes it (K931), to be released in 0.0.81.
 .PHONY: ordered-json-ext
 ordered-json-ext: install-pie ## Build the OrderedJSON php-ext package of the release packages.json with PIE and record its folder (C17.84, C17.96); ONLINE
 	@mkdir -p $(CURDIR)/var
