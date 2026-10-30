@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d4bd6c142ef903ff9b28af04228b8dc72cd70d7158dd392f72aba20e8d6c2f0e -->
+<!-- source-sha256: 0416fd72aa4ad784dfbcb476ec8fcaeee4034cdad3a598324f1995071e7f2f30 -->
 
 ## Unreleased
 
 ### 2026-10-30 — kit K892가 고아로 만든 prepare-commit-msg 훅을 제거한다 (C17.78)
 
 - prepare-commit-msg 커밋 훅을 제거한다. kit에는 그 타깃이 없고, 저장소의 모든 커밋이 다시 돌아간다.
+
+### 2026-10-30 — kit 0.0.77 2차 묶음을 채택한다 (C17.74)
+
+- crudui는 공개된 @polyspec/kit 0.0.77 asset을 고정하고, 메인 체크아웃에서 kit과 OrderedJSON을 링크한다. toolchain-check, CI가 반복하던 공유 gate, release-assets-fetch, cargo-downloads-check, link-state-check를 제거한다.
 
 ### 2026-10-30 — canonical Composer 프로젝트를 릴리즈 packages.json으로 검사한다 (C17.75)
 

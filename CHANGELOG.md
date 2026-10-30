@@ -7,6 +7,10 @@
 
 - The commit hook of prepare-commit-msg is removed; kit no longer has its target, and every commit of the repository runs again.
 
+### 2026-10-30 — Adopt kit 0.0.77 in the second batch (C17.74)
+
+- crudui pins the released @polyspec/kit 0.0.77 asset, links the kit and OrderedJSON from the main checkout, and drops toolchain-check, the shared gates that CI repeats, release-assets-fetch, cargo-downloads-check and link-state-check.
+
 ### 2026-10-30 — Check the canonical Composer project through its release packages.json (C17.75)
 
 - The dependency-health test checks that the canonical Composer project resolves polyspec/ordered-json from its release packages.json and declares no path repository outside the checkout.
