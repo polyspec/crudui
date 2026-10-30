@@ -7,6 +7,10 @@
 
 - RecordedToolchain of tests/build/runtime-version-policy.test.mts no longer reads an npm field, the second packageManager parser of the audit; the KO twin of CHANGELOG.md is restamped with make documents-stamp.
 
+### 2026-10-31 — Restore the released 0.0.9 entries and state the 0.0.81 wording (C17.96-1)
+
+- The two released 0.0.9 entries that named pie-build are back at their published text; the wording of the Unreleased entry and the row says kit main removes pie-build (K931), to be released in 0.0.81.
+
 ### 2026-10-31 — Declare the sha512 digest of npm 12.2.0 in packageManager (C17.98)
 
 - package.json's packageManager is npm@12.2.0+sha512.<hex>, the digest of the registry's dist.integrity, which the bootstrap of kit main requires (K933). It needs no kit pin change.

@@ -1,12 +1,16 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f93d0736eae5663802e792ee95fe79e84606ce91faa2d6ac333cb31a62125230 -->
+<!-- source-sha256: 1b9d8af4e4db288a47cf5daca6830498839f7597789dbe1d291f39e213d481dc -->
 
 ## Unreleased
 
 ### 2026-10-31 — 읽히지 않는 npm 필드를 지우고 KO 변경 기록을 다시 찍는다 (C17.98-1)
 
 - tests/build/runtime-version-policy.test.mts의 RecordedToolchain은 더 이상 npm 필드를 읽지 않는다. 감사가 찾은 두 번째 packageManager 파서다. CHANGELOG.md의 KO 쌍은 make documents-stamp로 다시 찍었다.
+
+### 2026-10-31 — 릴리스된 0.0.9 항목을 되돌리고 0.0.81 문구를 적는다 (C17.96-1)
+
+- pie-build를 적었던 릴리스된 0.0.9 항목 두 개를 공개된 문구로 되돌렸다. Unreleased 항목과 행의 문구는 kit main이 pie-build를 제거하며(K931) 0.0.81에 포함될 예정이라고 적는다.
 
 ### 2026-10-31 — packageManager에 npm@12.2.0의 sha512 다이제스트를 적는다 (C17.98)
 
