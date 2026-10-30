@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 5456653c8236698d30d008dd95239716ff189ec706b77ab522246b009d08d3d1 -->
+<!-- source-sha256: d8307df08cf92fdecceef1e2ece032c4f132c0ad44390bbce4863da16c6d0df5 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -429,3 +429,4 @@
 | C17.83 | kit이 더 이상 가지지 않는 --without-library 옵션을 crudui-test-php-api(Makefile:415)의 generator PHP 검사에서 뺀다. PHPUnit이 실행되고 적합성 증거가 생긴다 | Makefile | `node tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [o] |
 | C17.84 | 릴리스 OrderedJSON php-ext를 var/ordered-json-php-ext 대신 packages.json 저장소에서 Composer가 설치한 vendor/polyspec/ordered-json-php-ext에서 읽는다(local-servers.mjs:23, CI record stores와 browser 검사) | examples/form-comparison/src/local-servers.mjs; examples/form-comparison/src/local-servers.test.mjs; composer.json; composer.lock | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C17.85 | crudui는 var/pie를 읽는 form-comparison 대상 전에 OrderedJSON php-ext를 빌드(make ordered-json-ext)하여 새 CI 체크아웃이 실패하지 않게 한다 (실행 41032798468) | Makefile | `make -n crudui-test-form-comparison-browser` plans ordered-json-ext before the check; `make ordered-json-ext` exit 0 from a checkout without var/pie | [o] |
+| C17.86 | crudui는 test-php 레시피(Makefile:574)를 crudui-test-php-source로 바꿔 kit의 test-php가 그대로 실행되게 하고, CI가 그 대상으로 source-internal PHP suite에 도달하게 한다 (PRINCIPLES.md:244, docs/operations/testing.md, tests/build/php-test-scope.test.mts) | Makefile, CI_TARGETS of Makefile, .github/workflows/ci.yml, PRINCIPLES.md, PRINCIPLES.ko.md, docs/operations/testing.md, docs/operations/testing.ko.md, tests/build/php-test-scope.test.mts, CHANGELOG.md, CHANGELOG.ko.md | `make -n test-php` prints no overriding-recipe warning; `make test-php` exit 0 once on crudui; `make rules-check`; `node scripts/run-tests.mts node -- tests/build/php-test-scope.test.mts` exit 0 | [ ] |
