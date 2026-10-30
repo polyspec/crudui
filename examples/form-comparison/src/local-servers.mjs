@@ -23,13 +23,19 @@ export const repositoryRoot = path.resolve(exampleDirectory, '../..');
 const pieWorkDirectory = 'var/pie';
 const orderedJsonExtensionPath = path.join('vendor', 'polyspec', 'ordered-json-php-ext');
 
-/** The folder of the OrderedJSON php-ext package that PIE fetched into pieWorkDirectory, or undefined. */
+/**
+ * The folder of the OrderedJSON php-ext package that PIE fetched, or undefined. PIE's working directory is keyed by the
+ * version (var/pie/<version>, Makefile PIE_WORK), so an older version never shadows the new repository (C17.84).
+ */
 async function pieOrderedJsonDirectory(root) {
-  const work = path.join(root, pieWorkDirectory);
-  const entries = await readdir(work).catch(() => []);
-  for (const entry of entries.sort()) {
-    const folder = path.join(work, entry, orderedJsonExtensionPath);
-    if (await stat(path.join(folder, 'composer.json')).then(file => file.isFile(), () => false)) return folder;
+  const versions = await readdir(path.join(root, pieWorkDirectory)).catch(() => []);
+  for (const version of versions.sort()) {
+    const work = path.join(root, pieWorkDirectory, version);
+    const entries = await readdir(work).catch(() => []);
+    for (const entry of entries.sort()) {
+      const folder = path.join(work, entry, orderedJsonExtensionPath);
+      if (await stat(path.join(folder, 'composer.json')).then(file => file.isFile(), () => false)) return folder;
+    }
   }
   return undefined;
 }

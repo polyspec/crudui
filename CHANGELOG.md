@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Key the PIE work directory by the OrderedJSON version (C17.84)
+
+- PIE_WORK is var/pie/<version>, so a later version never meets the repository that an older one added to the same working directory.
+
 ### 2026-10-30 — Read the release OrderedJSON php-ext that PIE builds into var/pie (C17.84)
 
 - The release record servers read the OrderedJSON php-ext package that PIE fetches and builds from the packages.json repository with make ordered-json-ext, not the old var/ordered-json-php-ext path.

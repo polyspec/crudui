@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — PIE 작업 디렉터리를 OrderedJSON 버전으로 나눈다 (C17.84)
+
+- PIE_WORK는 var/pie/<version>이라, 이전 버전이 같은 작업 디렉터리에 추가한 저장소가 새 버전을 가리지 않는다.
+
 ### 2026-10-30 — 릴리스 OrderedJSON php-ext를 PIE가 var/pie에 빌드한 것에서 읽는다 (C17.84)
 
 - 릴리스 레코드 서버는 옛 var/ordered-json-php-ext 대신 make ordered-json-ext가 packages.json 저장소에서 PIE로 받아 빌드한 OrderedJSON php-ext 패키지를 읽는다.

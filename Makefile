@@ -65,7 +65,7 @@ COMPOSER_BIN := $(KIT_TOOLS)/mise/shims/composer
 # The PIE of mise.toml (http:pie, C17.84) fetches and builds the OrderedJSON php-ext package of the release packages.json
 # into PIE_WORK; the local record servers read the package from there (examples/form-comparison/src/local-servers.mjs).
 PIE := $(KIT_TOOLS)/mise/shims/pie
-PIE_WORK := $(CURDIR)/var/pie
+PIE_WORK := $(CURDIR)/var/pie/$(ORDERED_JSON_VERSION)
 ORDERED_JSON_VERSION := 0.0.14
 ORDERED_JSON_PACKAGES := https://github.com/polyspec/ordered-json/releases/download/v$(ORDERED_JSON_VERSION)/packages.json
 
