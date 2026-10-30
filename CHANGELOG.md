@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Resolve ordered-json from its release packages.json (C17.57)
+
+- The root Composer project no longer links ordered-json from a path outside the repository; it resolves polyspec/ordered-json 0.0.13 from the release packages.json, and make link links the installed folder to the sibling checkout for development.
+
 ### 2026-10-30 — Escape the raw placeholders of the execution checklist (C17.73)
 
 - The execution checklist shows its placeholders as code, so the site renders the timeout line of C7.8 instead of dropping its `<command>`.

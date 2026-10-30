@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — ordered-json을 릴리즈 packages.json에서 해결한다 (C17.57)
+
+- 루트 Composer 프로젝트는 저장소 밖의 path로 ordered-json을 연결하지 않고, polyspec/ordered-json 0.0.13을 릴리즈 packages.json에서 해결한다. 개발에서는 make link가 설치 폴더를 sibling checkout에 심볼릭 링크한다.
+
 ### 2026-10-30 — 실행 체크리스트의 날것 자리표시자를 코드로 표기한다 (C17.73)
 
 - 실행 체크리스트는 자리표시자를 코드 표기로 보여 주므로, 사이트가 C7.8의 timeout 줄에서 `<command>`를 지우지 않는다.
