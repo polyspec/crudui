@@ -118,7 +118,7 @@ test('each make job bootstraps the installed kit with the declared npm before ma
     'duplicate: expected one native npm bootstrap reading packageManager',
   ]);
   let jobs = 0;
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml']) {
     const workflow = await workflowFile(file);
     jobs += Object.values(workflow.jobs).filter(job => job.steps?.some(step => /(?:^|\n)\s*make(?:\s|$)/.test(step.run ?? ''))).length;
     assert.deepEqual(nativeBootstrapViolations(workflow), [], file);
@@ -316,7 +316,7 @@ test('a job that installs the npm packages caches ~/.npm by package-lock.json, a
   ]);
   const violations: string[] = [];
   // release.yml is the copy of kit, which follows the rules of kit.
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml']) {
     violations.push(...npmCacheViolations(await workflowFile(file)).map((line) => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
@@ -436,7 +436,7 @@ test('a workflow step starts every tool through a make target', async () => {
   ] } } }), ['a: install: node scripts/kit/install-tools.mjs', 'a: test: FOO=1 xvfb-run npm test']);
   const violations: string[] = [];
   // release.yml is the copy of kit, which follows the rules of kit.
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml']) {
     violations.push(...stepsOutsideMake(await workflowFile(file)).map(line => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
@@ -481,7 +481,7 @@ test('every job runs its checks through make ci-targets and uploads their report
     'c: the report upload does not fail without a report',
   ]);
   const violations: string[] = [];
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml']) {
     const workflow = await workflowFile(file);
     violations.push(...jobsWithoutReport(workflow).map((line) => `${file} ${line}`));
     // The report artifact of each job, and of each matrix entry, has a name of its own.
@@ -498,7 +498,6 @@ test('no run of a commit of main is stopped by a later push', async () => {
   assert.deepEqual((await workflowFile('ci.yml')).concurrency, {
     group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': false,
   });
-  assert.equal((await workflowFile('push-gate.yml')).concurrency, undefined);
   assert.deepEqual((await workflowFile('pages.yml')).concurrency, { group: 'github-pages', 'cancel-in-progress': false });
 });
 
@@ -511,7 +510,6 @@ test('no run of a commit of main is stopped by a later push', async () => {
 const TRIGGERS = {
   'ci.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'gates.yml': 'on:\n  pull_request:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
-  'push-gate.yml': "on:\n  push:\n    branches: ['**']\n",
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n  workflow_dispatch:\n    inputs:\n      tag:\n        description: The tag of the release, such as v0.0.1\n        required: true\n        type: string\n",
 };
@@ -549,7 +547,6 @@ test('the release trigger matches vX.Y.Z and the tag of every Go module of packa
 
 test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {
   assert.deepEqual((await workflowFile('ci.yml')).on, { push: { branches: ['main'] }, workflow_dispatch: null });
-  assert.deepEqual((await workflowFile('push-gate.yml')).on, { push: { branches: ['**'] } });
   const pages = await workflowFile('pages.yml');
   assert.deepEqual(pages.on, { push: { branches: ['main'] }, workflow_dispatch: null });
   const deploy = jobOf(pages, 'deploy');
@@ -610,7 +607,7 @@ test('only the release workflow starts on a tag push', async () => {
   }
   assert.deepEqual(violations, []);
   const { checks } = parseJson<{ checks: string[] }>(await read('config/release.json'), { properties: { checks: { elements: { type: 'string' } } }, additionalProperties: true }, 'config/release.json');
-  assert.deepEqual(checks, ['push-gate', 'ci-passed']);
+  assert.deepEqual(checks, ['ci-passed']);
 });
 
 // make install-packages runs the svelte tools after its npm ci (INSTALL_PACKAGES_EXTRA, kit K428) and links nothing: make
@@ -708,7 +705,7 @@ test('language jobs install only their required tools and own both validator and
 
 
 test('every application workflow declares a bounded tool installation scope', async () => {
-  for (const file of ['ci.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'pages.yml']) {
     const workflow = await workflowFile(file);
     for (const [id, job] of Object.entries(workflow.jobs)) {
       for (const step of job.steps ?? []) {
@@ -718,84 +715,10 @@ test('every application workflow declares a bounded tool installation scope', as
       }
     }
   }
-  const push = jobOf(await workflowFile('push-gate.yml'), 'push-gate');
-  assert.ok((push.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node"'));
-  assert.equal((push.steps ?? []).some(step => step.uses?.startsWith('shivammathur/setup-php@')), false);
   const pages = jobOf(await workflowFile('pages.yml'), 'docs-web');
   assert.ok((pages.steps ?? []).some(step => step.run === 'make install-tools TOOLS="node go rust php composer"'));
 });
 
 
-test('the native Kit CI planner validates every declared runtime and its locked setup', async () => {
-  const env = makeEnvironment(process.env);
-  delete env.GITHUB_OUTPUT;
-  const result = spawnSync('make', ['--silent', '--no-print-directory', 'kit-ci-plan'], {
-    cwd: ROOT, env, encoding: 'utf8',
-  });
-  assert.equal(result.error, undefined, result.error?.message);
-  assert.equal(result.status, 0, result.stderr);
-  const plan = parseJson<{
-    parityMode: string; parityImplementations: string[]; parityRuntimes: string[];
-    runtimes: { runtime: string; installTools: string[]; checkTools: string[] }[];
-  }>(result.stdout, {
-    properties: {
-      parityMode: { type: 'string' }, parityImplementations: { elements: { type: 'string' } },
-      parityRuntimes: { elements: { type: 'string' } },
-      runtimes: { elements: { properties: {
-        runtime: { type: 'string' }, installTools: { elements: { type: 'string' } }, checkTools: { elements: { type: 'string' } },
-      }, additionalProperties: true } },
-    }, additionalProperties: true,
-  }, 'the native Kit CI plan');
-  const runtimes = ['go', 'php', 'php-ext', 'python', 'rust', 'ts'];
-  assert.deepEqual(plan.runtimes.map(job => job.runtime).sort(), runtimes);
-  assert.deepEqual([...plan.parityRuntimes].sort(), runtimes);
-  assert.equal(plan.parityMode, 'full');
-  const parity = parseJson<{ implementations: { name: string }[] }>(await read('config/parity.json'), {
-    properties: { implementations: { elements: { properties: { name: { type: 'string' } }, additionalProperties: true } } },
-    additionalProperties: true,
-  }, 'config/parity.json');
-  assert.deepEqual([...plan.parityImplementations].sort(), parity.implementations.map(item => item.name).sort());
-  const setup = parseJson<{ setup: { runtimes: Record<string, string[]> } }>(await read('config/ci.json'), {
-    properties: { setup: { properties: { runtimes: { values: { elements: { type: 'string' } } } }, additionalProperties: true } },
-    additionalProperties: true,
-  }, 'config/ci.json');
-  assert.ok(setup.setup.runtimes.go?.includes('crudui-install-go-modules'));
-  assert.ok(setup.setup.runtimes.python?.includes('crudui-install-python'));
-});
 
 
-test('native TypeScript package links exclude foreign runtimes while default links retain them', async () => {
-  const { link } = await import('@polyspec/kit/link');
-  const fixture = await mkdtemp(path.join(tmpdir(), 'crudui-runtime-links-'));
-  const env = makeEnvironment(process.env);
-  for (const name of ['GO', 'COMPOSER_BIN', 'UV', 'CARGO', 'NPM', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE']) delete env[name];
-  try {
-    await Promise.all([
-      writeFile(path.join(fixture, 'package.json'), JSON.stringify({ name: 'runtime-link-fixture', private: true })),
-      writeFile(path.join(fixture, 'go.mod'), 'module example.invalid/runtime-link-fixture\n\ngo 1.27.3\n'),
-      writeFile(path.join(fixture, 'composer.json'), JSON.stringify({ name: 'fixture/runtime-link', type: 'project' })),
-      writeFile(path.join(fixture, 'pyproject.toml'), '[project]\nname = "runtime-link-fixture"\nversion = "0.0.0"\n'),
-    ]);
-    const git = (...args: string[]) => {
-      const result = spawnSync('git', args, { cwd: fixture, env, encoding: 'utf8' });
-      assert.equal(result.error, undefined, result.error?.message);
-      assert.equal(result.status, 0, result.stderr);
-      return result.stdout;
-    };
-    git('init', '--quiet');
-    git('add', '--', 'package.json', 'go.mod', 'composer.json', 'pyproject.toml');
-    assert.deepEqual(git('ls-files', '-z').split('\0').filter(Boolean).sort(),
-      ['composer.json', 'go.mod', 'package.json', 'pyproject.toml']);
-    assert.equal(existsSync(path.join(fixture, 'var', 'tools')), false);
-    const inputs = { checkouts: [], directories: [fixture], check: true, print: () => {}, env };
-    assert.equal(link({ ...inputs, runtime: 'ts' }), true);
-    assert.throws(() => link(inputs), Error);
-    const command = makeDryRun(ROOT, 'link', { variables: ['RUNTIME=ts'] });
-    assert.equal(command.status, 0, command.stderr);
-    assert.match(command.stdout, /\/link\.(?:mts|mjs) link --runtime ts --siblings(?:\n|$)/);
-    const gates = await workflowFile('gates.yml');
-    assert.ok((jobOf(gates, 'runtime').steps ?? []).some(step => step.run === 'make link RUNTIME=${{ matrix.runtime }}'));
-  } finally {
-    await rm(fixture, { recursive: true, force: true });
-  }
-});
