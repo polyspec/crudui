@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Restore the vendored PRINCIPLES copies to kit's text (C17.87)
+
+- PRINCIPLES.md and PRINCIPLES.ko.md are kit's copies again (make kit-sync), so kit-inject-check passes; the S10 line names kit's `make test-php`.
+
 ### 2026-10-30 — Rename the source PHP suites target so kit's test-php runs unchanged (C17.86)
 
 - `make crudui-test-php-source` replaces the test-php recipe of the Makefile, which overrode kit's test-php; CI runs it in the validator-php job and CI_TARGETS names it.

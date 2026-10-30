@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — vendored PRINCIPLES 사본을 kit 문구로 되돌린다 (C17.87)
+
+- PRINCIPLES.md와 PRINCIPLES.ko.md는 다시 kit의 사본이다(make kit-sync). kit-inject-check가 통과하며, S10 줄은 kit의 `make test-php`를 가리킨다.
+
 ### 2026-10-30 — kit의 test-php가 그대로 실행되도록 source PHP suite 대상 이름을 바꾼다 (C17.86)
 
 - `make crudui-test-php-source`가 kit test-php를 덮어쓰던 Makefile의 test-php 레시피를 대체한다. CI는 validator-php 작업에서 실행하고 CI_TARGETS가 이름을 지정한다.
