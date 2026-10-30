@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -522,11 +522,12 @@ test('each workflow declares exactly its triggers', async () => {
   }
 });
 
-/** Whether a GitHub tag filter matches a tag: `**` matches any characters, `*` any characters but `/`. */
 test('the release is a dispatch of a successful CI run and the version (K911)', async () => {
-  const release = await workflowFile('release.yml');
-  assert.deepEqual(Object.keys(field(release, 'on') as object), ['workflow_dispatch']);
-  const inputs = field(field(release.on, 'workflow_dispatch'), 'inputs') as Record<string, unknown>;
+  const on = field(await workflowFile('release.yml'), 'on');
+  assert.ok(isRecord(on));
+  assert.deepEqual(Object.keys(on), ['workflow_dispatch']);
+  const inputs = field(field(on, 'workflow_dispatch'), 'inputs');
+  assert.ok(isRecord(inputs));
   assert.deepEqual(Object.keys(inputs).sort(), ['run', 'version']);
 });
 
@@ -592,7 +593,9 @@ test('only the release workflow starts on a tag push', async () => {
   }
   assert.deepEqual(violations, []);
   // kit 0.0.79 releases by the run id of ci.yml, so config/release.json names no check (K911).
-  assert.equal(Object.hasOwn(JSON.parse(await read('config/release.json')), 'checks'), false);
+  const release: unknown = JSON.parse(await read('config/release.json'));
+  assert.ok(isRecord(release));
+  assert.equal(Object.hasOwn(release, 'checks'), false);
 });
 
 // make install-packages runs the svelte tools after its npm ci (INSTALL_PACKAGES_EXTRA, kit K428) and links nothing: make
