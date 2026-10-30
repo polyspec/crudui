@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -380,17 +380,15 @@ test('the CI provider step reads the OrderedJSON version of the packages.json UR
   assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+$/);
 });
 
-test('a CI job runs the lint of kit once and repeats none of the shared gates (K870)', async () => {
+test('make lint runs no lint of kit, and the kit pipeline runs the TypeScript gate once; a CI job repeats none of the shared gates (K870, C17.91)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
   const lint = makeDryRun(ROOT, 'lint');
   assert.equal(lint.status, 0, lint.stderr);
-  const entry = /\/var\/tools\/bin\/node (\S+\/lint-ts\.(?:mts|mjs))\b/.exec(lint.stdout)?.[1];
-  assert.ok(entry, lint.stdout);
-  assert.equal(realpathSync(path.resolve(ROOT, entry)), kitToolPath('lint-ts'));
+  assert.doesNotMatch(lint.stdout, /lint-ts\.(?:mts|mjs)\b/, lint.stdout);
   const runs = (target: string): boolean => workflow.some(command => new RegExp(`TARGETS="[^"]*\\b${target}\\b`).test(command) || command === `make ${target}`);
-  assert.equal(runs('lint') || runs('lint-ts'), true, 'a CI job runs the lint of kit');
+  assert.equal(runs('lint'), true, 'a CI job runs the Svelte lint');
   // K870: the shared gates run once in the gates of kit, and a repository CI does not run them again.
-  assert.deepEqual(['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'docs-check'].filter(target => runs(target)), []);
+  assert.deepEqual(['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts', 'docs-check'].filter(target => runs(target)), []);
 });
 
 /** The steps that run a checking command without `if: ${{ !cancelled() }}`, as `job: step`. */
