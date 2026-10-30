@@ -3,6 +3,14 @@
 
 ## Unreleased
 
+### 2026-10-30 — Keep the input failure of a repeated literal choice (C17.69)
+
+- The PHP extension keeps the input failure of a repeated literal choice as the previous exception of the form error.
+
+### 2026-10-30 — Keep the parameter and syntax causes of an invalid pattern (C17.70)
+
+- The PHP extension keeps the invalid parameter and its pattern syntax error as the previous exceptions of the load error.
+
 ### 2026-10-30 — Adopt kit 0.0.75 (C17.72)
 
 - crudui pins the released @polyspec/kit 0.0.75 asset and its lock; kit-sync finds no change to the workflows of that version.

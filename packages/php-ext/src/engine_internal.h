@@ -582,6 +582,8 @@ ps_value *ps_error(const char *kind, const char *code, const char *message,
 ps_result ps_fail_text(const char *kind, const char *code, ps_text message, ps_text at);
 ps_value *ps_error_text(const char *kind, const char *code, ps_text message,
                         ps_text at, const ps_value *trace);
+/* Give an error its cause, the error that the exception of it has as its previous exception; both are consumed. */
+ps_value *ps_error_with_cause(ps_value *error, ps_value *cause);
 
 /*
  * Declaration checks (declaration.c). Each returns false with *error set to an INVALID_FORM_INPUT

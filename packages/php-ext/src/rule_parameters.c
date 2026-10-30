@@ -133,6 +133,21 @@ ps_value *ps_parameter_error(ps_text rule, const ps_parameter_problem *problem,
     ps_value *error = location.bytes && message.bytes && trace
         ? ps_error_text("compose", problem->code, ps_view(message), ps_view(location), trace)
         : NULL;
+    if (error && problem->reason) {
+        /* The parameter error and the syntax error of a pattern are the causes of the load failure (C17.70). */
+        ps_value *parameter = ps_error_text("parameter", problem->code, ps_view(message), ps_view(location), NULL);
+        ps_value *syntax = ps_object_value();
+        if (syntax && ps_set(syntax, "kind", ps_string_value("syntax")) &&
+            ps_set(syntax, "reason", ps_string_value(problem->reason)) &&
+            ps_set(syntax, "offset", ps_int_value((int64_t)problem->offset))) {
+            parameter = ps_error_with_cause(parameter, syntax);
+        } else {
+            ps_value_free(syntax);
+            ps_value_free(parameter);
+            parameter = NULL;
+        }
+        error = parameter ? ps_error_with_cause(error, parameter) : (ps_value_free(error), NULL);
+    }
     free(location.bytes);
     free(message.bytes);
     ps_value_free(trace);

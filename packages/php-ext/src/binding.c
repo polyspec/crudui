@@ -195,8 +195,10 @@ static ps_value *build_widget(const ps_value *spec, const ps_value *value,
     ps_chars repeated = {NULL, 0};
     ps_value *choices = ps_group_source_choices(items, context->data, &repeated);
     if (!choices && repeated.bytes) {
-        /* A row that repeats a literal choice is the input failure of the validator (CUSC-089). */
-        *error = ps_error_text("form", "INVALID_FORM_INPUT", ps_view(repeated), PS_TEXT(""), NULL);
+        /* A row that repeats a literal choice is the input failure of the validator (CUSC-089), its cause. */
+        ps_value *cause = ps_error_text("input", "INVALID_FORM_INPUT", ps_view(repeated), PS_TEXT(""), NULL);
+        *error = ps_error_with_cause(
+            ps_error_text("form", "INVALID_FORM_INPUT", ps_view(repeated), PS_TEXT(""), NULL), cause);
         free(repeated.bytes);
         return NULL;
     }

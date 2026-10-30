@@ -25,6 +25,20 @@ ps_value *ps_error(const char *kind, const char *code, const char *message,
     return ps_error_text(kind, code, ps_fixed(message), ps_fixed(at), trace);
 }
 
+ps_value *ps_error_with_cause(ps_value *error, ps_value *cause)
+{
+    if (!error || !cause) {
+        ps_value_free(error);
+        ps_value_free(cause);
+        return NULL;
+    }
+    if (!ps_set(error, "cause", cause)) {
+        ps_value_free(error);
+        return NULL;
+    }
+    return error;
+}
+
 ps_result ps_ok(ps_value *value) { return (ps_result){value, NULL}; }
 
 ps_result ps_fail_text(const char *kind, const char *code, ps_text message, ps_text at)

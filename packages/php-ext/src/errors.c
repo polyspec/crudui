@@ -171,30 +171,76 @@ PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, __isset)
     RETURN_BOOL(zend_string_equals_literal(name, "code"));
 }
 
+/* Create an object of a class of the PHP library through its constructor, or return false when the class is not loaded. */
+static bool construct(zval *object, const char *name, uint32_t count, zval *args)
+{
+    zend_string *class_name = zend_string_init(name, strlen(name), false);
+    zend_class_entry *ce = zend_lookup_class(class_name);
+    zend_string_release(class_name);
+    if (!ce) return false;
+    object_init_ex(object, ce);
+    zend_call_known_instance_method(ce->constructor, Z_OBJ_P(object), NULL, count, args);
+    return true;
+}
+
+/* Create the exception of an error value, with its cause as the previous exception, without throwing it. */
+static void build_error(zval *exception, HashTable *members)
+{
+    zval *kind = zend_hash_str_find(members, ZEND_STRL("kind"));
+    zval *code = zend_hash_str_find(members, ZEND_STRL("code"));
+    zval *message = zend_hash_str_find(members, ZEND_STRL("message"));
+    zval *cause = zend_hash_str_find(members, ZEND_STRL("cause"));
+    bool composition = zend_string_equals_literal(Z_STR_P(kind), "compose");
+    /* Every message is set as a PHP string, so a NUL character in it is kept. */
+    if (zend_string_equals_literal(Z_STR_P(kind), "internal")) {
+        object_init_ex(exception, zend_ce_error);
+        zend_update_property_str(zend_ce_error, Z_OBJ_P(exception), ZEND_STRL("message"), Z_STR_P(message));
+    } else if (zend_string_equals_literal(Z_STR_P(kind), "input")) {
+        object_init_ex(exception, crudui_input_error_ce);
+        zend_update_property_str(zend_ce_exception, Z_OBJ_P(exception), ZEND_STRL("message"), Z_STR_P(message));
+        zend_string *input_code = zend_string_init("INVALID_FORM_INPUT", sizeof("INVALID_FORM_INPUT") - 1, false);
+        initialize_error(crudui_input_error_ce, Z_OBJ_P(exception), input_code, Z_STR_P(message), NULL);
+        zend_string_release(input_code);
+    } else if (zend_string_equals_literal(Z_STR_P(kind), "parameter")) {
+        zval args[2];
+        ZVAL_COPY(&args[0], zend_hash_str_find(members, ZEND_STRL("code")));
+        ZVAL_COPY(&args[1], message);
+        bool built = construct(exception, "Polyspec\\Crudui\\Validator\\Values\\InvalidRuleParameter", 2, args);
+        zval_ptr_dtor(&args[0]);
+        zval_ptr_dtor(&args[1]);
+        if (!built) object_init_ex(exception, zend_ce_exception);
+    } else if (zend_string_equals_literal(Z_STR_P(kind), "syntax")) {
+        zval args[2];
+        ZVAL_COPY(&args[0], zend_hash_str_find(members, ZEND_STRL("reason")));
+        ZVAL_COPY(&args[1], zend_hash_str_find(members, ZEND_STRL("offset")));
+        bool built = construct(exception, "Polyspec\\Crudui\\Validator\\Patterns\\PatternSyntaxError", 2, args);
+        zval_ptr_dtor(&args[0]);
+        zval_ptr_dtor(&args[1]);
+        if (!built) object_init_ex(exception, zend_ce_exception);
+    } else {
+        zend_class_entry *ce = composition ? crudui_compose_error_ce : crudui_form_error_ce;
+        object_init_ex(exception, ce);
+        zend_update_property_str(zend_ce_exception, Z_OBJ_P(exception), ZEND_STRL("message"), Z_STR_P(message));
+        zval *detail = zend_hash_str_find(members, composition ? "trace" : "at", composition ? 5 : 2);
+        initialize_error(ce, Z_OBJ_P(exception), Z_STR_P(code), Z_STR_P(message), detail);
+    }
+    /* The cause of an error is the previous exception of its exception (C17.69, C17.70). */
+    if (cause && Z_TYPE_P(cause) == IS_OBJECT) {
+        zval previous;
+        build_error(&previous, Z_OBJPROP_P(cause));
+        zend_update_property(zend_ce_exception, Z_OBJ_P(exception), ZEND_STRL("previous"), &previous);
+        zval_ptr_dtor(&previous);
+    }
+}
+
 void crudui_throw(ps_value *error)
 {
     zval value;
     if (EG(exception)) { ps_value_free(error); return; }
     if (!crudui_to_php(error, &value)) { ps_value_free(error); return; }
     ps_value_free(error);
-    HashTable *members = Z_OBJPROP(value);
-    zval *kind = zend_hash_str_find(members, ZEND_STRL("kind"));
-    zval *code = zend_hash_str_find(members, ZEND_STRL("code"));
-    zval *message = zend_hash_str_find(members, ZEND_STRL("message"));
-    bool composition = zend_string_equals_literal(Z_STR_P(kind), "compose");
-    /* Every message is set as a PHP string, so a NUL character in it is kept. */
-    if (zend_string_equals_literal(Z_STR_P(kind), "internal")) {
-        throw_message(zend_ce_error, zend_ce_error, Z_STR_P(message));
-    } else if (zend_string_equals_literal(Z_STR_P(kind), "input")) {
-        zend_object *object = throw_message(crudui_input_error_ce, zend_ce_exception, Z_STR_P(message));
-        zend_string *input_code = zend_string_init("INVALID_FORM_INPUT", sizeof("INVALID_FORM_INPUT") - 1, false);
-        initialize_error(crudui_input_error_ce, object, input_code, Z_STR_P(message), NULL);
-        zend_string_release(input_code);
-    } else {
-        zend_class_entry *ce = composition ? crudui_compose_error_ce : crudui_form_error_ce;
-        zend_object *object = throw_message(ce, zend_ce_exception, Z_STR_P(message));
-        zval *detail = zend_hash_str_find(members, composition ? "trace" : "at", composition ? 5 : 2);
-        initialize_error(ce, object, Z_STR_P(code), Z_STR_P(message), detail);
-    }
+    zval exception;
+    build_error(&exception, Z_OBJPROP(value));
+    zend_throw_exception_object(&exception);
     zval_ptr_dtor(&value);
 }
