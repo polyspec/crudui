@@ -1,26 +1,23 @@
-// `make lint` lints every source of the repository: the TypeScript lint of kit (`make lint-ts`: oxlint with the copied
-// .oxlintrc.json over every file that Git does not ignore, knip and API Extractor) and the Svelte rules of ESLint on the
-// components of packages/svelte, the one package whose tools still need ESLint, run from its tools project
-// packages/svelte/tools with the TypeScript 6 of that project (C14.4). Each lint fails on a planted violation.
+// `make lint` lints the Svelte components of packages/svelte with the ESLint of their tools project, which runs the TypeScript 6
+// of that project (C14.4), and the TypeScript lint of kit (`make lint-ts`: oxlint with the copied .oxlintrc.json over every file
+// that Git does not ignore, knip and API Extractor) is the gate of kit's CI pipeline for the ts runtime, which runs it once, so
+// the CI build-lint job runs crudui-lint (ci-local asserts it, C17.91-1). Each lint fails on a planted violation.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 import { parseJson } from '../json.mts';
-import { kitToolPath, makeDryRun } from './make-dry-run.mts';
+import { makeDryRun } from './make-dry-run.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const svelteWorkspace = path.join(root, 'packages/svelte');
 const svelteTools = path.join(svelteWorkspace, 'tools');
 
-test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/svelte', () => {
+test('make lint runs the Svelte lint of packages/svelte, and the CI build-lint job runs only that lint (C17.91)', () => {
   const run = makeDryRun(root, 'lint');
   assert.equal(run.status, 0, run.stderr);
-  const entry = /\/var\/tools\/bin\/node (\S+\/lint-ts\.(?:mts|mjs))\b/.exec(run.stdout)?.[1];
-  assert.ok(entry, run.stdout);
-  assert.equal(realpathSync(path.resolve(root, entry)), kitToolPath('lint-ts'));
   assert.match(run.stdout, /\bnpm\b.* run lint -w @polyspec\/crudui-generator-svelte\b/);
 });
 

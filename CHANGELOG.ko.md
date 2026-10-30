@@ -6,6 +6,10 @@
 
 ## 0.0.9
 
+### 2026-10-31 — lint-coverage test는 kit의 lint-ts가 아니라 make lint의 Svelte lint를 단언한다 (C17.91-2)
+
+- tests/build/lint-coverage.test.mts는 make lint가 Svelte ESLint를 실행한다고 단언한다. C17.91 규칙이 놓친 두 번째 test다. CI build-lint job은 ci-local이 단언한다(C17.91-1).
+
 ### 2026-10-30 — OrderedJSON php-ext를 빌드하는 target이 PIE를 설치하고, 빌드가 실패하면 target도 실패한다 (C17.93)
 
 - `make ordered-json-ext`는 먼저 http:pie의 PIE를 설치하고(`make install-pie`, `install-tools TOOLS=pie`), 그 패키지를 빌드하는 job이 설치를 잊을 수 없게 한다. pie-build의 출력은 파일에 쓰여서 빌드가 실패하면 target도 실패한다.

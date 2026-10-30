@@ -366,8 +366,8 @@ test('every tool of kit that the Makefile starts is in the installed @polyspec/k
   assert.deepEqual(tools.filter((tool) => !existsSync(kitToolPath(tool))), []);
 });
 
-// CI runs every lint target of kit, so a finding fails CI. make lint runs crudui-lint: lint-ts, the lint-ts.mjs of kit, with
-// the ESLint of the Svelte components.
+// The CI build-lint job runs crudui-lint, the ESLint of the Svelte components (C17.91-1); make lint also runs kit's lint task,
+// which runs lint-<runtime> of every runtime, and no CI job runs it (K870).
 
 test('the CI provider step reads the OrderedJSON version of the packages.json URL (C17.80)', () => {
   const makefile = readFileSync(path.join(ROOT, 'Makefile'), 'utf8');

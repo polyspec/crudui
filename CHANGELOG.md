@@ -5,6 +5,10 @@
 
 ## 0.0.9
 
+### 2026-10-31 — The lint-coverage test asserts the Svelte lint of make lint, not kit's lint-ts (C17.91-2)
+
+- tests/build/lint-coverage.test.mts asserts that make lint runs the Svelte ESLint, the second test that the C17.91 rule missed; the CI build-lint job is asserted by ci-local (C17.91-1).
+
 ### 2026-10-30 — Install PIE in the target that builds the OrderedJSON php-ext, and fail when the build fails (C17.93)
 
 - `make ordered-json-ext` installs the PIE of http:pie first (`make install-pie`, `install-tools TOOLS=pie`), so no job that builds the package can forget it, and writes the output of pie-build to a file, so a failed build fails the target.
