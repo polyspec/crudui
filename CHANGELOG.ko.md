@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — CI 설치 분기 매치를 읽기 전에 정의되었다고 단언한다 (C17.82)
+
+- dependency-health는 CI 분기 매치를 읽기 전에 정의되었음을 단언해, CI의 make typecheck가 통과한다.
+
 ### 2026-10-30 — main에서 이미 실패하던 ci-local 단언을 맞춘다 (C17.77)
 
 - main에서 이미 실패하던 ci-local 단언을 kit 내부면 삭제하고, crudui 동작이면 현재 workflow에 맞춘다(push-gate.yml은 없어졌고 release 검사는 ci-passed다).

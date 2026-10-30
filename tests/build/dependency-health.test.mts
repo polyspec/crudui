@@ -568,7 +568,8 @@ test('CI PHP installation consumes the Composer lock without resolving updates',
   // The CI branch of the recipe is read from the Makefile text, so that no run impersonates the CI identity (C17.68).
   const makefile = readFileSync(path.join(root, 'Makefile'), 'utf8');
   const branch = /^ifeq \(\$\(GITHUB_ACTIONS\),true\)\n([\s\S]*?)^else\n/m.exec(makefile);
-  assert.ok(branch, 'the crudui-install-composer recipe has a CI branch');
-  assert.match(branch[1], /\binstall --no-interaction --prefer-dist/);
-  assert.doesNotMatch(branch[1], /\bupdate\b/);
+  const body = branch?.[1];
+  assert.ok(body !== undefined, 'the crudui-install-composer recipe has a CI branch');
+  assert.match(body, /\binstall --no-interaction --prefer-dist/);
+  assert.doesNotMatch(body, /\bupdate\b/);
 });

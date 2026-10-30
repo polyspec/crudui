@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Assert the CI install branch before reading it, so typecheck passes (C17.82)
+
+- dependency-health asserts the CI branch match is defined before reading its group, which makes make typecheck pass in CI.
+
 ### 2026-10-30 — Align the stale ci-local assertions with main (C17.77)
 
 - The ci-local assertions that main already failed are removed (kit internals) or aligned to the current workflows (push-gate.yml is gone; the release checks are ci-passed).
