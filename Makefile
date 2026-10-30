@@ -512,7 +512,7 @@ crudui-prepare-release-build: crudui-install-crates crudui-install-go-modules
 CI_TARGETS = \
 	crudui-test-runtimes \
 	build \
-	lint \
+	crudui-lint \
 	typecheck \
 	hooks-check \
 	crudui-test-validator-js \

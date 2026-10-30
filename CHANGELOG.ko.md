@@ -9,9 +9,9 @@
 ### 2026-10-30 — OrderedJSON php-ext를 빌드하는 target이 PIE를 설치하고, 빌드가 실패하면 target도 실패한다 (C17.93)
 
 - `make ordered-json-ext`는 먼저 http:pie의 PIE를 설치하고(`make install-pie`, `install-tools TOOLS=pie`), 그 패키지를 빌드하는 job이 설치를 잊을 수 없게 한다. pie-build의 출력은 파일에 쓰여서 빌드가 실패하면 target도 실패한다.
-### 2026-10-30 — K870 test를 lint 규칙으로 다시 쓴다: make lint는 lint-ts를 실행하지 않는다 (C17.91-1)
+### 2026-10-30 — build-lint는 kit의 lint task가 아니라 Svelte lint만 실행한다 (C17.91-1)
 
-- tests/build/ci-local.test.mts는 make lint가 kit의 lint를 실행하지 않고, kit pipeline이 TypeScript gate를 한 번 실행한다고 단언한다. 이 test가 C17.91이 놓친 red였다.
+- ci.yml의 build-lint job은 `lint` 대신 crudui-lint(Svelte lint)를 실행한다. `lint`의 recipe는 kit의 lint task라서 모든 runtime의 lint-<runtime>을 실행하며, kit pipeline의 gate를 중복한다. K870 test가 이를 단언한다.
 
 ### 2026-10-30 — Svelte 컴포넌트만 lint하고 TypeScript는 kit의 lint-ts gate가 실행한다 (C17.91)
 

@@ -8,9 +8,9 @@
 ### 2026-10-30 — Install PIE in the target that builds the OrderedJSON php-ext, and fail when the build fails (C17.93)
 
 - `make ordered-json-ext` installs the PIE of http:pie first (`make install-pie`, `install-tools TOOLS=pie`), so no job that builds the package can forget it, and writes the output of pie-build to a file, so a failed build fails the target.
-### 2026-10-30 — Rewrite the K870 test to the lint rule: make lint runs no lint-ts (C17.91-1)
+### 2026-10-30 — build-lint runs the Svelte lint, not kit's lint task that repeats the shared gates (C17.91-1)
 
-- tests/build/ci-local.test.mts asserts that make lint runs no lint of kit, and that the kit pipeline runs the TypeScript gate once; the test was the red that C17.91 missed.
+- ci.yml's build-lint job runs crudui-lint (the Svelte lint) instead of `lint`, whose recipe is kit's lint task and runs lint-<runtime> of every runtime, which repeats the gates of kit's pipeline; the K870 test asserts it.
 
 ### 2026-10-30 — Lint the Svelte components only; kit's lint-ts gate runs the TypeScript (C17.91)
 

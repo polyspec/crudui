@@ -380,14 +380,12 @@ test('the CI provider step reads the OrderedJSON version of the packages.json UR
   assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+$/);
 });
 
-test('make lint runs no lint of kit, and the kit pipeline runs the TypeScript gate once; a CI job repeats none of the shared gates (K870, C17.91)', async () => {
+test('a CI job runs no kit task that repeats the shared gates: build-lint runs the Svelte lint, and kit\'s lint task runs in no job (K870, C17.91)', async () => {
   const workflow = workflowCommands(await workflowFile('ci.yml'));
-  const lint = makeDryRun(ROOT, 'lint');
-  assert.equal(lint.status, 0, lint.stderr);
-  assert.doesNotMatch(lint.stdout, /lint-ts\.(?:mts|mjs)\b/, lint.stdout);
   const runs = (target: string): boolean => workflow.some(command => new RegExp(`TARGETS="[^"]*\\b${target}\\b`).test(command) || command === `make ${target}`);
-  assert.equal(runs('lint'), true, 'a CI job runs the Svelte lint');
-  // K870: the shared gates run once in the gates of kit, and a repository CI does not run them again.
+  assert.equal(runs('crudui-lint'), true, 'a CI job runs the Svelte lint');
+  // kit's lint task runs lint-<runtime> for every runtime, which repeats the TypeScript gate of kit's pipeline (K870).
+  assert.equal(runs('lint'), false, 'no CI job runs the lint task of kit');
   assert.deepEqual(['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts', 'docs-check'].filter(target => runs(target)), []);
 });
 
