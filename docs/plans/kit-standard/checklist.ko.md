@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: f7f87b9e0f6fd737f4df0dbd2d596eceea9d09fc114b834376dac698ee811263 -->
+<!-- source-sha256: 8c27d2ef82c8f9f8a4638897b8f4b3caf40decc60c8b1d10c60621490b23fdab -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -441,3 +441,4 @@
 | C17.93 | OrderedJSON php-ext를 빌드하는 form-comparison job 세 개가 install-tools TOOLS에 pie를 선택하여 pie-build의 pie shim이 있게 한다 (C17.90, 실행 41062970946) | .github/workflows/ci.yml, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | with var/tools/mise/shims/pie removed, `make ordered-json-ext` exit 0 installs the shim through install-pie and records var/ordered-json-package; `make rules-check` exit 0 | [o] |
 | C17.94 | CI 형태 테스트가 C17.90의 kit job을 받아들인다: runtime-version-policy는 이 저장소의 재사용 워크플로를 부르는 job을 runs-on 검사에서, 로컬 ./ uses를 commit SHA 고정 검사에서 제외하고, form-comparison-checks는 kit에 닿는 form-comparison-browser만 needs로 둔다 (C17.90, 실행 41062970946) | tests/build/runtime-version-policy.test.mts, .github/workflows/ci.yml, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node --test tests/build/form-comparison-ci.test.mts tests/build/runtime-version-policy.test.mts` fails on the C17.90 ci.yml and exits 0 after the change | [o] |
 | C17.96 | crudui는 ordered-json-ext에서 pie-build(K931) 대신 PIE 명령을 직접 실행하고, installed.json의 한 항목 install-path를 기록한다 (link-owner와 합의한 방법) | Makefile, examples/form-comparison/src/local-servers.mjs, CHANGELOG.md, CHANGELOG.ko.md, tests/build/ordered-json-pie.test.mts, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/ordered-json-pie.test.mts` exit 0; `make ordered-json-ext` exit 0; `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` exit 0 | [ ] |
+| C17.97 | crudui는 0.0.9 게시를 CHANGELOG.md와 CHANGELOG.ko.md의 ## Unreleased에 기록한다 (release run 41090852507, CI run 41086677097, tag v0.0.9 on db740a10, asset 12개) | CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `gh release view v0.0.9 --repo polyspec/crudui` reports 12 assets and not a draft; `gh run view 41086677097 --repo polyspec/crudui` reports success on db740a10 | [ ] |
