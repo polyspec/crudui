@@ -282,7 +282,7 @@ npm test
 `npm run test:inspector` runs the form snapshot and browser inspector tests, which compare raw HTML,
 parsed DOM, computed styles and live control state without modifying the inspected form.
 `npm run test:form-comparison:pipeline` builds the five record servers from this tree (the
-OrderedJSON PHP extension source unpacked into `var/ordered-json-php-ext`, both PHP extensions, the Go binary
+OrderedJSON PHP extension package that PIE built into `var/pie` (`make ordered-json-ext`), both PHP extensions, the Go binary
 and the Rust binary), starts each one as a local process on a free port of 127.0.0.1, runs the
 record-store HTTP contract against all five, runs the Go and Rust server tests and runs the
 canonical List → Detail → Form → Save → List refresh check for all 40 server, client and

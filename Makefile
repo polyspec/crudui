@@ -62,6 +62,20 @@ UV := $(KIT_TOOLS)/mise/shims/uv
 # from the PATH that make started with (kit K171).
 GO := $(KIT_TOOLS)/mise/shims/go
 COMPOSER_BIN := $(KIT_TOOLS)/mise/shims/composer
+# The PIE of mise.toml (http:pie, C17.84) fetches and builds the OrderedJSON php-ext package of the release packages.json
+# into PIE_WORK; the local record servers read the package from there (examples/form-comparison/src/local-servers.mjs).
+PIE := $(KIT_TOOLS)/mise/shims/pie
+PIE_WORK := $(CURDIR)/var/pie
+ORDERED_JSON_VERSION := 0.0.14
+ORDERED_JSON_PACKAGES := https://github.com/polyspec/ordered-json/releases/download/v$(ORDERED_JSON_VERSION)/packages.json
+
+# PIE resolves polyspec/ordered-json-php-ext in the Composer repository of the release, builds it with phpize into PIE_WORK
+# and installs nothing into the PHP; the checks read the package from PIE_WORK (C17.84, H27.45).
+.PHONY: ordered-json-ext
+ordered-json-ext: ## Fetch and build the OrderedJSON php-ext package of the release packages.json with PIE into var/pie (C17.84); ONLINE
+	$(ONLINE) $(KIT_TOOLS)/bin/mise install --locked http:pie
+	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) repository:add composer $(ORDERED_JSON_PACKAGES) --no-interaction
+	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) build polyspec/ordered-json-php-ext:$(ORDERED_JSON_VERSION) --no-interaction
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"

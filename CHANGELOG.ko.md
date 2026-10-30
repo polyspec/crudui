@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — 릴리스 OrderedJSON php-ext를 PIE가 var/pie에 빌드한 것에서 읽는다 (C17.84)
+
+- 릴리스 레코드 서버는 옛 var/ordered-json-php-ext 대신 make ordered-json-ext가 packages.json 저장소에서 PIE로 받아 빌드한 OrderedJSON php-ext 패키지를 읽는다.
+
 ### 2026-10-30 — kit이 더 이상 없는 phpunit 옵션을 generator 검사에서 뺀다 (C17.83)
 
 - php-api generator 검사는 PHPUnit이 거부하는 --without-library를 넘기지 않으므로 generator PHP 확장 검사의 적합성 증거가 기록된다.

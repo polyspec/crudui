@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 7d253ef782e65116e938bcb7e5a81d4eb33fb43d4a9d6b17228e151ef1dc9bf3 -->
+<!-- source-sha256: 9dd7f803ae539e7fa642e5cddad6abd5576906a1ef364186312f59dc3caf42dd -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -427,4 +427,4 @@
 | C17.81 | crudui가 쓰는 OrderedJSON 릴리스를 0.0.14로 통일한다: composer.json의 packages.json 저장소, Rust form 서버의 tag와 lock, 릴리스 문서와 composer lock(0.0.9 릴리스 전) | composer.json; composer.lock; examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; docs/operations/ordered-json.md; docs/operations/ordered-json.ko.md; docs/operations/package-build.md; docs/operations/package-build.ko.md | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [o] |
 | C17.82 | dependency-health의 CI 설치 분기를 읽기 전에 정의되었음을 단언해, make typecheck가 통과하게 한다(dependency-health.test.mts:572-573) | tests/build/dependency-health.test.mts | `make typecheck` | [o] |
 | C17.83 | kit이 더 이상 가지지 않는 --without-library 옵션을 crudui-test-php-api(Makefile:415)의 generator PHP 검사에서 뺀다. PHPUnit이 실행되고 적합성 증거가 생긴다 | Makefile | `node tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [o] |
-| C17.84 | 릴리스 OrderedJSON php-ext를 var/ordered-json-php-ext 대신 packages.json 저장소에서 Composer가 설치한 vendor/polyspec/ordered-json-php-ext에서 읽는다(local-servers.mjs:23, CI record stores와 browser 검사) | examples/form-comparison/src/local-servers.mjs; examples/form-comparison/src/local-servers.test.mjs; composer.json; composer.lock | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [ ] |
+| C17.84 | 릴리스 OrderedJSON php-ext를 var/ordered-json-php-ext 대신 packages.json 저장소에서 Composer가 설치한 vendor/polyspec/ordered-json-php-ext에서 읽는다(local-servers.mjs:23, CI record stores와 browser 검사) | examples/form-comparison/src/local-servers.mjs; examples/form-comparison/src/local-servers.test.mjs; composer.json; composer.lock | `node scripts/run-tests.mts node -- examples/form-comparison/src/local-servers.test.mjs` | [~] |

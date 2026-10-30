@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-30 — Read the release OrderedJSON php-ext that PIE builds into var/pie (C17.84)
+
+- The release record servers read the OrderedJSON php-ext package that PIE fetches and builds from the packages.json repository with make ordered-json-ext, not the old var/ordered-json-php-ext path.
+
 ### 2026-10-30 — Drop the phpunit option that kit no longer has from the generator suite (C17.83)
 
 - The php-api suite of the generator no longer passes --without-library to PHPUnit, which rejects it, so the conformance evidence of the generator PHP extension suite is recorded.
