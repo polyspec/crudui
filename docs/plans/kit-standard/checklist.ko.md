@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 5c8e9c3db23e6dfd3261e28cc808f110472e0d7a44a776ab3f1ac158626c4a75 -->
+<!-- source-sha256: a94c18b6536341f638e7b068d468b9960aac3aa419bd100389cbfe9ae603093d -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -426,3 +426,4 @@
 | C17.80 | CI provider 레시피(Makefile:136)가 packages.json URL에서 OrderedJSON 버전을 맞는 정규식으로 읽게 한다 | Makefile | `node --test --test-name-pattern "CI provider step reads the OrderedJSON version" tests/build/ci-local.test.mts` | [o] |
 | C17.81 | crudui가 쓰는 OrderedJSON 릴리스를 0.0.14로 통일한다: composer.json의 packages.json 저장소, Rust form 서버의 tag와 lock, 릴리스 문서와 composer lock(0.0.9 릴리스 전) | composer.json; composer.lock; examples/form-comparison/servers/rust/Cargo.toml; examples/form-comparison/servers/rust/Cargo.lock; docs/operations/ordered-json.md; docs/operations/ordered-json.ko.md; docs/operations/package-build.md; docs/operations/package-build.ko.md | `node --test --test-name-pattern "canonical Composer project resolves polyspec" tests/build/dependency-health.test.mts` | [o] |
 | C17.82 | dependency-health의 CI 설치 분기를 읽기 전에 정의되었음을 단언해, make typecheck가 통과하게 한다(dependency-health.test.mts:572-573) | tests/build/dependency-health.test.mts | `make typecheck` | [o] |
+| C17.83 | kit이 더 이상 가지지 않는 --without-library 옵션을 crudui-test-php-api(Makefile:415)의 generator PHP 검사에서 뺀다. PHPUnit이 실행되고 적합성 증거가 생긴다 | Makefile | `node tests/conformance/run-suite.mts phpunit --cwd packages/generator/php -- tests/FormStateTest.php` | [ ] |
