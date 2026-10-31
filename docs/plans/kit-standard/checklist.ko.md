@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: e0efed28d86669e3855c571739c9d4f02bc815f2a34868e4c814c5a30d39dc1e -->
+<!-- source-sha256: 1b877ccfc86e5d4201f18e8c598fb2437f380db651feadafc4022c8fc9b0cd87 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -445,3 +445,4 @@
 | C17.97 | crudui는 0.0.9 게시를 CHANGELOG.md와 CHANGELOG.ko.md의 ## Unreleased에 기록한다 (release run 41090852507, CI run 41086677097, tag v0.0.9 on db740a10, asset 12개) | CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `gh release view v0.0.9 --repo polyspec/crudui` reports 12 assets and not a draft; `gh run view 41086677097 --repo polyspec/crudui` reports success on db740a10 | [o] |
 | C17.98 | crudui는 kit main이 요구하는(K933) packageManager npm@12.2.0의 sha512 다이제스트를 package.json:96에 적는다. kit 핀은 바꾸지 않는다 | package.json | `make kit-check` exit 0; the bootstrap of the worktree passes | [o] |
 | C17.98-1 | crudui는 읽히지 않는 RecordedToolchain의 npm 필드(감사가 찾은 두 번째 packageManager 파서)를 지우고, CHANGELOG.ko.md를 make documents-stamp로 다시 찍는다 (C17.98 감사) | tests/build/runtime-version-policy.test.mts, CHANGELOG.ko.md, CHANGELOG.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/runtime-version-policy.test.mts` exit 0; `node scripts/run-tests.mts node -- tests/build/tool-path.test.mts` exit 0; `make documents-stamp PATHS=CHANGELOG.ko.md` stamps the KO twin | [o] |
+| C17.99 | crudui는 추적되는 생성 테이블 세 개를 config/generated.json tracked에 생성기 사유와 함께 선언하고 duplication.json 항목을 지운다 (kit 예외 감사, P34) | config/generated.json, config/duplication.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0; duplication-check reports 0 findings | [ ] |
