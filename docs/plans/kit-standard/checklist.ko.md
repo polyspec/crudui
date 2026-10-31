@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 13eacc2ea6223d958d1ad42cfb6f188f45e012f922f88f91b096c661fb1dee7f -->
+<!-- source-sha256: 195e795f011e550dc7c6bbece74439c675a04c0ba4aac88c677cc0903616841c -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -448,4 +448,4 @@
 | C17.99 | crudui는 추적되는 생성 테이블 세 개를 config/generated.json tracked에 생성기 사유와 함께 선언하고 duplication.json 항목을 지운다 (kit 예외 감사, P34) | config/generated.json, config/duplication.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0; duplication-check reports 0 findings | [ ] |
 | C17.100 | crudui는 config/toolchain.json의 TypeScript 6.0.3 예외를 지운다. kit 버전 장치가 더 이상 읽지 않으므로 이 파일은 rust nightly 예외만 받는다. packages/svelte의 package.json 고정값은 그대로 둔다. | config/toolchain.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0 on the locked kit | [o] |
 | C17.101 | crudui는 tests/build/ordered-json-pie.test.mts를 런타임 테스트 명령에 등록한다. 그래서 tests/build의 모든 node:test 파일이 프로젝트 명령으로 실행된다 (CI 실행 41167701052, shard 2/4). | package.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/test-commands.test.mts` exit 0 | [o] |
-| C17.102 | crudui는 ordered-json-ext가 PIE 패키지 폴더를 기록하는 스크립트를 scripts/ordered-json-package.mts로 옮긴다. 그래서 오프라인 테스트가 그 레시피 줄을 다운로드 명령으로 읽지 않는다 (CI 실행 41167701052, shard 3/4). | Makefile, scripts/ordered-json-package.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` exit 0 | [~] |
+| C17.102 | crudui는 ordered-json-ext가 PIE 패키지 폴더를 기록하는 스크립트를 scripts/ordered-json-package.mts로 옮긴다. 그래서 오프라인 테스트가 그 레시피 줄을 다운로드 명령으로 읽지 않는다 (CI 실행 41167701052, shard 3/4). | Makefile, scripts/ordered-json-package.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` exit 0 | [o] |
