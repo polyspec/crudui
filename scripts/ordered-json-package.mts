@@ -3,7 +3,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const [work, output] = process.argv.slice(2);
+const work = process.argv[2];
+const output = process.argv[3];
+if (work === undefined || output === undefined) throw new Error('usage: ordered-json-package.mts <pie-work> <output-file>');
 const builds: string[] = [];
 for (const target of fs.existsSync(work) ? fs.readdirSync(work) : []) {
   const composer = path.join(work, target, 'vendor', 'composer');

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Check the arguments of the OrderedJSON package-folder script (C17.104)
+
+- `scripts/ordered-json-package.mts` checks its two arguments before it uses them, so the root typecheck of the build job passes; main CI run 41177855445 failed on its types.
+
 ### 2026-10-31 — Class the OrderedJSON package-folder script for rebuild-check (C17.103)
 
 - `scripts/ordered-json-package.mts` is classed as policy in `config/rebuild.json`, since PIE defines no record of its package folder; the kit job of main CI run 41176818702 failed rebuild-check on it, and the runtime tests and conformance evidence that depend on that job were skipped.

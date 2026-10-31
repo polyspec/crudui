@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0ec02f4c37aa8b1d996d9789b8d202b4b1f98858b0128f95e206b733c8e52dd4 -->
+<!-- source-sha256: 31e616bca68fd2666ac83de54f86285e82d8858b94319a4607844f6dda441ca3 -->
 
 ## Unreleased
+
+### 2026-10-31 — OrderedJSON 패키지 폴더 스크립트의 인자를 검사한다 (C17.104)
+
+- `scripts/ordered-json-package.mts`는 두 인자를 쓰기 전에 검사한다. 그래서 build 작업의 루트 타입 검사가 통과한다. main CI 실행 41177855445는 이 파일의 타입에서 실패했다.
 
 ### 2026-10-31 — OrderedJSON 패키지 폴더 스크립트를 rebuild-check 분류에 넣는다 (C17.103)
 
