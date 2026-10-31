@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — OrderedJSON 패키지 폴더 스크립트를 rebuild-check 분류에 넣는다 (C17.103)
+
+- `scripts/ordered-json-package.mts`를 `config/rebuild.json`에 policy로 분류한다. PIE가 패키지 폴더 기록을 정의하지 않기 때문이다. main CI 실행 41176818702의 kit 작업은 이 파일에서 rebuild-check로 실패했고, 그 작업에 의존하는 런타임 테스트와 conformance 증거는 건너뛰어졌다.
+
 ### 2026-10-31 — OrderedJSON 패키지 폴더 기록을 전용 스크립트로 옮긴다 (C17.102)
 
 - ordered-json-ext가 PIE 패키지 폴더를 기록하는 일은 Makefile의 인라인 node 스크립트가 아니라 `scripts/ordered-json-package.mts`가 한다. 그래서 오프라인 테스트가 그 줄을 다운로드 명령으로 읽지 않는다. main CI 실행 41167701052의 shard 3/4는 그 줄에서 실패했다.
