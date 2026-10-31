@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 86dd945856aaae1a68f469943de558cc282f2df2d799b0c5af477a541f39f269 -->
+<!-- source-sha256: d7671e089525ff9b00da15c25258400e533a4a5e99bba2cad8616bed6731acb9 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -450,4 +450,4 @@
 | C17.101 | crudui는 tests/build/ordered-json-pie.test.mts를 런타임 테스트 명령에 등록한다. 그래서 tests/build의 모든 node:test 파일이 프로젝트 명령으로 실행된다 (CI 실행 41167701052, shard 2/4). | package.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/test-commands.test.mts` exit 0 | [o] |
 | C17.102 | crudui는 ordered-json-ext가 PIE 패키지 폴더를 기록하는 스크립트를 scripts/ordered-json-package.mts로 옮긴다. 그래서 오프라인 테스트가 그 레시피 줄을 다운로드 명령으로 읽지 않는다 (CI 실행 41167701052, shard 3/4). | Makefile, scripts/ordered-json-package.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` exit 0 | [o] |
 | C17.103 | crudui는 scripts/ordered-json-package.mts를 config/rebuild.json에 policy로 분류한다. PIE가 패키지 폴더 기록을 정의하지 않기 때문이다. 그래서 kit 작업의 rebuild-check가 통과한다 (CI 실행 41176818702). | config/rebuild.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node node_modules/@polyspec/kit/dist/rebuild-check.mjs` exit 0 | [o] |
-| C17.104 | crudui는 scripts/ordered-json-package.mts의 두 인자를 쓰기 전에 검사한다. 그래서 build 작업의 루트 타입 검사가 통과한다 (CI 실행 41177855445). | scripts/ordered-json-package.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `! node_modules/.bin/tsc --noEmit -p tsconfig.json 2>&1 \| grep -q ordered-json-package` | [~] |
+| C17.104 | crudui는 scripts/ordered-json-package.mts의 두 인자를 쓰기 전에 검사한다. 그래서 build 작업의 루트 타입 검사가 통과한다 (CI 실행 41177855445). | scripts/ordered-json-package.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `! node_modules/.bin/tsc --noEmit -p tsconfig.json 2>&1 \| grep -q ordered-json-package` | [o] |
