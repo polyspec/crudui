@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 9192e8144c378a333103bbcf7c3ae1749882e65535c02b8915a24f4c11f5c74c -->
+<!-- source-sha256: c3c2ccb0344cf0913a7358be82cf235f0b8dfa0afc64c5220973c4ca381ab4f5 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -449,4 +449,4 @@
 | C17.100 | crudui는 config/toolchain.json의 TypeScript 6.0.3 예외를 지운다. kit 버전 장치가 더 이상 읽지 않으므로 이 파일은 rust nightly 예외만 받는다. packages/svelte의 package.json 고정값은 그대로 둔다. | config/toolchain.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0 on the locked kit | [o] |
 | C17.101 | crudui는 tests/build/ordered-json-pie.test.mts를 런타임 테스트 명령에 등록한다. 그래서 tests/build의 모든 node:test 파일이 프로젝트 명령으로 실행된다 (CI 실행 41167701052, shard 2/4). | package.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/test-commands.test.mts` exit 0 | [o] |
 | C17.102 | crudui는 ordered-json-ext가 PIE 패키지 폴더를 기록하는 스크립트를 scripts/ordered-json-package.mts로 옮긴다. 그래서 오프라인 테스트가 그 레시피 줄을 다운로드 명령으로 읽지 않는다 (CI 실행 41167701052, shard 3/4). | Makefile, scripts/ordered-json-package.mts, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/offline-checks.test.mts` exit 0 | [o] |
-| C17.103 | crudui는 scripts/ordered-json-package.mts를 config/rebuild.json에 policy로 분류한다. PIE가 패키지 폴더 기록을 정의하지 않기 때문이다. 그래서 kit 작업의 rebuild-check가 통과한다 (CI 실행 41176818702). | config/rebuild.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node node_modules/@polyspec/kit/dist/rebuild-check.mjs` exit 0 | [~] |
+| C17.103 | crudui는 scripts/ordered-json-package.mts를 config/rebuild.json에 policy로 분류한다. PIE가 패키지 폴더 기록을 정의하지 않기 때문이다. 그래서 kit 작업의 rebuild-check가 통과한다 (CI 실행 41176818702). | config/rebuild.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node node_modules/@polyspec/kit/dist/rebuild-check.mjs` exit 0 | [o] |
