@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1b9d8af4e4db288a47cf5daca6830498839f7597789dbe1d291f39e213d481dc -->
+<!-- source-sha256: 6f796b00a8f45e2b16b351d789c98e6c4aac45d9cb8a4ed4241d0271a983818f -->
 
 ## Unreleased
+
+### 2026-10-31 — 도구 파일의 TypeScript 6.0.3 예외를 지운다 (C17.100)
+
+- config/toolchain.json은 더 이상 packages/svelte의 TypeScript 6.0.3 예외를 담지 않는다. kit K953이 그것을 읽던 버전 장치를 지우고, 이 파일은 rust nightly 예외만 받는다. packages/svelte의 package.json 고정값은 그대로 둔다.
 
 ### 2026-10-31 — 읽히지 않는 npm 필드를 지우고 KO 변경 기록을 다시 찍는다 (C17.98-1)
 

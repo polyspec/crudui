@@ -1,18 +1,10 @@
 {
   "schema": 1,
-  "comment": "The toolchains of crudui that no other file declares. mise is the release that make install-tools TOOLS=npm installs with the sha256 of each platform; mise.toml declares the tools it installs (Go, uv and Python, alint for make layout-check, ruff and vulture for make lint-python, golangci-lint and deadcode for make lint-go, cargo-audit for make dependency-review, and Composer, which installs PHPCS and PHPStan of config/php-lint for make lint-php) and mise.lock locks them. PHP is verified at the declared release. The exception keeps packages/svelte on TypeScript 6.",
+  "comment": "The toolchains of crudui that no other file declares. mise is the release that make install-tools TOOLS=npm installs with the sha256 of each platform; mise.toml declares the tools it installs (Go, uv and Python, alint for make layout-check, ruff and vulture for make lint-python, golangci-lint and deadcode for make lint-go, cargo-audit for make dependency-review, and Composer, which installs PHPCS and PHPStan of config/php-lint for make lint-php) and mise.lock locks them. PHP is verified at the declared release.",
   "php": [
     "8.4"
   ],
-  "exceptions": [
-    {
-      "tool": "typescript",
-      "channel": "6.0.3",
-      "scope": "packages/svelte",
-      "reason": "svelte-check 4.7.7 and @sveltejs/package 3.0.1, which type-check and package the Svelte components, require the TypeScript 6 API: their peer ranges are ^5.0.0 || ^6.0.0 and ^6.0.0, and TypeScript 7 has no such API.",
-      "retry": "Retry TypeScript 7.0.2 in packages/svelte when svelte-check and @sveltejs/package admit TypeScript 7 in their peer ranges."
-    }
-  ],
+  "exceptions": [],
   "mise": {
     "version": "2026.10.8",
     "sha256": {

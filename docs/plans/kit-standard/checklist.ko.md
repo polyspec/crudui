@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: b35e11ae5591964e2c699f5558d391fad5cb06ce09db2976f48f1e1dc481d10b -->
+<!-- source-sha256: 2dcfb6dde80a3c63a26a7ef1f58baea81268adc901546ff72c7ab1d9652d831e -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -446,4 +446,4 @@
 | C17.98 | crudui는 kit main이 요구하는(K933) packageManager npm@12.2.0의 sha512 다이제스트를 package.json:96에 적는다. kit 핀은 바꾸지 않는다 | package.json | `make kit-check` exit 0; the bootstrap of the worktree passes | [o] |
 | C17.98-1 | crudui는 읽히지 않는 RecordedToolchain의 npm 필드(감사가 찾은 두 번째 packageManager 파서)를 지우고, CHANGELOG.ko.md를 make documents-stamp로 다시 찍는다 (C17.98 감사) | tests/build/runtime-version-policy.test.mts, CHANGELOG.ko.md, CHANGELOG.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/runtime-version-policy.test.mts` exit 0; `node scripts/run-tests.mts node -- tests/build/tool-path.test.mts` exit 0; `make documents-stamp PATHS=CHANGELOG.ko.md` stamps the KO twin | [o] |
 | C17.99 | crudui는 추적되는 생성 테이블 세 개를 config/generated.json tracked에 생성기 사유와 함께 선언하고 duplication.json 항목을 지운다 (kit 예외 감사, P34) | config/generated.json, config/duplication.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0; duplication-check reports 0 findings | [ ] |
-| C17.100 | crudui는 config/toolchain.json의 TypeScript 6.0.3 예외를 지운다. kit K953이 버전 장치를 지워서 이 파일은 rust nightly 예외만 받는다. packages/svelte의 package.json 고정값은 그대로 둔다. | config/toolchain.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0 on the locked kit | [ ] |
+| C17.100 | crudui는 config/toolchain.json의 TypeScript 6.0.3 예외를 지운다. kit K953이 버전 장치를 지워서 이 파일은 rust nightly 예외만 받는다. packages/svelte의 package.json 고정값은 그대로 둔다. | config/toolchain.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0 on the locked kit | [~] |

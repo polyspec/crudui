@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Remove the TypeScript 6.0.3 exception of the toolchain file (C17.100)
+
+- config/toolchain.json no longer carries the TypeScript 6.0.3 exception of packages/svelte, since kit K953 deletes the version machinery that read it and the file accepts only rust nightly exceptions; the package.json pins of packages/svelte stay.
+
 ### 2026-10-31 — Remove the unread npm field and restamp the KO changelog (C17.98-1)
 
 - RecordedToolchain of tests/build/runtime-version-policy.test.mts no longer reads an npm field, the second packageManager parser of the audit; the KO twin of CHANGELOG.md is restamped with make documents-stamp.
