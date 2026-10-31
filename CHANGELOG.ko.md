@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — build 테스트가 kit 0.0.84 workflow를 읽는다 (C17.105-1)
+
+- build 테스트는 kit 0.0.84가 복사한 workflow를 읽는다. bootstrap 줄은 통째로 맞추고, `devEngines.packageManager`에서 읽은 `npm@$version`은 기록된 npm으로 보며, `.mise/locks` 아래의 보조 manifest는 crudui 패키지가 아니고, 릴리스 dispatch는 run 하나만 받는다(K924). main CI run 41200932267의 runtime shard 1과 2가 이 테스트에서 실패했다.
+
 ### 2026-10-31 — kit 0.0.84를 채택한다 (C17.105)
 
 - kit 0.0.84가 고정된 릴리스다. package.json은 `devEngines.packageManager`에 npm 12.2.0을 선언하고(K938), mise.toml은 `npm:npm`과 그 mise.lock 항목, `.mise/locks/npm-npm/12.2.0`의 보조 lock을 선언한다. CI bootstrap은 그 npm을 `--prefix`로 checkout 밖에서 실행한다. `config/generated.json`은 Go 표 두 개를 이유와 함께 `tracked`로 적는다. CI 단계는 kit 0.0.81이 없앤 `kit-install-php-arginfo`(K930)를 더 부르지 않는다.

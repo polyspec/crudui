@@ -17,6 +17,7 @@ const STRINGS = shapeOf<string[]>({ type: 'array', items: { type: 'string' } });
 const strings = (value: unknown, what: string): string[] => checkedShape(STRINGS, value, what);
 import { checked, parseJson, type JTDSchemaType } from '../json.mts';
 import { kitToolPath, makeDryRun, makeEnvironment } from './make-dry-run.mts';
+import { NATIVE_NPM_BOOTSTRAP, nativeNpmBootstrap } from './npm-release.mts';
 
 const read = (file: string): Promise<string> => readFile(new URL(`../../${file}`, import.meta.url), 'utf8');
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
@@ -81,9 +82,6 @@ function field(value: unknown, key: string): unknown {
   return isRecord(value) ? value[key] : undefined;
 }
 
-// Native npm installs the pinned kit before the Makefile can include its bootstrap.
-const NATIVE_NPM_BOOTSTRAP = `root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "\${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)`;
-const nativeNpmBootstrap = (command: string | undefined): boolean => command?.trim() === NATIVE_NPM_BOOTSTRAP;
 
 /** Jobs that invoke make before an unconditional install with the declared npm release. */
 export function nativeBootstrapViolations(workflow: Workflow): string[] {
@@ -145,8 +143,8 @@ export function workflowCommands(workflow: Workflow): string[] {
     for (const step of job.steps ?? []) {
       if (typeof step.run !== 'string') continue;
       for (const line of step.run.split('\n').map((text) => text.trim()).filter(Boolean)) {
+        if (nativeNpmBootstrap(line)) continue;
         for (const command of line.split(' && ')) {
-          if (nativeNpmBootstrap(command)) continue;
           // make ci-targets runs each target of TARGETS as make -k <target> (ci-targets of @polyspec/kit).
           const targets = /^make ci-targets TARGETS="([^"]+)"$/.exec(command);
           if (targets?.[1] !== undefined) commands.push(...targets[1].split(' ').map((target) => `make ${target}`));
@@ -506,7 +504,7 @@ const TRIGGERS = {
   'ci.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'ci-pipeline.yml': 'on:\n  workflow_call:\n',
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
-  'release.yml': "on:\n  workflow_dispatch:\n    inputs:\n      run:\n        description: The id of the successful CI run of main whose commit is released\n        required: true\n        type: string\n      version:\n        description: The version of the release, X.Y.Z, such as 0.0.1\n        required: true\n        type: string\n",
+  'release.yml': "on:\n  workflow_dispatch:\n    inputs:\n      run:\n        description: The id of the successful CI run of main whose commit is released\n        required: true\n        type: string\n",
 };
 
 test('each workflow declares exactly its triggers', async () => {
@@ -518,13 +516,13 @@ test('each workflow declares exactly its triggers', async () => {
   }
 });
 
-test('the release is a dispatch of a successful CI run and the version (K911)', async () => {
+test('the release is a dispatch of a successful CI run, whose change log names the version (K911, K924)', async () => {
   const on = field(await workflowFile('release.yml'), 'on');
   assert.ok(isRecord(on));
   assert.deepEqual(Object.keys(on), ['workflow_dispatch']);
   const inputs = field(field(on, 'workflow_dispatch'), 'inputs');
   assert.ok(isRecord(inputs));
-  assert.deepEqual(Object.keys(inputs).sort(), ['run', 'version']);
+  assert.deepEqual(Object.keys(inputs), ['run']);
 });
 
 test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {

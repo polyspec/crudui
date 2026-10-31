@@ -10,7 +10,7 @@ import { parse } from 'yaml';
 import { isVendored, ownedFiles } from '../../scripts/repository-files.mts';
 import { checked, parseJson, type JTDSchemaType, type PackageManagerEngine } from '../json.mts';
 import { kitToolPath, makeDryRun } from './make-dry-run.mts';
-import { recordedNpmRelease } from './npm-release.mts';
+import { DEVENGINES_NPM_VERSION, recordedNpmRelease } from './npm-release.mts';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -141,8 +141,11 @@ test('every workflow job installs the recorded npm before it runs npm', async ()
       let installed = false;
       for (const step of job.steps ?? []) {
         if (typeof step.run !== 'string') continue;
+        // npm@$version is the recorded npm when the step assigns version from devEngines.packageManager (the kit bootstrap).
+        const recorded = step.run.includes(DEVENGINES_NPM_VERSION);
         for (const command of step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean)) {
-          if (/\bnpm@|\bnpm (?:i|install) (?:-g|--global)\b/.test(command)) violations.push(`${file} ${id}: \`${command}\` selects an npm release`);
+          const selected = command.replace(recorded ? /\bnpm@\$version\b/g : /$^/, '');
+          if (/\bnpm@|\bnpm (?:i|install) (?:-g|--global)\b/.test(selected)) violations.push(`${file} ${id}: \`${command}\` selects an npm release`);
           // make install-tools TOOLS="npm" installs the recorded npm, and make install-packages runs it.
           if (/^make\b.*\binstall-(?:tools|packages)\b/.test(command)) installed = true;
           else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before make install-tools`);

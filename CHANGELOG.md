@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Read the kit 0.0.84 workflows in the build tests (C17.105-1)
+
+- The build tests read the workflows that kit 0.0.84 copies: the bootstrap line is matched whole, `npm@$version` read from `devEngines.packageManager` counts as the recorded npm, the sidecar manifests under `.mise/locks` are not crudui packages, and the release dispatch takes only the run (K924). Main CI run 41200932267 failed runtime shards 1 and 2 on them.
+
 ### 2026-10-31 — Adopt kit 0.0.84 (C17.105)
 
 - kit 0.0.84 is the pinned release: package.json declares npm 12.2.0 in `devEngines.packageManager` (K938) and mise.toml declares `npm:npm` with its mise.lock entry and the sidecar lock under `.mise/locks/npm-npm/12.2.0`; the CI bootstrap runs that npm outside the checkout with `--prefix`; `config/generated.json` lists the two Go tables as `tracked` with their reasons; the CI steps no longer call `kit-install-php-arginfo`, which kit 0.0.81 removed (K930).
