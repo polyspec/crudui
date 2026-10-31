@@ -133,10 +133,8 @@ test('the npm that runs here is the release that package.json records', async ()
 
 test('every workflow job installs the recorded npm before it runs npm', async () => {
   await recordedNpm();
-  const directory = path.join(repository, '.github/workflows');
   const violations: string[] = [];
-  for (const file of (await readdir(directory)).filter(name => /\.ya?ml$/.test(name))) {
-    const workflow = workflowOf(await readFile(path.join(directory, file), 'utf8'), file);
+  for (const { file, workflow } of await workflows()) {
     for (const [id, job] of Object.entries(workflow.jobs)) {
       let installed = false;
       for (const step of job.steps ?? []) {

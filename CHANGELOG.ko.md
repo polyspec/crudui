@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — crudui의 workflow만 테스트한다 (C17.107)
+
+- workflow 테스트는 `ci.yml`과 `pages.yml`만 읽는다. kit-check가 설치된 kit과 같음을 보장하는 kit 복사본 `ci-pipeline.yml`과 `release.yml`은 `isVendored`로 뺀다. 그래서 kit 릴리스가 crudui 테스트를 더 바꾸지 않는다. 릴리스 입력 테스트는 지운다.
+
 ### 2026-10-31 — build 테스트가 kit 0.0.84 workflow를 읽는다 (C17.105-1)
 
 - build 테스트는 kit 0.0.84가 복사한 workflow를 읽는다. bootstrap 줄은 통째로 맞추고, `devEngines.packageManager`에서 읽은 `npm@$version`은 기록된 npm으로 보며, `.mise/locks` 아래의 보조 manifest는 crudui 패키지가 아니고, 릴리스 dispatch는 run 하나만 받는다(K924). main CI run 41200932267의 runtime shard 1과 2가 이 테스트에서 실패했다.

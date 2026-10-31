@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Test only the workflows of crudui (C17.107)
+
+- The workflow tests read only `ci.yml` and `pages.yml`; the copies of kit, `ci-pipeline.yml` and `release.yml`, which kit-check holds equal to the installed kit, are left out through `isVendored`, so a kit release no longer changes a crudui test. The release-input test is removed.
+
 ### 2026-10-31 — Read the kit 0.0.84 workflows in the build tests (C17.105-1)
 
 - The build tests read the workflows that kit 0.0.84 copies: the bootstrap line is matched whole, `npm@$version` read from `devEngines.packageManager` counts as the recorded npm, the sidecar manifests under `.mise/locks` are not crudui packages, and the release dispatch takes only the run (K924). Main CI run 41200932267 failed runtime shards 1 and 2 on them.
