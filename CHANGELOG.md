@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Record the OrderedJSON package folder in a script of its own (C17.102)
+
+- The record of the PIE package folder of ordered-json-ext is `scripts/ordered-json-package.mts`, not an inline node script of the Makefile, so the offline test no longer reads its line as a download; main CI run 41167701052 failed shard 3/4 on that line.
+
 ### 2026-10-31 — Run the OrderedJSON PIE test in the runtime checks (C17.101)
 
 - `tests/build/ordered-json-pie.test.mts` is in the runtime test command, so every node:test file of `tests/build` runs in a project command; main CI run 41167701052 failed shard 2/4 because the file was not listed.

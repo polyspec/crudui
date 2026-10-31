@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f6684f5a5b1bd349d17a44a4689783375ee6b1ef9ff0cdbf4d642582e0dcc882 -->
+<!-- source-sha256: 0ec02f4c37aa8b1d996d9789b8d202b4b1f98858b0128f95e206b733c8e52dd4 -->
 
 ## Unreleased
+
+### 2026-10-31 — OrderedJSON 패키지 폴더 기록을 전용 스크립트로 옮긴다 (C17.102)
+
+- ordered-json-ext가 PIE 패키지 폴더를 기록하는 일은 Makefile의 인라인 node 스크립트가 아니라 `scripts/ordered-json-package.mts`가 한다. 그래서 오프라인 테스트가 그 줄을 다운로드 명령으로 읽지 않는다. main CI 실행 41167701052의 shard 3/4는 그 줄에서 실패했다.
 
 ### 2026-10-31 — OrderedJSON PIE 테스트를 런타임 검사에서 실행한다 (C17.101)
 

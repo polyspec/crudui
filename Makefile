@@ -85,7 +85,7 @@ ordered-json-ext: install-pie ## Build the OrderedJSON php-ext package of the re
 	mkdir -p $(PIE_WORK)
 	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) repository:add composer $(ORDERED_JSON_PACKAGES) --no-interaction
 	PIE_WORKING_DIRECTORY=$(PIE_WORK) $(ONLINE) $(PIE) build polyspec/ordered-json-php-ext:$(ORDERED_JSON_VERSION) --no-interaction
-	@$(NODE) -e "const fs = require('node:fs'); const path = require('node:path'); const work = process.argv[1]; const builds = []; for (const target of fs.existsSync(work) ? fs.readdirSync(work) : []) { const composer = path.join(work, target, 'vendor', 'composer'); const file = path.join(composer, 'installed.json'); if (!fs.existsSync(file)) continue; for (const entry of JSON.parse(fs.readFileSync(file, 'utf8')).packages ?? []) { const binary = entry.extra?.['pie-built-binary']; if (entry.name === 'polyspec/ordered-json-php-ext' && typeof binary === 'string' && typeof entry['install-path'] === 'string') builds.push(path.resolve(composer, entry['install-path'])); } } if (builds.length !== 1) throw new Error('PIE recorded ' + builds.length + ' builds of polyspec/ordered-json-php-ext in ' + work + ', not one'); fs.writeFileSync(process.argv[2], builds[0] + '\n');" $(PIE_WORK) $(ORDERED_JSON_PACKAGE_FILE)
+	@$(NODE) scripts/ordered-json-package.mts $(PIE_WORK) $(ORDERED_JSON_PACKAGE_FILE)
 export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
