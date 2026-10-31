@@ -1,5 +1,5 @@
 <!-- doc-id: checklist-kit-standard -->
-<!-- source-sha256: 64d5db00367c4e7d9700e6eb20a8d9cdff1977e5ae02de50d9ff20552654c7eb -->
+<!-- source-sha256: c674f0ca49c33307b2c3aa71b0dc17b99cd467de1cf5db1ca275433f2c67a928 -->
 # kit 표준 체크리스트
 
 | ID | Task | Deliverables | Verification | State |
@@ -447,3 +447,4 @@
 | C17.98-1 | crudui는 읽히지 않는 RecordedToolchain의 npm 필드(감사가 찾은 두 번째 packageManager 파서)를 지우고, CHANGELOG.ko.md를 make documents-stamp로 다시 찍는다 (C17.98 감사) | tests/build/runtime-version-policy.test.mts, CHANGELOG.ko.md, CHANGELOG.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/runtime-version-policy.test.mts` exit 0; `node scripts/run-tests.mts node -- tests/build/tool-path.test.mts` exit 0; `make documents-stamp PATHS=CHANGELOG.ko.md` stamps the KO twin | [o] |
 | C17.99 | crudui는 추적되는 생성 테이블 세 개를 config/generated.json tracked에 생성기 사유와 함께 선언하고 duplication.json 항목을 지운다 (kit 예외 감사, P34) | config/generated.json, config/duplication.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0; duplication-check reports 0 findings | [ ] |
 | C17.100 | crudui는 config/toolchain.json의 TypeScript 6.0.3 예외를 지운다. kit 버전 장치가 더 이상 읽지 않으므로 이 파일은 rust nightly 예외만 받는다. packages/svelte의 package.json 고정값은 그대로 둔다. | config/toolchain.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `make kit-check` exit 0 on the locked kit | [o] |
+| C17.101 | crudui는 tests/build/ordered-json-pie.test.mts를 런타임 테스트 명령에 등록한다. 그래서 tests/build의 모든 node:test 파일이 프로젝트 명령으로 실행된다 (CI 실행 41167701052, shard 2/4). | package.json, CHANGELOG.md, CHANGELOG.ko.md, docs/plans/kit-standard/checklist.md, docs/plans/kit-standard/checklist.ko.md | `node scripts/run-tests.mts node -- tests/build/test-commands.test.mts` exit 0 | [~] |

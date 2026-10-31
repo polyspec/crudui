@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 6f796b00a8f45e2b16b351d789c98e6c4aac45d9cb8a4ed4241d0271a983818f -->
+<!-- source-sha256: f6684f5a5b1bd349d17a44a4689783375ee6b1ef9ff0cdbf4d642582e0dcc882 -->
 
 ## Unreleased
+
+### 2026-10-31 — OrderedJSON PIE 테스트를 런타임 검사에서 실행한다 (C17.101)
+
+- `tests/build/ordered-json-pie.test.mts`를 런타임 테스트 명령에 넣어서 `tests/build`의 모든 node:test 파일이 프로젝트 명령으로 실행된다. main CI 실행 41167701052의 shard 2/4는 이 파일이 목록에 없어서 실패했다.
 
 ### 2026-10-31 — 도구 파일의 TypeScript 6.0.3 예외를 지운다 (C17.100)
 
