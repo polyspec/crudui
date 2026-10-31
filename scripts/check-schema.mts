@@ -598,8 +598,11 @@ const checkedYaml = new Set([
   'examples/product-forms/option-form.yml',
   'examples/product-forms/product-form.yml',
 ]);
-// The configurations of tools, which those tools read: golangci-lint (make lint-go) and alint (make layout-check).
-const toolConfigurations = new Set(['.golangci.yml', 'config/layout.kit.yml', 'config/layout.yml']);
+// The configurations of tools, which those tools read: golangci-lint (make lint-go), alint (make layout-check) and the
+// sidecar lock of the npm of mise.toml, which mise writes with make toolchain-lock and reads when it installs npm:npm.
+const toolConfigurations = new Set([
+  '.golangci.yml', 'config/layout.kit.yml', 'config/layout.yml', '.mise/locks/npm-npm/12.2.0/aube-lock.yaml',
+]);
 const trackedYaml = execFileSync('git', ['ls-files', '*.yml', '*.yaml'], { cwd: repository, encoding: 'utf8' })
   .split('\n').filter((file) => file && !file.startsWith('.github/') && existsSync(at(file)));
 const unchecked = trackedYaml.filter((file) =>

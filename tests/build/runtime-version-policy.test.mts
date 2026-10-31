@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 import { isVendored, ownedFiles } from '../../scripts/repository-files.mts';
-import { checked, parseJson, type JTDSchemaType } from '../json.mts';
+import { checked, parseJson, type JTDSchemaType, type PackageManagerEngine } from '../json.mts';
 import { kitToolPath, makeDryRun } from './make-dry-run.mts';
 import { recordedNpmRelease } from './npm-release.mts';
 
@@ -64,13 +64,13 @@ const workflowOf = (text: string, file: string): Workflow => checked(parse(text)
 
 /** The parts of a package.json that the tests read. */
 interface Manifest {
-  packageManager?: string;
+  devEngines?: { packageManager?: PackageManagerEngine };
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 }
 const manifestSchema: JTDSchemaType<Manifest> = {
   optionalProperties: {
-    packageManager: { type: 'string' }, dependencies: { values: { type: 'string' } }, devDependencies: { values: { type: 'string' } },
+    devEngines: { optionalProperties: { packageManager: { optionalProperties: { name: { type: 'string' }, version: { type: 'string' }, onFail: { type: 'string' } }, additionalProperties: true } }, additionalProperties: true }, dependencies: { values: { type: 'string' } }, devDependencies: { values: { type: 'string' } },
   },
   additionalProperties: true,
 };
@@ -117,10 +117,10 @@ async function findContainerDefinitions(): Promise<string[]> {
   return ownedFiles(repository).filter(file => /(?:^|\/)(?:Dockerfile|[^/]*Containerfile)$/.test(file)).map(file => path.join(repository, file));
 }
 
-/** The exact npm release that `packageManager` of package.json records. */
+/** The exact npm release that devEngines.packageManager of package.json records. */
 async function recordedNpm(): Promise<string | undefined> {
   const manifest = parseJson(await readFile(path.join(repository, 'package.json'), 'utf8'), manifestSchema, 'package.json');
-  return recordedNpmRelease(manifest.packageManager);
+  return recordedNpmRelease(manifest.devEngines?.packageManager);
 }
 
 test('the npm that runs here is the release that package.json records', async () => {

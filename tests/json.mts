@@ -27,12 +27,19 @@ export function readJson<T>(file: string | URL, schema: JTDSchemaType<T>): T {
 }
 
 /** The fields of a package.json or composer.json that the tests read; every other field is allowed. */
+/** The devEngines.packageManager entry of a package.json: the package manager, its exact version and what happens on a mismatch (K938). */
+export interface PackageManagerEngine {
+  name?: string;
+  version?: string;
+  onFail?: string;
+}
+
 export interface Manifest {
   name?: string;
   version?: string;
   type?: string;
   private?: boolean;
-  packageManager?: string;
+  devEngines?: { packageManager?: PackageManagerEngine };
   workspaces?: string[];
   scripts?: Record<string, string>;
 }
@@ -44,7 +51,12 @@ export const manifestSchema: JTDSchemaType<Manifest> = {
     version: { type: 'string' },
     type: { type: 'string' },
     private: { type: 'boolean' },
-    packageManager: { type: 'string' },
+    devEngines: {
+      optionalProperties: {
+        packageManager: { optionalProperties: { name: { type: 'string' }, version: { type: 'string' }, onFail: { type: 'string' } }, additionalProperties: true },
+      },
+      additionalProperties: true,
+    },
     workspaces: { elements: { type: 'string' } },
     scripts: { values: { type: 'string' } },
   },

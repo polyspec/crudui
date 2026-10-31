@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — Adopt kit 0.0.84 (C17.105)
+
+- kit 0.0.84 is the pinned release: package.json declares npm 12.2.0 in `devEngines.packageManager` (K938) and mise.toml declares `npm:npm` with its mise.lock entry and the sidecar lock under `.mise/locks/npm-npm/12.2.0`; the CI bootstrap runs that npm outside the checkout with `--prefix`; `config/generated.json` lists the two Go tables as `tracked` with their reasons; the CI steps no longer call `kit-install-php-arginfo`, which kit 0.0.81 removed (K930).
+
 ### 2026-10-31 — Check the arguments of the OrderedJSON package-folder script (C17.104)
 
 - `scripts/ordered-json-package.mts` checks its two arguments before it uses them, so the root typecheck of the build job passes; main CI run 41177855445 failed on its types.

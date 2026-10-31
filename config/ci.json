@@ -10,7 +10,6 @@
       "require-build"
     ],
     "parity": [
-      "kit-install-php-arginfo",
       "build-php-ext"
     ],
     "runtimes": {

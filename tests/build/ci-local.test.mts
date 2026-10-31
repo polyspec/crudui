@@ -82,7 +82,7 @@ function field(value: unknown, key: string): unknown {
 }
 
 // Native npm installs the pinned kit before the Makefile can include its bootstrap.
-const NATIVE_NPM_BOOTSTRAP = `npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root`;
+const NATIVE_NPM_BOOTSTRAP = `root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "\${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)`;
 const nativeNpmBootstrap = (command: string | undefined): boolean => command?.trim() === NATIVE_NPM_BOOTSTRAP;
 
 /** Jobs that invoke make before an unconditional install with the declared npm release. */
@@ -94,7 +94,7 @@ export function nativeBootstrapViolations(workflow: Workflow): string[] {
     if (firstMake < 0) continue;
     const installs = steps.map((step, index) => ({ step, index })).filter(({ step }) => nativeNpmBootstrap(step.run));
     const install = installs[0];
-    if (installs.length !== 1 || !install) findings.push(`${id}: expected one native npm bootstrap reading packageManager`);
+    if (installs.length !== 1 || !install) findings.push(`${id}: expected one native npm bootstrap reading devEngines.packageManager`);
     else if (install.step.if !== undefined) findings.push(`${id}: native npm bootstrap must be unconditional`);
     else if (install.index >= firstMake) findings.push(`${id}: native npm bootstrap must precede the first make`);
   }
@@ -105,17 +105,17 @@ test('each make job bootstraps the installed kit with the declared npm before ma
   assert.deepEqual(nativeBootstrapViolations({ jobs: {
     missing: { steps: [{ run: 'make install-tools' }] },
     late: { steps: [{ run: 'make install-tools' }, { run: NATIVE_NPM_BOOTSTRAP }] },
-    hardcoded: { steps: [{ run: NATIVE_NPM_BOOTSTRAP.replace('$(node -p \'require("./package.json").packageManager.split("+")[0]\')', 'npm@1.0.0') }, { run: 'make install-tools' }] },
+    hardcoded: { steps: [{ run: NATIVE_NPM_BOOTSTRAP.replace('$(node -p \'require("./package.json").devEngines.packageManager.version\')', '1.0.0') }, { run: 'make install-tools' }] },
     conditional: { steps: [{ run: NATIVE_NPM_BOOTSTRAP, if: '${{ success() }}' }, { run: 'make install-tools' }] },
     duplicate: { steps: [{ run: NATIVE_NPM_BOOTSTRAP }, { run: NATIVE_NPM_BOOTSTRAP }, { run: 'make install-tools' }] },
     valid: { steps: [{ run: NATIVE_NPM_BOOTSTRAP }, { run: 'make install-tools' }] },
     deployment: { steps: [{ uses: 'actions/deploy-pages@x' }] },
   } }), [
-    'missing: expected one native npm bootstrap reading packageManager',
+    'missing: expected one native npm bootstrap reading devEngines.packageManager',
     'late: native npm bootstrap must precede the first make',
-    'hardcoded: expected one native npm bootstrap reading packageManager',
+    'hardcoded: expected one native npm bootstrap reading devEngines.packageManager',
     'conditional: native npm bootstrap must be unconditional',
-    'duplicate: expected one native npm bootstrap reading packageManager',
+    'duplicate: expected one native npm bootstrap reading devEngines.packageManager',
   ]);
   let jobs = 0;
   for (const file of ['ci.yml', 'pages.yml']) {

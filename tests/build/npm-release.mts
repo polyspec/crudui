@@ -1,9 +1,12 @@
-// The npm release that `packageManager` of package.json records, with the sha512 digest of its tarball that kit requires
-// (K933): npm@<major>.<minor>.<patch>+sha512.<128 hex>. Every reader of the field goes through this helper (C17.98).
+// The npm release that devEngines.packageManager of package.json records: an exact version of npm that npm enforces with onFail
+// error (K938). Every reader of the field goes through this helper (C17.98, C17.105).
+import type { PackageManagerEngine } from '../json.mts';
 
-/** The exact npm release of `packageManager`; throws when the field lacks the digest form. */
-export function recordedNpmRelease(packageManager: string | undefined): string {
-  const match = /^npm@(\d+\.\d+\.\d+)\+sha512\.[0-9a-f]{128}$/.exec(packageManager ?? '');
-  if (!match) throw new Error(`package.json must record packageManager as npm@<major>.<minor>.<patch>+sha512.<hex>; it records ${packageManager}`);
-  return match[1] ?? '';
+/** The exact npm release of devEngines.packageManager; throws when the entry names another package manager or no exact version. */
+export function recordedNpmRelease(packageManager: PackageManagerEngine | undefined): string {
+  const version = packageManager?.version ?? '';
+  if (packageManager?.name !== 'npm' || packageManager.onFail !== 'error' || !/^\d+\.\d+\.\d+$/.test(version)) {
+    throw new Error(`package.json must declare devEngines.packageManager as npm with an exact version and onFail error; it declares ${JSON.stringify(packageManager)}`);
+  }
+  return version;
 }

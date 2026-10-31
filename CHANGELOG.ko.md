@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### 2026-10-31 — kit 0.0.84를 채택한다 (C17.105)
+
+- kit 0.0.84가 고정된 릴리스다. package.json은 `devEngines.packageManager`에 npm 12.2.0을 선언하고(K938), mise.toml은 `npm:npm`과 그 mise.lock 항목, `.mise/locks/npm-npm/12.2.0`의 보조 lock을 선언한다. CI bootstrap은 그 npm을 `--prefix`로 checkout 밖에서 실행한다. `config/generated.json`은 Go 표 두 개를 이유와 함께 `tracked`로 적는다. CI 단계는 kit 0.0.81이 없앤 `kit-install-php-arginfo`(K930)를 더 부르지 않는다.
+
 ### 2026-10-31 — OrderedJSON 패키지 폴더 스크립트의 인자를 검사한다 (C17.104)
 
 - `scripts/ordered-json-package.mts`는 두 인자를 쓰기 전에 검사한다. 그래서 build 작업의 루트 타입 검사가 통과한다. main CI 실행 41177855445는 이 파일의 타입에서 실패했다.

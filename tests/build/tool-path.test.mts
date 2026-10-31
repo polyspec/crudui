@@ -62,7 +62,7 @@ test('every recipe starts npm by its path in the checkout', () => {
 });
 
 test('a recipe of make runs the recorded npm of the checkout', () => {
-  const recorded = recordedNpmRelease(readManifest(path.join(ROOT, 'package.json')).packageManager);
+  const recorded = recordedNpmRelease(readManifest(path.join(ROOT, 'package.json')).devEngines?.packageManager);
   // The probe recipe has no shell syntax, so make starts the program itself, as it does for `$(NPM) run docs:api`.
   const run = spawnSync('make', ['--no-print-directory', '-s', '-f', 'Makefile', '-f', '-', 'probe-npm'], {
     cwd: ROOT, encoding: 'utf8', input: 'probe-npm:\n\t$(NPM) --version\n', env: { ...process.env, MAKEFLAGS: '', MAKELEVEL: '' },

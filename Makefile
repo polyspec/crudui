@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-# The tools of this checkout: `make install-tools TOOLS=npm` installs the npm of packageManager and mise into var/tools/bin,
+# The tools of this checkout: `make install-tools TOOLS=npm` installs the npm of devEngines.packageManager and mise into var/tools/bin,
 # and `make install-tools` installs the tools of mise.lock into var/tools/mise, whose shims kit.mk puts first on PATH with
 # var/tools/bin, so every command of make finds them. The tools of the machine are never changed.
 export PATH := $(CURDIR)/var/tools/bin:$(PATH)

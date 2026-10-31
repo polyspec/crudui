@@ -55,8 +55,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -101,8 +101,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -113,8 +113,6 @@ jobs:
           tools: phpize, php-config
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node go rust php composer python uv ruff vulture phpcs phpstan golangciLint deadcode"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Install the native PHP parser for autoload lint
         run: make kit-install-symbols EXTRACTORS="php"
       # make lint runs PHPStan with the autoloader of the Composer packages; make crudui-install-composer runs the Composer of
@@ -155,8 +153,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -200,8 +198,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -252,8 +250,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -299,8 +297,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -350,8 +348,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -399,8 +397,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -411,8 +409,6 @@ jobs:
           tools: phpize, php-config
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node go rust php composer python uv"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Install PHP dependencies
         run: make crudui-install-composer
       - name: Cargo cache
@@ -462,8 +458,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -502,8 +498,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -553,8 +549,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -603,8 +599,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -615,8 +611,6 @@ jobs:
           tools: phpize, php-config
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node go rust php composer"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -676,8 +670,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -688,8 +682,6 @@ jobs:
           tools: phpize, php-config
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node go rust php composer"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -752,8 +744,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -764,8 +756,6 @@ jobs:
           tools: phpize, php-config
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node go rust php composer"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -824,8 +814,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -868,8 +858,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -915,8 +905,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -957,8 +947,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -969,8 +959,6 @@ jobs:
           tools: phpize, php-config
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node php composer"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Install dependencies
         run: make crudui-install-composer
       - name: Run the checks and write their report
@@ -1011,8 +999,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -1032,8 +1020,6 @@ jobs:
           key: go-${{ runner.os }}-${{ hashFiles('packages/generator/go/go.mod', 'tests/native-generators/programs/go/go.mod', 'benchmarks/validators/go/go.mod') }}
       - name: Install the selected pinned tools
         run: make install-tools TOOLS="node go rust php composer python uv"
-      - name: Install the pinned PHP extension generator
-        run: make kit-install-php-arginfo
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -1105,8 +1091,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
@@ -1147,8 +1133,8 @@ jobs:
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Bootstrap the installed kit package
         run: |
-          npm_config_cache="$PWD/var/bootstrap/npm-cache" npm exec --yes --package="$(node -p 'require("./package.json").packageManager.split("+")[0]')" -- npm ci --ignore-scripts --allow-remote=root
-      - name: Install the npm of packageManager into var/tools
+          root="$PWD"; version="$(node -p 'require("./package.json").devEngines.packageManager.version')"; (cd "${RUNNER_TEMP:?RUNNER_TEMP is not set}" && npm_config_cache="$root/var/bootstrap/npm-cache" npm exec --yes --package="npm@$version" -- npm --prefix "$root" ci --ignore-scripts --allow-remote=root)
+      - name: Install the npm of devEngines.packageManager into var/tools
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
