@@ -3,24 +3,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-interface InstalledPackage {
-  name?: string;
-  extra?: { 'pie-built-binary'?: unknown };
-  'install-path'?: unknown;
-}
-
 const [work, output] = process.argv.slice(2);
 const builds: string[] = [];
 for (const target of fs.existsSync(work) ? fs.readdirSync(work) : []) {
   const composer = path.join(work, target, 'vendor', 'composer');
   const file = path.join(composer, 'installed.json');
   if (!fs.existsSync(file)) continue;
-  const installed = JSON.parse(fs.readFileSync(file, 'utf8')) as { packages?: InstalledPackage[] };
-  for (const entry of installed.packages ?? []) {
-    const binary = entry.extra?.['pie-built-binary'];
-    if (entry.name === 'polyspec/ordered-json-php-ext' && typeof binary === 'string' && typeof entry['install-path'] === 'string') {
-      builds.push(path.resolve(composer, entry['install-path']));
-    }
+  const installed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const packages: unknown[] = typeof installed === 'object' && installed !== null && 'packages' in installed && Array.isArray(installed.packages) ? installed.packages : [];
+  for (const entry of packages) {
+    if (typeof entry !== 'object' || entry === null || !('name' in entry) || entry.name !== 'polyspec/ordered-json-php-ext') continue;
+    const extra = 'extra' in entry ? entry.extra : undefined;
+    const binary = typeof extra === 'object' && extra !== null && 'pie-built-binary' in extra ? extra['pie-built-binary'] : undefined;
+    const installPath = 'install-path' in entry ? entry['install-path'] : undefined;
+    if (typeof binary === 'string' && typeof installPath === 'string') builds.push(path.resolve(composer, installPath));
   }
 }
 if (builds.length !== 1) throw new Error(`PIE recorded ${builds.length} builds of polyspec/ordered-json-php-ext in ${work}, not one`);
